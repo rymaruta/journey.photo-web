@@ -1222,10 +1222,10 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                         </Link>
                         <div className="min-w-0 flex-1">
                             <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
-                                  className="block max-w-full text-white font-semibold truncate hover:text-white/80 transition-colors"
+                                  className="flex min-h-[44px] max-w-full items-center text-white font-semibold hover:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                                   title={photo.displayName}
                                   style={{ fontSize: "15px", lineHeight: "20px", touchAction: "manipulation" }}>
-                                {photo.displayName}
+                                <span className="block min-w-0 truncate">{photo.displayName}</span>
                             </Link>
                             {photo.uploaderUsername && (
                                 <p className="m-0 mt-0.5 text-text-3 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>@{photo.uploaderUsername}</p>
