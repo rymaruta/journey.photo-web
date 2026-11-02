@@ -36,25 +36,28 @@ describe("SpotSearchResults", () => {
     });
 
     it("代表写真がある結果にはミニ画像とクレジットを表示する", async () => {
-        render(<SpotSearchResults query="銀山温泉" locale="ja" />);
+        const { container } = render(<SpotSearchResults query="銀山温泉" locale="ja" />);
         await screen.findByRole("link", { name: /銀山温泉/ });
-        const img = screen.getByRole("img", { hidden: true });
+        const img = container.querySelector("img");
+        expect(img).not.toBeNull();
         expect(img.getAttribute("src")).toBe("/images/spots/thumb/ginzan-onsen.jpg");
         expect(screen.getByText("CC BY 4.0")).toBeTruthy();
     });
 
     it("ミニ画像の読み込みに失敗したら地図ピンへ切り替える", async () => {
-        render(<SpotSearchResults query="銀山温泉" locale="ja" />);
-        const img = await screen.findByRole("img", { hidden: true });
-        fireEvent.error(img);
-        expect(screen.queryByRole("img", { hidden: true })).toBeNull();
+        const { container } = render(<SpotSearchResults query="銀山温泉" locale="ja" />);
+        await screen.findByRole("link", { name: /銀山温泉/ });
+        const img = container.querySelector("img");
+        expect(img).not.toBeNull();
+        fireEvent.error(img!);
+        expect(container.querySelector("img")).toBeNull();
         expect(screen.getByRole("link", { name: /銀山温泉/ })).toBeTruthy();
     });
 
     it("代表写真がない結果は地図ピンのまま表示する", async () => {
-        render(<SpotSearchResults query="山形の場所0" locale="ja" />);
+        const { container } = render(<SpotSearchResults query="山形の場所0" locale="ja" />);
         await screen.findByRole("link", { name: /山形の場所0/ });
-        expect(screen.queryByRole("img", { hidden: true })).toBeNull();
+        expect(container.querySelector("img")).toBeNull();
     });
 
     it("当たりが多ければ5件で畳み、押すと全部出す", async () => {
