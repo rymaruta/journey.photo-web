@@ -87,6 +87,17 @@ describe("SpotSearchResults", () => {
         expect(screen.getByRole("button", { name: /すべて表示/ }).getAttribute("aria-expanded")).toBe("false");
     });
 
+    it("検索語が変わったら展開状態を引き継がず、5件に戻る（iOSと同じ）", async () => {
+        const { rerender } = renderWithLocale(<SpotSearchResults query="山形" locale="ja" />);
+        await screen.findByTestId("search-spot-results");
+        fireEvent.click(screen.getByRole("button", { name: /すべて表示/ }));
+        expect(screen.getAllByRole("link")).toHaveLength(9);
+
+        rerender(<LocaleProvider><SpotSearchResults query="山形県" locale="ja" /></LocaleProvider>);
+        expect(screen.getAllByRole("link")).toHaveLength(5);
+        expect(screen.getByRole("button", { name: /すべて表示/ }).getAttribute("aria-expanded")).toBe("false");
+    });
+
     it("当たりが無ければ節ごと出さない", async () => {
         renderWithLocale(<SpotSearchResults query="パリ" locale="ja" />);
         await waitFor(() => expect(fetchMock).toHaveBeenCalled());
