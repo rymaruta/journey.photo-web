@@ -71,7 +71,7 @@ function rankByNames(names: readonly (string | undefined)[], q: string): number 
  * 「さがす」が読む名前だけの索引の1行（`/app/data/spot-search.json`・`lib/data/spotSearchFeed.ts`）。
  * 鍵は短く（1,000行ぶん乗る）: 綴り・名前・英語名・読み・別名・地域
  */
-export type SpotSearchRow = { s: string; n: string; e?: string; r?: string; a?: string[]; g?: string };
+export type SpotSearchRow = { s: string; n: string; e?: string; r?: string; a?: string[]; g?: string; image?: { src: string; credit?: { author: string; license?: string; licenseUrl?: string; sourceUrl?: string; text?: string } } };
 
 /**
  * 名前だけの索引を語で引く（「さがす」の撮影スポットの節）。

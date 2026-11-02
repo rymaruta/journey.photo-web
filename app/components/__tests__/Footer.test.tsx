@@ -27,6 +27,7 @@ describe("フッターの導線", () => {
             ["行きたい場所", ROUTES.SAVED_SPOTS],
             ["利用規約", ROUTES.TERMS],
             ["プライバシーポリシー", ROUTES.PRIVACY],
+            ["iOSアプリをApp Storeで入手", "https://apps.apple.com/jp/app/id6814335283"],
         ]);
     });
 });
@@ -42,6 +43,14 @@ describe("フッターのリンクの押す的と字", () => {
         // 行の間隔は的の高さで取る（行の隙間を足すと、的どうしの間が空きすぎる・フッターが伸びる）
         const nav = links[0].parentElement!;
         expect(nav.className, "行の隙間を重ねて足している").not.toMatch(/(^|\s)gap-y-/);
+    });
+
+    it("フッターのリンクはキーボード操作時にフォーカスが見える", () => {
+        render(<Footer />);
+        for (const link of screen.getAllByRole("link")) {
+            expect(link.className, link.textContent!).toContain("focus-visible:outline-2");
+            expect(link.className, link.textContent!).toContain("focus-visible:outline-accent");
+        }
     });
 
     it("ナビのリンクの字は px で 13（rem の段に頼らない）", () => {

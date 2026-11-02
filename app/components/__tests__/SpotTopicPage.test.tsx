@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import type { Spot } from "@/lib/data/spots";
 
 /**
@@ -52,6 +52,31 @@ describe("SpotTopicPage", () => {
         expect(lic.getAttribute("rel")).toContain("license");
         expect(line.closest("a")).toBeNull();
         expect(line.className).not.toContain("truncate");
+    });
+
+    it("撮影スポットカードの画像が失敗したら名前に切り替え、写真クレジットを隠す", () => {
+        const view = themeView("temples-shrines", "kinki")!;
+        const credited = view.cards.find((c) => c.cover?.credit?.license)!;
+        const { container } = render(<SpotTopicPage view={{ ...view, cards: [credited] }} eyebrow="x" />);
+        const img = container.querySelector("ul.grid img");
+        expect(img).not.toBeNull();
+        expect(screen.getByTestId("topic-credit")).toBeTruthy();
+        fireEvent.error(img!);
+        expect(container.querySelector("ul.grid img")).toBeNull();
+        expect(screen.queryByTestId("topic-credit")).toBeNull();
+        expect(screen.getByRole("link", { name: new RegExp(credited.name) })).toBeTruthy();
+    });
+
+    it("代表写真がないカードでもスポット名と詳細へのリンクを維持する", () => {
+        const view = themeView("temples-shrines", "kyoto")!;
+        const original = view.cards[0];
+        const noCover = { ...original, cover: null };
+        const { container } = render(<SpotTopicPage view={{ ...view, cards: [noCover] }} eyebrow="x" />);
+        const link = container.querySelector('ul.grid a[href="/spots/' + original.slug + '"]');
+        expect(link).not.toBeNull();
+        expect(link!.textContent).toContain(original.name);
+        expect(link!.querySelector("img")).toBeNull();
+        expect(container.querySelector('[data-testid="topic-credit"]')).toBeNull();
     });
 
     it("🔴 `/spots/area/overseas` は国の一覧（スポットのカードを積まない）", async () => {
