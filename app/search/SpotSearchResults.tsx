@@ -87,7 +87,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
             </ul>
             {hits.length > INITIAL && (
                 <button type="button" onClick={() => setExpandedFor(expanded ? null : q)}
-                        className="mt-2 rounded-full px-4 text-white/80 ring-1 ring-line hover:bg-white/10"
+                        className="mt-2 rounded-full px-4 text-white/80 ring-1 ring-line hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                         style={{ minHeight: "44px", fontSize: "13px" }}
                         aria-expanded={expanded}>
                     {expanded
