@@ -26,6 +26,24 @@ import { TopicCreditLine } from "../components/SpotTopicLists";
  * 写真の枚数・人気・評価は出さない（台帳は数を持たない。`MapSpotList` と同じ方針）。
  */
 
+/** 画像が消えた・読み込めない場合も撮影スポットへの導線を残す。 */
+function SpotSearchThumbnail({ src }: { src?: string }) {
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    if (!src || failedSrc === src) {
+        return (
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-2">
+                <MapPinIcon className="h-5 w-5 text-accent" aria-hidden="true" />
+            </span>
+        );
+    }
+    return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" loading="lazy" decoding="async" width={48} height={48}
+             onError={() => setFailedSrc(src)}
+             className="h-12 w-12 shrink-0 rounded-lg bg-surface-2 object-cover" />
+    );
+}
+
 /** 最初に見せる件数。「県の名前」で当てると数十件になるので、畳んでおく */
 const INITIAL = 5;
 
@@ -53,15 +71,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
                         <Link href={`${ROUTES.SPOTS}/${s.s}`} prefetch={false}
                               className="flex items-center gap-3 px-3.5 hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                               style={{ minHeight: "56px" }}>
-                            {s.image ? (
-                                /* eslint-disable-next-line @next/next/no-img-element */
-                                <img src={s.image.src} alt="" loading="lazy" decoding="async" width={48} height={48}
-                                     className="h-12 w-12 shrink-0 rounded-lg bg-surface-2 object-cover" />
-                            ) : (
-                                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-2">
-                                    <MapPinIcon className="h-5 w-5 text-accent" aria-hidden="true" />
-                                </span>
-                            )}
+                            <SpotSearchThumbnail src={s.image?.src} />
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate font-semibold text-white" style={{ fontSize: "15px", lineHeight: "22px" }}>{s.n}</span>
                                 <span className="block truncate text-white/70" style={{ fontSize: "12px", lineHeight: "18px" }}>
