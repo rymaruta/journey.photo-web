@@ -57,7 +57,7 @@ export default function Footer() {
                                     setDismissed(true);
                                     try { sessionStorage.setItem("jp-ios-app-cta-dismissed", "1"); } catch { /* storage unavailable */ }
                                 }}
-                                className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full text-text-2 hover:text-white"
+                                className="absolute right-3 top-3 flex h-11 w-11 items-center justify-center rounded-full text-text-2 hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                             >
                                 <span aria-hidden="true">×</span>
                             </button>
@@ -70,7 +70,7 @@ export default function Footer() {
                                 </div>
                             </div>
                             <a href={appStoreUrl} target="_blank" rel="noopener noreferrer"
-                               className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-[14px] font-semibold text-black transition-opacity hover:opacity-90">
+                               className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-[14px] font-semibold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                                 App Storeで入手
                             </a>
                         </section>
@@ -85,7 +85,7 @@ export default function Footer() {
                                 key={href}
                                 href={href}
                                 prefetch={false}
-                                className="inline-flex min-h-[44px] items-center justify-center px-1 text-text-2 transition-colors hover:text-accent"
+                                className="inline-flex min-h-[44px] items-center justify-center px-1 text-text-2 transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                                 style={{ fontSize: "13px", lineHeight: "18px", touchAction: "manipulation" }}
                             >
                                 {label}
@@ -94,7 +94,7 @@ export default function Footer() {
                     </nav>
 
                     <a href={appStoreUrl} target="_blank" rel="noopener noreferrer"
-                       className="inline-flex min-h-[44px] items-center justify-center text-[13px] text-text-2 underline underline-offset-4 transition-colors hover:text-white">
+                       className="inline-flex min-h-[44px] items-center justify-center text-[13px] text-text-2 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                         iOSアプリをApp Storeで入手
                     </a>
                     <p className="text-[13px] leading-[18px] text-text-3">© Journey Photo</p>
