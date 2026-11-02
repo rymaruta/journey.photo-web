@@ -12,6 +12,7 @@ import { featuredGroups } from "@/lib/utils/featured";
 import { colorShelves, gearShelves, COLOR_TEXT, GEAR_TEXT } from "@/lib/utils/searchShelves";
 import { photoAltText } from "@/lib/utils/photoAlt";
 import { ROUTES } from "@/lib/routes";
+import { SEASONS, SEASON_JA, SEASON_EN } from "@/lib/data/spotTopics";
 import GalleryGrid from "../components/GalleryGrid";
 import { GRID_SIZES_SEARCH, GRID_COLUMNS_SEARCH } from "../components/gridSizes";
 
@@ -243,6 +244,21 @@ export default function DiscoverSections({ photos, locale, categoryDisplayMap, o
                 </section>
             )}
 
+            {spots.length > 0 && (
+                <section aria-labelledby="discover-seasons" data-testid="discover-seasons">
+                    <SharedSectionHead id="discover-seasons" eyebrow="SEASON" title={isJa ? "季節から探す" : "Browse by season"} testId="discover-section-head" />
+                    <ul className="grid grid-cols-4 gap-2 m-0 p-0" style={{ listStyle: "none" }}>
+                        {SEASONS.map((season) => (
+                            <li key={season}>
+                                <Link href={`/spots/season/${season}`} prefetch={false}
+                                      className="flex min-h-12 items-center justify-center rounded-xl bg-surface border border-line px-2 py-3 text-sm text-white hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+                                    {isJa ? SEASON_JA[season] : SEASON_EN[season]}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
             {featured && (
                 <section aria-labelledby="discover-picks">
                     <SectionHead id="discover-picks" eyebrow={`PICKS · ${featured.label}`} title={isJa ? "おすすめ" : "Picks"}
