@@ -27,7 +27,7 @@ import { TopicCreditLine } from "../components/SpotTopicLists";
  */
 
 /** 画像が消えた・読み込めない場合も撮影スポットへの導線を残す。 */
-function SpotSearchThumbnail({ src }: { src?: string }) {
+function SpotSearchThumbnail({ src, onFailure }: { src?: string; onFailure?: () => void }) {
     const [failedSrc, setFailedSrc] = useState<string | null>(null);
     if (!src || failedSrc === src) {
         return (
@@ -39,7 +39,7 @@ function SpotSearchThumbnail({ src }: { src?: string }) {
     return (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={src} alt="" loading="lazy" decoding="async" width={48} height={48}
-             onError={() => setFailedSrc(src)}
+             onError={() => { setFailedSrc(src); onFailure?.(); }}
              className="h-12 w-12 shrink-0 rounded-lg bg-surface-2 object-cover" />
     );
 }
@@ -53,6 +53,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
     const { rows } = useSpotSearchIndex(q);
     /** 開いた語。**語が変わったら自然に畳まれる**（effect で戻さない） */
     const [expandedFor, setExpandedFor] = useState<string | null>(null);
+    const [failedImages, setFailedImages] = useState<ReadonlySet<string>>(() => new Set());
     const expanded = expandedFor === q;
 
     const hits = useMemo(() => (q && rows ? searchSpotRows(rows, q) : []), [rows, q]);
@@ -71,7 +72,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
                         <Link href={`${ROUTES.SPOTS}/${s.s}`} prefetch={false}
                               className="flex items-center gap-3 px-3.5 hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                               style={{ minHeight: "56px" }}>
-                            <SpotSearchThumbnail src={s.image?.src} />
+                            <SpotSearchThumbnail src={s.image?.src} onFailure={() => setFailedImages((prev) => new Set(prev).add(s.s))} />
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate font-semibold text-white" style={{ fontSize: "15px", lineHeight: "22px" }}>{s.n}</span>
                                 <span className="block truncate text-white/70" style={{ fontSize: "12px", lineHeight: "18px" }}>
@@ -80,7 +81,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
                             </span>
                             <ChevronRightIcon aria-hidden="true" className="shrink-0 text-white/50" style={{ width: "18px", height: "18px" }} />
                         </Link>
-                        {s.image?.credit && <div className="px-3.5 pb-1"><TopicCreditLine credit={s.image.credit} compact /></div>}
+                        {s.image?.credit && !failedImages.has(s.s) && <div className="px-3.5 pb-1"><TopicCreditLine credit={s.image.credit} compact /></div>}
                     </li>
                 ))}
             </ul>
