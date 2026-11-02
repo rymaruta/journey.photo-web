@@ -75,8 +75,16 @@ describe("SpotSearchResults", () => {
         renderWithLocale(<SpotSearchResults query="山形" locale="ja" />);
         await screen.findByTestId("search-spot-results");
         expect(screen.getAllByRole("link")).toHaveLength(5);
-        fireEvent.click(screen.getByRole("button", { name: /すべて表示/ }));
+        const expand = screen.getByRole("button", { name: /すべて表示/ });
+        expect(expand.getAttribute("aria-expanded")).toBe("false");
+        expect(expand.className).toContain("focus-visible:outline-2");
+        fireEvent.click(expand);
         expect(screen.getAllByRole("link")).toHaveLength(9);
+        const collapse = screen.getByRole("button", { name: "閉じる" });
+        expect(collapse.getAttribute("aria-expanded")).toBe("true");
+        fireEvent.click(collapse);
+        expect(screen.getAllByRole("link")).toHaveLength(5);
+        expect(screen.getByRole("button", { name: /すべて表示/ }).getAttribute("aria-expanded")).toBe("false");
     });
 
     it("当たりが無ければ節ごと出さない", async () => {
