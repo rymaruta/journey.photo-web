@@ -197,9 +197,15 @@ describe("さがす: 節の見出しはアプリ v2 の形", () => {
             const h2 = h.querySelector("h2")!;
             expect(h2.className).toContain("font-serif");
             expect((h2 as HTMLElement).style.fontSize).toBe("22px");
-            const more = h.querySelector("a")!;
-            expect(more.className, "行き先は合図ではない（真鍮にしない）").not.toContain("text-accent");
-            expect(more.className).toContain("min-h-[44px]");
+            const more = h.querySelector("a");
+            // 色・季節など、実在する「すべて見る」ページがない節にはリンクを置かない。
+            if (more) {
+                expect(more.className, "行き先は合図ではない（真鍮にしない）").not.toContain("text-accent");
+                expect(more.className).toContain("min-h-[44px]");
+                expect(more.getAttribute("href")).toBeTruthy();
+            } else {
+                expect(["discover-seasons", "discover-colors"]).toContain(h.querySelector("h2")?.id);
+            }
         }
     });
 });
