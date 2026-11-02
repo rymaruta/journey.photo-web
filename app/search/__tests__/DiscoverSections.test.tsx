@@ -56,6 +56,15 @@ describe("季節の撮影スポット導線", () => {
         expect(section.textContent).not.toMatch(/\\d+枚/);
         expect(links.every((a) => a.getAttribute("data-next-link") === "1")).toBe(true);
     });
+    it("英語表示でも既存の季節別URLとアクセシブルなリンク名を維持する", () => {
+        render(<DiscoverSections photos={[photo("a", { location: "Tokyo" })]} locale="en" categoryDisplayMap={{}} />);
+        const section = screen.getByTestId("discover-seasons");
+        expect(section.textContent).toContain("Browse by season");
+        expect([...section.querySelectorAll("a")].map((a) => a.textContent)).toEqual([
+            "Spring", "Summer", "Autumn", "Winter",
+        ]);
+        expect([...section.querySelectorAll("a")].every((a) => a.className.includes("min-h-12"))).toBe(true);
+    });
     it("撮影地が無いときは季節導線を出さない", () => {
         render1([photo("a")]);
         expect(screen.queryByTestId("discover-seasons")).toBeNull();
