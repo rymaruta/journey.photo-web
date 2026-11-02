@@ -53,3 +53,31 @@
 - したがって「専用page.tsx未特定」はWEBに機能がないという意味ではない。
 - 次段階では各ルートのコンポーネントとiOS遷移元、API、表示条件、スクリーンショットを照合し、画面ごとに「一致/差異/仕様上の違い/未検証」を確定する。
 - 監査中は本番の画面変更を伴うマージをしない。
+
+## 第2段階：画面内部のソース照合（2026-11-03）
+
+今回実際に開いたファイル（WEB 7件、iOS 7件）:
+- WEB: `app/page.tsx`, `app/photo/[id]/PhotoPageClient.tsx`, `app/search/SpotSearchResults.tsx`, `app/user/settings/page.tsx`, `app/user/profile/page.tsx`, `app/user/upload/page.tsx`, `app/trips/page.tsx`
+- iOS: `GalleryView.swift`, `PhotoDetailView.swift`, `SearchView.swift`, `SettingsView.swift`, `MyPageView.swift`, `UploadView.swift`, `TripBookView.swift`（いずれも `Sources/JourneyPhoto/Features/` 以下）
+
+| 項目 | WEBで確認した具体的内容 | iOSで確認した具体的内容 | 判定・次の確認 |
+| --- | --- | --- | --- |
+| 写真詳細の操作 | `PhotoPageClient.tsx` に前後写真移動、撮影地・スポットリンク、作者リンク、いいね・コメント・保存・共有のボタン | `PhotoDetailView.swift` に作者/撮影地の遷移、保存・共有・コメント・ブロック、近くの写真 | 共通操作は存在。ボタン順、モーダル、共有画像の生成経路は未一致 |
+| 写真詳細のEXIF | WEBは保存済みEXIFを使い、不足時に `exifr` を遅延ロードして補完する処理あり | iOSは写真詳細のメタ情報表示と共有カード機能あり | WEBの再抽出経路とiOSの表示項目・安全性を要比較 |
+| 撮影スポット検索 | WEB `SpotSearchResults.tsx` に検索結果リンク、展開ボタン。PR #480で代表画像表示を変更 | iOS `SearchView.swift` に季節・時間帯・色・機材・人気撮影地などの絞り込み/発見セクション | **検索UIの構成差が明確**。WEBの検索全体は `app/search/page.tsx` だけでは把握不可、子コンポーネント追跡が必要 |
+| 設定 | WEB `app/user/settings/page.tsx` にプロフィール、プライバシー、ブロック、退会などの節 | iOS `SettingsView.swift` に通知トグル、すれちがい帳、アルバム、旅行プラン、キャンピングカー、トランク、構図一覧、写真キャッシュ | **設定項目の差が明確**。WEBは通知の詳細設定が未実装とコード内で明記。単純なUIコピーは不適切 |
+| 投稿/編集 | WEB `app/user/upload/page.tsx` にEXIF抽出、スポット自動選択、S3アップロード、下書き、公開範囲、複数写真の選択 | iOS `UploadView.swift` に下書き復元、スポット紐付け、写真編集、公開範囲、EXIF削除・約1kmへの座標丸めの説明、投稿後SNS共有 | **両方多機能**。公開範囲の既定値、GPS丸め、元画像と編集後画像の扱いを実処理まで追跡する必要あり |
+| マイページ/プロフィール編集 | WEB `app/user/profile/page.tsx` はプロフィール編集の画面で、カバー、アバター、名前、自己紹介、テーマ色等を編集 | iOS `MyPageView.swift` は閲覧用マイページで、`ProfileEditView.swift` へ遷移 | **重要：同名に見えるファイルを単純対応させてはいけない**。WEBの `app/user/profile` は編集、iOSの `MyPageView` は閲覧 |
+| 旅行 | WEB `app/trips/page.tsx` は `TripsClient` を呼ぶ薄いサーバー側ラッパー | iOS `TripBookView.swift` は旅の一冊の詳細、日別写真・ルート・共有を描画 | **未比較**。WEB `TripsClient` とiOS `TripPlansView` 等を開いて機能を照合する必要あり |
+| ホーム | WEB `app/page.tsx` は主にサーバー側ページ構成 | iOS `GalleryView.swift` はフィード切替・おすすめ・空状態・再試行等を描画 | **未比較**。WEBの実際のクライアント側フィードコンポーネントを追跡する必要あり |
+
+### 確認優先度とリスク
+1. **P0** 投稿の公開範囲・GPS/EXIF・写真の表示権限。WEB/iOSで実装経路が異なるため、UIが似ていてもセキュリティや公開結果が同じとは限らない。
+2. **P1** 写真詳細・共有カード。WEBのURL共有とiOSの画像カード共有の仕様差、バッジ・機材名・余白・枠外出力。
+3. **P1** 検索とスポット。絞り込み項目、代表写真の権利表記、取得失敗時の表示。
+4. **P1** 設定とプロフィール。画面の実体・ナビゲーションが異なる。機能の有無を決めつけずルート/コンポーネントを追跡。
+5. **P2** 旅行・ストーリー・通知・キャンピングカー等の固有機能。WEBへの移植の要否は仕様判断。
+
+### 未実施の検証
+- 全画面の全コンポーネントの精読、全操作経路、API呼び出し、スクリーンショット差分、端末実行、回帰テスト。
+- 本文はソースコード上の**存在・構造・明記された挙動**のみ。実機の見た目や機能の正常動作を保証しない。
