@@ -69,8 +69,11 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
+      # 型エラーがあっても残りの問題を同じ実行で洗い出す。
       - name: Lint
+        if: success() || failure()
         run: npx eslint .
 
       - name: Test
+        if: success() || failure()
         run: npx vitest run
