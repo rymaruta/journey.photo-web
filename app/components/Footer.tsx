@@ -1,19 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore, useState } from "react";
 import { useLocale } from "../i18n/context";
 import { ROUTES } from "../../lib/routes";
 
 export default function Footer() {
     const { locale, labels } = useLocale();
     const navLabels = labels.navigation || {};
-    const [isIOS, setIsIOS] = useState(false);
-    const [dismissed, setDismissed] = useState(false);
-    useEffect(() => {
-        setIsIOS(/iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
-        try { setDismissed(sessionStorage.getItem("jp-ios-app-cta-dismissed") === "1"); } catch { /* storage unavailable */ }
-    }, []);
+    // SSRと初回描画を揃え、hydration後に端末情報を読む。
+    const isIOS = useSyncExternalStore(
+        () => () => {},
+        () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
+        () => false,
+    );
+    const [dismissed, setDismissed] = useState(() => {
+        if (typeof window === "undefined") return false;
+        try { return sessionStorage.getItem("jp-ios-app-cta-dismissed") === "1"; } catch { return false; }
+    });
     const appStoreUrl = "https://apps.apple.com/jp/app/id6814335283";
 
     const links = [
