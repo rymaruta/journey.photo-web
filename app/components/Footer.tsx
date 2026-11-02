@@ -14,10 +14,12 @@ export default function Footer() {
         () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
         () => false,
     );
-    const [dismissed, setDismissed] = useState(() => {
-        if (typeof window === "undefined") return false;
-        try { return sessionStorage.getItem("jp-ios-app-cta-dismissed") === "1"; } catch { return false; }
-    });
+    const [dismissed, setDismissed] = useState(false);
+    const previouslyDismissed = useSyncExternalStore(
+        () => () => {},
+        () => { try { return sessionStorage.getItem("jp-ios-app-cta-dismissed") === "1"; } catch { return false; } },
+        () => false,
+    );
     const appStoreUrl = "https://apps.apple.com/jp/app/id6814335283";
 
     const links = [
@@ -46,7 +48,7 @@ export default function Footer() {
                         </p>
                     </div>
 
-                    {isIOS && !dismissed && (
+                    {isIOS && !dismissed && !previouslyDismissed && (
                         <section aria-label="iOSアプリのご案内" className="relative w-full max-w-[520px] rounded-2xl border border-line bg-white/[0.04] px-5 py-5 text-left">
                             <button
                                 type="button"
