@@ -45,6 +45,14 @@ describe("フッターのリンクの押す的と字", () => {
         expect(nav.className, "行の隙間を重ねて足している").not.toMatch(/(^|\s)gap-y-/);
     });
 
+    it("フッターのリンクはキーボード操作時にフォーカスが見える", () => {
+        render(<Footer />);
+        for (const link of screen.getAllByRole("link")) {
+            expect(link.className, link.textContent!).toContain("focus-visible:outline-2");
+            expect(link.className, link.textContent!).toContain("focus-visible:outline-accent");
+        }
+    });
+
     it("ナビのリンクの字は px で 13（rem の段に頼らない）", () => {
         render(<Footer />);
         const nav = screen.getByRole("navigation");
