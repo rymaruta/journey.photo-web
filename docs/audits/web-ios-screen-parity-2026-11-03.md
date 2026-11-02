@@ -192,3 +192,22 @@
 4. WEBのアップロード中断、部分成功、サムネイル失敗時の孤立ファイル処理を回帰テストで維持する。
 
 **注意**: この調査でプライバシー漏洩や画像劣化が起きていると断定したわけではない。実処理・API・画像バイナリの確認前に安全性を保証することもできない。
+
+## 第7段階：画像本体のメタデータ保護・画質の追跡
+
+確認元: WEB `lib/utils/image.ts`（583行）、`lib/utils/audience.ts`（59行）、`app/user/upload/page.tsx`、`api-user/src/upload.ts`（856行）、iOS `ImagePreparer.swift`（448行）、`Audience.swift`（77行）。
+
+### 判定の更新
+- **WEBのEXIF除去は未実装ではない。** `toUploadSafeFile`（`lib/utils/image.ts:434`）をWEB投稿処理（`app/user/upload/page.tsx:1187`）が呼ぶ。JPEGバイト処理 `stripJpegExifDetailed`（147行以降）はAPP1/APP13、複数JPEG画像に残るメタデータ、向きの保持を考慮し、検証失敗時に `UnstrippableFileError` を投げる経路がある。**ただし各入力形式の実ファイルテストは別途必要。**
+- **画像サイズの仕様は双方とも1920px上限が基準。** WEB `toUploadSafeFile(file,maxPx=1920,quality=0.85)`、iOS `ImagePreparer.swift:213` の1920px JPEG再エンコード、`jpegQuality=0.85`。iOSは512px JPEGサムネイル品質0.75。元の写真をそのまま配信する設計ではない。画質優先方針と両立するかはユーザー判断が必要で、監査中に無断で上限変更しない。
+- **公開範囲のwire値は整合。** WEB `lib/utils/audience.ts` とiOS `Audience.swift` は `everyone/followers/closeFriends` の3種。全体公開は属性を送らず、更新時の全体公開は空文字。WEBの新規投稿は `everyone` 初期値。API `api-user/src/upload.ts:466–478` は制限付き公開を別のフィードキーに分類し、508行以降で `private/` への移動を指示。**実際のオブジェクトACL/CDNと匿名アクセス拒否は未検証。**
+- **GPS丸めはWEBに存在。** `app/user/upload/page.tsx:1290–1293` で小数点以下2桁へ丸める。iOSの説明は約1km。座標の量子化の物理的な距離は緯度で異なるので、表示文言・処理・サーバー保存を一体で検証。
+- **写真詳細の共有方式には差がある。** WEB `PhotoPageClient.tsx:903–915` はURL共有、iOS `PhotoDetailView.swift` は `SignatureShareCardRenderer` の画像共有を利用。両方の共有機能を混同せず、画像カード追加は別の仕様・実装PRにする。
+
+### 残る厳格なテスト
+1. JPEG（Orientation 1–8、複数JPEG/HDRゲインマップ）、HEIC、PNG、WebP、AVIF、破損画像をWEBとiOSの前処理に入力。**出力ファイル**を再解析しGPS/EXIF/XMP/IPTCが残らないことを確認。
+2. 100MP、縦長、パノラマ、HDRでの解像感、色空間、向き、サムネイル、転送量、メモリを測定。1920px上限を変更するなら、性能とストレージ費用も含めて別途設計。
+3. 3公開範囲×未ログイン/投稿者/フォロワー/親しい友達/ブロック相手で、写真詳細、検索、OGP、CDN直URLを検証。
+4. 中断/失敗時の孤立S3オブジェクト、サムネイルのみ失敗、下書き再送、公開範囲変更の回帰テスト。
+
+**監査判断**: 現段階で具体的な漏洩を確認したわけではない。安全性の完了宣言もできない。既存のWEB防御を消してiOSに寄せる変更は禁じる。
