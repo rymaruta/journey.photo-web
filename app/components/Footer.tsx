@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PaperAirplaneIcon } from "@heroicons/react/24/solid";
 import { useLocale } from "../i18n/context";
 import { ROUTES } from "../../lib/routes";
 
@@ -32,9 +31,10 @@ export default function Footer() {
         <footer className="border-t border-line bg-bg" style={{ paddingBottom: "var(--page-bar-h, 0px)" }}>
             <div className="mx-auto max-w-5xl px-6 py-10 md:px-8 md:py-12">
                 <div className="flex flex-col items-center gap-6 text-center">
-                    <div className="flex flex-col items-center gap-2">
-                        <p className="inline-flex items-center gap-2 text-[22px] font-semibold tracking-wide text-white">
-                            <PaperAirplaneIcon aria-hidden="true" className="h-5 w-5 -rotate-45 text-accent" />
+                    <div className="flex flex-col items-center gap-3">
+                        <p className="inline-flex items-center gap-3 text-[22px] font-semibold tracking-wide text-white">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src="/logo-aperture.png" alt="" aria-hidden="true" width={24} height={24} loading="lazy" className="h-6 w-6 shrink-0 object-contain" />
                             Journey Photo
                         </p>
                         <p className="text-[15px] leading-[22px] text-text-2">
