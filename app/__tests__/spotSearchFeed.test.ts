@@ -7,7 +7,7 @@ import * as route from "../app/data/spot-search.json/route";
 
 /**
  * **「さがす」が読む名前だけの索引**（`/app/data/spot-search.json`）の形を固定する。
- * 画面と同じ母集合（`visibleSpots`）で、運ぶ鍵は名前まわりと地域と綴りだけ。
+ * 画面と同じ母集合（`visibleSpots`）で、運ぶ鍵は名前・地域・綴りと、表示可能な代表写真だけ。
  */
 const LEDGER = rawLedger as unknown as Spot[];
 
@@ -19,8 +19,8 @@ describe("撮影スポットの名前の索引", () => {
         expect(ginzan).toMatchObject({ n: "銀山温泉", r: "ぎんざんおんせん", g: "山形県 尾花沢市" });
     });
 
-    it("運ぶ鍵は名前まわり・地域・綴りだけ（本文・人名・出典を運ばない）", () => {
-        const allowed = new Set(["s", "n", "e", "r", "a", "g"]);
+    it("運ぶ鍵は名前まわり・地域・綴りと表示許可済みの画像だけ（本文は運ばない）", () => {
+        const allowed = new Set(["s", "n", "e", "r", "a", "g", "image"]);
         for (const row of buildSpotSearchRows(LEDGER)) {
             expect(Object.keys(row).filter((k) => !allowed.has(k)), row.s).toEqual([]);
         }
