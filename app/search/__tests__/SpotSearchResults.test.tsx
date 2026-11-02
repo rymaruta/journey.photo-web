@@ -42,7 +42,7 @@ describe("SpotSearchResults", () => {
         await screen.findByRole("link", { name: /銀山温泉/ });
         const img = container.querySelector("img");
         expect(img).not.toBeNull();
-        expect(img.getAttribute("src")).toBe("/images/spots/thumb/ginzan-onsen.jpg");
+        expect(img!.getAttribute("src")).toBe("/images/spots/thumb/ginzan-onsen.jpg");
         expect(screen.getByText("CC BY 4.0")).toBeTruthy();
     });
 
@@ -89,7 +89,7 @@ describe("SpotSearchResults", () => {
         fetchMock.mockResolvedValueOnce({ ok: false, json: async () => null });
         const { rerender } = renderWithLocale(<SpotSearchResults query="銀山" locale="ja" />);
         await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
-        rerenderWithLocale(<SpotSearchResults query="銀山温泉" locale="ja" />);
+        rerender(<LocaleProvider><SpotSearchResults query="銀山温泉" locale="ja" /></LocaleProvider>);
         expect(await screen.findByRole("link", { name: /銀山温泉/ })).toBeTruthy();
         expect(fetchMock).toHaveBeenCalledTimes(2);
     });
