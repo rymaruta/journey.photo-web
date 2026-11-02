@@ -1222,7 +1222,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                         </Link>
                         <div className="min-w-0 flex-1">
                             <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
-                                  className="block max-w-full text-white font-semibold truncate hover:text-white/80 transition-colors"\n                                  title={photo.displayName}
+                                  className="block max-w-full text-white font-semibold truncate hover:text-white/80 transition-colors"
+                                  title={photo.displayName}
                                   style={{ fontSize: "15px", lineHeight: "20px", touchAction: "manipulation" }}>
                                 {photo.displayName}
                             </Link>
