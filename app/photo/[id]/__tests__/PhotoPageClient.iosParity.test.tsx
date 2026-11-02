@@ -103,6 +103,20 @@ describe("写真ページ: 写真の上の戻る・「…」（A1・束 1 P1）"
     });
 });
 
+describe("写真ページ: 撮影者の導線（iOS比較）", () => {
+    it("名前とアバターの両方からプロフィールに移動でき、名前は44pxのタップ領域を持つ", async () => {
+        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
+        const row = await screen.findByTestId("photo-author");
+        const links = Array.from(row.querySelectorAll("a"));
+        expect(links).toHaveLength(2);
+        expect(links[0].getAttribute("href")).toBe(links[1].getAttribute("href"));
+        expect(links[0].style.minHeight).toBe("44px");
+        expect(links[1].className).toContain("min-h-[44px]");
+        expect(links[1].className).toContain("focus-visible:outline-2");
+        expect(links[1].textContent).toContain("アリス");
+    });
+});
+
 describe("写真ページ: 撮影日の1行（A6）", () => {
     it("「2024.05.12」を等幅の数字で", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
