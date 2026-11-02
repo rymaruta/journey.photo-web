@@ -43,6 +43,25 @@ vi.mock("../../components/GalleryGrid", () => ({
 }));
 
 // 2026-10-31 束 1 S4・S5・S7・S8: iOS の発見の面（撮影地 → おすすめ → 色 → 機材）
+describe("季節の撮影スポット導線", () => {
+    it("撮影地があるときは既存の季節SEOページ4件にリンクし、架空の写真件数を表示しない", () => {
+        render1([photo("a", { location: "東京都 千代田区" })]);
+        const section = screen.getByTestId("discover-seasons");
+        const links = [...section.querySelectorAll("a")];
+        expect(links.map((a) => a.getAttribute("href"))).toEqual([
+            "/spots/season/spring", "/spots/season/summer",
+            "/spots/season/autumn", "/spots/season/winter",
+        ]);
+        expect(links.map((a) => a.textContent)).toEqual(["春", "夏", "秋", "冬"]);
+        expect(section.textContent).not.toMatch(/\\d+枚/);
+        expect(links.every((a) => a.getAttribute("data-next-link") === "1")).toBe(true);
+    });
+    it("撮影地が無いときは季節導線を出さない", () => {
+        render1([photo("a")]);
+        expect(screen.queryByTestId("discover-seasons")).toBeNull();
+    });
+});
+
 describe("さがす: 発見の節", () => {
     it("撮影地の札は 156×116・角 14・名前は写真の上（明朝 18）・枚数を出さない（S5）", () => {
         const { container } = render1([
