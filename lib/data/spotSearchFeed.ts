@@ -19,6 +19,7 @@
 import { SPOTS, type Spot } from "./spots";
 import { visibleSpots } from "../utils/spotGuide";
 import type { SpotSearchRow } from "../utils/spots";
+import { topicCardCover } from "./spotTopics";
 
 export type { SpotSearchRow };
 
@@ -38,6 +39,9 @@ export function toSpotSearchRow(spot: Spot): SpotSearchRow {
     if (aliases.length > 0) row.a = aliases;
     const g = regionLabel(spot);
     if (g) row.g = g;
+    // 既存のスポットカードと同じ、確認済み代表写真・縮小版・権利表記だけを使う。
+    const cover = topicCardCover(spot);
+    if (cover) row.image = { src: cover.src, ...(cover.credit ? { credit: cover.credit } : {}) };
     return row;
 }
 
