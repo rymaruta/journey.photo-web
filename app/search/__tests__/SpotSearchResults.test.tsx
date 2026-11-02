@@ -51,6 +51,7 @@ describe("SpotSearchResults", () => {
         expect(img).not.toBeNull();
         fireEvent.error(img!);
         expect(container.querySelector("img")).toBeNull();
+        expect(screen.queryByText("CC BY 4.0")).toBeNull();
         expect(screen.getByRole("link", { name: /銀山温泉/ })).toBeTruthy();
     });
 
