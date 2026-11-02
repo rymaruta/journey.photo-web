@@ -70,7 +70,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
                 {shown.map((s, i) => (
                     <li key={s.s} className={i > 0 ? "border-t border-white/5" : undefined}>
                         <Link href={`${ROUTES.SPOTS}/${s.s}`} prefetch={false}
-                              className="flex items-center gap-3 px-3.5 hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+                              className="flex items-center gap-3 px-3.5 py-2 hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                               style={{ minHeight: "56px" }}>
                             <SpotSearchThumbnail key={s.image?.src ?? "no-image"} src={s.image?.src} onFailure={() => { if (s.image?.src) setFailedImages((prev) => new Set(prev).add(s.image!.src)); }} />
                             <span className="min-w-0 flex-1">
