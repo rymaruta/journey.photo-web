@@ -9,7 +9,7 @@ import { resetSpotSearchIndex } from "../../../lib/hooks/useSpotSearchIndex";
  * 索引は語を打ったときに初めて取りに行く（探さない人に 130KB を配らない）。
  */
 const ROWS = [
-    { s: "ginzan-onsen", n: "銀山温泉", r: "ぎんざんおんせん", g: "山形県 尾花沢市" },
+    { s: "ginzan-onsen", n: "銀山温泉", r: "ぎんざんおんせん", g: "山形県 尾花沢市", image: { src: "/images/spots/thumb/ginzan-onsen.jpg", credit: { author: "Photographer", license: "CC BY 4.0" } } },
     ...Array.from({ length: 8 }, (_, i) => ({ s: `yamagata-${i}`, n: `山形の場所${i}`, g: "山形県 山形市" })),
 ];
 const fetchMock = vi.fn();
@@ -33,6 +33,20 @@ describe("SpotSearchResults", () => {
         expect(link.getAttribute("href")).toBe("/spots/ginzan-onsen");
         expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("撮影スポット（1か所）");
         expect(fetchMock).toHaveBeenCalledWith("/app/data/spot-search.json");
+    });
+
+    it("代表写真がある結果にはミニ画像とクレジットを表示する", async () => {
+        render(<SpotSearchResults query="銀山温泉" locale="ja" />);
+        await screen.findByRole("link", { name: /銀山温泉/ });
+        const img = screen.getByRole("img", { hidden: true });
+        expect(img.getAttribute("src")).toBe("/images/spots/thumb/ginzan-onsen.jpg");
+        expect(screen.getByText("CC BY 4.0")).toBeTruthy();
+    });
+
+    it("代表写真がない結果は地図ピンのまま表示する", async () => {
+        render(<SpotSearchResults query="山形の場所0" locale="ja" />);
+        await screen.findByRole("link", { name: /山形の場所0/ });
+        expect(screen.queryByRole("img", { hidden: true })).toBeNull();
     });
 
     it("当たりが多ければ5件で畳み、押すと全部出す", async () => {
