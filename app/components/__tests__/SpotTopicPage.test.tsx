@@ -67,6 +67,18 @@ describe("SpotTopicPage", () => {
         expect(screen.getByRole("link", { name: new RegExp(credited.name) })).toBeTruthy();
     });
 
+    it("代表写真がないカードでもスポット名と詳細へのリンクを維持する", () => {
+        const view = themeView("temples-shrines", "kyoto")!;
+        const original = view.cards[0];
+        const noCover = { ...original, cover: undefined };
+        const { container } = render(<SpotTopicPage view={{ ...view, cards: [noCover] }} eyebrow="x" />);
+        const link = container.querySelector('ul.grid a[href="/spots/' + original.slug + '"]');
+        expect(link).not.toBeNull();
+        expect(link!.textContent).toContain(original.name);
+        expect(link!.querySelector("img")).toBeNull();
+        expect(container.querySelector('[data-testid="topic-credit"]')).toBeNull();
+    });
+
     it("🔴 `/spots/area/overseas` は国の一覧（スポットのカードを積まない）", async () => {
         const el = await SpotAreaPage({ params: Promise.resolve({ area: "overseas" }) });
         const { container } = render(el);
