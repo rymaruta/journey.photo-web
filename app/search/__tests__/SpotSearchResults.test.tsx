@@ -43,6 +43,14 @@ describe("SpotSearchResults", () => {
         expect(screen.getByText("CC BY 4.0")).toBeTruthy();
     });
 
+    it("ミニ画像の読み込みに失敗したら地図ピンへ切り替える", async () => {
+        render(<SpotSearchResults query="銀山温泉" locale="ja" />);
+        const img = await screen.findByRole("img", { hidden: true });
+        fireEvent.error(img);
+        expect(screen.queryByRole("img", { hidden: true })).toBeNull();
+        expect(screen.getByRole("link", { name: /銀山温泉/ })).toBeTruthy();
+    });
+
     it("代表写真がない結果は地図ピンのまま表示する", async () => {
         render(<SpotSearchResults query="山形の場所0" locale="ja" />);
         await screen.findByRole("link", { name: /山形の場所0/ });
