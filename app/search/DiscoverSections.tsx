@@ -156,7 +156,7 @@ function ItemLink({ href, className, style, children }: {
  * ほか）で、そこは `collectEntries` の全件を並べる＝「すべて見る」が本当。
  * 見張りは `DiscoverSections.test.tsx` の「見出しから索引ページへ行ける」。
  */
-function SectionHead(props: { id: string; eyebrow: string; title: string; href: string; moreLabel: string }) {
+function SectionHead(props: { id: string; eyebrow: string; title: string; href?: string; moreLabel?: string }) {
     // 形はホームの「おすすめ」と共通の部品（`app/components/SectionHead.tsx`）
     return <SharedSectionHead {...props} testId="discover-section-head" />;
 }
