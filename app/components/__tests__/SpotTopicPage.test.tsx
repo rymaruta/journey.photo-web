@@ -70,7 +70,7 @@ describe("SpotTopicPage", () => {
     it("代表写真がないカードでもスポット名と詳細へのリンクを維持する", () => {
         const view = themeView("temples-shrines", "kyoto")!;
         const original = view.cards[0];
-        const noCover = { ...original, cover: undefined };
+        const noCover = { ...original, cover: null };
         const { container } = render(<SpotTopicPage view={{ ...view, cards: [noCover] }} eyebrow="x" />);
         const link = container.querySelector('ul.grid a[href="/spots/' + original.slug + '"]');
         expect(link).not.toBeNull();
