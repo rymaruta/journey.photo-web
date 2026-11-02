@@ -12,6 +12,7 @@ import { featuredGroups } from "@/lib/utils/featured";
 import { colorShelves, gearShelves, COLOR_TEXT, GEAR_TEXT } from "@/lib/utils/searchShelves";
 import { photoAltText } from "@/lib/utils/photoAlt";
 import { ROUTES } from "@/lib/routes";
+
 import GalleryGrid from "../components/GalleryGrid";
 import { GRID_SIZES_SEARCH, GRID_COLUMNS_SEARCH } from "../components/gridSizes";
 
@@ -37,6 +38,13 @@ import { GRID_SIZES_SEARCH, GRID_COLUMNS_SEARCH } from "../components/gridSizes"
  * （「パリ」と「パリ, フランス」）もあちらが持っている——自前で数え直すと、
  * チップの数と飛んだ先の枚数が食い違う。
  */
+const SEASON_LINKS = [
+    { slug: "spring", ja: "春", en: "Spring" },
+    { slug: "summer", ja: "夏", en: "Summer" },
+    { slug: "autumn", ja: "秋", en: "Autumn" },
+    { slug: "winter", ja: "冬", en: "Winter" },
+] as const;
+
 type Props = {
     /** 絞り込み前の全写真（節は「いま何があるか」を出す面なので、絞り込みに連動させない） */
     photos: Photo[];
@@ -148,7 +156,7 @@ function ItemLink({ href, className, style, children }: {
  * ほか）で、そこは `collectEntries` の全件を並べる＝「すべて見る」が本当。
  * 見張りは `DiscoverSections.test.tsx` の「見出しから索引ページへ行ける」。
  */
-function SectionHead(props: { id: string; eyebrow: string; title: string; href: string; moreLabel: string }) {
+function SectionHead(props: { id: string; eyebrow: string; title: string; href?: string; moreLabel?: string }) {
     // 形はホームの「おすすめ」と共通の部品（`app/components/SectionHead.tsx`）
     return <SharedSectionHead {...props} testId="discover-section-head" />;
 }
@@ -243,6 +251,21 @@ export default function DiscoverSections({ photos, locale, categoryDisplayMap, o
                 </section>
             )}
 
+            {spots.length > 0 && (
+                <section aria-labelledby="discover-seasons" data-testid="discover-seasons">
+                    <SectionHead id="discover-seasons" eyebrow="SEASON" title={isJa ? "季節から探す" : "Browse by season"} />
+                    <ul className="grid grid-cols-4 gap-2 m-0 p-0" style={{ listStyle: "none" }}>
+                        {SEASON_LINKS.map((season) => (
+                            <li key={season.slug}>
+                                <Link href={`/spots/season/${season.slug}`} prefetch={false}
+                                      className="flex min-h-12 items-center justify-center rounded-xl bg-surface border border-line px-2 py-3 text-sm text-white hover:border-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
+                                    {isJa ? season.ja : season.en}
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
+                </section>
+            )}
             {featured && (
                 <section aria-labelledby="discover-picks">
                     <SectionHead id="discover-picks" eyebrow={`PICKS · ${featured.label}`} title={isJa ? "おすすめ" : "Picks"}

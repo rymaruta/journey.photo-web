@@ -43,6 +43,34 @@ vi.mock("../../components/GalleryGrid", () => ({
 }));
 
 // 2026-10-31 束 1 S4・S5・S7・S8: iOS の発見の面（撮影地 → おすすめ → 色 → 機材）
+describe("季節の撮影スポット導線", () => {
+    it("撮影地があるときは既存の季節SEOページ4件にリンクし、架空の写真件数を表示しない", () => {
+        render1([photo("a", { location: "東京都 千代田区" })]);
+        const section = screen.getByTestId("discover-seasons");
+        const links = [...section.querySelectorAll("a")];
+        expect(links.map((a) => a.getAttribute("href"))).toEqual([
+            "/spots/season/spring", "/spots/season/summer",
+            "/spots/season/autumn", "/spots/season/winter",
+        ]);
+        expect(links.map((a) => a.textContent)).toEqual(["春", "夏", "秋", "冬"]);
+        expect(section.textContent).not.toMatch(/\\d+枚/);
+        expect(links.every((a) => a.getAttribute("data-next-link") === "1")).toBe(true);
+    });
+    it("英語表示でも既存の季節別URLとアクセシブルなリンク名を維持する", () => {
+        render(<DiscoverSections photos={[photo("a", { location: "Tokyo" })]} locale="en" categoryDisplayMap={{}} />);
+        const section = screen.getByTestId("discover-seasons");
+        expect(section.textContent).toContain("Browse by season");
+        expect([...section.querySelectorAll("a")].map((a) => a.textContent)).toEqual([
+            "Spring", "Summer", "Autumn", "Winter",
+        ]);
+        expect([...section.querySelectorAll("a")].every((a) => a.className.includes("min-h-12"))).toBe(true);
+    });
+    it("撮影地が無いときは季節導線を出さない", () => {
+        render1([photo("a")]);
+        expect(screen.queryByTestId("discover-seasons")).toBeNull();
+    });
+});
+
 describe("さがす: 発見の節", () => {
     it("撮影地の札は 156×116・角 14・名前は写真の上（明朝 18）・枚数を出さない（S5）", () => {
         const { container } = render1([
@@ -169,9 +197,15 @@ describe("さがす: 節の見出しはアプリ v2 の形", () => {
             const h2 = h.querySelector("h2")!;
             expect(h2.className).toContain("font-serif");
             expect((h2 as HTMLElement).style.fontSize).toBe("22px");
-            const more = h.querySelector("a")!;
-            expect(more.className, "行き先は合図ではない（真鍮にしない）").not.toContain("text-accent");
-            expect(more.className).toContain("min-h-[44px]");
+            const more = h.querySelector("a");
+            // 色・季節など、実在する「すべて見る」ページがない節にはリンクを置かない。
+            if (more) {
+                expect(more.className, "行き先は合図ではない（真鍮にしない）").not.toContain("text-accent");
+                expect(more.className).toContain("min-h-[44px]");
+                expect(more.getAttribute("href")).toBeTruthy();
+            } else {
+                expect(["discover-seasons", "discover-colors"]).toContain(h.querySelector("h2")?.id);
+            }
         }
     });
 });
