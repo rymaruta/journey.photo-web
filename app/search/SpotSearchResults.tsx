@@ -6,6 +6,7 @@ import { ChevronRightIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import { ROUTES } from "@/lib/routes";
 import { searchSpotRows } from "@/lib/utils/spots";
 import { useSpotSearchIndex } from "@/lib/hooks/useSpotSearchIndex";
+import { TopicCreditLine } from "../components/SpotTopicLists";
 
 /**
  * **「さがす」の撮影スポットの結果。** 写真の結果とは別の節で、件数も混ぜない。
@@ -52,7 +53,15 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
                         <Link href={`${ROUTES.SPOTS}/${s.s}`} prefetch={false}
                               className="flex items-center gap-3 px-3.5 hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                               style={{ minHeight: "56px" }}>
-                            <MapPinIcon className="w-5 h-5 shrink-0 text-accent" aria-hidden="true" />
+                            {s.image ? (
+                                /* eslint-disable-next-line @next/next/no-img-element */
+                                <img src={s.image.src} alt="" loading="lazy" decoding="async" width={48} height={48}
+                                     className="h-12 w-12 shrink-0 rounded-lg bg-surface-2 object-cover" />
+                            ) : (
+                                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-2">
+                                    <MapPinIcon className="h-5 w-5 text-accent" aria-hidden="true" />
+                                </span>
+                            )}
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate font-semibold text-white" style={{ fontSize: "15px", lineHeight: "22px" }}>{s.n}</span>
                                 <span className="block truncate text-white/70" style={{ fontSize: "12px", lineHeight: "18px" }}>
@@ -61,6 +70,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
                             </span>
                             <ChevronRightIcon aria-hidden="true" className="shrink-0 text-white/50" style={{ width: "18px", height: "18px" }} />
                         </Link>
+                        {s.image?.credit && <div className="px-3.5 pb-1"><TopicCreditLine credit={s.image.credit} compact /></div>}
                     </li>
                 ))}
             </ul>
