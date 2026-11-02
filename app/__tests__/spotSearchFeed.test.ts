@@ -32,6 +32,30 @@ describe("撮影スポットの名前の索引", () => {
         expect(toSpotSearchRow({ ...base, region: { country: "日本", prefecture: "京都府", city: "京都市" } }).g).toBe("京都府 京都市");
     });
 
+    it("表示許可済みの代表写真とライセンス表記を検索索引へ載せる", () => {
+        const spot = {
+            spotId: "sp_test", slug: "test-cover", name: "テスト撮影地", status: "published",
+            coverImage: {
+                src: "/images/spots/test-cover.jpg", alt: "撮影地",
+                credit: "Photographer", license: "cc-by", licenseLabel: "CC BY 4.0",
+                licenseUrl: "https://creativecommons.org/licenses/by/4.0/",
+                sourceUrl: "https://commons.wikimedia.org/wiki/File:Test.jpg",
+                checkedAt: "2026-10-01", verifiedPlace: true,
+            },
+        } as Spot;
+        const row = toSpotSearchRow(spot);
+        expect(row.image?.src).toBe("/images/spots/test-cover.jpg");
+        expect(row.image?.credit).toMatchObject({
+            author: "Photographer", license: "CC BY 4.0",
+            sourceUrl: "https://commons.wikimedia.org/wiki/File:Test.jpg",
+        });
+    });
+
+    it("代表写真がないスポットに画像を捏造しない", () => {
+        const spot = { spotId: "sp_test", slug: "no-cover", name: "画像なし", status: "published" } as Spot;
+        expect(toSpotSearchRow(spot).image).toBeUndefined();
+    });
+
     it("route は force-static で JSON を返す", async () => {
         expect(route.dynamic).toBe("force-static");
         const res = route.GET();
