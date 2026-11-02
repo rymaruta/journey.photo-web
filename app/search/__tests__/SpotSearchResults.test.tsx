@@ -46,6 +46,14 @@ describe("SpotSearchResults", () => {
         expect(screen.getByText("CC BY 4.0")).toBeTruthy();
     });
 
+    it("スポット結果はタップ領域と余白を確保する", async () => {
+        renderWithLocale(<SpotSearchResults query="銀山温泉" locale="ja" />);
+        const link = await screen.findByRole("link", { name: /銀山温泉/ });
+        expect(link.style.minHeight).toBe("56px");
+        expect(link.className).toContain("py-2");
+        expect(link.className).toContain("focus-visible:ring-2");
+    });
+
     it("ミニ画像の読み込みに失敗したら地図ピンへ切り替える", async () => {
         const { container } = renderWithLocale(<SpotSearchResults query="銀山温泉" locale="ja" />);
         await screen.findByRole("link", { name: /銀山温泉/ });
