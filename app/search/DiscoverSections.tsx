@@ -253,7 +253,7 @@ export default function DiscoverSections({ photos, locale, categoryDisplayMap, o
 
             {spots.length > 0 && (
                 <section aria-labelledby="discover-seasons" data-testid="discover-seasons">
-                    <SharedSectionHead id="discover-seasons" eyebrow="SEASON" title={isJa ? "季節から探す" : "Browse by season"} testId="discover-section-head" />
+                    <SectionHead id="discover-seasons" eyebrow="SEASON" title={isJa ? "季節から探す" : "Browse by season"} />
                     <ul className="grid grid-cols-4 gap-2 m-0 p-0" style={{ listStyle: "none" }}>
                         {SEASON_LINKS.map((season) => (
                             <li key={season.slug}>
