@@ -27,6 +27,7 @@ describe("フッターの導線", () => {
             ["行きたい場所", ROUTES.SAVED_SPOTS],
             ["利用規約", ROUTES.TERMS],
             ["プライバシーポリシー", ROUTES.PRIVACY],
+            ["iOSアプリをApp Storeで入手", "https://apps.apple.com/jp/app/id6814335283"],
         ]);
     });
 });
