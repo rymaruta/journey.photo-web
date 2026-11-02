@@ -10,7 +10,7 @@
 // （名前・場所・概要・写真の場所）で、木はクライアントの JS（1回だけ・キャッシュされる）が持つ。
 // 操作は無い——水和しても見た目は変わらない。
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import type { TopicCard, TopicCredit, TopicLink } from "@/lib/data/spotTopics";
 import { useLocale } from "@/app/i18n/context";
@@ -109,14 +109,17 @@ export function TopicCreditLine({ credit, compact = false }: { credit: TopicCred
 }
 
 function Card({ c }: { c: TopicCard }) {
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    const showCover = !!c.cover?.src && failedSrc !== c.cover.src;
     return (
         <div className="h-full flex flex-col rounded-2xl overflow-hidden bg-surface ring-1 ring-line">
             <Link href={`/spots/${c.slug}`} prefetch={false}
                   className="group block flex-1 hover:bg-surface-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent">
                 <div className="relative w-full aspect-[16/10] overflow-hidden bg-surface-2">
-                    {c.cover ? (
+                    {showCover && c.cover ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={c.cover.src} alt={c.cover.alt} loading="lazy" decoding="async"
+                             onError={() => setFailedSrc(c.cover!.src)}
                              className="absolute inset-0 w-full h-full object-cover" />
                     ) : (
                         /* 代表写真が無いときは名前だけ（無関係な写真で埋めない・`SpotIndexClient` と同じ） */
@@ -136,10 +139,9 @@ function Card({ c }: { c: TopicCard }) {
                 </div>
             </Link>
             {/* CC BY・CC BY-SA は作者とライセンスの表示が条件。写真の下・リンクの外（本文系の最小 12） */}
-            {c.cover?.credit && (
+            {showCover && c.cover?.credit ? (
                 <div className="px-3 pb-3"><TopicCreditLine credit={c.cover.credit} /></div>
-            )}
-            {!c.cover?.credit && <div className="pb-1" />}
+            ) : <div className="pb-1" />}
         </div>
     );
 }
