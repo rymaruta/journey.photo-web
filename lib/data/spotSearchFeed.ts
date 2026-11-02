@@ -19,7 +19,8 @@
 import { SPOTS, type Spot } from "./spots";
 import { visibleSpots } from "../utils/spotGuide";
 import type { SpotSearchRow } from "../utils/spots";
-import { topicCardCover } from "./spotTopics";
+import { spotCoverImage } from "./spotImages";
+import { spotThumbSrc, spotThumbExists } from "./spotThumbs";
 
 export type { SpotSearchRow };
 
@@ -40,8 +41,19 @@ export function toSpotSearchRow(spot: Spot): SpotSearchRow {
     const g = regionLabel(spot);
     if (g) row.g = g;
     // 既存のスポットカードと同じ、確認済み代表写真・縮小版・権利表記だけを使う。
-    const cover = topicCardCover(spot);
-    if (cover) row.image = { src: cover.src, ...(cover.credit ? { credit: cover.credit } : {}) };
+    const cover = spotCoverImage(spot);
+    if (cover?.src) {
+        const thumb = spotThumbSrc(cover.src);
+        const src = thumb && spotThumbExists(thumb) ? thumb : cover.src;
+        const needsCredit = cover.license !== "owner" || Boolean(cover.requiredCreditText?.trim());
+        const author = (cover.credit || "").trim();
+        const credit = !needsCredit ? undefined : cover.licenseLabel && author
+            ? { author, license: cover.licenseLabel,
+                ...(cover.licenseUrl ? { licenseUrl: cover.licenseUrl } : {}),
+                ...(cover.sourceUrl ? { sourceUrl: cover.sourceUrl } : {}) }
+            : { author, text: (cover.requiredCreditText || author).trim() };
+        row.image = { src, ...(credit && (credit.author || credit.text) ? { credit } : {}) };
+    }
     return row;
 }
 
