@@ -73,10 +73,10 @@ def reconcile(existing, candidates, max_new=None):
     return list(by_id.values()), {"inserted": inserted, "skipped": skipped, "rejected": rejected}
 
 def read_spots(path):
-    if not path.exists():
-        return []
+    if not path.is_file():
+        raise FileNotFoundError(f"spot snapshot missing: {path}")
     data = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(data, dict) or not isinstance(data.get("spots"), list):
+    if not isinstance(data, dict) or not isinstance(data.get("spots"), list) or any(not isinstance(s, dict) for s in data["spots"]):
         raise ValueError(f"invalid spot snapshot: {path}")
     return data["spots"]
 
@@ -92,6 +92,8 @@ def main():
     candidates = []
     for path in args.candidates:
         candidates.extend(read_spots(path))
+    if args.output.resolve() == args.existing.resolve():
+        raise ValueError("output must differ from existing snapshot to protect the source")
     merged, summary = reconcile(existing, candidates, args.max_new)
     print(json.dumps(summary, ensure_ascii=False))
     if not args.write:
