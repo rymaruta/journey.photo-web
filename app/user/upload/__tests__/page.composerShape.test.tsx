@@ -125,7 +125,8 @@ describe("投稿作成画面: モックのヘッダー", () => {
 
 describe("投稿作成画面: 未完了投稿の終了確認", () => {
     it("未完了の写真があるときキャンセルすれば画面を維持する", async () => {
-        const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+        const confirm = vi.fn(() => false);
+        Object.defineProperty(window, "confirm", { configurable: true, writable: true, value: confirm });
         try {
             await withOnePhoto();
             await userEvent.click(screen.getByRole("button", { name: "投稿の作成をやめる" }));
@@ -133,19 +134,20 @@ describe("投稿作成画面: 未完了投稿の終了確認", () => {
             expect(mockBack).not.toHaveBeenCalled();
             expect(mockPush).not.toHaveBeenCalled();
         } finally {
-            confirm.mockRestore();
+            Reflect.deleteProperty(window, "confirm");
         }
     });
 
     it("未完了の写真があっても確認後は閉じられる", async () => {
-        const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+        const confirm = vi.fn(() => true);
+        Object.defineProperty(window, "confirm", { configurable: true, writable: true, value: confirm });
         try {
             await withOnePhoto();
             await userEvent.click(screen.getByRole("button", { name: "投稿の作成をやめる" }));
             expect(confirm).toHaveBeenCalled();
             expect(mockPush).toHaveBeenCalledWith("/");
         } finally {
-            confirm.mockRestore();
+            Reflect.deleteProperty(window, "confirm");
         }
     });
 });
