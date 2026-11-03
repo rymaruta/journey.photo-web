@@ -58,7 +58,7 @@ export default function CompositionGuidePage() {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl); }, [photoUrl]);
   const guide = GUIDES.find((item) => item.id === active)!;
-  const variants = active === "symmetry" ? ["左右", "上下"] : active === "horizon" ? ["下寄り", "上寄り"] : active === "diagonals" ? ["左上→右下", "左下→右上", "両方向"] : active === "otherRatios" ? ["3:2", "2:1", "XPan 65:24", "√2:1"] : null;
+  const variants = active === "symmetry" ? ["左右", "上下"] : active === "horizon" ? ["下寄り", "上寄り"] : active === "diagonals" ? ["左上→右下", "左下→右上", "両方向"] : active === "otherRatios" ? ["3:2", "2:1", "XPan 65:24", "√2:1"] : active === "triangle" ? ["上向き", "下向き"] : active === "lShape" ? ["左下", "右下", "左上", "右上"] : active === "zShape" || active === "sCurve" || active === "cCurve" ? ["標準", "左右反転"] : null;
   const cropRatio = active === "otherRatios" ? [2 / 3, 1 / 2, 24 / 65, 1 / Math.SQRT2][variant] : null;
   const cropWidth = cropRatio === null ? 0 : Math.min(300, 400 * cropRatio);
   const cropHeight = cropRatio === null ? 0 : Math.min(400, 300 / cropRatio);
@@ -98,7 +98,7 @@ export default function CompositionGuidePage() {
                 {active === "mizige" && <path d="M150 0V400M0 200H300M0 0L300 400M300 0L0 400" />}
                 {active === "phiGrid" && <path d="M114.59 0V400M185.41 0V400M0 152.786H300M0 247.214H300" />}
                 {active === "thirdsDiagonals" && <path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300M0 0L300 400M300 0L0 400" />}
-                {active === "triangle" && <path d="M150 72L252 320L48 320Z" />}
+                {active === "triangle" && <path d={variant === 0 ? "M150 72L252 320L48 320Z" : "M150 328L252 80L48 80Z"} />}
                 {active === "radial" && <path d="M150 200L0 0M150 200L150 0M150 200L300 0M150 200L0 200M150 200L300 200M150 200L0 400M150 200L150 400M150 200L300 400" />}
                 {active === "square" && <rect x="0" y="50" width="300" height="300" />}
                 {active === "ratio4x5" && <rect x="0" y="12.5" width="300" height="375" />}
@@ -115,10 +115,10 @@ export default function CompositionGuidePage() {
                 {active === "tunnel" && <><ellipse cx="150" cy="200" rx="114" ry="152" /><circle cx="150" cy="200" r="3" fill="#fff" /></>}
                 {active === "frameWithin" && <rect x="36" y="48" width="228" height="304" rx="15" />}
                 {active === "negativeSpace" && <><rect x="182" y="250" width="36" height="48" /><circle cx="200" cy="274" r="3" fill="#fff" /></>}
-                {active === "lShape" && <path d="M66 56V320H258" />}
-                {active === "zShape" && <path d="M48 88H252L48 312H252" />}
-                {active === "sCurve" && <path d="M105 24C285 120 15 280 195 376" />}
-                {active === "cCurve" && <path d="M216 56C24 40 24 360 216 344" />}
+                {active === "lShape" && <path d={["M66 56V320H258", "M234 56V320H42", "M66 344V80H258", "M234 344V80H42"][variant]} />}
+                {active === "zShape" && <path d={variant === 0 ? "M48 88H252L48 312H252" : "M252 88H48L252 312H48"} />}
+                {active === "sCurve" && <path d={variant === 0 ? "M105 24C285 120 15 280 195 376" : "M195 24C15 120 285 280 105 376"} />}
+                {active === "cCurve" && <path d={variant === 0 ? "M216 56C24 40 24 360 216 344" : "M84 56C276 40 276 360 84 344"} />}
                 {active === "otherRatios" && <rect x={(300 - cropWidth) / 2} y={(400 - cropHeight) / 2} width={cropWidth} height={cropHeight} />}
                 {active === "grid6x4" && <path d="M75 0V400M150 0V400M225 0V400M0 66.667H300M0 133.333H300M0 200H300M0 266.667H300M0 333.333H300" />}
                 {active === "iphone" && <path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300" />}
