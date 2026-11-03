@@ -1426,7 +1426,7 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                             )}
                         </div>
                             {isOwner && (
-                    <div className="flex min-w-0 flex-1 items-end gap-2 pl-3 pb-1" data-testid="profile-stats">
+                    <div className="flex min-w-0 flex-1 items-end gap-1.5 pl-2 pb-1 [&>*]:min-w-0" data-testid="profile-stats">
                         <div className={`${STAT_CELL_CLASS} min-w-0 min-h-11`}>
                             <span className={STAT_NUMBER_CLASS} style={{ fontSize: `${STAT_NUMBER_PX}px` }}>{photosResolved ? postCount : "…"}</span>
                             <span className={STAT_LABEL_CLASS} style={{ fontSize: `${STAT_LABEL_PX}px` }}>{locale === "en" ? "posts" : "投稿"}</span>
