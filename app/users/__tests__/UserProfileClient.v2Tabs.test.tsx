@@ -99,13 +99,14 @@ describe("下線の札（v2）", () => {
 
     it("選んでいる札は真鍮の字と真鍮の下線、ほかは灰", () => {
         render(<UserProfileClient userId={OWNER} />);
-        const [posts, trips] = screen.getAllByRole("tab");
-        // 色と下線は `tabStyles.ts` の定数（ホームのタブと同じ・下線は box-shadow の内側）
+        const [posts, map] = screen.getAllByRole("tab");
+        // 他人のページは「投稿・マップ」。非選択状態も確認する。
         expect(posts.className).toContain(TAB_ON);
         expect(posts.className).toContain("shadow-[inset_0_-2px_0_var(--color-accent)]");
-        expect(trips.className).toContain(TAB_OFF);
-        expect(trips.className).not.toContain("text-accent");
-        expect(trips.className).not.toContain("shadow-[");
+        expect(map.textContent).toBe("マップ");
+        expect(map.className).toContain(TAB_OFF);
+        expect(map.className).not.toContain("text-accent");
+        expect(map.className).not.toContain("shadow-[");
         expect(posts.style.height).toBe("44px");
     });
 });
