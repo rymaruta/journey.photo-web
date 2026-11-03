@@ -77,7 +77,9 @@ export async function renderShareCard(photo: CanvasImageSource, credit: ShareCar
     ctx.fillRect(x, bottom, width, h - bottom - 48);
     ctx.fillStyle = "#fff";
     ctx.font = "bold 38px sans-serif";
-    ctx.fillText(fitText(ctx, credit.name || "Photographer", 650), 85, bottom + 90);
+    const photographer = fitText(ctx, credit.name || "Photographer", 650);
+    ctx.fillText(photographer, 85, bottom + 90);
+    const nameEndX = 85 + ctx.measureText(photographer).width;
     let marks = "";
     if (credit.verified) marks += " ✓";
     if (credit.pro) marks += " PRO";
@@ -86,7 +88,7 @@ export async function renderShareCard(photo: CanvasImageSource, credit: ShareCar
     if (marks) {
         ctx.fillStyle = brass;
         ctx.font = "23px sans-serif";
-        ctx.fillText(fitText(ctx, marks.trim(), 800), 85, bottom + 124);
+        ctx.fillText(fitText(ctx, marks.trim(), Math.max(1, 980 - nameEndX)), nameEndX + 12, bottom + 90);
     }
     ctx.fillStyle = "#b8b8b8";
     ctx.font = "26px sans-serif";
