@@ -92,6 +92,7 @@ describe("LoginPage - 基本フロー", () => {
         expect(images).toHaveLength(12);
         for (const img of images) {
             expect(img.getAttribute("src")).toMatch(/^https?:\/\//);
+            expect(img.getAttribute("src")).toContain("_thumb.webp");
             expect(img.getAttribute("alt")).toBe("");
         }
     });
