@@ -507,6 +507,14 @@ export default function SettingsPage() {
                             <span>{locale === "en" ? "Shared albums" : "共同アルバム"}</span>
                             <span aria-hidden="true" className="text-white/50">›</span>
                         </Link>
+                        <Link href="/user/archive" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Story archive" : "ストーリーのアーカイブ"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
+                        <Link href="/user/highlights" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Manage highlights" : "ハイライトの管理"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
                         <Link href={ROUTES.BADGES} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
                             <span>{locale === "en" ? "Medals and name marks" : "メダルと名前の横"}</span>
                             <span aria-hidden="true" className="text-white/50">›</span>
