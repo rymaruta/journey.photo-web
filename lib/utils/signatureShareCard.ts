@@ -27,6 +27,7 @@ export function approximateShareCoordinate(coords?: ShareCardCredit["coords"]) {
 }
 
 function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) {
+    if (maxWidth <= ctx.measureText("…").width) return "";
     if (ctx.measureText(text).width <= maxWidth) return text;
     let shortened = text;
     while (shortened.length && ctx.measureText(shortened + "…").width > maxWidth) {
@@ -88,7 +89,8 @@ export async function renderShareCard(photo: CanvasImageSource, credit: ShareCar
     if (marks) {
         ctx.fillStyle = brass;
         ctx.font = "23px sans-serif";
-        ctx.fillText(fitText(ctx, marks.trim(), Math.max(1, 980 - nameEndX)), nameEndX + 12, bottom + 90);
+        const availableMarkWidth = 995 - (nameEndX + 12);
+        if (availableMarkWidth > 20) ctx.fillText(fitText(ctx, marks.trim(), availableMarkWidth), nameEndX + 12, bottom + 90);
     }
     ctx.fillStyle = "#b8b8b8";
     ctx.font = "26px sans-serif";
