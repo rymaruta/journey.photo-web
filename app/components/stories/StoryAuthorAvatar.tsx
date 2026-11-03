@@ -24,7 +24,6 @@ export default function StoryAuthorAvatar({ userId, name, locale }: {
         if (!isAuthenticated || !userId) { return; }
         let cancelled = false;
         setSeen(loadSeenStoryIds());
-        setGroups([]);
         void userFetch("/stories").then(async response => {
             if (!response.ok) return;
             const data: unknown = await response.json();
