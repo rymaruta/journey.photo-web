@@ -1474,8 +1474,8 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                                 <Link
                                     href={ROUTES.PROFILE_EDIT}
                                     prefetch={false}
-                                    className="flex-shrink-0 inline-flex items-center justify-center rounded-full bg-transparent ring-1 ring-accent text-accent hover:bg-accent/10 font-semibold transition"
-                                    style={{ fontSize: "13px", lineHeight: "18px", padding: "8px 14px", touchAction: "manipulation", minHeight: "36px" }}
+                                    className="flex-shrink-0 inline-flex items-center justify-center rounded-full bg-transparent ring-1 ring-white/15 text-white hover:bg-white/10 font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
+                                    style={{ fontSize: "13px", lineHeight: "18px", padding: "8px 14px", touchAction: "manipulation", minHeight: "44px" }}
                                 >
                                     {locale === "en" ? "Edit profile" : "プロフィールを編集"}
                                 </Link>
