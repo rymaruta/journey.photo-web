@@ -6,6 +6,8 @@ This operates on local JSON snapshots only. Production DB integration is separat
 import argparse
 import datetime
 import json
+import math
+import re
 import os
 from pathlib import Path
 
@@ -14,12 +16,13 @@ def valid(spot):
     return (
         isinstance(spot.get("wikidataId"), str)
         and spot["wikidataId"].startswith("Q")
-        and spot["wikidataId"][1:].isdigit()
+        and re.fullmatch(r"Q[1-9][0-9]*", spot["wikidataId"]) is not None
         and isinstance(spot.get("name"), str)
         and len(spot["name"].strip()) >= 2
         and isinstance(coords, list)
         and len(coords) == 2
         and all(isinstance(n, (int, float)) and not isinstance(n, bool) for n in coords)
+        and all(math.isfinite(n) for n in coords)
         and -180 <= coords[0] <= 180 and -90 <= coords[1] <= 90
         and spot.get("source") == "wikidata"
     )
@@ -28,7 +31,12 @@ def reconcile(existing, candidates, max_new=100):
     """Immutable existing records; only new IDs are appended."""
     if max_new < 0:
         raise ValueError("max_new must be nonnegative")
-    by_id = {s["wikidataId"]: dict(s) for s in existing}
+    by_id = {}
+    for spot in existing:
+        qid = spot.get("wikidataId")
+        if not isinstance(qid, str) or not qid or qid in by_id:
+            raise ValueError("existing snapshot contains missing or duplicate Wikidata IDs")
+        by_id[qid] = dict(spot)
     inserted, skipped, rejected = 0, 0, 0
     for spot in candidates:
         if not valid(spot):
@@ -42,6 +50,20 @@ def reconcile(existing, candidates, max_new=100):
             skipped += 1
             continue
         record = dict(spot)
+        # External image URLs are never published unless the license is
+        # explicitly approved and source/attribution are present.
+        image = record.get("image")
+        if image is not None:
+            allowed = ("cc0", "cc-by", "public domain", "pdm")
+            license_name = image.get("license", "").lower() if isinstance(image, dict) else ""
+            if not (
+                isinstance(image, dict)
+                and isinstance(image.get("url"), str) and image["url"].startswith("https://")
+                and isinstance(image.get("filePageUrl"), str) and image["filePageUrl"].startswith("https://")
+                and any(license_name == item or license_name.startswith(item + " ") for item in allowed)
+                and image.get("authorHtml") is not None
+            ):
+                record.pop("image", None)
         record["reviewStatus"] = "published"
         record["publishedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         by_id[qid] = record
