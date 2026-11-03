@@ -122,7 +122,7 @@ describe("写真ページ: 最終版モックの並び", () => {
         const { unmount } = page();
         await screen.findByText("夕陽に染まる白い街");
         expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
-        expect(screen.getByTestId("photo-headline").textContent).not.toContain("サントリーニ");
+        expect(screen.getByRole("heading", { level: 1 }).textContent).not.toContain("サントリーニ");
         unmount();
         page({ date: undefined });
         await screen.findByText("夕陽に染まる白い街");
