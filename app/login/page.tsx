@@ -18,7 +18,7 @@ import { BTN_FILL } from "../components/buttonStyles";
 type Step = "login" | "forgot-send" | "forgot-confirm" | "forgot-done";
 
 // 公開写真のみを背景に使用し、レンダーのたびに全件走査しない。
-const loginBackgroundPhotos = publishedPhotos.filter((photo) => photo.published && photo.src).slice(0, 12);
+const loginBackgroundPhotos = publishedPhotos.filter((photo) => photo.published && photo.src && !photo.sensitive).slice(0, 12);
 
 function LoginForm() {
     const router = useRouter();
@@ -203,7 +203,7 @@ function LoginForm() {
                     {loginBackgroundPhotos.map((photo, index) => (
                         <div key={photo.id} className="aspect-square min-w-0 overflow-hidden bg-surface">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={publicImageUrl(photo.src)} alt="" loading={index < 4 ? "eager" : "lazy"}
+                            <img src={publicImageUrl(photo.thumbSrc || photo.src)} alt="" loading={index < 4 ? "eager" : "lazy"}
                                  fetchPriority={index === 0 ? "high" : "low"} decoding="async"
                                  className="h-full w-full object-cover" />
                         </div>
