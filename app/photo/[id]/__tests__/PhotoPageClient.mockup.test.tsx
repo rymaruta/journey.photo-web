@@ -80,14 +80,14 @@ describe("写真ページ: 最終版モックの並び", () => {
         await screen.findByText("夕陽に染まる白い街");
         const hero = screen.getByAltText(/夕陽に染まる白い街/);
         const title = screen.getByRole("heading", { level: 1 });
-        const stamp = screen.getByTestId("photo-shot-stamp");
+        expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
         const body = screen.getByText(/エーゲ海に沈む夕日/);
         const author = screen.getByRole("link", { name: "Haruto" });
         const like = screen.getByRole("button", { name: /^いいね \d/ });
         const exif = screen.getByTestId("photo-exif");
         const tag = screen.getByRole("link", { name: "#ギリシャ" });
         const comments = screen.getByRole("heading", { name: "コメント 24件" });
-        for (const [a, b] of [[hero, title], [title, stamp], [stamp, body], [body, author], [author, like], [like, exif], [exif, tag], [tag, comments]] as const) {
+        for (const [a, b] of [[hero, title], [title, body], [body, author], [author, like], [like, exif], [exif, tag], [tag, comments]] as const) {
             expect(before(a, b), "並びが iOS と違う").toBe(true);
         }
         expect(screen.queryByRole("tablist"), "コメントと関連写真の切り替えは無くした").toBeNull();
@@ -118,10 +118,10 @@ describe("写真ページ: 最終版モックの並び", () => {
         expect(screen.queryByRole("button", { name: "フォロー" })).toBeNull();
     });
 
-    it("題の下の日時（撮影日が無ければ出さない）。住所の全文は本文の上に出さない", async () => {
+    it("撮影日時は表示せず、住所の全文も本文の上に出さない", async () => {
         const { unmount } = page();
         await screen.findByText("夕陽に染まる白い街");
-        expect(screen.getByTestId("photo-shot-stamp").textContent).toBe("2024.05.12");
+        expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
         expect(screen.getByTestId("photo-headline").textContent).not.toContain("サントリーニ");
         unmount();
         page({ date: undefined });
