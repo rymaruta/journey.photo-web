@@ -34,6 +34,22 @@ describe("撮影ガイド", () => {
     expect(screen.getByText(/70%/)).toBeInTheDocument();
   });
 
+  it("回転・左右反転・リセットを操作できる", () => {
+    render(<CompositionGuidePage />);
+    const guide = screen.getByLabelText("構図ガイド線");
+    const group = guide.querySelector("g");
+    expect(group?.getAttribute("transform")).toContain("rotate(0)");
+    fireEvent.click(screen.getByRole("button", { name: "右へ90°回転" }));
+    expect(group?.getAttribute("transform")).toContain("rotate(90)");
+    const flip = screen.getByRole("button", { name: "左右反転" });
+    fireEvent.click(flip);
+    expect(flip).toHaveAttribute("aria-pressed", "true");
+    expect(group?.getAttribute("transform")).toContain("scale(-1 1)");
+    fireEvent.click(screen.getByRole("button", { name: "向きをリセット" }));
+    expect(group?.getAttribute("transform")).toContain("rotate(0)");
+    expect(flip).toHaveAttribute("aria-pressed", "false");
+  });
+
   it("ガイド線を表示・非表示に切り替えられる", () => {
     render(<CompositionGuidePage />);
     expect(screen.getByLabelText("構図ガイド線")).toBeInTheDocument();
