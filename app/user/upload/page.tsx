@@ -1686,6 +1686,14 @@ function UploadPageInner() {
      * 履歴が無いとき（共有シートから直接開いた回）だけトップへ逃がす。
      */
     const closeComposer = () => {
+        // 送信中に画面を離れるとS3への転送と投稿保存が不整合になるため、
+        // 中断ボタンの既存処理を使ってから閉じてもらう。
+        if (uploading) {
+            window.alert(locale === "en"
+                ? "An upload is in progress. Stop the upload before leaving."
+                : "アップロード中です。先に「やめる」で中断してから閉じてください。");
+            return;
+        }
         // iOS版と同様、未完了の投稿を誤って閉じないよう確認する。
         // アップロード済みでも保存未完了の写真は、S3に孤立する可能性がある。
         const hasUnfinished = uploading || items.some((item) => item.status !== "done");
