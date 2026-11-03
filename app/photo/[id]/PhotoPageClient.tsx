@@ -508,7 +508,9 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     } | null>(null);
     useEffect(() => {
         const ownerId = photo?.userId;
-        if (!ownerId) return;
+        if (!ownerId) {
+            return;
+        }
         const controller = new AbortController();
         void (async () => {
             try {
