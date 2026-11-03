@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import type { Photo } from "@/lib/data/photos";
 
 /**
@@ -89,6 +89,7 @@ describe("写真ページ: 撮影者の表示（iOS authorRow との整合）", 
         authorProfile.data = { userId: "alice", verified: "true" };
         render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
         await screen.findByText("朝の湖");
+        await waitFor(() => expect(screen.getByTestId("photo-author")).toBeTruthy());
         expect(screen.queryByTestId("verified-badge")).toBeNull();
     });
 
