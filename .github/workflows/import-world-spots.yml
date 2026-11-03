@@ -50,8 +50,9 @@ jobs:
           event = os.environ["EVENT"]
           if event == "schedule":
               # Rotate among 48 countries across 8 days, 6 slots per day.
-              slot = (int(datetime.now(timezone.utc).timestamp()) // 14400) % 48
-              offset = 0
+              tick = int(datetime.now(timezone.utc).timestamp()) // 14400
+              slot = tick % 48
+              offset = ((tick // 48) % 20) * 250
           elif event == "pull_request":
               slot, offset = 0, 0
           else:
