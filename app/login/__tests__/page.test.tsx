@@ -100,26 +100,26 @@ describe("LoginPage - 基本フロー", () => {
     it("next があれば、新規登録のリンクにも引き継ぐ", () => {
         mockSearchParams = new URLSearchParams("next=%2Fj%3Ft%3Dabc");
         render(<LoginPage />);
-        expect(screen.getByRole("link", { name: "新規登録" }))
+        expect(screen.getByRole("link", { name: "アカウントを作る" }))
             .toHaveAttribute("href", `/signup?next=${encodeURIComponent("/j?t=abc")}`);
     });
 
     it("外部のURLを next に入れられても、新規登録には付けない", () => {
         mockSearchParams = new URLSearchParams("next=https%3A%2F%2Fevil.example%2Fx");
         render(<LoginPage />);
-        expect(screen.getByRole("link", { name: "新規登録" })).toHaveAttribute("href", "/signup");
+        expect(screen.getByRole("link", { name: "アカウントを作る" })).toHaveAttribute("href", "/signup");
     });
 
     // 「行きたい」から来た印を登録の画面へ運ぶ（登録までの数え方・journey.photo-ios#432）
     it("via=wish は新規登録のリンクにも付ける。決まった値以外は運ばない", () => {
         mockSearchParams = new URLSearchParams("next=%2Fspots%2Fa&via=wish");
         const { unmount } = render(<LoginPage />);
-        expect(screen.getByRole("link", { name: "新規登録" }))
+        expect(screen.getByRole("link", { name: "アカウントを作る" }))
             .toHaveAttribute("href", `/signup?next=${encodeURIComponent("/spots/a")}&via=wish`);
         unmount();
         mockSearchParams = new URLSearchParams("via=%3Cx%3E");
         render(<LoginPage />);
-        expect(screen.getByRole("link", { name: "新規登録" })).toHaveAttribute("href", "/signup");
+        expect(screen.getByRole("link", { name: "アカウントを作る" })).toHaveAttribute("href", "/signup");
     });
 
     it("verifiedパラメータがないときバナーは表示されない", () => {
