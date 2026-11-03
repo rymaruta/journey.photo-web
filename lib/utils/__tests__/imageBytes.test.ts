@@ -6,7 +6,9 @@ beforeEach(() => { vi.unstubAllGlobals(); });
 describe("fetchImageBytes: iOS-style in-flight deduplication", () => {
     it("coalesces concurrent downloads of the same full-quality image, then releases the promise", async () => {
         let finish!: (value: Response) => void;
-        const mockFetch = vi.fn(() => new Promise<Response>(resolve => { finish = resolve; }));
+        const mockFetch = vi.fn()
+            .mockImplementationOnce(() => new Promise<Response>(resolve => { finish = resolve; }))
+            .mockResolvedValue(new Response(new Blob(["fresh-request"]), { status: 200 }));
         vi.stubGlobal("fetch", mockFetch);
         const src = "/uploads/original.jpg";
         const first = fetchImageBytes(src);
@@ -16,7 +18,7 @@ describe("fetchImageBytes: iOS-style in-flight deduplication", () => {
         finish(new Response(new Blob(["original-image"]), { status: 200 }));
         expect(await (await first).text()).toBe("original-image");
         await Promise.resolve();
-        await fetchImageBytes(src);
+        expect(await (await fetchImageBytes(src)).text()).toBe("fresh-request");
         expect(mockFetch).toHaveBeenCalledTimes(2);
     });
 
