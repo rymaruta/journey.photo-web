@@ -5,7 +5,7 @@ import { sanitizeProfile } from "../../lib/utils/profileShape";
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Thumb from "../components/Thumb";
 import Link from "next/link";
-import { ChevronLeftIcon, EllipsisHorizontalIcon, GlobeAltIcon, EyeSlashIcon, LinkIcon, PencilSquareIcon, PlusIcon, PhotoIcon as PhotoStackIcon, CalendarDaysIcon, ChatBubbleOvalLeftIcon, MusicalNoteIcon, ChevronDownIcon, QrCodeIcon, NoSymbolIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, EllipsisHorizontalIcon, GlobeAltIcon, EyeSlashIcon, LinkIcon, PencilSquareIcon, PlusIcon, PhotoIcon as PhotoStackIcon, ChatBubbleOvalLeftIcon, MusicalNoteIcon, ChevronDownIcon, QrCodeIcon, NoSymbolIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { parseMusicEmbed, musicServiceLabel } from "../../lib/utils/music";
 import { swipeDirection, stepInList } from "../../lib/utils/swipe";
 import { nextTabIndex } from "../../lib/utils/tabKeys";
@@ -31,8 +31,6 @@ import { copyToClipboard, shareToTwitter, shareToLine } from "../../lib/utils/sh
 import { publicFetch, userFetch, userPublicFetch, readApiError, sessionErrorMessage } from "../../lib/utils/api";
 import { useEscapeKey } from "../../lib/hooks/useEscapeKey";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
-import { EN_MONTHS, splitStoredDate } from "../../lib/utils/photoDate";
-import { compareNewest } from "../../lib/utils/photoOrder";
 import { ROUTES } from "../../lib/routes";
 import { toastWithStaticPage } from "../../lib/utils/staticPage";
 import UserAvatar from "../components/UserAvatar";
