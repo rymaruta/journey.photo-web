@@ -23,6 +23,17 @@ describe("撮影ガイド", () => {
     }
   });
 
+  it("iOSと同じ35%を初期値とし、15〜70%の範囲で線の濃さを変えられる", () => {
+    render(<CompositionGuidePage />);
+    const opacity = screen.getByRole("slider", { name: "ガイド線の濃さ" });
+    expect(opacity).toHaveAttribute("min", "0.15");
+    expect(opacity).toHaveAttribute("max", "0.7");
+    expect(opacity).toHaveValue("0.35");
+    fireEvent.change(opacity, { target: { value: "0.7" } });
+    expect(opacity).toHaveValue("0.7");
+    expect(screen.getByText(/70%/)).toBeInTheDocument();
+  });
+
   it("ガイド線を表示・非表示に切り替えられる", () => {
     render(<CompositionGuidePage />);
     expect(screen.getByLabelText("構図ガイド線")).toBeInTheDocument();
