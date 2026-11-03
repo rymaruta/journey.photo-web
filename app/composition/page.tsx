@@ -24,6 +24,25 @@ const GUIDES = [
   { id: "ratio4x5", ja: "4:5", en: "4:5", sceneJa: "縦長の人物写真", sceneEn: "Vertical portraits", tipJa: "4:5の枠に収まるように配置します。", tipEn: "Compose within a 4:5 crop." },
   { id: "ratio9x16", ja: "9:16", en: "9:16", sceneJa: "縦長の風景", sceneEn: "Vertical landscapes", tipJa: "9:16の縦長の余白を生かします。", tipEn: "Use the tall frame to emphasize vertical space." },
   { id: "ratio16x9", ja: "16:9", en: "16:9", sceneJa: "広い風景", sceneEn: "Wide landscapes", tipJa: "横方向の広がりを意識します。", tipEn: "Emphasize width and panoramic balance." },
+  { id: "goldenSpiral", ja: "黄金螺旋", en: "Golden spiral", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "fibonacciGrid", ja: "フィボナッチ格子", en: "Fibonacci grid", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "goldenTriangle", ja: "黄金三角形", en: "Golden triangles", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "diagonal45", ja: "45°の対角", en: "45° diagonals", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "obliqueThirds", ja: "斜めの三分割", en: "Oblique thirds", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "dynamicSymmetry", ja: "ダイナミックシンメトリー", en: "Dynamic symmetry", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "armature", ja: "アーマチュア", en: "Armature", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "rootRectangle", ja: "ルート長方形", en: "Root rectangle", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "tunnel", ja: "トンネル", en: "Tunnel", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "frameWithin", ja: "額縁", en: "Frame within a frame", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "negativeSpace", ja: "余白", en: "Negative space", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "lShape", ja: "L字", en: "L shape", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "zShape", ja: "Z字", en: "Z shape", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "sCurve", ja: "S字", en: "S curve", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "cCurve", ja: "C字", en: "C curve", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "otherRatios", ja: "3:2・2:1・XPan・√2", en: "3:2 · 2:1 · XPan · √2", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "grid6x4", ja: "6×4", en: "6×4 grid", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "iphone", ja: "iPhone 標準", en: "iPhone default", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
+  { id: "level", ja: "水準器", en: "Level", sceneJa: "構図の配置を確認", sceneEn: "Composition placement", tipJa: "ガイド線と被写体の位置関係を確認します。", tipEn: "Compare your subject placement with the guide." },
 ] as const;
 type GuideId = (typeof GUIDES)[number]["id"];
 
@@ -73,6 +92,25 @@ export default function CompositionGuidePage() {
                 {active === "ratio4x5" && <rect x="0" y="12.5" width="300" height="375" />}
                 {active === "ratio9x16" && <rect x="37.5" y="0" width="225" height="400" />}
                 {active === "ratio16x9" && <rect x="0" y="115.625" width="300" height="168.75" />}
+                {active === "goldenSpiral" && <path d="M0 400H300V0H0V247H185V94H70V209H141V138H97V182H124" />}
+                {active === "fibonacciGrid" && <path d="M185 0V400M0 247H300M0 94H185M70 94V247M70 209H185M141 94V209" />}
+                {active === "goldenTriangle" && <path d="M0 0L300 400M300 0L96 128M0 400L204 272" />}
+                {active === "diagonal45" && <path d="M0 0L300 300M300 0L0 300M0 100L300 400M300 100L0 400" />}
+                {active === "obliqueThirds" && <path d="M0 0L300 400M0 133L200 400M100 0L300 267" />}
+                {active === "dynamicSymmetry" && <path d="M0 0L300 400M300 0L0 400M0 0L300 225M300 0L0 225M0 400L300 175M300 400L0 175" />}
+                {active === "armature" && <path d="M0 0L300 400M300 0L0 400M0 0L300 225M300 0L0 225M0 400L300 175M300 400L0 175M150 0V400" />}
+                {active === "rootRectangle" && <rect x="0" y="94" width="300" height="212" />}
+                {active === "tunnel" && <><rect x="30" y="40" width="240" height="320" /><rect x="70" y="90" width="160" height="220" /><rect x="110" y="145" width="80" height="110" /></>}
+                {active === "frameWithin" && <><rect x="25" y="40" width="250" height="320" /><rect x="60" y="85" width="180" height="230" /></>}
+                {active === "negativeSpace" && <><rect x="25" y="25" width="250" height="350" strokeDasharray="7 7" /><circle cx="215" cy="290" r="25" /></>}
+                {active === "lShape" && <path d="M75 50V325H265" />}
+                {active === "zShape" && <path d="M40 75H260L40 325H260" />}
+                {active === "sCurve" && <path d="M230 25C-10 70 310 170 80 220S40 345 230 380" />}
+                {active === "cCurve" && <path d="M255 65C30 -20 0 410 255 335" />}
+                {active === "otherRatios" && <><rect x="0" y="87.5" width="300" height="225" /><rect x="0" y="125" width="300" height="150" strokeDasharray="7 7" /></>}
+                {active === "grid6x4" && <path d="M50 0V400M100 0V400M150 0V400M200 0V400M250 0V400M0 100H300M0 200H300M0 300H300" />}
+                {active === "iphone" && <path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300" />}
+                {active === "level" && <path d="M40 200H260M20 185V215M280 185V215" />}
               </g>
             </svg>}
           </div>
@@ -83,7 +121,7 @@ export default function CompositionGuidePage() {
           <p className="text-xs text-white/60">{isJa ? "写真は端末内だけで表示し、アップロードしません。" : "Your photo stays on this device and is not uploaded."}</p>
           <label className="flex min-h-11 items-center justify-between gap-3 text-sm"><span>{isJa ? "ガイド線を表示" : "Show guide lines"}</span><input type="checkbox" checked={showLines} onChange={(event) => setShowLines(event.target.checked)} className="h-5 w-5 accent-[#C9A66B]" /></label>
           <p className="text-sm leading-relaxed text-white/75">{isJa ? guide.tipJa : guide.tipEn}</p>
-          <p className="text-xs text-white/50">{isJa ? "現在は代表的な18構図に対応しています。iOS版の全37種類への拡張は今後の対応です。" : "Eighteen compositions are currently available. The full 37-guide iOS catalog is not yet included."}</p>
+          <p className="text-xs text-white/50">{isJa ? "iOS版と同じ37種類を選択できます。ガイド線はWEB用の簡易表示で、iOS版との形状・操作の完全一致は未検証です。" : "All 37 compositions are selectable. The web overlays are simplified and are not yet verified for exact iOS parity."}</p>
         </section>
       </div>
     </main>
