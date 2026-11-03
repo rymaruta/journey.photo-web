@@ -1,3 +1,5 @@
+import { drawShareCountryMap, loadShareOutlines } from "./shareMap";
+
 /** iOS SignatureShareCardRenderer と同じSNS用の画像比率・撮影位置の秘匿規則。 */
 export type ShareCardRatio = "4:5" | "9:16" | "1:1";
 export const SHARE_CARD_WIDTH = 1080;
@@ -38,6 +40,8 @@ function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) 
 
 /** 元画像のEXIFを持ち込まない新規Canvasで、枠の外を含まないJPEGを生成する。 */
 export async function renderShareCard(photo: CanvasImageSource, credit: ShareCardCredit, ratio: ShareCardRatio = "4:5"): Promise<Blob> {
+    const sharedPin = approximateShareCoordinate(credit.coords);
+    const outlines = sharedPin ? await loadShareOutlines().catch(() => []) : [];
     const canvas = document.createElement("canvas");
     canvas.width = SHARE_CARD_WIDTH;
     canvas.height = SHARE_CARD_HEIGHT[ratio];
@@ -95,11 +99,12 @@ export async function renderShareCard(photo: CanvasImageSource, credit: ShareCar
     ctx.fillStyle = "#b8b8b8";
     ctx.font = "26px sans-serif";
     if (credit.username) ctx.fillText(fitText(ctx, "@" + credit.username.replace(/^@/, ""), 860), 85, bottom + 155);
-    if (credit.location) ctx.fillText(fitText(ctx, credit.location, 850), 85, bottom + 202);
+    if (credit.location) ctx.fillText(fitText(ctx, credit.location, sharedPin ? 640 : 850), 85, bottom + 202);
+    if (sharedPin) drawShareCountryMap(ctx, outlines, sharedPin, { x: 785, y: bottom + 65, width: 195, height: 128 }, brass);
     const details = [credit.camera, credit.lens].filter((v): v is string => Boolean(v));
     ctx.font = "23px sans-serif";
     details.forEach((detail, i) => ctx.fillText(fitText(ctx, detail, 875), 85, bottom + 255 + i * 34));
-    // 生のGPSは描画・保存しない。地図の描画は別実装が必要。
+    // 国境輪郭とピンは概略位置のみで描画。生のGPSとEXIFは画像へ引き継がない。
     return await new Promise<Blob>((resolve, reject) => {
         canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error("JPEG export failed")), "image/jpeg", 0.93);
     });
