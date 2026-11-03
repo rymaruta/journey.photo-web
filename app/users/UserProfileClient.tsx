@@ -1425,6 +1425,26 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                                 </button>
                             )}
                         </div>
+                            {isOwner && (
+                    <div className="flex min-w-0 flex-1 items-end gap-2 pl-3 pb-1" data-testid="profile-stats">
+                        <div className={`${STAT_CELL_CLASS} min-w-0 min-h-11`}>
+                            <span className={STAT_NUMBER_CLASS} style={{ fontSize: `${STAT_NUMBER_PX}px` }}>{photosResolved ? postCount : "…"}</span>
+                            <span className={STAT_LABEL_CLASS} style={{ fontSize: `${STAT_LABEL_PX}px` }}>{locale === "en" ? "posts" : "投稿"}</span>
+                            {photosResolved && hiddenCount > 0 && (
+                                <span className="block text-white/50 mt-1" style={{ fontSize: "12px" }}>
+                                    {locale === "en" ? `(${hiddenCount} private)` : `（うち非公開 ${hiddenCount}）`}
+                                </span>
+                            )}
+                        </div>
+                        <FollowButton
+                            targetUserId={userId}
+                            isOwner={isOwner}
+                            isAuthenticated={viewerAuthed}
+                            locale={locale as "ja" | "en"}
+                            variant="stats"
+                        />
+                    </div>
+                            )}
                             {/* **ブロック中は出さない**（サーバーは必ず断るので、押せる形で置くと失敗する操作へ誘う）。
                                 `key` で張り直さない——張り直すと二重送信の番人（`busyRef`）が外れる */}
                             {!isOwner && !blocked && (
@@ -1501,6 +1521,7 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         **届く前に「0投稿」と言い切らない**——実測で応答を保持すると
                         5秒・20秒・45秒のいずれでも「0投稿」だった。ビルド後に登録した
                         人（定期ビルドは週1なので最大7日）のプロフィールが該当する */}
+                    {!isOwner && (
                     <div className="flex items-end gap-2 py-4 border-b border-line" data-testid="profile-stats">
                         <div className={`${STAT_CELL_CLASS} min-w-0 min-h-11`}>
                             <span className={STAT_NUMBER_CLASS} style={{ fontSize: `${STAT_NUMBER_PX}px` }}>{photosResolved ? postCount : "…"}</span>
@@ -1519,6 +1540,7 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                             variant="stats"
                         />
                     </div>
+                    )}
 
                     {/* 旅の記録（v2 の板 MyPage・案 H1「星図」。iOS の `TravelRecordView` と同じ形）。
                         以前は「総移動距離」の1行（紙飛行機のアイコン＋数字）だった。
