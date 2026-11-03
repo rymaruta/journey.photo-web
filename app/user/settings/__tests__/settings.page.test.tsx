@@ -76,6 +76,12 @@ describe("設定の骨格", () => {
         expect(screen.getByRole("link", { name: /ハイライトの管理/ })).toHaveAttribute("href", "/user/highlights");
     });
 
+    it("写真の下書きと行きたい場所の実装済み画面へ移動できる", async () => {
+        await open();
+        expect(screen.getByRole("link", { name: /写真の下書き/ })).toHaveAttribute("href", "/user/drafts");
+        expect(screen.getByRole("link", { name: /行きたい場所/ })).toHaveAttribute("href", "/saved-spots");
+    });
+
     // 🔴 **実装の無い節を置かない**（owner の指示）。
     // モックには在るので、足し戻すときは**機能から**作ること
     it.each([
