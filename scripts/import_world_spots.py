@@ -6,6 +6,9 @@ Country rotation is controlled by GitHub Actions. Output is review-only.
 import argparse
 import json
 import pathlib
+import random
+import email.utils
+import datetime
 import re
 import time
 import urllib.error
@@ -30,6 +33,22 @@ COUNTRIES = [
 TYPES = ["Q570116", "Q23413", "Q33506", "Q46169", "Q34038", "Q8502", "Q23397"]
 ENDPOINT = "https://query.wikidata.org/sparql"
 
+def retry_delay(headers, attempt):
+    value = headers.get("Retry-After")
+    if value:
+        try:
+            seconds = float(value)
+        except ValueError:
+            try:
+                target = email.utils.parsedate_to_datetime(value)
+                seconds = (target - datetime.datetime.now(datetime.timezone.utc)).total_seconds()
+            except (TypeError, ValueError, OverflowError):
+                seconds = 0
+        if seconds > 0:
+            return min(seconds, 600)
+    return min(180, 10 * 2 ** attempt + random.uniform(0, 5))
+
+
 def fetch(country, limit, offset):
     types = " ".join("wd:" + x for x in TYPES)
     query = f"""SELECT DISTINCT ?item ?itemLabel ?coord WHERE {{
@@ -40,16 +59,27 @@ def fetch(country, limit, offset):
     url = ENDPOINT + "?" + urllib.parse.urlencode({"query": query, "format": "json"})
     req = urllib.request.Request(url, headers={
         "Accept": "application/sparql-results+json",
-        "User-Agent": "JourneyPhoto/1.0 (https://github.com/rymaruta/journey.photo-web; contact via issues)",
+        "User-Agent": "JourneyPhoto/1.1 (https://github.com/rymaruta/journey.photo-web; contact via issues)",
     })
-    for retry in range(4):
+    for attempt in range(3):
         try:
-            with urllib.request.urlopen(req, timeout=90) as response:
+            with urllib.request.urlopen(req, timeout=55) as response:
                 return json.load(response)["results"]["bindings"]
-        except (urllib.error.URLError, TimeoutError):
-            if retry == 3:
+        except urllib.error.HTTPError as exc:
+            if exc.code not in (429, 500, 502, 503, 504):
                 raise
-            time.sleep(5 * (2 ** retry))
+            if attempt == 2:
+                raise
+            wait = retry_delay(exc.headers, attempt)
+            print(f"HTTP {exc.code}: cooling down {wait:.1f}s", flush=True)
+            time.sleep(wait)
+        except (urllib.error.URLError, TimeoutError) as exc:
+            if attempt == 2:
+                raise
+            wait = retry_delay({}, attempt)
+            print(f"Network error: cooling down {wait:.1f}s", flush=True)
+            time.sleep(wait)
+    raise RuntimeError("unreachable")
 
 def main():
     p = argparse.ArgumentParser()
