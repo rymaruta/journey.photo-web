@@ -197,7 +197,7 @@ function LoginForm() {
             {/* 公開済みの旅写真を背景に使い、フォームの可読性は暗いオーバーレイで保つ。 */}
             {/* iOS SignInView: 4列×3段・-4度の写真タイル。フォームの背後ではなく上部に敷く。 */}
             <div aria-hidden="true" data-testid="login-photo-collage"
-                 className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[380px] overflow-hidden">
+                 className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[380px] overflow-hidden">
                 <div className="absolute -inset-x-5 -top-[30px] grid grid-cols-4 gap-[3px]"
                      style={{ transform: "rotate(-4deg)" }}>
                     {loginBackgroundPhotos.map((photo, index) => (
@@ -211,7 +211,7 @@ function LoginForm() {
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/45 to-black" />
             </div>
-            <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-black/85 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+            <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/20 bg-black/85 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
 
                 {/* ロゴ */}
                 <div className="mb-10 text-center">
