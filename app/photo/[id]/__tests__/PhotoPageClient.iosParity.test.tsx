@@ -89,6 +89,13 @@ describe("写真ページ: 撮影者の表示（iOS authorRow との整合）", 
         expect(author.querySelector('[data-testid="early-mark"]')).not.toBeNull();
     });
 
+    it("獲得メダルが未設定なら選択メダルの操作領域を作らない", async () => {
+        authorProfile.data = { userId: "alice", verified: true, badges: {}, displayBadge: "unknown" };
+        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
+        await waitFor(() => expect(authorProfile.calls).toBeGreaterThan(0));
+        expect(screen.queryByTestId("photo-author-selected-badge")).toBeNull();
+    });
+
     it("認証フラグが文字列でも公式マークとして扱わない", async () => {
         authorProfile.data = { userId: "alice", verified: "true" };
         render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
