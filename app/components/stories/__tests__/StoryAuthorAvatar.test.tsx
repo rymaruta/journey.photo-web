@@ -53,6 +53,19 @@ describe("iOS StoryAvatar parity: photo author", () => {
         resolveOther?.({ ok: true, json: async () => [] });
     });
 
+    it("ストーリー閲覧中に別の撮影者へ移ってもビューアが勝手に再開しない", async () => {
+        const { rerender } = render(<StoryAuthorAvatar userId="author" name="旅人" locale="ja" />);
+        await waitFor(() => expect(screen.getByTestId("photo-author-story-ring")).toBeInTheDocument());
+        fireEvent.click(screen.getByTestId("photo-author-story-ring"));
+        expect(await screen.findByText("close viewer")).toBeInTheDocument();
+        fetchStories.mockResolvedValueOnce({
+            ok: true, json: async () => [{ ...story, userId: "another", id: "s2" }],
+        });
+        rerender(<StoryAuthorAvatar userId="another" name="別の旅人" locale="ja" />);
+        await waitFor(() => expect(screen.getByTestId("photo-author-story-ring")).toBeInTheDocument());
+        expect(screen.queryByText("close viewer")).not.toBeInTheDocument();
+    });
+
     it("未ログイン時はストーリーを取得せずプロフィールへ誘導", () => {
         auth.value = { isAuthenticated: false, userId: null };
         render(<StoryAuthorAvatar userId="author" name="旅人" locale="ja" />);
