@@ -83,11 +83,13 @@ beforeEach(() => {
 // 基本的なログインフロー
 // ──────────────────────────────────────────────────────────────
 describe("LoginPage - 基本フロー", () => {
-    it("ログイン背景には公開写真4枚をサイトの画像URLで表示する", () => {
+    it("iOSと同じ4列×3段の公開写真コラージュをサイトの画像URLで表示する", () => {
         const { container } = render(<LoginPage />);
-        const background = container.querySelector('[aria-hidden="true"].grid');
+        const background = container.querySelector('[data-testid="login-photo-collage"]');
+        expect(background).not.toBeNull();
+        expect(background?.querySelector(".grid")?.className).toContain("grid-cols-4");
         const images = background?.querySelectorAll("img") ?? [];
-        expect(images).toHaveLength(4);
+        expect(images).toHaveLength(12);
         for (const img of images) {
             expect(img.getAttribute("src")).toMatch(/^https?:\/\//);
             expect(img.getAttribute("alt")).toBe("");
