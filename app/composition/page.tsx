@@ -6,9 +6,14 @@ import { useLocale } from "../i18n/context";
 
 /** iOS CompositionCatalogView に対応する撮影ガイドの第一段階。画像は端末内のみで使用する。 */
 const GUIDES = [
-  { id: "thirds", ja: "三分割構図", en: "Rule of thirds", sceneJa: "風景・人物・街並み", sceneEn: "Landscapes, portraits and streets", tipJa: "被写体を縦横の交点に置くと、余白に視線の流れが生まれます。", tipEn: "Place your subject at an intersection to create visual flow." },
-  { id: "center", ja: "日の丸構図", en: "Centered composition", sceneJa: "人物・花・印象的な建築", sceneEn: "Portraits, flowers and architecture", tipJa: "主役を中央に置き、周囲の背景をシンプルに整えます。", tipEn: "Center the subject and simplify the background." },
-  { id: "diagonal", ja: "対角線構図", en: "Diagonal composition", sceneJa: "道路・橋・山並み", sceneEn: "Roads, bridges and ridgelines", tipJa: "斜めの線を意識すると、奥行きや動きを表現できます。", tipEn: "Use diagonal lines to emphasize depth and movement." },
+  { id: "thirds", ja: "三分割", en: "Rule of thirds", sceneJa: "風景・人物・街並み", sceneEn: "Landscapes, portraits and streets", tipJa: "被写体を縦横の交点に置くと、余白に視線の流れが生まれます。", tipEn: "Place your subject at an intersection to create visual flow." },
+  { id: "hinomaru", ja: "日の丸", en: "Centered (Hinomaru)", sceneJa: "人物・花・印象的な建築", sceneEn: "Portraits, flowers and architecture", tipJa: "主役を中央に置き、周囲の背景をシンプルに整えます。", tipEn: "Center the subject and simplify the background." },
+  { id: "diagonals", ja: "対角線", en: "Diagonals", sceneJa: "道路・橋・山並み", sceneEn: "Roads, bridges and ridgelines", tipJa: "斜めの線を意識すると、奥行きや動きを表現できます。", tipEn: "Use diagonal lines to emphasize depth and movement." },
+  { id: "halves", ja: "二分割・十字", en: "Halves / cross", sceneJa: "水平線・建築", sceneEn: "Horizons and architecture", tipJa: "中央で上下左右を分け、形の対比を意識します。", tipEn: "Divide the frame in half to emphasize contrast." },
+  { id: "symmetry", ja: "シンメトリー", en: "Symmetry", sceneJa: "反射・建物・回廊", sceneEn: "Reflections and architecture", tipJa: "左右の形が釣り合う位置を探します。", tipEn: "Align matching shapes across the center." },
+  { id: "horizon", ja: "水平線", en: "Horizon", sceneJa: "海・湖・夕景", sceneEn: "Seascapes, lakes and sunsets", tipJa: "水平を保ち、空と地面の比率を調整します。", tipEn: "Keep the horizon level and balance sky and ground." },
+  { id: "grid4", ja: "4×4", en: "4×4 grid", sceneJa: "建築・細かな配置", sceneEn: "Architecture and precise framing", tipJa: "細かい格子を使って要素の位置と間隔を揃えます。", tipEn: "Use the grid to align objects and spacing." },
+  { id: "squareGrid", ja: "方眼", en: "Square grid", sceneJa: "建築・パターン", sceneEn: "Architecture and patterns", tipJa: "縦横の反復を確認し、歪みを抑えます。", tipEn: "Check repeating lines and minimize distortion." },
 ] as const;
 type GuideId = (typeof GUIDES)[number]["id"];
 
@@ -41,8 +46,13 @@ export default function CompositionGuidePage() {
             {showLines && <svg viewBox="0 0 300 400" className="absolute inset-0 h-full w-full" aria-label={isJa ? "構図ガイド線" : "Composition guidelines"}>
               <g fill="none" stroke="#fff" strokeWidth="2" strokeOpacity=".85">
                 {active === "thirds" && <><path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300" /></>}
-                {active === "center" && <><circle cx="150" cy="200" r="35" /><path d="M150 140V260M90 200H210" /></>}
-                {active === "diagonal" && <><path d="M0 0L300 400M300 0L0 400" /></>}
+                {active === "hinomaru" && <><circle cx="150" cy="200" r="35" /><path d="M150 140V260M90 200H210" /></>}
+                {active === "diagonals" && <><path d="M0 0L300 400M300 0L0 400" /></>}
+                {active === "halves" && <path d="M150 0V400M0 200H300" />}
+                {active === "symmetry" && <path d="M150 0V400" />}
+                {active === "horizon" && <path d="M0 200H300" />}
+                {active === "grid4" && <path d="M75 0V400M150 0V400M225 0V400M0 100H300M0 200H300M0 300H300" />}
+                {active === "squareGrid" && <path d="M75 0V400M150 0V400M225 0V400M0 75H300M0 150H300M0 225H300M0 300H300M0 375H300" />}
               </g>
             </svg>}
           </div>
@@ -53,7 +63,7 @@ export default function CompositionGuidePage() {
           <p className="text-xs text-white/60">{isJa ? "写真は端末内だけで表示し、アップロードしません。" : "Your photo stays on this device and is not uploaded."}</p>
           <label className="flex min-h-11 items-center justify-between gap-3 text-sm"><span>{isJa ? "ガイド線を表示" : "Show guide lines"}</span><input type="checkbox" checked={showLines} onChange={(event) => setShowLines(event.target.checked)} className="h-5 w-5 accent-[#C9A66B]" /></label>
           <p className="text-sm leading-relaxed text-white/75">{isJa ? guide.tipJa : guide.tipEn}</p>
-          <p className="text-xs text-white/50">{isJa ? "現在は代表的な3構図に対応しています。iOS版の全37種類への拡張は今後の対応です。" : "Three compositions are currently available. The full 37-guide iOS catalog is not yet included."}</p>
+          <p className="text-xs text-white/50">{isJa ? "現在は代表的な8構図に対応しています。iOS版の全37種類への拡張は今後の対応です。" : "Eight compositions are currently available. The full 37-guide iOS catalog is not yet included."}</p>
         </section>
       </div>
     </main>
