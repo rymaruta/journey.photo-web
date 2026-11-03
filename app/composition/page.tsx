@@ -52,6 +52,8 @@ export default function CompositionGuidePage() {
   const [active, setActive] = useState<GuideId>("thirds");
   const [showLines, setShowLines] = useState(true);
   const [lineOpacity, setLineOpacity] = useState(0.35);
+  const [rotation, setRotation] = useState(0);
+  const [flipped, setFlipped] = useState(false);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl); }, [photoUrl]);
   const guide = GUIDES.find((item) => item.id === active)!;
@@ -74,7 +76,7 @@ export default function CompositionGuidePage() {
           <div className="relative mx-auto aspect-[3/4] w-full max-w-[270px] overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-slate-600 to-slate-900">
             {photoUrl && <img src={photoUrl} alt={isJa ? "端末内の写真" : "Local photo"} className="absolute inset-0 h-full w-full object-cover" />}
             {showLines && <svg viewBox="0 0 300 400" className="absolute inset-0 h-full w-full" aria-label={isJa ? "構図ガイド線" : "Composition guidelines"}>
-              <g fill="none" stroke="#fff" strokeWidth="2" strokeOpacity={lineOpacity}>
+              <g fill="none" stroke="#fff" strokeWidth="2" strokeOpacity={lineOpacity} transform={`translate(150 200) rotate(${rotation}) scale(${flipped ? -1 : 1} 1) translate(-150 -200)`}>
                 {active === "thirds" && <><path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300" /></>}
                 {active === "hinomaru" && <><circle cx="150" cy="200" r="35" /><path d="M150 140V260M90 200H210" /></>}
                 {active === "diagonals" && <><path d="M0 0L300 400M300 0L0 400" /></>}
@@ -121,13 +123,18 @@ export default function CompositionGuidePage() {
           </label>
           <p className="text-xs text-white/60">{isJa ? "写真は端末内だけで表示し、アップロードしません。" : "Your photo stays on this device and is not uploaded."}</p>
           <label className="flex min-h-11 items-center justify-between gap-3 text-sm"><span>{isJa ? "ガイド線を表示" : "Show guide lines"}</span><input type="checkbox" checked={showLines} onChange={(event) => setShowLines(event.target.checked)} className="h-5 w-5 accent-[#C9A66B]" /></label>
+          <div className="flex flex-wrap gap-2" aria-label={isJa ? "ガイド線の向き" : "Guide orientation"}>
+            <button type="button" onClick={() => setRotation((value) => (value + 90) % 360)} className="min-h-11 rounded-xl border border-white/20 px-4 text-sm">{isJa ? "右へ90°回転" : "Rotate right 90°"}</button>
+            <button type="button" onClick={() => setFlipped((value) => !value)} aria-pressed={flipped} className="min-h-11 rounded-xl border border-white/20 px-4 text-sm">{isJa ? "左右反転" : "Flip horizontally"}</button>
+            <button type="button" onClick={() => { setRotation(0); setFlipped(false); }} className="min-h-11 rounded-xl border border-white/20 px-4 text-sm">{isJa ? "向きをリセット" : "Reset orientation"}</button>
+          </div>
           <label className="flex flex-col gap-2 text-sm">
             <span>{isJa ? "ガイド線の濃さ" : "Guide line opacity"} ({Math.round(lineOpacity * 100)}%)</span>
             <input type="range" min="0.15" max="0.7" step="0.05" value={lineOpacity} onChange={(event) => setLineOpacity(Number(event.target.value))} aria-label={isJa ? "ガイド線の濃さ" : "Guide line opacity"} className="w-full accent-[#C9A66B]" />
           </label>
           {photoUrl && <button type="button" onClick={() => setPhotoUrl(null)} className="min-h-11 rounded-xl border border-white/20 px-4 text-sm">{isJa ? "写真を取り除く" : "Remove photo"}</button>}
           <p className="text-sm leading-relaxed text-white/75">{isJa ? guide.tipJa : guide.tipEn}</p>
-          <p className="text-xs text-white/50">{isJa ? "iOS版と同じ37種類を選択できます。ガイド線はWEB用の簡易表示で、iOS版との形状・操作の完全一致は未検証です。" : "All 37 compositions are selectable. The web overlays are simplified and are not yet verified for exact iOS parity."}</p>
+          <p className="text-xs text-white/50">{isJa ? "iOS版と同じ37種類を選択できます。ガイド線はWEB用の簡易表示で、回転・反転は簡易プレビューで、iOS版との形状・操作の完全一致は未検証です。" : "All 37 compositions are selectable. The web overlays are simplified and are not yet verified for exact iOS parity."}</p>
         </section>
       </div>
     </main>
