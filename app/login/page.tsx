@@ -201,7 +201,7 @@ function LoginForm() {
                 <div className="absolute -inset-x-5 -top-[30px] grid grid-cols-4 gap-[3px]"
                      style={{ transform: "rotate(-4deg)" }}>
                     {loginBackgroundPhotos.map((photo, index) => (
-                        <div key={photo.id} className="aspect-square min-w-0 overflow-hidden bg-white/5">
+                        <div key={photo.id} className="aspect-square min-w-0 overflow-hidden bg-surface">
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={publicImageUrl(photo.src)} alt="" loading={index < 4 ? "eager" : "lazy"}
                                  fetchPriority={index === 0 ? "high" : "low"} decoding="async"
