@@ -54,9 +54,14 @@ export default function CompositionGuidePage() {
   const [lineOpacity, setLineOpacity] = useState(0.35);
   const [rotation, setRotation] = useState(0);
   const [flipped, setFlipped] = useState(false);
+  const [variant, setVariant] = useState(0);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   useEffect(() => () => { if (photoUrl) URL.revokeObjectURL(photoUrl); }, [photoUrl]);
   const guide = GUIDES.find((item) => item.id === active)!;
+  const variants = active === "symmetry" ? ["左右", "上下"] : active === "horizon" ? ["下寄り", "上寄り"] : active === "diagonals" ? ["左上→右下", "左下→右上", "両方向"] : active === "otherRatios" ? ["3:2", "2:1", "XPan 65:24", "√2:1"] : null;
+  const cropRatio = active === "otherRatios" ? [2 / 3, 1 / 2, 24 / 65, 1 / Math.SQRT2][variant] : null;
+  const cropWidth = cropRatio === null ? 0 : Math.min(300, 400 * cropRatio);
+  const cropHeight = cropRatio === null ? 0 : Math.min(400, 300 / cropRatio);
   return (
     <main className="min-h-screen bg-bg text-white px-4 pt-10 pb-20">
       <div className="mx-auto max-w-xl space-y-6">
@@ -67,21 +72,25 @@ export default function CompositionGuidePage() {
           <p className="text-sm text-white/70">{isJa ? "構図を選び、自分の写真にガイド線を重ねて確認できます。" : "Choose a composition and preview guide lines over your own photo."}</p>
         </header>
         <div className="space-y-2" aria-label={isJa ? "構図を選ぶ" : "Choose a composition"}>
-          {GUIDES.map((item) => <button key={item.id} type="button" onClick={() => setActive(item.id)} aria-pressed={active === item.id} className={`flex w-full min-h-14 items-center justify-between border-b border-white/10 px-2 text-left ${active === item.id ? "text-[#C9A66B]" : "text-white"}`}>
+          {GUIDES.map((item) => <button key={item.id} type="button" onClick={() => { setActive(item.id); setVariant(0); }} aria-pressed={active === item.id} className={`flex w-full min-h-14 items-center justify-between border-b border-white/10 px-2 text-left ${active === item.id ? "text-[#C9A66B]" : "text-white"}`}>
             <span><strong className="block text-sm">{isJa ? item.ja : item.en}</strong><span className="text-xs text-white/60">{isJa ? item.sceneJa : item.sceneEn}</span></span><span aria-hidden="true">›</span>
           </button>)}
         </div>
         <section className="space-y-4" aria-label={isJa ? "構図の確認" : "Composition preview"}>
           <h2 className="text-xl font-semibold">{isJa ? guide.ja : guide.en}</h2>
+          {variants && <fieldset className="space-y-2">
+            <legend className="text-sm text-white/75">{isJa ? "構図の向き・比率" : "Guide variant"}</legend>
+            <div className="flex flex-wrap gap-2">{variants.map((name, index) => <button key={name} type="button" onClick={() => setVariant(index)} aria-pressed={variant === index} className={`min-h-11 rounded-xl border px-3 text-sm ${variant === index ? "border-[#C9A66B] text-[#C9A66B]" : "border-white/20"}`}>{name}</button>)}</div>
+          </fieldset>}
           <div className="relative mx-auto aspect-[3/4] w-full max-w-[270px] overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-br from-slate-600 to-slate-900">
             {photoUrl && <img src={photoUrl} alt={isJa ? "端末内の写真" : "Local photo"} className="absolute inset-0 h-full w-full object-cover" />}
             {showLines && <svg viewBox="0 0 300 400" className="absolute inset-0 h-full w-full" aria-label={isJa ? "構図ガイド線" : "Composition guidelines"}>
               <g fill="none" stroke="#fff" strokeWidth="2" strokeOpacity={lineOpacity} transform={`translate(150 200) rotate(${rotation}) scale(${flipped ? -1 : 1} 1) translate(-150 -200)`}>
                 {active === "thirds" && <><path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300" /></>}
                 {active === "hinomaru" && <><circle cx="150" cy="200" r="35" /><path d="M150 140V260M90 200H210" /></>}
-                {active === "diagonals" && <><path d="M0 0L300 400M300 0L0 400" /></>}
+                {active === "diagonals" && <path d={variant === 0 ? "M0 0L300 400" : variant === 1 ? "M0 400L300 0" : "M0 0L300 400M300 0L0 400"} />}
                 {active === "halves" && <path d="M150 0V400M0 266.667H300" />}
-                {active === "symmetry" && <path d="M150 0V400" />}
+                {active === "symmetry" && (variant === 0 ? <path d="M150 0V400" /> : <path d="M0 200H300" />)}
                 {active === "horizon" && <path d="M0 200H300" />}
                 {active === "grid4" && <path d="M75 0V400M150 0V400M225 0V400M0 100H300M0 200H300M0 300H300" />}
                 {active === "squareGrid" && <path d="M50 0V400M100 0V400M150 0V400M200 0V400M250 0V400M0 50H300M0 100H300M0 150H300M0 200H300M0 250H300M0 300H300M0 350H300" />}
@@ -110,7 +119,7 @@ export default function CompositionGuidePage() {
                 {active === "zShape" && <path d="M48 88H252L48 312H252" />}
                 {active === "sCurve" && <path d="M105 24C285 120 15 280 195 376" />}
                 {active === "cCurve" && <path d="M216 56C24 40 24 360 216 344" />}
-                {active === "otherRatios" && <><rect x="0" y="87.5" width="300" height="225" /><rect x="0" y="125" width="300" height="150" strokeDasharray="7 7" /></>}
+                {active === "otherRatios" && <rect x={(300 - cropWidth) / 2} y={(400 - cropHeight) / 2} width={cropWidth} height={cropHeight} />}
                 {active === "grid6x4" && <path d="M75 0V400M150 0V400M225 0V400M0 66.667H300M0 133.333H300M0 200H300M0 266.667H300M0 333.333H300" />}
                 {active === "iphone" && <path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300" />}
                 {active === "level" && <path d="M40 200H260M20 185V215M280 185V215" />}
