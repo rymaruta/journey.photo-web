@@ -42,6 +42,10 @@ function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number) 
 export async function renderShareCard(photo: CanvasImageSource, credit: ShareCardCredit, ratio: ShareCardRatio = "4:5"): Promise<Blob> {
     const sharedPin = approximateShareCoordinate(credit.coords);
     const outlines = sharedPin ? await loadShareOutlines().catch(() => []) : [];
+    // Use the same branded aperture mark as the Web login screen; image retrieval is best-effort.
+    const brandMark = await fetch("/logo-aperture.png")
+        .then(async response => response.ok ? createImageBitmap(await response.blob()) : null)
+        .catch(() => null);
     const canvas = document.createElement("canvas");
     canvas.width = SHARE_CARD_WIDTH;
     canvas.height = SHARE_CARD_HEIGHT[ratio];
@@ -52,8 +56,12 @@ export async function renderShareCard(photo: CanvasImageSource, credit: ShareCar
     ctx.fillStyle = "#0e0e0f";
     ctx.fillRect(0, 0, w, h);
     ctx.fillStyle = "#fff";
+    if (brandMark) {
+        ctx.drawImage(brandMark, 95, 62, 45, 45);
+        brandMark.close();
+    }
     ctx.font = "bold 40px Georgia, serif";
-    ctx.fillText("Journey Photo", 70, 96);
+    ctx.fillText("Journey Photo", brandMark ? 155 : 70, 96);
     ctx.font = "24px sans-serif";
     ctx.textAlign = "right";
     ctx.fillText("旅の一瞬を、誰かの次の旅へ。", 1010, 93);
