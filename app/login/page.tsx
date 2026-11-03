@@ -292,17 +292,16 @@ function LoginForm() {
                             パスワードをお忘れですか？
                         </button>
 
-                        <p className="text-center text-xs text-white/50 pt-1">
-                            アカウントをお持ちでない方は{" "}
-                            {/* **`next` を渡す。** 渡さないと、招待リンクや
-                                共有リンクから来た未登録の人は、ここを押した
-                                時点で行き先を失う（登録を終えると自分の空
-                                プロフィールに着地する） */}
-                            <Link href={signupHref} prefetch={false} className="text-white/60 hover:text-white underline transition-colors">
-                                新規登録
-                            </Link>
-                        </p>
-                    </form>
+                        <p className="text-center text-xs text-white/50 pt-1">アカウントをお持ちでない方は</p>
+                        {/* 登録先へ next と via を維持する */}
+                        <Link
+                            href={signupHref}
+                            prefetch={false}
+                            aria-label="新規登録"
+                            className="flex min-h-12 w-full items-center justify-center rounded-full border border-white/45 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+                        >
+                            アカウントを作る
+                        </Link>             </form>
                 )}
 
                 {/* パスワードリセット: メール送信 */}
