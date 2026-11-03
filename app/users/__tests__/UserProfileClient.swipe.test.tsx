@@ -82,40 +82,30 @@ describe("UserProfileClient - タブの横スワイプ（タッチ操作の保�
         expect(screen.queryByRole("tab", { name: /Footprints|足あと/ })).toBeNull();
     });
 
-    // 2026-10-31 束 1 U9: 人のページの札は 投稿・マップ・年表（iOS の `ProfileTab.tabs(isMe: false)` ＋ Web だけの年表）
-    it("人のページの札は 投稿・マップ・年表（旅は札にしない）", () => {
+    it("人のページは投稿・マップのみ", () => {
         render(<UserProfileClient userId="nobody" />);
-        expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Posts", "Map", "Timeline"]);
+        expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["Posts", "Map"]);
     });
 
-    it("左スワイプで 投稿 → マップ → 年表 に切り替わる", () => {
+    it("左スワイプで投稿からマップに移り、右端では止まる", () => {
         render(<UserProfileClient userId="nobody" />);
         swipe("left");
         expect(activeTab()).toContain("Map");
         swipe("left");
-        expect(activeTab()).toContain("Timeline");
+        expect(activeTab()).toContain("Map");
     });
 
-    it("右端（年表）で左スワイプしてもクランプされ、年表のまま", () => {
-        render(<UserProfileClient userId="nobody" />);
-        swipe("left");
-        swipe("left");
-        swipe("left");
-        expect(activeTab()).toContain("Timeline");
-    });
-
-    it("左端で右スワイプしてもクランプされ、投稿のまま", () => {
+    it("左端で右スワイプしても投稿のまま", () => {
         render(<UserProfileClient userId="nobody" />);
         swipe("right");
         expect(activeTab()).toContain("Posts");
     });
 
-    it("年表タブから右スワイプで マップ に戻る（前方向スワイプ）", () => {
+    it("マップから右スワイプで投稿に戻る", () => {
         render(<UserProfileClient userId="nobody" />);
-        fireEvent.click(tabButton("Timeline"));
-        expect(activeTab()).toContain("Timeline");
+        fireEvent.click(tabButton("Map"));
         swipe("right");
-        expect(activeTab()).toContain("Map");
+        expect(activeTab()).toContain("Posts");
     });
 
     it("地図の中で始まる横の操作では札を替えない（地図を動かしている）", () => {

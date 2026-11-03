@@ -5,7 +5,7 @@ import { sanitizeProfile } from "../../lib/utils/profileShape";
 import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
 import Thumb from "../components/Thumb";
 import Link from "next/link";
-import { ChevronLeftIcon, EllipsisHorizontalIcon, GlobeAltIcon, EyeSlashIcon, LinkIcon, PencilSquareIcon, PlusIcon, PhotoIcon as PhotoStackIcon, CalendarDaysIcon, ChatBubbleOvalLeftIcon, MusicalNoteIcon, ChevronDownIcon, QrCodeIcon, NoSymbolIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { ChevronLeftIcon, EllipsisHorizontalIcon, GlobeAltIcon, EyeSlashIcon, LinkIcon, PencilSquareIcon, PlusIcon, PhotoIcon as PhotoStackIcon, ChatBubbleOvalLeftIcon, MusicalNoteIcon, ChevronDownIcon, QrCodeIcon, NoSymbolIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { parseMusicEmbed, musicServiceLabel } from "../../lib/utils/music";
 import { swipeDirection, stepInList } from "../../lib/utils/swipe";
 import { nextTabIndex } from "../../lib/utils/tabKeys";
@@ -31,8 +31,6 @@ import { copyToClipboard, shareToTwitter, shareToLine } from "../../lib/utils/sh
 import { publicFetch, userFetch, userPublicFetch, readApiError, sessionErrorMessage } from "../../lib/utils/api";
 import { useEscapeKey } from "../../lib/hooks/useEscapeKey";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
-import { EN_MONTHS, splitStoredDate } from "../../lib/utils/photoDate";
-import { compareNewest } from "../../lib/utils/photoOrder";
 import { ROUTES } from "../../lib/routes";
 import { toastWithStaticPage } from "../../lib/utils/staticPage";
 import UserAvatar from "../components/UserAvatar";
@@ -119,69 +117,13 @@ type UserProfile = {
  */
 const StoriesBar = dynamic(() => import("../components/stories/StoriesBar"), { ssr: false });
 
-type TabKey = "posts" | "map" | "timeline" | "trips";
-/**
- * タブ。`timeline` は**年表**（内部名は古い・Web だけ）。「フォロー中」はトップのタブに在る。
- * `trips` は**旅の一冊の棚**（iOS の「旅の記録」のタブ・2026-10-21 に Web へ）。
- *
- * 2026-10-31 判断（束 1 U9・iOS の `ProfileTab.tabs(isMe:)`）: **人のページは 投稿・マップ・年表**。
- * iOS の人のページは 投稿・マップ の2つで、旅は名前の下の「旅」の行（`ProfileTripsLine`）から開く。
- * Web だけの年表は残す。旅の棚は札に並べず、「すべての旅 · N冊」で開く（`trips` は選べるが札は無い）。
- * 本人のページ（マイページ）は今のまま（iOS のマイページの直しは束 5）
+type TabKey = "posts" | "map" | "trips";
+/** iOS ProfileTab.tabs(isMe:) に合わせたプロフィールのタブ。
+ * 本人の「行きたい場所」「保存」は既存の専用ページへのリンク。
+ * 他人の旅の棚は「すべての旅」から開くため、タブには含めない。
  */
-// 2026-10-31 判断（束 1 の確かめ）: **本人のページにもマップの札を出す。** iOS のマイページに地図の区分は無いが、
-// Web は「訪れた場所」のチップを外した（U6）ので、札が無いと本人が自分の撮影地を見る手立てが無くなる。今ある機能を失わない
-const OWNER_TABS: TabKey[] = ["posts", "map", "timeline", "trips"];
-const VISITOR_TABS: TabKey[] = ["posts", "map", "timeline"];
-
-// 写真を「YYYY年 / M月」で時系列グループ化（撮影日 date 優先、なければ createdAt）
-type TimelineGroup = { key: string; year: string; label: string; photos: Photo[] };
-function buildTimeline(photos: Photo[], locale: "ja" | "en"): TimelineGroup[] {
-    const withDate = photos
-        .map((p) => ({ p, raw: String(p.date || p.createdAt || "") }))
-        .filter((x) => splitStoredDate(x.raw) !== null || (!!x.raw && !isNaN(Date.parse(x.raw))))
-        // 並びは共通の比較関数（ホーム・集約ページ・写真ページの前後と同じ）。
-        // `Date.parse` の数値で並べていた頃は、EXIF 由来のゾーン無し
-        // `T` 形式がローカル時刻として読まれ、**並びが閲覧者のゾーンで
-        // 変わって**いた（lib/utils/photoOrder.ts に実測を書いた）。
-        .sort((a, b) => compareNewest(a.p, b.p));
-    const map = new Map<string, TimelineGroup>();
-    for (const { p, raw } of withDate) {
-        // **書かれている成分をそのまま使う。** 撮影日は「その土地で撮った
-        // 時刻」で、閲覧者のゾーンに変換する値ではない（写真ページの表示
-        // ——`formatStoredDateTime`——も同じ立場）。`Date.parse` を通すと、
-        // ゾーン無しの `2024-11-01T07:30:00` は**ローカル時刻**として読まれ、
-        // JST では前日 22:30 UTC になる——**写真ページが「11月1日」と出す
-        // 写真が、年表では「10月」の見出しに入る**。
-        const parts = splitStoredDate(raw);
-        let y: number, m: number;
-        if (parts) {
-            y = parts.y;
-            m = parts.m;
-        } else {
-            // 想定外の形（`YYYY-MM-DD` で始まらない）は今までどおり。
-            // ここで落とすと、年表からその写真が黙って消える
-            const d = new Date(Date.parse(raw));
-            y = d.getUTCFullYear();
-            m = d.getUTCMonth() + 1;
-        }
-        const key = `${y}-${m}`;
-        if (!map.has(key)) {
-            map.set(key, {
-                key,
-                year: String(y),
-                // 見出しも UTC で組む。グループ分けは UTC なのに英語ラベルだけ
-                // toLocaleDateString（ローカル時刻）だったので、UTC より西の
-                // 閲覧者には **キーが 2024-1 なのに見出しが "December 2023"**
-                // という食い違いが出ていた。
-                label: locale === "en" ? `${EN_MONTHS[m - 1]} ${y}` : `${y}年${m}月`,
-                photos: [],
-            });
-        }
-        map.get(key)!.photos.push(p);
-    }
-    return Array.from(map.values());
-}
+const OWNER_TABS: TabKey[] = ["posts", "trips"];
+const VISITOR_TABS: TabKey[] = ["posts", "map"];
 
 const PROFILE_PRIORITY_THUMBS = 3;
 
@@ -939,8 +881,6 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
     }, []);
 
 
-    const timeline = useMemo(() => buildTimeline(visiblePhotos, locale as "ja" | "en"), [visiblePhotos, locale]);
-
     // 旅アルバム: 撮影日の間隔で自動グルーピング
 
     // プロフィール項目の部分更新。変更する項目だけ送る。
@@ -1408,7 +1348,7 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                             本人には右下に「＋」（投稿する）——モックと同じ */}
                         <div className="relative w-fit rounded-full lg:flex-shrink-0">
                             <div className="rounded-full border-4 border-bg bg-bg" data-avatar-frame>
-                                <UserAvatar userId={userId} className="w-[88px] h-[88px]" iconClassName="w-11 h-11" />
+                                <UserAvatar userId={userId} className={hasCover || showCoverFrame ? "w-[88px] h-[88px]" : "w-[72px] h-[72px]"} iconClassName="w-11 h-11" />
                             </div>
                             {isOwner && (
                                 <button
@@ -1418,13 +1358,33 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                                     aria-haspopup="dialog"
                                     aria-expanded={postOpen}
                                     aria-label={locale === "en" ? "Create" : "投稿する"}
-                                    className="absolute right-0 bottom-0 inline-flex items-center justify-center rounded-full bg-accent-fill text-ink ring-[3px] ring-bg hover:brightness-110 active:scale-95 transition"
-                                    style={{ width: "28px", height: "28px", touchAction: "manipulation" }}
+                                    className="absolute -right-2 -bottom-2 inline-flex items-center justify-center rounded-full hover:brightness-110 active:scale-95 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
+                                    style={{ width: "44px", height: "44px", touchAction: "manipulation" }}
                                 >
-                                    <PlusIcon aria-hidden="true" style={{ width: "16px", height: "16px" }} strokeWidth={2.5} />
+                                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent-fill text-ink ring-[3px] ring-bg"><PlusIcon aria-hidden="true" style={{ width: "16px", height: "16px" }} strokeWidth={2.5} /></span>
                                 </button>
                             )}
                         </div>
+                            {isOwner && (
+                    <div className="flex min-w-0 flex-1 items-end gap-1.5 pl-2 pb-1 [&>*]:min-w-0" data-testid="profile-stats">
+                        <div className={`${STAT_CELL_CLASS} min-w-0 min-h-11`}>
+                            <span className={STAT_NUMBER_CLASS} style={{ fontSize: `${STAT_NUMBER_PX}px` }}>{photosResolved ? postCount : "…"}</span>
+                            <span className={STAT_LABEL_CLASS} style={{ fontSize: `${STAT_LABEL_PX}px` }}>{locale === "en" ? "posts" : "投稿"}</span>
+                            {photosResolved && hiddenCount > 0 && (
+                                <span className="block text-white/50 mt-1" style={{ fontSize: "12px" }}>
+                                    {locale === "en" ? `(${hiddenCount} private)` : `（うち非公開 ${hiddenCount}）`}
+                                </span>
+                            )}
+                        </div>
+                        <FollowButton
+                            targetUserId={userId}
+                            isOwner={isOwner}
+                            isAuthenticated={viewerAuthed}
+                            locale={locale as "ja" | "en"}
+                            variant="stats"
+                        />
+                    </div>
+                            )}
                             {/* **ブロック中は出さない**（サーバーは必ず断るので、押せる形で置くと失敗する操作へ誘う）。
                                 `key` で張り直さない——張り直すと二重送信の番人（`busyRef`）が外れる */}
                             {!isOwner && !blocked && (
@@ -1473,11 +1433,12 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                                 // 人のページのフォローは顔の行の右へ移した（束 1 U2）
                                 <Link
                                     href={ROUTES.PROFILE_EDIT}
+                                    aria-label={locale === "en" ? "Edit profile" : "プロフィールを編集"}
                                     prefetch={false}
-                                    className="flex-shrink-0 inline-flex items-center justify-center rounded-full bg-transparent ring-1 ring-accent text-accent hover:bg-accent/10 font-semibold transition"
-                                    style={{ fontSize: "13px", lineHeight: "18px", padding: "8px 14px", touchAction: "manipulation", minHeight: "36px" }}
+                                    className="flex-shrink-0 inline-flex items-center justify-center rounded-full bg-transparent ring-1 ring-white/15 text-white hover:bg-white/10 font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
+                                    style={{ fontSize: "13px", lineHeight: "18px", padding: "8px 14px", touchAction: "manipulation", minHeight: "44px" }}
                                 >
-                                    {locale === "en" ? "Edit profile" : "プロフィールを編集"}
+                                    {locale === "en" ? "Edit" : "編集"}
                                 </Link>
                             )}
                         </div>
@@ -1501,8 +1462,9 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         **届く前に「0投稿」と言い切らない**——実測で応答を保持すると
                         5秒・20秒・45秒のいずれでも「0投稿」だった。ビルド後に登録した
                         人（定期ビルドは週1なので最大7日）のプロフィールが該当する */}
-                    <div className="flex items-start gap-2 py-4 border-b border-line">
-                        <div className={STAT_CELL_CLASS}>
+                    {!isOwner && (
+                    <div className="flex items-end gap-2 py-4 border-b border-line" data-testid="profile-stats">
+                        <div className={`${STAT_CELL_CLASS} min-w-0 min-h-11`}>
                             <span className={STAT_NUMBER_CLASS} style={{ fontSize: `${STAT_NUMBER_PX}px` }}>{photosResolved ? postCount : "…"}</span>
                             <span className={STAT_LABEL_CLASS} style={{ fontSize: `${STAT_LABEL_PX}px` }}>{locale === "en" ? "posts" : "投稿"}</span>
                             {photosResolved && hiddenCount > 0 && (
@@ -1519,6 +1481,7 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                             variant="stats"
                         />
                     </div>
+                    )}
 
                     {/* 旅の記録（v2 の板 MyPage・案 H1「星図」。iOS の `TravelRecordView` と同じ形）。
                         以前は「総移動距離」の1行（紙飛行機のアイコン＋数字）だった。
@@ -1544,8 +1507,8 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         );
                     })()}
 
-                    {/* 訪れた場所のチップは外した（2026-10-31 束 1 U6・iOS は外して「マップ」の札で地図に出す）。
-                        撮影地の頁へは、写真の頁の「撮影地の詳細」とマップの札の写真から行ける */}
+                    {/* 訪れた場所のチップは廃止。人のプロフィールでは「マップ」タブ、
+                        本人は旅の記録から撮影地マップへ移動できる。 */}
                     {/* 旅の一冊（板 UserProfile F33「旅」・iOS の `ProfileTripsLine`）。いちばん新しい一冊の札と、
                         2冊以上なら「すべての旅 · N冊」（旅のタブへ）。一冊も無ければ節ごと出さない */}
                     {photosResolved && trips.length > 0 && (
@@ -1732,8 +1695,7 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                     {([
                         { key: "posts", label: locale === "en" ? "Posts" : "投稿" },
                         { key: "map", label: locale === "en" ? "Map" : "マップ" },
-                        { key: "timeline", label: locale === "en" ? "Timeline" : "年表" },
-                        { key: "trips", label: locale === "en" ? "Trips" : "旅" },
+                        { key: "trips", label: locale === "en" ? "Trips" : "旅の記録" },
                     ] as const).filter(({ key }) => tabOrder.includes(key)).map(({ key, label }) => {
                         const active = tab === key;
                         return (
@@ -1858,37 +1820,6 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         {photosResolved
                             ? <TripShelfList trips={trips} userId={userId} isJa={locale !== "en"} />
                             : <LoadingState kind="rows" locale={locale === "en" ? "en" : "ja"} testId="profile-trips-loading" />}
-                    </div>
-                )}
-                {/* 年表タブ */}
-                {tab === "timeline" && (
-                    <div role="tabpanel" id="profile-panel-timeline" aria-labelledby="profile-tab-timeline" className="pb-8 pt-2">
-                        {timeline.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-24 text-white/50 gap-3">
-                                <CalendarDaysIcon className="w-10 h-10" />
-                                <p className="text-sm">{locale === "en" ? "No dated photos yet." : "撮影日のある写真がまだありません。"}</p>
-                            </div>
-                        ) : (
-                            <div className="relative pl-6">
-                                {/* 縦の軸線 */}
-                                <div className="absolute left-[7px] top-2 bottom-2 w-px bg-white/15" />
-                                {timeline.map((g) => (
-                                    <div key={g.key} className="relative mb-6">
-                                        {/* 節点 + 月ラベル */}
-                                        <div className="flex items-center gap-2 mb-2 -ml-6">
-                                            <span className="w-3.5 h-3.5 rounded-full bg-white ring-4 ring-bg flex-shrink-0" />
-                                            <span className="text-sm font-bold">{g.label}</span>
-                                            <span className="text-[12px] text-white/50">{g.photos.length}{locale === "en" ? "" : "枚"}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-[2px]">
-                                            {g.photos.map((photo) => (
-                                                <PhotoCard key={photo.id} photo={photo} locale={locale} isOwner={isOwner} onTogglePublish={handleTogglePublish} onDelete={isOwner ? setPhotoToDelete : undefined} />
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 )}
                 </div>
