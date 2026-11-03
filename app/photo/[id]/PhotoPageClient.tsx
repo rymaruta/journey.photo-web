@@ -1218,7 +1218,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                   style={{ fontSize: "15px", lineHeight: "20px", touchAction: "manipulation" }}>
                                 <span className="block min-w-0 truncate">{photo.displayName || photo.uploaderUsername}</span>
                             </Link>
-                            {photo.uploaderUsername && (
+                            {photo.uploaderUsername && photo.displayName && (
                                 <p className="m-0 mt-0.5 text-text-3 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>@{photo.uploaderUsername}</p>
                             )}
                         </div>
