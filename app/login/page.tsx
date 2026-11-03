@@ -182,12 +182,13 @@ function LoginForm() {
     }
 
     return (
-        <main className="min-h-screen bg-bg flex items-center justify-center px-4">
-            <div className="w-full max-w-sm">
+        <main className="min-h-screen bg-transparent flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
+            <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-black/85 p-6 shadow-2xl backdrop-blur-md sm:p-8">
 
                 {/* ロゴ */}
                 <div className="mb-10 text-center">
-                    <p className="text-white/50 text-xs tracking-widest uppercase mb-3">Journey Photo</p>
+                    <p className="font-serif text-3xl font-bold tracking-tight text-white mb-2">Journey Photo</p>
+                    <p className="text-white/65 text-sm mb-5">旅の一瞬を、誰かの次の旅へ。</p>
                     <h1 className="text-2xl font-bold text-white">
                         {step === "login" && "ログイン"}
                         {step === "forgot-send" && "パスワードをリセット"}
@@ -268,7 +269,7 @@ function LoginForm() {
                         <button
                             type="submit"
                             disabled={submitting || !username || !password}
-                            className={`${BTN_FILL} w-full bg-accent-fill text-ink hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2`}
+                            className={`${BTN_FILL} w-full bg-white text-black hover:bg-white/90 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2`}
                         >
                             {submitting ? (
                                 <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
