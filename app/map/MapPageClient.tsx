@@ -11,7 +11,7 @@ import MapControls, { type MapView } from "./MapControls";
 import MapPhotoList from "./MapPhotoList";
 import { collectionPath, slugify } from "../../lib/utils/collections";
 import {
-    filterMapPhotos, filterMapSpots, mapCategories, photosInBounds, type MapBounds,
+    filterMapPhotos, filterMapSpots, mapCategories, normalizeBounds, photosInBounds, type MapBounds,
 } from "../../lib/utils/mapFilter";
 import type { SpotPin } from "../../lib/data/spotLink";
 import MapSpotSheet from "./MapSpotSheet";
@@ -65,7 +65,8 @@ export default function MapPageClient({ spots }: { spots: readonly SpotPin[] }) 
                 const lng = coords.longitude;
                 const latitudeDelta = 10 / 111.32;
                 const longitudeDelta = 10 / (111.32 * Math.max(0.1, Math.cos(lat * Math.PI / 180)));
-                setArea({ south: Math.max(-90, lat - latitudeDelta), north: Math.min(90, lat + latitudeDelta), west: lng - longitudeDelta, east: lng + longitudeDelta });
+                setArea(normalizeBounds({ south: Math.max(-90, lat - latitudeDelta), north: Math.min(90, lat + latitudeDelta), west: lng - longitudeDelta, east: lng + longitudeDelta }));
+                setView("list");
                 setLocating(false);
             },
             () => {
