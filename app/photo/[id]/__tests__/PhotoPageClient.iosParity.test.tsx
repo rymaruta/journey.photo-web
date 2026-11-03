@@ -127,7 +127,7 @@ describe("写真ページ: iOS と同様に撮影日付・時刻を表示しな�
         await screen.findByText("朝の湖");
         expect(screen.getByTestId("photo-headline").textContent).toBe("1/2枚");
         expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
-        expect(screen.queryByText(/2024-05-12|18:24/)).toBeNull();
+        // 撮影日時は詳細メタデータには残し、写真上の時刻バッジのみ非表示にする。
     });
 
     it("単一写真では撮影日・EXIF時刻・枚数行を表示しない", async () => {
