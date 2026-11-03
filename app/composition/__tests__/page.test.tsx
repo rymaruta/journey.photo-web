@@ -12,7 +12,7 @@ describe("撮影ガイド", () => {
   it("iOS版と同じ37構図を選択できる", () => {
     render(<CompositionGuidePage />);
     expect(names).toHaveLength(37);
-    const buttons = screen.getAllByRole("button");
+    const buttons = screen.getAllByRole("button").filter((button) => button.querySelector("strong"));
     expect(buttons).toHaveLength(37);
     for (const name of names) {
       const button = buttons.find((item) => item.querySelector("strong")?.textContent === name);
