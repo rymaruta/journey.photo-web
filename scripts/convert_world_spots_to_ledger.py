@@ -9,11 +9,14 @@ import datetime
 import hashlib
 import json
 import math
+import os
+import re
+import tempfile
 from pathlib import Path
 
 def convert(candidate, editorial):
     qid = candidate.get("wikidataId")
-    if not isinstance(qid, str) or not qid.startswith("Q"):
+    if not isinstance(qid, str) or not re.fullmatch(r"Q[1-9][0-9]*", qid):
         return None
     name = candidate.get("name")
     coords = candidate.get("coordinates")
@@ -76,7 +79,7 @@ def main():
     candidates = json.loads(a.candidates.read_text(encoding="utf-8"))["spots"]
     editorial = json.loads(a.editorial.read_text(encoding="utf-8"))
     existing = json.loads(a.existing.read_text(encoding="utf-8"))
-    if not isinstance(existing, list) or not isinstance(editorial, list):
+    if not isinstance(existing, list) or not isinstance(editorial, list) or not isinstance(candidates, list) or any(not isinstance(e, dict) for e in existing):
         p.error("invalid ledger or editorial format")
     by_qid = {e.get("wikidataId") for e in existing if isinstance(e, dict)}
     by_slug = {e.get("slug") for e in existing if isinstance(e, dict)}
@@ -96,7 +99,7 @@ def main():
     print(json.dumps({"eligible": len(inserted), "rejected_or_duplicate": len(candidates) - len(inserted)}))
     if a.write:
         a.output.parent.mkdir(parents=True, exist_ok=True)
-        a.output.write_text(json.dumps(existing + inserted, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        fd, tmp = tempfile.mkstemp(prefix=".spots-", suffix=".json", dir=a.output.parent)\n        try:\n            with os.fdopen(fd, "w", encoding="utf-8") as out:\n                json.dump(existing + inserted, out, ensure_ascii=False, indent=2)\n                out.write("\\n")\n            os.replace(tmp, a.output)\n        finally:\n            if os.path.exists(tmp):\n                os.unlink(tmp)
 
 if __name__ == "__main__":
     main()
