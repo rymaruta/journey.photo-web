@@ -51,6 +51,7 @@ import { useAuth } from "../../auth/context";
 import ReportDialog from "../../components/ReportDialog";
 import { useToast } from "../../../lib/hooks/useToast";
 import { shareUrl, copyToClipboard, shareToTwitter, shareToLine } from "../../../lib/utils/share";
+import { renderShareCard, type ShareCardRatio } from "../../../lib/utils/signatureShareCard";
 import { siteConfig, generatePhotoStructuredData, generateBreadcrumbStructuredData } from "../../../lib/utils/seo";
 import { slugify, collectionPath, categoryLabel } from "../../../lib/utils/collections";
 import RelatedPhotos from "../../components/RelatedPhotos";
@@ -957,6 +958,47 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
         }
     };
 
+    const handleSaveShareCard = async (ratio: ShareCardRatio) => {
+        if (!photo?.src) return;
+        try {
+            const response = await fetch(publicImageUrl(photo.src), { mode: "cors" });
+            if (!response.ok) throw new Error("Photo download failed");
+            const imageBlob = await response.blob();
+            const bitmap = await createImageBitmap(imageBlob);
+            let blob: Blob;
+            try {
+                blob = await renderShareCard(bitmap, {
+                    name: authorName || "Photographer",
+                    username: photo.uploaderUsername,
+                    location: photo.location,
+                    camera: photo.exif?.camera,
+                    lens: photo.exif?.lens,
+                    verified: authorMarks?.userId === photo.userId && authorMarks.verified,
+                    pro: authorMarks?.userId === photo.userId && authorMarks.pro,
+                    early: authorMarks?.userId === photo.userId && authorMarks.earlyMark,
+                    badge: authorMarks?.userId === photo.userId ? authorMarks.displayBadge : undefined,
+                    coords: photo.coords,
+                }, ratio);
+            } finally {
+                bitmap.close();
+            }
+            const url = URL.createObjectURL(blob);
+            try {
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `journey-photo-${photo.id}-${ratio.replace(":", "x")}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            } finally {
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+        } catch (error) {
+            log.warn("Share card export failed", error);
+            showToast(locale === "en" ? "Could not save the share card" : "共有カードを保存できませんでした", "error");
+        }
+    };
+
     const handleCopyLink = async (e?: React.MouseEvent) => {
         if (e) {
             e.stopPropagation();
@@ -1024,6 +1066,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     buttonSize={44}
                     items={[
                         { key: "share", label: locale === "en" ? "Share" : "共有", onSelect: () => void handleShare() },
+                        ...(["4:5", "9:16", "1:1"] as const).map(ratio => ({ key: `share-card-${ratio}`, label: locale === "en" ? `Save share image ${ratio}` : `共有画像を保存（${ratio}）`, onSelect: () => void handleSaveShareCard(ratio) })),
                         { key: "copy", label: locale === "en" ? "Copy link" : "リンクをコピー", onSelect: () => void handleCopyLink() },
                         { key: "x", label: locale === "en" ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(currentUrl, shareText) },
                         ...(locale === "ja" ? [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(currentUrl, shareText) }] : []),
