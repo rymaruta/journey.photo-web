@@ -27,7 +27,7 @@ def verify(candidate):
     qid = candidate.get("wikidataId")
     if not isinstance(qid, str) or not QID.fullmatch(qid):
         return None
-    if candidate.get("source") != "wikidata" or candidate.get("sourceUrl") != "https://www.wikidata.org/entity/" + qid:
+    if candidate.get("source") != "wikidata" or candidate.get("sourceUrl", "").replace("http://", "https://") != "https://www.wikidata.org/entity/" + qid:
         return None
     entity = api("https://www.wikidata.org/w/api.php", {
         "action": "wbgetentities", "ids": qid, "props": "sitelinks|claims", "format": "json"
@@ -71,7 +71,7 @@ def verify(candidate):
                 {"title": "Wikipedia: " + title, "url": source_url}
             ],
             "verificationMode": "wikimedia-api", "checkedAt": datetime.date.today().isoformat(),
-            "sourceLanguage": language
+            "sourceLanguage": language, "attribution": "Wikipedia contributors (CC BY-SA 4.0)"
         }
     return None
 
