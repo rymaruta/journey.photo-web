@@ -5,6 +5,8 @@ on:
     paths:
       - 'scripts/publish_spot_candidates.py'
       - 'scripts/test_publish_spot_candidates.py'
+      - 'scripts/convert_world_spots_to_ledger.py'
+      - 'scripts/test_convert_world_spots_to_ledger.py'
       - '.github/workflows/validate-spot-publication.yml'
   workflow_dispatch:
 
@@ -20,6 +22,6 @@ jobs:
         with:
           python-version: '3.12'
       - name: Validate syntax
-        run: python -m py_compile scripts/publish_spot_candidates.py scripts/test_publish_spot_candidates.py
+        run: python -m py_compile scripts/publish_spot_candidates.py scripts/test_publish_spot_candidates.py scripts/convert_world_spots_to_ledger.py scripts/test_convert_world_spots_to_ledger.py
       - name: Verify non-destructive publication
-        run: python -m unittest discover -s scripts -p 'test_publish_spot_candidates.py' -v
+        run: python -m unittest discover -s scripts -p 'test_*spot*.py' -v
