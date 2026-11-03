@@ -87,7 +87,7 @@ export function drawShareCountryMap(
     const shape = findShareCountry(shapes, pin);
     if (shape) {
         const rings = unwrapShareRings(shape, pin.lng);
-        const vertices = rings.flat(2).filter(p => p.length === 2);
+        const vertices = rings.flat().filter(p => p.length === 2);
         const lngs = vertices.map(p => p[0]);
         const lats = vertices.map(p => p[1]);
         const minLng = Math.min(...lngs), maxLng = Math.max(...lngs);
