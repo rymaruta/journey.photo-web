@@ -20,8 +20,11 @@ export default function StoryAuthorAvatar({ userId, name, locale }: {
     const [groups, setGroups] = useState<StoryGroup[]>([]);
     const [seen, setSeen] = useState<Set<string>>(() => new Set());
     const [open, setOpen] = useState(false);
+    const [loadedFor, setLoadedFor] = useState<string | null>(null);
+    const requestKey = `${ownUserId ?? ""}:${userId}`;
     useEffect(() => {
         if (!isAuthenticated || !userId) { return; }
+        setLoadedFor(null);
         let cancelled = false;
         setSeen(loadSeenStoryIds());
         void userFetch("/stories").then(async response => {
@@ -29,12 +32,13 @@ export default function StoryAuthorAvatar({ userId, name, locale }: {
             const data: unknown = await response.json();
             if (!cancelled && Array.isArray(data)) {
                 setGroups(groupStories(data as Story[], ownUserId ?? undefined));
+                setLoadedFor(requestKey);
             }
         }).catch(() => { /* ストーリーが取得できなくてもプロフィールは開ける */ });
         return () => { cancelled = true; };
-    }, [isAuthenticated, ownUserId, userId]);
+    }, [isAuthenticated, ownUserId, userId, requestKey]);
 
-    const groupIndex = isAuthenticated ? groups.findIndex(group => group.userId === userId) : -1;
+    const groupIndex = isAuthenticated && loadedFor === requestKey ? groups.findIndex(group => group.userId === userId) : -1;
     const group = groupIndex >= 0 ? groups[groupIndex] : undefined;
     const unseen = group ? hasUnseen(group, seen) : false;
     const face = <UserAvatar userId={userId} className="w-10 h-10" iconClassName="w-6 h-6" />;
