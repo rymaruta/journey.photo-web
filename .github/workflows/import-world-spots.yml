@@ -14,7 +14,7 @@ on:
         default: '0'
         type: string
   schedule:
-    - cron: '17 0,4,8,12,16,20 * * *'
+    - cron: '*/5 * * * *'
   pull_request:
     paths:
       - 'scripts/import_world_spots.py'
@@ -49,8 +49,8 @@ jobs:
           from datetime import datetime, timezone
           event = os.environ["EVENT"]
           if event == "schedule":
-              # Rotate among 48 countries across 8 days, 6 slots per day.
-              tick = int(datetime.now(timezone.utc).timestamp()) // 14400
+              # Rotate among 48 countries across 48 five-minute slots.
+              tick = int(datetime.now(timezone.utc).timestamp()) // 300
               slot = tick % 48
               offset = ((tick // 48) % 20) * 250
           elif event == "pull_request":
