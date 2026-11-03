@@ -15,7 +15,7 @@ describe("撮影ガイド", () => {
     const buttons = screen.getAllByRole("button");
     expect(buttons).toHaveLength(37);
     for (const name of names) {
-      const button = buttons.find((item) => item.textContent?.includes(name));
+      const button = buttons.find((item) => item.querySelector("strong")?.textContent === name);
       expect(button, name).toBeDefined();
       fireEvent.click(button!);
       expect(button).toHaveAttribute("aria-pressed", "true");
