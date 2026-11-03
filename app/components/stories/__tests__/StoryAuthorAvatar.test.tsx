@@ -42,6 +42,17 @@ describe("iOS StoryAvatar parity: photo author", () => {
         expect(screen.getByRole("link", { name: "旅人 のプロフィール" })).toBeInTheDocument();
     });
 
+    it("撮影者を切り替えた直後に以前の撮影者のリングを表示しない", async () => {
+        const { rerender } = render(<StoryAuthorAvatar userId="author" name="旅人" locale="ja" />);
+        await waitFor(() => expect(screen.getByTestId("photo-author-story-ring")).toBeInTheDocument());
+        let resolveOther: ((response: { ok: boolean; json: () => Promise<unknown[]> }) => void) | undefined;
+        fetchStories.mockImplementationOnce(() => new Promise(resolve => { resolveOther = resolve; }));
+        rerender(<StoryAuthorAvatar userId="another" name="別の旅人" locale="ja" />);
+        expect(screen.queryByTestId("photo-author-story-ring")).not.toBeInTheDocument();
+        expect(screen.getByRole("link", { name: "別の旅人 のプロフィール" })).toBeInTheDocument();
+        resolveOther?.({ ok: true, json: async () => [] });
+    });
+
     it("未ログイン時はストーリーを取得せずプロフィールへ誘導", () => {
         auth.value = { isAuthenticated: false, userId: null };
         render(<StoryAuthorAvatar userId="author" name="旅人" locale="ja" />);
