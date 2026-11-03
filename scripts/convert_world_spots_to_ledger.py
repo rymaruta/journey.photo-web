@@ -70,7 +70,10 @@ def main():
     p.add_argument("--existing", type=Path, required=True)
     p.add_argument("--output", type=Path, required=True)
     p.add_argument("--write", action="store_true")
+    p.add_argument("--max-new", type=int, default=100, help="Maximum new spots per run; default 100")
     a = p.parse_args()
+    if a.max_new < 0:
+        p.error("--max-new must be nonnegative")
     for source in (a.candidates, a.editorial, a.existing):
         if not source.is_file():
             p.error(f"missing input: {source}")
@@ -102,6 +105,8 @@ def main():
         spot = convert(candidate, editorial_map.get(candidate.get("wikidataId")))
         if spot is None or spot["wikidataId"] in by_qid or spot["slug"] in by_slug or spot["spotId"] in by_id or place_key(spot) in by_place:
             continue
+        if len(inserted) >= a.max_new:
+            break
         inserted.append(spot)
         by_qid.add(spot["wikidataId"])
         by_slug.add(spot["slug"])
