@@ -118,7 +118,7 @@ type UserProfile = {
 const StoriesBar = dynamic(() => import("../components/stories/StoriesBar"), { ssr: false });
 // Owner-only shelves: do not load saved-data UI on every public profile visit.
 const SavedSpotsPanel = dynamic(() => import("../saved-spots/SavedSpotsClient"), { ssr: false });
-const SavedPhotosPanel = dynamic(() => import("../saves/page"), { ssr: false });
+const SavedPhotosPanel = dynamic(() => import("../saves/SavedPhotosContent"), { ssr: false });
 
 type TabKey = "posts" | "map" | "trips" | "wishlist" | "favorites";
 /** iOS ProfileTab.tabs(isMe:) と同じタブ順。保存系は本人にだけ表示する。 */
