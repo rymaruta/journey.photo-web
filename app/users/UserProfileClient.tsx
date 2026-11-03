@@ -1418,10 +1418,10 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                                     aria-haspopup="dialog"
                                     aria-expanded={postOpen}
                                     aria-label={locale === "en" ? "Create" : "投稿する"}
-                                    className="absolute right-0 bottom-0 inline-flex items-center justify-center rounded-full bg-accent-fill text-ink ring-[3px] ring-bg hover:brightness-110 active:scale-95 transition"
-                                    style={{ width: "28px", height: "28px", touchAction: "manipulation" }}
+                                    className="absolute -right-2 -bottom-2 inline-flex items-center justify-center rounded-full hover:brightness-110 active:scale-95 transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
+                                    style={{ width: "44px", height: "44px", touchAction: "manipulation" }}
                                 >
-                                    <PlusIcon aria-hidden="true" style={{ width: "16px", height: "16px" }} strokeWidth={2.5} />
+                                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-accent-fill text-ink ring-[3px] ring-bg"><PlusIcon aria-hidden="true" style={{ width: "16px", height: "16px" }} strokeWidth={2.5} /></span>
                                 </button>
                             )}
                         </div>
