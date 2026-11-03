@@ -83,6 +83,17 @@ beforeEach(() => {
 // 基本的なログインフロー
 // ──────────────────────────────────────────────────────────────
 describe("LoginPage - 基本フロー", () => {
+    it("ログイン背景には公開写真4枚をサイトの画像URLで表示する", () => {
+        const { container } = render(<LoginPage />);
+        const background = container.querySelector('[aria-hidden="true"].grid');
+        const images = background?.querySelectorAll("img") ?? [];
+        expect(images).toHaveLength(4);
+        for (const img of images) {
+            expect(img.getAttribute("src")).toMatch(/^https?:\/\//);
+            expect(img.getAttribute("alt")).toBe("");
+        }
+    });
+
     it("初期表示はログインフォーム", () => {
         render(<LoginPage />);
         expect(screen.getByRole("heading", { name: "ログイン" })).toBeInTheDocument();
