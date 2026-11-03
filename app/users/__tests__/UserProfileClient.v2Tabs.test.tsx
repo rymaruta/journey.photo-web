@@ -1,12 +1,11 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 
 // **v2 の下線の札と写真の格子**（板 MyPage・UserProfile）。
 //
 // - 札は字だけ・選んでいる札は真鍮の字と真鍮の下線（黒地の上なので真鍮）
-// - 本人には「行きたい場所」「保存」も並べる。中身は別のページなので**タブではなくリンク**
-//   （tablist の外。`role="tab"` のまま別ページへ飛ぶと矢印キーの作法と食い違う）
+// - 本人は iOS と同じ4つの実タブ。保存系を押すとページ遷移せず panel が開く
 // - 写真の格子は3列・すき間 2px・縦長 4:5（広い画面でも4列にしない）
 
 const mockUserFetch = vi.hoisted(() => vi.fn());
@@ -69,18 +68,35 @@ describe("iOS profile header parity", () => {
 });
 
 describe("下線の札（v2）", () => {
-    it("本人には「行きたい場所」「保存」がリンクで並ぶ（タブにしない）", async () => {
+    it("本人はiOSと同じ4タブで、保存系を押すと対応するパネルが開く", async () => {
         asOwner();
         render(<UserProfileClient userId={OWNER} />);
-        const want = await screen.findByRole("link", { name: "行きたい場所" });
-        expect(want.getAttribute("href")).toBe("/saved-spots");
-        expect(screen.getByRole("link", { name: "保存" }).getAttribute("href")).toBe("/saves");
-        // 専用ページへのリンクは tablist に含めず、iOS と同じ表示順にする
+        await screen.findByRole("link", { name: "プロフィールを編集" });
         const tablist = screen.getByRole("tablist");
-        expect(tablist.contains(want)).toBe(false);
-        expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["投稿", "旅の記録"]);
-        // 押せる高さ 44
+        expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["投稿", "旅の記録", "行きたい場所", "保存"]);
+        const want = screen.getByRole("tab", { name: "行きたい場所" });
+        expect(tablist.contains(want)).toBe(true);
         expect(want.style.height).toBe("44px");
+        fireEvent.click(want);
+        expect(want.getAttribute("aria-selected")).toBe("true");
+        expect(screen.getByTestId("profile-wishlist-panel").getAttribute("aria-labelledby")).toBe(want.id);
+        const saved = screen.getByRole("tab", { name: "保存" });
+        fireEvent.click(saved);
+        expect(saved.getAttribute("aria-selected")).toBe("true");
+        expect(screen.getByTestId("profile-favorites-panel").getAttribute("role")).toBe("tabpanel");
+        expect(screen.queryByTestId("profile-wishlist-panel")).toBeNull();
+    });
+
+    it("本人のタブを横スワイプしても最後の保存タブで止まる", async () => {
+        asOwner();
+        render(<UserProfileClient userId={OWNER} />);
+        await screen.findByRole("link", { name: "プロフィールを編集" });
+        const area = screen.getByTestId("tab-swipe-area");
+        for (let i = 0; i < 4; i++) {
+            fireEvent.pointerDown(area, { clientX: 220, clientY: 100 });
+            fireEvent.pointerUp(area, { clientX: 50, clientY: 110 });
+        }
+        expect(screen.getByRole("tab", { name: "保存" }).getAttribute("aria-selected")).toBe("true");
     });
 
     it("他人のプロフィールはiOSと同じ投稿・マップの2タブ", async () => {

@@ -25,7 +25,7 @@ import { ROUTES, loginWithNext } from "../../lib/routes";
  * ので `useFavorites` との和を出しているが、保存はログインした人だけの
  * 機能で、真値はサーバーの `saves#<uid>` 1つ。
  */
-export default function SavesPage() {
+export default function SavesPage({ embedded = false }: { embedded?: boolean } = {}) {
     const { locale, labels } = useLocale();
     const { preloadMultiple } = useImagePreloader();
     // **写真の一覧の状態も見る。** 棚が持っているのは ID だけで、中身は
@@ -66,12 +66,14 @@ export default function SavesPage() {
         [labels, savedPhotos],
     );
 
+    const Root = embedded ? "section" : "main";
+    const Heading = embedded ? "h2" : "h1";
     return (
-        <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg max-w-5xl mx-auto w-full">
+        <Root className={embedded ? "w-full text-white" : "p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg max-w-5xl mx-auto w-full"}>
             <div className="mb-4 sm:mb-6 min-h-[64px]">
-                <h1 id="site-title" className="text-2xl sm:text-3xl font-bold mb-0">
+                <Heading id={embedded ? undefined : "site-title"} className={`${embedded ? "text-lg" : "text-2xl sm:text-3xl"} font-bold mb-0`}>
                     {en ? "Saved Photos" : "保存した写真"}
-                </h1>
+                </Heading>
                 <p className="text-sm text-white/60 mt-1">
                     {/* **「まだ」と「0件」を混ぜない。** 聞いている途中に
                         「0 件」と言い切ると、別の端末で保存したぶんが届く前に
@@ -172,6 +174,6 @@ export default function SavesPage() {
                     categoryDisplayMap={categoryDisplayMap}
                 />
             )}
-        </main>
+        </Root>
     );
 }
