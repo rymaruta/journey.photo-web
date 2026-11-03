@@ -8,7 +8,7 @@ import type { Photo } from "@/lib/data/photos";
  *  - スマホでは戻る・共有・「…」を写真の上のガラスの丸（44px）に重ね、上に黒のぼかし
  *  - 写真を押すと全画面（`PhotoViewer`）。Esc で閉じ、開いたボタンへ戻る
  *  - 全画面で2回叩くといいね（いいね済みは消さない）
- *  - 撮影日は「2024.05.12 · 18:24」
+ *  - 撮影日時は表示しない（iOS PhotoDetailView と一致）
  */
 const auth = vi.hoisted(() => ({ isAuthenticated: true, userId: "viewer" as string | null, loading: false }));
 vi.mock("../../../auth/context", () => ({ useAuth: () => auth }));
@@ -117,21 +117,23 @@ describe("写真ページ: 撮影者の導線（iOS比較）", () => {
     });
 });
 
-describe("写真ページ: 撮影日の1行（A6）", () => {
-    it("「2024.05.12」を等幅の数字で", async () => {
-        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
-        const stamp = await screen.findByTestId("photo-shot-stamp");
-        expect(stamp.textContent).toBe("2024.05.12");
-        // 題の下の1行（13・text-3・等幅の数字・束 1 P4）
-        const line = stamp.closest("p")!;
-        expect(line.className).toContain("tabular-nums");
-        expect(line.className).toContain("text-text-3");
-        expect(line.style.fontSize).toBe("13px");
+describe("写真ページ: iOS と同様に撮影日付・時刻を表示しない", () => {
+    it("複数写真では枚数のみ表示し、撮影日時は表示しない", async () => {
+        render(<PhotoPageClient photoId="p1" initialPhoto={{
+            ...BASE,
+            extraImages: [{ src: "https://cdn.example.com/uploads/alice/b.webp" }],
+            exif: { dateTimeOriginal: "2024-05-12T18:24:00" },
+        } as Photo} />);
+        await screen.findByText("朝の湖");
+        expect(screen.getByTestId("photo-headline").textContent).toBe("1/2枚");
+        expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
+        // 撮影日時は詳細メタデータには残し、写真上の時刻バッジのみ非表示にする。
     });
 
-    it("EXIF の撮影時刻が同じ日なら「 · 18:24」を足す", async () => {
+    it("単一写真では撮影日・EXIF時刻・枚数行を表示しない", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={{ ...BASE, exif: { dateTimeOriginal: "2024-05-12T18:24:00" } } as Photo} />);
-        expect((await screen.findByTestId("photo-shot-stamp")).textContent).toBe("2024.05.12 · 18:24");
+        expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
+        expect(screen.queryByTestId("photo-headline")).toBeNull();
     });
 });
 

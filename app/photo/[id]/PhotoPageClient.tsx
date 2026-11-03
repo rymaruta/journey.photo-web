@@ -25,7 +25,6 @@ import { ChatBubbleOvalLeftIcon, ArrowUpOnSquareIcon, BookmarkIcon, BookOpenIcon
 import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
 import { usePhotoSave } from "../../../lib/hooks/usePhotoSave";
 import { useSwipe } from "../../../lib/hooks/useSwipe";
-import { formatPhotoStamp } from "../../../lib/utils/photoDate";
 import { FollowAction } from "../../components/FollowButton";
 import UserAvatar from "../../components/UserAvatar";
 import MoreMenu from "../../components/MoreMenu";
@@ -880,10 +879,6 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     // 短い説明で、検索のために語を足すものではない。
     // 言い方は `fallbackPhotoTitle` 1つに置く（`<title>`・パンくず・RSS・共有も同じ）
     const fallbackHeading = fallbackPhotoTitle(locationText, locale === "en" ? "en" : "ja");
-    // 撮影日（保存された通りに出す。`createdAt` には落とさない: 投稿日と撮影日は別）。
-    // **形は iOS と同じ「2026.09.23 · 14:29」**（`PhotoMetaLine.stamp`・2026-10-21）。
-    // 時刻はカメラが書いた撮影時刻（EXIF）からだけ。画面で抜いた値を先に見る
-    const shotDate = formatPhotoStamp(photo.date, extractedExif?.DateTimeOriginal ?? photo.exif?.dateTimeOriginal) ?? "";
     const paragraphs = getLocalizedParagraphs(photo.description, locale);
 
     const preferred = getPreferredMapLink(photo);
@@ -1153,18 +1148,14 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                 「この写真を見て撮影」→ 操作の段 → 次の旅へ → 撮影情報 → タグ → 曲 → 近くの写真 → 近くの撮影スポット → 関連 → コメント。
                 節の間は 16（iOS の `VStack(spacing: 16)`）・写真との間 20。以前は 題 → 作者 → 日時と住所 → 本文 → タグ の順 */}
             <div className="px-4 pt-5 lg:px-0 lg:pt-0 flex flex-col gap-4" data-testid="photo-details">
-                {/* 題（明朝 26・iOS `JPFont.screenTitle`・束 1 P3）と、その下の1行（日時 · 何枚目・13・text-3・等幅の数字）。
-                    `break-words`: 長い URL・連続文字でページごと横に流れるのを防ぐ。
-                    字体は `lib/utils/headingFont.ts` の並び（先頭は自前で配る Shippori Mincho B1 Bold） */}
+                {/* iOS PhotoDetailView と同様、写真詳細には撮影日付・時刻を表示しない。 */}
                 <div className="flex flex-col gap-2">
                     {titleText
                         ? <h1 className="font-bold break-words m-0" style={{ fontSize: "26px", lineHeight: 1.3, fontFamily: DISPLAY_MINCHO_STACK }}>{titleText}</h1>
                         : <h1 className="sr-only">{fallbackHeading}</h1>}
-                    {(shotDate || images.length > 1) && (
+                    {images.length > 1 && (
                         <p className="m-0 text-text-3 tabular-nums" style={{ fontSize: "13px", lineHeight: "18px" }} data-testid="photo-headline">
-                            {shotDate && <span data-testid="photo-shot-stamp">{shotDate}</span>}
-                            {shotDate && images.length > 1 && <span aria-hidden="true"> · </span>}
-                            {images.length > 1 && <span>{locale === "en" ? `${shown + 1}/${images.length}` : `${shown + 1}/${images.length}枚`}</span>}
+                            <span>{locale === "en" ? `${shown + 1}/${images.length}` : `${shown + 1}/${images.length}枚`}</span>
                         </p>
                     )}
                 </div>

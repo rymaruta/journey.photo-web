@@ -65,6 +65,28 @@ describe("設定の骨格", () => {
         expect(screen.getByRole("link", { name: /メダルと名前の横/ })).toHaveAttribute("href", "/user/badges");
     });
 
+    it("プロフィールの節から実装済みの共同アルバム管理画面へ行ける", async () => {
+        await open();
+        expect(screen.getByRole("link", { name: /共同アルバム/ })).toHaveAttribute("href", "/user/albums");
+    });
+
+    it("実装済みのストーリーアーカイブとハイライト管理へ移動できる", async () => {
+        await open();
+        expect(screen.getByRole("link", { name: /ストーリーのアーカイブ/ })).toHaveAttribute("href", "/user/archive");
+        expect(screen.getByRole("link", { name: /ハイライトの管理/ })).toHaveAttribute("href", "/user/highlights");
+    });
+
+    it("写真の下書きと行きたい場所の実装済み画面へ移動できる", async () => {
+        await open();
+        expect(screen.getByRole("link", { name: /写真の下書き/ })).toHaveAttribute("href", "/user/drafts");
+        expect(screen.getByRole("link", { name: /行きたい場所/ })).toHaveAttribute("href", "/saved-spots");
+    });
+
+    it("撮影ガイドの画面へ移動できる", async () => {
+        await open();
+        expect(screen.getByRole("link", { name: /撮影ガイド/ })).toHaveAttribute("href", "/composition");
+    });
+
     // 🔴 **実装の無い節を置かない**（owner の指示）。
     // モックには在るので、足し戻すときは**機能から**作ること
     it.each([

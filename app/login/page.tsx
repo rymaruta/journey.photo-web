@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
+import publishedPhotos from "../data/photos.json";
+import { publicImageUrl } from "../../lib/utils/seo";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../auth/context";
@@ -118,6 +120,8 @@ function LoginForm() {
             } else {
                 setError(result.error || "ログインに失敗しました");
             }
+        } catch {
+            setError("ログイン中に通信エラーが発生しました。時間をおいて再度お試しください。");
         } finally {
             setSubmitting(false);
         }
@@ -134,6 +138,8 @@ function LoginForm() {
             } else {
                 setError(result.error ?? "エラーが発生しました");
             }
+        } catch {
+            setError("確認コードの送信に失敗しました。通信環境を確認して再度お試しください。");
         } finally {
             setSubmitting(false);
         }
@@ -168,6 +174,8 @@ function LoginForm() {
             } else {
                 setError(result.error ?? "エラーが発生しました");
             }
+        } catch {
+            setError("パスワードの再設定に失敗しました。通信環境を確認して再度お試しください。");
         } finally {
             setSubmitting(false);
         }
@@ -182,8 +190,15 @@ function LoginForm() {
     }
 
     return (
-        <main className="min-h-screen bg-transparent flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
-            <div className="w-full max-w-sm rounded-2xl border border-line bg-black/85 p-6 shadow-2xl backdrop-blur-md sm:p-8">
+        <main className="relative isolate min-h-screen overflow-hidden bg-black flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
+            {/* 公開済みの旅写真を背景に使い、フォームの可読性は暗いオーバーレイで保つ。 */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 grid grid-cols-2 grid-rows-2 opacity-60 sm:grid-cols-4 sm:grid-rows-1">
+                {publishedPhotos.filter((photo) => photo.published && photo.src).slice(0, 4).map((photo) => (
+                    <img key={photo.id} src={publicImageUrl(photo.src)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                ))}
+            </div>
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/65 via-black/55 to-black/90" />
+            <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-black/85 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
 
                 {/* ロゴ */}
                 <div className="mb-10 text-center">

@@ -503,6 +503,30 @@ export default function SettingsPage() {
                 <section className="mt-10 pt-6 border-t border-line">
                     <h2 className={sectionLabelClass}>{locale === "en" ? "Profile" : "プロフィール"}</h2>
                     <div className={cardClass}>
+                        <Link href={ROUTES.ALBUMS} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Shared albums" : "共同アルバム"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
+                        <Link href="/composition" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Shooting guide" : "撮影ガイド"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
+                        <Link href={ROUTES.DRAFTS} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Photo drafts" : "写真の下書き"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
+                        <Link href={ROUTES.SAVED_SPOTS} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Saved places" : "行きたい場所"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
+                        <Link href={ROUTES.STORY_ARCHIVE} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Story archive" : "ストーリーのアーカイブ"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
+                        <Link href="/user/highlights" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Manage highlights" : "ハイライトの管理"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
                         <Link href={ROUTES.BADGES} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
                             <span>{locale === "en" ? "Medals and name marks" : "メダルと名前の横"}</span>
                             <span aria-hidden="true" className="text-white/50">›</span>

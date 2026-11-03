@@ -83,6 +83,17 @@ beforeEach(() => {
 // 基本的なログインフロー
 // ──────────────────────────────────────────────────────────────
 describe("LoginPage - 基本フロー", () => {
+    it("ログイン背景には公開写真4枚をサイトの画像URLで表示する", () => {
+        const { container } = render(<LoginPage />);
+        const background = container.querySelector('[aria-hidden="true"].grid');
+        const images = background?.querySelectorAll("img") ?? [];
+        expect(images).toHaveLength(4);
+        for (const img of images) {
+            expect(img.getAttribute("src")).toMatch(/^https?:\/\//);
+            expect(img.getAttribute("alt")).toBe("");
+        }
+    });
+
     it("初期表示はログインフォーム", () => {
         render(<LoginPage />);
         expect(screen.getByRole("heading", { name: "ログイン" })).toBeInTheDocument();
@@ -193,6 +204,22 @@ describe("LoginPage - 基本フロー", () => {
             expect(mockReplace).toHaveBeenCalledWith("/");
         });
         expect(mockShowToast).toHaveBeenCalledWith("ログインしました", "success");
+    });
+
+    it("ログイン通信エラーでも画面が落ちず、再試行できる", async () => {
+        mockLogin.mockRejectedValueOnce(new Error("network unavailable"));
+        mockLogin.mockResolvedValueOnce({ success: true, userId: "my-sub-123" });
+        const user = userEvent.setup();
+        render(<LoginPage />);
+
+        await user.type(screen.getByPlaceholderText("example@email.com"), "user@example.com");
+        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.click(screen.getByRole("button", { name: "ログイン" }));
+        expect(await screen.findByRole("alert")).toHaveTextContent("通信エラー");
+        expect(mockReplace).not.toHaveBeenCalled();
+
+        await user.click(screen.getByRole("button", { name: "ログイン" }));
+        await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/users?id=my-sub-123"));
     });
 
     it("ログイン失敗 → エラーメッセージ表示、リダイレクトなし", async () => {
