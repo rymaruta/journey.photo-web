@@ -85,6 +85,13 @@ describe("写真ページ: 撮影者の表示（iOS authorRow との整合）", 
         expect(author.querySelector('[data-testid="early-mark"]')).not.toBeNull();
     });
 
+    it("認証フラグが文字列でも公式マークとして扱わない", async () => {
+        authorProfile.data = { userId: "alice", verified: "true" };
+        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
+        await screen.findByText("朝の湖");
+        expect(screen.queryByTestId("verified-badge")).toBeNull();
+    });
+
     it("公開プロフィールの所有者IDが違う場合はマークを表示しない", async () => {
         authorProfile.data = { userId: "someone-else", verified: true, pro: true, earlyMark: true };
         render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
