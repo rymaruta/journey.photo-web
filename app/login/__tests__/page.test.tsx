@@ -201,7 +201,7 @@ describe("LoginPage - 基本フロー", () => {
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText(/example@email\\.com/), "user@example.com");
+        await user.type(screen.getByPlaceholderText("example@email.com"), "user@example.com");
         await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("通信エラー");
