@@ -1507,8 +1507,8 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         );
                     })()}
 
-                    {/* 訪れた場所のチップは外した（2026-10-31 束 1 U6・iOS は外して「マップ」の札で地図に出す）。
-                        撮影地の頁へは、写真の頁の「撮影地の詳細」とマップの札の写真から行ける */}
+                    {/* 訪れた場所のチップは廃止。人のプロフィールでは「マップ」タブ、
+                        本人は旅の記録から撮影地マップへ移動できる。 */}
                     {/* 旅の一冊（板 UserProfile F33「旅」・iOS の `ProfileTripsLine`）。いちばん新しい一冊の札と、
                         2冊以上なら「すべての旅 · N冊」（旅のタブへ）。一冊も無ければ節ごと出さない */}
                     {photosResolved && trips.length > 0 && (
