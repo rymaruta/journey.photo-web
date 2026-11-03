@@ -88,7 +88,7 @@ export default function FollowButton({ targetUserId, isAuthenticated, locale, va
             const open = isAuthenticated && countsKnown && n > 0;
             const inner = (
                 <>
-                    <span className={STAT_NUMBER_CLASS} style={{ fontSize: `${STAT_NUMBER_PX}px` }}>{shown(n)}</span>
+                    <span className={`${STAT_NUMBER_CLASS} truncate`} style={{ fontSize: `${STAT_NUMBER_PX}px` }} title={shown(n)}>{shown(n)}</span>
                     <span className={STAT_LABEL_CLASS} style={{ fontSize: `${STAT_LABEL_PX}px` }}>{label}</span>
                 </>
             );
