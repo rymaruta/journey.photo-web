@@ -63,6 +63,11 @@ describe("プロフィールの「投稿 N」", () => {
         render(<UserProfileClient userId={OWNER} />);
 
         await waitFor(() => expect(screen.getByText("3")).toBeInTheDocument());
+        const stats = document.querySelector('[data-testid="profile-stats"]');
+        const avatar = document.querySelector('[data-avatar-frame]');
+        expect(stats, "本人の統計が表示される").not.toBeNull();
+        expect(avatar, "本人のアバターが表示される").not.toBeNull();
+        expect(stats?.parentElement).toBe(avatar?.parentElement?.parentElement);
         expect(screen.getByText("（うち非公開 1）"),
             "本人の N（下書き込み）が、訪問者や OGP の N と食い違ったまま説明が無い").toBeInTheDocument();
     });
