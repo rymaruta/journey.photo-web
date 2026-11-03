@@ -55,8 +55,8 @@ def fetch(country, limit, offset):
     query = f"""SELECT DISTINCT ?item ?itemLabel ?coord ?image ?commonsCategory WHERE {{
       VALUES ?kind {{ {types} }}
       ?item wdt:P31 ?kind; wdt:P17 wd:{country}; wdt:P625 ?coord.
-      OPTIONAL { ?item wdt:P18 ?image. }
-      OPTIONAL { ?item wdt:P373 ?commonsCategory. }
+      OPTIONAL {{ ?item wdt:P18 ?image. }}
+      OPTIONAL {{ ?item wdt:P373 ?commonsCategory. }}
       SERVICE wikibase:label {{ bd:serviceParam wikibase:language "ja,en". }}
     }} ORDER BY ?item LIMIT {limit} OFFSET {offset}"""
     url = ENDPOINT + "?" + urllib.parse.urlencode({"query": query, "format": "json"})
