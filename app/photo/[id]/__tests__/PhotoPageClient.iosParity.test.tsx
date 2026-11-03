@@ -106,6 +106,14 @@ describe("写真ページ: 撮影者の表示（iOS authorRow との整合）", 
         expect(screen.queryByTestId("pro-mark")).toBeNull();
     });
 
+    it("空白だけの表示名はユーザー名にフォールバックする", async () => {
+        render(<PhotoPageClient photoId="p1" initialPhoto={{
+            ...BASE, displayName: "   ", uploaderUsername: "alice_photo",
+        } as Photo} />);
+        const author = await screen.findByTestId("photo-author");
+        expect(author.textContent?.match(/alice_photo/g)).toHaveLength(1);
+    });
+
     it("表示名がなくてもユーザー名があれば撮影者へのリンクを残す", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={{
             ...BASE, displayName: "", uploaderUsername: "alice_photo",
