@@ -1,4 +1,7 @@
 import unittest
+import tempfile
+from pathlib import Path
+from scripts.publish_spot_candidates import read_spots
 from scripts.publish_spot_candidates import reconcile
 
 def spot(qid, name="Kyoto Temple"):
@@ -38,6 +41,11 @@ class PublishTests(unittest.TestCase):
         merged, stats = reconcile(existing, candidates)
         self.assertEqual(len(merged), 1000)
         self.assertEqual(stats, {"inserted": 800, "skipped": 200, "rejected": 0})
+
+    def test_missing_snapshot_fails_closed(self):
+        with tempfile.TemporaryDirectory() as folder:
+            with self.assertRaises(FileNotFoundError):
+                read_spots(Path(folder) / "missing.json")
 
     def test_optional_limit(self):
         merged, stats = reconcile([], [spot("Q2"), spot("Q3")], max_new=1)
