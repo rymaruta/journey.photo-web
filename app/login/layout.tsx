@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { appPageMetadata } from "../../lib/utils/seo";
 import { loadAllPhotos } from "../../lib/server/photos";
+import { publicImageUrl } from "../../lib/utils/seo";
 
 export const metadata: Metadata = appPageMetadata("/login", "ログイン");
 
@@ -24,7 +25,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
                                 // Decorative images: intentionally small public thumbnails, not originals.
                                 // eslint-disable-next-line @next/next/no-img-element
                                 <img
-                                    src={tiles[index].thumbSm || tiles[index].thumbSrc}
+                                    src={publicImageUrl(tiles[index].thumbSm || tiles[index].thumbSrc)}
                                     alt=""
                                     loading={index < 4 ? "eager" : "lazy"}
                                     decoding="async"
