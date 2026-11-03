@@ -27,6 +27,12 @@ import { usePhotoSave } from "../../../lib/hooks/usePhotoSave";
 import { useSwipe } from "../../../lib/hooks/useSwipe";
 import { FollowAction } from "../../components/FollowButton";
 import UserAvatar from "../../components/UserAvatar";
+import StoryAuthorAvatar from "../../components/stories/StoryAuthorAvatar";
+import VerifiedBadge from "../../components/VerifiedBadge";
+import EarlyMemberMark from "../../components/EarlyMemberMark";
+import { ProMark, NameBadge } from "../../components/ProfileNameMarks";
+import type { BadgeMap, BadgeKey } from "../../../lib/data/badges";
+import { sanitizeProfile } from "../../../lib/utils/profileShape";
 import MoreMenu from "../../components/MoreMenu";
 import type { Photo } from "@/lib/data/photos";
 import { getLocalizedParagraphs, getPreferredMapLink, makeGoogleSearch } from "@/lib/data/photos";
@@ -45,6 +51,8 @@ import { useAuth } from "../../auth/context";
 import ReportDialog from "../../components/ReportDialog";
 import { useToast } from "../../../lib/hooks/useToast";
 import { shareUrl, copyToClipboard, shareToTwitter, shareToLine } from "../../../lib/utils/share";
+import { renderShareCard, type ShareCardRatio } from "../../../lib/utils/signatureShareCard";
+import { fetchImageBytes } from "../../../lib/utils/imageBytes";
 import { siteConfig, generatePhotoStructuredData, generateBreadcrumbStructuredData } from "../../../lib/utils/seo";
 import { slugify, collectionPath, categoryLabel } from "../../../lib/utils/collections";
 import RelatedPhotos from "../../components/RelatedPhotos";
@@ -63,7 +71,7 @@ import { exifSettingsLine, exifSettingsCells } from "../../../lib/utils/exifDisp
 import { isImeKey } from "../../../lib/utils/ime";
 import { useSongSearch } from "../../../lib/hooks/useSongSearch";
 import { usablePhotoRows } from "../../../lib/utils/apiRows";
-import { sessionErrorMessage } from "../../../lib/utils/api";
+import { sessionErrorMessage, userPublicFetch } from "../../../lib/utils/api";
 import { publicImageUrl } from "@/lib/utils/seo";
 import SongSearchError from "../../components/SongSearchError";
 import SpotAutoNotice from "./SpotAutoNotice";
@@ -494,6 +502,45 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
         return allPhotos.find(p => p.id === photoId);
     }, [photoId, allPhotos]);
 
+    const authorName = photo?.displayName?.trim() || photo?.uploaderUsername?.trim() || "";
+    const showAuthorHandle = Boolean(photo?.displayName?.trim() && photo?.uploaderUsername?.trim());
+
+    // iOS authorRow と同様、公開プロフィールの確定した印だけを名前の横へ表示する。
+    // 写真の投稿データには公式・Proの権限情報がないため推測しない。
+    const [authorMarks, setAuthorMarks] = useState<{
+        userId: string; verified?: boolean; pro?: boolean; proMarkStyle?: "iris" | "plate"; earlyMark?: boolean;
+        badges?: BadgeMap; displayBadge?: BadgeKey;
+    } | null>(null);
+    useEffect(() => {
+        const ownerId = photo?.userId;
+        if (!ownerId) {
+            return;
+        }
+        const controller = new AbortController();
+        // 撮影者が切り替わった際、前の撮影者のマークを残さない。
+        setAuthorMarks(null);
+        void (async () => {
+            try {
+                const response = await userPublicFetch(`/profile/${encodeURIComponent(ownerId)}`, { signal: controller.signal });
+                if (!response.ok || controller.signal.aborted) return;
+                const profile = sanitizeProfile<Record<string, unknown>>(await response.json(), "photo author");
+                if (!profile || controller.signal.aborted || profile.userId !== ownerId) return;
+                setAuthorMarks({
+                    userId: ownerId,
+                    verified: profile.verified === true,
+                    pro: profile.pro === true,
+                    proMarkStyle: profile.proMarkStyle === "plate" ? "plate" : "iris",
+                    earlyMark: profile.earlyMark === true,
+                    badges: profile.badges as BadgeMap | undefined,
+                    displayBadge: profile.displayBadge as BadgeKey | undefined,
+                });
+            } catch {
+                // 公開プロフィールが取得できなくても写真と作者への導線は維持する。
+            }
+        })();
+        return () => controller.abort();
+    }, [photo?.userId]);
+
     /**
      * 「この写真を見て撮影」の元の写真。**追加の読み取りはしない。**
      *
@@ -911,6 +958,46 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
         }
     };
 
+    const handleSaveShareCard = async (ratio: ShareCardRatio) => {
+        if (!photo?.src) return;
+        try {
+            // Reuse the same-origin /uploads fallback used by StoryViewer; raw CDN URLs may reject CORS.
+            const imageBlob = await fetchImageBytes(publicImageUrl(photo.src));
+            const bitmap = await createImageBitmap(imageBlob);
+            let blob: Blob;
+            try {
+                blob = await renderShareCard(bitmap, {
+                    name: authorName || "Photographer",
+                    username: photo.uploaderUsername,
+                    location: photo.location,
+                    camera: photo.exif?.camera,
+                    lens: photo.exif?.lens,
+                    verified: authorMarks?.userId === photo.userId && authorMarks?.verified,
+                    pro: authorMarks?.userId === photo.userId && authorMarks?.pro,
+                    early: authorMarks?.userId === photo.userId && authorMarks?.earlyMark,
+                    badge: authorMarks?.userId === photo.userId ? authorMarks?.displayBadge : undefined,
+                    coords: photo.coords,
+                }, ratio);
+            } finally {
+                bitmap.close();
+            }
+            const url = URL.createObjectURL(blob);
+            try {
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `journey-photo-${photo.id}-${ratio.replace(":", "x")}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            } finally {
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+        } catch (error) {
+            log.warn("Share card export failed", error);
+            showToast(locale === "en" ? "Could not save the share card" : "共有カードを保存できませんでした", "error");
+        }
+    };
+
     const handleCopyLink = async (e?: React.MouseEvent) => {
         if (e) {
             e.stopPropagation();
@@ -978,6 +1065,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     buttonSize={44}
                     items={[
                         { key: "share", label: locale === "en" ? "Share" : "共有", onSelect: () => void handleShare() },
+                        ...(["4:5", "9:16", "1:1"] as const).map(ratio => ({ key: `share-card-${ratio}`, label: locale === "en" ? `Save share image ${ratio}` : `共有画像を保存（${ratio}）`, onSelect: () => void handleSaveShareCard(ratio) })),
                         { key: "copy", label: locale === "en" ? "Copy link" : "リンクをコピー", onSelect: () => void handleCopyLink() },
                         { key: "x", label: locale === "en" ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(currentUrl, shareText) },
                         ...(locale === "ja" ? [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(currentUrl, shareText) }] : []),
@@ -1203,22 +1291,36 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                 )}
 
                 {/* 作者行（iOS の `authorRow`）: 顔 40（白8%の縁）・名前 15 semibold・@名 12 text-3 ／ 右にフォロー（C8） */}
-                {photo.userId && photo.displayName && (
+                {photo.userId && authorName && (
                     <div className="flex min-w-0 items-center gap-[10px] py-1" data-testid="photo-author">
-                        <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
-                              className="flex-shrink-0 rounded-full inline-flex items-center justify-center"
-                              aria-label={locale === "en" ? `${photo.displayName}'s profile` : `${photo.displayName} のプロフィール`}
-                              style={{ minWidth: "44px", minHeight: "44px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
-                            <UserAvatar userId={photo.userId} className="w-10 h-10 ring-1 ring-line" iconClassName="w-6 h-6" />
-                        </Link>
+                        <StoryAuthorAvatar userId={photo.userId} name={authorName} locale={locale === "en" ? "en" : "ja"} />
                         <div className="min-w-0 flex-1">
-                            <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
-                                  className="flex min-h-[44px] max-w-full items-center text-white font-semibold hover:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                                  title={photo.displayName}
+                            <div className="flex min-w-0 items-center gap-1">
+                                <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
+                                  className="flex min-h-[44px] min-w-0 items-center text-white font-semibold hover:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                                  title={authorName}
                                   style={{ fontSize: "15px", lineHeight: "20px", touchAction: "manipulation" }}>
-                                <span className="block min-w-0 truncate">{photo.displayName}</span>
+                                <span className="block min-w-0 truncate">{authorName}</span>
+                                {authorMarks?.userId === photo.userId && (
+                                    <span className="inline-flex shrink-0 items-center gap-1 ml-1">
+                                        <VerifiedBadge verified={authorMarks.verified} size={16} locale={locale} />
+                                        <ProMark pro={authorMarks.pro} style={authorMarks.proMarkStyle} size={16} locale={locale === "en" ? "en" : "ja"} />
+                                        <EarlyMemberMark shown={authorMarks.earlyMark} size={16} locale={locale} />
+                                    </span>
+                                )}
                             </Link>
-                            {photo.uploaderUsername && (
+                                {authorMarks?.userId === photo.userId && authorMarks.displayBadge && (
+                                <div className="inline-flex items-center" data-testid="photo-author-selected-badge">
+                                    <NameBadge
+                                        badges={authorMarks.badges}
+                                        displayBadge={authorMarks.displayBadge}
+                                        ownerName={authorName}
+                                        locale={locale === "en" ? "en" : "ja"}
+                                    />
+                                </div>
+                            )}
+                            </div>
+                            {showAuthorHandle && (
                                 <p className="m-0 mt-0.5 text-text-3 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>@{photo.uploaderUsername}</p>
                             )}
                         </div>

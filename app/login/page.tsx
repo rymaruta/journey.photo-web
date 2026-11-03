@@ -17,6 +17,9 @@ import { BTN_FILL } from "../components/buttonStyles";
 
 type Step = "login" | "forgot-send" | "forgot-confirm" | "forgot-done";
 
+// 公開写真のみを背景に使用し、レンダーのたびに全件走査しない。
+const loginBackgroundPhotos = publishedPhotos.filter((photo) => photo.published && photo.src && (!("sensitive" in photo) || photo.sensitive !== true)).slice(0, 12);
+
 function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -190,15 +193,25 @@ function LoginForm() {
     }
 
     return (
-        <main className="relative isolate min-h-screen overflow-hidden bg-black flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
+        <main className="relative isolate min-h-screen overflow-hidden bg-black flex items-center justify-center px-4 pt-[290px] pb-16 sm:pt-[310px]">
             {/* 公開済みの旅写真を背景に使い、フォームの可読性は暗いオーバーレイで保つ。 */}
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 grid grid-cols-2 grid-rows-2 opacity-60 sm:grid-cols-4 sm:grid-rows-1">
-                {publishedPhotos.filter((photo) => photo.published && photo.src).slice(0, 4).map((photo) => (
-                    <img key={photo.id} src={publicImageUrl(photo.src)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
-                ))}
+            {/* iOS SignInView: 4列×3段・-4度の写真タイル。フォームの背後ではなく上部に敷く。 */}
+            <div aria-hidden="true" data-testid="login-photo-collage"
+                 className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[380px] overflow-hidden">
+                <div className="absolute -inset-x-5 -top-[30px] grid grid-cols-4 gap-[3px]"
+                     style={{ transform: "rotate(-4deg)" }}>
+                    {loginBackgroundPhotos.map((photo, index) => (
+                        <div key={photo.id} className="aspect-square min-w-0 overflow-hidden bg-surface">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={publicImageUrl(photo.thumbSrc || photo.src)} alt="" loading={index < 4 ? "eager" : "lazy"}
+                                 fetchPriority={index === 0 ? "high" : "low"} decoding="async"
+                                 className="h-full w-full object-cover" />
+                        </div>
+                    ))}
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/45 to-black" />
             </div>
-            <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/65 via-black/55 to-black/90" />
-            <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-black/85 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
+            <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/20 bg-black/85 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
 
                 {/* ロゴ */}
                 <div className="mb-10 text-center">

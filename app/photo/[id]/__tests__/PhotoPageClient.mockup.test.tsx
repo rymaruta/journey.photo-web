@@ -196,7 +196,7 @@ describe("写真ページ: 最終版モックの並び", () => {
         const { unmount } = page();
         await screen.findByText("夕陽に染まる白い街");
         fireEvent.click(screen.getByRole("button", { name: "その他" }));
-        expect(screen.getAllByRole("menuitem").map((m) => m.textContent)).toEqual(["共有", "リンクをコピー", "Xで共有", "LINEで共有", "撮影地マップで見る", "Google マップで開く"]);
+        expect(screen.getAllByRole("menuitem").map((m) => m.textContent)).toEqual(["共有", "共有画像を保存（4:5）", "共有画像を保存（9:16）", "共有画像を保存（1:1）", "リンクをコピー", "Xで共有", "LINEで共有", "撮影地マップで見る", "Google マップで開く"]);
         unmount();
         authState.current = { isAuthenticated: true, userId: "viewer", loading: false };
         page();
