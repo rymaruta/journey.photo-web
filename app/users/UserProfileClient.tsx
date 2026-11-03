@@ -131,8 +131,8 @@ type TabKey = "posts" | "map" | "timeline" | "trips";
  */
 // 2026-10-31 判断（束 1 の確かめ）: **本人のページにもマップの札を出す。** iOS のマイページに地図の区分は無いが、
 // Web は「訪れた場所」のチップを外した（U6）ので、札が無いと本人が自分の撮影地を見る手立てが無くなる。今ある機能を失わない
-const OWNER_TABS: TabKey[] = ["posts", "map", "timeline", "trips"];
-const VISITOR_TABS: TabKey[] = ["posts", "map", "timeline"];
+const OWNER_TABS: TabKey[] = ["posts", "trips"];
+const VISITOR_TABS: TabKey[] = ["posts", "map"];
 
 // 写真を「YYYY年 / M月」で時系列グループ化（撮影日 date 優先、なければ createdAt）
 type TimelineGroup = { key: string; year: string; label: string; photos: Photo[] };
@@ -1756,7 +1756,7 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         { key: "posts", label: locale === "en" ? "Posts" : "投稿" },
                         { key: "map", label: locale === "en" ? "Map" : "マップ" },
                         { key: "timeline", label: locale === "en" ? "Timeline" : "年表" },
-                        { key: "trips", label: locale === "en" ? "Trips" : "旅" },
+                        { key: "trips", label: locale === "en" ? "Trips" : "旅の記録" },
                     ] as const).filter(({ key }) => tabOrder.includes(key)).map(({ key, label }) => {
                         const active = tab === key;
                         return (
