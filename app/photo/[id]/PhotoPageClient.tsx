@@ -29,7 +29,8 @@ import { FollowAction } from "../../components/FollowButton";
 import UserAvatar from "../../components/UserAvatar";
 import VerifiedBadge from "../../components/VerifiedBadge";
 import EarlyMemberMark from "../../components/EarlyMemberMark";
-import { ProMark } from "../../components/ProfileNameMarks";
+import { ProMark, NameBadge } from "../../components/ProfileNameMarks";
+import type { BadgeMap, BadgeKey } from "../../../lib/data/badges";
 import { sanitizeProfile } from "../../../lib/utils/profileShape";
 import MoreMenu from "../../components/MoreMenu";
 import type { Photo } from "@/lib/data/photos";
@@ -505,6 +506,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     // 写真の投稿データには公式・Proの権限情報がないため推測しない。
     const [authorMarks, setAuthorMarks] = useState<{
         userId: string; verified?: boolean; pro?: boolean; proMarkStyle?: "iris" | "plate"; earlyMark?: boolean;
+        badges?: BadgeMap; displayBadge?: BadgeKey;
     } | null>(null);
     useEffect(() => {
         const ownerId = photo?.userId;
@@ -525,6 +527,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     pro: profile.pro === true,
                     proMarkStyle: profile.proMarkStyle === "plate" ? "plate" : "iris",
                     earlyMark: profile.earlyMark === true,
+                    badges: profile.badges as BadgeMap | undefined,
+                    displayBadge: profile.displayBadge as BadgeKey | undefined,
                 });
             } catch {
                 // 公開プロフィールが取得できなくても写真と作者への導線は維持する。
@@ -1246,7 +1250,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     <div className="flex min-w-0 items-center gap-[10px] py-1" data-testid="photo-author">
                         <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
                               className="flex-shrink-0 rounded-full inline-flex items-center justify-center"
-                              aria-label={locale === "en" ? `${authorName}'s profile` : `${photo.displayName || photo.uploaderUsername} のプロフィール`}
+                              aria-label={locale === "en" ? `${authorName}'s profile` : `${authorName} のプロフィール`}
                               style={{ minWidth: "44px", minHeight: "44px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
                             <UserAvatar userId={photo.userId} className="w-10 h-10 ring-1 ring-line" iconClassName="w-6 h-6" />
                         </Link>
@@ -1264,6 +1268,16 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                     </span>
                                 )}
                             </Link>
+                            {authorMarks?.userId === photo.userId && authorMarks.displayBadge && (
+                                <div className="inline-flex items-center" data-testid="photo-author-selected-badge">
+                                    <NameBadge
+                                        badges={authorMarks.badges}
+                                        displayBadge={authorMarks.displayBadge}
+                                        ownerName={authorName}
+                                        locale={locale === "en" ? "en" : "ja"}
+                                    />
+                                </div>
+                            )}
                             {showAuthorHandle && (
                                 <p className="m-0 mt-0.5 text-text-3 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>@{photo.uploaderUsername}</p>
                             )}
