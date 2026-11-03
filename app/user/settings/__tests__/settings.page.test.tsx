@@ -65,6 +65,11 @@ describe("設定の骨格", () => {
         expect(screen.getByRole("link", { name: /メダルと名前の横/ })).toHaveAttribute("href", "/user/badges");
     });
 
+    it("プロフィールの節から実装済みの共同アルバム管理画面へ行ける", async () => {
+        await open();
+        expect(screen.getByRole("link", { name: /共同アルバム/ })).toHaveAttribute("href", "/user/albums");
+    });
+
     // 🔴 **実装の無い節を置かない**（owner の指示）。
     // モックには在るので、足し戻すときは**機能から**作ること
     it.each([
