@@ -1,0 +1,64 @@
+name: Import Japan spot candidates
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: Maximum number of candidates
+        required: true
+        default: '5000'
+        type: string
+  schedule:
+    - cron: '20 3 1 * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: japan-spot-import
+  cancel-in-progress: false
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate limit
+        env:
+          IMPORT_LIMIT: ${{ inputs.limit || '5000' }}
+        run: |
+          python - <<'PY'
+          import os
+          value = os.environ['IMPORT_LIMIT']
+          if not value.isdecimal() or not 1 <= int(value) <= 10000:
+              raise SystemExit('limit must be between 1 and 10000')
+          PY
+      - name: Fetch Wikidata candidates
+        env:
+          IMPORT_LIMIT: ${{ inputs.limit || '5000' }}
+        run: |
+          python scripts/import_japan_spots.py --limit "$IMPORT_LIMIT" --output data/imports/japan-wikidata-spots.json
+      - name: Summarize result
+        if: success()
+        run: |
+          python - <<'PY'
+          import json
+          p='data/imports/japan-wikidata-spots.json'
+          data=json.load(open(p, encoding='utf-8'))
+          count=data['count']
+          if count == 0:
+              raise SystemExit('API returned zero candidates')
+          with open(__import__('os').environ['GITHUB_STEP_SUMMARY'],'a') as f:
+              f.write(f'## Japan spot import\n\n- Candidates: **{count}**\n- Status: review required\n- Output: workflow artifact\n')
+          print(f'Imported {count} candidates')
+          PY
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: japan-wikidata-spots
+          path: data/imports/japan-wikidata-spots.json
+          retention-days: 30
