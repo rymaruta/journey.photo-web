@@ -7,9 +7,9 @@ vi.mock("../../i18n/context", () => ({ useLocale: () => ({ locale: "ja" }) }));
 vi.mock("next/link", () => ({ default: ({ children, href, ...props }: React.AnchorHTMLAttributes<HTMLAnchorElement>) => <a href={href} {...props}>{children}</a> }));
 
 describe("撮影ガイド", () => {
-  it("iOSと同名の8種類を選べる", () => {
+  it("iOSと同名の18種類を選べる", () => {
     render(<CompositionGuidePage />);
-    for (const name of ["三分割", "日の丸", "対角線", "二分割・十字", "シンメトリー", "水平線", "4×4", "方眼"]) {
+    for (const name of ["三分割", "日の丸", "対角線", "二分割・十字", "シンメトリー", "水平線", "4×4", "方眼", "田字格", "米字格", "ファイグリッド", "3×3＋対角", "三角", "放射線", "1:1", "4:5", "9:16", "16:9"]) {
       expect(screen.getByRole("button", { name: new RegExp(name) })).toBeInTheDocument();
     }
   });
