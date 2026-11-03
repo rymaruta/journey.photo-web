@@ -120,10 +120,6 @@ function LoginForm() {
             }
         } catch {
             setError("ログイン中に通信エラーが発生しました。時間をおいて再度お試しください。");
-        } catch {
-            setError("確認コードの送信に失敗しました。通信環境を確認して再度お試しください。");
-        } catch {
-            setError("パスワードの再設定に失敗しました。通信環境を確認して再度お試しください。");
         } finally {
             setSubmitting(false);
         }
@@ -140,6 +136,8 @@ function LoginForm() {
             } else {
                 setError(result.error ?? "エラーが発生しました");
             }
+        } catch {
+            setError("確認コードの送信に失敗しました。通信環境を確認して再度お試しください。");
         } finally {
             setSubmitting(false);
         }
@@ -174,6 +172,8 @@ function LoginForm() {
             } else {
                 setError(result.error ?? "エラーが発生しました");
             }
+        } catch {
+            setError("パスワードの再設定に失敗しました。通信環境を確認して再度お試しください。");
         } finally {
             setSubmitting(false);
         }
