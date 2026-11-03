@@ -30,12 +30,14 @@ jobs:
         run: |
           mkdir -p data/imports/daily
           python - <<'PY'
-          import json, os, pathlib, zipfile, io, urllib.request\n          from datetime import datetime, timedelta, timezone
+          import json, os, pathlib, zipfile, io, urllib.request
+          from datetime import datetime, timedelta, timezone
           repo = os.environ["GH_REPO"]
           token = os.environ["GH_TOKEN"]
           url = f"https://api.github.com/repos/{repo}/actions/artifacts?per_page=100"
           headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
-          count = 0\n          cutoff = datetime.now(timezone.utc) - timedelta(hours=26)
+          count = 0
+          cutoff = datetime.now(timezone.utc) - timedelta(hours=26)
           for page in range(1, 4):
               req = urllib.request.Request(url + f"&page={page}", headers=headers)
               with urllib.request.urlopen(req, timeout=30) as response:
@@ -43,7 +45,10 @@ jobs:
               if not artifacts:
                   break
               for item in artifacts:
-                  if item.get("expired") or not item.get("name", "").startswith("world-spot-candidates-"):\n                      continue\n                  created = datetime.fromisoformat(item["created_at"].replace("Z", "+00:00"))\n                  if created < cutoff:
+                  if item.get("expired") or not item.get("name", "").startswith("world-spot-candidates-"):
+                      continue
+                  created = datetime.fromisoformat(item["created_at"].replace("Z", "+00:00"))
+                  if created < cutoff:
                       continue
                   req = urllib.request.Request(item["archive_download_url"], headers=headers)
                   with urllib.request.urlopen(req, timeout=60) as response:
