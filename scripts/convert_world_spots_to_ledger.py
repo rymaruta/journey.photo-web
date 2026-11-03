@@ -50,7 +50,7 @@ def convert(candidate, editorial):
         "spotId": "sp_" + key,
         "slug": "wikidata-" + qid.lower(),
         "name": name.strip(),
-        "coords": {"lat": round(coords[1], 2), "lng": round(coords[0], 2)},
+        "coords": {"lat": round(coords[1], 6), "lng": round(coords[0], 6)},
         "region": {"country": country.strip()},
         "summary": summary.strip(),
         "highlights": [h.strip() for h in highlights if isinstance(h, str) and h.strip()],
@@ -92,7 +92,7 @@ def main():
         lat, lng = coords.get("lat"), coords.get("lng")
         if not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
             return None
-        return (" ".join(name.casefold().split()), round(lat, 2), round(lng, 2))
+        return (" ".join(name.casefold().split()), round(lat, 4), round(lng, 4))
     by_place = {key for e in existing if (key := place_key(e)) is not None}
     editorial_map = {e["wikidataId"]: e for e in editorial if isinstance(e, dict) and isinstance(e.get("wikidataId"), str)}
     inserted = []
