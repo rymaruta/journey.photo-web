@@ -44,6 +44,13 @@ def convert(candidate, editorial):
     # does not establish that a factual claim was verified.
     if editorial.get("checked") is not True or not isinstance(editorial.get("checkedAt"), str) or not editorial["checkedAt"].strip() or not isinstance(editorial.get("delegatedBy"), str) or not editorial["delegatedBy"].strip():
         return None
+    # Reject malformed or future editorial review dates.
+    try:
+        checked_date = datetime.date.fromisoformat(editorial["checkedAt"])
+    except ValueError:
+        return None
+    if checked_date > datetime.date.today():
+        return None
     today = datetime.date.today().isoformat()
     key = hashlib.sha256(qid.encode("ascii")).hexdigest()[:12]
     return {
