@@ -14,11 +14,14 @@ const auth = vi.hoisted(() => ({ isAuthenticated: true, userId: "viewer" as stri
 vi.mock("../../../auth/context", () => ({ useAuth: () => auth }));
 vi.mock("../../../i18n/context", () => ({ useLocale: () => ({ locale: "ja", labels: {} }) }));
 vi.mock("../../../../lib/hooks/useToast", () => ({ useToast: () => ({ showToast: vi.fn() }) }));
+const authorProfile = vi.hoisted(() => ({ data: null as Record<string, unknown> | null }));
 vi.mock("../../../../lib/utils/api", async (importOriginal) => ({
     ...(await importOriginal<Record<string, unknown>>()),
     publicFetch: vi.fn(() => new Promise(() => undefined)),
     userFetch: vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })),
-    userPublicFetch: vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })),
+    userPublicFetch: vi.fn(async () => authorProfile.data
+        ? ({ ok: true, status: 200, json: async () => authorProfile.data })
+        : ({ ok: false, status: 500, json: async () => ({}) })),
 }));
 vi.mock("../../../components/CommentSection", () => ({ default: () => null }));
 vi.mock("../../../components/RelatedPhotos", () => ({ default: () => null }));
@@ -59,6 +62,7 @@ const saved = {
 };
 beforeEach(() => {
     like.liked = false;
+    authorProfile.data = null;
     like.toggle.mockClear();
     ready = true;
     Object.defineProperty(HTMLImageElement.prototype, "complete", { configurable: true, get: () => ready });
@@ -72,6 +76,23 @@ afterEach(() => {
 });
 
 describe("写真ページ: 撮影者の表示（iOS authorRow との整合）", () => {
+    it("公開プロフィールの認証・Pro・初期メンバーマークを撮影者名の横に表示する", async () => {
+        authorProfile.data = { userId: "alice", verified: true, pro: true, proMarkStyle: "plate", earlyMark: true };
+        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
+        const author = await screen.findByTestId("photo-author");
+        expect(await screen.findByTestId("verified-badge")).toBeTruthy();
+        expect(author.querySelector('[data-testid="pro-mark"]')).not.toBeNull();
+        expect(author.querySelector('[data-testid="early-mark"]')).not.toBeNull();
+    });
+
+    it("公開プロフィールの所有者IDが違う場合はマークを表示しない", async () => {
+        authorProfile.data = { userId: "someone-else", verified: true, pro: true, earlyMark: true };
+        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
+        await screen.findByText("朝の湖");
+        expect(screen.queryByTestId("verified-badge")).toBeNull();
+        expect(screen.queryByTestId("pro-mark")).toBeNull();
+    });
+
     it("表示名がなくてもユーザー名があれば撮影者へのリンクを残す", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={{
             ...BASE, displayName: "", uploaderUsername: "alice_photo",
