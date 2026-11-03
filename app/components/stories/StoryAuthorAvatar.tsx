@@ -23,8 +23,10 @@ export default function StoryAuthorAvatar({ userId, name, locale }: {
     const [loadedFor, setLoadedFor] = useState<string | null>(null);
     const requestKey = `${ownUserId ?? ""}:${userId}`;
     useEffect(() => {
-        if (!isAuthenticated || !userId) { return; }
+        // Switching the photographer or account must not reopen a previously viewed story.
+        setOpen(false);
         setLoadedFor(null);
+        if (!isAuthenticated || !userId) return;
         let cancelled = false;
         setSeen(loadSeenStoryIds());
         void userFetch("/stories").then(async response => {
