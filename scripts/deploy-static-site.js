@@ -82,7 +82,12 @@ function invalidationPathsFor(keys) {
     // 枠に入らなかったディレクトリは実パスで消す（実パスは1リクエスト3,000本まで）。
     const dirs = [...byDir.entries()].sort((a, b) => b[1].length - a[1].length);
     for (const [dir, files] of dirs) {
-        const worthWildcard = files.length > WILDCARD_MIN_FILES && wildcards.size < MAX_WILDCARD_PATHS;
+        // HTML は拡張子あり・なしの2パスが必要。2ページ以上なら
+        // ディレクトリのワイルドカード1本の方が無料枠を節約できる。
+        // 画像などの固定名アセットは広く消さず、従来の閾値を維持する。
+        const htmlOnly = files.every((key) => key.endsWith(".html"));
+        const worthWildcard = (htmlOnly ? files.length >= 2 : files.length > WILDCARD_MIN_FILES)
+            && wildcards.size < MAX_WILDCARD_PATHS;
         if (worthWildcard) wildcards.add(`/${dir}/*`);
         else files.forEach(addExact);
     }

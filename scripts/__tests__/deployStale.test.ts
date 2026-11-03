@@ -178,6 +178,14 @@ describe("invalidationPathsFor", () => {
         expect(paths).toEqual(["/"]);
     });
 
+    it("HTMLが2ページだけ変わった場合も1パスにまとめる", () => {
+        expect(invalidationPathsFor(["photo/a.html", "photo/b.html"])).toEqual(["/photo/*"]);
+    });
+
+    it("画像の変更は少数なら個別に無効化する", () => {
+        expect(invalidationPathsFor(["images/a.jpg", "images/b.jpg"])).toEqual(["/images/a.jpg", "/images/b.jpg"]);
+    });
+
     it("同じディレクトリのページが多ければワイルドカードにまとめる", () => {
         const many = Array.from({ length: 20 }, (_, i) => `photo/p${i}.html`);
         expect(invalidationPathsFor(many)).toEqual(["/photo/*"]);
