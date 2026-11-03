@@ -99,7 +99,15 @@ def main():
     print(json.dumps({"eligible": len(inserted), "rejected_or_duplicate": len(candidates) - len(inserted)}))
     if a.write:
         a.output.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp = tempfile.mkstemp(prefix=".spots-", suffix=".json", dir=a.output.parent)\n        try:\n            with os.fdopen(fd, "w", encoding="utf-8") as out:\n                json.dump(existing + inserted, out, ensure_ascii=False, indent=2)\n                out.write("\\n")\n            os.replace(tmp, a.output)\n        finally:\n            if os.path.exists(tmp):\n                os.unlink(tmp)
+        fd, tmp = tempfile.mkstemp(prefix=".spots-", suffix=".json", dir=a.output.parent)
+        try:
+            with os.fdopen(fd, "w", encoding="utf-8") as out:
+                json.dump(existing + inserted, out, ensure_ascii=False, indent=2)
+                out.write("\\n")
+            os.replace(tmp, a.output)
+        finally:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
 
 if __name__ == "__main__":
     main()
