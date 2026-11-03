@@ -50,6 +50,20 @@ describe("撮影ガイド", () => {
     expect(flip).toHaveAttribute("aria-pressed", "false");
   });
 
+  it("iOS構図のバリエーションを切り替えられる", () => {
+    render(<CompositionGuidePage />);
+    const symmetry = screen.getAllByRole("button").find((item) => item.querySelector("strong")?.textContent === "シンメトリー");
+    fireEvent.click(symmetry!);
+    const vertical = screen.getByRole("button", { name: "上下" });
+    fireEvent.click(vertical);
+    expect(vertical).toHaveAttribute("aria-pressed", "true");
+    const ratios = screen.getAllByRole("button").find((item) => item.querySelector("strong")?.textContent === "3:2・2:1・XPan・√2");
+    fireEvent.click(ratios!);
+    const xpan = screen.getByRole("button", { name: "XPan 65:24" });
+    fireEvent.click(xpan);
+    expect(xpan).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("ガイド線を表示・非表示に切り替えられる", () => {
     render(<CompositionGuidePage />);
     expect(screen.getByLabelText("構図ガイド線")).toBeInTheDocument();
