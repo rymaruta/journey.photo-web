@@ -20,6 +20,14 @@ class ConversionTests(unittest.TestCase):
         del self.editorial["delegatedBy"]
         self.assertIsNone(convert(self.candidate, self.editorial))
 
+    def test_invalid_review_date_is_rejected(self):
+        self.editorial["checkedAt"] = "not-a-date"
+        self.assertIsNone(convert(self.candidate, self.editorial))
+
+    def test_future_review_date_is_rejected(self):
+        self.editorial["checkedAt"] = "2099-01-01"
+        self.assertIsNone(convert(self.candidate, self.editorial))
+
     def test_missing_editorial_is_not_published(self):
         self.assertIsNone(convert(self.candidate, None))
 
