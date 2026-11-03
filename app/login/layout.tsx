@@ -17,9 +17,9 @@ export default async function Layout({ children }: { children: React.ReactNode }
     return (
         <div className="relative isolate min-h-screen overflow-hidden bg-black">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-[380px] overflow-hidden" aria-hidden="true">
-                <div className="absolute -inset-x-5 -top-8 grid grid-cols-4 gap-[3px] -rotate-[4deg]">
+                <div className="absolute left-1/2 top-[-30px] grid w-[calc(100%_+_40px)] max-w-[520px] -translate-x-1/2 -rotate-[4deg] grid-cols-4 gap-[3px]">
                     {Array.from({ length: 12 }, (_, index) => (
-                        <div key={index} className="aspect-square overflow-hidden bg-white/[0.06]">
+                        <div key={index} className="h-[120px] overflow-hidden bg-white/[0.06]">
                             {tiles[index] && (
                                 // Decorative images: intentionally small public thumbnails, not originals.
                                 // eslint-disable-next-line @next/next/no-img-element
