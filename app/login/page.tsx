@@ -18,7 +18,7 @@ import { BTN_FILL } from "../components/buttonStyles";
 type Step = "login" | "forgot-send" | "forgot-confirm" | "forgot-done";
 
 // 公開写真のみを背景に使用し、レンダーのたびに全件走査しない。
-const loginBackgroundPhotos = publishedPhotos.filter((photo) => photo.published && photo.src && !photo.sensitive).slice(0, 12);
+const loginBackgroundPhotos = publishedPhotos.filter((photo) => photo.published && photo.src && (!("sensitive" in photo) || photo.sensitive !== true)).slice(0, 12);
 
 function LoginForm() {
     const router = useRouter();
