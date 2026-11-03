@@ -195,6 +195,22 @@ describe("LoginPage - 基本フロー", () => {
         expect(mockShowToast).toHaveBeenCalledWith("ログインしました", "success");
     });
 
+    it("ログイン通信エラーでも画面が落ちず、再試行できる", async () => {
+        mockLogin.mockRejectedValueOnce(new Error("network unavailable"));
+        mockLogin.mockResolvedValueOnce({ success: true, userId: "my-sub-123" });
+        const user = userEvent.setup();
+        render(<LoginPage />);
+
+        await user.type(screen.getByPlaceholderText(/example@email\\.com/), "user@example.com");
+        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.click(screen.getByRole("button", { name: "ログイン" }));
+        expect(await screen.findByRole("alert")).toHaveTextContent("通信エラー");
+        expect(mockReplace).not.toHaveBeenCalled();
+
+        await user.click(screen.getByRole("button", { name: "ログイン" }));
+        await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/users?id=my-sub-123"));
+    });
+
     it("ログイン失敗 → エラーメッセージ表示、リダイレクトなし", async () => {
         mockLogin.mockResolvedValue({ success: false, error: "メールアドレスまたはパスワードが正しくありません" });
         const user = userEvent.setup();
