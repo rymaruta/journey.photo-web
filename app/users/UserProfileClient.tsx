@@ -119,62 +119,13 @@ type UserProfile = {
  */
 const StoriesBar = dynamic(() => import("../components/stories/StoriesBar"), { ssr: false });
 
-type TabKey = "posts" | "map" | "timeline" | "trips";
+type TabKey = "posts" | "map" | "trips";
 /** iOS ProfileTab.tabs(isMe:) に合わせたプロフィールのタブ。
  * 本人の「行きたい場所」「保存」は既存の専用ページへのリンク。
  * 他人の旅の棚は「すべての旅」から開くため、タブには含めない。
  */
 const OWNER_TABS: TabKey[] = ["posts", "trips"];
 const VISITOR_TABS: TabKey[] = ["posts", "map"];
-
-// 写真を「YYYY年 / M月」で時系列グループ化（撮影日 date 優先、なければ createdAt）
-type TimelineGroup = { key: string; year: string; label: string; photos: Photo[] };
-function buildTimeline(photos: Photo[], locale: "ja" | "en"): TimelineGroup[] {
-    const withDate = photos
-        .map((p) => ({ p, raw: String(p.date || p.createdAt || "") }))
-        .filter((x) => splitStoredDate(x.raw) !== null || (!!x.raw && !isNaN(Date.parse(x.raw))))
-        // 並びは共通の比較関数（ホーム・集約ページ・写真ページの前後と同じ）。
-        // `Date.parse` の数値で並べていた頃は、EXIF 由来のゾーン無し
-        // `T` 形式がローカル時刻として読まれ、**並びが閲覧者のゾーンで
-        // 変わって**いた（lib/utils/photoOrder.ts に実測を書いた）。
-        .sort((a, b) => compareNewest(a.p, b.p));
-    const map = new Map<string, TimelineGroup>();
-    for (const { p, raw } of withDate) {
-        // **書かれている成分をそのまま使う。** 撮影日は「その土地で撮った
-        // 時刻」で、閲覧者のゾーンに変換する値ではない（写真ページの表示
-        // ——`formatStoredDateTime`——も同じ立場）。`Date.parse` を通すと、
-        // ゾーン無しの `2024-11-01T07:30:00` は**ローカル時刻**として読まれ、
-        // JST では前日 22:30 UTC になる——**写真ページが「11月1日」と出す
-        // 写真が、年表では「10月」の見出しに入る**。
-        const parts = splitStoredDate(raw);
-        let y: number, m: number;
-        if (parts) {
-            y = parts.y;
-            m = parts.m;
-        } else {
-            // 想定外の形（`YYYY-MM-DD` で始まらない）は今までどおり。
-            // ここで落とすと、年表からその写真が黙って消える
-            const d = new Date(Date.parse(raw));
-            y = d.getUTCFullYear();
-            m = d.getUTCMonth() + 1;
-        }
-        const key = `${y}-${m}`;
-        if (!map.has(key)) {
-            map.set(key, {
-                key,
-                year: String(y),
-                // 見出しも UTC で組む。グループ分けは UTC なのに英語ラベルだけ
-                // toLocaleDateString（ローカル時刻）だったので、UTC より西の
-                // 閲覧者には **キーが 2024-1 なのに見出しが "December 2023"**
-                // という食い違いが出ていた。
-                label: locale === "en" ? `${EN_MONTHS[m - 1]} ${y}` : `${y}年${m}月`,
-                photos: [],
-            });
-        }
-        map.get(key)!.photos.push(p);
-    }
-    return Array.from(map.values());
-}
 
 const PROFILE_PRIORITY_THUMBS = 3;
 
@@ -931,8 +882,6 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
         e.stopPropagation();
     }, []);
 
-
-    const timeline = useMemo(() => buildTimeline(visiblePhotos, locale as "ja" | "en"), [visiblePhotos, locale]);
 
     // 旅アルバム: 撮影日の間隔で自動グルーピング
 
@@ -1748,7 +1697,6 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                     {([
                         { key: "posts", label: locale === "en" ? "Posts" : "投稿" },
                         { key: "map", label: locale === "en" ? "Map" : "マップ" },
-                        { key: "timeline", label: locale === "en" ? "Timeline" : "年表" },
                         { key: "trips", label: locale === "en" ? "Trips" : "旅の記録" },
                     ] as const).filter(({ key }) => tabOrder.includes(key)).map(({ key, label }) => {
                         const active = tab === key;
@@ -1874,37 +1822,6 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         {photosResolved
                             ? <TripShelfList trips={trips} userId={userId} isJa={locale !== "en"} />
                             : <LoadingState kind="rows" locale={locale === "en" ? "en" : "ja"} testId="profile-trips-loading" />}
-                    </div>
-                )}
-                {/* 年表タブ */}
-                {tab === "timeline" && (
-                    <div role="tabpanel" id="profile-panel-timeline" aria-labelledby="profile-tab-timeline" className="pb-8 pt-2">
-                        {timeline.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-24 text-white/50 gap-3">
-                                <CalendarDaysIcon className="w-10 h-10" />
-                                <p className="text-sm">{locale === "en" ? "No dated photos yet." : "撮影日のある写真がまだありません。"}</p>
-                            </div>
-                        ) : (
-                            <div className="relative pl-6">
-                                {/* 縦の軸線 */}
-                                <div className="absolute left-[7px] top-2 bottom-2 w-px bg-white/15" />
-                                {timeline.map((g) => (
-                                    <div key={g.key} className="relative mb-6">
-                                        {/* 節点 + 月ラベル */}
-                                        <div className="flex items-center gap-2 mb-2 -ml-6">
-                                            <span className="w-3.5 h-3.5 rounded-full bg-white ring-4 ring-bg flex-shrink-0" />
-                                            <span className="text-sm font-bold">{g.label}</span>
-                                            <span className="text-[12px] text-white/50">{g.photos.length}{locale === "en" ? "" : "枚"}</span>
-                                        </div>
-                                        <div className="grid grid-cols-3 gap-[2px]">
-                                            {g.photos.map((photo) => (
-                                                <PhotoCard key={photo.id} photo={photo} locale={locale} isOwner={isOwner} onTogglePublish={handleTogglePublish} onDelete={isOwner ? setPhotoToDelete : undefined} />
-                                            ))}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
                     </div>
                 )}
                 </div>
