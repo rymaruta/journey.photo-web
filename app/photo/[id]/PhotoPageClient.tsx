@@ -71,7 +71,7 @@ import { exifSettingsLine, exifSettingsCells } from "../../../lib/utils/exifDisp
 import { isImeKey } from "../../../lib/utils/ime";
 import { useSongSearch } from "../../../lib/hooks/useSongSearch";
 import { usablePhotoRows } from "../../../lib/utils/apiRows";
-import { sessionErrorMessage } from "../../../lib/utils/api";
+import { sessionErrorMessage, userPublicFetch } from "../../../lib/utils/api";
 import { publicImageUrl } from "@/lib/utils/seo";
 import SongSearchError from "../../components/SongSearchError";
 import SpotAutoNotice from "./SpotAutoNotice";
@@ -521,7 +521,6 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
         setAuthorMarks(null);
         void (async () => {
             try {
-                const { userPublicFetch } = await import("../../../lib/utils/api");
                 const response = await userPublicFetch(`/profile/${encodeURIComponent(ownerId)}`, { signal: controller.signal });
                 if (!response.ok || controller.signal.aborted) return;
                 const profile = sanitizeProfile<Record<string, unknown>>(await response.json(), "photo author");
