@@ -11,6 +11,11 @@ class PublicationWorkflowSafetyTests(unittest.TestCase):
         self.assertEqual(workflow.count("inputs.publish == true"), 1)
         self.assertEqual(workflow.count("github.event_name == 'workflow_dispatch'"), 1)
 
+    def test_publication_has_a_bounded_batch(self):
+        converter = (ROOT / "scripts/convert_world_spots_to_ledger.py").read_text(encoding="utf-8")
+        self.assertIn('default=100', converter)
+        self.assertIn('len(inserted) >= a.max_new', converter)
+
     def test_deployment_requires_successful_publication(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("gh workflow run deploy.yml --ref main", workflow)
