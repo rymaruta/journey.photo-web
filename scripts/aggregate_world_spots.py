@@ -2,6 +2,7 @@
 """Combine collected Wikidata snapshots without losing provenance."""
 import argparse
 import json
+import re
 from pathlib import Path
 
 def collect(paths):
@@ -14,7 +15,7 @@ def collect(paths):
             if not isinstance(spot, dict):
                 continue
             qid = spot.get("wikidataId")
-            if isinstance(qid, str) and qid.startswith("Q") and qid not in unique:
+            if isinstance(qid, str) and re.fullmatch(r"Q[1-9][0-9]*", qid) and qid not in unique:
                 unique[qid] = spot
     return {"spots": list(unique.values())}
 
