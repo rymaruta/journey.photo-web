@@ -1,0 +1,31 @@
+name: Validate safe spot publication
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/publish_spot_candidates.py'
+      - 'scripts/test_publish_spot_candidates.py'
+      - 'scripts/convert_world_spots_to_ledger.py'
+      - 'scripts/test_convert_world_spots_to_ledger.py'
+      - 'scripts/aggregate_world_spots.py'
+      - 'scripts/test_aggregate_world_spots.py'
+      - 'scripts/test_spot_publication_workflow.py'
+      - '.github/workflows/prepare-daily-world-spots.yml'
+      - '.github/workflows/validate-spot-publication.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate syntax
+        run: python -m py_compile scripts/publish_spot_candidates.py scripts/test_publish_spot_candidates.py scripts/convert_world_spots_to_ledger.py scripts/test_convert_world_spots_to_ledger.py scripts/aggregate_world_spots.py scripts/test_aggregate_world_spots.py scripts/test_spot_publication_workflow.py
+      - name: Verify non-destructive publication
+        run: python -m unittest discover -s scripts -p 'test_*spot*.py' -v

@@ -1,0 +1,135 @@
+name: Prepare daily world spot publication
+
+on:
+  schedule:
+    # 03:00 JST = 18:00 UTC on the previous day.
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Commit verified spots to main and trigger deployment (explicit opt-in)'
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  actions: write
+  contents: write
+
+concurrency:
+  group: daily-world-spot-publication
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download recent collected candidates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p data/imports/daily
+          python - <<'PY'
+          import json, os, pathlib, zipfile, io, urllib.request
+          from datetime import datetime, timedelta, timezone
+          repo = os.environ["GH_REPO"]
+          token = os.environ["GH_TOKEN"]
+          url = f"https://api.github.com/repos/{repo}/actions/artifacts?per_page=100"
+          headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+          count = 0
+          seen = set()
+          cutoff = datetime.now(timezone.utc) - timedelta(hours=26)
+          for page in range(1, 21):
+              req = urllib.request.Request(url + f"&page={page}", headers=headers)
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  artifacts = json.load(response).get("artifacts", [])
+              if not artifacts:
+                  break
+              if datetime.fromisoformat(artifacts[-1]["created_at"].replace("Z", "+00:00")) < cutoff:
+                  artifacts = [item for item in artifacts if datetime.fromisoformat(item["created_at"].replace("Z", "+00:00")) >= cutoff]
+                  last_page = True
+              else:
+                  last_page = False
+              for item in artifacts:
+                  if item.get("id") in seen:
+                      continue
+                  seen.add(item.get("id"))
+                  if item.get("expired") or not item.get("name", "").startswith("world-spot-candidates-"):
+                      continue
+                  created = datetime.fromisoformat(item["created_at"].replace("Z", "+00:00"))
+                  if created < cutoff:
+                      continue
+                  req = urllib.request.Request(item["archive_download_url"], headers=headers)
+                  with urllib.request.urlopen(req, timeout=60) as response:
+                      data = response.read()
+                  with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                      for name in archive.namelist():
+                          if name.endswith(".json") and not name.startswith("/") and ".." not in pathlib.PurePosixPath(name).parts:
+                              destination = pathlib.Path("data/imports/daily") / f"{item['id']}-{pathlib.Path(name).name}"
+                              destination.write_bytes(archive.read(name))
+                              count += 1
+              if last_page:
+                  break
+          print(f"Downloaded {count} candidate snapshots")
+          PY
+      - name: Verify candidates and preserve review requirements
+        run: |
+          python -m py_compile scripts/publish_spot_candidates.py scripts/convert_world_spots_to_ledger.py scripts/aggregate_world_spots.py
+          python -m unittest discover -s scripts -p 'test_*spot*.py' -v
+      - name: Archive candidate snapshots for manual editorial verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-spot-review-${{ github.run_id }}
+          path: data/imports/daily/*.json
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Prepare publishable ledger (requires checked editorial records)
+        run: |
+          if [ ! -s content/world-spot-editorial.json ]; then
+            echo "::error::Editorial input missing"
+            exit 1
+          fi
+          if ! find data/imports/daily -maxdepth 1 -name '*.json' | grep -q .; then
+            echo "No snapshots; no changes to production."
+            exit 0
+          fi
+          python scripts/aggregate_world_spots.py --input-dir data/imports/daily --output /tmp/world-spot-candidates.json
+          python scripts/convert_world_spots_to_ledger.py \
+            --candidates /tmp/world-spot-candidates.json \
+            --editorial content/world-spot-editorial.json \
+            --existing content/spots.json \
+            --output /tmp/world-spots-merged.json --write
+          python - <<'PY'
+          import json, os
+          old = json.load(open("content/spots.json", encoding="utf-8"))
+          new = json.load(open("/tmp/world-spots-merged.json", encoding="utf-8"))
+          if len(new) < len(old) or new[:len(old)] != old:
+              raise SystemExit("Existing spot ledger changed; refusing publication")
+          with open(os.environ["GITHUB_ENV"], "a") as env:
+              env.write(f"SPOT_NEW_COUNT={len(new)-len(old)}\n")
+          PY
+      - name: Commit vetted spots to main
+        env:
+          GH_TOKEN: ${{ github.token }}
+        if: github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/main' && env.SPOT_NEW_COUNT != '' && env.SPOT_NEW_COUNT != '0'
+        run: |
+          set -euo pipefail
+          cp /tmp/world-spots-merged.json content/spots.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add content/spots.json
+          git fetch origin main
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            echo '::error::main advanced while preparing publication; retry against latest ledger'
+            exit 1
+          fi
+          git commit -m "data: publish verified world spots"
+          git push origin HEAD:main
+          # GITHUB_TOKEN pushes do not trigger push workflows. Explicit dispatch required.
+          gh workflow run deploy.yml --ref main
