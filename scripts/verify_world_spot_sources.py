@@ -39,7 +39,9 @@ def verify(candidate):
     if not isinstance(coordinates, list) or len(coordinates) != 2:
         return None
     coords = [statement.get("mainsnak", {}).get("datavalue", {}).get("value", {}) for statement in claims.get("P625", [])]
-    if not any(isinstance(v, dict) and abs(v.get("longitude", 999) - coordinates[0]) < 0.0001 and abs(v.get("latitude", 999) - coordinates[1]) < 0.0001 for v in coords):
+    if not all(isinstance(n, (int, float)) and not isinstance(n, bool) for n in coordinates):
+        return None
+    if not any(isinstance(v, dict) and isinstance(v.get("longitude"), (int, float)) and isinstance(v.get("latitude"), (int, float)) and abs(v["longitude"] - coordinates[0]) < 0.0001 and abs(v["latitude"] - coordinates[1]) < 0.0001 for v in coords):
         return None
     country_ids = [statement.get("mainsnak", {}).get("datavalue", {}).get("value", {}).get("id") for statement in claims.get("P17", [])]
     expected_country = dict(COUNTRIES).get(candidate.get("countryCode"))
