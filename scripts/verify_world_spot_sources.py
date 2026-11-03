@@ -86,7 +86,10 @@ def main():
         p.error("--max-checks must be between 1 and 100")
     spots = json.loads(args.candidates.read_text(encoding="utf-8"))["spots"]
     records = []
-    for candidate in spots[:args.max_checks]:
+    # Rotate through the full candidate pool instead of rechecking the same first 30.
+    start = (datetime.date.today().toordinal() * args.max_checks) % len(spots) if spots else 0
+    batch = [spots[(start + index) % len(spots)] for index in range(min(len(spots), args.max_checks))]
+    for candidate in batch:
         try:
             result = verify(candidate)
             if result:
