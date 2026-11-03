@@ -12,6 +12,7 @@ import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
+from scripts.import_world_spots import COUNTRIES
 
 USER_AGENT = "JourneyPhoto/1.2 (https://github.com/rymaruta/journey.photo-web)"
 QID = re.compile(r"Q[1-9][0-9]*")
@@ -41,7 +42,8 @@ def verify(candidate):
     if not any(isinstance(v, dict) and abs(v.get("longitude", 999) - coordinates[0]) < 0.0001 and abs(v.get("latitude", 999) - coordinates[1]) < 0.0001 for v in coords):
         return None
     country_ids = [statement.get("mainsnak", {}).get("datavalue", {}).get("value", {}).get("id") for statement in claims.get("P17", [])]
-    if not country_ids:
+    expected_country = dict(COUNTRIES).get(candidate.get("countryCode"))
+    if not expected_country or expected_country not in country_ids:
         return None
     for language in ("ja", "en"):
         sitelink = entity.get("sitelinks", {}).get(language + "wiki")
