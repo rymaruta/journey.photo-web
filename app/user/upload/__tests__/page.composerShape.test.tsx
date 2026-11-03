@@ -93,7 +93,7 @@ async function withOnePhoto() {
 describe("投稿作成画面: モックのヘッダー", () => {
     it("題・✕・下書き保存が並ぶ", async () => {
         render(<UploadPage />);
-        expect(await screen.findByRole("heading", { name: "新しい投稿を作成" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "新規投稿" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "投稿の作成をやめる" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "下書き保存" })).toBeInTheDocument();
     });
