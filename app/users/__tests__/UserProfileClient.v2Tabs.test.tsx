@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 
 // **v2 の下線の札と写真の格子**（板 MyPage・UserProfile）。
 //
@@ -64,7 +64,7 @@ describe("iOS profile header parity", () => {
         const { container } = render(<UserProfileClient userId={OWNER} />);
         const edit = await screen.findByRole("link", { name: "プロフィールを編集" });
         expect(edit.textContent).toBe("編集");
-        expect(container.querySelector("[data-avatar-frame]")?.innerHTML).toContain("72px");
+        await waitFor(() => expect(container.querySelector("[data-avatar-frame]")?.innerHTML).toContain("72px"));
     });
 });
 
@@ -75,8 +75,7 @@ describe("下線の札（v2）", () => {
         const want = await screen.findByRole("link", { name: "行きたい場所" });
         expect(want.getAttribute("href")).toBe("/saved-spots");
         expect(screen.getByRole("link", { name: "保存" }).getAttribute("href")).toBe("/saves");
-        // tablist の中に入れない＝タブは 投稿・マップ・年表・旅（旅は 2026-10-21・マップは 2026-10-31 束 1 の確かめ:
-        // 訪れた場所のチップを外したので、本人が自分の撮影地を見る手立てを残す）
+        // 専用ページへのリンクは tablist に含めず、iOS と同じ表示順にする
         const tablist = screen.getByRole("tablist");
         expect(tablist.contains(want)).toBe(false);
         expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["投稿", "旅の記録"]);
@@ -86,14 +85,14 @@ describe("下線の札（v2）", () => {
 
     it("他人のプロフィールはiOSと同じ投稿・マップの2タブ", async () => {
         render(<UserProfileClient userId={OWNER} />);
-        await screen.findAllByRole("link", { name: /^a/ });
+        await screen.findByRole("heading", { level: 1 });
         expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["投稿", "マップ"]);
         expect(screen.queryByRole("tab", { name: "年表" })).toBeNull();
     });
 
     it("他人・未ログインには出さない（本人の一覧しか取れない）", async () => {
         render(<UserProfileClient userId={OWNER} />);
-        await screen.findAllByRole("link", { name: /^a/ });
+        await screen.findByRole("heading", { level: 1 });
         expect(screen.queryByRole("link", { name: "行きたい場所" })).toBeNull();
         expect(screen.queryByRole("link", { name: "保存" })).toBeNull();
     });
@@ -116,7 +115,7 @@ describe("写真の格子（v2）", () => {
     it("3列・すき間 2px・縦長 4:5、PC は 4 列（1024〜）・5 列（1440〜）", async () => {
         render(<UserProfileClient userId={OWNER} />);
         const panel = document.getElementById("profile-panel-posts")!;
-        await screen.findAllByRole("link", { name: /^a/ });
+        await screen.findByRole("heading", { level: 1 });
         const grid = panel.querySelector(".grid") as HTMLElement;
         expect(grid.className).toContain("grid-cols-3");
         expect(grid.className).toContain("gap-[2px]");
