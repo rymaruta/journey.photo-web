@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { ROUTES } from "../../lib/routes";
 import { useLocale } from "../i18n/context";
 
 /** iOS CompositionCatalogView に対応する撮影ガイドの第一段階。画像は端末内のみで使用する。 */
@@ -65,14 +66,14 @@ export default function CompositionGuidePage() {
   return (
     <main className="min-h-screen bg-bg text-white px-4 pt-10 pb-20">
       <div className="mx-auto max-w-xl space-y-6">
-        <Link href="/user/settings" className="inline-flex min-h-11 items-center text-sm text-white/70">← {isJa ? "設定に戻る" : "Back to settings"}</Link>
+        <Link href={ROUTES.SETTINGS} prefetch={false} className="inline-flex min-h-11 items-center text-sm text-white/70">← {isJa ? "設定に戻る" : "Back to settings"}</Link>
         <header className="space-y-2">
           <p className="text-xs tracking-widest text-[#C9A66B]">{isJa ? "撮影ガイド" : "SHOOTING GUIDE"}</p>
           <h1 className="text-3xl font-semibold">{isJa ? "構図一覧" : "Composition guide"}</h1>
           <p className="text-sm text-white/70">{isJa ? "構図を選び、自分の写真にガイド線を重ねて確認できます。" : "Choose a composition and preview guide lines over your own photo."}</p>
         </header>
         <div className="space-y-2" aria-label={isJa ? "構図を選ぶ" : "Choose a composition"}>
-          {GUIDES.map((item) => <button key={item.id} type="button" onClick={() => { setActive(item.id); setVariant(0); }} aria-pressed={active === item.id} className={`flex w-full min-h-14 items-center justify-between border-b border-white/10 px-2 text-left ${active === item.id ? "text-[#C9A66B]" : "text-white"}`}>
+          {GUIDES.map((item) => <button key={item.id} type="button" onClick={() => { setActive(item.id); setVariant(0); }} aria-pressed={active === item.id} className={`flex w-full min-h-14 items-center justify-between border-b border-line px-2 text-left ${active === item.id ? "text-[#C9A66B]" : "text-white"}`}>
             <span><strong className="block text-sm">{isJa ? item.ja : item.en}</strong><span className="text-xs text-white/60">{isJa ? item.sceneJa : item.sceneEn}</span></span><span aria-hidden="true">›</span>
           </button>)}
         </div>
