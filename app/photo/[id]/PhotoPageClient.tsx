@@ -52,6 +52,7 @@ import ReportDialog from "../../components/ReportDialog";
 import { useToast } from "../../../lib/hooks/useToast";
 import { shareUrl, copyToClipboard, shareToTwitter, shareToLine } from "../../../lib/utils/share";
 import { renderShareCard, type ShareCardRatio } from "../../../lib/utils/signatureShareCard";
+import { fetchImageBytes } from "../../../lib/utils/imageBytes";
 import { siteConfig, generatePhotoStructuredData, generateBreadcrumbStructuredData } from "../../../lib/utils/seo";
 import { slugify, collectionPath, categoryLabel } from "../../../lib/utils/collections";
 import RelatedPhotos from "../../components/RelatedPhotos";
@@ -961,9 +962,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     const handleSaveShareCard = async (ratio: ShareCardRatio) => {
         if (!photo?.src) return;
         try {
-            const response = await fetch(publicImageUrl(photo.src), { mode: "cors" });
-            if (!response.ok) throw new Error("Photo download failed");
-            const imageBlob = await response.blob();
+            // Reuse the same-origin /uploads fallback used by StoryViewer; raw CDN URLs may reject CORS.
+            const imageBlob = await fetchImageBytes(publicImageUrl(photo.src));
             const bitmap = await createImageBitmap(imageBlob);
             let blob: Blob;
             try {
