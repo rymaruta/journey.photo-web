@@ -187,7 +187,7 @@ function LoginForm() {
 
                 {/* ロゴ */}
                 <div className="mb-10 text-center">
-                    <p className="font-serif text-3xl font-bold tracking-tight text-white mb-2">Journey Photo</p>
+                    <div className="flex items-center justify-center gap-3 mb-3">\n                        {/* iOS版と同じアパーチャマークを添えたワードマーク */}\n                        {/* eslint-disable-next-line @next/next/no-img-element */}\n                        <img src="/logo-aperture.png" alt="" width={40} height={40} className="h-10 w-10 object-contain" />\n                        <p className="font-serif text-3xl font-bold tracking-tight text-white">Journey Photo</p>\n                    </div>
                     <p className="text-white/65 text-sm mb-5">旅の一瞬を、誰かの次の旅へ。</p>
                     <h1 className="text-2xl font-bold text-white">
                         {step === "login" && "ログイン"}
@@ -282,7 +282,7 @@ function LoginForm() {
                         <button
                             type="button"
                             onClick={() => { setStep("forgot-send"); setError(""); }}
-                            className="w-full text-center text-xs text-white/50 hover:text-white/75 transition-colors py-2"
+                            className="w-full text-right text-xs text-white/70 hover:text-white transition-colors py-3"
                         >
                             パスワードをお忘れですか？
                         </button>
