@@ -25,7 +25,7 @@ class PublishTests(unittest.TestCase):
         self.assertEqual(merged, [])
         self.assertEqual(stats["rejected"], 1)
         merged, stats = reconcile([spot("Q1"), spot("Q1")], [spot("Q1"), {**spot("Q2"), "coordinates": [135.8, 35.0]}])
-        self.assertEqual(len(merged), 2)
+        self.assertEqual(len(merged), 3)
         self.assertEqual(stats["inserted"], 1)
         self.assertEqual(stats["skipped"], 1)
 
@@ -46,6 +46,12 @@ class PublishTests(unittest.TestCase):
         merged, stats = reconcile([spot("Q1")], [spot("Q2")])
         self.assertEqual(len(merged), 1)
         self.assertEqual(stats["skipped"], 1)
+
+    def test_legacy_existing_without_wikidata_id_is_preserved(self):
+        legacy = {"spotId": "sp_abc", "name": "User maintained spot"}
+        merged, stats = reconcile([legacy], [spot("Q9")])
+        self.assertEqual(merged[0], legacy)
+        self.assertEqual(stats["inserted"], 1)
 
     def test_missing_snapshot_fails_closed(self):
         with tempfile.TemporaryDirectory() as folder:
