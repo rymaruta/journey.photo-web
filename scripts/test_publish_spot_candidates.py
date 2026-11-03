@@ -15,14 +15,16 @@ class PublishTests(unittest.TestCase):
         merged, stats = reconcile([], [spot("Q2"), spot("Q2"), spot("invalid")])
         self.assertEqual(len(merged), 1)
         self.assertEqual(stats, {"inserted": 1, "skipped": 1, "rejected": 1})
-    def test_invalid_coordinates_and_duplicate_existing_fail_closed(self):
+    def test_invalid_coordinates_and_duplicate_existing_are_skipped(self):
         invalid = spot("Q4")
         invalid["coordinates"] = [float("nan"), 35]
         merged, stats = reconcile([], [invalid])
         self.assertEqual(merged, [])
         self.assertEqual(stats["rejected"], 1)
-        with self.assertRaises(ValueError):
-            reconcile([spot("Q1"), spot("Q1")], [spot("Q2")])
+        merged, stats = reconcile([spot("Q1"), spot("Q1")], [spot("Q1"), spot("Q2")])
+        self.assertEqual(len(merged), 2)
+        self.assertEqual(stats["inserted"], 1)
+        self.assertEqual(stats["skipped"], 1)
 
     def test_unlicensed_image_is_not_published(self):
         candidate = spot("Q2")
@@ -30,7 +32,14 @@ class PublishTests(unittest.TestCase):
         merged, _ = reconcile([], [candidate])
         self.assertNotIn("image", merged[0])
 
-    def test_daily_limit(self):
+    def test_publish_all_800_new_from_1000(self):
+        existing = [spot(f"Q{i}") for i in range(1, 201)]
+        candidates = [spot(f"Q{i}") for i in range(1, 1001)]
+        merged, stats = reconcile(existing, candidates)
+        self.assertEqual(len(merged), 1000)
+        self.assertEqual(stats, {"inserted": 800, "skipped": 200, "rejected": 0})
+
+    def test_optional_limit(self):
         merged, stats = reconcile([], [spot("Q2"), spot("Q3")], max_new=1)
         self.assertEqual(len(merged), 1)
         self.assertEqual(stats["skipped"], 1)
