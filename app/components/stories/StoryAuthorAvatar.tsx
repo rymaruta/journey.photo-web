@@ -24,6 +24,7 @@ export default function StoryAuthorAvatar({ userId, name, locale }: {
         if (!isAuthenticated || !userId) { return; }
         let cancelled = false;
         setSeen(loadSeenStoryIds());
+        setGroups([]);
         void userFetch("/stories").then(async response => {
             if (!response.ok) return;
             const data: unknown = await response.json();
@@ -34,7 +35,7 @@ export default function StoryAuthorAvatar({ userId, name, locale }: {
         return () => { cancelled = true; };
     }, [isAuthenticated, ownUserId, userId]);
 
-    const groupIndex = groups.findIndex(group => group.userId === userId);
+    const groupIndex = isAuthenticated ? groups.findIndex(group => group.userId === userId) : -1;
     const group = groupIndex >= 0 ? groups[groupIndex] : undefined;
     const unseen = group ? hasUnseen(group, seen) : false;
     const face = <UserAvatar userId={userId} className="w-10 h-10" iconClassName="w-6 h-6" />;
