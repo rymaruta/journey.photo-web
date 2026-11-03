@@ -1722,18 +1722,6 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         );
                     })}
                 </div>
-                {/* iOS の本人用プロフィール: 投稿 / 旅の記録 / 行きたい場所 / 保存。
-                    別ページへ移動する2項目は tablist の外に置き、ARIA のタブ操作を壊さない。 */}
-                {isOwner && (
-                    <nav aria-label={locale === "en" ? "Saved profile sections" : "プロフィールの保存一覧"} className="flex gap-[22px] flex-shrink-0">
-                        <Link href="/saved-spots" prefetch={false} className={TAB_BASE + " " + TAB_OFF} style={{ height: "44px" }}>
-                            {locale === "en" ? "Want to go" : "行きたい場所"}
-                        </Link>
-                        <Link href="/saves" prefetch={false} className={TAB_BASE + " " + TAB_OFF} style={{ height: "44px" }}>
-                            {locale === "en" ? "Saved" : "保存"}
-                        </Link>
-                    </nav>
-                )}
                 {/* 人のページ: 持っているメダルの一覧（Web だけ・名前の横に選んでいない人にも入口）。札の右端の字のボタン（束 1 U9） */}
                 {!isOwner && (
                     <span className="ml-auto flex-shrink-0">
