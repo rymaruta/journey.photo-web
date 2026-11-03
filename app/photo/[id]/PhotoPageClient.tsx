@@ -1255,8 +1255,9 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                             <UserAvatar userId={photo.userId} className="w-10 h-10 ring-1 ring-line" iconClassName="w-6 h-6" />
                         </Link>
                         <div className="min-w-0 flex-1">
-                            <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
-                                  className="flex min-h-[44px] max-w-full items-center text-white font-semibold hover:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                            <div className="flex min-w-0 items-center gap-1">
+                                <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
+                                  className="flex min-h-[44px] min-w-0 items-center text-white font-semibold hover:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                                   title={authorName}
                                   style={{ fontSize: "15px", lineHeight: "20px", touchAction: "manipulation" }}>
                                 <span className="block min-w-0 truncate">{authorName}</span>
@@ -1268,7 +1269,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                     </span>
                                 )}
                             </Link>
-                            {authorMarks?.userId === photo.userId && authorMarks.displayBadge && (
+                                {authorMarks?.userId === photo.userId && authorMarks.displayBadge && (
                                 <div className="inline-flex items-center" data-testid="photo-author-selected-badge">
                                     <NameBadge
                                         badges={authorMarks.badges}
@@ -1278,6 +1279,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                     />
                                 </div>
                             )}
+                            </div>
                             {showAuthorHandle && (
                                 <p className="m-0 mt-0.5 text-text-3 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>@{photo.uploaderUsername}</p>
                             )}
