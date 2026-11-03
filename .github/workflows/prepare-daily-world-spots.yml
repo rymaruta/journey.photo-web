@@ -43,6 +43,7 @@ jobs:
           url = f"https://api.github.com/repos/{repo}/actions/artifacts?per_page=100"
           headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
           count = 0
+          seen = set()
           cutoff = datetime.now(timezone.utc) - timedelta(hours=26)
           for page in range(1, 21):
               req = urllib.request.Request(url + f"&page={page}", headers=headers)
@@ -50,7 +51,15 @@ jobs:
                   artifacts = json.load(response).get("artifacts", [])
               if not artifacts:
                   break
+              if datetime.fromisoformat(artifacts[-1]["created_at"].replace("Z", "+00:00")) < cutoff:
+                  artifacts = [item for item in artifacts if datetime.fromisoformat(item["created_at"].replace("Z", "+00:00")) >= cutoff]
+                  last_page = True
+              else:
+                  last_page = False
               for item in artifacts:
+                  if item.get("id") in seen:
+                      continue
+                  seen.add(item.get("id"))
                   if item.get("expired") or not item.get("name", "").startswith("world-spot-candidates-"):
                       continue
                   created = datetime.fromisoformat(item["created_at"].replace("Z", "+00:00"))
@@ -65,7 +74,7 @@ jobs:
                               destination = pathlib.Path("data/imports/daily") / f"{item['id']}-{pathlib.Path(name).name}"
                               destination.write_bytes(archive.read(name))
                               count += 1
-              if count >= 300:
+              if last_page:
                   break
           print(f"Downloaded {count} candidate snapshots")
           PY
