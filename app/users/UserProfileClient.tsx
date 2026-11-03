@@ -120,17 +120,10 @@ type UserProfile = {
 const StoriesBar = dynamic(() => import("../components/stories/StoriesBar"), { ssr: false });
 
 type TabKey = "posts" | "map" | "timeline" | "trips";
-/**
- * タブ。`timeline` は**年表**（内部名は古い・Web だけ）。「フォロー中」はトップのタブに在る。
- * `trips` は**旅の一冊の棚**（iOS の「旅の記録」のタブ・2026-10-21 に Web へ）。
- *
- * 2026-10-31 判断（束 1 U9・iOS の `ProfileTab.tabs(isMe:)`）: **人のページは 投稿・マップ・年表**。
- * iOS の人のページは 投稿・マップ の2つで、旅は名前の下の「旅」の行（`ProfileTripsLine`）から開く。
- * Web だけの年表は残す。旅の棚は札に並べず、「すべての旅 · N冊」で開く（`trips` は選べるが札は無い）。
- * 本人のページ（マイページ）は今のまま（iOS のマイページの直しは束 5）
+/** iOS ProfileTab.tabs(isMe:) に合わせたプロフィールのタブ。
+ * 本人の「行きたい場所」「保存」は既存の専用ページへのリンク。
+ * 他人の旅の棚は「すべての旅」から開くため、タブには含めない。
  */
-// 2026-10-31 判断（束 1 の確かめ）: **本人のページにもマップの札を出す。** iOS のマイページに地図の区分は無いが、
-// Web は「訪れた場所」のチップを外した（U6）ので、札が無いと本人が自分の撮影地を見る手立てが無くなる。今ある機能を失わない
 const OWNER_TABS: TabKey[] = ["posts", "trips"];
 const VISITOR_TABS: TabKey[] = ["posts", "map"];
 
