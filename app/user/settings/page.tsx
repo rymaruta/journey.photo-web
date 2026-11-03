@@ -293,7 +293,7 @@ export default function SettingsPage() {
                     {locale === "en" ? "Back" : "戻る"}
                 </Link>
 
-                <h1 className="text-xl font-bold mb-6">
+                <h1 className="mb-6 font-serif text-[30px] leading-tight font-semibold tracking-tight text-white">
                     {locale === "en" ? "Settings" : "設定"}
                 </h1>
 
