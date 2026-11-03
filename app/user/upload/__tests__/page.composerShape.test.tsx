@@ -123,6 +123,33 @@ describe("投稿作成画面: モックのヘッダー", () => {
     });
 });
 
+describe("投稿作成画面: 未完了投稿の終了確認", () => {
+    it("未完了の写真があるときキャンセルすれば画面を維持する", async () => {
+        const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+        try {
+            await withOnePhoto();
+            await userEvent.click(screen.getByRole("button", { name: "投稿の作成をやめる" }));
+            expect(confirm).toHaveBeenCalledWith(expect.stringContaining("投稿が完了していません"));
+            expect(mockBack).not.toHaveBeenCalled();
+            expect(mockPush).not.toHaveBeenCalled();
+        } finally {
+            confirm.mockRestore();
+        }
+    });
+
+    it("未完了の写真があっても確認後は閉じられる", async () => {
+        const confirm = vi.spyOn(window, "confirm").mockReturnValue(true);
+        try {
+            await withOnePhoto();
+            await userEvent.click(screen.getByRole("button", { name: "投稿の作成をやめる" }));
+            expect(confirm).toHaveBeenCalled();
+            expect(mockPush).toHaveBeenCalledWith("/");
+        } finally {
+            confirm.mockRestore();
+        }
+    });
+});
+
 describe("投稿作成画面: 文字数カウンタ", () => {
     it("題と説明のカウンタは、この実装の上限を出す（モックの絵を写さない）", async () => {
         await withOnePhoto();
