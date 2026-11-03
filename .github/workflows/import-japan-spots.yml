@@ -8,6 +8,10 @@ on:
         required: true
         default: '5000'
         type: string
+  pull_request:
+    paths:
+      - 'scripts/import_japan_spots.py'
+      - '.github/workflows/import-japan-spots.yml'
   schedule:
     - cron: '20 3 1 * *'
 
@@ -29,7 +33,7 @@ jobs:
           python-version: '3.12'
       - name: Validate limit
         env:
-          IMPORT_LIMIT: ${{ inputs.limit || '5000' }}
+          IMPORT_LIMIT: ${{ github.event_name == 'pull_request' && '30' || inputs.limit || '5000' }}
         run: |
           python - <<'PY'
           import os
@@ -37,6 +41,8 @@ jobs:
           if not value.isdecimal() or not 1 <= int(value) <= 10000:
               raise SystemExit('limit must be between 1 and 10000')
           PY
+      - name: Syntax check
+        run: python -m py_compile scripts/import_japan_spots.py
       - name: Fetch Wikidata candidates
         env:
           IMPORT_LIMIT: ${{ inputs.limit || '5000' }}
