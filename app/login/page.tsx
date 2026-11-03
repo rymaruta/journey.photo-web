@@ -182,7 +182,7 @@ function LoginForm() {
     }
 
     return (
-        <main className="min-h-screen bg-transparent flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
+        <main className="min-h-screen bg-transparent flex items-center justify-center px-4 pt-24 pb-10 sm:pt-36 sm:pb-16">
             <div className="w-full max-w-sm rounded-2xl border border-line bg-black/85 p-6 shadow-2xl backdrop-blur-md sm:p-8">
 
                 {/* ロゴ */}
@@ -220,7 +220,7 @@ function LoginForm() {
 
                 {/* エラー */}
                 {error && (
-                    <div role="alert" className="mb-4 px-4 py-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm">
+                    <div role="alert" id="login-form-error" aria-live="assertive" className="mb-4 px-4 py-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm">
                         {error}
                     </div>
                 )}
@@ -246,6 +246,8 @@ function LoginForm() {
                             <label htmlFor="login-email" className="block text-xs text-white/50 mb-1.5 tracking-wide">メールアドレス</label>
                             <input
                                 id="login-email"
+                                aria-invalid={!!error && step === "login"}
+                                aria-describedby={error && step === "login" ? "login-form-error" : undefined}
                                 type="email"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
@@ -260,6 +262,8 @@ function LoginForm() {
                             <label htmlFor="login-password" className="block text-xs text-white/50 mb-1.5 tracking-wide">パスワード</label>
                             <input
                                 id="login-password"
+                                aria-invalid={!!error && step === "login"}
+                                aria-describedby={error && step === "login" ? "login-form-error" : undefined}
                                 type="password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
@@ -348,6 +352,8 @@ function LoginForm() {
                             <input
                                 autoComplete="one-time-code"
                                 id="reset-code"
+                                aria-invalid={!!error && step === "forgot-confirm"}
+                                aria-describedby={error && step === "forgot-confirm" ? "login-form-error" : undefined}
                                 type="text"
                                 // 数字だけのコード。登録・設定の確認コードと揃える（ここだけ
                                 // 全文字のキーボードが出ていた）
