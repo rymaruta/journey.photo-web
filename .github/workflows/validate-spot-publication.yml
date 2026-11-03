@@ -1,0 +1,25 @@
+name: Validate safe spot publication
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/publish_spot_candidates.py'
+      - 'scripts/test_publish_spot_candidates.py'
+      - '.github/workflows/validate-spot-publication.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate syntax
+        run: python -m py_compile scripts/publish_spot_candidates.py scripts/test_publish_spot_candidates.py
+      - name: Verify non-destructive publication
+        run: python -m unittest discover -s scripts -p 'test_publish_spot_candidates.py' -v
