@@ -1709,7 +1709,7 @@ function UploadPageInner() {
                         <XMarkIcon className="w-6 h-6" />
                     </button>
                     <h1 className="text-center font-semibold" style={{ fontSize: "16px" }}>
-                        {isJa ? "新しい投稿を作成" : "New post"}
+                        {isJa ? "新規投稿" : "New post"}
                     </h1>
                     {/* 下書き保存: 必須項目なしで非公開保存。あとで編集して公開できる。
                         **地名の引き当てを待たない**——下書きは公開ではないので、
