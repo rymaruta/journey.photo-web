@@ -182,7 +182,7 @@ function LoginForm() {
     }
 
     return (
-        <main className="min-h-screen bg-transparent flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
+        <main className="min-h-screen bg-transparent flex items-center justify-center px-4 pt-24 pb-10 sm:pt-36 sm:pb-16">
             <div className="w-full max-w-sm rounded-2xl border border-line bg-black/85 p-6 shadow-2xl backdrop-blur-md sm:p-8">
 
                 {/* ロゴ */}
