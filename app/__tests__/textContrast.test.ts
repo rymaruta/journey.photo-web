@@ -185,10 +185,8 @@ const GUARDED: Array<[string, string, string, boolean?]> = [
     ["app/components/tabStyles.ts", "export const TAB_OFF", "非選択のタブ（ホーム・投稿／年表・行きたい場所／保存）"],
     ["app/users/UserProfileClient.tsx", "うち非公開", "本人にだけ出る非公開の枚数"],
     // 投稿タブと年表タブの2か所に同じものがある（両方見る）
-    ["app/users/UserProfileClient.tsx", "justify-center py-24", "写真が0枚のときの案内（外枠の色）"],
     // **子で上書きされたら気づけない**ので、文字そのものの行も見る
     ["app/users/UserProfileClient.tsx", "No photos yet", "写真が0枚のときの案内（文字）", true],
-    ["app/users/UserProfileClient.tsx", "{g.photos.length}", "年表の月ごとの枚数"],
     // 訪問者が届くのに残っていた分（レビュー指摘）
     ["app/users/UserProfileClient.tsx", "musicServiceLabel(songEmbed.service)", "BGM の配信元（Spotify など）"],
     ["app/users/UserProfileClient.tsx", "Scan to open this profile", "QR の説明（白いカードの上）"],
