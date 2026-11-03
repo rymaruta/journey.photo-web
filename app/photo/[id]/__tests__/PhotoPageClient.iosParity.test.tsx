@@ -79,6 +79,7 @@ describe("写真ページ: 撮影者の表示（iOS authorRow との整合）", 
         await screen.findByText("朝の湖");
         const author = screen.getByTestId("photo-author");
         expect(author).toHaveTextContent("alice_photo");
+        expect(author.textContent?.match(/alice_photo/g)).toHaveLength(1);
         expect(Array.from(author.querySelectorAll("a")).some((link) => link.getAttribute("href") === "/users?id=alice" || link.getAttribute("href") === "/users/alice")).toBe(true);
     });
 });
