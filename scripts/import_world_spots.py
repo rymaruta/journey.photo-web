@@ -65,8 +65,8 @@ def main():
     for row in fetch(country, a.limit, a.offset):
         qid = row["item"]["value"].rsplit("/", 1)[-1]
         name = row["itemLabel"]["value"].strip()
-        match = re.fullmatch(r"Point\\((-?[\\d.]+) (-?[\\d.]+)\\)", row["coord"]["value"])
-        if not match or not re.fullmatch(r"Q\\d+", qid) or name == qid:
+        match = re.fullmatch(r"Point\((-?[\d.]+) (-?[\d.]+)\)", row["coord"]["value"])
+        if not match or not re.fullmatch(r"Q\d+", qid) or name == qid:
             continue
         lon, lat = map(float, match.groups())
         if not (-180 <= lon <= 180 and -90 <= lat <= 90):
