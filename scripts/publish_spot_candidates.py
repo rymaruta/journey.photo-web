@@ -35,7 +35,10 @@ def same_place_key(spot):
         return None
     if not all(isinstance(n, (int, float)) and not isinstance(n, bool) and math.isfinite(n) for n in coords):
         return None
-    return (name.strip().casefold(), coords[0], coords[1])
+    normalized_name = " ".join(name.casefold().split())
+    if not normalized_name:
+        return None
+    return (normalized_name, coords[0], coords[1])
 
 def reconcile(existing, candidates, max_new=None):
     """Immutable existing records; only new IDs are appended."""
