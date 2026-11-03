@@ -14,6 +14,16 @@ const GUIDES = [
   { id: "horizon", ja: "水平線", en: "Horizon", sceneJa: "海・湖・夕景", sceneEn: "Seascapes, lakes and sunsets", tipJa: "水平を保ち、空と地面の比率を調整します。", tipEn: "Keep the horizon level and balance sky and ground." },
   { id: "grid4", ja: "4×4", en: "4×4 grid", sceneJa: "建築・細かな配置", sceneEn: "Architecture and precise framing", tipJa: "細かい格子を使って要素の位置と間隔を揃えます。", tipEn: "Use the grid to align objects and spacing." },
   { id: "squareGrid", ja: "方眼", en: "Square grid", sceneJa: "建築・パターン", sceneEn: "Architecture and patterns", tipJa: "縦横の反復を確認し、歪みを抑えます。", tipEn: "Check repeating lines and minimize distortion." },
+  { id: "tianzige", ja: "田字格", en: "Tian grid", sceneJa: "建築・静物", sceneEn: "Architecture and still life", tipJa: "中央の縦横線を基準に四隅のバランスを整えます。", tipEn: "Balance the four quadrants around the center." },
+  { id: "mizige", ja: "米字格", en: "Mi grid", sceneJa: "建築・放射状の被写体", sceneEn: "Architecture and radiating subjects", tipJa: "中心から四隅への対角線を使って視線を導きます。", tipEn: "Guide the eye with lines from the center to each corner." },
+  { id: "phiGrid", ja: "ファイグリッド", en: "Phi grid", sceneJa: "風景・人物", sceneEn: "Landscapes and portraits", tipJa: "黄金比に近い位置に被写体を置いて余白を整えます。", tipEn: "Use golden-ratio divisions to balance the frame." },
+  { id: "thirdsDiagonals", ja: "3×3＋対角", en: "Thirds + diagonals", sceneJa: "街並み・道路", sceneEn: "Streets and roads", tipJa: "三分割と対角線の交点を意識します。", tipEn: "Use intersections of thirds and diagonals." },
+  { id: "triangle", ja: "三角", en: "Triangle", sceneJa: "山・人物の配置", sceneEn: "Mountains and subject groups", tipJa: "三角形の頂点に視線を集めて安定感を出します。", tipEn: "Arrange subjects around a triangle for stability." },
+  { id: "radial", ja: "放射線", en: "Radial lines", sceneJa: "建築・トンネル", sceneEn: "Architecture and tunnels", tipJa: "線が集まる一点に主役を置きます。", tipEn: "Place the focal point where the lines converge." },
+  { id: "square", ja: "1:1", en: "1:1", sceneJa: "正方形の切り取り", sceneEn: "Square crop", tipJa: "正方形の枠内で主役の位置を整えます。", tipEn: "Compose within the square crop." },
+  { id: "ratio4x5", ja: "4:5", en: "4:5", sceneJa: "縦長の人物写真", sceneEn: "Vertical portraits", tipJa: "4:5の枠に収まるように配置します。", tipEn: "Compose within a 4:5 crop." },
+  { id: "ratio9x16", ja: "9:16", en: "9:16", sceneJa: "縦長の風景", sceneEn: "Vertical landscapes", tipJa: "9:16の縦長の余白を生かします。", tipEn: "Use the tall frame to emphasize vertical space." },
+  { id: "ratio16x9", ja: "16:9", en: "16:9", sceneJa: "広い風景", sceneEn: "Wide landscapes", tipJa: "横方向の広がりを意識します。", tipEn: "Emphasize width and panoramic balance." },
 ] as const;
 type GuideId = (typeof GUIDES)[number]["id"];
 
@@ -53,6 +63,16 @@ export default function CompositionGuidePage() {
                 {active === "horizon" && <path d="M0 200H300" />}
                 {active === "grid4" && <path d="M75 0V400M150 0V400M225 0V400M0 100H300M0 200H300M0 300H300" />}
                 {active === "squareGrid" && <path d="M75 0V400M150 0V400M225 0V400M0 75H300M0 150H300M0 225H300M0 300H300M0 375H300" />}
+                {active === "tianzige" && <path d="M150 0V400M0 200H300" />}
+                {active === "mizige" && <path d="M150 0V400M0 200H300M0 0L300 400M300 0L0 400" />}
+                {active === "phiGrid" && <path d="M114.6 0V400M185.4 0V400M0 152.8H300M0 247.2H300" />}
+                {active === "thirdsDiagonals" && <path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300M0 0L300 400M300 0L0 400" />}
+                {active === "triangle" && <path d="M150 45L25 355L275 355Z" />}
+                {active === "radial" && <path d="M150 200L0 0M150 200L150 0M150 200L300 0M150 200L0 200M150 200L300 200M150 200L0 400M150 200L150 400M150 200L300 400" />}
+                {active === "square" && <rect x="0" y="50" width="300" height="300" />}
+                {active === "ratio4x5" && <rect x="0" y="12.5" width="300" height="375" />}
+                {active === "ratio9x16" && <rect x="37.5" y="0" width="225" height="400" />}
+                {active === "ratio16x9" && <rect x="0" y="115.625" width="300" height="168.75" />}
               </g>
             </svg>}
           </div>
@@ -63,7 +83,7 @@ export default function CompositionGuidePage() {
           <p className="text-xs text-white/60">{isJa ? "写真は端末内だけで表示し、アップロードしません。" : "Your photo stays on this device and is not uploaded."}</p>
           <label className="flex min-h-11 items-center justify-between gap-3 text-sm"><span>{isJa ? "ガイド線を表示" : "Show guide lines"}</span><input type="checkbox" checked={showLines} onChange={(event) => setShowLines(event.target.checked)} className="h-5 w-5 accent-[#C9A66B]" /></label>
           <p className="text-sm leading-relaxed text-white/75">{isJa ? guide.tipJa : guide.tipEn}</p>
-          <p className="text-xs text-white/50">{isJa ? "現在は代表的な8構図に対応しています。iOS版の全37種類への拡張は今後の対応です。" : "Eight compositions are currently available. The full 37-guide iOS catalog is not yet included."}</p>
+          <p className="text-xs text-white/50">{isJa ? "現在は代表的な18構図に対応しています。iOS版の全37種類への拡張は今後の対応です。" : "Eighteen compositions are currently available. The full 37-guide iOS catalog is not yet included."}</p>
         </section>
       </div>
     </main>
