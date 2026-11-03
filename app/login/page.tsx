@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import publishedPhotos from "../data/photos.json";
+import { publicImageUrl } from "../../lib/utils/seo";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../auth/context";
@@ -193,7 +194,7 @@ function LoginForm() {
             {/* 公開済みの旅写真を背景に使い、フォームの可読性は暗いオーバーレイで保つ。 */}
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 grid grid-cols-2 grid-rows-2 opacity-60 sm:grid-cols-4 sm:grid-rows-1">
                 {publishedPhotos.filter((photo) => photo.published && photo.src).slice(0, 4).map((photo) => (
-                    <img key={photo.id} src={photo.src} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                    <img key={photo.id} src={publicImageUrl(photo.src)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 ))}
             </div>
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/65 via-black/55 to-black/90" />
