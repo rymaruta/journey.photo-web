@@ -27,6 +27,16 @@ def valid(spot):
         and spot.get("source") == "wikidata"
     )
 
+def same_place_key(spot):
+    """Conservative fallback for different Wikidata IDs at identical coordinates."""
+    name = spot.get("name")
+    coords = spot.get("coordinates")
+    if not isinstance(name, str) or not isinstance(coords, list) or len(coords) != 2:
+        return None
+    if not all(isinstance(n, (int, float)) and not isinstance(n, bool) and math.isfinite(n) for n in coords):
+        return None
+    return (name.strip().casefold(), coords[0], coords[1])
+
 def reconcile(existing, candidates, max_new=None):
     """Immutable existing records; only new IDs are appended."""
     if max_new is not None and max_new < 0:
@@ -39,13 +49,15 @@ def reconcile(existing, candidates, max_new=None):
         if qid in by_id:
             continue
         by_id[qid] = dict(spot)
+    place_keys = {key for spot in by_id.values() if (key := same_place_key(spot)) is not None}
     inserted, skipped, rejected = 0, 0, 0
     for spot in candidates:
         if not valid(spot):
             rejected += 1
             continue
         qid = spot["wikidataId"]
-        if qid in by_id:
+        place_key = same_place_key(spot)
+        if qid in by_id or (place_key is not None and place_key in place_keys):
             skipped += 1
             continue
         if max_new is not None and inserted >= max_new:
@@ -69,6 +81,8 @@ def reconcile(existing, candidates, max_new=None):
         record["reviewStatus"] = "published"
         record["publishedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         by_id[qid] = record
+        if place_key is not None:
+            place_keys.add(place_key)
         inserted += 1
     return list(by_id.values()), {"inserted": inserted, "skipped": skipped, "rejected": rejected}
 
@@ -92,8 +106,9 @@ def main():
     candidates = []
     for path in args.candidates:
         candidates.extend(read_spots(path))
-    if args.output.resolve() == args.existing.resolve():
-        raise ValueError("output must differ from existing snapshot to protect the source")
+    protected = [args.existing, *args.candidates]
+    if any(args.output.resolve() == source.resolve() for source in protected):
+        raise ValueError("output must differ from all input snapshots to protect source data")
     merged, summary = reconcile(existing, candidates, args.max_new)
     print(json.dumps(summary, ensure_ascii=False))
     if not args.write:
