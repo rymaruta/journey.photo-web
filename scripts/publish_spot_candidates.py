@@ -44,15 +44,15 @@ def reconcile(existing, candidates, max_new=None):
     """Immutable existing records; only new IDs are appended."""
     if max_new is not None and max_new < 0:
         raise ValueError("max_new must be nonnegative")
+    # Never drop or rewrite an existing record, even when the source already
+    # contains duplicate IDs. Only new candidates are deduplicated.
+    preserved = [dict(spot) for spot in existing]
     by_id = {}
-    for spot in existing:
+    for spot in preserved:
         qid = spot.get("wikidataId")
-        if not isinstance(qid, str) or not qid:
-            raise ValueError("existing snapshot contains a record without Wikidata ID")
-        if qid in by_id:
-            continue
-        by_id[qid] = dict(spot)
-    place_keys = {key for spot in by_id.values() if (key := same_place_key(spot)) is not None}
+        if isinstance(qid, str) and qid:
+            by_id.setdefault(qid, spot)
+    place_keys = {key for spot in preserved if (key := same_place_key(spot)) is not None}
     inserted, skipped, rejected = 0, 0, 0
     for spot in candidates:
         if not valid(spot):
@@ -85,10 +85,11 @@ def reconcile(existing, candidates, max_new=None):
         record["reviewStatus"] = "auto_checked"
         record["publishedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         by_id[qid] = record
+        preserved.append(record)
         if place_key is not None:
             place_keys.add(place_key)
         inserted += 1
-    return list(by_id.values()), {"inserted": inserted, "skipped": skipped, "rejected": rejected}
+    return preserved, {"inserted": inserted, "skipped": skipped, "rejected": rejected}
 
 def read_spots(path):
     if not path.is_file():
