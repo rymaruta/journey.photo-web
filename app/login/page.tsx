@@ -187,7 +187,12 @@ function LoginForm() {
 
                 {/* ロゴ */}
                 <div className="mb-10 text-center">
-                    <div className="flex items-center justify-center gap-3 mb-3">\n                        {/* iOS版と同じアパーチャマークを添えたワードマーク */}\n                        {/* eslint-disable-next-line @next/next/no-img-element */}\n                        <img src="/logo-aperture.png" alt="" width={40} height={40} className="h-10 w-10 object-contain" />\n                        <p className="font-serif text-3xl font-bold tracking-tight text-white">Journey Photo</p>\n                    </div>
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                        {/* iOS版と同じアパーチャマークを添えたワードマーク */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo-aperture.png" alt="" width={40} height={40} className="h-10 w-10 object-contain" />
+                        <p className="font-serif text-3xl font-bold tracking-tight text-white">Journey Photo</p>
+                    </div>
                     <p className="text-white/65 text-sm mb-5">旅の一瞬を、誰かの次の旅へ。</p>
                     <h1 className="text-2xl font-bold text-white">
                         {step === "login" && "ログイン"}
