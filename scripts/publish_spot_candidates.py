@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""Stage and publish vetted Wikidata candidates without modifying existing spots.
+
+This operates on local JSON snapshots only. Production DB integration is separate.
+"""
+import argparse
+import datetime
+import json
+import os
+from pathlib import Path
+
+def valid(spot):
+    coords = spot.get("coordinates")
+    return (
+        isinstance(spot.get("wikidataId"), str)
+        and spot["wikidataId"].startswith("Q")
+        and spot["wikidataId"][1:].isdigit()
+        and isinstance(spot.get("name"), str)
+        and len(spot["name"].strip()) >= 2
+        and isinstance(coords, list)
+        and len(coords) == 2
+        and all(isinstance(n, (int, float)) and not isinstance(n, bool) for n in coords)
+        and -180 <= coords[0] <= 180 and -90 <= coords[1] <= 90
+        and spot.get("source") == "wikidata"
+    )
+
+def reconcile(existing, candidates, max_new=100):
+    """Immutable existing records; only new IDs are appended."""
+    if max_new < 0:
+        raise ValueError("max_new must be nonnegative")
+    by_id = {s["wikidataId"]: dict(s) for s in existing}
+    inserted, skipped, rejected = 0, 0, 0
+    for spot in candidates:
+        if not valid(spot):
+            rejected += 1
+            continue
+        qid = spot["wikidataId"]
+        if qid in by_id:
+            skipped += 1
+            continue
+        if inserted >= max_new:
+            skipped += 1
+            continue
+        record = dict(spot)
+        record["reviewStatus"] = "published"
+        record["publishedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
+        by_id[qid] = record
+        inserted += 1
+    return list(by_id.values()), {"inserted": inserted, "skipped": skipped, "rejected": rejected}
+
+def read_spots(path):
+    if not path.exists():
+        return []
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or not isinstance(data.get("spots"), list):
+        raise ValueError(f"invalid spot snapshot: {path}")
+    return data["spots"]
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--existing", type=Path, required=True)
+    parser.add_argument("--candidates", type=Path, nargs="+", required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--max-new", type=int, default=100)
+    parser.add_argument("--write", action="store_true", help="Explicitly write snapshot; otherwise dry run")
+    args = parser.parse_args()
+    existing = read_spots(args.existing)
+    candidates = []
+    for path in args.candidates:
+        candidates.extend(read_spots(path))
+    merged, summary = reconcile(existing, candidates, args.max_new)
+    print(json.dumps(summary, ensure_ascii=False))
+    if not args.write:
+        print("DRY RUN: no data written")
+        return
+    args.output.parent.mkdir(parents=True, exist_ok=True)
+    tmp = args.output.with_suffix(args.output.suffix + ".tmp")
+    tmp.write_text(json.dumps({"count": len(merged), "spots": merged}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    os.replace(tmp, args.output)
+
+if __name__ == "__main__":
+    main()
