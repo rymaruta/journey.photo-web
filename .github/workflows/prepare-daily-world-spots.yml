@@ -44,7 +44,7 @@ jobs:
           headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
           count = 0
           cutoff = datetime.now(timezone.utc) - timedelta(hours=26)
-          for page in range(1, 4):
+          for page in range(1, 11):
               req = urllib.request.Request(url + f"&page={page}", headers=headers)
               with urllib.request.urlopen(req, timeout=30) as response:
                   artifacts = json.load(response).get("artifacts", [])
