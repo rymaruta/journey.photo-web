@@ -1408,7 +1408,7 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                             本人には右下に「＋」（投稿する）——モックと同じ */}
                         <div className="relative w-fit rounded-full lg:flex-shrink-0">
                             <div className="rounded-full border-4 border-bg bg-bg" data-avatar-frame>
-                                <UserAvatar userId={userId} className="w-[88px] h-[88px]" iconClassName="w-11 h-11" />
+                                <UserAvatar userId={userId} className={hasCover || showCoverFrame ? "w-[88px] h-[88px]" : "w-[72px] h-[72px]"} iconClassName="w-11 h-11" />
                             </div>
                             {isOwner && (
                                 <button
@@ -1493,11 +1493,12 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                                 // 人のページのフォローは顔の行の右へ移した（束 1 U2）
                                 <Link
                                     href={ROUTES.PROFILE_EDIT}
+                                    aria-label={locale === "en" ? "Edit profile" : "プロフィールを編集"}
                                     prefetch={false}
                                     className="flex-shrink-0 inline-flex items-center justify-center rounded-full bg-transparent ring-1 ring-white/15 text-white hover:bg-white/10 font-semibold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white/70"
                                     style={{ fontSize: "13px", lineHeight: "18px", padding: "8px 14px", touchAction: "manipulation", minHeight: "44px" }}
                                 >
-                                    {locale === "en" ? "Edit profile" : "プロフィールを編集"}
+                                    {locale === "en" ? "Edit" : "編集"}
                                 </Link>
                             )}
                         </div>
