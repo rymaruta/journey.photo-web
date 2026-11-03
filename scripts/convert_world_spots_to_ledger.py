@@ -96,7 +96,7 @@ def main():
     print(json.dumps({"eligible": len(inserted), "rejected_or_duplicate": len(candidates) - len(inserted)}))
     if a.write:
         a.output.parent.mkdir(parents=True, exist_ok=True)
-        a.output.write_text(json.dumps(existing + inserted, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+        a.output.write_text(json.dumps(existing + inserted, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 if __name__ == "__main__":
     main()
