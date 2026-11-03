@@ -79,7 +79,7 @@ describe("下線の札（v2）", () => {
         // 訪れた場所のチップを外したので、本人が自分の撮影地を見る手立てを残す）
         const tablist = screen.getByRole("tablist");
         expect(tablist.contains(want)).toBe(false);
-        expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["投稿", "マップ", "年表", "旅"]);
+        expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["投稿", "旅の記録"]);
         // 押せる高さ 44
         expect(want.style.height).toBe("44px");
     });
@@ -93,13 +93,13 @@ describe("下線の札（v2）", () => {
 
     it("選んでいる札は真鍮の字と真鍮の下線、ほかは灰", () => {
         render(<UserProfileClient userId={OWNER} />);
-        const [posts, timeline] = screen.getAllByRole("tab");
+        const [posts, trips] = screen.getAllByRole("tab");
         // 色と下線は `tabStyles.ts` の定数（ホームのタブと同じ・下線は box-shadow の内側）
         expect(posts.className).toContain(TAB_ON);
         expect(posts.className).toContain("shadow-[inset_0_-2px_0_var(--color-accent)]");
-        expect(timeline.className).toContain(TAB_OFF);
-        expect(timeline.className).not.toContain("text-accent");
-        expect(timeline.className).not.toContain("shadow-[");
+        expect(trips.className).toContain(TAB_OFF);
+        expect(trips.className).not.toContain("text-accent");
+        expect(trips.className).not.toContain("shadow-[");
         expect(posts.style.height).toBe("44px");
     });
 });
