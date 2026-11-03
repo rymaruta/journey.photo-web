@@ -10,7 +10,7 @@ def spot(qid, name="Kyoto Temple"):
 class PublishTests(unittest.TestCase):
     def test_existing_is_untouched(self):
         old = {**spot("Q1", "User edited"), "image": {"url": "user.jpg"}, "reviewStatus": "published"}
-        merged, stats = reconcile([old], [spot("Q1", "External"), spot("Q2")])
+        merged, stats = reconcile([old], [spot("Q1", "External"), {**spot("Q2"), "coordinates": [135.8, 35.0]}])
         self.assertEqual(merged[0], old)
         self.assertEqual(stats["inserted"], 1)
         self.assertEqual(stats["skipped"], 1)
