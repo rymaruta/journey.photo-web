@@ -172,7 +172,8 @@ describe("写真ページ: 撮影者の導線（iOS比較）", () => {
         const links = Array.from(row.querySelectorAll("a"));
         expect(links).toHaveLength(2);
         expect(links[0].getAttribute("href")).toBe(links[1].getAttribute("href"));
-        expect(links[0].style.minHeight).toBe("44px");
+        // StoryAvatar のリンクは44pxの Tailwind h-11 を使用する（inline minHeightは不要）。
+        expect(links[0].className).toContain("h-11");
         expect(links[1].className).toContain("min-h-[44px]");
         expect(links[1].className).toContain("focus-visible:outline-2");
         expect(links[1].textContent).toContain("アリス");
