@@ -188,8 +188,16 @@ function LoginForm() {
     }
 
     return (
-        <main className="min-h-screen bg-transparent flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
-            <div className="w-full max-w-sm rounded-2xl border border-line bg-black/85 p-6 shadow-2xl backdrop-blur-md sm:p-8">
+        <main className="relative isolate min-h-screen overflow-hidden bg-black flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
+            {/* 公開済みの旅写真を背景に使い、フォームの可読性は暗いオーバーレイで保つ。 */}
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 grid grid-cols-2 grid-rows-2 opacity-60 sm:grid-cols-4 sm:grid-rows-1">
+                    <img src="https://d1s3dwwzgxf5ni.cloudfront.net/uploads/a129394d-f386-4795-9623-2d6e915d20c7.jpg" alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                    <img src="https://d1s3dwwzgxf5ni.cloudfront.net/uploads/edb09f51-c821-4ec4-8b84-6ea467d77131.jpg" alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                    <img src="https://d1s3dwwzgxf5ni.cloudfront.net/uploads/a5951859-7334-43c6-9e6a-e65d8c6fe70f.jpg" alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                    <img src="https://d1s3dwwzgxf5ni.cloudfront.net/uploads/50b9f638-c86c-4df7-95ad-0bc2050ec535.jpg" alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+            </div>
+            <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/65 via-black/55 to-black/90" />
+            <div className="w-full max-w-sm rounded-2xl border border-white/20 bg-black/85 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
 
                 {/* ロゴ */}
                 <div className="mb-10 text-center">
