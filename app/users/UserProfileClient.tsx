@@ -1501,8 +1501,8 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         **届く前に「0投稿」と言い切らない**——実測で応答を保持すると
                         5秒・20秒・45秒のいずれでも「0投稿」だった。ビルド後に登録した
                         人（定期ビルドは週1なので最大7日）のプロフィールが該当する */}
-                    <div className="flex items-start gap-2 py-4 border-b border-line">
-                        <div className={STAT_CELL_CLASS}>
+                    <div className="flex items-end gap-2 py-4 border-b border-line" data-testid="profile-stats">
+                        <div className={`${STAT_CELL_CLASS} min-w-0 min-h-11`}>
                             <span className={STAT_NUMBER_CLASS} style={{ fontSize: `${STAT_NUMBER_PX}px` }}>{photosResolved ? postCount : "…"}</span>
                             <span className={STAT_LABEL_CLASS} style={{ fontSize: `${STAT_LABEL_PX}px` }}>{locale === "en" ? "posts" : "投稿"}</span>
                             {photosResolved && hiddenCount > 0 && (
