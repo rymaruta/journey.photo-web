@@ -39,7 +39,7 @@ def convert(candidate, editorial):
         return None
     # The editorial record must contain an explicit check; a source URL alone
     # does not establish that a factual claim was verified.
-    if editorial.get("checked") is not True:
+    if editorial.get("checked") is not True or not isinstance(editorial.get("checkedAt"), str) or not editorial["checkedAt"].strip() or not isinstance(editorial.get("delegatedBy"), str) or not editorial["delegatedBy"].strip():
         return None
     today = datetime.date.today().isoformat()
     key = hashlib.sha256(qid.encode("ascii")).hexdigest()[:12]
@@ -54,7 +54,7 @@ def convert(candidate, editorial):
         "status": "published",
         "draftedAt": today,
         "draftedBy": "wikidata-import",
-        "aiCheck": {"checkedAt": today, "delegatedBy": "Journey Photo owner", "sources": [{"url": s["url"], "title": s["title"]} for s in sources]},
+        "aiCheck": {"checkedAt": editorial["checkedAt"], "delegatedBy": editorial["delegatedBy"], "sources": [{"url": s["url"], "title": s["title"]} for s in sources]},
         "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "updatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "wikidataId": qid,
