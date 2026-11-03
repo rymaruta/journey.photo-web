@@ -4,7 +4,7 @@ from scripts.convert_world_spots_to_ledger import convert
 class ConversionTests(unittest.TestCase):
     def setUp(self):
         self.candidate = {"wikidataId": "Q123", "name": "Historic Landmark", "coordinates": [139.75, 35.68]}
-        self.editorial = {"wikidataId": "Q123", "country": "日本", "summary": "歴史的な景観が残る撮影地として知られ、周辺の建築物や自然環境を含む風景を楽しめる場所です。撮影前に現地の案内を確認してください。", "highlights": ["歴史的な建築"], "sources": [{"url": "https://www.wikidata.org/wiki/Q123", "title": "Wikidata"}], "checked": True}
+        self.editorial = {"wikidataId": "Q123", "country": "日本", "summary": "歴史的な景観が残る撮影地として知られ、周辺の建築物や自然環境を含む風景を楽しめる場所です。撮影前に現地の案内を確認してください。", "highlights": ["歴史的な建築"], "sources": [{"url": "https://www.wikidata.org/wiki/Q123", "title": "Wikidata"}], "checked": True, "checkedAt": "2026-11-04", "delegatedBy": "Owner"}
 
     def test_checked_candidate_is_converted(self):
         spot = convert(self.candidate, self.editorial)
@@ -14,6 +14,10 @@ class ConversionTests(unittest.TestCase):
 
     def test_missing_check_is_not_published(self):
         self.editorial["checked"] = False
+        self.assertIsNone(convert(self.candidate, self.editorial))
+
+    def test_missing_delegation_is_not_published(self):
+        del self.editorial["delegatedBy"]
         self.assertIsNone(convert(self.candidate, self.editorial))
 
     def test_missing_editorial_is_not_published(self):
