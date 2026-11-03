@@ -1,0 +1,70 @@
+name: Collect world spot candidates
+
+on:
+  workflow_dispatch:
+    inputs:
+      slot:
+        description: Country slot (0-47)
+        required: true
+        default: '0'
+        type: string
+      offset:
+        description: Pagination offset
+        required: true
+        default: '0'
+        type: string
+  schedule:
+    - cron: '*/5 * * * *'
+  pull_request:
+    paths:
+      - 'scripts/import_world_spots.py'
+      - '.github/workflows/import-world-spots.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: world-spot-collector
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate script
+        run: python -m py_compile scripts/import_world_spots.py
+      - name: Fetch world spots
+        env:
+          EVENT: ${{ github.event_name }}
+          SLOT_INPUT: ${{ inputs.slot || '0' }}
+          OFFSET_INPUT: ${{ inputs.offset || '0' }}
+        run: |
+          python - <<'PY'
+          import os, subprocess
+          from datetime import datetime, timezone
+          event = os.environ["EVENT"]
+          if event == "schedule":
+              # Rotate among 48 countries across 48 five-minute slots.
+              tick = int(datetime.now(timezone.utc).timestamp()) // 300
+              slot = tick % 48
+              offset = ((tick // 48) % 20) * 250
+          elif event == "pull_request":
+              slot, offset = 0, 0
+          else:
+              slot, offset = int(os.environ["SLOT_INPUT"]), int(os.environ["OFFSET_INPUT"])
+          if not 0 <= slot < 48 or not 0 <= offset <= 100000:
+              raise SystemExit("invalid slot or offset")
+          subprocess.run(["python", "scripts/import_world_spots.py", "--slot", str(slot),
+                          "--offset", str(offset), "--limit", "250"], check=True)
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: world-spot-candidates-${{ github.run_id }}
+          path: data/imports/world/*.json
+          if-no-files-found: error
+          retention-days: 90
