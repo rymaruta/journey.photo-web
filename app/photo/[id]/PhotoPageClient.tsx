@@ -27,6 +27,10 @@ import { usePhotoSave } from "../../../lib/hooks/usePhotoSave";
 import { useSwipe } from "../../../lib/hooks/useSwipe";
 import { FollowAction } from "../../components/FollowButton";
 import UserAvatar from "../../components/UserAvatar";
+import VerifiedBadge from "../../components/VerifiedBadge";
+import EarlyMemberMark from "../../components/EarlyMemberMark";
+import { ProMark } from "../../components/ProfileNameMarks";
+import { sanitizeProfile } from "../../../lib/utils/profileShape";
 import MoreMenu from "../../components/MoreMenu";
 import type { Photo } from "@/lib/data/photos";
 import { getLocalizedParagraphs, getPreferredMapLink, makeGoogleSearch } from "@/lib/data/photos";
@@ -493,6 +497,36 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     const photo = useMemo(() => {
         return allPhotos.find(p => p.id === photoId);
     }, [photoId, allPhotos]);
+
+    // iOS authorRow と同様、公開プロフィールの確定した印だけを名前の横へ表示する。
+    // 写真の投稿データには公式・Proの権限情報がないため推測しない。
+    const [authorMarks, setAuthorMarks] = useState<{
+        userId: string; verified?: boolean; pro?: boolean; proMarkStyle?: "iris" | "plate"; earlyMark?: boolean;
+    } | null>(null);
+    useEffect(() => {
+        const ownerId = photo?.userId;
+        if (!ownerId) return;
+        const controller = new AbortController();
+        void (async () => {
+            try {
+                const { userPublicFetch } = await import("../../../lib/utils/api");
+                const response = await userPublicFetch(`/profile/${encodeURIComponent(ownerId)}`, { signal: controller.signal });
+                if (!response.ok || controller.signal.aborted) return;
+                const profile = sanitizeProfile<Record<string, unknown>>(await response.json(), "photo author");
+                if (!profile || controller.signal.aborted || profile.userId !== ownerId) return;
+                setAuthorMarks({
+                    userId: ownerId,
+                    verified: profile.verified === true,
+                    pro: profile.pro === true,
+                    proMarkStyle: profile.proMarkStyle === "plate" ? "plate" : "iris",
+                    earlyMark: profile.earlyMark === true,
+                });
+            } catch {
+                // 公開プロフィールが取得できなくても写真と作者への導線は維持する。
+            }
+        })();
+        return () => controller.abort();
+    }, [photo?.userId]);
 
     /**
      * 「この写真を見て撮影」の元の写真。**追加の読み取りはしない。**
@@ -1217,6 +1251,13 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                   title={photo.displayName || photo.uploaderUsername}
                                   style={{ fontSize: "15px", lineHeight: "20px", touchAction: "manipulation" }}>
                                 <span className="block min-w-0 truncate">{photo.displayName || photo.uploaderUsername}</span>
+                                {authorMarks?.userId === photo.userId && (
+                                    <span className="inline-flex shrink-0 items-center gap-1 ml-1">
+                                        <VerifiedBadge verified={authorMarks.verified} size={16} locale={locale} />
+                                        <ProMark pro={authorMarks.pro} style={authorMarks.proMarkStyle} size={16} locale={locale === "en" ? "en" : "ja"} />
+                                        <EarlyMemberMark shown={authorMarks.earlyMark} size={16} locale={locale} />
+                                    </span>
+                                )}
                             </Link>
                             {photo.uploaderUsername && photo.displayName && (
                                 <p className="m-0 mt-0.5 text-text-3 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>@{photo.uploaderUsername}</p>
