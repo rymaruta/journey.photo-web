@@ -118,6 +118,18 @@ describe("写真ページ: 撮影者の導線（iOS比較）", () => {
 });
 
 describe("写真ページ: iOS と同様に撮影日付・時刻を表示しない", () => {
+    it("複数写真では枚数のみ表示し、撮影日時は表示しない", async () => {
+        render(<PhotoPageClient photoId="p1" initialPhoto={{
+            ...BASE,
+            extraImages: [{ src: "https://cdn.example.com/uploads/alice/b.webp" }],
+            exif: { dateTimeOriginal: "2024-05-12T18:24:00" },
+        } as Photo} />);
+        await screen.findByText("朝の湖");
+        expect(screen.getByTestId("photo-headline").textContent).toBe("1/2枚");
+        expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
+        expect(screen.queryByText(/2024-05-12|18:24/)).toBeNull();
+    });
+
     it("単一写真では撮影日・EXIF時刻・枚数行を表示しない", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={{ ...BASE, exif: { dateTimeOriginal: "2024-05-12T18:24:00" } } as Photo} />);
         expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
