@@ -84,6 +84,13 @@ describe("下線の札（v2）", () => {
         expect(want.style.height).toBe("44px");
     });
 
+    it("他人のプロフィールはiOSと同じ投稿・マップの2タブ", async () => {
+        render(<UserProfileClient userId={OWNER} />);
+        await screen.findAllByRole("link", { name: /^a/ });
+        expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["投稿", "マップ"]);
+        expect(screen.queryByRole("tab", { name: "年表" })).toBeNull();
+    });
+
     it("他人・未ログインには出さない（本人の一覧しか取れない）", async () => {
         render(<UserProfileClient userId={OWNER} />);
         await screen.findAllByRole("link", { name: /^a/ });
