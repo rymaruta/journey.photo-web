@@ -27,6 +27,7 @@ import { usePhotoSave } from "../../../lib/hooks/usePhotoSave";
 import { useSwipe } from "../../../lib/hooks/useSwipe";
 import { FollowAction } from "../../components/FollowButton";
 import UserAvatar from "../../components/UserAvatar";
+import StoryAuthorAvatar from "../../components/stories/StoryAuthorAvatar";
 import VerifiedBadge from "../../components/VerifiedBadge";
 import EarlyMemberMark from "../../components/EarlyMemberMark";
 import { ProMark, NameBadge } from "../../components/ProfileNameMarks";
@@ -1250,12 +1251,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                 {/* 作者行（iOS の `authorRow`）: 顔 40（白8%の縁）・名前 15 semibold・@名 12 text-3 ／ 右にフォロー（C8） */}
                 {photo.userId && authorName && (
                     <div className="flex min-w-0 items-center gap-[10px] py-1" data-testid="photo-author">
-                        <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
-                              className="flex-shrink-0 rounded-full inline-flex items-center justify-center"
-                              aria-label={locale === "en" ? `${authorName}'s profile` : `${authorName} のプロフィール`}
-                              style={{ minWidth: "44px", minHeight: "44px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
-                            <UserAvatar userId={photo.userId} className="w-10 h-10 ring-1 ring-line" iconClassName="w-6 h-6" />
-                        </Link>
+                        <StoryAuthorAvatar userId={photo.userId} name={authorName} locale={locale === "en" ? "en" : "ja"} />
                         <div className="min-w-0 flex-1">
                             <div className="flex min-w-0 items-center gap-1">
                                 <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
