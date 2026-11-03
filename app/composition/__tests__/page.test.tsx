@@ -64,6 +64,21 @@ describe("撮影ガイド", () => {
     expect(xpan).toHaveAttribute("aria-pressed", "true");
   });
 
+  it("三角とL字のiOSバリエーションを切り替えられる", () => {
+    render(<CompositionGuidePage />);
+    const buttons = screen.getAllByRole("button");
+    const triangle = buttons.find((item) => item.querySelector("strong")?.textContent === "三角");
+    fireEvent.click(triangle!);
+    const down = screen.getByRole("button", { name: "下向き" });
+    fireEvent.click(down);
+    expect(down).toHaveAttribute("aria-pressed", "true");
+    const lShape = buttons.find((item) => item.querySelector("strong")?.textContent === "L字");
+    fireEvent.click(lShape!);
+    const topRight = screen.getByRole("button", { name: "右上" });
+    fireEvent.click(topRight);
+    expect(topRight).toHaveAttribute("aria-pressed", "true");
+  });
+
   it("ガイド線を表示・非表示に切り替えられる", () => {
     render(<CompositionGuidePage />);
     expect(screen.getByLabelText("構図ガイド線")).toBeInTheDocument();
