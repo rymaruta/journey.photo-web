@@ -84,18 +84,29 @@ def main():
     by_qid = {e.get("wikidataId") for e in existing if isinstance(e, dict)}
     by_slug = {e.get("slug") for e in existing if isinstance(e, dict)}
     by_id = {e.get("spotId") for e in existing if isinstance(e, dict)}
+    def place_key(item):
+        name = item.get("name")
+        coords = item.get("coords")
+        if not isinstance(name, str) or not isinstance(coords, dict):
+            return None
+        lat, lng = coords.get("lat"), coords.get("lng")
+        if not isinstance(lat, (int, float)) or not isinstance(lng, (int, float)):
+            return None
+        return (" ".join(name.casefold().split()), round(lat, 2), round(lng, 2))
+    by_place = {key for e in existing if (key := place_key(e)) is not None}
     editorial_map = {e["wikidataId"]: e for e in editorial if isinstance(e, dict) and isinstance(e.get("wikidataId"), str)}
     inserted = []
     for candidate in candidates:
         if not isinstance(candidate, dict):
             continue
         spot = convert(candidate, editorial_map.get(candidate.get("wikidataId")))
-        if spot is None or spot["wikidataId"] in by_qid or spot["slug"] in by_slug or spot["spotId"] in by_id:
+        if spot is None or spot["wikidataId"] in by_qid or spot["slug"] in by_slug or spot["spotId"] in by_id or place_key(spot) in by_place:
             continue
         inserted.append(spot)
         by_qid.add(spot["wikidataId"])
         by_slug.add(spot["slug"])
         by_id.add(spot["spotId"])
+        by_place.add(place_key(spot))
     print(json.dumps({"eligible": len(inserted), "rejected_or_duplicate": len(candidates) - len(inserted)}))
     if a.write:
         a.output.parent.mkdir(parents=True, exist_ok=True)
