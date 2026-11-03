@@ -1,0 +1,71 @@
+name: Prepare daily world spot publication
+
+on:
+  schedule:
+    # 03:00 JST = 18:00 UTC on the previous day.
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: daily-world-spot-publication
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Download recent collected candidates
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mkdir -p data/imports/daily
+          python - <<'PY'
+          import json, os, pathlib, subprocess, zipfile, io, urllib.request
+          repo = os.environ["GH_REPO"]
+          token = os.environ["GH_TOKEN"]
+          url = f"https://api.github.com/repos/{repo}/actions/artifacts?per_page=100"
+          headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+          count = 0
+          for page in range(1, 4):
+              req = urllib.request.Request(url + f"&page={page}", headers=headers)
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  artifacts = json.load(response).get("artifacts", [])
+              if not artifacts:
+                  break
+              for item in artifacts:
+                  if item.get("expired") or not item.get("name", "").startswith("world-spot-candidates-"):
+                      continue
+                  req = urllib.request.Request(item["archive_download_url"], headers=headers)
+                  with urllib.request.urlopen(req, timeout=60) as response:
+                      data = response.read()
+                  with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                      for name in archive.namelist():
+                          if name.endswith(".json") and not name.startswith("/") and ".." not in pathlib.PurePosixPath(name).parts:
+                              destination = pathlib.Path("data/imports/daily") / f"{item['id']}-{pathlib.Path(name).name}"
+                              destination.write_bytes(archive.read(name))
+                              count += 1
+              if count >= 300:
+                  break
+          print(f"Downloaded {count} candidate snapshots")
+          PY
+      - name: Verify candidates and preserve review requirements
+        run: |
+          python -m py_compile scripts/publish_spot_candidates.py scripts/convert_world_spots_to_ledger.py
+          python -m unittest discover -s scripts -p 'test_*spot*.py' -v
+      - name: Archive candidate snapshots for manual editorial verification
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-spot-review-${{ github.run_id }}
+          path: data/imports/daily/*.json
+          if-no-files-found: warn
+          retention-days: 90
