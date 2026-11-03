@@ -514,6 +514,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
             return;
         }
         const controller = new AbortController();
+        // 撮影者が切り替わった際、前の撮影者のマークを残さない。
+        setAuthorMarks(null);
         void (async () => {
             try {
                 const { userPublicFetch } = await import("../../../lib/utils/api");
