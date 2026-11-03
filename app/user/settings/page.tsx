@@ -503,6 +503,10 @@ export default function SettingsPage() {
                 <section className="mt-10 pt-6 border-t border-line">
                     <h2 className={sectionLabelClass}>{locale === "en" ? "Profile" : "プロフィール"}</h2>
                     <div className={cardClass}>
+                        <Link href="/user/albums" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Shared albums" : "共同アルバム"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
                         <Link href={ROUTES.BADGES} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
                             <span>{locale === "en" ? "Medals and name marks" : "メダルと名前の横"}</span>
                             <span aria-hidden="true" className="text-white/50">›</span>
