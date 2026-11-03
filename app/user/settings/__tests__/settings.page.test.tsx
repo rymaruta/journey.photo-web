@@ -82,6 +82,11 @@ describe("設定の骨格", () => {
         expect(screen.getByRole("link", { name: /行きたい場所/ })).toHaveAttribute("href", "/saved-spots");
     });
 
+    it("撮影ガイドの画面へ移動できる", async () => {
+        await open();
+        expect(screen.getByRole("link", { name: /撮影ガイド/ })).toHaveAttribute("href", "/composition");
+    });
+
     // 🔴 **実装の無い節を置かない**（owner の指示）。
     // モックには在るので、足し戻すときは**機能から**作ること
     it.each([
