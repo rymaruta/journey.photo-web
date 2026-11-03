@@ -182,12 +182,18 @@ function LoginForm() {
     }
 
     return (
-        <main className="min-h-screen bg-bg flex items-center justify-center px-4">
-            <div className="w-full max-w-sm">
+        <main className="min-h-screen bg-transparent flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
+            <div className="w-full max-w-sm rounded-2xl border border-line bg-black/85 p-6 shadow-2xl backdrop-blur-md sm:p-8">
 
                 {/* ロゴ */}
                 <div className="mb-10 text-center">
-                    <p className="text-white/50 text-xs tracking-widest uppercase mb-3">Journey Photo</p>
+                    <div className="flex items-center justify-center gap-3 mb-3">
+                        {/* iOS版と同じアパーチャマークを添えたワードマーク */}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src="/logo-aperture.png" alt="" width={40} height={40} className="h-10 w-10 object-contain" />
+                        <p className="font-serif text-3xl font-bold tracking-tight text-white">Journey Photo</p>
+                    </div>
+                    <p className="text-white/65 text-sm mb-5">旅の一瞬を、誰かの次の旅へ。</p>
                     <h1 className="text-2xl font-bold text-white">
                         {step === "login" && "ログイン"}
                         {step === "forgot-send" && "パスワードをリセット"}
@@ -268,7 +274,7 @@ function LoginForm() {
                         <button
                             type="submit"
                             disabled={submitting || !username || !password}
-                            className={`${BTN_FILL} w-full bg-accent-fill text-ink hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2`}
+                            className={`${BTN_FILL} w-full bg-white text-black hover:bg-white/90 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2`}
                         >
                             {submitting ? (
                                 <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
@@ -281,22 +287,21 @@ function LoginForm() {
                         <button
                             type="button"
                             onClick={() => { setStep("forgot-send"); setError(""); }}
-                            className="w-full text-center text-xs text-white/50 hover:text-white/75 transition-colors py-2"
+                            className="w-full text-right text-xs text-white/70 hover:text-white transition-colors py-3"
                         >
                             パスワードをお忘れですか？
                         </button>
 
-                        <p className="text-center text-xs text-white/50 pt-1">
-                            アカウントをお持ちでない方は{" "}
-                            {/* **`next` を渡す。** 渡さないと、招待リンクや
-                                共有リンクから来た未登録の人は、ここを押した
-                                時点で行き先を失う（登録を終えると自分の空
-                                プロフィールに着地する） */}
-                            <Link href={signupHref} prefetch={false} className="text-white/60 hover:text-white underline transition-colors">
-                                新規登録
-                            </Link>
-                        </p>
-                    </form>
+                        <p className="text-center text-xs text-white/50 pt-1">アカウントをお持ちでない方は</p>
+                        {/* 登録先へ next と via を維持する */}
+                        <Link
+                            href={signupHref}
+                            prefetch={false}
+                            aria-label="新規登録"
+                            className="flex min-h-12 w-full items-center justify-center rounded-full border border-white/45 text-sm font-medium text-white hover:bg-white/10 transition-colors"
+                        >
+                            アカウントを作る
+                        </Link>             </form>
                 )}
 
                 {/* パスワードリセット: メール送信 */}
