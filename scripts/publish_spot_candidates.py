@@ -27,15 +27,17 @@ def valid(spot):
         and spot.get("source") == "wikidata"
     )
 
-def reconcile(existing, candidates, max_new=100):
+def reconcile(existing, candidates, max_new=None):
     """Immutable existing records; only new IDs are appended."""
-    if max_new < 0:
+    if max_new is not None and max_new < 0:
         raise ValueError("max_new must be nonnegative")
     by_id = {}
     for spot in existing:
         qid = spot.get("wikidataId")
-        if not isinstance(qid, str) or not qid or qid in by_id:
-            raise ValueError("existing snapshot contains missing or duplicate Wikidata IDs")
+        if not isinstance(qid, str) or not qid:
+            raise ValueError("existing snapshot contains a record without Wikidata ID")
+        if qid in by_id:
+            continue
         by_id[qid] = dict(spot)
     inserted, skipped, rejected = 0, 0, 0
     for spot in candidates:
@@ -46,7 +48,7 @@ def reconcile(existing, candidates, max_new=100):
         if qid in by_id:
             skipped += 1
             continue
-        if inserted >= max_new:
+        if max_new is not None and inserted >= max_new:
             skipped += 1
             continue
         record = dict(spot)
@@ -83,7 +85,7 @@ def main():
     parser.add_argument("--existing", type=Path, required=True)
     parser.add_argument("--candidates", type=Path, nargs="+", required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--max-new", type=int, default=100)
+    parser.add_argument("--max-new", type=int, default=None, help="Optional safety limit; by default publish all valid new spots")
     parser.add_argument("--write", action="store_true", help="Explicitly write snapshot; otherwise dry run")
     args = parser.parse_args()
     existing = read_spots(args.existing)
