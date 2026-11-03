@@ -71,6 +71,18 @@ afterEach(() => {
     else delete (HTMLImageElement.prototype as unknown as Record<string, unknown>).naturalWidth;
 });
 
+describe("写真ページ: 撮影者の表示（iOS authorRow との整合）", () => {
+    it("表示名がなくてもユーザー名があれば撮影者へのリンクを残す", async () => {
+        render(<PhotoPageClient photoId="p1" initialPhoto={{
+            ...BASE, displayName: "", uploaderUsername: "alice_photo",
+        } as Photo} />);
+        await screen.findByText("朝の湖");
+        const author = screen.getByTestId("photo-author");
+        expect(author).toHaveTextContent("alice_photo");
+        expect(author.querySelector('a[href="/users?id=alice"]')).not.toBeNull();
+    });
+});
+
 // 2026-10-31 束 1 P1: iOS は写真の上に戻る・「…」の2つだけ（共有は「…」の中と操作の段へ）。共通の `GLASS_BTN`。
 // スマホではサイトの見出しを外し、写真を画面の上端から（`data-chromeless-phone`・globals.css）
 describe("写真ページ: 写真の上の戻る・「…」（A1・束 1 P1）", () => {
