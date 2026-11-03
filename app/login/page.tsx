@@ -17,6 +17,9 @@ import { BTN_FILL } from "../components/buttonStyles";
 
 type Step = "login" | "forgot-send" | "forgot-confirm" | "forgot-done";
 
+// 公開写真のみを背景に使用し、レンダーのたびに全件走査しない。
+const loginBackgroundPhotos = publishedPhotos.filter((photo) => photo.published && photo.src).slice(0, 4);
+
 function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -193,8 +196,8 @@ function LoginForm() {
         <main className="relative isolate min-h-screen overflow-hidden bg-black flex items-center justify-center px-4 pt-40 pb-16 sm:pt-52">
             {/* 公開済みの旅写真を背景に使い、フォームの可読性は暗いオーバーレイで保つ。 */}
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 grid grid-cols-2 grid-rows-2 opacity-60 sm:grid-cols-4 sm:grid-rows-1">
-                {publishedPhotos.filter((photo) => photo.published && photo.src).slice(0, 4).map((photo) => (
-                    <img key={photo.id} src={publicImageUrl(photo.src)} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                {loginBackgroundPhotos.map((photo, index) => (
+                    <img key={photo.id} src={publicImageUrl(photo.src)} alt="" loading={index === 0 ? "eager" : "lazy"} fetchPriority={index === 0 ? "high" : "low"} decoding="async" className="h-full w-full object-cover" />
                 ))}
             </div>
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-black/65 via-black/55 to-black/90" />
