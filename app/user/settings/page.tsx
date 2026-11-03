@@ -507,6 +507,14 @@ export default function SettingsPage() {
                             <span>{locale === "en" ? "Shared albums" : "共同アルバム"}</span>
                             <span aria-hidden="true" className="text-white/50">›</span>
                         </Link>
+                        <Link href="/user/drafts" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Photo drafts" : "写真の下書き"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
+                        <Link href="/saved-spots" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                            <span>{locale === "en" ? "Saved places" : "行きたい場所"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
                         <Link href="/user/archive" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
                             <span>{locale === "en" ? "Story archive" : "ストーリーのアーカイブ"}</span>
                             <span aria-hidden="true" className="text-white/50">›</span>
