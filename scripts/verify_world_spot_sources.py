@@ -12,7 +12,7 @@ import time
 import urllib.parse
 import urllib.request
 from pathlib import Path
-from scripts.import_world_spots import COUNTRIES
+from import_world_spots import COUNTRIES
 
 USER_AGENT = "JourneyPhoto/1.2 (https://github.com/rymaruta/journey.photo-web)"
 QID = re.compile(r"Q[1-9][0-9]*")
