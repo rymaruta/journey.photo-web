@@ -1203,20 +1203,20 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                 )}
 
                 {/* 作者行（iOS の `authorRow`）: 顔 40（白8%の縁）・名前 15 semibold・@名 12 text-3 ／ 右にフォロー（C8） */}
-                {photo.userId && photo.displayName && (
+                {photo.userId && (photo.displayName || photo.uploaderUsername) && (
                     <div className="flex min-w-0 items-center gap-[10px] py-1" data-testid="photo-author">
                         <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
                               className="flex-shrink-0 rounded-full inline-flex items-center justify-center"
-                              aria-label={locale === "en" ? `${photo.displayName}'s profile` : `${photo.displayName} のプロフィール`}
+                              aria-label={locale === "en" ? `${photo.displayName || photo.uploaderUsername}'s profile` : `${photo.displayName || photo.uploaderUsername} のプロフィール`}
                               style={{ minWidth: "44px", minHeight: "44px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
                             <UserAvatar userId={photo.userId} className="w-10 h-10 ring-1 ring-line" iconClassName="w-6 h-6" />
                         </Link>
                         <div className="min-w-0 flex-1">
                             <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
                                   className="flex min-h-[44px] max-w-full items-center text-white font-semibold hover:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
-                                  title={photo.displayName}
+                                  title={photo.displayName || photo.uploaderUsername}
                                   style={{ fontSize: "15px", lineHeight: "20px", touchAction: "manipulation" }}>
-                                <span className="block min-w-0 truncate">{photo.displayName}</span>
+                                <span className="block min-w-0 truncate">{photo.displayName || photo.uploaderUsername}</span>
                             </Link>
                             {photo.uploaderUsername && (
                                 <p className="m-0 mt-0.5 text-text-3 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>@{photo.uploaderUsername}</p>
