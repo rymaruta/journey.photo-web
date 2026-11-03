@@ -58,6 +58,16 @@ beforeEach(() => {
 
 const asOwner = () => mockGetCurrentSession.mockResolvedValue({ getIdToken: () => ({ payload: { sub: OWNER } }) });
 
+describe("iOS profile header parity", () => {
+    it("uses the compact avatar without cover and an accessible edit link", async () => {
+        asOwner();
+        const { container } = render(<UserProfileClient userId={OWNER} />);
+        const edit = await screen.findByRole("link", { name: "プロフィールを編集" });
+        expect(edit.textContent).toBe("編集");
+        expect(container.querySelector("[data-avatar-frame]")?.innerHTML).toContain("72px");
+    });
+});
+
 describe("下線の札（v2）", () => {
     it("本人には「行きたい場所」「保存」がリンクで並ぶ（タブにしない）", async () => {
         asOwner();
