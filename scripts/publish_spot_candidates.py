@@ -78,7 +78,8 @@ def reconcile(existing, candidates, max_new=None):
                 and image.get("authorHtml") is not None
             ):
                 record.pop("image", None)
-        record["reviewStatus"] = "published"
+        # Automated validation is not equivalent to human verification.
+        record["reviewStatus"] = "auto_checked"
         record["publishedAt"] = datetime.datetime.now(datetime.timezone.utc).isoformat()
         by_id[qid] = record
         if place_key is not None:
