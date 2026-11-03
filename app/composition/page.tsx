@@ -80,16 +80,16 @@ export default function CompositionGuidePage() {
                 {active === "thirds" && <><path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300" /></>}
                 {active === "hinomaru" && <><circle cx="150" cy="200" r="35" /><path d="M150 140V260M90 200H210" /></>}
                 {active === "diagonals" && <><path d="M0 0L300 400M300 0L0 400" /></>}
-                {active === "halves" && <path d="M150 0V400M0 200H300" />}
+                {active === "halves" && <path d="M150 0V400M0 266.667H300" />}
                 {active === "symmetry" && <path d="M150 0V400" />}
                 {active === "horizon" && <path d="M0 200H300" />}
                 {active === "grid4" && <path d="M75 0V400M150 0V400M225 0V400M0 100H300M0 200H300M0 300H300" />}
-                {active === "squareGrid" && <path d="M75 0V400M150 0V400M225 0V400M0 75H300M0 150H300M0 225H300M0 300H300M0 375H300" />}
+                {active === "squareGrid" && <path d="M50 0V400M100 0V400M150 0V400M200 0V400M250 0V400M0 50H300M0 100H300M0 150H300M0 200H300M0 250H300M0 300H300M0 350H300" />}
                 {active === "tianzige" && <path d="M150 0V400M0 200H300" />}
                 {active === "mizige" && <path d="M150 0V400M0 200H300M0 0L300 400M300 0L0 400" />}
-                {active === "phiGrid" && <path d="M114.6 0V400M185.4 0V400M0 152.8H300M0 247.2H300" />}
+                {active === "phiGrid" && <path d="M114.59 0V400M185.41 0V400M0 152.786H300M0 247.214H300" />}
                 {active === "thirdsDiagonals" && <path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300M0 0L300 400M300 0L0 400" />}
-                {active === "triangle" && <path d="M150 45L25 355L275 355Z" />}
+                {active === "triangle" && <path d="M150 72L252 320L48 320Z" />}
                 {active === "radial" && <path d="M150 200L0 0M150 200L150 0M150 200L300 0M150 200L0 200M150 200L300 200M150 200L0 400M150 200L150 400M150 200L300 400" />}
                 {active === "square" && <rect x="0" y="50" width="300" height="300" />}
                 {active === "ratio4x5" && <rect x="0" y="12.5" width="300" height="375" />}
@@ -102,16 +102,16 @@ export default function CompositionGuidePage() {
                 {active === "obliqueThirds" && <path d="M0 0L300 400M0 133L200 400M100 0L300 267" />}
                 {active === "dynamicSymmetry" && <path d="M0 0L300 400M300 0L0 400M0 0L300 225M300 0L0 225M0 400L300 175M300 400L0 175" />}
                 {active === "armature" && <path d="M0 0L300 400M300 0L0 400M0 0L300 225M300 0L0 225M0 400L300 175M300 400L0 175M150 0V400" />}
-                {active === "rootRectangle" && <rect x="0" y="94" width="300" height="212" />}
-                {active === "tunnel" && <><rect x="30" y="40" width="240" height="320" /><rect x="70" y="90" width="160" height="220" /><rect x="110" y="145" width="80" height="110" /></>}
-                {active === "frameWithin" && <><rect x="25" y="40" width="250" height="320" /><rect x="60" y="85" width="180" height="230" /></>}
-                {active === "negativeSpace" && <><rect x="25" y="25" width="250" height="350" strokeDasharray="7 7" /><circle cx="215" cy="290" r="25" /></>}
-                {active === "lShape" && <path d="M75 50V325H265" />}
-                {active === "zShape" && <path d="M40 75H260L40 325H260" />}
-                {active === "sCurve" && <path d="M230 25C-10 70 310 170 80 220S40 345 230 380" />}
-                {active === "cCurve" && <path d="M255 65C30 -20 0 410 255 335" />}
+                {active === "rootRectangle" && <rect x="0" y="93.934" width="300" height="212.132" />}
+                {active === "tunnel" && <><ellipse cx="150" cy="200" rx="114" ry="152" /><circle cx="150" cy="200" r="3" fill="#fff" /></>}
+                {active === "frameWithin" && <rect x="36" y="48" width="228" height="304" rx="15" />}
+                {active === "negativeSpace" && <><rect x="182" y="250" width="36" height="48" /><circle cx="200" cy="274" r="3" fill="#fff" /></>}
+                {active === "lShape" && <path d="M66 56V320H258" />}
+                {active === "zShape" && <path d="M48 88H252L48 312H252" />}
+                {active === "sCurve" && <path d="M105 24C285 120 15 280 195 376" />}
+                {active === "cCurve" && <path d="M216 56C24 40 24 360 216 344" />}
                 {active === "otherRatios" && <><rect x="0" y="87.5" width="300" height="225" /><rect x="0" y="125" width="300" height="150" strokeDasharray="7 7" /></>}
-                {active === "grid6x4" && <path d="M50 0V400M100 0V400M150 0V400M200 0V400M250 0V400M0 100H300M0 200H300M0 300H300" />}
+                {active === "grid6x4" && <path d="M75 0V400M150 0V400M225 0V400M0 66.667H300M0 133.333H300M0 200H300M0 266.667H300M0 333.333H300" />}
                 {active === "iphone" && <path d="M100 0V400M200 0V400M0 133.33H300M0 266.67H300" />}
                 {active === "level" && <path d="M40 200H260M20 185V215M280 185V215" />}
               </g>
