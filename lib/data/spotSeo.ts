@@ -8,6 +8,7 @@
 // 台帳（`SPOTS`）を読むので**サーバー側だけで呼ぶ**（`spotLink.ts` の冒頭と同じ理由）。
 
 import { SPOTS, type Spot } from "./spots";
+import { hasSpotRowThumb } from "./spotThumbs";
 import { sameAreaAs, type SpotAreaRef, type SpotArea } from "./spotLink";
 import { visibleSpots, isPublished } from "../utils/spotGuide";
 import { siteConfig, generateItemListStructuredData, publicImageUrl } from "../utils/seo";
@@ -136,7 +137,11 @@ export function spotLinkedPhoto(
 }
 
 /** `km` はこのスポットからの距離（両方に座標があるときだけ・画面の「約◯km」） */
-export type SameAreaSpot = { slug: string; name: string; region?: string; km?: number };
+export type SameAreaSpot = {
+    slug: string; name: string; region?: string; km?: number;
+    /** 一覧の丸い印に出す写真の小さい版が在る（`hasSpotRowThumb`・場所は `spotRowThumbPath(slug)`・2026-11-04）。無ければ鍵ごと無い */
+    thumb?: true;
+};
 
 /** 一覧の1行の形（同じ県の一覧と、手で選んだ近くのスポットで共用） */
 function toRow(s: Spot, here: Spot["coords"]): SameAreaSpot {
@@ -145,6 +150,7 @@ function toRow(s: Spot, here: Spot["coords"]): SameAreaSpot {
         name: s.name,
         region: [s.region?.prefecture, s.region?.city].filter(Boolean).join(" ") || undefined,
         ...(here && s.coords ? { km: kmForLabel(haversineKm(here, s.coords)) } : {}),
+        ...(hasSpotRowThumb(s) ? { thumb: true as const } : {}),
     };
 }
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import { ToastProvider } from "../../../lib/hooks/useToast";
 import type { SpotPin } from "../../../lib/data/spotLink";
 
@@ -38,6 +38,23 @@ describe("地図の一覧（撮影スポットの行）", () => {
         // 写真の無い行は真鍮の丸にカメラ、写真のある行は写真の丸
         expect(rows[0].querySelector("span.bg-accent svg")).toBeTruthy();
         expect(rows[1].querySelector("span.rounded-full img")).toBeTruthy();
+    });
+});
+
+describe("地図の一覧（撮影スポットの行の写真・2026-11-04）", () => {
+    it("thumb があれば同梱の小さい版を丸で出す（台帳の自前の代表写真 cover が無くても）", () => {
+        const { container } = render(<MapSpotList spots={[{ ...PIN, thumb: true }]} locale="ja" />);
+        const img = container.querySelector("span.rounded-full img")!;
+        expect(img.getAttribute("src")).toBe("/images/spots/thumb/takaya-jinja.jpg");
+        expect(img.getAttribute("loading")).toBe("lazy");
+        expect(img.getAttribute("alt")).toBe("");
+    });
+
+    it("読めなかったら真鍮の丸にカメラへ戻す", () => {
+        const { container } = render(<MapSpotList spots={[{ ...PIN, thumb: true }]} locale="ja" />);
+        fireEvent.error(container.querySelector("img")!);
+        expect(container.querySelector("img")).toBeNull();
+        expect(container.querySelector("span.bg-accent svg")).toBeTruthy();
     });
 });
 
