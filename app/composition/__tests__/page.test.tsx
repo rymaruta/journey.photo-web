@@ -85,4 +85,13 @@ describe("撮影ガイド", () => {
     fireEvent.click(screen.getByRole("checkbox", { name: "ガイド線を表示" }));
     expect(screen.queryByLabelText("構図ガイド線")).toBeNull();
   });
+
+  it("戻り先はホームで、何の頁かの説明と端末内だけの注記が上にある", () => {
+    render(<CompositionGuidePage />);
+    expect(screen.getByRole("link", { name: /ホームへ/ })).toHaveAttribute("href", "/");
+    expect(screen.queryByText(/設定に戻る/)).toBeNull();
+    expect(screen.getByText(/37種類の構図を並べています/)).toBeInTheDocument();
+    const notes = screen.getAllByText("写真は端末内だけで表示し、アップロードしません。");
+    expect(notes[0].closest("header")).not.toBeNull();
+  });
 });

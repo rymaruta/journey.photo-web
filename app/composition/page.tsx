@@ -66,11 +66,13 @@ export default function CompositionGuidePage() {
   return (
     <main className="min-h-screen bg-bg text-white px-4 pt-10 pb-20">
       <div className="mx-auto max-w-xl space-y-6">
-        <Link href={ROUTES.SETTINGS} prefetch={false} className="inline-flex min-h-11 items-center text-sm text-white/70">← {isJa ? "設定に戻る" : "Back to settings"}</Link>
+        <Link href={ROUTES.HOME} prefetch={false} className="inline-flex min-h-11 items-center text-sm text-white/70">← {isJa ? "ホームへ" : "Home"}</Link>
         <header className="space-y-2">
-          <p className="text-xs tracking-widest text-[#C9A66B]">{isJa ? "撮影ガイド" : "SHOOTING GUIDE"}</p>
+          <p className="eyebrow text-accent">{isJa ? "撮影ガイド" : "SHOOTING GUIDE"}</p>
           <h1 className="text-3xl font-semibold">{isJa ? "構図一覧" : "Composition guide"}</h1>
-          <p className="text-sm text-white/70">{isJa ? "構図を選び、自分の写真にガイド線を重ねて確認できます。" : "Choose a composition and preview guide lines over your own photo."}</p>
+          <p className="text-sm leading-relaxed text-white/70">{isJa ? "構図を選び、自分の写真にガイド線を重ねて確認できます。" : "Choose a composition and preview guide lines over your own photo."}</p>
+          <p className="text-sm leading-relaxed text-white/70">{isJa ? `三分割・日の丸・黄金螺旋・対角線など、${GUIDES.length}種類の構図を並べています。それぞれに向いている被写体と、構えるときのコツを添えました。` : `${GUIDES.length} compositions, each with the subjects it suits and a tip for framing.`}</p>
+          <p className="text-sm font-medium text-white">{isJa ? "写真は端末内だけで表示し、アップロードしません。" : "Your photo stays on this device and is not uploaded."}</p>
         </header>
         <div className="space-y-2" aria-label={isJa ? "構図を選ぶ" : "Choose a composition"}>
           {GUIDES.map((item) => <button key={item.id} type="button" onClick={() => { setActive(item.id); setVariant(0); }} aria-pressed={active === item.id} className={`flex w-full min-h-14 items-center justify-between border-b border-line px-2 text-left ${active === item.id ? "text-[#C9A66B]" : "text-white"}`}>
