@@ -507,7 +507,7 @@ export default function SettingsPage() {
                             <span>{locale === "en" ? "Shared albums" : "共同アルバム"}</span>
                             <span aria-hidden="true" className="text-white/50">›</span>
                         </Link>
-                        <Link href="/composition" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
+                        <Link href={ROUTES.COMPOSITION} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
                             <span>{locale === "en" ? "Shooting guide" : "撮影ガイド"}</span>
                             <span aria-hidden="true" className="text-white/50">›</span>
                         </Link>

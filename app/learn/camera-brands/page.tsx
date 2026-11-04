@@ -1,33 +1,174 @@
-import "../guide-details.css";
-import "../academy.css";
-import type { Metadata } from "next";
+// app/learn/camera-brands/page.tsx（サーバーコンポーネント）
+//
+// **カメラメーカーの特徴を比較**（2026-11-04 に作り直し）。中身は `lib/data/learn/cameraBrands.ts`。
+// 早見表 → 用途から選ぶ → メーカーごと（このサイトでそのメーカーで撮った写真へのリンク）→ 買う前の確認 → FAQ。
+// 機種の写真への道は、既存の機材の集約頁（`/camera/<機種>`・`collectEntries(…, "camera")`）を使う。
+
+import React from "react";
 import Link from "next/link";
-import { siteConfig } from "../../../lib/utils/seo";
-export const metadata: Metadata = {title:"カメラメーカーの特徴を比較｜初心者向けブランドガイド",description:"SONY、Canon、Nikon、FUJIFILM、Leica、Hasselblad、OM SYSTEM、Panasonic、RICOHの特徴を、撮影スタイルやレンズ選びの視点から解説。",alternates:{canonical:`${siteConfig.url}/learn/camera-brands`}};
-const brands=[
-{brand:"SONY",official:"https://www.sony.jp/ichigan/",character:"小型のフルサイズから動画向けまで選択肢が広い",detail:"αシリーズを中心に、瞳AFや動画機能などの進化が特徴。Eマウントは対応レンズの選択肢が豊富です。",forWhom:"写真も動画も楽しみたい人"},
-{brand:"Canon",official:"https://personal.canon.jp/product/camera",character:"操作のわかりやすさと幅広いEOS Rシリーズ",detail:"人物、スポーツ、旅行まで多彩な機種を展開。RFレンズの対応や価格は機種ごとに確認しましょう。",forWhom:"人物・家族写真から始めたい人"},
-{brand:"Nikon",official:"https://www.nikon-image.com/products/",character:"静止画と動画を両立するZシリーズ",detail:"Zマウントのレンズ群と堅実な操作系が魅力。風景から野鳥まで、機種によって得意分野が異なります。",forWhom:"風景や動体撮影をじっくり楽しみたい人"},
-{brand:"FUJIFILM",official:"https://fujifilm-x.com/ja-jp/",character:"色づくりと撮る楽しさ",detail:"フィルムシミュレーションで色の雰囲気を選べます。XシリーズのAPS-CとGFXシリーズのラージフォーマットは用途も価格帯も異なります。",forWhom:"JPEGの色やスナップ撮影を楽しみたい人"},
-{brand:"Leica",official:"https://leica-camera.com/ja-JP",character:"シンプルな操作と独特の撮影体験",detail:"M型のレンジファインダー、Qシリーズのレンズ一体型など、製品ごとに体験が大きく違います。高価格帯なので実機での操作確認が大切です。",forWhom:"街歩きや撮影そのものを味わいたい人"},
-{brand:"Hasselblad",official:"https://www.hasselblad.com/",character:"中判センサーを活かした高精細な表現",detail:"Xシステムはラージフォーマットの画質と独自の色表現が魅力。一方でレンズ価格、重量、AF性能、連写性能なども用途に合わせて比較しましょう。",forWhom:"風景や作品撮りを丁寧に楽しみたい人"},
-{brand:"OM SYSTEM",official:"https://explore.omsystem.com/jp/ja/",character:"携帯性とアウトドアでの機動力",detail:"マイクロフォーサーズ規格を採用。望遠を持ち歩きやすく、機種によって防塵防滴や手ぶれ補正を重視した設計があります。",forWhom:"登山・野鳥・旅行で荷物を軽くしたい人"},
-{brand:"Panasonic LUMIX",official:"https://panasonic.jp/dc/",character:"動画機能とハイブリッド撮影",detail:"フルサイズのLマウントとマイクロフォーサーズを展開。動画向け機能は機種差が大きいため、必要な記録形式や熱対策を確認しましょう。",forWhom:"動画制作も本格的に始めたい人"},
-{brand:"RICOH / PENTAX",official:"https://www.ricoh-imaging.co.jp/japan/",character:"日常スナップと一眼レフへのこだわり",detail:"RICOH GRはコンパクトなスナップ機として知られ、PENTAXは光学ファインダーを備える一眼レフを展開。製品の方向性は別々に比較しましょう。",forWhom:"身軽な街撮り、または一眼レフの操作感が好きな人"},
-];
+import { loadAllPhotos } from "@/lib/server/photos";
+import { ROUTES } from "@/lib/routes";
+import { collectEntries, collectionPath, type CollectionEntry } from "@/lib/utils/collections";
+import { learnArticle } from "@/lib/data/learn/articles";
+import {
+    BRANDS, BRANDS_FAQ, BRANDS_LEAD, BUYING_CHECKLIST, SMARTPHONE_NOTE, USE_CASES, brandOfCamera,
+} from "@/lib/data/learn/cameraBrands";
+import { exampleRule } from "@/lib/data/learn/cameraBasics";
+import { pickExamples } from "@/lib/learn/examples";
+import { articleStructuredData, learnMetadata } from "@/lib/learn/seo";
+import {
+    Breadcrumbs, ExampleGrid, ExternalLink, FaqList, JsonLd, LearnHeader, LearnTable, breadcrumbData, learnCrumbs,
+} from "../_parts/LearnParts";
 
-const buyingChecklist=[
- {title:"予算はレンズ込みで考える",body:"本体だけでなく、標準ズーム、予備バッテリー、記録メディア、持ち運び用バッグまで含めて予算を決めましょう。中古品は保証と状態を確認します。"},
- {title:"センサーサイズと持ち運びを比較",body:"フルサイズが常に正解ではありません。APS-Cやマイクロフォーサーズはシステム全体を小さくしやすい場合があり、中判は高精細な撮影を重視する選択肢です。"},
- {title:"レンズの選択肢を先に見る",body:"広角で風景、望遠で動物、明るい単焦点で人物など、撮影対象で必要なレンズが変わります。マウントごとの対応と総重量を確認しましょう。"},
- {title:"AF・手ぶれ補正・動画は機種ごと",body:"同じブランドでもエントリー機と上位機で性能差があります。特に動物認識、動画記録形式、防塵防滴、手ぶれ補正は型番単位で公式仕様を確認してください。"},
- {title:"店頭ではこの5点を試す",body:"①持ちやすさ ②ファインダーの見やすさ ③メニューの理解しやすさ ④レンズを付けた重量 ⑤実際のシャッター操作。スペック表だけではわからない相性があります。"},
-];
-const commonQuestions=[
- {q:"初心者に一番おすすめのメーカーは？",a:"万人にとっての一位はありません。撮りたい被写体、予算、重さ、使いたいレンズの4つで候補を絞り、実機を触って決めるのがおすすめです。"},
- {q:"フルサイズを買えば必ず写真が上達する？",a:"いいえ。構図、光、ピント、シャッタースピードの理解が大切です。小さなセンサーでも素晴らしい写真は撮れます。"},
- {q:"写真の色はメーカーだけで決まる？",a:"JPEGの色づくりには各社の個性がありますが、光、ホワイトバランス、設定、レンズ、RAW現像でも大きく変わります。"},
- {q:"一度メーカーを決めたら変えられない？",a:"変更はできますが、レンズのマウント互換性や買い替え費用が問題になります。長く使うならレンズのラインアップも重視しましょう。"},
-];
+const ARTICLE = learnArticle("camera-brands");
+const TITLE = "カメラメーカーの特徴を比較｜初めての1台の選び方";
 
-export default function CameraBrandsPage(){return <main className="academy-shell"><Link href="/learn" className="academy-back">← 教科書に戻る</Link><p className="academy-kicker">カメラ選び</p><h1 className="academy-article-title">カメラメーカーの特徴を比較</h1><p className="academy-lead">どのメーカーが「一番いい」かではなく、どんな写真を撮りたいかが大切。同じメーカーでも機種によって得意分野は変わります。ここではブランドの傾向を入口に、自分に合う一台の探し方を紹介します。</p><nav aria-label="メーカー一覧" className="academy-chips">{brands.map(b=><a key={b.brand} href={`#${b.brand.replace(/[^a-zA-Z]/g,"").toLowerCase()}`} >{b.brand}</a>)}</nav><article className="academy-brand-grid">{brands.map(b=><section id={b.brand.replace(/[^a-zA-Z]/g,"").toLowerCase()} key={b.brand} className="academy-brand"><h2 >{b.brand}</h2><h3 >{b.character}</h3><p >{b.detail}</p><p><strong>こんな人に：</strong>{b.forWhom}</p><a href={b.official} target="_blank" rel="noopener noreferrer" className="mt-5 inline-block text-accent underline underline-offset-4">公式サイトで製品情報を確認 ↗</a></section>)}</article><section className="mt-12"><h2 className="text-2xl font-bold">失敗しない選び方</h2><p className="mt-4 leading-9 text-zinc-200">まず撮りたいものを3つ挙げ、持ち運びやすさ、レンズを含む総予算、操作のしやすさを比較しましょう。メーカー名だけで決めず、使いたいレンズの重さ・価格・在庫も確認してください。購入前には店頭で実際に握り、メニューやファインダーを試すのがおすすめです。</p><p className="academy-note">このページは各メーカーの一般的な傾向を紹介しています。具体的な仕様、互換性、価格、発売状況は各メーカーの公式情報で確認してください。</p></section><section className="academy-section"><h2>購入前に確認したい5つのポイント</h2><div className="academy-deep-guides">{buyingChecklist.map((item,i)=><div key={item.title} className="academy-buying-item"><span className="academy-section-number">CHECK {String(i+1).padStart(2,"0")}</span><h3>{item.title}</h3><p>{item.body}</p></div>)}</div></section><section className="academy-section"><h2>カメラ選びのよくある質問</h2><div className="academy-faq">{commonQuestions.map(item=><details key={item.q}><summary>{item.q}</summary><p>{item.a}</p></details>)}</div></section><Link href="/learn/camera-basics" className="mt-10 inline-block text-amber-300 underline">カメラの基本を学ぶ →</Link></main>}
+export const metadata = learnMetadata(ARTICLE.href, TITLE, ARTICLE.description, "article");
+
+/** そのメーカーの機種のうち、このサイトに写真がある機種（多い順） */
+function camerasByBrand(entries: CollectionEntry[]): Map<string, CollectionEntry[]> {
+    const out = new Map<string, CollectionEntry[]>();
+    for (const e of entries) {
+        const b = brandOfCamera(e.label);
+        if (!b) continue;
+        out.set(b.id, [...(out.get(b.id) ?? []), e]);
+    }
+    return out;
+}
+
+export default async function CameraBrandsPage() {
+    const photos = await loadAllPhotos();
+    const crumbs = learnCrumbs({ name: ARTICLE.title, href: ARTICLE.href });
+    const byBrand = camerasByBrand(collectEntries(photos, "camera"));
+    const phonePhotos = pickExamples(photos, exampleRule("smartphone"));
+
+    return (
+        <>
+            <JsonLd data={breadcrumbData(crumbs)} />
+            <JsonLd data={articleStructuredData({
+                path: ARTICLE.href,
+                headline: ARTICLE.title,
+                description: ARTICLE.description,
+                published: ARTICLE.published!,
+                modified: ARTICLE.modified!,
+                images: [],
+            })} />
+            <main className="min-h-screen bg-bg text-white px-4 sm:px-6 md:px-8 pt-6 pb-24 mx-auto w-full max-w-4xl" data-testid="learn-brands">
+                <Breadcrumbs crumbs={crumbs} />
+                <LearnHeader eyebrow={ARTICLE.eyebrow} title={ARTICLE.title} lead={BRANDS_LEAD} />
+
+                <section aria-labelledby="brands-table">
+                    <h2 id="brands-table" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>早見表</h2>
+                    <LearnTable
+                        caption="主なマウントとセンサーの大きさ（機種ごとの仕様は公式サイトで確かめてください）"
+                        head={["メーカー", "主なマウント", "センサーの大きさ", "向く人"]}
+                        rows={BRANDS.map((b) => [b.name, b.mounts, b.sensors, b.forWhom])}
+                    />
+                </section>
+
+                <section aria-labelledby="brands-usecase" className="mt-12">
+                    <h2 id="brands-usecase" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>用途から選ぶ</h2>
+                    <LearnTable caption="撮りたいものから、見るべきところ" head={["撮りたいもの", "見るところ"]} rows={USE_CASES.map((u) => [u.need, u.look])} />
+                </section>
+
+                <nav aria-label="メーカーへ移動" className="mt-12 flex flex-wrap gap-2">
+                    {BRANDS.map((b) => (
+                        <a
+                            key={b.id}
+                            href={`#${b.id}`}
+                            className="inline-flex items-center min-h-[44px] px-4 rounded-full bg-chip ring-1 ring-line text-chip-text hover:text-white"
+                            style={{ fontSize: "13px", touchAction: "manipulation" }}
+                        >
+                            {b.name}
+                        </a>
+                    ))}
+                </nav>
+
+                <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {BRANDS.map((b) => {
+                        const cams = byBrand.get(b.id) ?? [];
+                        return (
+                            <section
+                                key={b.id}
+                                id={b.id}
+                                aria-labelledby={`${b.id}-name`}
+                                className="scroll-mt-24 rounded-2xl bg-surface ring-1 ring-line p-5 flex flex-col"
+                                data-testid="learn-brand"
+                            >
+                                <p aria-hidden="true" className="m-0 eyebrow text-accent">{b.series}</p>
+                                <h2 id={`${b.id}-name`} className="m-0 mt-1 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.3 }}>{b.name}</h2>
+                                <p className="m-0 mt-3 text-white font-medium" style={{ fontSize: "15px", lineHeight: "24px" }}>{b.character}</p>
+                                <p className="m-0 mt-2 text-chip-text" style={{ fontSize: "15px", lineHeight: "26px" }}>{b.detail}</p>
+                                <dl className="m-0 mt-4 grid gap-3" style={{ fontSize: "14px", lineHeight: "22px" }}>
+                                    <div>
+                                        <dt className="text-text-3" style={{ fontSize: "12px" }}>こんな人に</dt>
+                                        <dd className="m-0 text-white">{b.forWhom}</dd>
+                                    </div>
+                                    <div>
+                                        <dt className="text-text-3" style={{ fontSize: "12px" }}>気をつけたい点</dt>
+                                        <dd className="m-0 text-text-2">{b.caution}</dd>
+                                    </div>
+                                </dl>
+                                {cams.length > 0 && (
+                                    <div className="mt-4" data-testid="learn-brand-cameras">
+                                        <p className="m-0 text-text-3" style={{ fontSize: "12px" }}>このサイトで、このメーカーで撮った写真</p>
+                                        <ul className="m-0 p-0 list-none flex flex-wrap gap-x-4">
+                                            {cams.map((c) => (
+                                                <li key={c.slug}>
+                                                    <Link href={collectionPath("camera", c.slug)} prefetch={false} className="inline-flex items-center gap-1 min-h-[44px] text-white underline underline-offset-4 decoration-line-strong hover:decoration-white" style={{ fontSize: "14px" }}>
+                                                        {c.label}<span className="text-text-3 tabular-nums">（{c.count}枚）</span>
+                                                    </Link>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+                                <div className="mt-auto pt-3">
+                                    <ExternalLink href={b.official}>{b.name} の公式サイト</ExternalLink>
+                                </div>
+                            </section>
+                        );
+                    })}
+                </div>
+                <p className="m-0 mt-4 text-text-3" style={{ fontSize: "12px", lineHeight: "18px" }}>
+                    このページは各メーカーの一般的な傾向をまとめたものです。仕様・互換性・価格・発売状況は、各メーカーの公式情報で確かめてください。
+                </p>
+
+                <section aria-labelledby="brands-phone" className="mt-12 py-10 border-t border-line">
+                    <h2 id="brands-phone" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>スマートフォンから始める</h2>
+                    {SMARTPHONE_NOTE.map((p) => (
+                        <p key={p} className="m-0 mt-4 text-chip-text" style={{ fontSize: "16px", lineHeight: "30px" }}>{p}</p>
+                    ))}
+                    <ExampleGrid id="brands-phone-examples" heading={exampleRule("smartphone").heading} photos={phonePhotos} />
+                </section>
+
+                <section aria-labelledby="brands-buying" className="py-10 border-t border-line">
+                    <h2 id="brands-buying" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>買う前に確かめたい5つのこと</h2>
+                    <ol className="m-0 mt-4 p-0 list-none flex flex-col gap-5">
+                        {BUYING_CHECKLIST.map((item, i) => (
+                            <li key={item.title} className="flex gap-4">
+                                <span aria-hidden="true" className="flex-shrink-0 w-8 text-accent font-semibold tabular-nums" style={{ fontSize: "15px", lineHeight: "26px" }}>{String(i + 1).padStart(2, "0")}</span>
+                                <div>
+                                    <h3 className="m-0 text-white font-semibold" style={{ fontSize: "17px", lineHeight: "26px" }}>{item.title}</h3>
+                                    <p className="m-0 mt-1 text-chip-text" style={{ fontSize: "15px", lineHeight: "26px" }}>{item.body}</p>
+                                </div>
+                            </li>
+                        ))}
+                    </ol>
+                </section>
+
+                <section aria-labelledby="brands-faq" className="py-10 border-t border-line">
+                    <h2 id="brands-faq" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>カメラ選びのよくある質問</h2>
+                    <FaqList items={BRANDS_FAQ} />
+                </section>
+
+                <aside aria-labelledby="brands-next" className="mt-6 rounded-2xl bg-accent-soft ring-1 ring-line p-5">
+                    <h2 id="brands-next" className="m-0 text-white font-semibold" style={{ fontSize: "15px" }}>次に読む</h2>
+                    <Link href={ROUTES.LEARN_CAMERA_BASICS} prefetch={false} className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
+                        カメラの使い方 完全入門（F値・シャッター・ISO）
+                    </Link>
+                </aside>
+            </main>
+        </>
+    );
+}
