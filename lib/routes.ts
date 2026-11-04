@@ -63,6 +63,8 @@ export const ROUTES = {
      * `/favorites` と同じ扱い（`noindexMetadata`）。
      */
     SAVED_SPOTS: "/saved-spots",
+    /** 行きたい場所を地図で見る（iOS の `SavedSpotsMapView`）。`SAVED_SPOTS` の下・本人だけ・noindex */
+    SAVED_SPOTS_MAP: "/saved-spots/map",
     /**
      * 旅行プラン。**行きたい場所を「いつ・どの順で回るか」に並べる面**で、
      * `SAVED_SPOTS`（保存しただけの一覧）とは別。

@@ -2,15 +2,18 @@
 
 import React from "react";
 import Link from "next/link";
-import { BookmarkIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../auth/context";
 import { usePhotos } from "../../lib/hooks/usePhotos";
 import { useSavedSpots } from "../../lib/hooks/useSavedSpots";
 import { useLocale } from "../i18n/context";
+import { MapIcon } from "@heroicons/react/24/outline";
+import ListPageHeader from "../components/ListPageHeader";
+import { EmptyState, ErrorState, LoadingState } from "../components/StateViews";
 import { ROUTES, loginWithNext } from "../../lib/routes";
 import { collectEntries, collectionPath } from "../../lib/utils/collections";
 import type { SpotLink } from "../../lib/data/spotLink";
 import { parseSavedKey, dedupeSavedKeys } from "../../lib/utils/savedSpotKey";
+import { loadSpotSearchIndex } from "../../lib/hooks/useSpotSearchIndex";
 
 /**
  * 行きたい場所（保存した撮影スポット）の一覧。
@@ -51,12 +54,30 @@ import { parseSavedKey, dedupeSavedKeys } from "../../lib/utils/savedSpotKey";
  * **その全文がこのページのチャンクに載る**（台帳に1件入れてビルドして実測）。
  * **受け取るのは解いたあとの `SpotLink` だけ**——解くのは `page.tsx`。
  */
-export default function SavedSpotsClient({ spots }: { spots: Record<string, SpotLink> }) {
+type SpotPreview = Pick<SpotLink, "name" | "region"> & { stage?: SpotLink["stage"] };
+export default function SavedSpotsClient({ spots, embedded = false }: { spots: Record<string, SpotPreview>; embedded?: boolean }) {
     const { locale } = useLocale();
     const en = locale === "en";
     const { isAuthenticated, loading: authLoading } = useAuth();
     const { photos, loaded } = usePhotos();
     const { slugs, pending, failed, retry, toggle, busy } = useSavedSpots(isAuthenticated, authLoading);
+    // プロフィールは公開の頁。台帳の全文をクライアントに入れたり、全員のプロフィールの HTML に載せたりしない。
+    // 名前だけの索引を、本人が「行きたい場所」の札を開いたときにだけ取りに行く。
+    const [spotPreviews, setSpotPreviews] = React.useState<Record<string, SpotPreview> | null>(null);
+    React.useEffect(() => {
+        if (!embedded || spotPreviews || !slugs.some((key) => parseSavedKey(key).kind === "spot")) return;
+        let active = true;
+        void loadSpotSearchIndex().then((rows) => {
+            if (!active || !rows) return;
+            const preview: Record<string, SpotPreview> = {};
+            for (const row of rows) preview[row.s] = { name: row.n, region: row.g ?? "" };
+            // 名前だけの索引には公開の状態が無い。「公式」の印をこちらで作らない（`stage` を入れない）。
+            setSpotPreviews(preview);
+        });
+        return () => { active = false; };
+    }, [embedded, spotPreviews, slugs]);
+    const availableSpots = embedded ? (spotPreviews ?? {}) : spots;
+
 
     /**
      * 保存したスラッグ → 見出しと枚数。
@@ -75,7 +96,7 @@ export default function SavedSpotsClient({ spots }: { spots: Record<string, Spot
             if (parsed.kind === "spot") {
                 // 台帳に無い＝公開条件を満たさない／下書きに戻った
                 // ＝そのページは作られていない（＝リンク先が無い）
-                const sp = spots[parsed.slug];
+                const sp = availableSpots[parsed.slug];
                 return {
                     key,
                     kind: "spot" as const,
@@ -100,22 +121,14 @@ export default function SavedSpotsClient({ spots }: { spots: Record<string, Spot
                 stage: null,
             };
         });
-    }, [photos, slugs, en, loaded, spots]);
+    }, [photos, slugs, en, loaded, availableSpots]);
 
     if (!authLoading && !isAuthenticated) {
         return (
-            <Shell locale={locale}>
-                <Empty
-                    text={en ? "Sign in to keep spots you want to visit." : "行きたい場所を残すにはログインしてください。"}
-                    action={
-                        <Link
-                            href={loginWithNext(ROUTES.SAVED_SPOTS)}
-                            prefetch={false}
-                            className="text-link hover:text-white underline underline-offset-4"
-                        >
-                            {en ? "Sign in" : "ログイン"}
-                        </Link>
-                    }
+            <Shell locale={locale} embedded={embedded}>
+                <EmptyState
+                    message={en ? "Sign in to keep spots you want to visit." : "行きたい場所を残すにはログインしてください。"}
+                    action={{ label: en ? "Sign in" : "ログイン", href: loginWithNext(ROUTES.SAVED_SPOTS) }}
                 />
             </Shell>
         );
@@ -127,39 +140,29 @@ export default function SavedSpotsClient({ spots }: { spots: Record<string, Spot
         // docstring が「混ぜない」と書いている当の形）。
         // **数えるのは描く一覧そのもの**（`entries`）——生の `slugs` で
         // 数えると、畳んだぶん・壊れた値のぶんだけ行数と食い違う
-        <Shell locale={locale} count={pending || failed ? null : entries.length}>
-            {/* 取りに行って失敗した回は、黙って短い一覧を出さない
-                （`/favorites` が同じ場面で同じ断りを出している） */}
-            {failed && (
-                <p role="alert" className="mb-4 text-sm text-danger">
-                    {en
-                        ? "Couldn't load your saved spots. "
-                        : "保存した場所を読み込めませんでした。"}
-                    <button onClick={retry} className="underline text-white/80 hover:text-white">
-                        {en ? "Retry" : "再試行"}
-                    </button>
-                </p>
-            )}
-
+        <Shell locale={locale} count={pending || failed ? null : entries.length} embedded={embedded}>
             {pending ? (
-                <div className="rounded-2xl bg-surface ring-1 ring-line py-16 flex items-center justify-center" aria-busy>
-                    <p className="text-white/60 text-sm">{en ? "Loading…" : "読み込み中…"}</p>
-                </div>
+                // 読み込み中は行と同じ形の灰の骨格（iOS `JPLoadingState(kind: .rows)`・0.3 秒より早ければ出さない）
+                <LoadingState kind="rows" locale={locale === "en" ? "en" : "ja"} testId="saved-spots-loading" />
             ) : failed ? (
-                // **失敗した回に「まだありません」と言わない。** 上の
-                // `role="alert"` が事情と再試行を出しているので、ここは黙る
-                // （0件の案内を重ねると「無い」と読める）
-                null
+                // **失敗した回に「まだありません」と言わない。** 何が起きたか → もう一度（`/favorites` と同じ形）。
+                // 件数も出さない（`Shell` の `count` が null）
+                <div role="alert">
+                    <ErrorState
+                        message={en ? "Couldn't load your saved spots." : "保存した場所を読み込めませんでした。"}
+                        onRetry={retry}
+                        retryLabel={en ? "Retry" : "再試行"}
+                        locale={locale === "en" ? "en" : "ja"}
+                    />
+                </div>
             ) : entries.length === 0 ? (
-                <Empty
-                    text={en ? "No saved spots yet." : "行きたい場所はまだありません。"}
-                    action={
-                        <span className="text-white/60 text-xs">
-                            {en
-                                ? "Open a spot page and tap “Save to want-to-go”."
-                                : "撮影地のページで「行きたい」を押すと、ここに集まります。"}
-                        </span>
-                    }
+                // iOS: 何が無いか（見出し）→ どうすれば埋まるか → 一手「撮影スポットを探す」（地図のタブ＝Web は /map）
+                <EmptyState
+                    title={en ? "No places yet" : "行きたい場所はまだありません"}
+                    message={en
+                        ? "Tap “Want to go” on a place to add it here."
+                        : "撮影スポットの画面で「行きたい」を押すと、ここに並びます"}
+                    action={{ label: en ? "Find photo spots" : "撮影スポットを探す", href: ROUTES.MAP }}
                 />
             ) : (
                 <ul className="flex flex-col gap-2">
@@ -253,34 +256,46 @@ function decodeSlug(slug: string): string {
     }
 }
 
-function Shell({ locale, count, children }: { locale: "ja" | "en"; count?: number | null; children: React.ReactNode }) {
+/**
+ * 見出し。**マイページの札の中（`embedded`）では題を出さない**——札の名前「行きたい場所」がそのまま題で、
+ * 同じ語の見出しが中にもう一度出ていた（2026-11-04 判断・棚卸し 11）。iOS の札の中は
+ * 眉「すべての行きたい場所 · N」＋右に「地図で見る」だけ。単独の頁（`/saved-spots`）は
+ * 他の一覧の頁と同じ型（眉 → 明朝の題 → 一行）に、同じ行を足す。
+ *
+ * 「地図で見る」は黒地の上の手がかりなので真鍮（owner の好み）。件数は聞けたときだけ（`count`）
+ */
+function Shell({ locale, count, children, embedded = false }: { locale: "ja" | "en"; count?: number | null; children: React.ReactNode; embedded?: boolean }) {
     const en = locale === "en";
-    return (
-        <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg max-w-5xl mx-auto w-full pb-28">
-            <div className="mb-4 sm:mb-6">
-                <h1 className="text-2xl sm:text-3xl font-bold">{en ? "Want to go" : "行きたい場所"}</h1>
-                <p className="text-sm text-white/60 mt-1">
-                    {/* **「まだ」と「0件」を混ぜない**（`/favorites` と同じ判断） */}
-                    {count === null || count === undefined
-                        ? (en ? "Spots you saved." : "保存した撮影スポット。")
-                        : en
-                            ? `${count} spot${count !== 1 ? "s" : ""}`
-                            : `保存した場所 ${count} 件`}
-                </p>
-            </div>
-            {children}
-        </main>
-    );
-}
-
-function Empty({ text, action }: { text: string; action: React.ReactNode }) {
-    return (
-        <div className="rounded-2xl bg-surface ring-1 ring-line py-16 flex flex-col items-center justify-center gap-3 text-center">
-            <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center">
-                <BookmarkIcon className="w-8 h-8 text-white/60" />
-            </div>
-            <p className="text-white/70 text-sm">{text}</p>
-            {action}
+    const Root = embedded ? "section" : "main";
+    const known = typeof count === "number";
+    const mapRow = known && count > 0 && (
+        <div className="flex items-center gap-2 mb-2" data-testid="saved-spots-maprow">
+            <p className="m-0 eyebrow text-accent eyebrow-line flex-1 min-w-0">
+                {en ? `All places · ${count}` : `すべての行きたい場所 · ${count}`}
+            </p>
+            <Link
+                href={ROUTES.SAVED_SPOTS_MAP}
+                prefetch={false}
+                aria-label={en ? "View saved places on a map" : "行きたい場所を地図で見る"}
+                className="shrink-0 inline-flex items-center justify-center gap-1.5 text-accent hover:text-white font-semibold"
+                style={{ minWidth: 44, minHeight: 44, fontSize: "13px", touchAction: "manipulation" }}
+            >
+                <MapIcon className="w-4 h-4" aria-hidden="true" />
+                {en ? "View on map" : "地図で見る"}
+            </Link>
         </div>
+    );
+    return (
+        <Root className={embedded ? "w-full text-white" : "p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg max-w-5xl mx-auto w-full pb-28"}>
+            {!embedded && (
+                <ListPageHeader
+                    eyebrow="WANT TO GO"
+                    title={en ? "Want to go" : "行きたい場所"}
+                    description={en ? "Spots you saved." : "保存した撮影スポット。"}
+                />
+            )}
+            {mapRow}
+            {children}
+        </Root>
     );
 }
