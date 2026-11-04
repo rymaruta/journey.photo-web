@@ -11,6 +11,15 @@ vi.mock("../../../lib/utils/api", () => ({
     userFetch: (...a: unknown[]) => mockUserFetch(...a),
 }));
 
+// 行ごとの札は `FollowAction`（人のページ・お知らせと同じ部品）。ここでは渡した値だけ見る
+const mockAuth = vi.hoisted(() => ({ userId: "me-1" as string | null, isAuthenticated: true }));
+vi.mock("../../auth/context", () => ({ useAuth: () => mockAuth }));
+vi.mock("../FollowButton", () => ({
+    default: () => null,
+    FollowAction: (p: { targetUserId: string; isOwner: boolean; variant?: string }) =>
+        p.isOwner ? null : <button type="button" data-testid={`follow-${p.targetUserId}`} data-variant={p.variant}>フォロー札</button>,
+}));
+
 import FollowingSheet from "../FollowingSheet";
 
 const UID = "11111111-1111-4111-8111-111111111111";
@@ -37,21 +46,22 @@ describe("フォロー中の一覧", () => {
     it("読み込み中は「まだ誰もフォローしていません」と言わない", async () => {
         mockUserFetch.mockImplementation(() => new Promise(() => { /* 返らない */ }));
         view();
-        expect(await screen.findByText("読み込んでいます…")).toBeInTheDocument();
-        expect(screen.queryByText("まだ誰もフォローしていません")).toBeNull();
+        // 灰の骨格（読み上げは「読み込み中」1つ）
+        expect(await screen.findByRole("status")).toHaveTextContent("読み込み中");
+        expect(screen.queryByText("まだいません")).toBeNull();
     });
 
     it("取得に失敗したら、そう言う（0人と混ぜない）", async () => {
         mockUserFetch.mockResolvedValue({ ok: false, status: 500, json: async () => ({}) });
         view();
         expect(await screen.findByText("一覧を読み込めませんでした")).toBeInTheDocument();
-        expect(screen.queryByText("まだ誰もフォローしていません")).toBeNull();
+        expect(screen.queryByText("まだいません")).toBeNull();
     });
 
     it("本当に0人なら、そう出す", async () => {
         listOk([]);
         view();
-        expect(await screen.findByText("まだ誰もフォローしていません")).toBeInTheDocument();
+        expect(await screen.findByText("まだいません")).toBeInTheDocument();
     });
 
     // サーバーは50人までしか返さない（1回で2000回の GetItem は撃てない）。
@@ -59,7 +69,7 @@ describe("フォロー中の一覧", () => {
     it("全部出せていないときは、その旨を出す", async () => {
         listOk([{ id: "u2", name: "旅人B" }], 60);
         view();
-        expect(await screen.findByText(/60 人のうち、はじめの 1 人/)).toBeInTheDocument();
+        expect(await screen.findByText("全 60 人のうち 1 人を表示しています")).toBeInTheDocument();
     });
 
     // **2つを同時に出さない。** 一覧が空のときは「一覧はまだ用意
@@ -69,14 +79,14 @@ describe("フォロー中の一覧", () => {
         mockUserFetch.mockResolvedValue({ ok: true, json: async () => ({ users: [], total: 5 }) });
         view();
         await screen.findByText(/一覧はまだ用意できていません/);
-        expect(screen.queryByText(/はじめの/), "同じことを2通りに言っている").toBeNull();
+        expect(screen.queryByText(/人を表示しています/), "同じことを2通りに言っている").toBeNull();
     });
 
     it("全部出せているときは、その一文を出さない", async () => {
         listOk([{ id: "u2", name: "旅人B" }]);
         view();
         await screen.findByText("旅人B");
-        expect(screen.queryByText(/はじめの/)).toBeNull();
+        expect(screen.queryByText(/人を表示しています/)).toBeNull();
     });
 
     // 1件壊れていても画面ごと落とさない
@@ -102,7 +112,7 @@ describe("フォロー中の一覧", () => {
     it("フォーカスが外れていても Escape で閉じる", async () => {
         listOk([]);
         view();
-        await screen.findByText("まだ誰もフォローしていません");
+        await screen.findByText("まだいません");
         (document.activeElement as HTMLElement | null)?.blur();
         expect(document.activeElement).toBe(document.body);
         await userEvent.keyboard("{Escape}");
@@ -124,8 +134,8 @@ describe("フォロー中の一覧", () => {
         mockUserFetch.mockResolvedValue({ ok: true, json: async () => ({ users: { broken: true }, total: 5 }) });
         view();
         expect(await screen.findByText("一覧を読み込めませんでした")).toBeInTheDocument();
-        expect(screen.queryByText("まだ誰もフォローしていません")).toBeNull();
-        expect(screen.queryByText(/はじめの/), "0人と件数を同時に出している").toBeNull();
+        expect(screen.queryByText("まだいません")).toBeNull();
+        expect(screen.queryByText(/人を表示しています/), "0人と件数を同時に出している").toBeNull();
     });
 });
 
@@ -187,7 +197,7 @@ describe("フォロワーの一覧（同じ部品）", () => {
     it("0人のときの文言もフォロワー向けにする", async () => {
         listOk([]);
         view("followers");
-        expect(await screen.findByText("まだフォロワーはいません")).toBeInTheDocument();
+        expect(await screen.findByText("まだいません")).toBeInTheDocument();
     });
 
     // **「0人」と「まだ揃っていない」を分ける。** 埋め戻しを流すまで
@@ -198,6 +208,82 @@ describe("フォロワーの一覧（同じ部品）", () => {
         mockUserFetch.mockResolvedValue({ ok: true, json: async () => ({ users: [], total: 5 }) });
         view("followers");
         expect(await screen.findByText(/一覧はまだ用意できていません/)).toBeInTheDocument();
-        expect(screen.queryByText("まだフォロワーはいません"), "数と食い違うことを言っている").toBeNull();
+        expect(screen.queryByText("まだいません"), "数と食い違うことを言っている").toBeNull();
+    });
+});
+
+
+// 2026-11-04（札 #478・iOS `FollowListView`）: 切り替える札と、行ごとのフォローの札
+describe("フォロワー／フォロー中の札と、行ごとの札", () => {
+    /** 口ごとに別の答えを返す */
+    const byKind = (followers: unknown[], following: unknown[], totals: { followers?: number; following?: number } = {}) =>
+        mockUserFetch.mockImplementation(async (path: string) => {
+            const isFollowers = String(path).endsWith("/followers");
+            const users = isFollowers ? followers : following;
+            return { ok: true, json: async () => ({ users, total: (isFollowers ? totals.followers : totals.following) ?? users.length }) };
+        });
+
+    it("札は「フォロワー → フォロー中」の順で、数が付く。開いた側が選ばれている", async () => {
+        byKind([{ id: "a", name: "A" }, { id: "b", name: "B" }], [{ id: "c", name: "C" }]);
+        view("following");
+        const tabs = await screen.findAllByRole("tab");
+        await waitFor(() => expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual(["フォロワー2", "フォロー中1"]));
+        expect(tabs[1]).toHaveAttribute("aria-selected", "true");
+        expect(await screen.findByText("C")).toBeInTheDocument();
+    });
+
+    it("両方を一度に読む（開いた側が先）", async () => {
+        byKind([], []);
+        view("followers");
+        await screen.findAllByRole("tab");
+        expect(mockUserFetch.mock.calls.map((c) => c[0])).toEqual([`/users/${UID}/followers`, `/users/${UID}/following`]);
+    });
+
+    it("札を押すと、もう一方の一覧に切り替わる（読み直さない）", async () => {
+        byKind([{ id: "a", name: "A" }], [{ id: "c", name: "C" }]);
+        view("following");
+        await screen.findByText("C");
+        const calls = mockUserFetch.mock.calls.length;
+        await userEvent.click(screen.getByRole("tab", { name: /フォロワー/ }));
+        expect(await screen.findByText("A")).toBeInTheDocument();
+        expect(screen.queryByText("C")).toBeNull();
+        expect(screen.getByRole("dialog", { name: "フォロワー" })).toBeInTheDocument();
+        expect(mockUserFetch.mock.calls.length).toBe(calls);
+    });
+
+    it("矢印キーで札を移れる", async () => {
+        byKind([{ id: "a", name: "A" }], [{ id: "c", name: "C" }]);
+        view("following");
+        await screen.findByText("C");
+        screen.getByRole("tab", { name: /フォロー中/ }).focus();
+        await userEvent.keyboard("{ArrowLeft}");
+        expect(await screen.findByText("A")).toBeInTheDocument();
+    });
+
+    it("行ごとにフォローの札を出す（variant=list）。自分の行と退会した人には出さない", async () => {
+        byKind([], [{ id: "me-1", name: "わたし" }, { id: "u2", name: "旅人B" }, { id: "gone", deleted: true }]);
+        view("following");
+        await screen.findByText("旅人B");
+        expect(screen.getByTestId("follow-u2")).toHaveAttribute("data-variant", "list");
+        expect(screen.queryByTestId("follow-me-1")).toBeNull();
+        expect(screen.queryByTestId("follow-gone")).toBeNull();
+    });
+
+    it("@ユーザー名があれば名前の下に出す", async () => {
+        byKind([], [{ id: "u2", name: "旅人B", username: "tabibito_b" }]);
+        view("following");
+        expect(await screen.findByText("@tabibito_b")).toBeInTheDocument();
+    });
+
+    it("片方だけ失敗しても、もう一方は出る。失敗した側には「もう一度」を置く", async () => {
+        mockUserFetch.mockImplementation(async (path: string) =>
+            String(path).endsWith("/followers")
+                ? { ok: false, status: 500, json: async () => ({}) }
+                : { ok: true, json: async () => ({ users: [{ id: "c", name: "C" }], total: 1 }) });
+        view("following");
+        expect(await screen.findByText("C")).toBeInTheDocument();
+        await userEvent.click(screen.getByRole("tab", { name: /フォロワー/ }));
+        expect(await screen.findByText("一覧を読み込めませんでした")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "もう一度試す" })).toBeInTheDocument();
     });
 });
