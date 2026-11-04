@@ -54,7 +54,7 @@ beforeEach(async () => {
 
 const cards = () => screen.getByTestId("home-top-cards");
 const order = () => [...cards().querySelectorAll("li")].map((li) =>
-    (li.querySelector("[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry]") as HTMLElement).dataset.testid);
+    (li.querySelector("[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry],[data-testid=home-learn-entry]") as HTMLElement).dataset.testid);
 
 describe("ホームの上段の札", () => {
     // 2026-11-04: iOS と同じく「輪 → 上の札 → 切り替え」（`GalleryView.feed`）。以前はタブの直下だった
@@ -64,7 +64,7 @@ describe("ホームの上段の札", () => {
         // 札の次は、切り替えの行の元の位置の目印（`StickyTabRow`）→ 留まる行
         expect(cards().nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
         expect(screen.getByTestId("home-feed-row")).toContainElement(screen.getByRole("tablist"));
-        expect(order()).toEqual(["home-theme-card", "home-quiz-entry", "home-spots-entry"]);
+        expect(order()).toEqual(["home-theme-card", "home-quiz-entry", "home-spots-entry", "home-learn-entry"]);
     });
 
     it("札の形は iOS と同じ（背 116・角 16・地 surface・白8% の縁・明朝 18 の題・眉は真鍮）", async () => {
@@ -85,7 +85,7 @@ describe("ホームの上段の札", () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const ul = (await screen.findByTestId("home-top-cards")).querySelector("ul")!;
         expect(ul.className).toContain("overflow-x-auto");
-        expect(ul.className).toContain("lg:grid-cols-3");
+        expect(ul.className).toContain("lg:grid-cols-4");
         expect(ul.style.scrollSnapType).toBe("x mandatory");
         // 読み上げ用の字（sr-only・絶対配置）が並びの切り取りの外へ出て頁を横に広げない
         expect(ul.className.split(/\s+/)).toContain("relative");

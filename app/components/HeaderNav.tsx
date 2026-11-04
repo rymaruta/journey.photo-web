@@ -215,6 +215,12 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                                         {locale === "en" ? "Find people" : "ユーザーを探す"}
                                     </button>
                                 </li>
+                                {/* 写真とカメラの教科書（2026-11-04 owner「カメラ講座の入口が無い」）: 公開の記事なので誰にでも出す */}
+                                <li style={{ margin: 0, padding: 0 }}>
+                                    <button onClick={() => handleNavigation(ROUTES.LEARN)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
+                                        {locale === "en" ? "Photography guides" : "写真とカメラの教科書"}
+                                    </button>
+                                </li>
                                 {/* いいねした写真: 未ログインの初回訪問者には出さない（空ページになるため）。
                                     ログイン中、または実際にお気に入りがある人にだけ表示する。 */}
                                 {(isAuthenticated || favorites.length > 0) && (
