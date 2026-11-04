@@ -29,6 +29,15 @@ class ConversionTests(unittest.TestCase):
         self.editorial["checkedAt"] = "2099-01-01"
         self.assertIsNone(convert(self.candidate, self.editorial))
 
+    def test_auto_verified_requires_attribution(self):
+        self.editorial["verificationMode"] = "wikimedia-api"
+        self.editorial["sources"].append({"url": "https://en.wikipedia.org/wiki/Eiffel_Tower", "title": "Wikipedia"})
+        self.assertIsNone(convert(self.candidate, self.editorial))
+        self.editorial["attribution"] = "Wikipedia contributors (CC BY-SA 4.0)"
+        spot = convert(self.candidate, self.editorial)
+        self.assertIsNotNone(spot)
+        self.assertEqual(spot["attribution"], self.editorial["attribution"])
+
     def test_missing_editorial_is_not_published(self):
         self.assertIsNone(convert(self.candidate, None))
 
