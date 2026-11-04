@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, useRef, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../auth/context";
@@ -11,7 +11,7 @@ import { safeNextPath } from "../../lib/routes";
 import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
 import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
 import { LoadingState } from "../components/StateViews";
-import { track, signupFromVia, type SignupFrom } from "../../lib/utils/analytics";
+import { track, signupFromVia, signupErrorReason, type SignupFrom } from "../../lib/utils/analytics";
 
 type Step = "register" | "verify" | "done";
 
@@ -103,6 +103,21 @@ function SignupForm() {
     const [pendingFrom, setPendingFrom] = useState<SignupFrom | null>(null);
     const from: SignupFrom = fromUrl === "wish" ? "wish" : (pendingFrom ?? fromUrl);
 
+    // 登録の画面を見た（漏斗の入口）。判定が付いて未ログインと分かった回に1度だけ
+    const viewedRef = useRef(false);
+    useEffect(() => {
+        if (loading || isAuthenticated || viewedRef.current) return;
+        viewedRef.current = true;
+        track("view_signup", { from: fromUrl });
+    }, [loading, isAuthenticated, fromUrl]);
+    // 入力を始めた（初めて欄が変わったとき1度だけ）
+    const startedRef = useRef(false);
+    const noteStart = () => {
+        if (startedRef.current) return;
+        startedRef.current = true;
+        track("signup_start", { from });
+    };
+
     // ログイン済みならトップへ
     useEffect(() => {
         // **戻り先があればそこへ。** `/login` 側は `nextPath ?? …` を見るのに
@@ -140,10 +155,12 @@ function SignupForm() {
 
         if (password !== confirmPassword) {
             setError("パスワードが一致しません");
+            track("signup_error", { step: "form", reason: "password_mismatch" });
             return;
         }
         if (password.length < 8) {
             setError("パスワードは8文字以上で入力してください");
+            track("signup_error", { step: "form", reason: "password_short" });
             return;
         }
 
@@ -189,12 +206,15 @@ function SignupForm() {
                         setResendCooldown(60);
                     } else {
                         setError("このメールアドレスはすでに登録されています。ログインするか、パスワードリセットをお試しください。");
+                        track("signup_error", { step: "form", reason: "already_registered" });
                     }
                 } else {
                     setError("このメールアドレスはすでに登録されています。ログインするか、パスワードリセットをお試しください。");
+                    track("signup_error", { step: "form", reason: "already_registered" });
                 }
             } else {
                 setError(result.error ?? "登録に失敗しました");
+                track("signup_error", { step: "form", reason: signupErrorReason("form", result.code) });
             }
         } finally {
             setSubmitting(false);
@@ -215,6 +235,7 @@ function SignupForm() {
                 setStep("done");
             } else {
                 setError(result.error ?? "確認に失敗しました");
+                track("signup_error", { step: "confirm", reason: signupErrorReason("confirm", result.code) });
             }
         } finally {
             setSubmitting(false);
@@ -231,6 +252,7 @@ function SignupForm() {
                 setResendCooldown(60);
             } else {
                 setError(result.error ?? "再送に失敗しました");
+                track("signup_error", { step: "confirm", reason: signupErrorReason("confirm", result.code) });
             }
         } finally {
             setResending(false);
@@ -278,7 +300,7 @@ function SignupForm() {
                     <form onSubmit={handleRegister} className="flex flex-col gap-[14px]">
                         {field("signup-email", "メールアドレス", (
                             <input id="signup-email" {...invalid("register")} type="email" value={email}
-                                onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
+                                onChange={(e) => { noteStart(); setEmail(e.target.value); }} required autoComplete="email"
                                 placeholder="you@example.com" disabled={submitting} className={SETTINGS_INPUT_CLASS} />
                         ))}
                         {field("signup-password", "パスワード", (
@@ -286,7 +308,7 @@ function SignupForm() {
                                 id="signup-password"
                                 type="password"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={(e) => { noteStart(); setPassword(e.target.value); }}
                                 required
                                 autoComplete="new-password"
                                 disabled={submitting}
@@ -302,12 +324,12 @@ function SignupForm() {
                         ))}
                         {field("signup-password-confirm", "パスワード（確認）", (
                             <input id="signup-password-confirm" {...invalid("register")} type="password" value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)} required autoComplete="new-password"
+                                onChange={(e) => { noteStart(); setConfirmPassword(e.target.value); }} required autoComplete="new-password"
                                 disabled={submitting} className={SETTINGS_INPUT_CLASS} />
                         ))}
                         {field("signup-display-name", "表示名（あとで変えられます）", (
                             <input id="signup-display-name" type="text" value={displayName}
-                                onChange={(e) => setDisplayName(e.target.value)} autoComplete="nickname"
+                                onChange={(e) => { noteStart(); setDisplayName(e.target.value); }} autoComplete="nickname"
                                 maxLength={50} disabled={submitting} className={SETTINGS_INPUT_CLASS} />
                         ))}
 
