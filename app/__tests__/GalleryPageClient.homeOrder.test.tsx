@@ -40,7 +40,7 @@ vi.mock("../../lib/hooks/usePhotos", () => ({ usePhotos: () => ({ photos: photos
 
 const SEASONAL = {
     season: "autumn" as const, href: "/spots/season/autumn", total: 12,
-    spots: [{ slug: "kurobe", name: "黒部峡谷", src: "/spots/kurobe.jpg" }],
+    spots: [{ slug: "kurobe", name: "黒部峡谷", src: "/spots/kurobe.jpg", region: "富山", alt: "黒部峡谷", credit: null }],
 };
 
 const GalleryPageClient = (await import("../GalleryPageClient")).default;
@@ -56,9 +56,10 @@ beforeEach(() => {
 });
 
 describe("ホームの並び（iOS と同じ）", () => {
-    it("輪の列 → 上の札 → 切り替え → 中身 の順", () => {
+    it("輪の列 → 上の札 → 切り替え → 中身 の順", async () => {
         render(<GalleryPageClient seasonalSpots={SEASONAL} />);
-        const stories = screen.getByTestId("stories-bar");
+        // 輪の列は遅れて読む（`next/dynamic`）
+        const stories = await screen.findByTestId("stories-bar");
         const cards = screen.getByTestId("home-top-cards");
         const tabs = screen.getByRole("tablist");
         const panel = screen.getByRole("tabpanel");
@@ -67,8 +68,10 @@ describe("ホームの並び（iOS と同じ）", () => {
         expect(follows(tabs, panel), "切り替えが中身より上に無い").toBe(true);
     });
 
-    it("「さがす」の面には輪の列を出さない", () => {
+    it("「さがす」の面には輪の列を出さない", async () => {
         render(<GalleryPageClient surface="search" />);
+        // 遅れて読む部品が届くのを待ってから「無い」を見る（ホームの面を同じ形で描いて届くことを確かめる）
+        await new Promise((r) => setTimeout(r, 50));
         expect(screen.queryByTestId("stories-bar")).toBeNull();
     });
 

@@ -23,7 +23,7 @@ import HomeMosaic from "./components/HomeMosaic";
 import { EmptyState } from "./components/StateViews";
 import HomeTopCards from "./components/HomeTopCards";
 import SpotsEntry from "./components/SpotsEntry";
-import StoriesBar from "./components/stories/StoriesBar";
+import dynamic from "next/dynamic";
 import StickyTabRow from "./components/StickyTabRow";
 import type { HomeSeasonal } from "../lib/data/spotTopics";
 import { useMySaves } from "../lib/hooks/useMySaves";
@@ -32,6 +32,13 @@ import { TAB_ON, TAB_OFF, TAB_BASE, TAB_ROW } from "./components/tabStyles";
 import Link from "next/link";
 import { ROUTES } from "../lib/routes";
 import { CHIP_ON, CHIP_OFF, CHIP_SIZE, CHIP_HIT } from "./components/chipStyles";
+
+/**
+ * ストーリーの輪の列。**ホームの最初の JS に載せない**（マイページと同じ遅延読み込み・`UserProfileClient`）。
+ * 投稿の下ごしらえ・ビューアまで抱える大きな部品で、未ログインでは何も描かない（静的書き出しの HTML にも出ない）。
+ * CLAUDE.md の優先度「表示速度 > アプリ化」
+ */
+const StoriesBar = dynamic(() => import("./components/stories/StoriesBar"), { ssr: false });
 
 // フィルタバーに出すタグ数の上限（枚数の多い順）。残りは検索で辿る
 const POPULAR_TAG_LIMIT = 10;
