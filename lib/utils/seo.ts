@@ -141,8 +141,10 @@ export const SHARE_IMAGE = {
     width: 1200,
     height: 630,
     alt: "Journey Photo — 旅の写真を、気軽に眺める。",
-    /** 右の写真の出典（CC0。構造化データの `creditText` にだけ使う） */
+    /** 右の写真の出典（CC0。構造化データの `creditText` に使う） */
     photoCredit: "Ginzan Onsen in blue hour — lumoplank / CC0 / Wikimedia Commons",
+    /** 右の写真の作者（上の出典の lumoplank。構造化データの `creator`。Search Console の「画像メタデータ: creator がありません」への答え・2026-11-04） */
+    photoCreator: "lumoplank",
 } as const;
 
 /** 代表画像の絶対 URL（og:image・twitter:image） */
@@ -165,6 +167,7 @@ export function shareImageObject() {
         height: SHARE_IMAGE.height,
         caption: SHARE_IMAGE.alt,
         creditText: SHARE_IMAGE.photoCredit,
+        creator: { "@type": "Person", name: SHARE_IMAGE.photoCreator },
     };
 }
 
@@ -188,10 +191,39 @@ export function generateHomeStructuredData(
 }
 
 /**
+ * 写真の作者（`Person`）。写真ページの `creator` / `author` と、ギャラリー（`ImageGallery`）の各画像の
+ * `creator` が**同じ作り**になるよう1か所に置く。作者名が無ければ `null`（空の作者を名乗らない）。
+ */
+export function photoCreatorNode(photo: { photographer?: string; displayName?: string; userId?: string }): Record<string, unknown> | null {
+    const credit = photo.photographer || photo.displayName;
+    if (!credit) return null;
+    const person: Record<string, unknown> = { "@type": "Person", name: credit };
+    // 空白を詰めた別表記も添える（「丸田 竜平」→「丸田竜平」）。プロフィールの `Person` と同じ規則
+    const alt = spacelessName(credit);
+    if (alt) person.alternateName = alt;
+    if (photo.userId) {
+        const profileUrl = `${siteConfig.url}/users/${photo.userId}`;
+        person.url = profileUrl;
+        // `/users/<id>` の `Person` と同じ節点だと名乗る
+        person["@id"] = personNodeId(profileUrl);
+    }
+    return person;
+}
+
+/**
  * 構造化データ（JSON-LD）を生成 - ギャラリーページ用
  */
 export function generateStructuredData(
-    photos: Array<{ id: string; title?: string | { ja?: string; en?: string }; src: string; location?: string }>,
+    photos: Array<{
+        id: string;
+        title?: string | { ja?: string; en?: string };
+        src: string;
+        location?: string;
+        /** 作者（写真ページの `creator` と同じ決め方: `photographer` → `displayName`） */
+        photographer?: string;
+        displayName?: string;
+        userId?: string;
+    }>,
     // タグ・撮影地・カテゴリのページも同じ関数を使う。渡さないと
     // **約35個のURLが「自分はトップページだ」と申告する**（name も
     // description も url も siteConfig 直書きだった）。
@@ -217,6 +249,9 @@ export function generateStructuredData(
                     // 旧い既定値の写真が「無題」を名乗り、同じ `@id` について
                     // 写真ページの `ImageObject.name`（「<撮影地>の写真」）と食い違う
                     name: photoTitleFor(photo, "ja").text,
+                    // 作者。Search Console の「画像メタデータ」は `creator` を推奨している。
+                    // 写真ページと同じ節点（`@id`）なので、同じ作者を名乗る（`photoCreatorNode`）
+                    ...(photoCreatorNode(photo) ? { creator: photoCreatorNode(photo) } : {}),
                 };
             }),
     };
@@ -380,20 +415,8 @@ export function generatePhotoStructuredData(photo: {
     // 出しているのに、**構造化データでは `creator` の名前だけ**で、
     // プロフィールへ結ぶものが1つも無かった（`author` も
     // `<meta name="author">` も無し）。
-    if (credit) {
-        const person: Record<string, unknown> = { "@type": "Person", name: credit };
-        // 空白を詰めた別表記も添える（「丸田 竜平」→「丸田竜平」）。
-        // プロフィールの `Person` と同じ規則で作る＝30枚の写真ページと
-        // `/users/<id>` が**同じ名前の集合**を名乗る
-        const alt = spacelessName(credit);
-        if (alt) person.alternateName = alt;
-        if (photo.userId) {
-            const profileUrl = `${siteConfig.url}/users/${photo.userId}`;
-            person.url = profileUrl;
-            // **`/users/<id>` の `Person` と同じ節点だと名乗る。**
-            // `url` だけだと「同じ人らしい」までで、言い切ってはいない
-            person["@id"] = personNodeId(profileUrl);
-        }
+    const person = photoCreatorNode(photo);
+    if (person) {
         structuredData.creator = person;
         structuredData.author = person;
     }
