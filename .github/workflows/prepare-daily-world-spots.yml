@@ -13,8 +13,7 @@ on:
         default: false
 
 permissions:
-  actions: write
-  contents: write
+  contents: read
 
 concurrency:
   group: daily-world-spot-publication
@@ -23,6 +22,11 @@ concurrency:
 jobs:
   prepare:
     runs-on: ubuntu-latest
+    # 書き込みは手で publish=true を選んだときの公開の段だけが使う。全体の既定は読むだけにし、
+    # このジョブにだけ渡す（workflowShell.test.ts の「権限を明示する」の見張り）。
+    permissions:
+      actions: write
+      contents: write
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
