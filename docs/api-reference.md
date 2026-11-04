@@ -1,5 +1,9 @@
 # Journey Photo API — 接続方法とコード
 
+> 公開リポジトリのため、実際のバケット名・各種 ID・URL は書いていません。
+> `<環境>` は `prod` か `staging`、`<…-id>` などの山括弧は置き換え記号です。
+> 実際の値の取り出し方は [`CLAUDE.md`](../CLAUDE.md) の「環境ごとの値の取り出し方」。
+
 **別のプロジェクトからこの API を叩くための資料。** 実装（`api/` `api-user/`
 `lib/utils/api.ts` `lib/auth/cognito.ts`）と `serverless.yml` から起こしてある。
 **数字も口の一覧も、書く前に実際のファイルを数えた**——推測で書いた行は無い。
@@ -12,8 +16,8 @@
 
 | | 用途 | 本番の URL |
 |---|---|---|
-| **ユーザーAPI**（`api-user/`） | 利用者が使う口すべて（投稿・いいね・コメント・フォロー・ストーリー…）。**73口** | `https://gu7kxwdc5l.execute-api.ap-northeast-1.amazonaws.com` |
-| **管理API**（`api/`） | 公開の写真一覧と、管理者だけの編集・削除。**7口** | `https://ionr4ik01e.execute-api.ap-northeast-1.amazonaws.com` |
+| **ユーザーAPI**（`api-user/`） | 利用者が使う口すべて（投稿・いいね・コメント・フォロー・ストーリー…）。**73口** | `https://<user-api-id>.execute-api.ap-northeast-1.amazonaws.com` |
+| **管理API**（`api/`） | 公開の写真一覧と、管理者だけの編集・削除。**7口** | `https://<admin-api-id>.execute-api.ap-northeast-1.amazonaws.com` |
 
 - どちらも **API Gateway HTTP API + Lambda**（`nodejs22.x` / `ap-northeast-1`）
 - **CloudFront は経由しない。** 画面は execute-api を直接叩く
@@ -31,8 +35,8 @@
 
 | | URL |
 |---|---|
-| ユーザーAPI | `https://y9f8ajacc2.execute-api.ap-northeast-1.amazonaws.com` |
-| 管理API | `https://rfq22dzchf.execute-api.ap-northeast-1.amazonaws.com` |
+| ユーザーAPI | `https://<staging-user-api-id>.execute-api.ap-northeast-1.amazonaws.com` |
+| 管理API | `https://<staging-admin-api-id>.execute-api.ap-northeast-1.amazonaws.com` |
 
 **staging には写真もユーザーも入っていない**（空から始めた）。試すには新規登録が要る。
 
@@ -45,16 +49,16 @@
 
 ```bash
 # どこを叩くか
-NEXT_PUBLIC_API_BASE_URL=https://ionr4ik01e.execute-api.ap-northeast-1.amazonaws.com
-NEXT_PUBLIC_USER_API_BASE_URL=https://gu7kxwdc5l.execute-api.ap-northeast-1.amazonaws.com
+NEXT_PUBLIC_API_BASE_URL=https://<admin-api-id>.execute-api.ap-northeast-1.amazonaws.com
+NEXT_PUBLIC_USER_API_BASE_URL=https://<user-api-id>.execute-api.ap-northeast-1.amazonaws.com
 
 # 認証（Cognito）— この2つは公開してよい値（SPA 用の識別子）
-NEXT_PUBLIC_COGNITO_USER_POOL_ID=ap-northeast-1_ZbuhDQsWz
-NEXT_PUBLIC_COGNITO_CLIENT_ID=21cs4cd8dkttmg3snloj72u8mu
+NEXT_PUBLIC_COGNITO_USER_POOL_ID=ap-northeast-1_<pool-id>
+NEXT_PUBLIC_COGNITO_CLIENT_ID=<client-id>
 NEXT_PUBLIC_AWS_REGION=ap-northeast-1
 
 # 画像の配信元（保存された URL の組み立てに使う）
-NEXT_PUBLIC_CLOUDFRONT_URL=https://d1s3dwwzgxf5ni.cloudfront.net
+NEXT_PUBLIC_CLOUDFRONT_URL=https://<distribution-domain>.cloudfront.net
 NEXT_PUBLIC_SITE_URL=https://journey-photo.com
 ```
 
@@ -116,8 +120,8 @@ import {
     type CognitoUserSession,
 } from "amazon-cognito-identity-js";
 
-const USER_API = process.env.NEXT_PUBLIC_USER_API_BASE_URL!;   // gu7kxwdc5l...
-const ADMIN_API = process.env.NEXT_PUBLIC_API_BASE_URL!;       // ionr4ik01e...
+const USER_API = process.env.NEXT_PUBLIC_USER_API_BASE_URL!;   // <user-api-id>...
+const ADMIN_API = process.env.NEXT_PUBLIC_API_BASE_URL!;       // <admin-api-id>...
 
 const pool = new CognitoUserPool({
     UserPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID!,
@@ -717,4 +721,4 @@ const { success, photo } = await r3.json();
 | 写真の型 | `lib/data/photos.ts` |
 | 並び順 | `lib/utils/photoOrder.ts` |
 | 画像URLの正規化 | `lib/utils/seo.ts` の `publicImageUrl` |
-| 本番のリソース一覧 | `CLAUDE.md` |
+| 環境ごとの値の取り出し方 | `CLAUDE.md` の「環境ごとの値の取り出し方」 |
