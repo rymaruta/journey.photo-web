@@ -80,6 +80,15 @@ describe("ホームの並び（iOS と同じ）", () => {
         expect(cls).toEqual(expect.arrayContaining(["sticky", "top-[var(--header-h)]", "bg-bg"]));
     });
 
+    // 柱が見出しの下 16 に留まると、上の 29px が留まった行（45）の裏に隠れた（1280×900 の実測）
+    it("PC の右の柱は、留まった切り替えの行の下に留まる", () => {
+        render(<GalleryPageClient />);
+        fireEvent.click(screen.getByRole("tab", { name: "新着" }));
+        const cls = screen.getByTestId("home-rail").className.split(/\s+/);
+        expect(cls).toContain("lg:top-[calc(var(--header-h)_+_45px_+_16px)]");
+        expect(cls).toContain("lg:max-h-[calc(100vh_-_var(--header-h)_-_45px_-_var(--bottom-bar-h,84px)_-_32px)]");
+    });
+
     it("英語の名前は iOS と同じ「Latest」", () => {
         localeState.locale = "en";
         render(<GalleryPageClient />);

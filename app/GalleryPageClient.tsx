@@ -135,8 +135,12 @@ function HomeColumns({ rail, children }: { rail: React.ReactNode; children: Reac
           （57px の頃の「96px」のままカプセルにしたら 4px 潜った）。
           **`overflow-y-auto` を付けられるのはこちらだけ**——「さがす」の
           柱は並び替えの一覧が `absolute` で吊り下がるので、切り取る箱を
-          作ると隠れる */}
-      <aside className="hidden lg:block lg:sticky lg:top-[calc(var(--header-h)_+_16px)] lg:max-h-[calc(100vh_-_var(--header-h)_-_var(--bottom-bar-h,84px)_-_32px)] lg:overflow-y-auto">{rail}</aside>
+          作ると隠れる。
+
+          **留まる位置は、留まった切り替えの行（44＋線 1＝45）の下。** 2026-11-04 に切り替えを留めた
+          （`StickyTabRow`）とき、柱は見出しの下 16 に留まったままで、上の 29px が行の裏に隠れた
+          （1280×900 の実測: 行の下端 117・柱の上端 88） */}
+      <aside className="hidden lg:block lg:sticky lg:top-[calc(var(--header-h)_+_45px_+_16px)] lg:max-h-[calc(100vh_-_var(--header-h)_-_45px_-_var(--bottom-bar-h,84px)_-_32px)] lg:overflow-y-auto" data-testid="home-rail">{rail}</aside>
     </div>
   );
 }
