@@ -5,7 +5,7 @@
 // カードの写真はビルド時に選んだこのサイトの本物の写真（`coverPhotos`。無ければ写真の枠ごと出さない）。
 
 import React from "react";
-import Link from "next/link";
+import TrackedLink from "@/app/components/TrackedLink";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { ROUTES } from "@/lib/routes";
 import { siteConfig, publicImageUrl } from "@/lib/utils/seo";
@@ -63,7 +63,8 @@ export default async function LearnPage() {
                         const cover = covers[a.id];
                         return (
                             <li key={a.id}>
-                                <Link
+                                <TrackedLink
+                                    contentType="article"
                                     href={a.href}
                                     prefetch={false}
                                     className="group flex flex-col h-full rounded-2xl overflow-hidden bg-surface ring-1 ring-line hover:ring-line-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -83,7 +84,7 @@ export default async function LearnPage() {
                                             読む<span aria-hidden="true"> ›</span>
                                         </span>
                                     </span>
-                                </Link>
+                                </TrackedLink>
                             </li>
                         );
                     })}
@@ -91,7 +92,7 @@ export default async function LearnPage() {
 
                 <p className="m-0 mt-10 text-text-2" style={{ fontSize: "14px", lineHeight: "22px" }}>
                     学んだら、旅先や日常で撮ってみましょう。次に行く場所は
-                    <Link href={ROUTES.SPOTS} prefetch={false} className="inline-flex items-center min-h-[44px] mx-1 text-accent underline underline-offset-4 hover:text-accent-strong">撮影スポット</Link>
+                    <TrackedLink contentType="spot" href={ROUTES.SPOTS} prefetch={false} className="inline-flex items-center min-h-[44px] mx-1 text-accent underline underline-offset-4 hover:text-accent-strong">撮影スポット</TrackedLink>
                     で探せます。
                 </p>
             </main>
