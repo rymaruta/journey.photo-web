@@ -166,7 +166,7 @@ const EXEMPT: Array<[string, string, string]> = [
     ["app/components/Footer.tsx", '"/logo-aperture.png"', "フッターとiOSアプリ案内の固定ロゴ。public/配下のサイト相対パスなので配信ドメインの変換は不要"],
     ["app/components/Footer.tsx", '"/logo-aperture.png"', "iOSアプリ案内の固定ロゴ。同じサイト相対パス"],
     ["app/search/SpotSearchResults.tsx", "src", "公式撮影スポットの検索用サムネイル。spot-search.jsonのimage.srcはサイト内の固定画像パスで、利用者の投稿画像ではない"],
-    ["app/login/page.tsx", '"/logo-aperture.png"', "ログイン画面の固定ロゴ（public/配下のサイト相対パス）"],
+    ["app/components/AuthPhotoBand.tsx", '"/logo-aperture.png"', "ログイン・登録の画面の固定ロゴ（public/配下のサイト相対パス）"],
     ["app/layout.tsx", '"/logo-aperture.png"', "ヘッダーのロゴ（`public/` に置いた固定の絵。相対パスなので既にサイトのドメイン）"],
     ["app/components/ProfileNameMarks.tsx", "proMarkImage(style, size)", "Pro の印（`public/badges/` に置いた固定の SVG。相対パス）"],
     // `badgeImage` は季節の章で絵の無い年に null を返すので、一度変数に受けてから描く

@@ -8,13 +8,13 @@ import { useToast } from "../../lib/hooks/useToast";
 import { signUp, confirmSignUp, resendConfirmationCode } from "../../lib/auth/cognito";
 import { pendingNameKey, pendingVerifyKey } from "../../lib/utils/pendingName";
 import { safeNextPath } from "../../lib/routes";
-import { EnvelopeIcon, LockClosedIcon, CheckCircleIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { BTN_FILL } from "../components/buttonStyles";
+import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
+import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
+import { LoadingState } from "../components/StateViews";
 import { track, signupFromVia, type SignupFrom } from "../../lib/utils/analytics";
 
 type Step = "register" | "verify" | "done";
 
-const inputCls = "w-full px-4 py-3 bg-surface-2 border border-line-strong rounded-field text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:bg-white/8 transition-colors disabled:opacity-50";
 
 const PENDING_TTL = 24 * 60 * 60 * 1000;
 
@@ -239,71 +239,49 @@ function SignupForm() {
 
     if (loading) {
         return (
-            <main className="min-h-screen bg-bg flex items-center justify-center">
-                <div className="w-10 h-10 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+            <main className="min-h-screen bg-bg">
+                <h1 className="sr-only">アカウント作成</h1>
+                {/* 判定中は灰の骨格（iOS `JPLoadingState`・回る輪にしない） */}
+                <div className="mx-auto w-full max-w-sm px-6 pt-[250px]"><LoadingState kind="rows" /></div>
             </main>
         );
     }
 
+    // 2026-11-04: ログインと同じ形に（iOS はログインと登録が同じ画面の切り替え・`SignInView` の `.signUp`）。
+    // 写真の帯の下に直に置き、札で囲まない。主ボタンは白、2番手は線の「ログインに戻る」。
+    // 欄の順は iOS と同じ メールアドレス → パスワード →（Web だけの確認の欄）→ 表示名
+    const invalid = (s: Step) => (error && step === s ? { "aria-invalid": true as const, "aria-describedby": "signup-form-error" } : {});
+    const spinner = <span aria-hidden="true" className="w-4 h-4 border-2 border-ink/30 border-t-ink rounded-full animate-spin" />;
+    const field = (id: string, label: string, input: React.ReactNode, after?: React.ReactNode) => (
+        <div>
+            <label htmlFor={id} className={SETTINGS_LABEL_CLASS}>{label}</label>
+            {input}
+            {after}
+        </div>
+    );
+
     return (
-        <main className="min-h-screen bg-bg flex items-center justify-center px-4">
-            <div className="w-full max-w-sm">
+        <main className="relative isolate min-h-screen overflow-hidden bg-black px-6 pt-[250px] pb-16">
+            <AuthPhotoBand />
 
-                {/* ヘッダー */}
-                <div className="mb-10 text-center">
-                    <p className="text-white/50 text-xs tracking-widest uppercase mb-3">Journey Photo</p>
-                    <h1 className="text-2xl font-bold text-white">
-                        {step === "register" && "アカウント作成"}
-                        {step === "verify" && "メールを確認"}
-                        {step === "done" && "登録完了"}
-                    </h1>
-                    <p className="text-white/50 text-sm mt-2">
-                        {step === "register" && "写真のアップロードができるようになります"}
-                        {step === "verify" && `${email} に確認コードを送信しました`}
-                        {step === "done" && "アカウントが有効になりました"}
-                    </p>
-                </div>
+            <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-[14px]" data-testid="signup-content">
+                {/* 画面の題は読み上げだけ（iOS は大きいワードマークが見出し） */}
+                <h1 className="sr-only">
+                    {step === "register" && "アカウント作成"}
+                    {step === "verify" && "メールを確認"}
+                    {step === "done" && "登録完了"}
+                </h1>
+                <AuthBrand />
 
-                {/* エラー */}
-                {error && (
-                    <div role="alert" className="mb-6 px-4 py-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm">
-                        {error}
-                    </div>
-                )}
-
-                {/* ステップ1: 登録フォーム */}
+                {/* ステップ1: 登録 */}
                 {step === "register" && (
-                    <form onSubmit={handleRegister} className="space-y-4">
-                        <div>
-                            <label htmlFor="signup-display-name" className="block text-xs text-white/50 mb-1.5 tracking-wide">表示名</label>
-                            <input
-                                id="signup-display-name"
-                                type="text"
-                                value={displayName}
-                                onChange={(e) => setDisplayName(e.target.value)}
-                                autoComplete="nickname"
-                                placeholder="あなたの名前（後で変更できます）"
-                                maxLength={50}
-                                disabled={submitting}
-                                className={inputCls}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="signup-email" className="block text-xs text-white/50 mb-1.5 tracking-wide">メールアドレス</label>
-                            <input
-                                id="signup-email"
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                autoComplete="email"
-                                placeholder="example@email.com"
-                                disabled={submitting}
-                                className={inputCls}
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="signup-password" className="block text-xs text-white/50 mb-1.5 tracking-wide">パスワード</label>
+                    <form onSubmit={handleRegister} className="flex flex-col gap-[14px]">
+                        {field("signup-email", "メールアドレス", (
+                            <input id="signup-email" {...invalid("register")} type="email" value={email}
+                                onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
+                                placeholder="you@example.com" disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                        ))}
+                        {field("signup-password", "パスワード", (
                             <input
                                 id="signup-password"
                                 type="password"
@@ -311,103 +289,76 @@ function SignupForm() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
                                 autoComplete="new-password"
-                                placeholder="8文字以上"
                                 disabled={submitting}
                                 // **条件の文は、欄に結ばないと読み上げに届かない。**
                                 // ラベルは「パスワード」としか言わないので、満たすべき
                                 // 条件を一度も言われないまま弾かれる（新規登録の唯一の進み方）
-                                aria-describedby="signup-password-rule"
-                                className={inputCls}
+                                aria-describedby={error && step === "register" ? "signup-password-rule signup-form-error" : "signup-password-rule"}
+                                aria-invalid={error && step === "register" ? true : undefined}
+                                className={SETTINGS_INPUT_CLASS}
                             />
-                            <p id="signup-password-rule" className="text-xs text-white/50 mt-1.5">英大文字・小文字・数字・記号（!@#$など）をそれぞれ1文字以上含めてください</p>
-                        </div>
-                        <div>
-                            <label htmlFor="signup-password-confirm" className="block text-xs text-white/50 mb-1.5 tracking-wide">パスワード（確認）</label>
-                            <input
-                                id="signup-password-confirm"
-                                type="password"
-                                value={confirmPassword}
-                                onChange={(e) => setConfirmPassword(e.target.value)}
-                                required
-                                autoComplete="new-password"
-                                placeholder="••••••••"
-                                disabled={submitting}
-                                className={inputCls}
-                            />
-                        </div>
+                        ), (
+                            <p id="signup-password-rule" className={`mt-1.5 ${AUTH_CAPTION_CLASS}`}>英大文字・小文字・数字・記号（!@#$など）をそれぞれ1文字以上含めてください</p>
+                        ))}
+                        {field("signup-password-confirm", "パスワード（確認）", (
+                            <input id="signup-password-confirm" {...invalid("register")} type="password" value={confirmPassword}
+                                onChange={(e) => setConfirmPassword(e.target.value)} required autoComplete="new-password"
+                                disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                        ))}
+                        {field("signup-display-name", "表示名（あとで変えられます）", (
+                            <input id="signup-display-name" type="text" value={displayName}
+                                onChange={(e) => setDisplayName(e.target.value)} autoComplete="nickname"
+                                maxLength={50} disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                        ))}
 
-                        <button
-                            type="submit"
-                            disabled={submitting || !email || !password || !confirmPassword}
-                            className={`${BTN_FILL} w-full bg-accent-fill text-ink hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2`}
-                        >
-                            {submitting ? (
-                                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                            ) : (
-                                <EnvelopeIcon className="w-4 h-4" />
-                            )}
-                            {submitting ? "送信中..." : "確認コードを送信"}
+                        <button type="submit" disabled={submitting || !email || !password || !confirmPassword}
+                            className={AUTH_PRIMARY_CLASS} style={{ touchAction: "manipulation" }}>
+                            {submitting && spinner}
+                            {submitting ? "送っています…" : "登録する"}
                         </button>
-
-                        <p className="text-center text-xs text-white/50 pt-2">
-                            すでにアカウントをお持ちの方は{" "}
-                            <Link href={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : "/login"} prefetch={false} className="text-white/60 hover:text-white underline transition-colors">
-                                ログイン
-                            </Link>
-                        </p>
+                        <Link href={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : "/login"} prefetch={false}
+                            className={AUTH_OUTLINE_CLASS} style={{ touchAction: "manipulation" }}>
+                            ログインに戻る
+                        </Link>
                     </form>
                 )}
 
-                {/* ステップ2: 確認コード入力 */}
+                {/* ステップ2: 確認コード（iOS `confirmSignUpSection`） */}
                 {step === "verify" && (
-                    <form onSubmit={handleVerify} className="space-y-4">
-                        <div>
-                            <label htmlFor="signup-code" className="block text-xs text-white/50 mb-1.5 tracking-wide">確認コード</label>
+                    <form onSubmit={handleVerify} className="flex flex-col gap-[14px]">
+                        <p className="m-0 text-[15px] leading-[22px] text-white/70">{email} に確認コードを送信しました</p>
+                        {field("signup-code", "確認コード", (
                             <input
                                 autoComplete="one-time-code"
                                 id="signup-code"
+                                {...invalid("verify")}
                                 type="text"
                                 value={code}
                                 onChange={(e) => setCode(e.target.value)}
                                 required
                                 inputMode="numeric"
-                                placeholder="メールに届いた6桁のコード"
                                 disabled={submitting}
-                                className={inputCls + " tracking-[0.3em] text-center text-lg"}
+                                className={`${SETTINGS_INPUT_CLASS} tracking-[0.3em]`}
                                 maxLength={6}
                             />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={submitting || code.trim().length < 6}
-                            className={`${BTN_FILL} w-full bg-accent-fill text-ink hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
-                        >
-                            {submitting ? (
-                                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                            ) : (
-                                <LockClosedIcon className="w-4 h-4" />
-                            )}
-                            {submitting ? "確認中..." : "登録を確定する"}
+                        ))}
+                        <button type="submit" disabled={submitting || code.trim().length < 6}
+                            className={AUTH_PRIMARY_CLASS} style={{ touchAction: "manipulation" }}>
+                            {submitting && spinner}
+                            {submitting ? "確認しています…" : "登録を完了する"}
                         </button>
-
-                        <div className="flex items-center justify-between pt-1">
-                            <button
-                                type="button"
+                        {/* **届かないときの出口**と戻り道（iOS: 13・白72% の文字ボタン） */}
+                        <div className="flex items-center justify-between">
+                            <button type="button"
                                 onClick={() => { setStep("register"); setError(""); setCode(""); setResendCooldown(0); }}
-                                className="text-xs text-white/50 hover:text-white/75 transition-colors flex items-center gap-1"
-                            >
-                                <ArrowLeftIcon className="w-3 h-3" /> 戻る
+                                className={AUTH_TEXT_BUTTON_CLASS} style={{ touchAction: "manipulation" }}>
+                                戻る
                             </button>
-                            <button
-                                type="button"
-                                onClick={handleResend}
-                                disabled={resendCooldown > 0 || resending}
-                                className="text-xs text-white/50 hover:text-white/75 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                            >
+                            <button type="button" onClick={handleResend} disabled={resendCooldown > 0 || resending}
+                                className={AUTH_TEXT_BUTTON_CLASS} style={{ touchAction: "manipulation" }}>
                                 {resendCooldown > 0
                                     ? `再送（${resendCooldown}秒後）`
-                                    : resending ? "送信中..." : "コードを再送する"}
+                                    : resending ? "送っています…" : "コードを送り直す"}
                             </button>
                         </div>
                     </form>
@@ -415,22 +366,21 @@ function SignupForm() {
 
                 {/* ステップ3: 完了 */}
                 {step === "done" && (
-                    <div className="text-center space-y-6">
-                        <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto">
-                            <CheckCircleIcon className="w-8 h-8 text-white" />
-                        </div>
-                        <p className="text-white/60 text-sm leading-relaxed">
-                            登録が完了しました。<br />
-                            ログインして写真のアップロードをお楽しみください。
+                    <div className="flex flex-col gap-[14px]">
+                        <p className="m-0 text-[15px] leading-[22px] text-white/70">
+                            登録が完了しました。ログインして写真のアップロードをお楽しみください。
                         </p>
-                        <Link
-                            href={loginHref}
-                            prefetch={false}
-                            className={`${BTN_FILL} flex items-center justify-center w-full bg-accent-fill text-ink hover:brightness-110 active:scale-[0.98] transition text-center`}
-                        >
+                        <Link href={loginHref} prefetch={false} className={AUTH_PRIMARY_CLASS} style={{ touchAction: "manipulation" }}>
                             ログインする
                         </Link>
                     </div>
+                )}
+
+                {/* エラー（iOS: 欄の下に danger の1文）。欄からは aria-describedby で結ぶ */}
+                {error && (
+                    <p role="alert" id="signup-form-error" aria-live="assertive" className="m-0 text-[15px] leading-[22px] text-danger">
+                        {error}
+                    </p>
                 )}
             </div>
         </main>

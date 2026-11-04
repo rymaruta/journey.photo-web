@@ -1,8 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, Suspense } from "react";
-import publishedPhotos from "../data/photos.json";
-import { publicImageUrl } from "../../lib/utils/seo";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../auth/context";
@@ -10,6 +8,7 @@ import { useToast } from "../../lib/hooks/useToast";
 import { forgotPassword, confirmForgotPassword, PASSWORD_RULE_MESSAGE } from "../../lib/auth/cognito";
 import { userFetch } from "../../lib/utils/api";
 import { LoadingState } from "../components/StateViews";
+import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
 import { ROUTES, safeNextPath } from "../../lib/routes";
 import { pendingNameKey } from "../../lib/utils/pendingName";
 import { WISH_VIA } from "../../lib/utils/analytics";
@@ -17,8 +16,6 @@ import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OU
 
 type Step = "login" | "forgot-send" | "forgot-confirm";
 
-// 公開写真のみを背景に使用し、レンダーのたびに全件走査しない。
-const loginBackgroundPhotos = publishedPhotos.filter((photo) => photo.published && photo.src && (!("sensitive" in photo) || photo.sensitive !== true)).slice(0, 12);
 
 function LoginForm() {
     const router = useRouter();
@@ -226,38 +223,14 @@ function LoginForm() {
 
     return (
         <main className="relative isolate min-h-screen overflow-hidden bg-black px-6 pt-[250px] pb-16">
-            {/* iOS SignInView: 4列×3段・-4度の写真タイル。上に敷き、下で黒へ溶かす（飾りなので読み上げない） */}
-            <div aria-hidden="true" data-testid="login-photo-collage"
-                 className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[380px] overflow-hidden">
-                <div className="absolute -inset-x-5 -top-[30px] grid grid-cols-4 gap-[3px]"
-                     style={{ transform: "rotate(-4deg)" }}>
-                    {loginBackgroundPhotos.map((photo, index) => (
-                        <div key={photo.id} className="aspect-square min-w-0 overflow-hidden bg-surface">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={publicImageUrl(photo.thumbSrc || photo.src)} alt="" loading={index < 4 ? "eager" : "lazy"}
-                                 fetchPriority={index === 0 ? "high" : "low"} decoding="async"
-                                 className="h-full w-full object-cover" />
-                        </div>
-                    ))}
-                </div>
-                {/* iOS: 上 20% → 40% で 40% → 92% で黒 */}
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgb(0 0 0 / 0.2) 0%, rgb(0 0 0 / 0.4) 40%, #000 92%)" }} />
-            </div>
+            <AuthPhotoBand />
 
             <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-[14px]" data-testid="login-content">
                 {/* 画面の題は読み上げだけ（iOS は大きいワードマークが見出し） */}
                 <h1 className="sr-only">
                     {step === "login" ? "ログイン" : step === "forgot-send" ? "パスワードを忘れた" : "確認コードを入力"}
                 </h1>
-                {/* ワードマーク（40・明朝 Bold・字間 -0.025em）と一文（明朝 18・白72%）。iOS `AppLogo(.hero)`・`Labels.Brand.tagline` */}
-                <div className="flex flex-col gap-[10px] pb-3" data-testid="login-wordmark">
-                    <div className="flex items-center gap-3">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/logo-aperture.png" alt="" width={30} height={30} className="h-[30px] w-[30px] object-contain" />
-                        <p className="m-0 font-serif font-bold text-white whitespace-nowrap" style={{ fontSize: "40px", lineHeight: 1.15, letterSpacing: "-0.025em" }}>Journey Photo</p>
-                    </div>
-                    <p className="m-0 font-serif text-white/70" style={{ fontSize: "18px", lineHeight: 1.4 }}>写真から、次の旅が始まる。</p>
-                </div>
+                <AuthBrand />
 
                 {/* ログイン */}
                 {step === "login" && (
