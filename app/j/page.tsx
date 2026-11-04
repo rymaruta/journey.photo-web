@@ -7,6 +7,8 @@ import { userPublicFetch, userFetch, readApiError, sessionErrorMessage } from ".
 import { useAuth } from "../auth/context";
 import { useToast } from "../../lib/hooks/useToast";
 import { ROUTES } from "../../lib/routes";
+import { rememberJoinedAlbum } from "../../lib/utils/joinedAlbums";
+import { LoadingState } from "../components/StateViews";
 import { publicImageUrl } from "@/lib/utils/seo";
 
 /**
@@ -26,7 +28,7 @@ type InvitePhoto = { id: string; src: string; thumbSrc?: string; blurDataURL?: s
 
 function InviteView() {
     const token = useSearchParams().get("t") ?? "";
-    const { isAuthenticated, loading: authLoading } = useAuth();
+    const { isAuthenticated, loading: authLoading, userId } = useAuth();
     const { showToast } = useToast();
 
     const [state, setState] = React.useState<"loading" | "ok" | "error">("loading");
@@ -85,6 +87,9 @@ function InviteView() {
                 return;
             }
             setJoined(true);
+            // 参加したアルバムをこの端末に覚える（アルバムの頁の「参加しているアルバム」。
+            // サーバーの一覧は自分が作った分しか返さないので、覚えないと入口が消える・iOS `JoinedAlbumsStore`）
+            if (album) rememberJoinedAlbum(userId, { id: album.id, title: album.title, token });
             // 招待リンクは共有されるので、同じ人が二度開くのは普通に起きる。
             // サーバーは `already` で区別を返すので、文言も分ける
             const data = await res.json().catch(() => ({})) as { already?: boolean };
@@ -94,7 +99,7 @@ function InviteView() {
         } finally {
             setJoining(false);
         }
-    }, [token, joining, showToast]);
+    }, [token, joining, showToast, album, userId]);
 
     if (state === "loading") {
         return (
@@ -103,7 +108,8 @@ function InviteView() {
                     h1 が無いとこの画面には入口が無い。見た目は変えない
                     （ホームの `sr-only sm:hidden` と同じ形） */}
                 <h1 className="sr-only">アルバムへの招待</h1>
-                <p className="text-sm text-white/60" aria-live="polite">読み込み中…</p>
+                {/* 読み込み中は行の形の灰の骨格（0.3 秒より早ければ出さない） */}
+                <div className="w-full max-w-sm"><LoadingState kind="rows" /></div>
             </main>
         );
     }

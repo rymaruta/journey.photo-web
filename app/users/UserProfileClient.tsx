@@ -116,13 +116,13 @@ type UserProfile = {
  * マウント時に受け取るので取りこぼさない。
  */
 const StoriesBar = dynamic(() => import("../components/stories/StoriesBar"), { ssr: false });
+// 本人だけの棚。公開のプロフィールを開くたびに、保存データの画面を読み込まない（札を開いたときだけ）。
+const SavedSpotsPanel = dynamic(() => import("../saved-spots/SavedSpotsClient"), { ssr: false });
+const SavedPhotosPanel = dynamic(() => import("../saves/SavedPhotosContent"), { ssr: false });
 
-type TabKey = "posts" | "map" | "trips";
-/** iOS ProfileTab.tabs(isMe:) に合わせたプロフィールのタブ。
- * 本人の「行きたい場所」「保存」は既存の専用ページへのリンク。
- * 他人の旅の棚は「すべての旅」から開くため、タブには含めない。
- */
-const OWNER_TABS: TabKey[] = ["posts", "trips"];
+type TabKey = "posts" | "map" | "trips" | "wishlist" | "favorites";
+/** iOS ProfileTab.tabs(isMe:) と同じタブ順。保存系は本人にだけ表示する。 */
+const OWNER_TABS: TabKey[] = ["posts", "trips", "wishlist", "favorites"];
 const VISITOR_TABS: TabKey[] = ["posts", "map"];
 
 const PROFILE_PRIORITY_THUMBS = 3;
@@ -1681,9 +1681,8 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                     見た目は変えていない（属性とキー操作だけ）。 */}
                 {/* v2 の板（MyPage・UserProfile）の下線の札: 左寄せの字だけ・間 22・選んでいる札は
                     真鍮の字と真鍮の下線 2px（黒地の上なので真鍮・owner の好み）・下に髪線。
-                    **本人には「行きたい場所」「保存」も並べる**（板 MyPage の4つに寄せる）。
-                    中身は別のページ（`/saved-spots`・`/saves`）なので**タブではなくリンク**で、
-                    tablist の外に置く（`role="tab"` で別ページへ飛ぶと、矢印キーの作法と食い違う）。
+                    **本人は投稿 / 旅の記録 / 行きたい場所 / 保存の4タブ**。
+                    保存系は実際の tabpanel として切り替え、既存ページと同じサーバー保存データを読む。
                     3つ目の「旅」は**旅の一冊の棚**（板の「旅の記録」のタブ・iOS の `TripShelfList`・2026-10-21）。
                     その人の公開写真から、3日空くまでを1つの旅・2枚から一冊にまとめる（`lib/utils/tripBook.ts`） */}
                 <div className="flex items-end gap-[22px] border-b border-line mb-[2px] overflow-x-auto" style={{ scrollbarWidth: "none" }}>
@@ -1696,6 +1695,8 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         { key: "posts", label: locale === "en" ? "Posts" : "投稿" },
                         { key: "map", label: locale === "en" ? "Map" : "マップ" },
                         { key: "trips", label: locale === "en" ? "Trips" : "旅の記録" },
+                        { key: "wishlist", label: locale === "en" ? "Want to go" : "行きたい場所" },
+                        { key: "favorites", label: locale === "en" ? "Saved" : "保存" },
                     ] as const).filter(({ key }) => tabOrder.includes(key)).map(({ key, label }) => {
                         const active = tab === key;
                         return (
@@ -1728,22 +1729,6 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         <MedalsButton badges={userProfile?.badges} ownerName={displayName ?? (locale === "en" ? "Anonymous" : "ユーザー")} locale={locale === "en" ? "en" : "ja"} />
                     </span>
                 )}
-                {isOwner && ([
-                    { href: ROUTES.SAVED_SPOTS, label: locale === "en" ? "Want to go" : "行きたい場所" },
-                    { href: ROUTES.SAVES, label: locale === "en" ? "Saved" : "保存" },
-                ]).map(({ href, label }) => (
-                    <Link
-                        key={href}
-                        href={href}
-                        prefetch={false}
-                        data-profile-link={href}
-                        // 選んでいないタブと同じ見た目（`TAB_OFF`）——札の並びの中で色が割れないように
-                        className={`${TAB_BASE} ${TAB_OFF}`}
-                        style={{ height: "44px", touchAction: "manipulation" }}
-                    >
-                        {label}
-                    </Link>
-                ))}
                 </div>
 
                 {/* タブ内容: 横スワイプでタブ切替。Leaflet 地図内で始まる操作だけ除外
@@ -1820,6 +1805,16 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                         {photosResolved
                             ? <TripShelfList trips={trips} userId={userId} isJa={locale !== "en"} />
                             : <LoadingState kind="rows" locale={locale === "en" ? "en" : "ja"} testId="profile-trips-loading" />}
+                    </div>
+                )}
+                {isOwner && tab === "wishlist" && (
+                    <div role="tabpanel" id="profile-panel-wishlist" aria-labelledby="profile-tab-wishlist" className="pt-4 pb-8" data-testid="profile-wishlist-panel">
+                        <SavedSpotsPanel spots={{}} embedded />
+                    </div>
+                )}
+                {isOwner && tab === "favorites" && (
+                    <div role="tabpanel" id="profile-panel-favorites" aria-labelledby="profile-tab-favorites" className="pt-4 pb-8" data-testid="profile-favorites-panel">
+                        <SavedPhotosPanel embedded />
                     </div>
                 )}
                 </div>
