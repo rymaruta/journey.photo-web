@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import { useAuth } from "../auth/context";
 import { usePhotos } from "../../lib/hooks/usePhotos";
 import { fetchFollowingSet, subscribeFollowingSet } from "../../lib/hooks/useFollow";
 import { timelinePhotos } from "../../lib/utils/timeline";
 import { ROUTES, loginWithNext } from "../../lib/routes";
 import HomeMosaic from "./HomeMosaic";
+import { EmptyState, ErrorState, LoadingState } from "./StateViews";
 
 type Props = { locale: string };
 
@@ -29,7 +29,7 @@ type Props = { locale: string };
  */
 export default function TimelineFeed({ locale }: Props) {
     const { isAuthenticated, loading: authLoading } = useAuth();
-    const { photos, loaded: photosLoaded, failed: photosFailed } = usePhotos();
+    const { photos, loaded: photosLoaded, failed: photosFailed, retry: retryPhotos } = usePhotos();
     // `null` ＝ まだ分からない。**「0人」と混ぜない**（取得中に「まだ誰も
     // フォローしていません」を出すと、フォローが効いていないように見える）
     const [following, setFollowing] = React.useState<Set<string> | null>(null);
@@ -63,74 +63,49 @@ export default function TimelineFeed({ locale }: Props) {
     );
 
     const isJa = locale !== "en";
+    const loc = isJa ? "ja" : "en";
 
-    if (authLoading) return <Status text={isJa ? "読み込み中…" : "Loading…"} />;
+    /*
+     * **状態の形は iOS のホームと同じ**（`GalleryView.feedEmptyState`・板 Main「フォロー中が空」・`StateViews`）。
+     * 2026-11-04: 以前は文字だけの「読み込み中…」と、灰の札に入れた一文・灰の丸いボタンだった。
+     *   読み込み中 … 写真の格子の灰の骨組み（`LoadingState`）
+     *   失敗       … 三角・一文・「もう一度試す」（`ErrorState`）
+     *   空         … 明朝の見出し「フォロー中の人の写真はまだありません」・一文・主ボタン「写真や人を探す」（`EmptyState`）。
+     *                iOS は「0人」と「フォロー先がまだ上げていない」を分けない（どちらも見出しが「何が無いか」を言う）
+     */
+    if (authLoading) return <LoadingState kind="grid" locale={loc} />;
     if (!isAuthenticated) {
         return (
-            <Empty>
-                <p className="text-sm text-white/70 m-0">
-                    {isJa ? "ログインすると、フォローしている人の写真がここに流れます。" : "Log in to see photos from people you follow."}
-                </p>
-                <Link href={loginWithNext(typeof window === "undefined" ? null : window.location.pathname)} prefetch={false} className={pillClass}>
-                    {isJa ? "ログイン" : "Log in"}
-                </Link>
-            </Empty>
+            <EmptyState className="py-16"
+                message={isJa ? "ログインすると、フォローしている人の写真がここに流れます。" : "Log in to see photos from people you follow."}
+                action={{ label: isJa ? "ログイン" : "Log in", href: loginWithNext(typeof window === "undefined" ? null : window.location.pathname) }} />
         );
     }
     if (followingError) {
+        // iOS は「…引き下げて読み直せます」。Web は引き下げが無いので、その代わりの「もう一度試す」を出す
         return (
-            <Empty>
-                <p className="text-sm text-white/70 m-0">
-                    {isJa ? "フォロー中の一覧を読み込めませんでした。" : "Couldn't load who you follow."}
-                </p>
-                <button type="button" onClick={() => setReloadKey((k) => k + 1)} className={pillClass} style={{ touchAction: "manipulation" }}>
-                    {isJa ? "もう一度読み込む" : "Retry"}
-                </button>
-            </Empty>
+            <ErrorState className="py-16" locale={loc}
+                message={isJa ? "フォロー中の人を読み込めませんでした。" : "Couldn't load the people you follow."}
+                onRetry={() => setReloadKey((k) => k + 1)} />
         );
     }
-    if (following === null) return <Status text={isJa ? "読み込み中…" : "Loading…"} />;
-    if (following.size === 0) {
-        return (
-            <Empty>
-                <p className="text-sm text-white/70 m-0">
-                    {isJa ? "まだ誰もフォローしていません。" : "You aren't following anyone yet."}
-                </p>
-                <Link href={ROUTES.USER_SEARCH} prefetch={false} className={pillClass}>
-                    {isJa ? "ユーザーを探す" : "Find people"}
-                </Link>
-            </Empty>
-        );
-    }
+    if (following === null) return <LoadingState kind="grid" locale={loc} />;
+    const empty = (
+        <EmptyState className="py-16" testId="following-empty"
+            title={isJa ? "フォロー中の人の写真はまだありません" : "No photos from people you follow yet"}
+            message={isJa ? "気になる作者をフォローすると、新しい写真がここに並びます。" : "Follow photographers you like and their new photos will appear here."}
+            action={{ label: isJa ? "写真や人を探す" : "Find photos and people", href: ROUTES.SEARCH }} />
+    );
+    // **0人の答えは確定しているので、写真を待たない**（待つと0人の人にだけ骨組みが出続ける）
+    if (following.size === 0) return empty;
     if (items.length === 0) {
-        // 一覧が届く前は「まだ投稿していません」と言い切らない
+        // 一覧が届く前は「まだありません」と言い切らない
         // （`photos` の初期値はビルド時のスナップショット＝週1で古い）
-        if (!photosLoaded && !photosFailed) return <Status text={isJa ? "読み込み中…" : "Loading…"} />;
-        return (
-            <Empty>
-                <p className="text-sm text-white/70 m-0">
-                    {photosFailed
-                        ? (isJa ? "写真の一覧を読み込めませんでした。" : "Couldn't load photos.")
-                        : (isJa ? "フォロー中の人は、まだ写真を投稿していません。" : "The people you follow haven't posted yet.")}
-                </p>
-            </Empty>
-        );
+        if (!photosLoaded && !photosFailed) return <LoadingState kind="grid" locale={loc} />;
+        if (!photosLoaded && photosFailed) {
+            return <ErrorState className="py-16" locale={loc} message={isJa ? "読み込めませんでした" : "Couldn't load"} onRetry={retryPhotos} />;
+        }
+        return empty;
     }
     return <HomeMosaic photos={items} locale={isJa ? "ja" : "en"} />;
-}
-
-const pillClass = "px-4 py-2 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors";
-
-function Status({ text }: { text: string }) {
-    return (
-        <div className="py-16 text-center text-sm text-white/50" role="status" aria-live="polite">{text}</div>
-    );
-}
-
-function Empty({ children }: { children: React.ReactNode }) {
-    return (
-        <div className="rounded-2xl bg-surface ring-1 ring-line py-16 px-4 flex flex-col items-center justify-center gap-3 text-center">
-            {children}
-        </div>
-    );
 }

@@ -20,7 +20,7 @@ import { useToast } from "../lib/hooks/useToast";
 import { useAuth } from "./auth/context";
 import TimelineFeed from "./components/TimelineFeed";
 import HomeMosaic from "./components/HomeMosaic";
-import { EmptyState } from "./components/StateViews";
+import { EmptyState, ErrorState, LoadingState } from "./components/StateViews";
 import HomeTopCards from "./components/HomeTopCards";
 import SpotsEntry from "./components/SpotsEntry";
 import dynamic from "next/dynamic";
@@ -174,7 +174,7 @@ type Props = {
 export default function GalleryPageClient({ surface = "home", seasonalSpots = null }: Props) {
   const { locale, labels } = useLocale();
   const { showToast } = useToast();
-  const { photos, loaded: photosLoaded, failed: photosFailed } = usePhotos();
+  const { photos, loaded: photosLoaded, failed: photosFailed, retry: retryPhotos } = usePhotos();
   const { isAuthenticated, userId, loading: authLoading } = useAuth();
   const ownUserId = isAuthenticated ? userId : null;
   // 保存した写真の id を**1回で**引いてカードに配る（写真ごとに聞きに行かせない）
@@ -624,6 +624,24 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
    * 一言（`subtitle`）はサイトの看板なのでトップにだけ置く。
    */
   const isSearch = surface !== "home";
+  /**
+   * 「おすすめ」「新着」が0枚のときの形（iOS の `GalleryView` の `JPLoadingState`・`ErrorBanner`・`feedEmptyState`）。
+   * **0件・読み込み中・失敗を同じ形にしない**（板 Components 06・`StateViews`）:
+   *   読み込み中 … 写真の格子の灰の骨組み（文字だけの「読み込み中…」にしない）
+   *   失敗       … 三角と「読み込めませんでした」と「もう一度試す」
+   *   0件        … 「該当する写真がありません。」と主ボタン「撮影地を地図で探す」（iOS の `Labels.Gallery.empty`）
+   * 手元の控え（ビルド時の写真）がある間は、一覧が届く前でもそちらを出す（ここに来るのは控えも空のときだけ）
+   */
+  const homeEmpty = !photosLoaded && !photosFailed ? (
+    <LoadingState kind="grid" locale={locale === "en" ? "en" : "ja"} testId="home-loading" />
+  ) : !photosLoaded && photosFailed ? (
+    <ErrorState className="py-16" locale={locale === "en" ? "en" : "ja"} testId="home-error"
+                message={locale === "en" ? "Couldn't load" : "読み込めませんでした"} onRetry={retryPhotos} />
+  ) : (
+    <EmptyState className="py-16" testId="gallery-empty"
+                message={locale === "en" ? "No photos found." : "該当する写真がありません。"}
+                action={{ label: locale === "en" ? "Explore shooting places" : "撮影地を地図で探す", href: ROUTES.MAP }} />
+  );
   /** 季節の段を出すか（「おすすめ」で写真が1枚以上・数件が選ばれているとき。写真が0枚の日は出さない＝iOS と同じ） */
   const seasonalShelfShown = !!seasonalSpots && seasonalSpots.spots.length > 0;
   const heading = isSearch
@@ -765,7 +783,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
               iOS の `GalleryView` と同じ——段は選ばれた写真があるときだけ、並びは必ず出る */}
           <div className="max-w-xl mx-auto lg:mx-0 lg:max-w-[40rem]">
             {filteredPhotos.length === 0 ? (
-              <EmptyState className="py-16" message={locale === "en" ? "No photos yet." : "まだ写真がありません。"} testId="gallery-empty" />
+              homeEmpty
             ) : (
               <>
                 {/* **いまの季節の撮影スポットの段は「おすすめ」の中だけ、写真 5 枚（大1→2→2）の後ろ**
@@ -802,7 +820,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
            並びは**投稿日の新しい順**（`useGallery` の `postedOrderOnNew`・2026-10-30） */
         <HomePanel scope="all"><HomeColumns rail={discoverRail}>
           {filteredPhotos.length === 0 ? (
-            <EmptyState className="py-16" message={locale === "en" ? "No photos yet." : "まだ写真がありません。"} testId="gallery-empty" />
+            homeEmpty
           ) : (
             <HomeMosaic
               photos={filteredPhotos}

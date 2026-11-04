@@ -55,11 +55,13 @@ beforeEach(async () => {
 });
 
 describe("写真が1枚も無い環境のトップ", () => {
-    it("絞り込んでいないのに「該当」と言わない", async () => {
+    // 2026-11-04: ホームの0枚は iOS と同じ文言と一手（`GalleryView.feedEmptyState`・`Labels.Gallery.empty`）。
+    // 以前の Web は「まだ写真がありません。」（「該当」は絞り込んだ人向けの言葉、という判断）だったが、
+    // 文言は iOS にそろえる（owner の方針「iOS の今のアプリに合わせる」）。「さがす」の面の文言は変えない（下の件）
+    it("ホームの0枚は iOS と同じ文言と一手（撮影地を地図で探す）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
-        await waitFor(() => expect(screen.getByText("まだ写真がありません。")).toBeInTheDocument());
-        expect(screen.queryByText("該当する写真がありません。"),
-            "絞り込んでいない人に「該当」と言っている").toBeNull();
+        await waitFor(() => expect(screen.getByText("該当する写真がありません。")).toBeInTheDocument());
+        expect(screen.getByRole("link", { name: "撮影地を地図で探す" }).getAttribute("href")).toBe("/map");
     });
 
     // 絞り込みで0件になった側は、今までどおり「条件に一致する写真が

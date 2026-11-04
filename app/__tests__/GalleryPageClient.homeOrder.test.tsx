@@ -35,8 +35,10 @@ const PHOTOS = Array.from({ length: 8 }, (_, i) => ({
     id: `p${i + 1}`, src: `https://cdn/${i}.jpg`, title: `写真${i + 1}`, category: "landscape", tags: [],
     createdAt: `2026-01-${String(20 - i).padStart(2, "0")}`,
 }));
-const photosRef = vi.hoisted(() => ({ list: [] as unknown[] }));
-vi.mock("../../lib/hooks/usePhotos", () => ({ usePhotos: () => ({ photos: photosRef.list, loaded: true, failed: false }) }));
+const photosRef = vi.hoisted(() => ({ list: [] as unknown[], loaded: true, failed: false, retry: (() => {}) as () => void }));
+vi.mock("../../lib/hooks/usePhotos", () => ({
+    usePhotos: () => ({ photos: photosRef.list, loaded: photosRef.loaded, failed: photosRef.failed, retry: photosRef.retry }),
+}));
 
 const SEASONAL = {
     season: "autumn" as const, href: "/spots/season/autumn", total: 12,
@@ -51,6 +53,9 @@ const cardIds = (el: Element) => Array.from(el.querySelectorAll("[data-card]")).
 
 beforeEach(() => {
     photosRef.list = PHOTOS;
+    photosRef.loaded = true;
+    photosRef.failed = false;
+    photosRef.retry = () => {};
     localeState.locale = "ja";
     window.history.replaceState({}, "", "/");
 });
@@ -184,4 +189,45 @@ describe("タブを替えたときの送りの位置（iOS の「深く送って
         fireEvent.click(screen.getByRole("tab", { name: "おすすめ" }));
         expect(scrollTo).not.toHaveBeenCalled();
     });
+});
+
+/**
+ * 「おすすめ」「新着」で写真が0枚のときの形（iOS の `GalleryView`: 読み込み中は `JPLoadingState(kind: .grid)`、
+ * 失敗は `ErrorBanner`、0件は `feedEmptyState`）。手元の控えも空のときだけここに来る
+ */
+describe("写真が0枚のときの形（iOS と同じ）", () => {
+    beforeEach(() => { photosRef.list = []; });
+
+    for (const tab of ["おすすめ", "新着"]) {
+        it(`${tab}: 一覧が届く前は灰の骨組み（文字だけの「読み込み中…」にしない・0件と言わない）`, async () => {
+            photosRef.loaded = false;
+            render(<GalleryPageClient />);
+            fireEvent.click(screen.getByRole("tab", { name: tab }));
+            expect(screen.getByTestId("home-loading")).toHaveAttribute("role", "status");
+            expect(await screen.findByTestId("home-loading-bones")).toBeInTheDocument();
+            expect(screen.queryByTestId("gallery-empty")).toBeNull();
+        });
+
+        it(`${tab}: 読めなかったら三角と「読み込めませんでした」と「もう一度試す」`, () => {
+            photosRef.loaded = false;
+            photosRef.failed = true;
+            const retry = vi.fn();
+            photosRef.retry = retry;
+            render(<GalleryPageClient />);
+            fireEvent.click(screen.getByRole("tab", { name: tab }));
+            expect(screen.getByTestId("home-error")).toHaveTextContent("読み込めませんでした");
+            expect(screen.queryByTestId("gallery-empty")).toBeNull();
+            fireEvent.click(screen.getByRole("button", { name: "もう一度試す" }));
+            expect(retry).toHaveBeenCalledTimes(1);
+        });
+
+        it(`${tab}: 0件は「該当する写真がありません。」と主ボタン「撮影地を地図で探す」`, () => {
+            render(<GalleryPageClient />);
+            fireEvent.click(screen.getByRole("tab", { name: tab }));
+            expect(screen.getByTestId("gallery-empty")).toHaveTextContent("該当する写真がありません。");
+            const action = screen.getByRole("link", { name: "撮影地を地図で探す" });
+            expect(action.getAttribute("href")).toBe("/map");
+            expect(action.className.split(/\s+/)).toEqual(expect.arrayContaining(["bg-accent-fill", "text-ink"]));
+        });
+    }
 });
