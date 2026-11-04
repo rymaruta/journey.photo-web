@@ -10,6 +10,7 @@ import DiscoverRail from "./components/DiscoverRail";
 import FeaturedSections from "./components/FeaturedSections";
 import { useLocale } from "./i18n/context";
 import useGallery from "../lib/hooks/useGallery";
+import { useSearchTracking } from "../lib/hooks/useSearchTracking";
 import GalleryGrid from "./components/GalleryGrid";
 import { GRID_SIZES_SEARCH, GRID_COLUMNS_SEARCH } from "./components/gridSizes";
 import GalleryModal from "./components/GalleryModal";
@@ -212,6 +213,8 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
     if (searchScope === "places") return filteredPhotos.filter((p) => typeof p.location === "string" && p.location.trim() !== "");
     return filteredPhotos;
   }, [filteredPhotos, searchScope]);
+  // サイト内検索を数える（語は送らず長さと件数だけ・2026-11-04）
+  useSearchTracking(filters.query, scopedPhotos.length);
 
   /**
    * **ログイン中の既定は「自分」**（owner:「デフォルトは自分のみがいい」）。
