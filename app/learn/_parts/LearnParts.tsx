@@ -126,29 +126,58 @@ export function ExampleGrid({ id, heading, photos }: { id: string; heading: stri
     );
 }
 
-/** 目安の表。横に溢れたら表だけを横に動かす（頁は横に動かさない） */
+/**
+ * **目安の表**。パソコン幅（md・768px 以上）は表、**スマホ幅は行ごとの札**（最初の列を見出しに、
+ * 残りを「ラベル＋値」で縦に並べる）。
+ *
+ * 2026-11-04 判断（確かめ役の指摘・幅 390 の画面写真）: 4列の早見表が 388px と枠（358px）より広く、
+ * 「向く人」の列が 68px に潰れていた。横スクロールの表はスマホで読みにくいので、形を変える。
+ * 2つの形は `display: none` で片方だけ出す（読み上げも片方だけ）。
+ */
 export function LearnTable({ caption, head, rows }: { caption: string; head: string[]; rows: string[][] }) {
     return (
-        <div className="mt-5 overflow-x-auto rounded-xl ring-1 ring-line" role="region" aria-label={caption} tabIndex={0}>
-            <table className="w-full border-collapse text-left" style={{ fontSize: "14px", lineHeight: "22px" }}>
-                <caption className="text-left px-4 pt-3 pb-2 text-text-2" style={{ fontSize: "12px", lineHeight: "18px", captionSide: "top" }}>{caption}</caption>
-                <thead>
-                    <tr className="bg-surface">
-                        {head.map((h) => (
-                            <th key={h} scope="col" className="px-4 py-2.5 font-semibold text-text-2 whitespace-nowrap border-b border-line" style={{ fontSize: "12px" }}>{h}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
+        <div className="mt-5" data-testid="learn-table">
+            {/* スマホ幅: 行ごとの札 */}
+            <div className="md:hidden" data-testid="learn-table-cards">
+                <p className="m-0 mb-2 text-text-2" style={{ fontSize: "12px", lineHeight: "18px" }}>{caption}</p>
+                <ul className="m-0 p-0 list-none flex flex-col gap-2" aria-label={caption}>
                     {rows.map((r) => (
-                        <tr key={r.join("|")} className="border-b border-line last:border-b-0">
-                            {r.map((cell, i) => i === 0
-                                ? <th key={i} scope="row" className="px-4 py-3 font-medium text-white align-top">{cell}</th>
-                                : <td key={i} className="px-4 py-3 text-text-2 align-top">{cell}</td>)}
-                        </tr>
+                        <li key={r.join("|")} className="rounded-xl bg-surface ring-1 ring-line px-4 py-3">
+                            <p className="m-0 text-white font-semibold" style={{ fontSize: "15px", lineHeight: "22px" }}>{r[0]}</p>
+                            <dl className="m-0 mt-2 flex flex-col gap-2">
+                                {r.slice(1).map((cell, i) => (
+                                    <div key={head[i + 1] ?? i}>
+                                        <dt className="text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>{head[i + 1]}</dt>
+                                        <dd className="m-0 text-chip-text" style={{ fontSize: "14px", lineHeight: "22px" }}>{cell}</dd>
+                                    </div>
+                                ))}
+                            </dl>
+                        </li>
                     ))}
-                </tbody>
-            </table>
+                </ul>
+            </div>
+            {/* パソコン幅: 表 */}
+            <div className="hidden md:block rounded-xl ring-1 ring-line overflow-hidden" data-testid="learn-table-grid">
+                <table className="w-full border-collapse text-left" style={{ fontSize: "14px", lineHeight: "22px" }}>
+                    <caption className="text-left px-4 pt-3 pb-2 text-text-2" style={{ fontSize: "12px", lineHeight: "18px", captionSide: "top" }}>{caption}</caption>
+                    <thead>
+                        <tr className="bg-surface">
+                            {head.map((h) => (
+                                <th key={h} scope="col" className="px-4 py-2.5 font-semibold text-text-2 whitespace-nowrap border-b border-line" style={{ fontSize: "12px" }}>{h}</th>
+                            ))}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {rows.map((r) => (
+                            <tr key={r.join("|")} className="border-b border-line last:border-b-0">
+                                {r.map((cell, i) => i === 0
+                                    ? <th key={i} scope="row" className="px-4 py-3 font-medium text-white align-top">{cell}</th>
+                                    : <td key={i} className="px-4 py-3 text-text-2 align-top">{cell}</td>)}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 }

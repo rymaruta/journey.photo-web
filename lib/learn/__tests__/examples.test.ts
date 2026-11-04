@@ -44,32 +44,60 @@ describe("EXIF の書き方の揺れを数に直す", () => {
 
 describe("実例の選び方", () => {
     const photos = [
-        photo("1", { aperture: "f/1.8", exposure: "1/7000s", iso: 80, camera: "Apple iPhone 14 Pro" }),
+        photo("1", { aperture: "f/1.8", exposure: "1/7000s", iso: 80, focalLength: "7mm", camera: "Apple iPhone 14 Pro" }),
         photo("2", { aperture: "f/18", exposure: "30s", iso: 100 }),
         photo("3", { aperture: "f/7.1", exposure: "1/15s", iso: 2000 }),
-        photo("4", { aperture: "f/2.8", exposure: "1/1000s", iso: 100 }),
-        photo("5", { aperture: "f/1.4", exposure: "1/8000s", iso: 100 }, { published: false }),
+        photo("4", { aperture: "f/2.8", exposure: "1/1000s", iso: 100, focalLength: "28mm" }),
+        photo("5", { aperture: "f/1.4", exposure: "1/8000s", iso: 100, focalLength: "50mm" }, { published: false }),
+        photo("8", { aperture: "f/1.4", exposure: "1/500s", iso: 100, focalLength: "14mm" }),
         photo("6", {}),
     ];
 
     it("条件を強く満たす順（F値の小さい順）・非公開は出さない", () => {
-        expect(pickExamples(photos, exampleRule("wide-aperture")).map((p) => p.id)).toEqual(["1", "4"]);
+        expect(pickExamples(photos, exampleRule("wide-aperture")).map((p) => p.id)).toEqual(["4"]);
     });
     it("遅いシャッターは遅い順（30 秒が先）", () => {
         expect(pickExamples(photos, exampleRule("slow-shutter")).map((p) => p.id)).toEqual(["2", "3"]);
     });
     it("速いシャッター・高い ISO・F8 以上・スマホ", () => {
-        expect(pickExamples(photos, exampleRule("fast-shutter")).map((p) => p.id)).toEqual(["1", "4"]);
+        expect(pickExamples(photos, exampleRule("fast-shutter")).map((p) => p.id)).toEqual(["4"]);
         expect(pickExamples(photos, exampleRule("high-iso")).map((p) => p.id)).toEqual(["3"]);
         expect(pickExamples(photos, exampleRule("narrow-aperture")).map((p) => p.id)).toEqual(["2"]);
         expect(pickExamples(photos, exampleRule("smartphone")).map((p) => p.id)).toEqual(["1"]);
+    });
+    it("**スマホは F値・シャッター・ISO の実例に出さない**（F値固定・設定はカメラ任せ。iPhone の f/1.8・7mm はぼけない）", () => {
+        const phone = photo("20", { aperture: "f/1.8", exposure: "1/2000s", iso: 3200, focalLength: "26mm", camera: "Apple iPhone 15" });
+        for (const id of ["wide-aperture", "narrow-aperture", "fast-shutter", "slow-shutter", "high-iso"]) {
+            expect(pickExamples([phone], exampleRule(id)), id).toEqual([]);
+        }
+        expect(pickExamples([phone], exampleRule("smartphone"))).toHaveLength(1);
+    });
+    it("F値の小さい実例は焦点距離 20mm 以上（広角すぎるとぼけが見えない）", () => {
+        expect(pickExamples([photo("8", { aperture: "f/1.4", focalLength: "14mm" })], exampleRule("wide-aperture"))).toEqual([]);
+        expect(pickExamples([photo("8", { aperture: "f/1.4", focalLength: "20mm" })], exampleRule("wide-aperture"))).toHaveLength(1);
+        expect(pickExamples([photo("8", { aperture: "f/1.4" })], exampleRule("wide-aperture")), "焦点距離が分からない").toEqual([]);
+    });
+    it("境目の値は見出しの言葉どおり含む（以下・以上・「か、それより」）", () => {
+        const at = (exif: Record<string, unknown>, id: string) => pickExamples([photo("30", { focalLength: "50mm", ...exif })], exampleRule(id)).length;
+        expect(at({ aperture: "f/2.8" }, "wide-aperture")).toBe(1);
+        expect(at({ aperture: "f/3.2" }, "wide-aperture")).toBe(0);
+        expect(at({ aperture: "f/8" }, "narrow-aperture")).toBe(1);
+        expect(at({ aperture: "f/7.1" }, "narrow-aperture")).toBe(0);
+        expect(at({ exposure: "1/1000s" }, "fast-shutter")).toBe(1);
+        expect(at({ exposure: "1/800s" }, "fast-shutter")).toBe(0);
+        expect(at({ exposure: "1/15s" }, "slow-shutter")).toBe(1);
+        expect(at({ exposure: "1/20s" }, "slow-shutter")).toBe(0);
+        expect(at({ iso: 1600 }, "high-iso")).toBe(1);
+        expect(at({ iso: 1250 }, "high-iso")).toBe(0);
+        expect(exampleRule("fast-shutter").heading).toContain("1/1000 秒か、それより速い");
+        expect(exampleRule("slow-shutter").heading).toContain("1/15 秒か、それより遅い");
     });
     it("**合う写真が無ければ空**（画面は塊ごと出さない）", () => {
         expect(pickExamples([photo("9", { aperture: "f/5.6", exposure: "1/125s", iso: 100 })], exampleRule("high-iso"))).toEqual([]);
         expect(pickExamples([], exampleRule("wide-aperture"))).toEqual([]);
     });
     it("最大 4 枚", () => {
-        const many = Array.from({ length: 9 }, (_, i) => photo(String(i + 10), { aperture: "f/2" }));
+        const many = Array.from({ length: 9 }, (_, i) => photo(String(i + 10), { aperture: "f/2", focalLength: "50mm" }));
         expect(pickExamples(many, exampleRule("wide-aperture"))).toHaveLength(4);
     });
     it("画像の無い写真は出さない", () => {
@@ -80,7 +108,9 @@ describe("実例の選び方", () => {
         const ids = Object.values(c).filter((p) => !!p).map((p) => p!.id);
         expect(ids.length).toBeGreaterThanOrEqual(2);
         expect(new Set(ids).size).toBe(ids.length);
-        expect(c["camera-basics"]?.id).toBe("1");
+        expect(c["camera-basics"]?.id).toBe("4");
+        // どの表紙にもスマホの写真を使わない
+        expect(ids).not.toContain("1");
     });
 });
 
