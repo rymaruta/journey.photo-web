@@ -57,7 +57,10 @@ python3 scripts/spot-batch/s04_assign.py --groups 4 --per-pref 14
 ```
 
 - 県は「公開の少ない順」（目標は1県 100 か所）。県を指定するなら `--prefs 長野県,香川県`
-- 1県 14 件を渡して 7〜9 件書けるのが目安（約半分は見送りになる）。**19 県 × 14 件 ≒ 266 件 → 書くのは 約150 件**
+- 1県 14 件を渡すと、約半分が書ける（残りは理由つきで見送り）。**19 県 × 14 件 ≒ 266 件 → 書くのは 約150 件**。
+  **書く件数の上限は置かない**（2026-11-04 owner）。量は渡す候補の数で決める
+- 前の束で見送った候補は `state/skipped.json` に理由・種類・見直す条件つきで残る。
+  「上限のため見送り（書ける）」の候補は s01 が次の束の候補に戻す（第3〜5束で上限を置いていた名残）
 - 残りの候補が 14 件に満たない県は、その数だけ渡す
 - **熊本県は `state/held.json` の 8 件が保留**（2026-07-28 の「令和8年熊本地震」のあと、記事に被害の記述が無く確かめられない）。
   記事が更新されて被害の有無が書かれたら、その行を見直して出す
@@ -113,7 +116,7 @@ python3 scripts/spot-batch/s10b_coordcmp.py  out/A.json out/B.json out/C.json ou
 ```bash
 python3 scripts/spot-batch/s11_build.py out/A.json out/B.json out/C.json out/D.json
 npx vitest run lib/data/__tests__ lib/utils/__tests__/spotAutoLink.test.ts     # 台帳のテストと #425 の自動リンク
-python3 scripts/spot-batch/s20_record_seen.py                                   # 見た候補の控えを更新
+python3 scripts/spot-batch/s20_record_seen.py --batch 第6束                     # 見た候補の控えと、見送りの理由（state/skipped.json）を更新
 git add content/spots.json scripts/spot-batch/state && git commit
 ```
 
@@ -123,6 +126,18 @@ git add content/spots.json scripts/spot-batch/state && git commit
 - 台帳のテストが落ちたら、直すのは行の方（テストの例外を足すのは、日本語として正しいのに見張りが誤って掛かったときだけ。
   第5束: 伊藤若冲の「冲」）
 - コミットの本文: 県ごとの件数・見送りの件数と理由の内訳・反証の件数・座標と公式サイトの扱い（第5束の 9cdffac6 が手本）
+
+### 見送りは捨てずに残す（`state/skipped.json`・2026-11-04 owner）
+
+見送った候補は、Q番号・記事の題・県・束・日付・**理由の文**・**種類**（`kind`）・**見直す条件**（`revisitWhen`）を
+1行ずつ持つ（第3〜5束の 401 件から始めた）。種類は `batchlib.classify_skip` が理由の文から決める。
+
+- `revisitWhen` が null（台帳と重なる・県が違う・いまは見るものが無い など）は、記事が変わっても書かない
+- それ以外（記事に景色の記述が乏しい・山小屋が前提・災害で通行止め・座標を確かめられない など）は、記事が更新されたら
+  拾い直せる。候補が尽きてきた県では、その県の見送りを読み、記事の版（`revisions`）が見送った日より新しいものだけ
+  取り直して書き直してよい
+- 「上限のため見送り（書ける）」（第3〜5束で県ごとの上限を置いていた名残。京都御所・大徳寺など 8 件）は、
+  s01 が次の束の候補に戻す。**書く件数の上限は今は無い**
 
 ## 7. 作例の候補を集める
 
