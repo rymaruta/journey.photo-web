@@ -50,6 +50,7 @@ import { MusicalNoteIcon, XMarkIcon, MapPinIcon } from "@heroicons/react/24/outl
 import { useAuth } from "../../auth/context";
 import ReportDialog from "../../components/ReportDialog";
 import { useToast } from "../../../lib/hooks/useToast";
+import { track } from "../../../lib/utils/analytics";
 import { shareUrl, copyToClipboard, shareToTwitter, shareToLine } from "../../../lib/utils/share";
 import { renderShareCard, type ShareCardRatio } from "../../../lib/utils/signatureShareCard";
 import { fetchImageBytes } from "../../../lib/utils/imageBytes";
@@ -949,7 +950,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
 
     const handleShare = async (e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
-        const result = await shareUrl(currentUrl, shareText, paragraphs.join(" "));
+        const result = await shareUrl(currentUrl, shareText, paragraphs.join(" "), "photo");
         // cancelled（利用者が閉じた）と shared は何も出さない
         if (result === "copied") {
             showToast(locale === "en" ? "Link copied to clipboard!" : "リンクをクリップボードにコピーしました", "success");
@@ -1003,6 +1004,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
             e.stopPropagation();
         }
         if (await copyToClipboard(currentUrl)) {
+            track("share", { method: "copy", content_type: "photo" });
             showToast(locale === "en" ? "Link copied!" : "リンクをコピーしました");
         } else {
             showToast(locale === "en" ? "Failed to copy link" : "リンクのコピーに失敗しました", "error");
@@ -1067,8 +1069,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                         { key: "share", label: locale === "en" ? "Share" : "共有", onSelect: () => void handleShare() },
                         ...(["4:5", "9:16", "1:1"] as const).map(ratio => ({ key: `share-card-${ratio}`, label: locale === "en" ? `Save share image ${ratio}` : `共有画像を保存（${ratio}）`, onSelect: () => void handleSaveShareCard(ratio) })),
                         { key: "copy", label: locale === "en" ? "Copy link" : "リンクをコピー", onSelect: () => void handleCopyLink() },
-                        { key: "x", label: locale === "en" ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(currentUrl, shareText) },
-                        ...(locale === "ja" ? [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(currentUrl, shareText) }] : []),
+                        { key: "x", label: locale === "en" ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(currentUrl, shareText, "photo") },
+                        ...(locale === "ja" ? [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(currentUrl, shareText, "photo") }] : []),
                         // 撮影地マップのこの写真の位置（以前は写真の右下の丸。iOS は写真の上に地図の丸を置かない・束 1 P2）。
                         // 「この近くで撮られた写真」の節の「地図で見る」と同じ行き先——近くに写真が無い写真でも行き先を消さない
                         ...(mapHash ? [{ key: "map", label: locale === "en" ? "See on the map" : "撮影地マップで見る", href: `${ROUTES.MAP}${mapHash}` }] : []),

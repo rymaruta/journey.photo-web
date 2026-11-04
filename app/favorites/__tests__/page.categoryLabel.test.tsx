@@ -17,12 +17,14 @@ import { ja } from "@/app/i18n/labels";
  * ここでしか見られない（地図を渡すのをやめる変異が素通りしていた）。
  */
 const photos: Photo[] = [
+    // 先頭の1枚は大きな1枚（`editorial` の lead）で、題とカテゴリの帯を出さない。別名の写真は2枚目以降に置く
+    { id: "c", src: "https://cdn.example.com/uploads/c.jpg", title: { ja: "写真C" }, category: "other", tags: [] },
     { id: "a", src: "https://cdn.example.com/uploads/a.jpg", title: { ja: "写真A" }, category: "建物", tags: [] },
     { id: "b", src: "https://cdn.example.com/uploads/b.jpg", title: { ja: "写真B" }, category: "landscape", tags: [] },
 ] as unknown as Photo[];
 
 vi.mock("../../../lib/hooks/useFavorites", () => ({
-    useFavorites: () => ({ favorites: ["a", "b"], isFavorite: () => true, toggle: vi.fn() }),
+    useFavorites: () => ({ favorites: ["c", "a", "b"], isFavorite: () => true, toggle: vi.fn() }),
 }));
 vi.mock("../../../lib/hooks/usePhotos", () => ({
     // **正規化しない**（本物と同じ）。ここで揃えてしまうと、

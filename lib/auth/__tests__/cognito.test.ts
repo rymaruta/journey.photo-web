@@ -663,3 +663,36 @@ describe("すべての端末からログアウトの失敗を日本語にする"
         expect(globalSignOutErrorMessage("SomeNewException")).toBe("すべての端末からログアウトできませんでした");
     });
 });
+
+// 計測の理由の分類に使う例外の名前（`code`）を返す（2026-11-04）。画面には出さない
+describe("例外の名前（code）を返す", () => {
+    it("signUp: 失敗した理由の名前が付く", async () => {
+        mockSignUp.mockImplementation(
+            (_u: string, _p: string, _a: unknown[], _v: unknown[], cb: (e: { name: string; message: string }) => void) => {
+                cb({ name: "InvalidPasswordException", message: "x" });
+            }
+        );
+        const r = await signUp("a@example.com", "pw");
+        expect(r.success).toBe(false);
+        expect(r.code).toBe("InvalidPasswordException");
+    });
+
+    it("signUp: 登録済みでも名前が付く", async () => {
+        mockSignUp.mockImplementation(
+            (_u: string, _p: string, _a: unknown[], _v: unknown[], cb: (e: { name: string; message: string }) => void) => {
+                cb({ name: "UsernameExistsException", message: "x" });
+            }
+        );
+        expect((await signUp("a@example.com", "pw")).code).toBe("UsernameExistsException");
+    });
+
+    it("confirmSignUp: 失敗した理由の名前が付く。成功には付かない", async () => {
+        mockConfirmReg.mockImplementation((_c: string, _f: boolean, cb: (e: { name: string; message: string } | null) => void) => {
+            cb({ name: "CodeMismatchException", message: "x" });
+        });
+        const bad = await confirmSignUp("uuid", "000000");
+        expect(bad.code).toBe("CodeMismatchException");
+        mockConfirmReg.mockImplementation((_c: string, _f: boolean, cb: (e: null) => void) => { cb(null); });
+        expect(await confirmSignUp("uuid", "123456")).toEqual({ success: true });
+    });
+});

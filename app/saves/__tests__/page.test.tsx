@@ -45,7 +45,7 @@ describe("保存した写真のページ", () => {
     it("`/user/saves` を引く（いいねの口は叩かない）", async () => {
         mockUserFetch.mockResolvedValue(ok(["b"]));
         render(<SavesPage />);
-        await waitFor(() => expect(screen.getByText("保存した写真 1 件")).toBeTruthy());
+        await waitFor(() => expect(screen.getByText("SAVED · 1枚")).toBeTruthy());
         expect(mockUserFetch).toHaveBeenCalledWith("/user/saves", expect.anything());
         for (const c of mockUserFetch.mock.calls) expect(String(c[0])).not.toContain("like");
     });
@@ -55,8 +55,8 @@ describe("保存した写真のページ", () => {
     it("いいねした写真とは別物だと画面に書いてある", async () => {
         render(<SavesPage />);
         expect(screen.getByRole("heading", { name: "保存した写真" })).toBeTruthy();
-        await waitFor(() => expect(screen.getByText(/投稿者には伝わりません/)).toBeTruthy());
-        const link = screen.getByRole("link", { name: "いいねした写真はこちら" });
+        await waitFor(() => expect(screen.getByText(/作者には届きません/)).toBeTruthy());
+        const link = screen.getByRole("link", { name: "メニューの「いいねした写真」" });
         expect(link.getAttribute("href")).toBe("/favorites");
     });
 
@@ -65,7 +65,7 @@ describe("保存した写真のページ", () => {
     it("保存した順（新しい順）に並べる", async () => {
         mockUserFetch.mockResolvedValue(ok(["c", "a"]));
         render(<SavesPage />);
-        await waitFor(() => expect(screen.getByText("保存した写真 2 件")).toBeTruthy());
+        await waitFor(() => expect(screen.getByText("SAVED · 2枚")).toBeTruthy());
         const shown = screen.getAllByText(/^写真[ABC]$/).map((el) => el.textContent);
         expect(shown).toEqual(["写真C", "写真A"]);
     });
@@ -73,7 +73,7 @@ describe("保存した写真のページ", () => {
     it("一覧に無い写真（非公開になったぶん）は出さない", async () => {
         mockUserFetch.mockResolvedValue(ok(["z", "a"]));
         render(<SavesPage />);
-        await waitFor(() => expect(screen.getByText("保存した写真 1 件")).toBeTruthy());
+        await waitFor(() => expect(screen.getByText("SAVED · 1枚")).toBeTruthy());
     });
 
     // 聞いている途中に「0 件」と言い切ると、別の端末で保存したぶんが
@@ -82,7 +82,7 @@ describe("保存した写真のページ", () => {
         mockUserFetch.mockImplementation(() => new Promise(() => {}));
         render(<SavesPage />);
         expect(screen.queryByText(/保存した写真はまだありません/)).toBeNull();
-        expect(screen.getAllByText("読み込み中…").length).toBeGreaterThan(0);
+        expect(screen.getByRole("status").textContent).toContain("読み込み中");
     });
 
     it("取りに行って失敗した回は、黙って空の棚を出さない", async () => {
@@ -93,7 +93,7 @@ describe("保存した写真のページ", () => {
 
         mockUserFetch.mockResolvedValue(ok(["a"]));
         fireEvent.click(screen.getByRole("button", { name: "再試行" }));
-        await waitFor(() => expect(screen.getByText("保存した写真 1 件")).toBeTruthy());
+        await waitFor(() => expect(screen.getByText("SAVED · 1枚")).toBeTruthy());
     });
 
     // **失敗を「まだありません」と言い換えない。** 警告を出したうえで
@@ -105,8 +105,8 @@ describe("保存した写真のページ", () => {
         render(<SavesPage />);
         await screen.findByRole("alert");
         expect(screen.queryByText(/保存した写真はまだありません/)).toBeNull();
-        expect(screen.queryByText(/しおり（保存）を押すと/)).toBeNull();
-        expect(screen.queryByText("保存した写真 0 件")).toBeNull();
+        expect(screen.queryByText(/詳細のしおりで保存できます/)).toBeNull();
+        expect(screen.queryByText("SAVED · 0枚")).toBeNull();
     });
 
     // 棚が持っているのは ID だけ。写真の一覧が届いていなければ、保存が
@@ -118,7 +118,9 @@ describe("保存した写真のページ", () => {
         render(<SavesPage />);
         await waitFor(() => expect(mockUserFetch).toHaveBeenCalled());
         expect(screen.queryByText(/保存した写真はまだありません/)).toBeNull();
-        expect(screen.getAllByText("読み込み中…").length).toBeGreaterThan(0);
+        // 件数は聞き終えるまで言わない（眉は数なしの「SAVED」のまま）
+        expect(screen.getByText("SAVED")).toBeTruthy();
+        expect(screen.queryByText(/SAVED · \d/)).toBeNull();
     });
 
     it("写真の一覧を取れなかった回も、失敗として扱う", async () => {
@@ -146,6 +148,34 @@ describe("保存した写真のページ", () => {
     it("ログイン中で0件なら、押し方を案内する", async () => {
         render(<SavesPage />);
         await waitFor(() => expect(screen.getByText(/保存した写真はまだありません/)).toBeTruthy());
-        expect(screen.getByText(/しおり（保存）を押すと/)).toBeTruthy();
+        expect(screen.getByText(/詳細のしおりで保存できます/)).toBeTruthy();
+    });
+});
+
+// 2026-11-04（札 #478）: 見出しの型と、マイページの札の中（embedded）の見出し
+describe("見出しの型と札の中", () => {
+    it("単独の頁: 眉「SAVED」→ 明朝の題 → 一行（iOS の一覧の頁と同じ型）", async () => {
+        mockUserFetch.mockResolvedValue(ok(["b"]));
+        render(<SavesPage />);
+        const h1 = screen.getByRole("heading", { level: 1, name: "保存した写真" });
+        expect(h1.className).toContain("font-serif");
+        await waitFor(() => expect(screen.getByText("SAVED · 1枚")).toBeTruthy());
+    });
+
+    it("札の中（embedded）では見出しを出さない（札の名前と同じ語を重ねない）", async () => {
+        mockUserFetch.mockResolvedValue(ok(["b"]));
+        const { default: Content } = await import("../SavedPhotosContent");
+        render(<Content embedded />);
+        await waitFor(() => expect(screen.getByText("写真B")).toBeTruthy());
+        expect(screen.queryByRole("heading", { name: /保存した写真/ })).toBeNull();
+        expect(screen.queryByText(/SAVED/)).toBeNull();
+        // 一文は格子の下（iOS `savedArea`）
+        expect(screen.getByText(/作者には届きません/)).toBeTruthy();
+    });
+
+    it("0件の一手は「写真を見に行く」（ホームへ）", async () => {
+        render(<SavesPage />);
+        const link = await screen.findByRole("link", { name: "写真を見に行く" });
+        expect(link.getAttribute("href")).toBe("/");
     });
 });

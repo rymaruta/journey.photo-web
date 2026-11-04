@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useFavorites } from "./useFavorites";
 import { userPublicFetch, userFetch, isGoneResponse, sessionErrorMessage, readApiError } from "../utils/api";
 import { log } from "../utils/log";
+import { track } from "../utils/analytics";
 
 // 写真の「いいね」。ハート1つで2つの役割を担う:
 //   - liked（塗りつぶし状態）と /favorites への収集 … 端末ローカル（useFavorites）
@@ -173,6 +174,8 @@ export function usePhotoLikes(
                 method: wasLiked ? "DELETE" : "POST",
             });
             if (res.ok) {
+                // 付けた回だけ数える（外した回は数えない）
+                if (!wasLiked) track("like_photo", {});
                 const data = await res.json() as { likes?: number };
                 if (typeof data.likes === "number" && stillSamePhoto()) setCount(data.likes); // サーバーの真値で確定
             } else if (!wasLiked && await isGoneResponse(res)

@@ -13,7 +13,7 @@ import userEvent from "@testing-library/user-event";
 const mockUserPublicFetch = vi.hoisted(() => vi.fn());
 const mockUserFetch = vi.hoisted(() => vi.fn());
 const mockShowToast = vi.hoisted(() => vi.fn());
-const auth = vi.hoisted(() => ({ current: { isAuthenticated: false, loading: false } }));
+const auth = vi.hoisted(() => ({ current: { isAuthenticated: false, loading: false } as { isAuthenticated: boolean; loading: boolean; userId?: string } }));
 const q = vi.hoisted(() => ({ t: "a".repeat(32) }));
 
 vi.mock("next/navigation", () => ({
@@ -162,7 +162,7 @@ describe("招待ページ: 見出し", () => {
         // 解決しない応答＝読み込み中のまま
         mockUserPublicFetch.mockReset().mockReturnValue(new Promise(() => {}));
         render(<InvitePage />);
-        expect(await screen.findByText("読み込み中…")).toBeInTheDocument();
+        expect((await screen.findByRole("status")).textContent).toContain("読み込み中");
         expect(document.querySelectorAll("h1").length, "読み込み中に見出しが無い").toBe(1);
     });
 
@@ -173,5 +173,29 @@ describe("招待ページ: 見出し", () => {
         render(<InvitePage />);
         await waitFor(() => expect(screen.getByRole("alert")).toBeInTheDocument());
         expect(document.querySelectorAll("h1").length, "失敗の画面に見出しが無い").toBe(1);
+    });
+});
+
+// 2026-11-04（札 #478）: 参加したら端末に覚える（アルバムの頁の「参加しているアルバム」）
+describe("招待ページ: 参加したアルバムを覚える", () => {
+    it("参加できたら、この端末の控えに入る（利用者ごとの鍵）", async () => {
+        localStorage.clear();
+        auth.current = { isAuthenticated: true, loading: false, userId: "me-1" };
+        render(<InvitePage />);
+        await userEvent.click(await screen.findByRole("button", { name: /参加する/ }));
+        await screen.findByRole("link", { name: /写真を追加する/ });
+        expect(JSON.parse(localStorage.getItem("journey:joined-albums:me-1")!)).toEqual([
+            { id: "alb-1", title: "北欧の冬", token: "a".repeat(32) },
+        ]);
+    });
+
+    it("参加できなかったら覚えない", async () => {
+        localStorage.clear();
+        auth.current = { isAuthenticated: true, loading: false, userId: "me-1" };
+        mockUserFetch.mockResolvedValue({ ok: false, status: 403, _msg: "参加できません" });
+        render(<InvitePage />);
+        await userEvent.click(await screen.findByRole("button", { name: /参加する/ }));
+        await waitFor(() => expect(mockShowToast).toHaveBeenCalled());
+        expect(localStorage.getItem("journey:joined-albums:me-1")).toBeNull();
     });
 });

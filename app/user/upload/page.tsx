@@ -12,6 +12,7 @@ import { useAuth } from "../../auth/context";
 import AddToHomeScreenHint from "../../components/AddToHomeScreenHint";
 import { useLocale } from "../../i18n/context";
 import { log } from "../../../lib/utils/log";
+import { track, uploadErrorReason, type UploadErrorReason } from "../../../lib/utils/analytics";
 import { createThumbnail, toUploadSafeFile, UnstrippableFileError, extractDominantColor, createBlurPlaceholder } from "../../../lib/utils/image";
 import { extractExifFromFile, extractCameraExif, reverseGeocode } from "../../../lib/utils/exif";
 import { readSharedResult, clearSharedPayload } from "../../../lib/utils/shareStore";
@@ -1108,6 +1109,7 @@ function UploadPageInner() {
         }
 
         setUploading(true);
+        track("upload_start", { photo_count: pending.length });
         abortedBySwitchRef.current = false;
         setStopping(false);
         const controller = new AbortController();
@@ -1170,6 +1172,7 @@ function UploadPageInner() {
             // `pending.length - successCount` は使えない（手を付けていない
             // 写真まで「失敗」に数えてしまう）
             let failCount = 0;
+            let failReason: UploadErrorReason | undefined;   // 計測用（最初の失敗の理由）
             let cancelled = false;
             for (const item of pending) {
                 // **1枚ごとに見る。** 5枚選んで2枚目でやめたとき、残りを上げ始めない
@@ -1192,7 +1195,7 @@ function UploadPageInner() {
                         // 場合は**形式が正しい JPEG** なので、言われたとおりに
                         // 保存し直しても同じ結果になる（袋小路だった）。
                         updateItem(item.id, { status: "error", error: unstrippableMessage(e, locale) });
-                        failCount++;
+                        failCount++; failReason ??= "unsupported_file";
                         continue;
                     }
                     updateItem(item.id, { progress: 20 });
@@ -1409,7 +1412,7 @@ function UploadPageInner() {
                     // 出していたので、画面に英語の技術文字列が並んでいた。
                     // 見せてよいのは、こちらが日本語で組み立てたものだけ
                     updateItem(item.id, { status: "error", error: userFacingUploadError(err) });
-                    failCount++;
+                    failCount++; failReason ??= uploadErrorReason(err);
                 }
             }
 
@@ -1485,7 +1488,7 @@ function UploadPageInner() {
                     log.error("grouped upload save failed:", err);
                     const msg = userFacingUploadError(err);
                     for (const g of group) updateItem(g.item.id, { status: "error", error: msg });
-                    failCount = group.length;
+                    failCount = group.length; failReason ??= uploadErrorReason(err);
                 }
             }
 
@@ -1509,6 +1512,8 @@ function UploadPageInner() {
                 }
                 return;
             }
+            if (failCount > 0) track("upload_error", { reason: failReason ?? "other" });
+            if (successCount > 0 && published) track("upload_complete", { photo_count: successCount });
             if (successCount > 0) {
                 // **まとめた回は「1件の投稿」と言う。** 「5枚アップロード
                 // しました」だと5件できたように読める（枠も1つしか減らない）。

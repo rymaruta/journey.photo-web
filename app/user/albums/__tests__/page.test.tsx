@@ -15,7 +15,9 @@ const mockUserFetch = vi.hoisted(() => vi.fn());
 const mockShowToast = vi.hoisted(() => vi.fn());
 const gate = vi.hoisted(() => ({ current: "ok" as string }));
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn() }) }));
+const mockPush = vi.hoisted(() => vi.fn());
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: mockPush, replace: vi.fn() }) }));
+vi.mock("../../../auth/context", () => ({ useAuth: () => ({ userId: "me-1", isAuthenticated: true, loading: false }) }));
 vi.mock("../../../i18n/context", () => ({ useLocale: () => ({ locale: "ja" }) }));
 vi.mock("../../../../lib/hooks/useToast", () => ({ useToast: () => ({ showToast: mockShowToast }) }));
 vi.mock("../../../../lib/hooks/useMemberGate", () => ({ useMemberGate: () => gate.current }));
@@ -37,6 +39,8 @@ const album = (extra: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
     gate.current = "ok";
+    mockPush.mockReset();
+    localStorage.clear();
     mockShowToast.mockReset();
     mockUserFetch.mockReset().mockResolvedValue({ ok: true, json: async () => ({ albums: [album()] }) });
 });
@@ -269,5 +273,84 @@ describe("消す確認のフォーカス", () => {
         await waitFor(() => expect(dialog.contains(document.activeElement), "フォーカスが中に入っていない").toBe(true));
         await userEvent.keyboard("{Escape}");
         await waitFor(() => expect(screen.queryByRole("dialog", { name: "アルバムを消す" })).toBeNull());
+    });
+});
+
+// 2026-11-04（札 #478・iOS `AlbumsView`）: 見出しの型・招待リンクから参加・参加しているアルバム
+describe("見出しと招待リンクから参加（iOS の型）", () => {
+    it("題は明朝の「アルバム」＋一行（「共同アルバム」の太字ゴシックではない）", async () => {
+        render(<AlbumsPage />);
+        const h1 = await screen.findByRole("heading", { level: 1 });
+        expect(h1).toHaveTextContent(/^アルバム$/);
+        expect(h1.className).toContain("font-serif");
+        expect(screen.getByText("招待リンクで、旅の仲間と写真を集めます")).toBeInTheDocument();
+    });
+
+    it("作ったアルバムの節は眉で言う（札の名前と重ねない）", async () => {
+        render(<AlbumsPage />);
+        expect(await screen.findByText("作ったアルバム")).toBeInTheDocument();
+    });
+
+    it("貼ったリンクからトークンを取り出して /j へ送る（その場では参加させない）", async () => {
+        const user = userEvent.setup();
+        render(<AlbumsPage />);
+        await screen.findByText("北欧の冬");
+        await user.type(screen.getByLabelText("リンクか招待コード"), "https://journey-photo.com/j?t=abc123");
+        await user.click(screen.getByRole("button", { name: "開く" }));
+        expect(mockPush).toHaveBeenCalledWith("/j?t=abc123");
+        // POST /join は叩かない
+        expect(mockUserFetch.mock.calls.every((c) => !String(c[0]).includes("/join"))).toBe(true);
+    });
+
+    it("招待コードだけを貼っても開ける", async () => {
+        const user = userEvent.setup();
+        render(<AlbumsPage />);
+        await screen.findByText("北欧の冬");
+        await user.type(screen.getByLabelText("リンクか招待コード"), "abc123");
+        await user.click(screen.getByRole("button", { name: "開く" }));
+        expect(mockPush).toHaveBeenCalledWith("/j?t=abc123");
+    });
+
+    it("トークンを持たないリンクは開かず、その場で言う", async () => {
+        const user = userEvent.setup();
+        render(<AlbumsPage />);
+        await screen.findByText("北欧の冬");
+        await user.type(screen.getByLabelText("リンクか招待コード"), "https://example.com/");
+        await user.click(screen.getByRole("button", { name: "開く" }));
+        expect(mockPush).not.toHaveBeenCalled();
+        expect(screen.getByRole("alert")).toHaveTextContent("招待リンクを読み取れませんでした");
+    });
+
+    it("空のあいだ「開く」は押せない", async () => {
+        render(<AlbumsPage />);
+        await screen.findByText("北欧の冬");
+        expect(screen.getByRole("button", { name: "開く" })).toBeDisabled();
+    });
+
+    it("参加しているアルバム: この端末の控えを出し、自分が作った分とは重ねない・消せる", async () => {
+        localStorage.setItem("journey:joined-albums:me-1", JSON.stringify([
+            { id: "alb-1", title: "北欧の冬", token: "own" },
+            { id: "alb-9", title: "沖縄の夏", token: "tok9" },
+            { id: "alb-8", title: "", token: "tok8" },
+        ]));
+        const user = userEvent.setup();
+        render(<AlbumsPage />);
+        const joined = await screen.findByTestId("album-joined");
+        expect(within(joined).getByText("参加しているアルバム")).toBeInTheDocument();
+        expect(within(joined).getByText("沖縄の夏").closest("a")).toHaveAttribute("href", "/j?t=tok9");
+        expect(within(joined).getByText("無題のアルバム")).toBeInTheDocument();
+        // 自分が作った alb-1 は上の「作ったアルバム」にだけ出る
+        expect(within(joined).queryByText("北欧の冬")).toBeNull();
+        await user.click(within(joined).getByRole("button", { name: /沖縄の夏.*一覧から消す/ }));
+        expect(within(joined).queryByText("沖縄の夏")).toBeNull();
+        expect(JSON.parse(localStorage.getItem("journey:joined-albums:me-1")!).map((e: { id: string }) => e.id)).not.toContain("alb-9");
+    });
+
+    it("1つも無ければ、何が無いか → どうすれば埋まるか → 一手（作る）の形で言う", async () => {
+        mockUserFetch.mockResolvedValue({ ok: true, json: async () => ({ albums: [] }) });
+        render(<AlbumsPage />);
+        expect(await screen.findByRole("heading", { name: "まだアルバムがありません" })).toBeInTheDocument();
+        expect(screen.getByText("アルバムを作って招待リンクを送ると、仲間の写真がここに集まります")).toBeInTheDocument();
+        expect(screen.getByRole("button", { name: "アルバムを作る" })).toBeInTheDocument();
     });
 });

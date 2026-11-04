@@ -79,14 +79,14 @@ describe("いいねした写真（サーバー側の一覧）", () => {
     it("聞いている間は「ありません」と言い切らない", async () => {
         mockUserFetch.mockReturnValue(new Promise(() => { /* 返らない */ }));
         render(<FavoritesPage />);
-        expect(screen.queryByText(/いいねした写真はまだありません/), "届く前に言い切っている").toBeNull();
+        expect(screen.queryByText(/まだいいねした写真がありません/), "届く前に言い切っている").toBeNull();
         expect(screen.getAllByText(/読み込み中/).length).toBeGreaterThan(0);
     });
 
     it("ログイン確認中も言い切らない", () => {
         auth.loading = true;
         render(<FavoritesPage />);
-        expect(screen.queryByText(/いいねした写真はまだありません/)).toBeNull();
+        expect(screen.queryByText(/まだいいねした写真がありません/)).toBeNull();
         expect(mockUserFetch, "ログイン状態が決まる前に聞きに行っている").not.toHaveBeenCalled();
     });
 
@@ -100,7 +100,7 @@ describe("いいねした写真（サーバー側の一覧）", () => {
 
     it("本当に0件なら「ありません」を出す", async () => {
         render(<FavoritesPage />);
-        await waitFor(() => expect(screen.getByText(/いいねした写真はまだありません/)).toBeInTheDocument());
+        await waitFor(() => expect(screen.getByText(/まだいいねした写真がありません/)).toBeInTheDocument());
     });
 
     // **失敗を0件に混ぜない。** 端末の控えぶんは出るので、

@@ -305,7 +305,7 @@ describe("撮影スポット詳細: ヘッダーと代表画像", () => {
         fireEvent.click(screen.getByRole("button", { name: "共有" }));
         await screen.findByRole("link", { name: "ギャラリーに戻る" });
         expect(shareMocks.shareUrl).toHaveBeenCalledWith(
-            "https://journey-photo.com/location/パリ", "パリの写真", base.description,
+            "https://journey-photo.com/location/パリ", "パリの写真", base.description, "spot",
         );
     });
 

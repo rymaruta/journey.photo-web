@@ -36,6 +36,7 @@ import {
     prefectureByName, type RegionName,
 } from "./prefectures";
 import { topicCardCover, type TopicCard } from "./spotTopics";
+import { hasSpotRowThumb } from "./spotThumbs";
 
 /**
  * 画面がスポットへリンクするのに要る項目**だけ**。
@@ -172,6 +173,12 @@ export type SpotPin = {
     cover: SpotLink["cover"];
     /** 下書きか公開済みか（`SpotLink.stage` と同じ） */
     stage: SpotLink["stage"];
+    /**
+     * 一覧の行の丸い印に出す写真の小さい版が在る（`hasSpotRowThumb`・場所は `spotRowThumbPath(slug)`・2026-11-04）。
+     * 無ければ鍵ごと無い。**`cover` は台帳の自前の代表写真（`coverImage`）だけを見る**ので、Commons の代表写真を持つ
+     * スポットでも `cover` は `null` のまま——一覧の行はこちらを見る。パスは載せない（`/map` に数千行ぶん乗る）
+     */
+    thumb?: true;
 };
 
 /** 地図に立てられるスポット（ページを建てられる条件を満たし、座標を持つもの） */
@@ -180,7 +187,10 @@ export function spotPins(): SpotPin[] {
     for (const spot of visibleSpots(SPOTS)) {
         if (!spot.coords) continue;
         const { slug, name, region, cover, stage } = toSpotLink(spot);
-        out.push({ slug, name, region, cover, stage, lat: spot.coords.lat, lng: spot.coords.lng });
+        out.push({
+            slug, name, region, cover, stage, lat: spot.coords.lat, lng: spot.coords.lng,
+            ...(hasSpotRowThumb(spot) ? { thumb: true as const } : {}),
+        });
     }
     return out;
 }

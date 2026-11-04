@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within, fireEvent } from "@testing-library/react";
 
 /**
@@ -109,5 +109,45 @@ describe("ExposureLab", () => {
         fireEvent.change(screen.getByLabelText(/^ISO 感度/), { target: { value: "5" } });
         expect(screen.getByTestId("exposure-grain")).toBeTruthy();
         expect(screen.getByTestId("exposure-summary").getAttribute("aria-live")).toBe("polite");
+    });
+});
+
+// 記事 → スポット・作例・次の記事のクリック（select_content・2026-11-04）。content_type だけ送る
+describe("記事内リンクの計測（select_content）", () => {
+    const gtag = vi.fn();
+    const picks = () => gtag.mock.calls.filter((c) => c[1] === "select_content").map((c) => c[2].content_type);
+    const stay = (el: Element) => el.addEventListener("click", (e) => e.preventDefault());
+    beforeEach(() => {
+        gtag.mockReset();
+        sessionStorage.clear();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+    });
+
+    it("一覧: 記事のカード → article、「撮影スポット」→ spot", async () => {
+        render(await LearnPage());
+        const card = screen.getAllByTestId("learn-card")[0];
+        stay(card);
+        fireEvent.click(card);
+        const spots = screen.getByRole("link", { name: "撮影スポット" });
+        stay(spots);
+        fireEvent.click(spots);
+        expect(picks()).toEqual(["article", "spot"]);
+        const sent = JSON.stringify(gtag.mock.calls);
+        expect(sent).not.toContain("camera-basics");
+        expect(sent).not.toContain("/spots");
+    });
+
+    it("カメラの基本: 作例 → photo、「次に読む」の2本 → article", async () => {
+        render(await CameraBasicsPage());
+        const example = screen.getAllByTestId("learn-example")[0];
+        stay(example);
+        fireEvent.click(example);
+        for (const name of ["カメラメーカーの特徴を比較する", "構図ガイドで、ガイド線を自分の写真に重ねる"]) {
+            const a = screen.getByRole("link", { name });
+            stay(a);
+            fireEvent.click(a);
+        }
+        expect(picks()).toEqual(["photo", "article", "article"]);
+        expect(JSON.stringify(gtag.mock.calls)).not.toMatch(/\/photo\/|photo=/);
     });
 });

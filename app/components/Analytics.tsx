@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import Script from "next/script";
 import { siteConfig } from "../../lib/utils/seo";
 import { gaInitSnippet } from "../../lib/utils/analytics";
+import { recordLanding } from "../../lib/utils/landingType";
 
 /**
  * アクセス解析タグ。設定されている時だけ出力する（未設定なら null＝完全に無害）。
@@ -10,6 +12,12 @@ import { gaInitSnippet } from "../../lib/utils/analytics";
  */
 export default function Analytics() {
     const { gaId, plausibleDomain } = siteConfig;
+
+    // そのセッションで最初に着地した頁の種類を控える（`landing_type`・2026-11-04）。
+    // GA4 のタグが出る環境だけ。語1つだけを `sessionStorage` に書く（Cookie ではない）
+    useEffect(() => {
+        if (gaId && !plausibleDomain) recordLanding();
+    }, [gaId, plausibleDomain]);
 
     if (plausibleDomain) {
         return (

@@ -92,14 +92,14 @@ describe("行きたい場所の一覧", () => {
     it("読み込み中は「まだありません」と言い切らない", () => {
         fetchMock.mockReturnValue(new Promise(() => { /* 返らない */ }));
         render(<SavedSpotsPage />);
-        expect(screen.getByText("読み込み中…")).toBeTruthy();
-        expect(screen.queryByText("行きたい場所はまだありません。")).toBeNull();
+        expect(screen.getByRole("status").textContent).toContain("読み込み中");
+        expect(screen.queryByText("行きたい場所はまだありません")).toBeNull();
     });
 
     it("本当に0件のときだけ「まだありません」と言う", async () => {
         fetchMock.mockResolvedValue(ok([]));
         render(<SavedSpotsPage />);
-        expect(await screen.findByText("行きたい場所はまだありません。")).toBeTruthy();
+        expect(await screen.findByText("行きたい場所はまだありません")).toBeTruthy();
     });
 
     // **失敗と0件を混ぜない。** 混ぜると、通信に失敗しただけの人に
@@ -123,8 +123,8 @@ describe("行きたい場所の一覧", () => {
         fetchMock.mockResolvedValue({ ok: false, json: async () => ({}) });
         render(<SavedSpotsPage />);
         await screen.findByRole("alert");
-        expect(screen.queryByText("行きたい場所はまだありません。")).toBeNull();
-        expect(screen.queryByText(/保存した場所 0 件/)).toBeNull();
+        expect(screen.queryByText("行きたい場所はまだありません")).toBeNull();
+        expect(screen.queryByText(/すべての行きたい場所 · 0/)).toBeNull();
     });
 
     it("未ログインなら、聞きに行かずログインへ誘う", () => {
@@ -285,14 +285,14 @@ describe("行きたい場所の一覧", () => {
             expect(items).toHaveLength(2);
             expect(items[0].textContent).toContain("SPOT-");
             expect(within(items[0]).getByRole("button", { name: "「SPOT-」を外す" })).toBeTruthy();
-            expect(screen.getByText("保存した場所 2 件")).toBeTruthy();
+            expect(screen.getByText("すべての行きたい場所 · 2")).toBeTruthy();
         });
 
         /// 件数は**描く一覧そのもの**で数える（畳んだぶんと行数が食い違わない）
         it("同じ鍵が2つ来ても、件数と行数は一致する", async () => {
             fetchMock.mockResolvedValue(ok(["パリ", "パリ", "山中湖"]));
             render(<SavedSpotsPage />);
-            expect(await screen.findByText("保存した場所 2 件")).toBeTruthy();
+            expect(await screen.findByText("すべての行きたい場所 · 2")).toBeTruthy();
             expect(screen.getAllByRole("listitem")).toHaveLength(2);
         });
     });
@@ -308,5 +308,47 @@ describe("行きたい場所の一覧", () => {
             `/user/spots/${encodeURIComponent("山中湖")}`,
             { method: "DELETE" },
         );
+    });
+
+    // 2026-11-04（札 #478・iOS `MyPageView.wishlistArea`）
+    describe("見出しと地図の入口（iOS の型）", () => {
+        it("単独の頁: 眉 → 明朝の題 → 一行。件数は眉の行（すべての行きたい場所 · N）", async () => {
+            fetchMock.mockResolvedValue(ok(["山中湖", "パリ"]));
+            render(<SavedSpotsPage />);
+            const h1 = await screen.findByRole("heading", { level: 1, name: "行きたい場所" });
+            expect(h1.className).toContain("font-serif");
+            expect(await screen.findByText("すべての行きたい場所 · 2")).toBeTruthy();
+        });
+
+        it("「地図で見る」が /saved-spots/map へ入口になる（1件以上あるとき）", async () => {
+            fetchMock.mockResolvedValue(ok(["山中湖"]));
+            render(<SavedSpotsPage />);
+            const link = await screen.findByRole("link", { name: "行きたい場所を地図で見る" });
+            expect(link.getAttribute("href")).toBe("/saved-spots/map");
+            expect(link.textContent).toContain("地図で見る");
+        });
+
+        it("0件・読み込み中・失敗では、地図の入口を出さない", async () => {
+            fetchMock.mockResolvedValue(ok([]));
+            render(<SavedSpotsPage />);
+            await screen.findByText("行きたい場所はまだありません");
+            expect(screen.queryByRole("link", { name: "行きたい場所を地図で見る" })).toBeNull();
+        });
+
+        it("0件の一手は「撮影スポットを探す」（地図へ）", async () => {
+            fetchMock.mockResolvedValue(ok([]));
+            render(<SavedSpotsPage />);
+            const link = await screen.findByRole("link", { name: "撮影スポットを探す" });
+            expect(link.getAttribute("href")).toBe("/map");
+        });
+
+        it("札の中（embedded）: 題の見出しを出さず、眉の行と地図の入口だけ", async () => {
+            fetchMock.mockResolvedValue(ok(["山中湖"]));
+            const { default: Client } = await import("../SavedSpotsClient");
+            render(<Client spots={{}} embedded />);
+            expect(await screen.findByText("すべての行きたい場所 · 1")).toBeTruthy();
+            expect(screen.queryByRole("heading", { name: "行きたい場所" })).toBeNull();
+            expect(screen.getByRole("link", { name: "行きたい場所を地図で見る" })).toBeTruthy();
+        });
     });
 });

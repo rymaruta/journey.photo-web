@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSyncExternalStore, useState } from "react";
 import { useLocale } from "../i18n/context";
 import { ROUTES } from "../../lib/routes";
+import { track } from "../../lib/utils/analytics";
 
 export default function Footer() {
     const { locale, labels } = useLocale();
@@ -72,6 +73,7 @@ export default function Footer() {
                                 </div>
                             </div>
                             <a href={appStoreUrl} target="_blank" rel="noopener noreferrer"
+                               onClick={() => track("app_store_click", { placement: "banner" })}
                                className="mt-4 flex min-h-[44px] w-full items-center justify-center rounded-xl bg-white px-4 py-3 text-[14px] font-semibold text-black transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                                 App Storeで入手
                             </a>
@@ -98,6 +100,7 @@ export default function Footer() {
                     </nav>
 
                     <a href={appStoreUrl} target="_blank" rel="noopener noreferrer"
+                       onClick={() => track("app_store_click", { placement: "footer" })}
                        className="inline-flex min-h-[44px] items-center justify-center text-[13px] text-text-2 underline underline-offset-4 transition-colors hover:text-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent">
                         iOSアプリをApp Storeで入手
                     </a>

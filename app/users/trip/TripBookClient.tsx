@@ -138,7 +138,7 @@ function Book({ trip, isJa, ownerName, profileHref, showToast, canShare }: {
     const share = async () => {
         const url = typeof window !== "undefined" ? window.location.href : "";
         const text = `${shareText(trip, isJa, display)}${ownerName ? (isJa ? `\n撮影: ${ownerName}` : `\nPhotos by ${ownerName}`) : ""}`;
-        const r = await shareUrl(url, title, text);
+        const r = await shareUrl(url, title, text, "trip");
         if (r === "copied") showToast(isJa ? "リンクをコピーしました" : "Link copied", "success");
         else if (r === "failed") showToast(isJa ? "共有できませんでした" : "Couldn't share", "error");
     };
