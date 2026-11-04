@@ -41,7 +41,10 @@ describe("メーカーの台帳", () => {
 });
 
 describe("記事の台帳", () => {
-    it("3本（入門・メーカー・構図）で、構図は既存の /composition", () => {
-        expect(LEARN_ARTICLES.map((a) => a.href)).toEqual(["/learn/camera-basics", "/learn/camera-brands", "/composition"]);
+    it("既存の3本（入門・メーカー・構図）が台帳にあり、構図は既存の /composition。順は教科書の順", () => {
+        const hrefs = LEARN_ARTICLES.map((a) => a.href);
+        expect(hrefs).toEqual(expect.arrayContaining(["/learn/camera-basics", "/learn/camera-brands", "/composition"]));
+        expect(hrefs[0]).toBe("/learn/camera-basics");
+        expect(new Set(hrefs).size).toBe(hrefs.length);
     });
 });

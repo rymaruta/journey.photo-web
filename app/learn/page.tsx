@@ -55,10 +55,10 @@ export default async function LearnPage() {
                 <LearnHeader
                     eyebrow="撮影ガイド"
                     title={LEARN_TITLE}
-                    lead="専門用語を覚える前に、撮りたい写真を撮れるようになろう。初めての「なぜ？」から、カメラ選びと構図まで。このサイトに載っている写真の撮影設定を、実例として一緒に見ていきます。"
+                    lead="専門用語を覚える前に、撮りたい写真を撮れるようになろう。露出・ピント・動き・光と色・レンズ・構図・場面別・現像・機材の手入れまで、順に読めば一通り身につく教科書です。このサイトに載っている写真の撮影設定を、実例として一緒に見ていきます。はじめての人は、第1章から順番にどうぞ。"
                 />
 
-                <ul className="m-0 p-0 list-none grid grid-cols-1 md:grid-cols-3 gap-4">
+                <ul className="m-0 p-0 list-none grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {LEARN_ARTICLES.map((a) => {
                         const cover = covers[a.id];
                         return (
@@ -78,6 +78,11 @@ export default async function LearnPage() {
                                     )}
                                     <span className="flex flex-col flex-1 p-5">
                                         <span className="eyebrow text-accent">{a.eyebrow}</span>
+                                        {(a.level || a.minutes) && (
+                                            <span className="block mt-1 text-text-3" style={{ fontSize: "12px", lineHeight: "18px" }}>
+                                                {[a.level, a.minutes ? `約${a.minutes}分` : null].filter(Boolean).join(" ・ ")}
+                                            </span>
+                                        )}
                                         <span className="block mt-2 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "30px" }}>{a.title}</span>
                                         <span className="block mt-2 text-text-2" style={{ fontSize: "14px", lineHeight: "22px" }}>{a.description}</span>
                                         <span className="mt-auto pt-4 text-white font-semibold" style={{ fontSize: "14px" }}>

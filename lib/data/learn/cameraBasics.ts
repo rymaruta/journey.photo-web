@@ -61,6 +61,18 @@ export const EXAMPLE_RULES: ExampleRule[] = [
         rank: (s) => -(s.iso ?? 0),
     },
     {
+        id: "wide-angle",
+        heading: "焦点距離 24mm 以下（広角）で撮った写真",
+        match: (s) => s.focalLength !== undefined && s.focalLength <= 24,
+        rank: (s) => s.focalLength ?? 99,
+    },
+    {
+        id: "telephoto",
+        heading: "焦点距離 135mm 以上（望遠）で撮った写真",
+        match: (s) => s.focalLength !== undefined && s.focalLength >= 135,
+        rank: (s) => -(s.focalLength ?? 0),
+    },
+    {
         id: "smartphone",
         heading: "スマートフォンで撮った写真",
         match: (s) => !!s.camera && /^(apple|google|samsung)\b/i.test(s.camera),
