@@ -202,6 +202,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: "monthly" as const,
             priority: 0.8,
         })),
+        // 構図ガイド（2026-11-04・検索に出せる公開頁にした。`app/composition/layout.tsx`）。
+        // 中身は端末内で動く道具で更新日が無いので、lastModified は付けない
+        {
+            url: `${baseUrl}${ROUTES.COMPOSITION}`,
+            changeFrequency: "monthly" as const,
+            priority: 0.6,
+        },
         ...spotIndexUrls,
         ...spotAreaUrls,
         // 国・テーマ・季節の切り口の頁（2026-10-11・`lib/data/spotTopics.ts`）
