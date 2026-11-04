@@ -1033,6 +1033,12 @@ async function runSignedInChecks(browser, eng) {
         ["/user/profile", "自分のプロフィール"],
         ["/user/upload", "投稿作成"],
         ["/user/settings", "設定"],
+        // 設定の下の画面（2026-11-04・iOS と同じく行 → 画面）
+        ["/user/settings/blocked", "ブロックした人"],
+        ["/user/settings/close-friends", "親しい友達"],
+        ["/user/settings/password", "パスワードを変える"],
+        ["/user/settings/email", "メールアドレスを変える"],
+        ["/user/settings/legal", "利用規約・プライバシーポリシー"],
         ["/user/archive", "アーカイブ"],
         ["/user/light", "光と天気の知らせ"],
         ["/user/highlights", "ハイライト編集"],

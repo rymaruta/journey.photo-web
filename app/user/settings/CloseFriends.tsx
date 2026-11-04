@@ -20,6 +20,7 @@ import { StarIcon as StarSolid } from "@heroicons/react/24/solid";
 import { StarIcon as StarOutline } from "@heroicons/react/24/outline";
 import { userFetch, userPublicFetch, readApiError, sessionErrorMessage } from "../../../lib/utils/api";
 import { usableUserRows, type UserRow } from "../../../lib/utils/userRows";
+import { LoadingState } from "../../components/StateViews";
 import UserAvatar from "../../components/UserAvatar";
 
 /** サーバーの `CLOSE_FRIENDS_MAX` と同じ */
@@ -215,20 +216,19 @@ export default function CloseFriends({ locale, userId }: Props) {
     };
 
     return (
-        <div className="rounded-2xl bg-white/[0.03] ring-1 ring-line p-4 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-                <h3 className="text-sm font-semibold text-white">{isJa ? "親しい友達" : "Close friends"}</h3>
-                {state === "ready" && (
-                    <span className="text-xs text-white/60">{isJa ? `選んだ人 ${chosen.size}` : `${chosen.size} picked`}</span>
-                )}
-            </div>
-            <p className="text-xs text-white/60 leading-relaxed">
+        // 2026-11-04: 設定の下の画面（`/user/settings/close-friends`）になったので、札と小見出しをやめて
+        // iOS `CloseFriendsView` の形に（説明 13・text-2 → 真鍮の眉「選んだ人 N」→ 一覧。読み込み中は灰の骨格）
+        <div className="flex flex-col gap-3">
+            <p className="m-0 px-1 text-[13px] leading-[18px] text-text-2">
                 {isJa
                     ? "公開範囲を「親しい友達」にした写真は、選んだ人だけが見られます。相手には知らせません。"
                     : "Photos shared with Close friends are visible only to the people you pick. They won't be notified."}
             </p>
+            {state === "ready" && (
+                <p className="m-0 px-1 eyebrow eyebrow-line text-accent">{isJa ? `選んだ人 ${chosen.size}` : `${chosen.size} picked`}</p>
+            )}
 
-            {state === "loading" && <p className="text-xs text-white/60">{isJa ? "読み込み中…" : "Loading…"}</p>}
+            {state === "loading" && <LoadingState kind="rows" locale={isJa ? "ja" : "en"} />}
             {state === "failed" && (
                 <p role="alert" className="text-xs text-danger">
                     {isJa ? "読み込めませんでした。時間をおいてもう一度お試しください。" : "Couldn't load. Please try again later."}

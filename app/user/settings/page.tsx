@@ -1,240 +1,75 @@
 "use client";
 
 /**
- * 設定（⑫・owner の新デザイン 2026-09-21）。
+ * 設定（iOS `SettingsView`・板 `Settings.dc.html`。2026-11-04 に iOS の今の並びと形へそろえた）。
  *
- * **新しく作ったのは「1枚に集めた」ことだけ。** 中身（メールアドレス変更・
- * パスワード変更・全端末ログアウト・退会・ブロックした人）は
- * `app/user/profile/page.tsx` に既にあったものをそのまま移した。
+ * ## 並び（iOS `SettingsOutline` と同じ順・Web に在るものだけ）
  *
- * **プロフィールの編集は移していない。** 表示名・@名・自己紹介・アバター・
- * カバー・リンク・テーマ色・BGM・ピン留めは「他人に見える自分」を作る作業で、
- * 設定ではない。あちらに残っている。
+ *     Pro                   名前の横のバッジと Pro マーク（/user/badges）・光と天気の知らせ（Pro の人だけ）
+ *     旅の道具              共同アルバム・旅行プラン
+ *     公開範囲とプライバシー ブロックした人 → 下の画面・親しい友達 → 下の画面
+ *     写真と撮影            いいねした写真・構図一覧
+ *     ヘルプと規約          利用規約・プライバシーポリシー → 下の画面・問い合わせ（宛先があるときだけ）
+ *     アカウント            メールアドレスを変える（Web だけ）・パスワードを変える → 下の画面
+ *     （見出しなし）         ログアウト
+ *     （見出しなし）         アカウントの削除（名前ごと danger・退会の窓を開く）
  *
- * ## 置かなかった節（モックには在るが、実装が無い）
+ * 形は真鍮の眉ラベル＋札、行は最小 54（`SettingsParts.tsx`）。
  *
- * owner の指示「デザインだけ完成して操作できない画面は作らない」に従い、
- * **中身の無い枠は並べない**:
+ * ## iOS にあって置かなかったもの（Web に中身が無い）
  *
- *   広告の設定          Web 版に広告の実装が1行も無い（AdMob は iOS の別指示書）
- *   通知の設定          何を受け取るかを選ぶ実装が無い。作るなら機能から
- *   データとストレージ  操作できる実体が Service Worker の写真キャッシュ
- *                       （`journey-photo-img-v1`）しか無く、それを消す口を
- *                       作るのは新機能
- *   ヘルプ              無い
- *   アプリについて      **中身が作れない**。クライアントにバージョン文字列が
- *                       出ていない（`package.json` は読めず `NEXT_PUBLIC_*`
- *                       にも無い）ので、置くと プライバシーポリシーと利用規約
- *                       へのリンクがもう一度並ぶだけの枠になる
+ *   Journey Photo Pro の行・サポーター証・保存した旅   Web では何も売らない／電波なしの旅はアプリだけ
+ *   旅のトランク・キャンピングカー・すれちがい乗車券・すれちがい帳   Web に画面が無い
+ *   お知らせ（プッシュ通知）   Web にプッシュを受け取る設定の実装が無い
+ *   データとストレージ         操作できる実体が SW の写真キャッシュだけで、消す口は新機能
+ *   新しくなったこと・バージョンの行   Web に履歴もバージョン文字列も無い
  *
- * ## 門は `useMemberGate` を使わない
+ * owner の指示「デザインだけ完成して操作できない画面は作らない」に従い、**中身の無い枠は並べない**。
  *
- * あれは**グループ（投稿権限）まで見る**。登録直後の
- * `AdminAddUserToGroup` が落ちた人は `no-group` になるが、その人にも
- * パスワードの変更と退会は要る——むしろ**権限が付かなかった人ほど
+ * ## 設定から外した行（2026-11-04・iOS の設定に無く、マイページに入口がある）
+ *
+ *   写真の下書き・行きたい場所・ストーリーのアーカイブ・ハイライトの管理
+ *   （マイページの「下書き →」「アーカイブ →」・行きたい場所の札・ハイライトの輪の「＋」から開ける）
+ *
+ * ## 門は `useMemberGate` を使わない（`SettingsShell`）
+ *
+ * あれは**グループ（投稿権限）まで見る**。登録直後の `AdminAddUserToGroup` が落ちた人は
+ * `no-group` になるが、その人にもパスワードの変更と退会は要る——むしろ**権限が付かなかった人ほど
  * 退会したい**。ここはログインしているかどうかだけ見る。
- *
- * 打ちかけを留める仕掛け（`hasUnsavedWork`）も持たない。プロフィール編集の
- * それは「書いた文章を消さない」ためのものだが、ここの入力欄は
- * **ログインが切れたら完了しようが無い**もの（パスワード・確認コード）で、
- * しかもパスワードは画面に残したくない。素直にログインへ送る。
  */
 
-import React, { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import React, { useRef, useState } from "react";
 import { useAuth } from "../../auth/context";
 import { useLocale } from "../../i18n/context";
 import { useToast } from "../../../lib/hooks/useToast";
 import { ROUTES } from "../../../lib/routes";
-import { useLoginRedirect } from "../../../lib/hooks/useLoginRedirect";
 import { siteConfig } from "../../../lib/utils/seo";
 import DeleteAccountModal from "../../components/DeleteAccountModal";
-import {
-    changePassword,
-    PASSWORD_RULE_MESSAGE,
-    getCurrentEmail,
-    startEmailChange,
-    confirmEmailChange,
-    signOutEverywhere,
-} from "../../../lib/auth/cognito";
-import BlockedUsers from "./BlockedUsers";
-import CloseFriends from "./CloseFriends";
 import LightAlertSettings from "./LightAlertSettings";
+import { SettingsGroup, SettingsRowButton, SettingsRowLink, SettingsShell } from "./SettingsParts";
+
+/** 下の画面の行き先（`ROUTES.SETTINGS` の下） */
+export const SETTINGS_SUBPAGES = {
+    blocked: `${ROUTES.SETTINGS}/blocked`,
+    closeFriends: `${ROUTES.SETTINGS}/close-friends`,
+    legal: `${ROUTES.SETTINGS}/legal`,
+    email: `${ROUTES.SETTINGS}/email`,
+    password: `${ROUTES.SETTINGS}/password`,
+} as const;
 
 export default function SettingsPage() {
-    const { isAuthenticated, loading, deleteAccount, userId } = useAuth();
+    const { deleteAccount, logout } = useAuth();
     const { locale } = useLocale();
-    const router = useRouter();
+    const en = locale === "en";
     const { showToast } = useToast();
-
-    // パスワード変更
-    const [curPassword, setCurPassword] = useState("");
-    const [newPassword, setNewPassword] = useState("");
-    const [changingPassword, setChangingPassword] = useState(false);
-
-    // メールアドレス変更。**2段**——新しいアドレスにコードを送り、
-    // そのコードで確定する。確定するまで古いアドレスでログインできる
-    // （プールの `AttributesRequireVerificationBeforeUpdate` が効いている。
-    //  本番に入っていることは `diagnose` で実測した）
-    // **「まだ」と「読めなかった」を分ける。** `getCurrentEmail()` は失敗しても
-    // `null` を返すので、初期値と同じにすると**「読み込み中」のまま永久に止まる**
-    const [currentEmail, setCurrentEmail] = useState<string | null>(null);
-    const [emailLoad, setEmailLoad] = useState<"loading" | "ok" | "failed">("loading");
-    const [newEmail, setNewEmail] = useState("");
-    const [emailCode, setEmailCode] = useState("");
-    // コードを送った先。**送ったアドレスを覚えておく**——欄を書き換えられても
-    // 「どこに届いたか」を言い続けるため
-    const [emailPending, setEmailPending] = useState<string | null>(null);
-    const [emailBusy, setEmailBusy] = useState(false);
-
-    // すべての端末からログアウト。**いまの端末も含む**ので、押した人はここも
-    // ログインし直しになる（画面でそう言う）
-    const [signingOutAll, setSigningOutAll] = useState(false);
 
     // 退会（アカウント削除）
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    // 退会モーダルを閉じたときの戻り先（モーダル内の autoFocus に奪われるため明示）
+    // 退会の窓を閉じたときの戻り先（窓の中の autoFocus に奪われるため明示）
     const deleteAccountBtnRef = useRef<HTMLButtonElement | null>(null);
     const [deletingAccount, setDeletingAccount] = useState(false);
-
-    // 送り方は `useLoginRedirect`（`useMemberGate` と `/user/profile` も同じ口）。
-    // **条件だけがここの判断**——グループ（投稿権限）は見ない。
-    // 打ちかけを留める仕掛けも持たない（理由はファイル冒頭）
-    useLoginRedirect(!loading && !isAuthenticated);
-
-    // いま登録されているアドレスを出す（何から何に変えるのかが分からないと押せない）。
-    // **変えたあとは読み直さない**——ID トークンは作られた時点の写しで、
-    // 次に更新されるまで古い値のまま（`getCurrentEmail` のコメントを見よ）
-    useEffect(() => {
-        let aborted = false;
-        void (async () => {
-            const e = await getCurrentEmail();
-            if (aborted) return;
-            setCurrentEmail(e);
-            setEmailLoad(e ? "ok" : "failed");
-        })();
-        return () => { aborted = true; };
-    }, []);
-
-    const handleStartEmailChange = async () => {
-        if (emailBusy) return;
-        const next = newEmail.trim();
-        // 送る前に断れるものだけ断る（形の細かい判定はサーバーに任せる）
-        if (!next) return;
-        // 読めていない（`currentEmail` が null）ときは、空でない文字列が
-        // それと等しくなることは無いので**そのまま素通りする**
-        if (next === currentEmail) {
-            showToast(locale === "en" ? "That is already your email address." : "いまのメールアドレスと同じです", "error");
-            return;
-        }
-        setEmailBusy(true);
-        try {
-            const result = await startEmailChange(next);
-            if (!result.success) {
-                showToast(result.error || (locale === "en" ? "Failed to send the code." : "確認コードを送れませんでした"), "error");
-                return;
-            }
-            setEmailPending(next);
-            setEmailCode("");
-            showToast(locale === "en"
-                ? `A confirmation code was sent to ${next}. Your current address still works until you confirm.`
-                : `${next} に確認コードを送りました。確定するまでは、いまのアドレスでログインできます`, "success");
-        } finally {
-            setEmailBusy(false);
-        }
-    };
-
-    const handleConfirmEmailChange = async () => {
-        if (emailBusy || !emailCode.trim()) return;
-        setEmailBusy(true);
-        try {
-            const result = await confirmEmailChange(emailCode);
-            if (!result.success) {
-                showToast(result.error || (locale === "en" ? "Failed to change your email." : "メールアドレスを変更できませんでした"), "error");
-                return;
-            }
-            // **自分が知っている新しい値を出す**（トークンはまだ古い）
-            setCurrentEmail(emailPending);
-            setEmailLoad("ok");
-            setEmailPending(null);
-            setNewEmail("");
-            setEmailCode("");
-            showToast(locale === "en"
-                ? "Your email address has been changed. Use it to sign in from now on."
-                : "メールアドレスを変更しました。次からはこのアドレスでログインしてください", "success");
-        } finally {
-            setEmailBusy(false);
-        }
-    };
-
-    /**
-     * **送る前に断るのは、こちらで確かめられる条件だけ。**
-     *
-     * プールの規則は8文字以上＋英大小・数字・記号（`provision-env.js:410`）だが、
-     * **本番のプールが今もその設定かはコードからは確かめられない**——
-     * ここで規則を写して厳しく断ると、プールが通すパスワードを画面だけが
-     * 拒む側に倒れる。なので長さと空欄と「同じもの」だけ見て、残りは
-     * サーバーの `InvalidPasswordException` に言わせる。
-     */
-    const handleChangePassword = async () => {
-        if (changingPassword) return;
-        if (!curPassword || !newPassword) return;
-        if (newPassword.length < 8) {
-            showToast(PASSWORD_RULE_MESSAGE, "error");
-            return;
-        }
-        if (newPassword === curPassword) {
-            showToast(locale === "en" ? "The new password is the same as the current one." : "いまのパスワードと同じです", "error");
-            return;
-        }
-        setChangingPassword(true);
-        try {
-            const result = await changePassword(curPassword, newPassword);
-            if (!result.success) {
-                showToast(result.error || (locale === "en" ? "Failed to change password." : "パスワードを変更できませんでした"), "error");
-                return;
-            }
-            // **打った中身を画面に残さない。** 次に誰かがこの端末を触ったとき、
-            // 入力欄に残っていると読める（`type="password"` でも devtools で見える）
-            setCurPassword("");
-            setNewPassword("");
-            // Cognito はパスワードを変えてもいまのトークンを失効させないので、
-            // ログインし直す必要は無い。**そう言わないと「他の端末はどうなる？」に
-            // 答えられない**ので、そこまで書く
-            showToast(locale === "en"
-                ? "Password changed. You stay signed in on this device; other devices stay signed in until their session expires."
-                : "パスワードを変更しました。この端末はログインしたままです（他の端末は、そのセッションが切れるまでログインしたままになります）", "success");
-        } finally {
-            setChangingPassword(false);
-        }
-    };
-
-    /**
-     * **パスワードを変えても他の端末は生きたまま**——Cognito はパスワードの
-     * 変更で既存のトークンを失効させない。漏れたかもしれない端末を止める
-     * 手段がサイトに1つも無かったので、その口。
-     */
-    const handleSignOutEverywhere = async () => {
-        if (signingOutAll) return;
-        setSigningOutAll(true);
-        try {
-            const result = await signOutEverywhere();
-            if (!result.success) {
-                showToast(result.error || (locale === "en" ? "Failed to sign out." : "ログアウトできませんでした"), "error");
-                return;
-            }
-            showToast(locale === "en"
-                ? "Signed out on all devices. Please sign in again."
-                : "すべての端末からログアウトしました。もう一度ログインしてください", "success");
-            // **ここもログアウトしている**ので、ログイン画面へ送る。
-            // 残すと「ログイン中の顔のまま、押すたびに失敗する」状態になる
-            router.replace(ROUTES.LOGIN);
-        } finally {
-            setSigningOutAll(false);
-        }
-    };
+    // ログアウトの最中。二度押させず、進み具合を見せる（iOS `isSigningOut`）
+    const [signingOut, setSigningOut] = useState(false);
 
     const handleDeleteAccount = async () => {
         setDeletingAccount(true);
@@ -242,386 +77,102 @@ export default function SettingsPage() {
             const result = await deleteAccount();
             if (result.success) {
                 // deleteAccount 内でトップへ遷移済み。トーストで結果を伝える。
-                showToast(locale === "en" ? "Your account has been deleted." : "退会が完了しました。ご利用ありがとうございました。", "success");
+                showToast(en ? "Your account has been deleted." : "退会が完了しました。ご利用ありがとうございました。", "success");
             } else {
-                showToast(result.error || (locale === "en" ? "Failed to delete account." : "退会処理に失敗しました。"), "error");
+                showToast(result.error || (en ? "Failed to delete account." : "退会処理に失敗しました。"), "error");
                 setShowDeleteModal(false);
             }
         } catch {
-            showToast(locale === "en" ? "Failed to delete account." : "退会処理に失敗しました。", "error");
+            showToast(en ? "Failed to delete account." : "退会処理に失敗しました。", "error");
             setShowDeleteModal(false);
         } finally {
             setDeletingAccount(false);
         }
     };
 
-    // **送り返すまでの間も描かない。** `loading` だけ見ていたので、
-    // 未ログインで開くと `router.replace` が効くまでの1描画ぶん、
-    // メールアドレス・パスワード・退会の並んだ画面が**丸ごと見えていた**
-    // （移設元の `/user/profile` は `loading || fetching` で塞いでいた）。
-    if (loading || !isAuthenticated) {
-        return (
-            <main className="min-h-screen bg-bg text-white flex items-center justify-center">
-                {/* **事前描画で焼かれるのはこの枝**（認証を確かめる前）。
-                    JS が走る前に見えるのはここなので見出しを持たせる */}
-                <h1 className="sr-only">設定</h1>
-                <div className="w-10 h-10 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
-            </main>
-        );
-    }
-
-    const inputClass = "w-full bg-surface-2 border border-line-strong rounded-field px-4 py-3 text-sm text-white placeholder-white/30 focus:outline-none focus:border-white/30 transition-colors";
-    const labelClass = "block text-xs text-white/50 mb-1.5 tracking-wide";
-    // **`/50` より薄くしない。** 黒地で `/40` は 3.66:1 で基準（4.5:1）に
-    // 届かない——`/50` が届く最小の段階（`textContrast.test.ts` が見張る）
-    const sectionLabelClass = "text-[11px] tracking-widest uppercase text-white/50 mb-2";
-    const cardClass = "rounded-2xl bg-white/[0.03] ring-1 ring-line p-4 space-y-3";
-    const subtleButtonClass = "w-full py-2.5 rounded-xl bg-surface text-white text-sm font-medium ring-1 ring-inset ring-white/15 hover:bg-white/10 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2";
-    // 外の画面へ渡す行。押せる高さ（44px）を保つ
-    const rowLinkClass = "flex items-center justify-between rounded-xl px-3 -mx-1 text-sm text-white/90 hover:bg-white/5 transition";
+    const handleLogout = async () => {
+        if (signingOut) return;
+        setSigningOut(true);
+        try {
+            // 終わるとトップへ送られる（`AuthProvider.logout`・ヘッダーのメニューと同じ口）
+            await logout();
+        } finally {
+            setSigningOut(false);
+        }
+    };
+    const busySigningOut = signingOut;
 
     return (
-        <main className="min-h-screen bg-bg text-white">
-            <div className="max-w-sm mx-auto px-4 pt-12 pb-16">
-                <Link
-                    href="/"
-                    // **公開ページは先読みしない**……のだが、ここはログイン後の
-                    // 画面なので免除側（`linkPrefetch.test.ts` の EXEMPT）
-                    className="inline-flex items-center gap-1.5 text-xs text-white/50 hover:text-white/60 transition-colors mb-10"
-                >
-                    <ArrowLeftIcon className="w-3 h-3" />
-                    {locale === "en" ? "Back" : "戻る"}
-                </Link>
+        <SettingsShell title={en ? "Settings" : "設定"}>
+            {/* 板 43 の並び: Pro がいちばん上 */}
+            <SettingsGroup title="Pro" testId="settings-pro">
+                <SettingsRowLink href={ROUTES.BADGES} title={en ? "Badge & Pro mark next to your name" : "名前の横のバッジと Pro マーク"} />
+                <LightAlertSettings locale={en ? "en" : "ja"} />
+            </SettingsGroup>
 
-                <h1 className="mb-6 font-serif text-[30px] leading-tight font-semibold tracking-tight text-white">
-                    {locale === "en" ? "Settings" : "設定"}
-                </h1>
+            <SettingsGroup title={en ? "Travel tools" : "旅の道具"}>
+                <SettingsRowLink
+                    href={ROUTES.ALBUMS}
+                    title={en ? "Shared albums" : "共同アルバム"}
+                    detail={en ? "Collect photos with your travel companions via an invite link" : "招待リンクで、旅の仲間と写真を集める"}
+                />
+                <SettingsRowLink
+                    href={ROUTES.TRIPS}
+                    title={en ? "Trip plans" : "旅行プラン"}
+                    detail={en ? "Put the places you want to visit in order" : "行きたい場所を、回る順に並べる"}
+                />
+            </SettingsGroup>
 
-                {/* ── アカウント ───────────────────────────────── */}
-                <section>
-                    <h2 className={sectionLabelClass}>
-                        {locale === "en" ? "Account" : "アカウント"}
-                    </h2>
-                    <div className={cardClass}>
-                        {/* メールアドレスの変更。
-                            **メールがログインID**（プールの `AliasAttributes` が
-                            email）なので、変える手段が無いと「メールを変えた人は
-                            アカウントごと失う」——退会して作り直す以外に無く、
-                            写真・いいね・フォロワー・共有したURLが全部消えていた。 */}
-                        <p className="text-sm font-semibold text-white/90">
-                            {locale === "en" ? "Change email address" : "メールアドレスを変更"}
-                        </p>
-                        <p className="text-xs text-white/50 leading-relaxed">
-                            {locale === "en" ? "Sign-in address" : "ログインに使うアドレス"}:{" "}
-                            <span className="text-white/80">{currentEmail ?? (emailLoad === "failed"
-                                ? (locale === "en" ? "(couldn't read it — you can still change it below)" : "（読み取れませんでした。下から変更はできます）")
-                                : (locale === "en" ? "(loading)" : "（読み込み中）"))}</span>
-                        </p>
-                        {emailPending === null ? (
-                            <>
-                                <div>
-                                    <label className={labelClass} htmlFor="settings-new-email">
-                                        {locale === "en" ? "New email address" : "新しいメールアドレス"}
-                                    </label>
-                                    <input
-                                        id="settings-new-email"
-                                        type="email"
-                                        // **本人の連絡先**なので `email`（パスワード管理を汚さない）
-                                        autoComplete="email"
-                                        inputMode="email"
-                                        aria-describedby="settings-email-note"
-                                        value={newEmail}
-                                        onChange={(e) => setNewEmail(e.target.value)}
-                                        disabled={emailBusy}
-                                        className={inputClass}
-                                    />
-                                    <p id="settings-email-note" className="mt-1.5 text-xs text-white/50 leading-relaxed">
-                                        {locale === "en"
-                                            ? "We'll send a confirmation code to the new address. Your current address keeps working until you confirm."
-                                            : "新しいアドレスに確認コードを送ります。確定するまでは、いまのアドレスでログインできます"}
-                                    </p>
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => void handleStartEmailChange()}
-                                    disabled={emailBusy || !newEmail.trim()}
-                                    className={subtleButtonClass}
-                                    style={{ touchAction: "manipulation", minHeight: "44px" }}
-                                >
-                                    {emailBusy && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                                    {locale === "en" ? "Send confirmation code" : "確認コードを送る"}
-                                </button>
-                            </>
-                        ) : (
-                            <>
-                                <div>
-                                    <label className={labelClass} htmlFor="settings-email-code">
-                                        {locale === "en" ? `Code sent to ${emailPending}` : `${emailPending} に送ったコード`}
-                                    </label>
-                                    <input
-                                        id="settings-email-code"
-                                        type="text"
-                                        // 届いたコードを自動で入れられるようにする
-                                        autoComplete="one-time-code"
-                                        inputMode="numeric"
-                                        value={emailCode}
-                                        onChange={(e) => setEmailCode(e.target.value)}
-                                        disabled={emailBusy}
-                                        className={inputClass}
-                                    />
-                                </div>
-                                <button
-                                    type="button"
-                                    onClick={() => void handleConfirmEmailChange()}
-                                    disabled={emailBusy || !emailCode.trim()}
-                                    className={subtleButtonClass}
-                                    style={{ touchAction: "manipulation", minHeight: "44px" }}
-                                >
-                                    {emailBusy && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                                    {locale === "en" ? "Change email address" : "メールアドレスを変更する"}
-                                </button>
-                                {/* **やめる道を残す。** コードが届かない／打ち間違えた人が
-                                    ここで詰まると、設定画面から出るしか無くなる */}
-                                <button
-                                    type="button"
-                                    onClick={() => { setEmailPending(null); setEmailCode(""); }}
-                                    disabled={emailBusy}
-                                    className="w-full py-2 text-xs text-white/50 hover:text-white/80 transition disabled:opacity-40"
-                                    style={{ touchAction: "manipulation" }}
-                                >
-                                    {locale === "en" ? "Cancel and use a different address" : "やめる（別のアドレスにする）"}
-                                </button>
-                            </>
-                        )}
+            <SettingsGroup title={en ? "Sharing & privacy" : "公開範囲とプライバシー"}>
+                {/* **解除できる場所がここしか無い**——ストーリーの返信からブロックできるぶん、戻す口が要る */}
+                <SettingsRowLink href={SETTINGS_SUBPAGES.blocked} title={en ? "Blocked people" : "ブロックした人"} />
+                <SettingsRowLink href={SETTINGS_SUBPAGES.closeFriends} title={en ? "Close friends" : "親しい友達"} />
+            </SettingsGroup>
 
-                        <div className="pt-1 border-t border-line" />
+            <SettingsGroup title={en ? "Photos & shooting" : "写真と撮影"}>
+                <SettingsRowLink href={ROUTES.FAVORITES} title={en ? "Liked photos" : "いいねした写真"} />
+                <SettingsRowLink
+                    href="/composition"
+                    title={en ? "Composition guide" : "構図一覧"}
+                    detail={en ? "Explore compositions and illustrated examples" : "構図の説明と作例の配置図を見る"}
+                />
+            </SettingsGroup>
 
-                        {/* **パスワードの変更は <form> で送り、ユーザー名の欄も置く。**
-                            iOS のパスワード管理（キーチェーン）は、フォームの送信と
-                            `autocomplete="username"` の欄を手がかりに「パスワードを
-                            更新しますか」と聞く。ボタンの onClick だけで送っていた頃は
-                            新しいパスワードを覚えず、次のログインで古い方が入って失敗した。
-                            ユーザー名の欄は見せない（`hidden` で支援技術からも外れる。読み取り専用）。 */}
-                        <form
-                            className="space-y-3"
-                            onSubmit={(e) => { e.preventDefault(); void handleChangePassword(); }}
-                        >
-                        <input
-                            type="text"
-                            name="username"
-                            autoComplete="username"
-                            value={currentEmail ?? ""}
-                            readOnly
-                            hidden
-                            aria-label={locale === "en" ? "Username" : "ユーザー名"}
-                            tabIndex={-1}
-                        />
-                        <p className="text-sm font-semibold text-white/90">
-                            {locale === "en" ? "Change password" : "パスワードを変更"}
-                        </p>
-                        <div>
-                            <label className={labelClass} htmlFor="settings-current-password">
-                                {locale === "en" ? "Current password" : "いまのパスワード"}
-                            </label>
-                            <input
-                                id="settings-current-password"
-                                type="password"
-                                // ブラウザとパスワード管理に「いまのもの」と伝える。
-                                // 付けないと新しい方を保存候補にされる
-                                autoComplete="current-password"
-                                value={curPassword}
-                                onChange={(e) => setCurPassword(e.target.value)}
-                                disabled={changingPassword}
-                                className={inputClass}
-                            />
-                        </div>
-                        <div>
-                            <label className={labelClass} htmlFor="settings-new-password">
-                                {locale === "en" ? "New password" : "新しいパスワード"}
-                            </label>
-                            <input
-                                id="settings-new-password"
-                                type="password"
-                                autoComplete="new-password"
-                                // **満たせないと進めない条件は、読み上げにも渡す**
-                                aria-describedby="settings-password-rule"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                disabled={changingPassword}
-                                className={inputClass}
-                            />
-                            <p id="settings-password-rule" className="mt-1.5 text-xs text-white/50 leading-relaxed">
-                                {PASSWORD_RULE_MESSAGE}
-                            </p>
-                        </div>
-                        <button
-                            type="submit"
-                            // **押せるのに必ず失敗する形にしない。** 空欄のうちは
-                            // 押しても往復するだけ
-                            disabled={changingPassword || !curPassword || !newPassword}
-                            className={subtleButtonClass}
-                            style={{ touchAction: "manipulation", minHeight: "44px" }}
-                        >
-                            {changingPassword && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                            {changingPassword
-                                ? (locale === "en" ? "Changing..." : "変更中...")
-                                : (locale === "en" ? "Change password" : "パスワードを変更する")}
-                        </button>
-                        </form>
-
-                        <div className="pt-1 border-t border-line" />
-
-                        {/* すべての端末からログアウト。
-                            **パスワードを変えても他の端末は生きたまま**——Cognito は
-                            パスワードの変更で既存のトークンを失効させないので、漏れた
-                            かもしれない端末を止める手段がサイトに1つも無かった。
-                            消す操作ではないので「危険な操作」には置かない。 */}
-                        <p className="text-sm font-semibold text-white/90">
-                            {locale === "en" ? "Sign out on all devices" : "すべての端末からログアウト"}
-                        </p>
-                        <p className="text-xs text-white/50 leading-relaxed">
-                            {locale === "en"
-                                ? "Signs out everywhere, including this device. Use this if you changed your password because you think someone else got in — a password change alone does not sign other devices out."
-                                : "この端末を含め、すべての端末からログアウトします。パスワードを変えただけでは他の端末はログインしたままなので、誰かに入られたかもしれないときはこちらも押してください"}
-                        </p>
-                        <button
-                            type="button"
-                            onClick={() => void handleSignOutEverywhere()}
-                            disabled={signingOutAll}
-                            className={subtleButtonClass}
-                            style={{ touchAction: "manipulation", minHeight: "44px" }}
-                        >
-                            {signingOutAll && <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />}
-                            {signingOutAll
-                                ? (locale === "en" ? "Signing out..." : "ログアウト中...")
-                                : (locale === "en" ? "Sign out on all devices" : "すべての端末からログアウトする")}
-                        </button>
-                    </div>
-                </section>
-
-                {/* ── プロフィール（名前の横・メダル。2026-10-11） ── */}
-                <section className="mt-10 pt-6 border-t border-line">
-                    <h2 className={sectionLabelClass}>{locale === "en" ? "Profile" : "プロフィール"}</h2>
-                    <div className={cardClass}>
-                        <Link href={ROUTES.ALBUMS} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
-                            <span>{locale === "en" ? "Shared albums" : "共同アルバム"}</span>
-                            <span aria-hidden="true" className="text-white/50">›</span>
-                        </Link>
-                        <Link href="/composition" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
-                            <span>{locale === "en" ? "Shooting guide" : "撮影ガイド"}</span>
-                            <span aria-hidden="true" className="text-white/50">›</span>
-                        </Link>
-                        <Link href={ROUTES.DRAFTS} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
-                            <span>{locale === "en" ? "Photo drafts" : "写真の下書き"}</span>
-                            <span aria-hidden="true" className="text-white/50">›</span>
-                        </Link>
-                        <Link href={ROUTES.SAVED_SPOTS} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
-                            <span>{locale === "en" ? "Saved places" : "行きたい場所"}</span>
-                            <span aria-hidden="true" className="text-white/50">›</span>
-                        </Link>
-                        <Link href={ROUTES.STORY_ARCHIVE} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
-                            <span>{locale === "en" ? "Story archive" : "ストーリーのアーカイブ"}</span>
-                            <span aria-hidden="true" className="text-white/50">›</span>
-                        </Link>
-                        <Link href="/user/highlights" prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
-                            <span>{locale === "en" ? "Manage highlights" : "ハイライトの管理"}</span>
-                            <span aria-hidden="true" className="text-white/50">›</span>
-                        </Link>
-                        <Link href={ROUTES.BADGES} prefetch={false} className={rowLinkClass} style={{ minHeight: "44px", touchAction: "manipulation" }}>
-                            <span>{locale === "en" ? "Medals and name marks" : "メダルと名前の横"}</span>
-                            <span aria-hidden="true" className="text-white/50">›</span>
-                        </Link>
-                    </div>
-                </section>
-                {/* ── Pro（Pro の人だけ・光と天気の知らせ） ──── */}
-                <LightAlertSettings locale={locale === "en" ? "en" : "ja"} />
-
-                {/* ── プライバシー ─────────────────────────────── */}
-                <section className="mt-10 pt-6 border-t border-line">
-                    <h2 className={sectionLabelClass}>
-                        {locale === "en" ? "Privacy" : "プライバシー"}
-                    </h2>
-                    {/* ブロックした人（1人も居なければ何も描かない）。
-                        **解除できる場所がここしか無い**——ストーリーの返信から
-                        ブロックできるようにしたぶん、戻す口が要る */}
-                    <BlockedUsers locale={locale as "ja" | "en"} />
-                    {/* 親しい友達（iOS の設定の「プライバシー」と同じ場所）。
-                        公開範囲を「親しい友達」にした写真を見られる人を選ぶ */}
-                    {userId && <CloseFriends locale={locale as "ja" | "en"} userId={userId} />}
-                    <div className={cardClass}>
-                        {/* **在るものだけ並べる。** この2つは実在するページ
-                            （`app/privacy` / `app/terms`）。同じ節に「広告の
-                            設定」を置きかけたが、Web 版に広告の実装が無いので
-                            落とした（ファイル冒頭の一覧を見よ） */}
-                        <Link
-                            href={ROUTES.PRIVACY}
-                            className={rowLinkClass}
-                            style={{ minHeight: "44px", touchAction: "manipulation" }}
-                        >
-                            <span>{locale === "en" ? "Privacy policy" : "プライバシーポリシー"}</span>
-                            <span aria-hidden="true" className="text-white/50">›</span>
-                        </Link>
-                        <Link
-                            href={ROUTES.TERMS}
-                            className={rowLinkClass}
-                            style={{ minHeight: "44px", touchAction: "manipulation" }}
-                        >
-                            <span>{locale === "en" ? "Terms of use" : "利用規約"}</span>
-                            <span aria-hidden="true" className="text-white/50">›</span>
-                        </Link>
-                    </div>
-                </section>
-
-                {/* ── サポート ─────────────────────────────────── */}
-                {/* **宛先が空なら節ごと描かない。** `NEXT_PUBLIC_CONTACT_EMAIL`
-                    は `deploy.yml` が直書きで渡していて（`publicEnvWiring.test.ts`
-                    が空に戻っていないことまで見張る）本番では出るが、それを
-                    前提にして空の枠を残さない——`privacy` / `terms` /
-                    `MemberOnlyNotice` も同じ形で守っている */}
+            <SettingsGroup title={en ? "Help & terms" : "ヘルプと規約"}>
+                <SettingsRowLink href={SETTINGS_SUBPAGES.legal} title={en ? "Terms & Privacy" : "利用規約・プライバシーポリシー"} />
+                {/* **宛先が空なら行を描かない。** `NEXT_PUBLIC_CONTACT_EMAIL` は `deploy.yml` が直書きで渡していて
+                    （`publicEnvWiring.test.ts` が見張る）本番では出るが、それを前提にして押しても何も起きない行を残さない */}
                 {siteConfig.contactEmail && (
-                    <section className="mt-10 pt-6 border-t border-line">
-                        <h2 className={sectionLabelClass}>
-                            {locale === "en" ? "Support" : "サポート"}
-                        </h2>
-                        <div className={cardClass}>
-                            <a
-                                href={`mailto:${siteConfig.contactEmail}`}
-                                className={rowLinkClass}
-                                style={{ minHeight: "44px", touchAction: "manipulation" }}
-                            >
-                                <span>{locale === "en" ? "Contact us" : "お問い合わせ"}</span>
-                                <span className="text-xs text-white/50">{siteConfig.contactEmail}</span>
-                            </a>
-                        </div>
-                    </section>
+                    <SettingsRowLink href={`mailto:${siteConfig.contactEmail}`} external title={en ? "Contact" : "問い合わせ"} />
                 )}
+            </SettingsGroup>
 
-                {/* ── 危険な操作 ───────────────────────────────── */}
-                <section className="mt-10 pt-6 border-t border-line">
-                    <h2 className="text-[11px] tracking-widest uppercase text-danger mb-2">
-                        {locale === "en" ? "Danger zone" : "危険な操作"}
-                    </h2>
-                    <div className="rounded-2xl bg-danger/[0.05] ring-1 ring-danger/15 p-4">
-                        <p className="text-sm font-semibold text-white/90 mb-1">
-                            {locale === "en" ? "Delete account" : "退会（アカウント削除）"}
-                        </p>
-                        <p className="text-xs text-white/50 leading-relaxed mb-3">
-                            {locale === "en"
-                                ? "Permanently deletes your photos, stories, profile, and account. This can't be undone."
-                                : "写真・ストーリー・プロフィール・アカウントをすべて完全に削除します。取り消しはできません。"}
-                        </p>
-                        <button
-                            type="button"
-                            ref={deleteAccountBtnRef}
-                            onClick={() => setShowDeleteModal(true)}
-                            className="w-full py-2.5 rounded-xl bg-transparent text-danger text-sm font-medium ring-1 ring-inset ring-danger/30 hover:bg-danger/10 active:scale-[0.98] transition"
-                            style={{ touchAction: "manipulation" }}
-                        >
-                            {locale === "en" ? "Delete my account" : "退会する"}
-                        </button>
-                    </div>
-                </section>
-            </div>
+            <SettingsGroup title={en ? "Account" : "アカウント"}>
+                {/* メールアドレスの変更は Web だけ（メールがログインID・`email/page.tsx` の注記） */}
+                <SettingsRowLink href={SETTINGS_SUBPAGES.email} title={en ? "Change email address" : "メールアドレスを変える"} />
+                <SettingsRowLink href={SETTINGS_SUBPAGES.password} title={en ? "Change password" : "パスワードを変える"} />
+            </SettingsGroup>
+
+            {/* ログアウトは削除と同じ札に並べない（押し間違い・確認なしで効く）。白い行のまま・矢印なし（iOS） */}
+            <SettingsGroup testId="settings-logout">
+                <SettingsRowButton
+                    title={busySigningOut ? (en ? "Signing out…" : "ログアウトしています…") : (en ? "Log out" : "ログアウト")}
+                    onClick={() => void handleLogout()}
+                    disabled={busySigningOut}
+                    busy={busySigningOut}
+                />
+            </SettingsGroup>
+
+            {/* アカウントの削除（いちばん下・別の札）。名前ごと danger（#F0565A）・行き先があるので矢印あり（板 v2） */}
+            <SettingsGroup testId="settings-delete">
+                <SettingsRowButton
+                    ref={deleteAccountBtnRef}
+                    title={en ? "Delete account" : "アカウントの削除"}
+                    color="danger"
+                    chevron
+                    onClick={() => setShowDeleteModal(true)}
+                />
+            </SettingsGroup>
 
             <DeleteAccountModal
                 openerRef={deleteAccountBtnRef}
@@ -631,6 +182,6 @@ export default function SettingsPage() {
                 locale={locale}
                 deleting={deletingAccount}
             />
-        </main>
+        </SettingsShell>
     );
 }

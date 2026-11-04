@@ -9,8 +9,8 @@
  * したぶん、**誤って押すと元に戻せない**状態を新しく作っていた
  * ——しかもブロックは相手とのフォローを両向きに切るので、実害がある。
  *
- * 置き場所は設定（`/user/settings`）の「プライバシー」。**1人も居なければ
- * 何も描かない**——普通の人には一生関係の無い節なので。
+ * 置き場所は設定の下の画面「ブロックした人」（`/user/settings/blocked`・2026-11-04 に iOS と同じく
+ * 設定の行 → 画面にした）。以前は設定の中に一覧ごと開き、1人も居なければ何も描かなかった。
  *
  * 2026-09-21 にプロフィール編集から設定へ移した。プロフィール編集は
  * 「他人に見える自分」を作る画面で、ブロックは**他人を見えなくする**
@@ -20,6 +20,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { userFetch, readApiError, sessionErrorMessage } from "../../../lib/utils/api";
 import { usableUserRows, type UserRow } from "../../../lib/utils/userRows";
+import UserAvatar from "../../components/UserAvatar";
+import { LoadingState } from "../../components/StateViews";
+import { INLINE_BTN, INLINE_BTN_STYLE } from "../../components/buttonStyles";
 
 export default function BlockedUsers({ locale }: { locale: "ja" | "en" }) {
     const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
@@ -81,58 +84,59 @@ export default function BlockedUsers({ locale }: { locale: "ja" | "en" }) {
     // **取得に失敗したら、そう言う。** 黙って消すと、ストーリーの返信欄が
     // 「解除は設定の『ブロックした人』からできます」と案内している先が
     // **何も無い行き止まり**になる（解除の口はここしかない）。
-    // 黙っていた頃は `state` が出力を1度も変えず、「0人と言い切らない」を
-    // 守っていたのは長さの判定だけだった＝この分岐は無検証だった。
+    // 2026-11-04: 下の画面（`/user/settings/blocked`）になったので、iOS の `BlockedUsersView` と同じく
+    // 失敗は danger の1文・読み込み中は灰の骨格・0人は「ブロックしている人はいません」と言う
+    // （設定の中に一覧ごと開いていた頃は「普段は空の節」なので黙っていた）
     if (state === "failed") {
         return (
-            <div className="mt-10 pt-6 border-t border-line">
-                <p className="text-xs text-white/60">
-                    {locale === "en"
-                        ? "Couldn't load your blocked list. Reload the page to try again."
-                        : "ブロックした人を読み込めませんでした。ページを開き直すともう一度試します。"}
-                </p>
-            </div>
+            <p role="alert" className="m-0 px-1 text-[15px] leading-[22px] text-danger" data-testid="blocked-failed">
+                {locale === "en"
+                    ? "Couldn't load your blocked list. Reload the page to try again."
+                    : "ブロックした人を読み込めませんでした。ページを開き直すともう一度試します。"}
+            </p>
         );
     }
-    // 取得中は黙る（この節はふだん空。読み込み中の枠を置く方が邪魔）
-    if (state !== "ready" || users.length === 0) return null;
+    if (state === "loading") return <LoadingState kind="rows" locale={locale} />;
+    if (users.length === 0) {
+        return (
+            <p className="m-0 px-1 text-[15px] leading-[22px] text-text-3" data-testid="blocked-empty">
+                {locale === "en" ? "No one is blocked" : "ブロックしている人はいません"}
+            </p>
+        );
+    }
 
     return (
-        <div className="mt-10 pt-6 border-t border-line">
-            <p className="text-[11px] tracking-widest uppercase text-white/60 mb-2">
-                {locale === "en" ? "Blocked" : "ブロックした人"}
-            </p>
-            <p className="text-xs text-white/60 leading-relaxed mb-3">
-                {locale === "en"
-                    ? "They can't reply to your stories, comment on your photos, or follow you. Unblocking does not restore the follows that blocking removed."
-                    : "ストーリーへの返信・写真へのコメント・フォローができなくなります。解除しても、ブロックのときに外れたフォローは戻りません。"}
-            </p>
+        <div className="flex flex-col gap-3">
             {/* 解除が効かなかった理由。**一覧の上**に置く——押したボタンは
                 行の中にあるが、行は消えないので近くに1行あれば足りる */}
             {actionError && (
-                <p role="alert" className="text-sm text-white/85 mb-3">{actionError}</p>
+                <p role="alert" className="m-0 px-1 text-sm text-danger">{actionError}</p>
             )}
-            <ul className="rounded-2xl bg-white/[0.03] ring-1 ring-line divide-y divide-white/5">
+            {/* 板 v2: 人の行は 64、下に白 8% の区切り線（iOS `JPHeight.tallRow`）。札にしない */}
+            <ul className="m-0 p-0 list-none">
                 {users.map((u) => (
-                    <li key={u.id} className="flex items-center justify-between gap-3 px-4 py-3">
-                        {/* **退会した人はここで出し分ける。** サーバーが返す
-                            `name` は日本語固定なので、そのまま出すと
-                            英語表示の人にも「退会したユーザー」が出る
-                            （`FollowingSheet` は `deleted` を見て
-                            "Deleted user" を出している＝同じ画面群で
-                            扱いが割れていた）。解除は押せるままにする
-                            ——押せないと外せなくなる */}
-                        <span className={`text-sm truncate ${u.deleted ? "text-white/60" : "text-white/85"}`}>
-                            {u.deleted
-                                ? (locale === "en" ? "Deleted user" : "退会したユーザー")
-                                : (u.name ?? (locale === "en" ? "User" : "旅人"))}
+                    <li key={u.id} className="flex items-center gap-3 min-h-[64px] border-b border-line">
+                        {/* **プロフィールへは飛ばさない**（iOS と同じ。プロフィールはブロック中を見ておらず、
+                            「フォローする」が出て押すとサーバーに断られる） */}
+                        <UserAvatar userId={u.deleted ? "" : u.id} className="w-11 h-11 flex-shrink-0" iconClassName="w-6 h-6" />
+                        <span className="flex-1 min-w-0 flex flex-col gap-0.5">
+                            {/* **退会した人はここで出し分ける。** サーバーが返す `name` は日本語固定なので、
+                                そのまま出すと英語表示の人にも「退会したユーザー」が出る。解除は押せるままにする
+                                ——押せないと外せなくなる */}
+                            <span className={`truncate text-[14px] font-semibold ${u.deleted ? "text-white/60" : "text-white"}`}>
+                                {u.deleted
+                                    ? (locale === "en" ? "Deleted user" : "退会したユーザー")
+                                    : (u.name ?? (locale === "en" ? "User" : "旅人"))}
+                            </span>
+                            {!u.deleted && u.username && <span className="truncate text-xs text-text-3">@{u.username}</span>}
                         </span>
                         <button
                             type="button"
                             onClick={() => void unblock(u.id)}
                             disabled={busy === u.id}
-                            className="flex-shrink-0 px-3 py-1.5 rounded-full text-xs text-white/85 ring-1 ring-inset ring-white/20 hover:bg-white/10 disabled:opacity-50 active:scale-95 transition"
-                            style={{ touchAction: "manipulation" }}
+                            // 線のボタン（白14%の縁・13 semibold・見た目 36・押せる高さ 44＝`INLINE_BTN`）
+                            className={`${INLINE_BTN} flex-shrink-0 text-white ring-1 ring-inset ring-line-strong hover:bg-white/10`}
+                            style={{ ...INLINE_BTN_STYLE, touchAction: "manipulation" }}
                         >
                             {busy === u.id
                                 ? (locale === "en" ? "Unblocking…" : "解除しています…")
