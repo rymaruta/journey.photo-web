@@ -187,6 +187,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: "weekly",
             priority: 0.5,
         },
+        ...(["/learn", "/learn/camera-basics", "/learn/camera-brands"].map((route) => ({
+            url: `${baseUrl}${route}`,
+            lastModified: "2026-11-04",
+            changeFrequency: "monthly" as const,
+            priority: route === "/learn" ? 0.7 : 0.8,
+        }))),
         ...spotIndexUrls,
         ...spotAreaUrls,
         // 国・テーマ・季節の切り口の頁（2026-10-11・`lib/data/spotTopics.ts`）
