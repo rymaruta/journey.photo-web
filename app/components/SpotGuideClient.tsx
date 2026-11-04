@@ -547,7 +547,7 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
     // 配るのは**サーバーが組んだ canonical**（`window.location` だとクエリが付いたまま配られる）
     const handleShare = async () => {
         const url = pageUrl ?? (typeof window === "undefined" ? "" : window.location.href.split(/[?#]/)[0]);
-        const result = await shareUrl(url, spot.name, region || undefined);
+        const result = await shareUrl(url, spot.name, region || undefined, "spot");
         if (result === "copied") {
             showToast(isJa ? "リンクをクリップボードにコピーしました" : "Link copied to clipboard!", "success");
         } else if (result === "failed") {

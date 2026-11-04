@@ -160,7 +160,7 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
         share.shareUrl.mockResolvedValue("copied");
         view();
         fireEvent.click(screen.getByRole("button", { name: "シェア" }));
-        await waitFor(() => expect(share.shareUrl).toHaveBeenCalledWith(PAGE, "高屋神社", "香川県 観音寺市"));
+        await waitFor(() => expect(share.shareUrl).toHaveBeenCalledWith(PAGE, "高屋神社", "香川県 観音寺市", "spot"));
         await waitFor(() => expect(toast.showToast).toHaveBeenCalledWith("リンクをクリップボードにコピーしました", "success"));
     });
 
