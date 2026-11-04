@@ -103,6 +103,12 @@ export const ROUTES = {
      * 画面が日付のファイルから読むので、HTML は空の殻（`app/q/layout.tsx`）
      */
     QUIZ: "/q",
+    /** 写真とカメラの教科書（記事の一覧）。記事の台帳は `lib/data/learn/articles.ts` */
+    LEARN: "/learn",
+    LEARN_CAMERA_BASICS: "/learn/camera-basics",
+    LEARN_CAMERA_BRANDS: "/learn/camera-brands",
+    /** 構図ガイド（ガイド線を自分の写真に重ねる）。設定と教科書の一覧から入る */
+    COMPOSITION: "/composition",
     PRIVACY: "/privacy",
     TERMS: "/terms",
     ADMIN: "/admin",

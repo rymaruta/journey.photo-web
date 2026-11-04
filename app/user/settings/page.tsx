@@ -132,7 +132,7 @@ export default function SettingsPage() {
             <SettingsGroup title={en ? "Photos & shooting" : "写真と撮影"}>
                 <SettingsRowLink href={ROUTES.FAVORITES} title={en ? "Liked photos" : "いいねした写真"} />
                 <SettingsRowLink
-                    href="/composition"
+                    href={ROUTES.COMPOSITION}
                     title={en ? "Composition guide" : "構図一覧"}
                     detail={en ? "Explore compositions and illustrated examples" : "構図の説明と作例の配置図を見る"}
                 />
