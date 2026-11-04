@@ -1,0 +1,67 @@
+name: Verify world spot live API (read only)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'scripts/verify_world_spot_sources.py'
+      - 'scripts/convert_world_spots_to_ledger.py'
+      - 'scripts/test_verify_world_spot_sources.py'
+      - '.github/workflows/verify-world-spot-live-api.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  live-api:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify real Wikimedia APIs and dry-run publication
+        run: |
+          python - <<'PY'
+          import json
+          import sys
+          import tempfile
+          from pathlib import Path
+          sys.path.insert(0, str(Path('scripts').resolve()))
+          from verify_world_spot_sources import verify
+          from convert_world_spots_to_ledger import convert
+
+          # Known Wikidata entity and location; no write to the repository or deployment.
+          candidate = {
+              'wikidataId': 'Q243',
+              'name': 'Eiffel Tower',
+              'countryCode': 'FR',
+              'coordinates': [2.2945, 48.8584],
+              'source': 'wikidata',
+              'sourceUrl': 'https://www.wikidata.org/entity/Q243',
+          }
+          editorial = verify(candidate)
+          if editorial is None:
+              raise SystemExit('Live Wikimedia verification returned no valid record')
+          spot = convert(candidate, editorial)
+          if spot is None:
+              raise SystemExit('Live source-backed record could not be converted')
+          if spot['wikidataId'] != 'Q243' or spot['coords'] != {'lat': 48.8584, 'lng': 2.2945}:
+              raise SystemExit('Live result identity or coordinates mismatch')
+          if 'Wikipedia contributors' not in spot.get('attribution', ''):
+              raise SystemExit('Wikipedia attribution missing from output')
+          if len(spot['aiCheck']['sources']) < 2:
+              raise SystemExit('Source links missing')
+          with tempfile.TemporaryDirectory() as tmp:
+              path = Path(tmp) / 'spot.json'
+              path.write_text(json.dumps(spot, ensure_ascii=False), encoding='utf-8')
+              round_trip = json.loads(path.read_text(encoding='utf-8'))
+              if round_trip != spot:
+                  raise SystemExit('JSON serialization round-trip mismatch')
+          print(json.dumps({
+              'result': 'PASS', 'wikidataId': spot['wikidataId'],
+              'sourceCount': len(spot['aiCheck']['sources']),
+              'attributionPresent': True, 'language': editorial.get('sourceLanguage'),
+          }))
+          PY
