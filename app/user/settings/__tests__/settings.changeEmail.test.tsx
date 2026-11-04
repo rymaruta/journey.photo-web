@@ -41,7 +41,8 @@ vi.mock("../../../../lib/auth/cognito", async (importActual) => ({
     confirmEmailChange: (...a: unknown[]) => mockConfirmEmailChange(...a),
 }));
 
-const SettingsPage = (await import("../page")).default;
+// 2026-11-04: 設定の下の画面（`/user/settings/email`）へ移した（iOS と同じく行 → 画面）
+const SettingsPage = (await import("../email/page")).default;
 
 const ok = (data: unknown) => ({ ok: true, json: async () => data });
 

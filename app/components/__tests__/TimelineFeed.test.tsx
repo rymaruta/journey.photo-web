@@ -21,7 +21,8 @@ vi.mock("../../auth/context", () => ({ useAuth: () => authState.current }));
 vi.mock("../../i18n/context", () => ({ useLocale: () => ({ locale: "ja", labels: {} }) }));
 vi.mock("@/lib/utils/log", () => ({ log: { warn: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 
-const photosState = vi.hoisted(() => ({ current: { photos: [] as unknown[], loading: false, loaded: true, failed: false } }));
+type PhotosState = { photos: unknown[]; loading: boolean; loaded: boolean; failed: boolean; retry?: () => void };
+const photosState = vi.hoisted(() => ({ current: { photos: [], loading: false, loaded: true, failed: false } as PhotosState }));
 vi.mock("../../../lib/hooks/usePhotos", () => ({ usePhotos: () => photosState.current }));
 
 const follow = vi.hoisted(() => ({
@@ -131,11 +132,17 @@ describe("TimelineFeed", () => {
         expect(follow.fetch).not.toHaveBeenCalled();
     });
 
-    it("誰もフォローしていなければ、ユーザーを探す導線", async () => {
+    // 2026-11-04: iOS のホームと同じ形（`GalleryView.feedEmptyState`）。明朝の見出し → 一文 → 主ボタン（真鍮の塗り）
+    it("誰もフォローしていなければ、iOS と同じ空の知らせ（見出し・一文・「写真や人を探す」）", async () => {
         follow.fetch.mockResolvedValue(new Set());
         render(<Feed />);
-        expect(await screen.findByText("まだ誰もフォローしていません。")).toBeInTheDocument();
-        expect(screen.getByRole("link", { name: "ユーザーを探す" }).getAttribute("href")).toBe("/users/search");
+        expect(await screen.findByRole("heading", { name: "フォロー中の人の写真はまだありません" })).toBeInTheDocument();
+        expect(screen.getByText("気になる作者をフォローすると、新しい写真がここに並びます。")).toBeInTheDocument();
+        const action = screen.getByRole("link", { name: "写真や人を探す" });
+        expect(action.getAttribute("href")).toBe("/search");
+        expect(action.className.split(/\s+/)).toEqual(expect.arrayContaining(["bg-accent-fill", "text-ink"]));
+        // 以前の文言は出さない
+        expect(screen.queryByText("まだ誰もフォローしていません。")).toBeNull();
     });
 
     // **0人の答えは確定しているので、写真を待たない**（待つと0人の人にだけ
@@ -144,7 +151,7 @@ describe("TimelineFeed", () => {
         photosState.current = { photos: [], loading: true, loaded: false, failed: false };
         follow.fetch.mockResolvedValue(new Set());
         render(<Feed />);
-        expect(await screen.findByText("まだ誰もフォローしていません。")).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "フォロー中の人の写真はまだありません" })).toBeInTheDocument();
         expect(screen.queryByRole("status")).toBeNull();
     });
 
@@ -153,23 +160,24 @@ describe("TimelineFeed", () => {
         follow.fetch.mockReturnValue(new Promise(() => {}));
         render(<Feed />);
         expect(screen.getByRole("status")).toHaveTextContent("読み込み中");
-        expect(screen.queryByText("まだ誰もフォローしていません。")).toBeNull();
+        expect(screen.queryByTestId("following-empty")).toBeNull();
     });
 
     it("一覧の取得に失敗したら、そう言って取り直せる", async () => {
         follow.fetch.mockRejectedValueOnce(new Error("500")).mockResolvedValueOnce(new Set(["A"]));
         render(<Feed />);
-        expect(await screen.findByText("フォロー中の一覧を読み込めませんでした。")).toBeInTheDocument();
+        expect(await screen.findByText("フォロー中の人を読み込めませんでした。")).toBeInTheDocument();
+        expect(screen.getByTestId("state-error")).toBeInTheDocument();
         expect(cardIds()).toEqual([]);
-        fireEvent.click(screen.getByRole("button", { name: "もう一度読み込む" }));
+        fireEvent.click(screen.getByRole("button", { name: "もう一度試す" }));
         await waitFor(() => expect(cardIds()).toEqual(["a-new", "a-old"]));
         expect(follow.fetch).toHaveBeenCalledTimes(2);
     });
 
-    it("フォロー先が1枚も上げていなければ、そう言う（一覧が届いた回だけ）", async () => {
+    it("フォロー先が1枚も上げていなければ、空の知らせ（一覧が届いた回だけ）", async () => {
         follow.fetch.mockResolvedValue(new Set(["C"]));
         render(<Feed />);
-        expect(await screen.findByText("フォロー中の人は、まだ写真を投稿していません。")).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "フォロー中の人の写真はまだありません" })).toBeInTheDocument();
     });
 
     it("写真の一覧がまだなら「まだ投稿していません」と言い切らない", async () => {
@@ -178,14 +186,27 @@ describe("TimelineFeed", () => {
         render(<Feed />);
         await waitFor(() => expect(follow.fetch).toHaveBeenCalled());
         await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("読み込み中"));
-        expect(screen.queryByText(/まだ写真を投稿していません/)).toBeNull();
+        expect(screen.queryByTestId("following-empty")).toBeNull();
     });
 
-    it("写真の一覧が落ちた回は、投稿が無いとは言わない", async () => {
-        photosState.current = { photos: [], loading: false, loaded: false, failed: true };
+    // 文字だけの「読み込み中…」にしない（板 Components 06・iOS の `JPLoadingState(kind: .grid)`）
+    it("読み込み中は写真の格子の灰の骨組み", async () => {
+        follow.fetch.mockReturnValue(new Promise(() => {}));
+        render(<Feed />);
+        expect(screen.getByTestId("state-loading")).toBeInTheDocument();
+        expect(await screen.findByTestId("state-loading-bones")).toBeInTheDocument();
+        expect(screen.queryByText("読み込み中…")).toBeNull();
+    });
+
+    it("写真の一覧が落ちた回は、投稿が無いとは言わず、取り直せる", async () => {
+        const retry = vi.fn();
+        photosState.current = { photos: [], loading: false, loaded: false, failed: true, retry };
         follow.fetch.mockResolvedValue(new Set(["A"]));
         render(<Feed />);
-        expect(await screen.findByText("写真の一覧を読み込めませんでした。")).toBeInTheDocument();
+        expect(await screen.findByText("読み込めませんでした")).toBeInTheDocument();
+        expect(screen.queryByTestId("following-empty")).toBeNull();
+        fireEvent.click(screen.getByRole("button", { name: "もう一度試す" }));
+        expect(retry).toHaveBeenCalledTimes(1);
     });
 
     // フォロー解除・ブロックはこの画面の外（プロフィール・ストーリー）で起きる。
@@ -206,7 +227,7 @@ describe("TimelineFeed", () => {
         await waitFor(() => expect(cardIds()).toEqual(["a-new", "a-old"]));
         act(() => { follow.listeners.forEach((fn) => fn()); });
         await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("読み込み中"));
-        expect(screen.queryByText("まだ誰もフォローしていません。"), "取り直し中に0人と言っている").toBeNull();
+        expect(screen.queryByTestId("following-empty"), "取り直し中に0人と言っている").toBeNull();
         expect(cardIds()).toEqual([]);
     });
 });

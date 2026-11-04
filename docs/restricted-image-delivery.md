@@ -143,7 +143,7 @@ aws cloudfront create-key-group --key-group-config \
   "Name=journey-private,Items=<公開鍵のId>"
 ```
 
-### 3. `/private/*` の振る舞いを足す（ディストリビューション `EYRLTGCPOS9E4`）
+### 3. `/private/*` の振る舞いを足す（ディストリビューション `<distribution-id>`）
 
 **`/uploads/*` は触らない。** `/private/*` を**新しい振る舞い**として足し、
 そこにだけ「ビューワーアクセスを制限する（署名付き URL）」＋ 2 の鍵グループ。

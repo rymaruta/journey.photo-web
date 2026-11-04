@@ -3,6 +3,7 @@ import {
     siteConfig,
     generateStructuredData,
     generatePhotoStructuredData,
+    generateHomeStructuredData,
     generateBreadcrumbStructuredData,
     generateOrganizationStructuredData,
     generateWebSiteStructuredData,
@@ -388,5 +389,32 @@ describe("generateStructuredData: 題が無い写真の名前", () => {
     });
     it("題があればその題", () => {
         expect(names([{ id: "1", src: "https://cdn.example.com/1.jpg", title: { ja: "朝の湖" }, location: "板橋区" }])).toEqual(["朝の湖"]);
+    });
+});
+
+describe("画像メタデータの作者（Search Console「creator がありません」・2026-11-04）", () => {
+    it("ギャラリーの各画像が、写真ページと同じ作者の節点を名乗る", () => {
+        const photo = { id: "p1", src: "/uploads/a.jpg", title: "白鳥", displayName: "丸田 竜平", userId: "u1" };
+        const gallery = generateStructuredData([photo]) as { image: Array<Record<string, unknown>> };
+        const page = generatePhotoStructuredData({ ...photo, title: "白鳥" } as Parameters<typeof generatePhotoStructuredData>[0]) as Record<string, unknown>;
+        expect(gallery.image[0].creator).toEqual(page.creator);
+        expect(gallery.image[0].creator).toMatchObject({ "@type": "Person", name: "丸田 竜平", url: expect.stringContaining("/users/u1") });
+    });
+
+    it("作者名が無い写真には、空の creator を出さない", () => {
+        const gallery = generateStructuredData([{ id: "p2", src: "/uploads/b.jpg" }]) as { image: Array<Record<string, unknown>> };
+        expect("creator" in gallery.image[0]).toBe(false);
+    });
+
+    it("撮影者（photographer）が表示名より先に使われる（写真ページと同じ決め方）", () => {
+        const gallery = generateStructuredData([{ id: "p3", src: "/uploads/c.jpg", photographer: "別の撮影者", displayName: "丸田 竜平" }]) as { image: Array<Record<string, unknown>> };
+        expect(gallery.image[0].creator).toMatchObject({ name: "別の撮影者" });
+    });
+
+    it("トップの代表画像（固定の1枚）にも作者がある（出典の lumoplank）", () => {
+        const home = generateHomeStructuredData([{ id: "p4", src: "/uploads/d.jpg", displayName: "丸田 竜平" }]) as { primaryImageOfPage: Record<string, unknown>; image: Array<Record<string, unknown>> };
+        expect(home.primaryImageOfPage.creator).toEqual({ "@type": "Person", name: "lumoplank" });
+        expect(home.image[0].creator).toEqual({ "@type": "Person", name: "lumoplank" });
+        expect(String(home.primaryImageOfPage.creditText)).toContain("lumoplank");
     });
 });

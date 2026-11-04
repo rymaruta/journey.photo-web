@@ -57,10 +57,13 @@ const order = () => [...cards().querySelectorAll("li")].map((li) =>
     (li.querySelector("[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry]") as HTMLElement).dataset.testid);
 
 describe("ホームの上段の札", () => {
-    it("タブの直下に札の並び（今日のテーマ → 今日の一問 → 撮影スポット）", async () => {
+    // 2026-11-04: iOS と同じく「輪 → 上の札 → 切り替え」（`GalleryView.feed`）。以前はタブの直下だった
+    it("切り替えのすぐ上に札の並び（今日のテーマ → 今日の一問 → 撮影スポット）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         await screen.findByTestId("home-top-cards");
-        expect(screen.getByRole("tablist").nextElementSibling).toBe(cards());
+        // 札の次は、切り替えの行の元の位置の目印（`StickyTabRow`）→ 留まる行
+        expect(cards().nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
+        expect(screen.getByTestId("home-feed-row")).toContainElement(screen.getByRole("tablist"));
         expect(order()).toEqual(["home-theme-card", "home-quiz-entry", "home-spots-entry"]);
     });
 

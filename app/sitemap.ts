@@ -10,6 +10,8 @@ import { publishableSpots } from "../lib/utils/spotGuide";
 import { spotTopicSitemapEntries } from "../lib/data/spotTopics";
 import RAW_PHOTOS from "@/lib/data/photos";
 import type { Photo } from "@/lib/data/photos";
+import { ROUTES } from "../lib/routes";
+import { LEARN_ARTICLES } from "../lib/data/learn/articles";
 
 export const dynamic = "force-static";
 
@@ -186,6 +188,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             lastModified: newestPhoto ?? now,
             changeFrequency: "weekly",
             priority: 0.5,
+        },
+        // 写真とカメラの教科書（2026-11-04）。一覧と、この頁群の記事だけ（構図ガイドは別の頁で、今まで載せていない）
+        {
+            url: `${baseUrl}${ROUTES.LEARN}`,
+            lastModified: LEARN_ARTICLES.reduce((m, a) => (a.modified && a.modified > m ? a.modified : m), ""),
+            changeFrequency: "monthly" as const,
+            priority: 0.7,
+        },
+        ...LEARN_ARTICLES.filter((a) => a.modified).map((a) => ({
+            url: `${baseUrl}${a.href}`,
+            lastModified: a.modified,
+            changeFrequency: "monthly" as const,
+            priority: 0.8,
+        })),
+        // 構図ガイド（2026-11-04・検索に出せる公開頁にした。`app/composition/layout.tsx`）。
+        // 中身は端末内で動く道具で更新日が無いので、lastModified は付けない
+        {
+            url: `${baseUrl}${ROUTES.COMPOSITION}`,
+            changeFrequency: "monthly" as const,
+            priority: 0.6,
         },
         ...spotIndexUrls,
         ...spotAreaUrls,

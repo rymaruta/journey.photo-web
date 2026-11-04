@@ -379,42 +379,37 @@ open）。`DiscoverRail` が全リンクを `<a>` にし、doc に「#141 が入
 owner が操作感の変更を了とするなら `radiogroup` に寄せるのが正解、と
 書いておく。
 
-## AWS 本番リソース一覧
+## 環境ごとの値の取り出し方
 
-| リソース | 名前 / ID |
+**このリポジトリは公開なので、リソース名・ID・URL をこの文書に書き写さない。**
+（以前ここにあった「AWS 本番／ステージングリソース一覧」は 2026-11-04 に消した。
+値は下の場所から取る。値が変わったとき、この文書の書き写しが古いまま残る事故も防げる。）
+
+環境は2つ（本番＝`main`、ステージング＝`develop`）。AWS のリソースの名前は
+環境名が接頭辞（`prod-*` / `staging-*`）で、リージョンは `ap-northeast-1`。
+
+| 欲しい値 | 取り出し方 |
 |---|---|
-| 静的サイト S3 バケット | `prod-journey-photo.com` |
-| 画像アップロード S3 バケット | `prod-journey-photo-upload` |
-| CloudFront ディストリビューション ID | `EYRLTGCPOS9E4` |
-| CloudFront ドメイン | `d1s3dwwzgxf5ni.cloudfront.net` |
-| カスタムドメイン | `journey-photo.com` |
-| API Gateway (管理API) | `https://ionr4ik01e.execute-api.ap-northeast-1.amazonaws.com` |
-| API Gateway (ユーザーAPI) | `https://gu7kxwdc5l.execute-api.ap-northeast-1.amazonaws.com` |
-| Cognito User Pool ID | `ap-northeast-1_ZbuhDQsWz` |
-| Cognito Client ID | `21cs4cd8dkttmg3snloj72u8mu` |
-| DynamoDB テーブル | `prod-photo-gallery-photos` |
-| AWS リージョン | `ap-northeast-1` |
+| 静的サイトの S3 バケット名・画像アップロードの S3 バケット名・DynamoDB テーブル名（写真／利用者） | `.github/workflows/deploy.yml` の `config` ジョブ（`id: pick` の `case` 文）の `siteBucket` `uploadBucket` `photosTable` `usersTable`。API 側は `deploy-api.yml` の同名ステップ。環境名＋固定の語尾の形なので、`aws s3 ls` / `aws dynamodb list-tables` で接頭辞を見ても確かめられる |
+| サイトの URL・CloudFront の既定ドメイン | `deploy.yml` の `config` ジョブの `siteUrl` `cloudfrontUrl`。AWS 側からは `aws cloudfront list-distributions`（`DomainName` と `Aliases`） |
+| CloudFront ディストリビューション ID | ステージング: `deploy.yml` の `config` ジョブ。本番: GitHub の Secrets `CLOUDFRONT_DISTRIBUTION_ID`（値は読めないので、必要なら `aws cloudfront list-distributions` で上のドメインと突き合わせる）。API 側は `deploy-api.yml` の `cloudfrontDistributionId` |
+| API Gateway の URL（管理 API・利用者 API） | `deploy.yml` の `config` ジョブの `apiBaseUrl` `userApiBaseUrl`。AWS 側からは `aws cloudformation describe-stacks` でスタック（`api/`・`api-user/` の `serverless.yml` の `service` と stage で決まる名前）の Outputs、または `aws apigatewayv2 get-apis` / `aws apigateway get-rest-apis` |
+| Cognito のユーザープール ID・クライアント ID・プール名 | `deploy.yml` の `config` ジョブの `cognitoUserPoolId` `cognitoClientId`。プール名（`cognitoPoolName`）は `deploy-api.yml`。AWS 側からは `aws cognito-idp list-user-pools --max-results 20` と `aws cognito-idp list-user-pool-clients --user-pool-id <プールID>` |
+| 手元用の Cognito・API の値 | `.env.local`（git 管理外）。無ければ上の `deploy.yml` の値を写す。ブラウザに配られる `NEXT_PUBLIC_*` はビルド後の JS に入るので秘密ではない |
+| 秘密（AWS の鍵・`REBUILD_DISPATCH_TOKEN`・APNs の鍵 など） | GitHub の Secrets。読めない。必要なら owner に聞く |
+| AWS アカウント ID・IAM の ARN | このリポジトリのどこにも書かない。`aws sts get-caller-identity`。それ以外は owner に聞く |
 
-## AWS ステージングリソース一覧
+> 確かめた範囲: 上の「場所」は `deploy.yml` / `deploy-api.yml` を読んで確かめた（2026-11-04）。
+> AWS CLI のコマンドは、この環境に AWS の認証情報が無いため**実行して確かめていない**。
+> 出力の欄名（`DomainName` など）は AWS CLI の仕様どおりに書いたもの。
 
-2026-08-20 に `provision-env.yml` で作成。本番と同じ構成で、接頭辞だけが違う。
+### ステージング環境について
 
-| リソース | 名前 / ID |
-|---|---|
-| 静的サイト S3 バケット | `staging-journey-photo.com` |
-| 画像アップロード S3 バケット | `staging-journey-photo-upload` |
-| CloudFront ディストリビューション ID | `EF2TFEBBP24DL` |
-| CloudFront ドメイン | `d15fn3rcaiymu9.cloudfront.net` |
-| カスタムドメイン | なし（既定ドメインのみ・`robots.txt` で全拒否） |
-| Cognito User Pool ID | `ap-northeast-1_DSQ16c6vO` |
-| Cognito Client ID | `1qjl9c8gmqidigps55jhv4foi` |
-| API Gateway (管理API) | `https://rfq22dzchf.execute-api.ap-northeast-1.amazonaws.com` |
-| API Gateway (ユーザーAPI) | `https://y9f8ajacc2.execute-api.ap-northeast-1.amazonaws.com` |
-| Cognito プール名 | `staging-journey-photo-client-spa` |
-| DynamoDB テーブル | `staging-photo-gallery-photos` / `staging-photo-gallery-users`（オンデマンド） |
+`provision-env.yml` で作成した（2026-08-20）。本番と同じ構成で、接頭辞だけが違う。
 
 - **本番の写真はコピーしていない**。空から始める（GPS 入りの写真を複製しないため）。
 - ユーザーも空。staging で使うには新規登録が必要。
+- カスタムドメインは無い（CloudFront の既定ドメインのみ・`robots.txt` で全拒否）。
 - CloudFront には**本番の API Gateway オリジンを引き継いでいない**
   （コピーすると staging の `/api/*` が本番APIに届くため）。
 - 環境を増やすときは `provision-env.yml` を `envName` 指定で実行する。
@@ -431,12 +426,13 @@ owner が操作感の変更を了とするなら `radiogroup` に寄せるのが
 # ビルド（DynamoDB から写真データを自動同期）
 npm run build
 
-# S3 + CloudFront にデプロイ（正しいバケット名は prod-journey-photo.com）
+# S3 + CloudFront にデプロイ（バケット名は package.json の web:deploy:prod に入っている）
 # SITE_URL が無いと配信チェックと 5xx 時の再インバリデーションが飛ぶ（デプロイ自体は完了）
-CLOUDFRONT_DISTRIBUTION_ID=EYRLTGCPOS9E4 SITE_URL=https://journey-photo.com npm run web:deploy:prod
+# 2つの値の取り出し方は上の「環境ごとの値の取り出し方」
+CLOUDFRONT_DISTRIBUTION_ID=<本番のディストリビューション ID> SITE_URL=<本番のサイト URL> npm run web:deploy:prod
 ```
 
-> ⚠️ `journey-photo.com` はドメイン名。S3 バケット名は `prod-journey-photo.com`（別物）。
+> ⚠️ サイトのドメイン名と S3 バケット名は別物（バケット名は `<環境>-<ドメイン名>` の形）。
 
 ### API（Lambda）
 
@@ -448,15 +444,18 @@ CLOUDFRONT_DISTRIBUTION_ID=EYRLTGCPOS9E4 SITE_URL=https://journey-photo.com npm 
 
 ```bash
 cd api && npx serverless@3 deploy --stage prod \
-  --param="photosTable=prod-photo-gallery-photos" \
-  --param="usersTable=prod-photo-gallery-users" \
-  --param="uploadBucket=prod-journey-photo-upload" \
-  --param="cloudfrontUrl=https://d1s3dwwzgxf5ni.cloudfront.net" \
-  --param="cloudfrontDistributionId=EYRLTGCPOS9E4" \
-  --param="cognitoUserPoolId=ap-northeast-1_ZbuhDQsWz" \
-  --param="cognitoClientId=21cs4cd8dkttmg3snloj72u8mu" \
-  --param="cognitoPoolName=prod-journey-photo-client-spa"
+  --param="photosTable=<写真テーブル名>" \
+  --param="usersTable=<利用者テーブル名>" \
+  --param="uploadBucket=<画像アップロードのバケット名>" \
+  --param="cloudfrontUrl=<CloudFront の既定ドメインの URL>" \
+  --param="cloudfrontDistributionId=<ディストリビューション ID>" \
+  --param="cognitoUserPoolId=<ユーザープール ID>" \
+  --param="cognitoClientId=<クライアント ID>" \
+  --param="cognitoPoolName=<プール名>"
 ```
+
+各 `<…>` の値は、`deploy-api.yml` の `config` ジョブ（`id: pick`）の同名の変数と
+同じ。取り出し方は上の「環境ごとの値の取り出し方」。
 
 > ⚠️ `cloudfrontDistributionId` を渡し忘れても**デプロイは成功する**
 > （`serverless.yml` の既定が `''`）。落ちるのは削除時のエッジの掃除だけで、
