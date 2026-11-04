@@ -16,6 +16,9 @@ import {
 import { pickExamples } from "@/lib/learn/examples";
 import { articleStructuredData, learnMetadata } from "@/lib/learn/seo";
 import ExposureLab from "./ExposureLab";
+import { BASICS_DIAGRAMS, BASICS_DRILLS, BASICS_QUIZ, BASICS_SUMMARY } from "@/lib/data/learn/basicsExtras";
+import { Diagram } from "../_parts/Diagrams";
+import QuizBlock from "../_parts/QuizBlock";
 import {
     Breadcrumbs, ExampleGrid, FaqList, JsonLd, LearnHeader, LearnTable, breadcrumbData, learnCrumbs,
 } from "../_parts/LearnParts";
@@ -80,6 +83,7 @@ export default async function CameraBasicsPage() {
                                 {(l.examples ?? []).map((id) => (
                                     <ExampleGrid key={id} id={`${l.id}-${id}`} heading={exampleRule(id).heading} photos={examples.get(id) ?? []} />
                                 ))}
+                                {(BASICS_DIAGRAMS[l.id] ?? []).map((d) => <Diagram key={d.id} id={d.id} caption={d.caption} />)}
                                 {l.pitfalls && l.pitfalls.length > 0 && (
                                     <div className="mt-6">
                                         <h3 className="m-0 text-white font-semibold" style={{ fontSize: "14px" }}>よくある失敗</h3>
@@ -104,6 +108,27 @@ export default async function CameraBasicsPage() {
                     </section>
                 ))}
 
+                <section id="chapter-summary" aria-labelledby="basics-summary-title" className="py-10 border-t border-line scroll-mt-24">
+                    <p aria-hidden="true" className="m-0 eyebrow text-accent">SUMMARY</p>
+                    <h2 id="basics-summary-title" className="m-0 mt-1.5 font-serif font-bold text-white" style={{ fontSize: "26px", lineHeight: 1.4 }}>この章のまとめ</h2>
+                    <ul className="m-0 mt-4 pl-5 flex flex-col gap-3 text-chip-text marker:text-accent" style={{ fontSize: "16px", lineHeight: "28px" }}>
+                        {BASICS_SUMMARY.map((t) => <li key={t}>{t}</li>)}
+                    </ul>
+                    <h3 className="m-0 mt-10 text-white font-semibold" style={{ fontSize: "18px" }}>外で撮ってみる（練習）</h3>
+                    <ol className="m-0 mt-3 p-0 list-none flex flex-col gap-3">
+                        {BASICS_DRILLS.map((d, i) => (
+                            <li key={d.title} className="rounded-2xl bg-surface ring-1 ring-line p-4" data-testid="learn-drill">
+                                <p className="m-0 text-white font-semibold" style={{ fontSize: "15px", lineHeight: "24px" }}>
+                                    <span className="text-accent tabular-nums mr-2">練習 {i + 1}</span>{d.title}
+                                </p>
+                                <p className="m-0 mt-1 text-text-2" style={{ fontSize: "15px", lineHeight: "26px" }}>{d.text}</p>
+                            </li>
+                        ))}
+                    </ol>
+                    <h3 className="m-0 mt-10 text-white font-semibold" style={{ fontSize: "18px" }}>確認クイズ</h3>
+                    <QuizBlock items={BASICS_QUIZ} />
+                </section>
+
                 <section aria-labelledby="basics-faq" className="py-10 border-t border-line">
                     <h2 id="basics-faq" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>よくある質問</h2>
                     <FaqList items={BASICS_FAQ} />
@@ -112,6 +137,11 @@ export default async function CameraBasicsPage() {
                 <aside aria-labelledby="basics-next" className="mt-6 rounded-2xl bg-accent-soft ring-1 ring-line p-5">
                     <h2 id="basics-next" className="m-0 text-white font-semibold" style={{ fontSize: "15px" }}>次に読む</h2>
                     <ul className="m-0 mt-1 p-0 list-none">
+                        <li>
+                            <TrackedLink contentType="article" href="/learn/focus-and-blur" prefetch={false} className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
+                                第2章 ピントとぼけ｜狙った所だけをくっきり写す
+                            </TrackedLink>
+                        </li>
                         <li>
                             <TrackedLink contentType="article" href={ROUTES.LEARN_CAMERA_BRANDS} prefetch={false} className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
                                 カメラメーカーの特徴を比較する

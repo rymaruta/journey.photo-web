@@ -1,4 +1,4 @@
-import React from "react";
+import "react";
 import { describe, expect, it } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import ChapterPage, { generateStaticParams } from "../[slug]/page";
@@ -28,5 +28,16 @@ describe("教科書の章の頁", () => {
         fieldsets.forEach((f) => fireEvent.click(f.querySelector("button")!));
         expect(quiz.querySelectorAll("[data-testid=learn-quiz-why]").length).toBe(fieldsets.length);
         expect(screen.getByRole("status").textContent).toMatch(/問中 \d+ 問正解/);
+    });
+});
+
+describe("第1章（カメラの使い方 完全入門）も、他の章と同じ部品でそろっている", () => {
+    it("図・まとめ・練習・確認クイズ・露出のシミュレーターが出る", async () => {
+        const { default: BasicsPage } = await import("../camera-basics/page");
+        render(await BasicsPage());
+        expect(screen.getAllByTestId("learn-diagram").length).toBeGreaterThanOrEqual(5);
+        expect(screen.getAllByTestId("learn-drill").length).toBeGreaterThanOrEqual(3);
+        expect(screen.getByTestId("learn-quiz")).toBeTruthy();
+        expect(screen.getAllByTestId("learn-lesson").length).toBeGreaterThanOrEqual(10);
     });
 });
