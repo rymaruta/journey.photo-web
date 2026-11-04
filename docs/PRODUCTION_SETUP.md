@@ -1,5 +1,9 @@
 # 本番環境セットアップガイド
 
+> 公開リポジトリのため、実際のバケット名・各種 ID・URL は書いていません。
+> `<環境>` は `prod` か `staging`、`<…-id>` などの山括弧は置き換え記号です。
+> 実際の値の取り出し方は [`CLAUDE.md`](../CLAUDE.md) の「環境ごとの値の取り出し方」。
+
 このガイドでは、本番環境（S3+CloudFront静的配信 + API Gateway+Lambda）でのデプロイ手順を説明します。
 
 ## 📋 このガイドの対象者
@@ -40,9 +44,9 @@
 
 本番環境は以下の構成です：
 
-- **静的サイト**: S3バケット `prod-journey-photo.com` + CloudFront（Next.jsの静的エクスポート）
-- **画像アップロード**: S3バケット `prod-journey-photo-upload`（`uploads/` プレフィックス）
-- **メタデータ**: S3バケット `prod-journey-photo.com` 内の `app/data/photos.json`（Lambdaが更新）
+- **静的サイト**: S3バケット `<環境>-journey-photo.com` + CloudFront（Next.jsの静的エクスポート）
+- **画像アップロード**: S3バケット `<環境>-journey-photo-upload`（`uploads/` プレフィックス）
+- **メタデータ**: S3バケット `<環境>-journey-photo.com` 内の `app/data/photos.json`（Lambdaが更新）
 - **API**: API Gateway (HTTP API) + Lambda（管理API）
 - **認証**: Cognito JWT（`Authorization: Bearer <JWT>`）
 - **IAMロール**: Lambda実行ロール（Secrets Manager、S3へのアクセス権限）
@@ -64,12 +68,12 @@
 
 ### 2. AWS S3 バケット
 
-#### 2.1 静的サイト用バケット（`prod-journey-photo.com`）
+#### 2.1 静的サイト用バケット（`<環境>-journey-photo.com`）
 
 1. AWSコンソールで「S3」を開く
 2. 「バケットを作成」をクリック
 3. 以下の設定を入力：
-   - **バケット名**: `prod-journey-photo.com`（⚠️ 世界中で一意である必要があります）
+   - **バケット名**: `<環境>-journey-photo.com`（⚠️ 世界中で一意である必要があります）
    - **AWSリージョン**: `ap-northeast-1`（東京）
    - **オブジェクト所有権**: **ACL無効（推奨）** を選択
    - **このバケットのブロックパブリックアクセス設定**: **すべてONのまま**（CloudFront経由でアクセス）
@@ -79,11 +83,11 @@
 
 後述の「CloudFrontの設定」でOrigin Access Control (OAC)を設定後、以下のポリシーを適用します。
 
-#### 2.2 画像アップロード用バケット（`prod-journey-photo-upload`）
+#### 2.2 画像アップロード用バケット（`<環境>-journey-photo-upload`）
 
 1. 「バケットを作成」をクリック
 2. 以下の設定を入力：
-   - **バケット名**: `prod-journey-photo-upload`
+   - **バケット名**: `<環境>-journey-photo-upload`
    - **AWSリージョン**: `ap-northeast-1`
    - **オブジェクト所有権**: **ACL無効（推奨）** を選択
    - **このバケットのブロックパブリックアクセス設定**: **すべてONのまま**（CloudFront経由でアクセス）
@@ -128,8 +132,8 @@
 ```json
 {
   "AWS_REGION": "ap-northeast-1",
-  "AWS_S3_BUCKET_NAME": "prod-journey-photo-upload",
-  "AWS_S3_SITE_BUCKET_NAME": "prod-journey-photo.com",
+  "AWS_S3_BUCKET_NAME": "<環境>-journey-photo-upload",
+  "AWS_S3_SITE_BUCKET_NAME": "<環境>-journey-photo.com",
   "CLOUDFRONT_URL": "https://d1234567890abc.cloudfront.net"
 }
 ```
@@ -140,7 +144,7 @@
 - `CLOUDFRONT_URL`: CloudFront URL（後で設定）
 
 4. 「次へ」をクリック
-5. **シークレットの名前**: `prod-journey-photo-upload`（または任意の名前）
+5. **シークレットの名前**: `<環境>-journey-photo-upload`（または任意の名前）
    - ⚠️ この名前をメモしてください（Lambdaの環境変数に設定します）
 6. 「次へ」をクリック
 7. **自動ローテーション**: 必要に応じて設定（オプション）
@@ -186,7 +190,7 @@ Lambda関数がAWSリソースにアクセスするためのIAMロールを作�
         "secretsmanager:GetSecretValue",
         "secretsmanager:DescribeSecret"
       ],
-      "Resource": "arn:aws:secretsmanager:ap-northeast-1:YOUR_ACCOUNT_ID:secret:prod-journey-photo-upload-*"
+      "Resource": "arn:aws:secretsmanager:ap-northeast-1:YOUR_ACCOUNT_ID:secret:<環境>-journey-photo-upload-*"
     },
     {
       "Sid": "UploadsBucketRW",
@@ -196,7 +200,7 @@ Lambda関数がAWSリソースにアクセスするためのIAMロールを作�
         "s3:GetObject",
         "s3:DeleteObject"
       ],
-      "Resource": "arn:aws:s3:::prod-journey-photo-upload/uploads/*"
+      "Resource": "arn:aws:s3:::<環境>-journey-photo-upload/uploads/*"
     },
     {
       "Sid": "SiteBucketPhotosJsonRW",
@@ -205,7 +209,7 @@ Lambda関数がAWSリソースにアクセスするためのIAMロールを作�
         "s3:GetObject",
         "s3:PutObject"
       ],
-      "Resource": "arn:aws:s3:::prod-journey-photo.com/app/data/photos.json"
+      "Resource": "arn:aws:s3:::<環境>-journey-photo.com/app/data/photos.json"
     },
     {
       "Sid": "ListBuckets",
@@ -214,8 +218,8 @@ Lambda関数がAWSリソースにアクセスするためのIAMロールを作�
         "s3:ListBucket"
       ],
       "Resource": [
-        "arn:aws:s3:::prod-journey-photo-upload",
-        "arn:aws:s3:::prod-journey-photo.com"
+        "arn:aws:s3:::<環境>-journey-photo-upload",
+        "arn:aws:s3:::<環境>-journey-photo.com"
       ]
     }
   ]
@@ -291,7 +295,7 @@ Lambda関数がAWSリソースにアクセスするためのIAMロールを作�
 
 | 環境変数名 | 値（例） | 説明 |
 |-----------|---------|------|
-| `AWS_SECRET_NAME` | `prod-journey-photo-upload` | Secrets Managerのシークレット名 |
+| `AWS_SECRET_NAME` | `<環境>-journey-photo-upload` | Secrets Managerのシークレット名 |
 | `COGNITO_USER_POOL_ID` | `ap-northeast-1_12345678` | Cognito User Pool ID |
 
 5. 「保存」をクリック
@@ -1029,7 +1033,7 @@ Serverless Frameworkを使用しない場合は、以下の手順を参照して
 CloudFrontの設定は複雑ですが、以下の手順で進めます：
 
 1. **プラン選択**: 「Pay as you go」を選択（推奨）
-2. **オリジン設定**: S3バケット（`prod-journey-photo.com`）をオリジンとして設定
+2. **オリジン設定**: S3バケット（`<環境>-journey-photo.com`）をオリジンとして設定
 3. **セキュリティ設定**: WAFを有効化（モニターモードはオフ）
 4. **TLS証明書**: CloudFrontのデフォルト証明書を使用（カスタムドメインを使用しない場合）
 5. **API Gateway用オリジンの追加**: `/api/*` パスをAPI Gatewayに転送
@@ -1042,8 +1046,8 @@ CloudFrontの設定は複雑ですが、以下の手順で進めます：
 ### 詳細手順
 
 **本番環境で使用するリソース:**
-- S3バケット: `prod-journey-photo.com`（静的サイト用）
-- S3バケット: `prod-journey-photo-upload`（画像アップロード用）
+- S3バケット: `<環境>-journey-photo.com`（静的サイト用）
+- S3バケット: `<環境>-journey-photo-upload`（画像アップロード用）
 - API Gateway: 既に作成済みのHTTP API
 - CloudFront: 新規作成するディストリビューション
 
@@ -1160,7 +1164,7 @@ CloudFrontディストリビューションの作成方法には、**新しい�
 1. **Origin type**: `Amazon S3` を選択
 
 2. **S3 origin**: S3バケットのドメイン名を入力
-   - 例: `prod-journey-photo.com.s3.ap-northeast-1.amazonaws.com`
+   - 例: `<環境>-journey-photo.com.s3.ap-northeast-1.amazonaws.com`
    - ⚠️ `https://` は含めない
    - または「Browse S3」ボタンでバケットを選択
 
@@ -1217,7 +1221,7 @@ CloudFrontディストリビューションの作成方法には、**新しい�
 
 1. **「Default Cache Behavior」** セクションを確認
 2. 以下の設定を確認・変更：
-   - **Origin**: `S3-prod-journey-photo.com` を選択
+   - **Origin**: `S3-<環境>-journey-photo.com` を選択
    - **Automatically compress objects**: `はい`
    - **Viewer Protocol Policy**: `Redirect HTTP to HTTPS`
    - **Allowed HTTP Methods**: `GET, HEAD, OPTIONS`
@@ -1252,7 +1256,7 @@ CloudFrontディストリビューションの作成方法には、**新しい�
    **ビヘイビア2（デフォルト - 静的サイト用）:**
    - **優先順位**: `1`
    - **パスパターン**: `Default (*)`
-   - **オリジン**: `S3-prod-journey-photo.com`
+   - **オリジン**: `S3-<環境>-journey-photo.com`
    - **キャッシュポリシー**: `CachingOptimized`
 
 **確認ポイント:**
@@ -1276,9 +1280,9 @@ CloudFrontディストリビューションの作成方法には、**新しい�
 
 ### 2. S3バケットポリシーの更新
 
-#### 2.1 静的サイト用バケット（`prod-journey-photo.com`）
+#### 2.1 静的サイト用バケット（`<環境>-journey-photo.com`）
 
-1. S3バケット `prod-journey-photo.com` を選択
+1. S3バケット `<環境>-journey-photo.com` を選択
 2. 「アクセス許可」タブを開く
 3. 「バケットポリシー」の「編集」をクリック
 4. 以下のJSONを貼り付け（`YOUR_ACCOUNT_ID`と`DISTRIBUTION_ID`を実際の値に置き換える）：
@@ -1294,7 +1298,7 @@ CloudFrontディストリビューションの作成方法には、**新しい�
         "Service": "cloudfront.amazonaws.com"
       },
       "Action": "s3:GetObject",
-      "Resource": "arn:aws:s3:::prod-journey-photo.com/*",
+      "Resource": "arn:aws:s3:::<環境>-journey-photo.com/*",
       "Condition": {
         "StringEquals": {
           "AWS:SourceArn": "arn:aws:cloudfront::YOUR_ACCOUNT_ID:distribution/DISTRIBUTION_ID"
@@ -1310,7 +1314,7 @@ CloudFrontディストリビューションの作成方法には、**新しい�
 
 5. 「変更の保存」をクリック
 
-#### 2.2 画像アップロード用バケット（`prod-journey-photo-upload`）
+#### 2.2 画像アップロード用バケット（`<環境>-journey-photo-upload`）
 
 同様に、CloudFront経由でアクセスする場合は、Origin Access Controlを設定してバケットポリシーを更新します。
 
@@ -1322,7 +1326,7 @@ CloudFrontディストリビューション作成後、Secrets Managerのシー�
 
 **設定手順:**
 
-1. Secrets Managerでシークレット `prod-journey-photo-upload` を選択
+1. Secrets Managerでシークレット `<環境>-journey-photo-upload` を選択
 2. 「シークレットの値を取得」→「編集」をクリック
 3. CloudFrontディストリビューションの「Domain Name」を確認（例: `d1234567890abc.cloudfront.net`）
 4. シークレットのJSONに `CLOUDFRONT_URL` を追加または更新：
@@ -1330,8 +1334,8 @@ CloudFrontディストリビューション作成後、Secrets Managerのシー�
 ```json
 {
   "AWS_REGION": "ap-northeast-1",
-  "AWS_S3_BUCKET_NAME": "prod-journey-photo-upload",
-  "AWS_S3_SITE_BUCKET_NAME": "prod-journey-photo.com",
+  "AWS_S3_BUCKET_NAME": "<環境>-journey-photo-upload",
+  "AWS_S3_SITE_BUCKET_NAME": "<環境>-journey-photo.com",
   "CLOUDFRONT_URL": "https://d1234567890abc.cloudfront.net"
 }
 ```
@@ -1718,7 +1722,7 @@ npm run web:deploy:prod
 ```
 
 - `scripts/deploy-static-site.js` が `npm run build` → `aws s3 sync` を実行します。
-- 既定のバケットは `prod-journey-photo.com` です。
+- 既定のバケットは `<環境>-journey-photo.com` です。
 
 ### 2. CloudFront を無効化したい場合（任意）
 
@@ -1727,7 +1731,7 @@ CloudFront のキャッシュも同時に無効化したい場合は、以下の
 **方法A: 引数で指定**
 
 ```bash
-node scripts/deploy-static-site.js --bucket prod-journey-photo.com --distribution-id YOUR_DISTRIBUTION_ID
+node scripts/deploy-static-site.js --bucket <環境>-journey-photo.com --distribution-id YOUR_DISTRIBUTION_ID
 ```
 
 **方法B: 環境変数で指定**
@@ -1771,12 +1775,12 @@ npm run deploy:prod
 ### 方法1: AWS CLIを使用（推奨）
 
 ```bash
-aws s3 sync out/ s3://prod-journey-photo.com/ --delete
+aws s3 sync out/ s3://<環境>-journey-photo.com/ --delete
 ```
 
 **コマンドの説明:**
 - `out/`: アップロードするディレクトリ（Next.jsのビルド出力）
-- `s3://prod-journey-photo.com/`: アップロード先のS3バケット
+- `s3://<環境>-journey-photo.com/`: アップロード先のS3バケット
 - `--delete`: S3バケット内の不要なファイルを削除（ローカルに存在しないファイル）
 
 **確認:**
@@ -1788,7 +1792,7 @@ aws s3 sync out/ s3://prod-journey-photo.com/ --delete
 ### 方法2: AWSコンソールから手動でアップロード
 
 1. AWSコンソールで「S3」を開く
-2. `prod-journey-photo.com` バケットを選択
+2. `<環境>-journey-photo.com` バケットを選択
 3. 「アップロード」をクリック
 4. `out/` ディレクトリ内のすべてのファイルを選択してアップロード
 5. ⚠️ **注意**: 手動アップロードの場合、既存のファイルを削除する必要がある場合があります
@@ -1802,7 +1806,7 @@ aws s3 sync out/ s3://prod-journey-photo.com/ --delete
 **初回デプロイ時のみ**、`photos.json` をS3バケットに配置します。
 
 **既存の `photos.json` がある場合:**
-- S3バケット `prod-journey-photo.com` の `app/data/photos.json` が既に存在する場合は、そのまま使用できます
+- S3バケット `<環境>-journey-photo.com` の `app/data/photos.json` が既に存在する場合は、そのまま使用できます
 - このステップをスキップして、次のステップ3に進んでください
 
 **初回デプロイの場合:**
@@ -1810,17 +1814,17 @@ aws s3 sync out/ s3://prod-journey-photo.com/ --delete
 1. ローカルの `app/data/photos.json` をS3バケットにアップロード：
 
 ```bash
-aws s3 cp app/data/photos.json s3://prod-journey-photo.com/app/data/photos.json
+aws s3 cp app/data/photos.json s3://<環境>-journey-photo.com/app/data/photos.json
 ```
 
 2. または、AWSコンソールから手動でアップロード：
    - AWSコンソールで「S3」を開く
-   - `prod-journey-photo.com` バケットを選択
+   - `<環境>-journey-photo.com` バケットを選択
    - `app/data/` フォルダを作成（存在しない場合）
    - `app/data/photos.json` をアップロード
 
 **確認:**
-- ✅ `s3://prod-journey-photo.com/app/data/photos.json` が存在すること
+- ✅ `s3://<環境>-journey-photo.com/app/data/photos.json` が存在すること
 - ✅ ファイルの内容が正しいこと
 
 **✅ `photos.json` の配置が完了したら、次のステップ3に進んでください。**
@@ -1961,7 +1965,7 @@ jobs:
           NEXT_PUBLIC_COGNITO_CLIENT_ID: ${{ secrets.NEXT_PUBLIC_COGNITO_CLIENT_ID }}
           NEXT_PUBLIC_AWS_REGION: ${{ secrets.NEXT_PUBLIC_AWS_REGION }}
           NEXT_PUBLIC_API_BASE_URL: ${{ secrets.NEXT_PUBLIC_API_BASE_URL }}
-      - run: aws s3 sync out/ s3://prod-journey-photo.com/ --delete
+      - run: aws s3 sync out/ s3://<環境>-journey-photo.com/ --delete
 ```
 
 **GitHub Secrets の設定方法:**
@@ -2020,7 +2024,7 @@ jobs:
         id: get-secrets
         run: |
           SECRET_JSON=$(aws secretsmanager get-secret-value \
-            --secret-id prod-journey-photo-upload \
+            --secret-id <環境>-journey-photo-upload \
             --query SecretString \
             --output text)
           
@@ -2038,7 +2042,7 @@ jobs:
       
       - run: npm ci
       - run: npm run build
-      - run: aws s3 sync out/ s3://prod-journey-photo.com/ --delete
+      - run: aws s3 sync out/ s3://<環境>-journey-photo.com/ --delete
 ```
 
 **必要なGitHub Secrets:**

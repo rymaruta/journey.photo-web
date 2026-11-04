@@ -1,8 +1,12 @@
 # 管理者API ドキュメント
 
+> 公開リポジトリのため、実際のバケット名・各種 ID・URL は書いていません。
+> `<環境>` は `prod` か `staging`、`<…-id>` などの山括弧は置き換え記号です。
+> 実際の値の取り出し方は [`CLAUDE.md`](../CLAUDE.md) の「環境ごとの値の取り出し方」。
+
 ## エンドポイント
 
-**Base URL:** `https://ionr4ik01e.execute-api.ap-northeast-1.amazonaws.com`  
+**Base URL:** `https://<admin-api-id>.execute-api.ap-northeast-1.amazonaws.com`  
 **Lambda:** `photo-gallery-api-prod-api`  
 **認証:** Cognito JWT（`admin` グループ必須）
 
@@ -74,7 +78,7 @@ Content-Type: application/json
 
 {
   "key": "uploads/{uuid}.jpg",
-  "publicUrl": "https://d1s3dwwzgxf5ni.cloudfront.net/uploads/{uuid}.jpg",
+  "publicUrl": "https://<distribution-domain>.cloudfront.net/uploads/{uuid}.jpg",
   "photoId": "{uuid}",
   "title": { "ja": "タイトル", "en": "Title" },
   "description": { "ja": ["説明"] },
@@ -86,8 +90,8 @@ Content-Type: application/json
 
 ## データ保存先
 
-- メタデータ: `S3 prod-journey-photo.com/app/data/photos.json`
-- 画像: `S3 prod-journey-photo-upload/uploads/{uuid}.jpg`
+- メタデータ: `S3 <環境>-journey-photo.com/app/data/photos.json`
+- 画像: `S3 <環境>-journey-photo-upload/uploads/{uuid}.jpg`
 
 ## デプロイ
 
@@ -95,9 +99,9 @@ Content-Type: application/json
 cd api/
 npm install
 serverless deploy --stage prod \
-  --param="cognitoUserPoolId=ap-northeast-1_ZbuhDQsWz" \
-  --param="cognitoClientId=21cs4cd8dkttmg3snloj72u8mu" \
-  --param="photosBucket=prod-journey-photo.com" \
-  --param="uploadBucket=prod-journey-photo-upload" \
-  --param="cloudfrontUrl=https://d1s3dwwzgxf5ni.cloudfront.net"
+  --param="cognitoUserPoolId=ap-northeast-1_<pool-id>" \
+  --param="cognitoClientId=<client-id>" \
+  --param="photosBucket=<環境>-journey-photo.com" \
+  --param="uploadBucket=<環境>-journey-photo-upload" \
+  --param="cloudfrontUrl=https://<distribution-domain>.cloudfront.net"
 ```

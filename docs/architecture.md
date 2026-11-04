@@ -1,36 +1,40 @@
 # システムアーキテクチャ
 
+> 公開リポジトリのため、実際のバケット名・各種 ID・URL は書いていません。
+> `<環境>` は `prod` か `staging`、`<…-id>` などの山括弧は置き換え記号です。
+> 実際の値の取り出し方は [`CLAUDE.md`](../CLAUDE.md) の「環境ごとの値の取り出し方」。
+
 ## 全体構成
 
 ```
 User
- └→ CloudFront (journey-photo.com / d1s3dwwzgxf5ni.cloudfront.net)
-     ├→ S3 prod-journey-photo.com          # 静的HTML/JS/CSS
+ └→ CloudFront (journey-photo.com / <distribution-domain>.cloudfront.net)
+     ├→ S3 <環境>-journey-photo.com          # 静的HTML/JS/CSS
      ├→ API Gateway (Admin API)            # 管理者操作
      │   └→ Lambda photo-gallery-api-prod-api
      ├→ API Gateway (User API)             # 一般ユーザー操作
      │   └→ Lambda photo-gallery-user-api-prod
-     └→ S3 prod-journey-photo-upload       # アップロード画像
+     └→ S3 <環境>-journey-photo-upload       # アップロード画像
 
-Cognito ap-northeast-1_ZbuhDQsWz          # 認証
+Cognito ap-northeast-1_<pool-id>          # 認証
 DynamoDB prod-photo-gallery-photos         # 写真メタデータ（移行済み）
-S3 prod-journey-photo.com/app/data/photos.json  # 旧データ（バックアップとして保持）
+S3 <環境>-journey-photo.com/app/data/photos.json  # 旧データ（バックアップとして保持）
 ```
 
 ## リソース一覧
 
 | リソース | 種別 | 名前/ID | 用途 |
 |---------|------|---------|------|
-| CloudFront | Distribution | EYRLTGCPOS9E4 | CDN・ルーティング |
-| S3 | Bucket | prod-journey-photo.com | 静的サイト配信 |
-| S3 | Bucket | prod-journey-photo-upload | 画像アップロード先 |
-| API Gateway | HTTP API | ionr4ik01e | 管理者API |
-| API Gateway | HTTP API | 9qmc4qb2e4 | 一般ユーザーAPI |
+| CloudFront | Distribution | `<distribution-id>` | CDN・ルーティング |
+| S3 | Bucket | `<環境>-journey-photo.com` | 静的サイト配信 |
+| S3 | Bucket | `<環境>-journey-photo-upload` | 画像アップロード先 |
+| API Gateway | HTTP API | `<admin-api-id>` | 管理者API |
+| API Gateway | HTTP API | `<user-api-id>` | 一般ユーザーAPI |
 | Lambda | Function | photo-gallery-api-prod-api | 管理者API ハンドラ |
 | Lambda | Function | photo-gallery-user-api-prod | 一般ユーザーAPI ハンドラ |
 | DynamoDB | Table | prod-photo-gallery-photos | 写真メタデータ |
-| Cognito | User Pool | ap-northeast-1_ZbuhDQsWz | 認証 |
-| Cognito | App Client | 21cs4cd8dkttmg3snloj72u8mu | フロントエンド認証 |
+| Cognito | User Pool | `ap-northeast-1_<pool-id>` | 認証 |
+| Cognito | App Client | `<client-id>` | フロントエンド認証 |
 | Cognito | Group | admin | 管理者グループ |
 | Cognito | Group | user | 一般ユーザーグループ |
 
