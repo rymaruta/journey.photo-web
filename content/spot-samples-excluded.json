@@ -27978,5 +27978,770 @@
     "spotId": "sp_f8e18765f1b6",
     "file": "File:Niijima island aerial shoot.jpg",
     "reason": "目で見て（visual-review）: 飛行機の窓からの空撮（地上から撮れる景色でない）"
+  },
+  {
+    "spotId": "sp_01c4adcd5385",
+    "file": "File:Body temperature & Hand sanitizer in Goshono Site.jpg",
+    "reason": "目で見て（visual-review）: 屋内の受付の窓口・検温器・貼り紙が主役で、人物も写る"
+  },
+  {
+    "spotId": "sp_01fd57301fa4",
+    "file": "File:団体 GROUP (5089689398).jpg",
+    "reason": "目で見て（visual-review）: 受付の下足棚と車椅子、手前の人物2人が主役（室内の設備）"
+  },
+  {
+    "spotId": "sp_021489b92f39",
+    "file": "File:Hachijojima Police Station.jpg",
+    "reason": "目で見て（visual-review）: 八丈島警察署の建物が主役。島の景色ではない"
+  },
+  {
+    "spotId": "sp_021489b92f39",
+    "file": "File:Hachijojima Summary court.jpg",
+    "reason": "目で見て（visual-review）: 八丈島簡易裁判所の建物が主役。島の景色ではない"
+  },
+  {
+    "spotId": "sp_0723558e7c82",
+    "file": "File:Panorama of Sunpu Castle and Shizuoka prefecture Hall.jpg",
+    "reason": "目で見て（visual-review）: 高いビルから見た街並みと鉄塔が主役。城は右下に小さいだけ"
+  },
+  {
+    "spotId": "sp_0723558e7c82",
+    "file": "File:Shizuoka Prefectural Office (3).jpg",
+    "reason": "目で見て（visual-review）: 県庁の建物と車道が主役で、城が写っていない"
+  },
+  {
+    "spotId": "sp_08dc77b9c608",
+    "file": "File:後山ふるさと公園.jpg",
+    "reason": "目で見て（visual-review）: 麓の公園の小川と鉄の橋で、後山の山が写っていない"
+  },
+  {
+    "spotId": "sp_08dc77b9c608",
+    "file": "File:Mount Itabami.jpg",
+    "reason": "目で見て（visual-review）: ファイル名が別の山（Mount Itabami＝板馬見山）。後山ではない"
+  },
+  {
+    "spotId": "sp_0966bb924b9d",
+    "file": "File:韓国岳山頂.jpg",
+    "reason": "目で見て（visual-review）: 霧の中の山頂標識（韓国岳 標高1700m）と三角点が主役。景色は霧で何も見えない"
+  },
+  {
+    "spotId": "sp_0966bb924b9d",
+    "file": "File:韓国岳から大浪池へと続く木道.jpg",
+    "reason": "目で見て（visual-review）: 濃い霧で画面の上半分が白く、山の姿も山頂からの眺めも写っていない。足元の木道だけが主役"
+  },
+  {
+    "spotId": "sp_0c2f56518f0b",
+    "file": "File:岩宿II石器文化・岩宿III?石器文化・岩宿遺跡C地点.JPG",
+    "reason": "目で見て（visual-review）: 展示ケースの出土品（室内の展示）"
+  },
+  {
+    "spotId": "sp_0c2f56518f0b",
+    "file": "File:岩宿遺跡 出土品.JPG",
+    "reason": "目で見て（visual-review）: 展示ケースの出土品（室内の展示）"
+  },
+  {
+    "spotId": "sp_10a457824173",
+    "file": "File:Saiko - Saiko6828.jpg",
+    "reason": "目で見て（visual-review）: 西湖に映る富士山と紅葉で、洞穴ではない（別の場所）"
+  },
+  {
+    "spotId": "sp_1122ce86c63d",
+    "file": "File:三頭山避難小屋 2011-12-10 - Mount Mitoh Emergency Hutte - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 雪の避難小屋（丸太小屋）と休む登山者が主役で、三頭山の景色・山容ではない"
+  },
+  {
+    "spotId": "sp_1122ce86c63d",
+    "file": "File:三頭山 (東京都) - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 道標（鶴峠・三頭山）が主役"
+  },
+  {
+    "spotId": "sp_12f90a0484e8",
+    "file": "File:Kawaba village Numata Castle Yakuimon.jpg",
+    "reason": "目で見て（visual-review）: ファイル名どおり川場村に移された沼田城の薬医門（城跡とは別の場所。門と白壁の蔵・案内板、手前は車道）"
+  },
+  {
+    "spotId": "sp_12f90a0484e8",
+    "file": "File:Ruins of Numata Castle 01.JPG",
+    "reason": "目で見て（visual-review）: 車道と「沼田城址」の石碑・桜の古木が主役（城跡の景色は写らない）"
+  },
+  {
+    "spotId": "sp_16ef3a1062f0",
+    "file": "File:Hachigata castle historical Museum.jpg",
+    "reason": "目で見て（visual-review）: 鉢形城歴史館の入口と通路が主役で、曇天で暗い。城跡の景色として分かりにくい"
+  },
+  {
+    "spotId": "sp_1861b219ecda",
+    "file": "File:高松塚古墳消火器.jpg",
+    "reason": "目で見て（visual-review）: 手前の赤い消火器箱が大きく主役になっている"
+  },
+  {
+    "spotId": "sp_1920d9c1d5d1",
+    "file": "File:Mt.Kubotezan.jpg",
+    "reason": "目で見て（visual-review）: 強い逆光とフレアで山がほぼ黒く、電柱が入る。ほとんど何も見えない"
+  },
+  {
+    "spotId": "sp_20159af50c31",
+    "file": "File:サロマ湖三里浜キャンプ場管理事務所 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: キャンプ場の管理事務所・案内板・自販機が主役"
+  },
+  {
+    "spotId": "sp_20159af50c31",
+    "file": "File:サロマ湖展望台 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 展望台の建物と入口の階段だけで湖が写っていない"
+  },
+  {
+    "spotId": "sp_271847b6769b",
+    "file": "File:Japonolirion osense 1.JPG",
+    "reason": "目で見て（visual-review）: オゼソウの接写（植物が主役）で、山の景色が写っていない"
+  },
+  {
+    "spotId": "sp_28af5c4a1408",
+    "file": "File:天空のバルコニー（稲叢山）.jpg",
+    "reason": "目で見て（visual-review）: 「天空のバルコニー 稲叢山案内図」の看板が主役"
+  },
+  {
+    "spotId": "sp_28af5c4a1408",
+    "file": "File:天空のバルコニー（稲叢山）２.jpg",
+    "reason": "目で見て（visual-review）: 同じ案内図の看板が主役（1とほぼ同じ写真）"
+  },
+  {
+    "spotId": "sp_298794ba9acb",
+    "file": "File:名和神社の野良２ - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 猫の顔の大写し（境内が写っていない）"
+  },
+  {
+    "spotId": "sp_2a889ed0c588",
+    "file": "File:Ennokyo Mount Ikoma facility 1.jpg",
+    "reason": "目で見て（visual-review）: 山腹の宗教施設の建物（山岳坊）の壁と掲示が主役で、生駒山の景色として分からない"
+  },
+  {
+    "spotId": "sp_2a889ed0c588",
+    "file": "File:池島配水場と生駒山脈 Nov 24, 2008.jpg",
+    "reason": "目で見て（visual-review）: 池島配水場の塔と工場の屋根が主役で、生駒山の山頂は雲に隠れている"
+  },
+  {
+    "spotId": "sp_3557a4f76f92",
+    "file": "File:金剛山 山頂広場（国見城跡） 撮影日：2023年（令和5年） 5月27日 早朝05時.png",
+    "reason": "目で見て（visual-review）: 山頂広場の「金剛山頂」の標柱と時計が主役（動画の切り出しで画質も粗い）"
+  },
+  {
+    "spotId": "sp_3557a4f76f92",
+    "file": "File:金剛山.JPG",
+    "reason": "目で見て（visual-review）: ロープウェイの車内からガラス越しに見下ろした杉林と鉄塔（日付の焼き込みあり）。ロープウェイは今は運休で、地上から撮れる景色でない"
+  },
+  {
+    "spotId": "sp_3a7787cb86ea",
+    "file": "File:東山動植物園 (32703437314).jpg",
+    "reason": "目で見て（visual-review）: 園名の銘板と入園時間の掲示が主役"
+  },
+  {
+    "spotId": "sp_3a93088a2458",
+    "file": "File:台風10号被災の岩手県岩泉町安家。お手伝いの後、ほぼ復旧し再開済みの安家洞を見学させていただく。 (30954758045).jpg",
+    "reason": "目で見て（visual-review）: ヘルメットの見学者が主役（台風被災後の見学の記録）で、手書きの札も目立つ"
+  },
+  {
+    "spotId": "sp_3df09082a098",
+    "file": "File:Kiyosu Castle (Kiyosu Aichi) VLux5 hdsr 35.jpg",
+    "reason": "目で見て（visual-review）: 池と飛び石の小さな庭だけで、城（模擬天守）が写っていない。清洲城と分からない（右端に人の足も入る）"
+  },
+  {
+    "spotId": "sp_3df09082a098",
+    "file": "File:Kiyosu Castle (Kiyosu Aichi) VLux5 hdsr 38.jpg",
+    "reason": "目で見て（visual-review）: 植え込みとベンチの庭だけで、城が写っていない（右端に赤い欄干・左に電柱）"
+  },
+  {
+    "spotId": "sp_3e1e0b09d7e3",
+    "file": "File:白髪山登山口 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 登山口の看板が両側に大きく主役（奥は林の中の階段）"
+  },
+  {
+    "spotId": "sp_3e1e0b09d7e3",
+    "file": "File:Siraga01.jpg",
+    "reason": "目で見て（visual-review）: 道標が主役（笹原は背景で曇天）"
+  },
+  {
+    "spotId": "sp_414443f02c06",
+    "file": "File:Nagashino Castle 20210320 01.jpg",
+    "reason": "目で見て（visual-review）: 木の標柱とトレンチの札の立つ空き地で、背後の住宅とワゴン車が目立ち城跡の景色として分からない"
+  },
+  {
+    "spotId": "sp_414443f02c06",
+    "file": "File:Nagashino Castle 20210320 02.jpg",
+    "reason": "目で見て（visual-review）: 石柱・案内札・道路標識と車道が主役"
+  },
+  {
+    "spotId": "sp_4c6cc9f4b4eb",
+    "file": "File:Mount Kintokiyama and Otometoge from Owakudani Valley.JPG",
+    "reason": "目で見て（visual-review）: 大涌谷から見た遠くの眺めで、手前の枯れ草の丘と箱根の山並みが主役。金時山は地平の山並みの一つとして小さく写るだけで、どれが金時山か見分けられない"
+  },
+  {
+    "spotId": "sp_4c8f59648042",
+    "file": "File:Kitabatake Shrine Ryūkon-sha.jpg",
+    "reason": "目で見て（visual-review）: 大きな案内板が主役で、留魂社の小さな社は奥の脇役"
+  },
+  {
+    "spotId": "sp_4d2678f450b6",
+    "file": "File:Kanrin Maru arrives in Chichijima port.jpg",
+    "reason": "目で見て（visual-review）: 古い絵（「父嶋港内着船筒拂之図」の帆船の絵）"
+  },
+  {
+    "spotId": "sp_4d2678f450b6",
+    "file": "File:Chichijima 20250513 124237.jpg",
+    "reason": "目で見て（visual-review）: 木に巻いた環境省の虫の罠が主役で、島の景色ではない"
+  },
+  {
+    "spotId": "sp_507f385ee67c",
+    "file": "File:Prohibit of Hanami in Yasukuni Shrine by COVID-19 02.jpg",
+    "reason": "目で見て（visual-review）: 新型コロナの花見自粛の掲示が手前に大きく主役"
+  },
+  {
+    "spotId": "sp_507f385ee67c",
+    "file": "File:Prohibit of Hanami in Yasukuni Shrine by COVID-19 03.jpg",
+    "reason": "目で見て（visual-review）: 新型コロナの花見自粛の掲示が手前に大きく主役"
+  },
+  {
+    "spotId": "sp_534914e0711c",
+    "file": "File:Kitano tenman gu coffre.jpg",
+    "reason": "目で見て（visual-review）: 割符の箱と授与の掲示が主役"
+  },
+  {
+    "spotId": "sp_534914e0711c",
+    "file": "File:Kitano tenman gu moineaux.jpg",
+    "reason": "目で見て（visual-review）: 屋根瓦の上の雀の接写で、北野天満宮と分からない"
+  },
+  {
+    "spotId": "sp_54a54a7da1ae",
+    "file": "File:Tsuma-jinja Keidai.jpg",
+    "reason": "目で見て（visual-review）: 「日本清酒発祥の地」の標柱・案内板・酒樽が主役"
+  },
+  {
+    "spotId": "sp_55d9c86a68cd",
+    "file": "File:巌流島の船.jpg",
+    "reason": "目で見て（visual-review）: 展示の古い木の舟と解説板が主役"
+  },
+  {
+    "spotId": "sp_561bc6391dba",
+    "file": "File:山麓からの那岐山.jpg",
+    "reason": "目で見て（visual-review）: 手前半分が車道（路面の標示まで大きい）で、山は奥に小さい。車道が主役"
+  },
+  {
+    "spotId": "sp_57b84fdf2234",
+    "file": "File:ボケ（植物）.jpg",
+    "reason": "目で見て（visual-review）: 葉の落ちたボケの株と名札だけで、植物園の景色として見どころが無い"
+  },
+  {
+    "spotId": "sp_596fdd79f9ec",
+    "file": "File:200730 Model of Akishinodera.jpg",
+    "reason": "目で見て（visual-review）: 伽藍の模型（展示物）"
+  },
+  {
+    "spotId": "sp_6058e5db0786",
+    "file": "File:Tsushima Shrine 初詣 3 - flickr 343796180 8564326616 o.jpg",
+    "reason": "目で見て（visual-review）: 奉納の酒樽の棚だけが主役"
+  },
+  {
+    "spotId": "sp_6058e5db0786",
+    "file": "File:Moriyama 20210621-10.jpg",
+    "reason": "目で見て（visual-review）: 住宅の庭の小さな祠（ファイル名は守山）で、津島市の津島神社の境内ではない（別の場所）"
+  },
+  {
+    "spotId": "sp_63e4675457f5",
+    "file": "File:Garden near Kanzeonji Temple.jpg",
+    "reason": "目で見て（visual-review）: ファイル名が『観世音寺の近くの庭』で、写るのは苔むした庭と小さな建物と石碑。説明の金堂・講堂・鐘楼・並木の参道ではなく別の場所"
+  },
+  {
+    "spotId": "sp_64ff1f6f6850",
+    "file": "File:A Panorama Photo of the Confluence of Katsura and Miya River.jpg",
+    "reason": "目で見て（visual-review）: 桂川と宮川の合流点の川辺・工場と富士山が主役（杓子山と分からない）"
+  },
+  {
+    "spotId": "sp_68343b8f7e7e",
+    "file": "File:Mount Amagi forest (53209596505).jpg",
+    "reason": "目で見て（visual-review）: 枝の苔とキノコの接写で、天城山と分からない"
+  },
+  {
+    "spotId": "sp_68343b8f7e7e",
+    "file": "File:Mount Amagi landscape (53209596535).jpg",
+    "reason": "目で見て（visual-review）: 高い所から森と雲を見下ろした写真で、空から撮った写真でないと言い切れない"
+  },
+  {
+    "spotId": "sp_6c9e23f84ca7",
+    "file": "File:金剛堂山からの白木峰.jpg",
+    "reason": "目で見て（visual-review）: 金剛堂山から見た白木峰・北アルプスの遠望（ファイル名も「金剛堂山からの白木峰」）。金剛堂山そのものはほとんど写らない"
+  },
+  {
+    "spotId": "sp_6cc061935678",
+    "file": "File:Shinshoji-Monzen 津照寺 四国八十八ヶ所霊場の第二十五番札所 門前 DSCF7099.JPG",
+    "reason": "目で見て（visual-review）: 門前の岩本薬局の看板・車道・駐車場の車が主役"
+  },
+  {
+    "spotId": "sp_6d52ec52db8a",
+    "file": "File:大津島基地「地獄の石段」 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 金網と壁と石段の寄りで、何の景色か分からない（「地獄の石段」の遺構だが読み取れない）"
+  },
+  {
+    "spotId": "sp_6d52ec52db8a",
+    "file": "File:回天記念館近くの細い坂道 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 塀沿いの細い坂道だけで、島の景色・遺構として分からない"
+  },
+  {
+    "spotId": "sp_6e2070e96ef6",
+    "file": "File:麓にある七時雨山荘.jpg",
+    "reason": "目で見て（visual-review）: 麓の七時雨山荘（宿泊所）の建物と看板が主役で、山の景色ではない"
+  },
+  {
+    "spotId": "sp_6e2070e96ef6",
+    "file": "File:七時雨山眺望 Mt. Nanashigure - panoramio.jpg",
+    "reason": "目で見て（visual-review）: ファイル名「七時雨山眺望」のとおり山からのカラマツ林と遠くの山の眺め。奥の山が七時雨山なのか岩手山などなのか写真からは分からず、七時雨山そのものが写っていると言えない"
+  },
+  {
+    "spotId": "sp_6e6da3f7f82a",
+    "file": "File:天売島 - panoramio (1).jpg",
+    "reason": "目で見て（visual-review）: 右下にウェブサイト名の透かしが入っている"
+  },
+  {
+    "spotId": "sp_6e6da3f7f82a",
+    "file": "File:天売島 - panoramio (2).jpg",
+    "reason": "目で見て（visual-review）: 右下に透かし「gpscycling.net」が入っている"
+  },
+  {
+    "spotId": "sp_6fc9af48c748",
+    "file": "File:Stewartia monadelpha s18.jpg",
+    "reason": "目で見て（visual-review）: ヒメシャラの木1本を見上げた縦長。植物の写真で、高見山と分かる景色ではない"
+  },
+  {
+    "spotId": "sp_6fc9af48c748",
+    "file": "File:Stewartia monadelpha s19.jpg",
+    "reason": "目で見て（visual-review）: 林の中のヒメシャラの幹（縦長）。高見山と分かる景色ではない"
+  },
+  {
+    "spotId": "sp_72372a3214e6",
+    "file": "File:Tenryū Shisei-zenji (Ukyo-Ku Kyoto) temple hdsr S5 03.jpg",
+    "reason": "目で見て（visual-review）: 寺名と曹源池庭園の看板が主役"
+  },
+  {
+    "spotId": "sp_72372a3214e6",
+    "file": "File:天龍寺 Sagatenryuji Temple - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 土塀ぎわの植え込み（松・黄色い花木・蘇鉄）だけで、伽藍も説明の曹源池庭園（池・嵐山の借景）も写らない。天龍寺と分からず、塔頭など別の庭の恐れもある"
+  },
+  {
+    "spotId": "sp_73ae7ba064cd",
+    "file": "File:Fugaku fuketsu - Ice pond.jpg",
+    "reason": "目で見て（visual-review）: 氷の池の手前に柵と大きな説明板2枚が入り、説明板が主役"
+  },
+  {
+    "spotId": "sp_73ae7ba064cd",
+    "file": "File:Fugaku fuketsu - Natural refrigerator.jpg",
+    "reason": "目で見て（visual-review）: 「天然冷蔵庫」の看板が主役"
+  },
+  {
+    "spotId": "sp_7615211ff6b3",
+    "file": "File:Slag,Inujima,Okayama 犬島精錬所スラグ DSCF0631.JPG",
+    "reason": "目で見て（visual-review）: 机の上に置いたスラグの塊の接写（展示物と同じ扱い）"
+  },
+  {
+    "spotId": "sp_7615211ff6b3",
+    "file": "File:あけぼの丸（犬島港）.jpg",
+    "reason": "目で見て（visual-review）: 港の船が主役で、島の景色ではない"
+  },
+  {
+    "spotId": "sp_76705182d27c",
+    "file": "File:Bamboo - Jufukuji - Kamakura, Kanagawa, Japan - DSC07982.JPG",
+    "reason": "目で見て（visual-review）: 竹林と小道・金網の柵だけで、寿福寺と分かるものが写っていない"
+  },
+  {
+    "spotId": "sp_76e7f4f5ad01",
+    "file": "File:Kikaijima.jpg",
+    "reason": "目で見て（visual-review）: 宇宙から撮った島全体の写真（空からの写真）"
+  },
+  {
+    "spotId": "sp_76e7f4f5ad01",
+    "file": "File:130 degree marker at Kikaijima - Takeshi DSC 0183 (3795267499).jpg",
+    "reason": "目で見て（visual-review）: 路面の「130度線」の小さな標識だけ（ほとんど何も写っていない）"
+  },
+  {
+    "spotId": "sp_7fb41c3aa8cc",
+    "file": "File:Hatsushima and Izu Oshima seen from a distance 2025 Feb 24 04-29PM.jpeg",
+    "reason": "目で見て（visual-review）: 熱海側の本土から見た遠景で、伊豆大島は水平線の霞んだ島影だけ。手前の初島と海が主で、島の景色として分からない"
+  },
+  {
+    "spotId": "sp_850571c0c7e7",
+    "file": "File:真清田神社 - panoramio (3).jpg",
+    "reason": "目で見て（visual-review）: 手水舎の龍の吐水口と由緒の掲示板が主役（建物の一部・看板）。背後に駐車場の車も写る"
+  },
+  {
+    "spotId": "sp_86304cb80d0b",
+    "file": "File:大善寺 山梨県 3.jpg",
+    "reason": "目で見て（visual-review）: 庫裏の玄関で、七福神めぐりののぼり・料金の札・看板が目立つ。国宝の本堂ではない"
+  },
+  {
+    "spotId": "sp_86304cb80d0b",
+    "file": "File:大善寺 山梨県 お寺からの眺め.jpg",
+    "reason": "目で見て（visual-review）: 寺からの甲府盆地の眺めで、大善寺そのものが手前の屋根しか写らない"
+  },
+  {
+    "spotId": "sp_8ee69d7d8e2d",
+    "file": "File:Mt Wanitsuka Sankakuten.jpg",
+    "reason": "目で見て（visual-review）: 一等三角点の標識と三角点、背後の中継所の柵・建物が主役（縦長・低画質）。山の景色ではない"
+  },
+  {
+    "spotId": "sp_96243196d672",
+    "file": "File:Mt.Asahidake and Mt.Kokushidake and Mt.Kitaokusenjodake from Mt.Kinpu 01-2.jpg",
+    "reason": "目で見て（visual-review）: 山名と標高の文字が大きく書き込まれた注記入りの写真（図に近い）"
+  },
+  {
+    "spotId": "sp_96243196d672",
+    "file": "File:雲取山からの国師ヶ岳と甲武信ヶ岳.jpg",
+    "reason": "目で見て（visual-review）: 雲取山から遠くの稜線を望む眺めで、国師岳は地平線の小さな起伏にしか写らず、どれが国師岳かも分からない"
+  },
+  {
+    "spotId": "sp_96448dabeb5e",
+    "file": "File:東鳳翩山.JPG",
+    "reason": "目で見て（visual-review）: 車道・車・病院の看板が主役で、山は遠くに暗く小さい"
+  },
+  {
+    "spotId": "sp_96448dabeb5e",
+    "file": "File:Higasihoubenzan 002.jpg",
+    "reason": "目で見て（visual-review）: 山頂の標識（東鳳翩山・標高734.2m）が画面の真ん中で主役。山そのものの姿は写らない"
+  },
+  {
+    "spotId": "sp_9766e5524f64",
+    "file": "File:束稲山麓からの栗駒山と焼石岳.jpg",
+    "reason": "目で見て（visual-review）: 束稲山麓の田園と農道・電柱電線が主役で、焼石岳は雲の下の遠い山並みに紛れて分からない"
+  },
+  {
+    "spotId": "sp_9766e5524f64",
+    "file": "File:焼石岳山頂.jpg",
+    "reason": "目で見て（visual-review）: 霧の中の山頂標柱だけ（景色が写っていない）"
+  },
+  {
+    "spotId": "sp_99adcd9b7b68",
+    "file": "File:栂尾山高山寺表参道 - panoramio (1).jpg",
+    "reason": "目で見て（visual-review）: 逆光で暗く、石の道標と下の車道・車が主役"
+  },
+  {
+    "spotId": "sp_9e3f8004eab8",
+    "file": "File:Ōsu Kannon (Naka-ku, Nagoya) VLux5 hdsr 105.jpg",
+    "reason": "目で見て（visual-review）: 「大須観音略縁起」の案内板が主役"
+  },
+  {
+    "spotId": "sp_9e3f8004eab8",
+    "file": "File:Japan- Nagoya- Osu Kannon Temple 2.jpg",
+    "reason": "目で見て（visual-review）: 境内の仏像・地蔵の接写が主役で、本堂など大須観音と分かる景色が写らない"
+  },
+  {
+    "spotId": "sp_9e770e46cf57",
+    "file": "File:Rua de Tanegashima, Montemor-o-Velho.jpg",
+    "reason": "目で見て（visual-review）: ポルトガルの町の通りの名札。別の場所で看板が主役"
+  },
+  {
+    "spotId": "sp_9e770e46cf57",
+    "file": "File:Tanegashima partial aerial view 2025-06-04.jpg",
+    "reason": "目で見て（visual-review）: 飛行機から見た空からの写真"
+  },
+  {
+    "spotId": "sp_a189bd879a9d",
+    "file": "File:アマミアオガエル-徳之島天城町.jpg",
+    "reason": "目で見て（visual-review）: カエル（アマミアオガエル）の大写し（島の景色ではない）"
+  },
+  {
+    "spotId": "sp_a189bd879a9d",
+    "file": "File:トライアスロン徳之島.jpg",
+    "reason": "目で見て（visual-review）: 2022年のトライアスロン大会の看板の門が主役（浜と海は門の枠の中。大会の時だけの飾り）"
+  },
+  {
+    "spotId": "sp_a76d0c8f142a",
+    "file": "File:Accessible slope in Chion-in.jpg",
+    "reason": "目で見て（visual-review）: 「車椅子昇降口」の札と駐車スペースの札、スロープが主役"
+  },
+  {
+    "spotId": "sp_a76d0c8f142a",
+    "file": "File:知恩院 Chion-in (11152431736).jpg",
+    "reason": "目で見て（visual-review）: 手前の手水鉢（文字の刻まれた石の水鉢）が主役の接写。三門・御影堂など知恩院の景色が主ではない"
+  },
+  {
+    "spotId": "sp_a7ad4f98dec1",
+    "file": "File:中山神社の牛の像 (49585872831).jpg",
+    "reason": "目で見て（visual-review）: 境内の牛の像の接写が主役で、社殿が写らない"
+  },
+  {
+    "spotId": "sp_a7ad4f98dec1",
+    "file": "File:Nakayama-jinja hokotateishi.JPG",
+    "reason": "目で見て（visual-review）: 鉾立石と立札が主役"
+  },
+  {
+    "spotId": "sp_ab0273f35dc1",
+    "file": "File:Michinoeki Rennyo-no-sato Awara.jpg",
+    "reason": "目で見て（visual-review）: 道の駅の新しい建物と駐車場が主役（御坊跡の景色ではない）"
+  },
+  {
+    "spotId": "sp_ad75d609ca6e",
+    "file": "File:Hatsushima SBS Transmitting Antenna.jpg",
+    "reason": "目で見て（visual-review）: SBS の送信アンテナ（電波塔）が主役"
+  },
+  {
+    "spotId": "sp_ad75d609ca6e",
+    "file": "File:Hatsushima 2015-04-23.jpg",
+    "reason": "目で見て（visual-review）: 真上からの空撮"
+  },
+  {
+    "spotId": "sp_b0d7cd0540e4",
+    "file": "File:Atsuwarasanresshi-bohi of Taiseki-ji.jpg",
+    "reason": "目で見て（visual-review）: 墓碑（石碑）と灯籠が主役。奥の堂は脇役"
+  },
+  {
+    "spotId": "sp_b0d7cd0540e4",
+    "file": "File:Jorai-bo (Taiseki-ji).JPG",
+    "reason": "目で見て（visual-review）: 塔中の宿坊（常来坊）の近代的な白い建物の正面。説明の五重塔・御影堂・三門・桜ではなく、大石寺と分からない"
+  },
+  {
+    "spotId": "sp_b7334e6c2c69",
+    "file": "File:Ninna ji claustra.jpg",
+    "reason": "目で見て（visual-review）: 連子窓の格子の寄りだけで、ほとんど何も写っていない（仁和寺と分からない）"
+  },
+  {
+    "spotId": "sp_b7334e6c2c69",
+    "file": "File:Ninna ji 121.jpg",
+    "reason": "目で見て（visual-review）: 屋根の棟の飾り（鬼瓦・妻飾り）の望遠の接写で、建物の一部だけが主役。仁和寺と一目で分からない"
+  },
+  {
+    "spotId": "sp_b7d792f50b19",
+    "file": "File:Kawasaki Daishi 201908-2.jpg",
+    "reason": "目で見て（visual-review）: 奉納の傘の塔と「川崎大師年中行事」の掲示板が主役"
+  },
+  {
+    "spotId": "sp_b7d792f50b19",
+    "file": "File:Kawasaki Daishi 201908-3.jpg",
+    "reason": "目で見て（visual-review）: 道標の石碑と「寺内由緒」の解説板が主役"
+  },
+  {
+    "spotId": "sp_b8b6584e8e8d",
+    "file": "File:Hanaosan peak011.jpg",
+    "reason": "目で見て（visual-review）: 山頂の道標が画面の中央に大きく主役（奥の山並みは背景）"
+  },
+  {
+    "spotId": "sp_b90b6cc598a9",
+    "file": "File:Sapporo TV Tower - May 7, 2013 (1).jpg",
+    "reason": "目で見て（visual-review）: 改修工事中で塔の下半分が足場とシートに覆われている"
+  },
+  {
+    "spotId": "sp_be47842a6eb7",
+    "file": "File:TokorozawaShinmeisha-Afuri.jpg",
+    "reason": "目で見て（visual-review）: 境内の小さな末社（阿夫利神社と両脇の石の祠）の接写が主役。説明にある神明造の大きな社殿・鳥船神社の折り鶴ではなく、所澤神明社と分からない"
+  },
+  {
+    "spotId": "sp_be47842a6eb7",
+    "file": "File:Kusu-no-ki Tokorozawa Shinmei-sha go-shin-boku.jpg",
+    "reason": "目で見て（visual-review）: 御神木のクスノキを真下から見上げた枝葉だけで、社殿など所澤神明社と分かるものが写らない（木の接写が主役）"
+  },
+  {
+    "spotId": "sp_c1aa759f945d",
+    "file": "File:Iwai island aerial shot.jpg",
+    "reason": "目で見て（visual-review）: 空からの写真（飛行機から見下ろしたハート形の島全体）"
+  },
+  {
+    "spotId": "sp_c2a35b4633ef",
+    "file": "File:Sumiyoshi-jija the birds-eye view Sumiyoshi 3-chōme Hakata-ku Fukuoka 20241121.jpg",
+    "reason": "目で見て（visual-review）: 近くの建物の高い所から見下ろした写真（ファイル名も birds-eye view）。手前の木の葉と社殿の屋根が画面の大半で、神社の景色として分かりにくく、参拝者が地上から撮れる景色でもない"
+  },
+  {
+    "spotId": "sp_c2c844310a31",
+    "file": "File:Ehkouji kame06.jpg",
+    "reason": "目で見て（visual-review）: 植え込みと庭石の寄りで、奥に倉庫の壁。寺の景色として分からない"
+  },
+  {
+    "spotId": "sp_c2c844310a31",
+    "file": "File:Shakkizan Enkoji 03.JPG",
+    "reason": "目で見て（visual-review）: 梵鐘を背負った赤亀の像（物）の接写が主役。寺の景色・建物が写っていない（像は説明にある名物なので、物の像も載せる方針なら残してよい境目）"
+  },
+  {
+    "spotId": "sp_c36fbd9dbe24",
+    "file": "File:吉田城本丸.JPG",
+    "reason": "目で見て（visual-review）: 芝生と木立だけで、吉田城と分かるものが写っていない"
+  },
+  {
+    "spotId": "sp_c36fbd9dbe24",
+    "file": "File:The foundation stone of the wall built on the slope of the earthworks of Yoshida Castle.jpg",
+    "reason": "目で見て（visual-review）: 落ち葉の斜面に石が数個並ぶだけで、城跡と分かるものがほとんど写っていない"
+  },
+  {
+    "spotId": "sp_c4fb008a575d",
+    "file": "File:RyusogaTaki monument.jpg",
+    "reason": "目で見て（visual-review）: 滝の名を刻んだ石碑と道標が主役で、滝が写っていない"
+  },
+  {
+    "spotId": "sp_c91483a6ff71",
+    "file": "File:Mikimoto pearl islands.jpg",
+    "reason": "目で見て（visual-review）: 本土側の入口の建物（看板）と連絡橋・電柱・電線・柵・車道が主役で、島の緑は右側に一部写るだけ"
+  },
+  {
+    "spotId": "sp_c9ecdae44f39",
+    "file": "File:Okushiri port.jpg",
+    "reason": "目で見て（visual-review）: フェリーターミナルの建物と車止めの柵が主役"
+  },
+  {
+    "spotId": "sp_d20ec222d25e",
+    "file": "File:Shimogamo jinja Kyoto 20.jpg",
+    "reason": "目で見て（visual-review）: 狛犬の顔の寄りだけで、賀茂御祖神社と分からない"
+  },
+  {
+    "spotId": "sp_d20ec222d25e",
+    "file": "File:Shimogamo jinja Kyoto 16.jpg",
+    "reason": "目で見て（visual-review）: 社殿の軒の吊り灯籠の接写が主役（建物の一部だけ）で、境内・糺の森の景色として分からない"
+  },
+  {
+    "spotId": "sp_d2f1d1e08c69",
+    "file": "File:Ōzukumi Island and Kozukumi Island.JPG",
+    "reason": "目で見て（visual-review）: ファイル名どおり大築海島・小築海島（別の島）が主役。海が画面の大半で、答志島は左端に少し写るだけ"
+  },
+  {
+    "spotId": "sp_d3fe4d0bc799",
+    "file": "File:Ainoshima Kamaboko.jpg",
+    "reason": "目で見て（visual-review）: 土産物のかまぼこ（商品）が主役"
+  },
+  {
+    "spotId": "sp_d4814ae70b54",
+    "file": "File:Shizuoka Sengen Shrine Shopping Street.jpg",
+    "reason": "目で見て（visual-review）: 高い建物から見下ろした門前の商店街とビル群が主役。神社は奥に小さい"
+  },
+  {
+    "spotId": "sp_d4814ae70b54",
+    "file": "File:Shizuoka Sengen jinja 1.jpg",
+    "reason": "目で見て（visual-review）: 古い白黒の記録写真で、祭りの山車と人混みが主役"
+  },
+  {
+    "spotId": "sp_d6ec4e3f182c",
+    "file": "File:備中高松城 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 歌碑（石碑）が主役"
+  },
+  {
+    "spotId": "sp_dd3f1202f206",
+    "file": "File:Kongoutyouji 36douzi 01.jpg",
+    "reason": "目で見て（visual-review）: 境内の三十六童子の石像の列だけが主役。本堂も室戸岬・太平洋の眺めも写らず、金剛頂寺と分からない"
+  },
+  {
+    "spotId": "sp_dd892022313e",
+    "file": "File:Itcho-daira 201.-1.-13 saturday.JPG",
+    "reason": "目で見て（visual-review）: ファイル名が「一丁平」で、高尾山側の別の場所。登山者の列も目立つ"
+  },
+  {
+    "spotId": "sp_df760301d400",
+    "file": "File:Okinoerabu Island seen from Mount Katsuu 202607.jpg",
+    "reason": "目で見て（visual-review）: 遠くの山（ファイル名は嘉津宇岳）から見た水平線上の島影で、霞んだ細い線にしか見えない。島の景色が写っていない（ほとんど空と海）"
+  },
+  {
+    "spotId": "sp_df760301d400",
+    "file": "File:沖永良部島 (897425348).jpg",
+    "reason": "目で見て（visual-review）: 空からの写真（飛行機から見下ろした細長い島全体）"
+  },
+  {
+    "spotId": "sp_e333b35270a2",
+    "file": "File:Shasui Falls - Kanagawa - 2024 Aug 23 various 14 21 37 214000.jpeg",
+    "reason": "目で見て（visual-review）: 湧き水と石碑の寄りで、滝が写っていない"
+  },
+  {
+    "spotId": "sp_e333b35270a2",
+    "file": "File:Shasui Falls - Kanagawa - 2024 Aug 23 various 14 21 17 445000.jpeg",
+    "reason": "目で見て（visual-review）: 観瀑台へ上る鉄の階段が主役で、滝は奥に細く小さく写るだけ。逆光で画面の上が白く飛んでいる"
+  },
+  {
+    "spotId": "sp_e3487dcc9bb8",
+    "file": "File:Isonokami-jingu honden.jpg",
+    "reason": "目で見て（visual-review）: 枝葉に隠れて本殿の屋根の千木がわずかに見えるだけで、ほとんど何も分からない"
+  },
+  {
+    "spotId": "sp_e3487dcc9bb8",
+    "file": "File:Isonokami-jingu Kagami-ike.jpg",
+    "reason": "目で見て（visual-review）: 濁った池の水面だけで、石上神宮と分かるものが写っていない"
+  },
+  {
+    "spotId": "sp_e43bd47cc119",
+    "file": "File:20250829 105847 Daimyōmachi Church.png",
+    "reason": "目で見て（visual-review）: 地図（Wikimedia の地図の図版）"
+  },
+  {
+    "spotId": "sp_e43bd47cc119",
+    "file": "File:Daimyōmachi Church the corner stone Daimyō 2-chōme Chūō-ku Fukuoka 20250901.jpg",
+    "reason": "目で見て（visual-review）: 定礎の銘板だけが主役"
+  },
+  {
+    "spotId": "sp_e450f5ad70df",
+    "file": "File:妙高山から見た焼山と火打山２.jpg",
+    "reason": "目で見て（visual-review）: 手前は妙高山の岩場で、焼山・火打山は雲の上に小さく頭が出るだけ。火打山の景色として分からない"
+  },
+  {
+    "spotId": "sp_e5b719749808",
+    "file": "File:Kamigamo-jinja détail écorce.jpg",
+    "reason": "目で見て（visual-review）: 檜皮葺きの屋根の断面の寄り（どこか分からない）"
+  },
+  {
+    "spotId": "sp_e5b719749808",
+    "file": "File:Kamigamo-jinja drapeau.jpg",
+    "reason": "目で見て（visual-review）: 日の丸の旗と木立だけ（社殿が写っていない）"
+  },
+  {
+    "spotId": "sp_e5ea69782c0c",
+    "file": "File:Landing bluefin tuna, Mishima Island.jpg",
+    "reason": "目で見て（visual-review）: 港でマグロを揚げる人が主役"
+  },
+  {
+    "spotId": "sp_e5ea69782c0c",
+    "file": "File:ハマヒルガオ, 2008.jpg",
+    "reason": "目で見て（visual-review）: ハマヒルガオの群落。見島で撮った写真か確かめられない"
+  },
+  {
+    "spotId": "sp_e9d55d19a206",
+    "file": "File:Dazaifu City from Mizuki Castle Ruins.jpg",
+    "reason": "目で見て（visual-review）: 土塁の上から見た住宅地と田畑（ファイル名も「水城跡から見た太宰府市」）。水城の土塁そのものは手前の草地だけで、水城と分かる景色ではない"
+  },
+  {
+    "spotId": "sp_ece0c77d520a",
+    "file": "File:無量光院跡／平泉 - panoramio (1).jpg",
+    "reason": "目で見て（visual-review）: 白黒で発掘中のシートが目立ち、今の跡地の景色として分かりにくい"
+  },
+  {
+    "spotId": "sp_f2ed2c10a03b",
+    "file": "File:Hamamatsu Castle Park 浜松城公園1 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 「浜松城公園」の石碑と園路で、城が写っていない"
+  },
+  {
+    "spotId": "sp_f2ed2c10a03b",
+    "file": "File:Hamamatsu Castle Park 浜松城公園2 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 戦災被爆者の慰霊碑（像と台座）が主役で、城が写っていない"
+  },
+  {
+    "spotId": "sp_f76db656c8c7",
+    "file": "File:Remaining stone walls in Kanayama.jpg",
+    "reason": "目で見て（visual-review）: 解説板と標柱が手前の主役で、苔むした石垣は後ろ（草に埋もれ城跡の景色として弱い）"
+  },
+  {
+    "spotId": "sp_f89b77cf7cd1",
+    "file": "File:長福寺木造十一面観音菩薩立像.jpg",
+    "reason": "目で見て（visual-review）: 仏像（十一面観音立像）の写真で、印刷物の複写。境内の景色ではない（展示物）"
+  },
+  {
+    "spotId": "sp_f8e18765f1b6",
+    "file": "File:(Niijima-island Tokio JPN.)2010-May - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 船の通路（天井・手すり・甲板）が画面の半分以上を占める主役で、島は左奥に港が小さく写るだけ"
+  },
+  {
+    "spotId": "sp_fb68ce735cb4",
+    "file": "File:束稲山山頂のアンテナ群.jpg",
+    "reason": "目で見て（visual-review）: 山頂の電波塔（アンテナ群）が主役"
+  },
+  {
+    "spotId": "sp_fb68ce735cb4",
+    "file": "File:月山神社（束稲山）.jpg",
+    "reason": "目で見て（visual-review）: 山中の月山神社の鳥居が主役で、束稲山の山の姿・眺めが写っていない（説明のツツジ・頂上の眺めとも合わない）"
+  },
+  {
+    "spotId": "sp_fe05c36e1551",
+    "file": "File:Reisen-ji Temple in Sugashima, Toba.jpg",
+    "reason": "目で見て（visual-review）: 島の景色ではなく、説明に出てこない島内の小さな寺（霊泉寺）の正面。手前の案内板と赤い消火器箱が目立ち、菅島と一目で分からない"
+  },
+  {
+    "spotId": "sp_fe05c36e1551",
+    "file": "File:鶴田石材（株）菅島工場 - Flickr - m-louis.jpg",
+    "reason": "目で見て（visual-review）: 採石工場（ファイル名も鶴田石材の工場）と削られた山肌が主役で、説明の灯台・海女の島の景色ではない"
   }
 ]
