@@ -64,3 +64,36 @@ describe("フッターのリンクの押す的と字", () => {
         }
     });
 });
+
+// App Store への入口の計測（2026-11-04）。placement だけ送る（URL・端末の情報は送らない）。
+// Smart App Banner（`app/layout.tsx` の meta）は Safari が描く帯で、押下をページから取れないので対象外
+describe("App Store リンクの計測", () => {
+    it("下の「App Storeで入手」を押す → app_store_click placement=footer", async () => {
+        const gtag = vi.fn();
+        sessionStorage.clear();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+        const { default: userEvent } = await import("@testing-library/user-event");
+        render(<Footer />);
+        const link = screen.getByRole("link", { name: "iOSアプリをApp Storeで入手" });
+        link.addEventListener("click", (e) => e.preventDefault());   // 遷移はさせない
+        await userEvent.setup().click(link);
+        expect(gtag).toHaveBeenCalledWith("event", "app_store_click", expect.objectContaining({ placement: "footer" }));
+        expect(gtag.mock.calls.filter((c) => c[1] === "app_store_click")).toHaveLength(1);
+        expect(JSON.stringify(gtag.mock.calls)).not.toContain("apple.com");
+    });
+
+    it("iOS の案内カードの「App Storeで入手」→ placement=banner", async () => {
+        const gtag = vi.fn();
+        sessionStorage.clear();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+        const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)");
+        try {
+            const { default: userEvent } = await import("@testing-library/user-event");
+            render(<Footer />);
+            const link = screen.getByRole("link", { name: "App Storeで入手" });
+            link.addEventListener("click", (e) => e.preventDefault());
+            await userEvent.setup().click(link);
+            expect(gtag).toHaveBeenCalledWith("event", "app_store_click", expect.objectContaining({ placement: "banner" }));
+        } finally { ua.mockRestore(); }
+    });
+});

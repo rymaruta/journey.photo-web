@@ -11,7 +11,7 @@ import { LoadingState } from "../components/StateViews";
 import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
 import { ROUTES, safeNextPath } from "../../lib/routes";
 import { pendingNameKey } from "../../lib/utils/pendingName";
-import { WISH_VIA } from "../../lib/utils/analytics";
+import { WISH_VIA, track } from "../../lib/utils/analytics";
 import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
 
 type Step = "login" | "forgot-send" | "forgot-confirm";
@@ -112,6 +112,7 @@ function LoginForm() {
                         }
                     })();
                 }
+                track("login", { method: "email" });
                 showToast("ログインしました", "success");
                 // インスタ風: ログイン後は自分のプロフィールページへ
                 // ログインが済んだ画面に戻れても意味が無い（上のエフェクトが

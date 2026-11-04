@@ -456,7 +456,7 @@ describe("SignupPage - 登録の数え方", () => {
         render(<SignupPage />);
         await confirm(user, { success: true });
         expect(mockConfirmSignUp).toHaveBeenCalledWith("uuid-1234", "123456", { platform: "web", from: "wish" });
-        expect(gtag).toHaveBeenCalledWith("event", "sign_up", { method: "email", from: "wish" });
+        expect(gtag).toHaveBeenCalledWith("event", "sign_up", expect.objectContaining({ method: "email", from: "wish" }));
     });
 
     // next が撮影スポットでも、「行きたい」の印が無ければ other（コメント欄のログインなども同じ next を付ける）
@@ -465,14 +465,14 @@ describe("SignupPage - 登録の数え方", () => {
         const user = userEvent.setup();
         render(<SignupPage />);
         await confirm(user, { success: true });
-        expect(gtag).toHaveBeenCalledWith("event", "sign_up", { method: "email", from: "other" });
+        expect(gtag).toHaveBeenCalledWith("event", "sign_up", expect.objectContaining({ method: "email", from: "other" }));
     });
 
     it("もう確認済みだった回は sign_up を送らない（同じ人を二度数えない）", async () => {
         const user = userEvent.setup();
         render(<SignupPage />);
         await confirm(user, { success: true, alreadyConfirmed: true });
-        expect(gtag).not.toHaveBeenCalled();
+        expect(gtag.mock.calls.filter((c) => c[1] === "sign_up")).toEqual([]);
     });
 
     it("送るのは method と from だけ（メールも uid も入れない）", async () => {
@@ -535,5 +535,88 @@ describe("新規登録: iOS の形", () => {
         render(<SignupPage />);
         expect(screen.getByRole("button", { name: "登録する" }).className).toMatch(/\bbg-white\b/);
         expect(screen.getByRole("link", { name: "ログインに戻る" })).toBeInTheDocument();
+    });
+});
+
+// ──────────────────────────────────────────────────────────────
+// 登録の漏斗（2026-11-04）: view_signup → signup_start → signup_error / sign_up
+// ──────────────────────────────────────────────────────────────
+describe("SignupPage - 登録の漏斗", () => {
+    const gtag = vi.fn();
+    const sent = (name: string) => gtag.mock.calls.filter((c) => c[1] === name).map((c) => c[2]);
+    beforeEach(() => {
+        gtag.mockReset();
+        sessionStorage.clear();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+    });
+
+    it("画面を見たら view_signup を1回（from を添える）", () => {
+        mockSearchParams = new URLSearchParams("via=wish");
+        render(<SignupPage />);
+        expect(sent("view_signup")).toEqual([expect.objectContaining({ from: "wish" })]);
+    });
+
+    it("ログイン済み（すぐ送り返す）なら view_signup は送らない", () => {
+        mockAuthed.value = true;
+        render(<SignupPage />);
+        expect(sent("view_signup")).toEqual([]);
+    });
+
+    it("signup_start は初めて欄が変わったときの1回だけ", async () => {
+        const user = userEvent.setup();
+        render(<SignupPage />);
+        expect(sent("signup_start")).toEqual([]);
+        await user.type(screen.getByPlaceholderText("you@example.com"), "ab");
+        await user.type(screen.getByLabelText("パスワード"), "x");
+        expect(sent("signup_start")).toEqual([expect.objectContaining({ from: "other" })]);
+    });
+
+    it("パスワード不一致 → signup_error form/password_mismatch。入力値もエラー文言も送らない", async () => {
+        const user = userEvent.setup();
+        render(<SignupPage />);
+        await user.type(screen.getByPlaceholderText("you@example.com"), "leak@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
+        await user.type(screen.getByLabelText("パスワード（確認）"), "Different1!");
+        await user.click(screen.getByRole("button", { name: /^登録する$/ }));
+        expect(sent("signup_error")).toEqual([expect.objectContaining({ step: "form", reason: "password_mismatch" })]);
+        const all = JSON.stringify(gtag.mock.calls);
+        expect(all).not.toContain("leak@example.com");
+        expect(all).not.toContain("Password1!");
+        expect(all).not.toContain("一致しません");
+    });
+
+    it("signUp が断られた → Cognito の例外名から理由を分ける", async () => {
+        mockSignUp.mockResolvedValue({ success: false, error: "パスワードは…", code: "InvalidPasswordException" });
+        const user = userEvent.setup();
+        render(<SignupPage />);
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
+        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
+        await user.click(screen.getByRole("button", { name: /^登録する$/ }));
+        await waitFor(() => expect(sent("signup_error")).toHaveLength(1));
+        expect(sent("signup_error")[0]).toEqual(expect.objectContaining({ step: "form", reason: "password_rule" }));
+    });
+
+    it("確認コードが違う → signup_error confirm/code_mismatch", async () => {
+        mockSignUp.mockResolvedValue({ success: true, username: "uuid-1234" });
+        mockConfirmSignUp.mockResolvedValue({ success: false, error: "確認コードが正しくありません", code: "CodeMismatchException" });
+        const user = userEvent.setup();
+        render(<SignupPage />);
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
+        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
+        await user.click(screen.getByRole("button", { name: /^登録する$/ }));
+        await waitFor(() => expect(screen.getByRole("heading", { name: "メールを確認" })).toBeInTheDocument());
+        await user.type(screen.getByLabelText("確認コード"), "000000");
+        await user.click(screen.getByRole("button", { name: /登録を完了する/ }));
+        await waitFor(() => expect(sent("signup_error")).toHaveLength(1));
+        expect(sent("signup_error")[0]).toEqual(expect.objectContaining({ step: "confirm", reason: "code_mismatch" }));
+        expect(sent("sign_up")).toEqual([]);
+    });
+
+    it("最初に着地した頁の種類が、漏斗のイベントに付く", async () => {
+        sessionStorage.setItem("jp_landing_type", "learn");
+        render(<SignupPage />);
+        expect(sent("view_signup")[0]).toEqual(expect.objectContaining({ landing_type: "learn" }));
     });
 });

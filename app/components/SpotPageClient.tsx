@@ -22,6 +22,7 @@ import { collectionPath, slugify } from "../../lib/utils/collections";
 import { photoAltText } from "../../lib/utils/photoAlt";
 import { formatMapHash, PHOTO_LINK_ZOOM } from "../../lib/utils/mapView";
 import { useViewerHistory } from "../../lib/hooks/useViewerHistory";
+import { track } from "../../lib/utils/analytics";
 import { shareUrl, copyToClipboard, shareToTwitter, shareToLine } from "../../lib/utils/share";
 import type { Photo } from "@/lib/data/photos";
 import type { SpotCoords, SpotFacts } from "@/lib/utils/spot";
@@ -146,7 +147,7 @@ export default function SpotPageClient({
     const shareText = heading;
 
     const handleShare = async () => {
-        const result = await shareUrl(canonicalUrl, shareText, description);
+        const result = await shareUrl(canonicalUrl, shareText, description, "spot");
         // shared と cancelled（利用者が閉じた）は何も出さない
         if (result === "copied") {
             showToast(en ? "Link copied to clipboard!" : "リンクをクリップボードにコピーしました", "success");
@@ -157,6 +158,7 @@ export default function SpotPageClient({
 
     const handleCopyLink = async () => {
         if (await copyToClipboard(canonicalUrl)) {
+            track("share", { method: "copy", content_type: "spot" });
             showToast(en ? "Link copied!" : "リンクをコピーしました");
         } else {
             showToast(en ? "Failed to copy link" : "リンクのコピーに失敗しました", "error");
@@ -265,8 +267,8 @@ export default function SpotPageClient({
                     label={en ? "More" : "その他"}
                     items={[
                         { key: "copy", label: en ? "Copy link" : "リンクをコピー", onSelect: () => void handleCopyLink() },
-                        { key: "x", label: en ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(canonicalUrl, shareText) },
-                        ...(en ? [] : [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(canonicalUrl, shareText) }]),
+                        { key: "x", label: en ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(canonicalUrl, shareText, "spot") },
+                        ...(en ? [] : [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(canonicalUrl, shareText, "spot") }]),
                     ]}
                 />
             </div>

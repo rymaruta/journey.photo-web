@@ -9,6 +9,7 @@ import { usePhotoSave } from "../../../lib/hooks/usePhotoSave";
 import { useAuth } from "../../auth/context";
 import { useToast } from "../../../lib/hooks/useToast";
 import { useImagePreloader } from "../../../lib/hooks/useImagePreloader";
+import { track } from "../../../lib/utils/analytics";
 import { copyToClipboard, shareUrl } from "../../../lib/utils/share";
 import { siteConfig } from "../../../lib/utils/seo";
 import { ROUTES } from "../../../lib/routes";
@@ -231,7 +232,7 @@ export default function GalleryModal({
     const shareText = namedTitle;
 
     const handleShare = async () => {
-        const result = await shareUrl(currentUrl, shareText, paragraphs.join(" "));
+        const result = await shareUrl(currentUrl, shareText, paragraphs.join(" "), "photo");
         // cancelled（利用者が閉じた）と shared は何も出さない
         if (result === "copied") {
             showToast(locale === "en" ? "Link copied to clipboard!" : "リンクをクリップボードにコピーしました", "success");
@@ -242,6 +243,7 @@ export default function GalleryModal({
 
     const handleCopyLink = async () => {
         if (await copyToClipboard(currentUrl)) {
+            track("share", { method: "copy", content_type: "photo" });
             showToast(locale === "en" ? "Link copied to clipboard!" : "リンクをクリップボードにコピーしました", "success");
         } else {
             log.error("Failed to copy link");

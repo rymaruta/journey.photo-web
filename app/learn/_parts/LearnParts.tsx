@@ -11,6 +11,7 @@
 
 import React from "react";
 import Link from "next/link";
+import TrackedLink from "../../components/TrackedLink";
 import Thumb from "@/app/components/Thumb";
 import type { Photo } from "@/lib/data/photos";
 import { ROUTES } from "@/lib/routes";
@@ -84,7 +85,8 @@ export function PhotoExampleCard({ photo, sizes }: { photo: Photo; sizes: string
     const settings = exifSettingsLine(photo.exif);
     const camera = cameraOf(photo);
     return (
-        <Link
+        <TrackedLink
+            contentType="photo"
             href={ROUTES.PHOTO(photo.id)}
             prefetch={false}
             className="group block rounded-xl overflow-hidden bg-surface ring-1 ring-line hover:ring-line-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -103,7 +105,7 @@ export function PhotoExampleCard({ photo, sizes }: { photo: Photo; sizes: string
                 )}
                 {camera && <span className="block text-text-3 truncate" style={{ fontSize: "12px", lineHeight: "18px" }}>{camera}</span>}
             </span>
-        </Link>
+        </TrackedLink>
     );
 }
 

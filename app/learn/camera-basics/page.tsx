@@ -5,7 +5,7 @@
 // 実例の写真はビルド時に `photos.json` の EXIF から選ぶ（`pickExamples`）。合う写真が無い塊は出さない。
 
 import React from "react";
-import Link from "next/link";
+import TrackedLink from "@/app/components/TrackedLink";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { ROUTES } from "@/lib/routes";
 import { publicImageUrl } from "@/lib/utils/seo";
@@ -113,14 +113,14 @@ export default async function CameraBasicsPage() {
                     <h2 id="basics-next" className="m-0 text-white font-semibold" style={{ fontSize: "15px" }}>次に読む</h2>
                     <ul className="m-0 mt-1 p-0 list-none">
                         <li>
-                            <Link href={ROUTES.LEARN_CAMERA_BRANDS} prefetch={false} className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
+                            <TrackedLink contentType="article" href={ROUTES.LEARN_CAMERA_BRANDS} prefetch={false} className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
                                 カメラメーカーの特徴を比較する
-                            </Link>
+                            </TrackedLink>
                         </li>
                         <li>
-                            <Link href={ROUTES.COMPOSITION} prefetch={false} className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
+                            <TrackedLink contentType="article" href={ROUTES.COMPOSITION} prefetch={false} className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
                                 構図ガイドで、ガイド線を自分の写真に重ねる
-                            </Link>
+                            </TrackedLink>
                         </li>
                     </ul>
                 </aside>

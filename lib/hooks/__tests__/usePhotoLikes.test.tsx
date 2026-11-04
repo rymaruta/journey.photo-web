@@ -559,3 +559,40 @@ describe("usePhotoLikes: 断られた理由を運ぶ", () => {
         expect(r).toEqual({ ok: true, message: undefined });
     });
 });
+
+// いいねの計測（2026-11-04）: 付けてサーバーに届いた回だけ。外した回・失敗・未ログインは数えない
+describe("usePhotoLikes: like_photo の計測", () => {
+    const gtag = vi.fn();
+    const liked = () => gtag.mock.calls.filter((c) => c[1] === "like_photo");
+    beforeEach(() => {
+        gtag.mockReset();
+        sessionStorage.clear();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+    });
+
+    it("付けた回に1回。パラメータは landing_type だけ（写真 id を送らない）", async () => {
+        mockUserFetch.mockResolvedValue({ ok: true, json: async () => ({ likes: 6 }) });
+        const { result } = renderHook(() => usePhotoLikes("secret-photo-id", 5, true));
+        await act(async () => { await result.current.toggle(); });
+        expect(liked()).toHaveLength(1);
+        expect(Object.keys(liked()[0][2])).toEqual(["landing_type"]);
+        expect(JSON.stringify(gtag.mock.calls)).not.toContain("secret-photo-id");
+    });
+
+    it("外した回は数えない", async () => {
+        store["photo-gallery-favorites"] = JSON.stringify(["p1"]);
+        mockUserFetch.mockResolvedValue({ ok: true, json: async () => ({ likes: 4 }) });
+        const { result } = renderHook(() => usePhotoLikes("p1", 5, true));
+        await act(async () => { await result.current.toggle(); });
+        expect(liked()).toEqual([]);
+    });
+
+    it("失敗した回・未ログインは数えない", async () => {
+        mockUserFetch.mockResolvedValue({ ok: false, status: 500, json: async () => ({}), clone() { return this; } });
+        const a = renderHook(() => usePhotoLikes("p2", 5, true));
+        await act(async () => { await a.result.current.toggle(); });
+        const b = renderHook(() => usePhotoLikes("p3", 5, false));
+        await act(async () => { await b.result.current.toggle(); });
+        expect(liked()).toEqual([]);
+    });
+});

@@ -227,7 +227,7 @@ export default function ModalCaption({
                         <LinkIcon className="w-4 h-4" />
                     </button>
                     <button
-                        onClick={(e) => { stop(e); shareToTwitter(currentUrl, shareText); }}
+                        onClick={(e) => { stop(e); shareToTwitter(currentUrl, shareText, "photo"); }}
                         onTouchStart={stop}
                         className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/70 hover:text-white transition"
                         aria-label="Share on X"
@@ -240,7 +240,7 @@ export default function ModalCaption({
                     </button>
                     {locale === "ja" && (
                         <button
-                            onClick={(e) => { stop(e); shareToLine(currentUrl, shareText); }}
+                            onClick={(e) => { stop(e); shareToLine(currentUrl, shareText, "photo"); }}
                             onTouchStart={stop}
                             className="p-2.5 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 text-white/70 hover:text-white transition"
                             aria-label="Share on LINE"
