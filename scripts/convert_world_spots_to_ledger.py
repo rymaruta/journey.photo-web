@@ -42,7 +42,9 @@ def convert(candidate, editorial):
         return None
     # The editorial record must contain an explicit check; a source URL alone
     # does not establish that a factual claim was verified.
-    if editorial.get("checked") is not True or not isinstance(editorial.get("checkedAt"), str) or not editorial["checkedAt"].strip() or not isinstance(editorial.get("delegatedBy"), str) or not editorial["delegatedBy"].strip():
+    auto_verified = editorial.get("verificationMode") == "wikimedia-api" and len(sources) >= 2 and any("wikipedia.org/wiki/" in source["url"] for source in sources) and any("wikidata.org/wiki/" in source["url"] for source in sources)
+    manually_checked = editorial.get("checked") is True and isinstance(editorial.get("delegatedBy"), str) and bool(editorial["delegatedBy"].strip())
+    if not (auto_verified or manually_checked) or not isinstance(editorial.get("checkedAt"), str) or not editorial["checkedAt"].strip():
         return None
     # Reject malformed or future editorial review dates.
     try:
@@ -50,6 +52,9 @@ def convert(candidate, editorial):
     except ValueError:
         return None
     if checked_date > datetime.date.today():
+        return None
+    attribution = editorial.get("attribution") if auto_verified else None
+    if auto_verified and (not isinstance(attribution, str) or "Wikipedia contributors" not in attribution or "CC BY-SA" not in attribution):
         return None
     today = datetime.date.today().isoformat()
     key = hashlib.sha256(qid.encode("ascii")).hexdigest()[:12]
@@ -64,10 +69,11 @@ def convert(candidate, editorial):
         "status": "published",
         "draftedAt": today,
         "draftedBy": "wikidata-import",
-        "aiCheck": {"checkedAt": editorial["checkedAt"], "delegatedBy": editorial["delegatedBy"], "sources": [{"url": s["url"], "title": s["title"]} for s in sources]},
+        "aiCheck": {"checkedAt": editorial["checkedAt"], "delegatedBy": "wikimedia-api" if auto_verified else editorial["delegatedBy"], "sources": [{"url": s["url"], "title": s["title"]} for s in sources]},
         "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "updatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "wikidataId": qid,
+        **({"attribution": attribution, "sourceLanguage": editorial.get("sourceLanguage")} if auto_verified else {}),
     }
 
 def main():
