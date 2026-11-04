@@ -1,3 +1,4 @@
+import "../guide-details.css";
 import "../academy.css";
 import type { Metadata } from "next";
 import Link from "next/link";
