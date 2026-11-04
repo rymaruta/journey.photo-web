@@ -48,7 +48,7 @@ describe("新規登録: 同じ形の入力が区別できる", () => {
 
     it("表示名とメールにも名前がある", () => {
         render(<SignupPage />);
-        expect(screen.getByLabelText("表示名")).toBeInTheDocument();
+        expect(screen.getByLabelText("表示名（あとで変えられます）")).toBeInTheDocument();
         expect(screen.getByLabelText("メールアドレス")).toHaveAttribute("type", "email");
     });
 });

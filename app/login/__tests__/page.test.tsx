@@ -100,7 +100,7 @@ describe("LoginPage - 基本フロー", () => {
     it("初期表示はログインフォーム", () => {
         render(<LoginPage />);
         expect(screen.getByRole("heading", { name: "ログイン" })).toBeInTheDocument();
-        expect(screen.getByPlaceholderText(/example@email\.com/)).toBeInTheDocument();
+        expect(screen.getByPlaceholderText("you@example.com")).toBeInTheDocument();
     });
 
     it("?verified=1 のとき確認完了バナーが表示される", () => {
@@ -146,8 +146,8 @@ describe("LoginPage - 基本フロー", () => {
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "user@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "user@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => {
@@ -168,8 +168,8 @@ describe("LoginPage - 基本フロー", () => {
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "user@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "user@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/photo/abc"));
@@ -183,8 +183,8 @@ describe("LoginPage - 基本フロー", () => {
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "user@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "user@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/users?id=my-sub-123"));
@@ -196,8 +196,8 @@ describe("LoginPage - 基本フロー", () => {
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "user@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "user@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => {
@@ -215,8 +215,8 @@ describe("LoginPage - 基本フロー", () => {
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText("example@email.com"), "user@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "user@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
         expect(await screen.findByRole("alert")).toHaveTextContent("通信エラー");
         expect(mockReplace).not.toHaveBeenCalled();
@@ -230,8 +230,8 @@ describe("LoginPage - 基本フロー", () => {
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "user@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "wrongpass");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "user@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "wrongpass");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         expect(await screen.findByText(/メールアドレスまたはパスワード/)).toBeInTheDocument();
@@ -248,8 +248,8 @@ describe("LoginPage - 基本フロー", () => {
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "unconfirmed@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "unconfirmed@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         const link = await screen.findByRole("link", { name: /確認コードを入力・再送する/ });
@@ -274,8 +274,8 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
 
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => {
@@ -303,8 +303,8 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
 
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => { expect(mockReplace).toHaveBeenCalledWith("/"); });
@@ -327,8 +327,8 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
 
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => { expect(mockReplace).toHaveBeenCalledWith("/"); });
@@ -345,8 +345,8 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => { expect(mockReplace).toHaveBeenCalledWith("/"); });
@@ -364,8 +364,8 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/"));
@@ -382,20 +382,21 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
         mockForgotPassword.mockResolvedValue({ success: true });
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.click(screen.getByRole("button", { name: /パスワードをお忘れですか/ }));
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.click(screen.getByRole("button", { name: /確認コードを送信/ }));
-        await waitFor(() => expect(screen.getByPlaceholderText("メールに届いたコードを入力")).toBeInTheDocument());
+        await user.click(screen.getByRole("button", { name: /パスワードを忘れた/ }));
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.click(screen.getByRole("button", { name: /^コードを送る$/ }));
+        await waitFor(() => expect(screen.getByLabelText("確認コード")).toBeInTheDocument());
 
-        await user.type(screen.getByPlaceholderText("メールに届いたコードを入力"), "123456");
-        await user.type(screen.getByPlaceholderText(/8文字以上/), "abc");
-        await user.click(screen.getByRole("button", { name: /パスワードを更新/ }));
+        await user.type(screen.getByLabelText("確認コード"), "123456");
+        await user.type(screen.getByLabelText("新しいパスワード"), "abc");
+        await user.click(screen.getByRole("button", { name: /^パスワードを変える$/ }));
 
         expect(mockConfirmForgotPassword, "短いまま送っている").not.toHaveBeenCalled();
         // **プールは記号も要求している**（`provision-env.js` の
         // `RequireSymbols: true`）。記号を書かないと、`Password1` を弾かれた
         // 人が「条件は満たしている」と読んで打ち直し続ける
-        expect(screen.getByText(/記号/), "記号の条件を言っていない").toBeInTheDocument();
+        // 2026-11-04: 欄の下にも決まりを出す（iOS）ので、エラーの1文で見る
+        expect(screen.getByRole("alert"), "記号の条件を言っていない").toHaveTextContent(/記号/);
     });
 
     // **前後に空白があっても、そのまま送らない。**
@@ -410,8 +411,8 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
         mockLogin.mockResolvedValue({ success: true });
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "  u@example.com  ");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "  u@example.com  ");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
         await waitFor(() => expect(mockLogin).toHaveBeenCalledWith("u@example.com", "Password1!"));
     });
@@ -420,9 +421,9 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
         mockForgotPassword.mockResolvedValue({ success: true });
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.click(screen.getByRole("button", { name: /パスワードをお忘れですか/ }));
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), " u@example.com ");
-        await user.click(screen.getByRole("button", { name: /確認コードを送信/ }));
+        await user.click(screen.getByRole("button", { name: /パスワードを忘れた/ }));
+        await user.type(screen.getByPlaceholderText("you@example.com"), " u@example.com ");
+        await user.click(screen.getByRole("button", { name: /^コードを送る$/ }));
         await waitFor(() => expect(mockForgotPassword).toHaveBeenCalledWith("u@example.com"));
     });
 
@@ -431,46 +432,46 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
         mockConfirmForgotPassword.mockResolvedValue({ success: true });
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.click(screen.getByRole("button", { name: /パスワードをお忘れですか/ }));
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), " u@example.com ");
-        await user.click(screen.getByRole("button", { name: /確認コードを送信/ }));
-        await waitFor(() => expect(screen.getByPlaceholderText("メールに届いたコードを入力")).toBeInTheDocument());
+        await user.click(screen.getByRole("button", { name: /パスワードを忘れた/ }));
+        await user.type(screen.getByPlaceholderText("you@example.com"), " u@example.com ");
+        await user.click(screen.getByRole("button", { name: /^コードを送る$/ }));
+        await waitFor(() => expect(screen.getByLabelText("確認コード")).toBeInTheDocument());
         // **コード欄にも空白を入れる。** ここは `type="text"` なので
         // ブラウザ側の正規化が効かない（メールから6桁をコピペすると
         // 末尾に空白が付くことがある）。空白なしで打っていた頃は、
         // 確かめていたのは jsdom が勝手に落とすメールの分だけだった
-        await user.type(screen.getByPlaceholderText("メールに届いたコードを入力"), " 123456 ");
-        await user.type(screen.getByPlaceholderText(/8文字以上/), "Password1!");
-        await user.click(screen.getByRole("button", { name: /パスワードを更新/ }));
+        await user.type(screen.getByLabelText("確認コード"), " 123456 ");
+        await user.type(screen.getByLabelText("新しいパスワード"), "Password1!");
+        await user.click(screen.getByRole("button", { name: /^パスワードを変える$/ }));
         await waitFor(() => expect(mockConfirmForgotPassword).toHaveBeenCalledWith("u@example.com", "123456", "Password1!"));
     });
 
-    // **「パスワードを更新」の門番が、1件も検証されていなかった**
+    // **「パスワードを変える」の門番が、1件も検証されていなかった**
     // （このファイルに `toBeDisabled` が0件だった）。
     // コード欄は `type="text"` なのでブラウザ側の正規化が効かない
     // ——メールから6桁をコピペすると空白が付くことがあり、
     // `resetCode.length` で数えると空白ぶんで6文字に届いてしまう
-    it("コードが6桁に満たない間は「パスワードを更新」を押せない", async () => {
+    it("コードが6桁に満たない間は「パスワードを変える」を押せない", async () => {
         mockForgotPassword.mockResolvedValue({ success: true });
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.click(screen.getByRole("button", { name: /パスワードをお忘れですか/ }));
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.click(screen.getByRole("button", { name: /確認コードを送信/ }));
-        await waitFor(() => expect(screen.getByPlaceholderText("メールに届いたコードを入力")).toBeInTheDocument());
+        await user.click(screen.getByRole("button", { name: /パスワードを忘れた/ }));
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.click(screen.getByRole("button", { name: /^コードを送る$/ }));
+        await waitFor(() => expect(screen.getByLabelText("確認コード")).toBeInTheDocument());
 
-        const update = screen.getByRole("button", { name: /パスワードを更新/ });
+        const update = screen.getByRole("button", { name: /^パスワードを変える$/ });
         // 何も入れていない
         expect(update, "空のまま押せる").toBeDisabled();
 
         // **空白を混ぜた5桁。** 文字数だけ数えると7文字で通ってしまう
-        await user.type(screen.getByPlaceholderText("メールに届いたコードを入力"), " 12345 ");
-        await user.type(screen.getByPlaceholderText(/8文字以上/), "Password1!");
+        await user.type(screen.getByLabelText("確認コード"), " 12345 ");
+        await user.type(screen.getByLabelText("新しいパスワード"), "Password1!");
         expect(update, "空白を数えて6桁に届いたことにしている").toBeDisabled();
 
         // 6桁そろえば押せる
-        await user.clear(screen.getByPlaceholderText("メールに届いたコードを入力"));
-        await user.type(screen.getByPlaceholderText("メールに届いたコードを入力"), " 123456 ");
+        await user.clear(screen.getByLabelText("確認コード"));
+        await user.type(screen.getByLabelText("確認コード"), " 123456 ");
         expect(update, "6桁そろっているのに押せない").toBeEnabled();
     });
 
@@ -478,13 +479,13 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
         mockForgotPassword.mockResolvedValue({ success: true });
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.click(screen.getByRole("button", { name: /パスワードをお忘れですか/ }));
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.click(screen.getByRole("button", { name: /確認コードを送信/ }));
-        await waitFor(() => expect(screen.getByPlaceholderText("メールに届いたコードを入力")).toBeInTheDocument());
+        await user.click(screen.getByRole("button", { name: /パスワードを忘れた/ }));
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.click(screen.getByRole("button", { name: /^コードを送る$/ }));
+        await waitFor(() => expect(screen.getByLabelText("確認コード")).toBeInTheDocument());
 
-        await user.type(screen.getByPlaceholderText("メールに届いたコードを入力"), "123456");
-        expect(screen.getByRole("button", { name: /パスワードを更新/ }), "パスワードが空でも押せる").toBeDisabled();
+        await user.type(screen.getByLabelText("確認コード"), "123456");
+        expect(screen.getByRole("button", { name: /^パスワードを変える$/ }), "パスワードが空でも押せる").toBeDisabled();
     });
 
     it("PUT /user/profile が失敗してもログインは成功扱いで `/` へリダイレクトする", async () => {
@@ -494,8 +495,8 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
 
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => { expect(mockReplace).toHaveBeenCalledWith("/"); });
@@ -510,8 +511,8 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
 
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "u@example.com");
-        await user.type(screen.getByPlaceholderText("••••••••"), "Password1!");
+        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
         await waitFor(() => { expect(mockReplace).toHaveBeenCalledWith("/"); });
@@ -524,11 +525,11 @@ describe("LoginPage - 表示名持ち越しによるプロフィール作成", (
 // パスワードリセット
 // ──────────────────────────────────────────────────────────────
 describe("LoginPage - パスワードリセット", () => {
-    it("「パスワードをお忘れですか？」→ forgot-send ステップへ", async () => {
+    it("「パスワードを忘れた」→ forgot-send ステップへ", async () => {
         const user = userEvent.setup();
         render(<LoginPage />);
-        await user.click(screen.getByRole("button", { name: /パスワードをお忘れですか/ }));
-        expect(await screen.findByRole("heading", { name: "パスワードをリセット" })).toBeInTheDocument();
+        await user.click(screen.getByRole("button", { name: /パスワードを忘れた/ }));
+        expect(await screen.findByRole("heading", { name: "パスワードを忘れた" })).toBeInTheDocument();
     });
 
     it("forgot-send 成功 → forgot-confirm ステップへ", async () => {
@@ -536,13 +537,53 @@ describe("LoginPage - パスワードリセット", () => {
         const user = userEvent.setup();
         render(<LoginPage />);
 
-        await user.click(screen.getByRole("button", { name: /パスワードをお忘れですか/ }));
-        await user.type(screen.getByPlaceholderText(/example@email\.com/), "reset@example.com");
-        await user.click(screen.getByRole("button", { name: /確認コードを送信/ }));
+        await user.click(screen.getByRole("button", { name: /パスワードを忘れた/ }));
+        await user.type(screen.getByPlaceholderText("you@example.com"), "reset@example.com");
+        await user.click(screen.getByRole("button", { name: /^コードを送る$/ }));
 
         await waitFor(() => {
-            expect(screen.getByRole("heading", { name: "コードを確認" })).toBeInTheDocument();
+            expect(screen.getByRole("heading", { name: "確認コードを入力" })).toBeInTheDocument();
         });
         expect(mockForgotPassword).toHaveBeenCalledWith("reset@example.com");
+    });
+});
+
+// 2026-11-04: iOS `SignInView` の形（札で囲まない・ワードマークは帯の上から 250・白の主ボタン・線の2番手）
+describe("ログイン: iOS の形", () => {
+    it("縁つきの札で囲まない（帯の下に直に置く）", () => {
+        const { container } = render(<LoginPage />);
+        const content = screen.getByTestId("login-content");
+        expect(content.className).not.toMatch(/\bborder\b|\brounded-2xl\b|bg-black\/85/);
+        expect(container.querySelector(".rounded-2xl.border"), "札が残っている").toBeNull();
+        // 本文は帯（380）の上から 250 で始まる（130 食い込む）
+        expect(content.closest("main")!.className).toMatch(/pt-\[250px\]/);
+    });
+
+    it("ワードマークと iOS の一文を出し、「写真をアップロードするには…」は出さない", () => {
+        render(<LoginPage />);
+        expect(screen.getByText("写真から、次の旅が始まる。")).toBeInTheDocument();
+        expect(screen.queryByText(/写真をアップロードするにはログインが必要です/)).toBeNull();
+    });
+
+    it("主ボタンは白、「アカウントを作る」は線のボタン", () => {
+        render(<LoginPage />);
+        expect(screen.getByRole("button", { name: "ログイン" }).className).toMatch(/\bbg-white\b/);
+        // `next/link` はこのテストで素の <a> に差し替えてあり class を運ばないので、ボタンの段だけ見る
+        expect(screen.getByRole("link", { name: "アカウントを作る" })).toBeInTheDocument();
+    });
+
+    it("失敗したら欄に aria-invalid を付け、エラー文と結ぶ（#491）", async () => {
+        mockLogin.mockResolvedValue({ success: false, error: "メールアドレスまたはパスワードが違います" });
+        const user = userEvent.setup();
+        render(<LoginPage />);
+        await user.type(screen.getByPlaceholderText("you@example.com"), "user@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "wrongpass");
+        await user.click(screen.getByRole("button", { name: "ログイン" }));
+        const alert = await screen.findByRole("alert");
+        expect(alert.id).toBe("login-form-error");
+        for (const el of [screen.getByLabelText("メールアドレス"), screen.getByLabelText("パスワード")]) {
+            expect(el).toHaveAttribute("aria-invalid", "true");
+            expect(el).toHaveAttribute("aria-describedby", "login-form-error");
+        }
     });
 });

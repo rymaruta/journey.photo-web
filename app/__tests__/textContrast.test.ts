@@ -146,10 +146,12 @@ function unreadableTokens(cls: string, monochromeOnly = false): string[] {
  * 気づけない、というレビュー指摘への答え
  */
 const GUARDED: Array<[string, string, string, boolean?]> = [
-    ["app/signup/page.tsx", "英大文字・小文字・数字", "パスワードの条件（読めないと登録できない）"],
-    ["app/signup/page.tsx", "写真のアップロードができるようになります", "新規登録の説明"],
-    ["app/login/page.tsx", "写真をアップロードするにはログインが必要です", "ログインの説明"],
-    ["app/login/page.tsx", "パスワードをお忘れですか", "パスワード再設定への導線"],
+    // 2026-11-04: 登録はログインと同じ形に。条件の文の色は部品の定数（AUTH_CAPTION_CLASS・下の accountFormStyles の行）が持つ
+    ["app/signup/page.tsx", "英大文字・小文字・数字", "パスワードの条件（読めないと登録できない）", true],
+    // 2026-11-04: ログインは iOS の形（札なし）に。「写真をアップロードするには…」の説明は iOS に無いので外した。
+    // 文字ボタンと注記の色は部品の定数が持つ
+    ["app/components/accountFormStyles.ts", "text-[13px] text-white/70", "パスワード再設定への導線（パスワードを忘れた）"],
+    ["app/components/accountFormStyles.ts", "leading-relaxed text-white/60", "ログイン・登録の欄の下の注記"],
     ["app/components/Footer.tsx", "© Journey Photo", "全ページに出る著作権表示"],
     ["app/privacy/page.tsx", "最終更新日: {LAST_UPDATED}", "プライバシーポリシーの更新日"],
     // 子の <Link>（/70）を親と取り違えていたので、包む <p> を直接の目印にする

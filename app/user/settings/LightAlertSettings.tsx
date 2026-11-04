@@ -6,7 +6,7 @@
  * 1. 「光と天気の知らせ」の行 → 一覧（`/user/light`）
  * 2. 「前の晩に知らせる」の入切 → `PUT /user/profile` の `lightAlert`（既定 受け取る）
  *
- * **Pro でない人には節ごと出さない。** Web では何も売らない（購入へ案内しない）ので、
+ * **Pro でない人には行を出さない**（節「Pro」は設定の画面が組む・2026-11-04）。 Web では何も売らない（購入へ案内しない）ので、
  * iOS の「Pro でなければ案内を開く」は持ってこない。Pro かどうかは自分のプロフィールの
  * `pro`（`GET /user/profile`。本人の応答は印を外していても資格のまま——`userProfile.ts` の
  * `withBadgeFields`）で見る。読めなかったときも出さない（出して 403 を踏ませない）。
@@ -17,13 +17,10 @@
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { userFetch, sessionErrorMessage } from "../../../lib/utils/api";
 import { usableObject } from "../../../lib/utils/apiRows";
 import { ROUTES } from "../../../lib/routes";
-
-/** 行の頭の絵の幅。2行目は同じ幅を空けて書き出しをそろえる */
-const ICON_PX = 20;
+import { SettingsNote, SettingsRowLink } from "./SettingsParts";
 
 export default function LightAlertSettings({ locale }: { locale: "ja" | "en" }) {
     const en = locale === "en";
@@ -75,68 +72,52 @@ export default function LightAlertSettings({ locale }: { locale: "ja" | "en" }) 
     };
 
     const label = en ? "Alert me the evening before" : "前の晩に知らせる";
+    // 2026-11-04: 設定の「Pro」の札（`page.tsx`）の中の2行として描く（iOS `LightAlertSettingsRows`）。
+    // 板 v2 は行の絵を外した（Pro の行の Pro マークだけ）ので、光の絵と2行目の字下げもやめた
     return (
-        <section className="mt-10 pt-6 border-t border-line" data-testid="settings-pro">
-            <h2 className="text-[11px] tracking-widest uppercase text-white/50 mb-2">Pro</h2>
-            <div className="rounded-2xl bg-white/[0.03] ring-1 ring-line overflow-hidden">
-                <Link
-                    href={ROUTES.LIGHT_FORECAST}
-                    prefetch={false}
-                    className="flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition"
-                    style={{ minHeight: "54px", touchAction: "manipulation" }}
+        <>
+            <SettingsRowLink
+                href={ROUTES.LIGHT_FORECAST}
+                title={en ? "Light & weather alerts" : "光と天気の知らせ"}
+                detail={en ? "This week's light and weather at your wishlist places" : "行きたい場所の、今週の光と天気"}
+                testId="settings-light"
+            />
+            <div className="flex items-center gap-3 px-[14px] py-[13px] min-h-[54px]">
+                <span className="flex-1 min-w-0 flex flex-col gap-1">
+                    <span className="text-[15px] leading-[20px] text-white">{label}</span>
+                    <span className="text-[12px] leading-[1.55] text-white/60">
+                        {en
+                            ? "If a wishlist place looks set for a clear, glowing sunrise, we'll tell you the evening before (in the iPhone app)."
+                            : "行きたい場所が、明日の朝に晴れて朝焼けになりそうなら前の晩に（iPhone のアプリに届きます）。"}
+                    </span>
+                </span>
+                {/* 板のトグル（51×31・入は accent-deep に白い玉）。押せる高さは 44px */}
+                <button
+                    type="button"
+                    role="switch"
+                    aria-checked={wants}
+                    aria-label={label}
+                    disabled={saving}
+                    onClick={() => void toggle()}
+                    className="flex-shrink-0 flex items-center disabled:opacity-60"
+                    style={{ width: "51px", minHeight: "44px", touchAction: "manipulation" }}
                 >
-                    {/* 光の線の絵（板の Pro の節・真鍮） */}
-                    <svg aria-hidden="true" width={ICON_PX} height={ICON_PX} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" className="text-accent flex-shrink-0">
-                        <path d="M3 18h18M7 18a5 5 0 0 1 10 0M12 7V4M5.6 10.6 3.5 8.5M18.4 10.6l2.1-2.1" />
-                    </svg>
-                    <span className="flex-1 min-w-0 flex flex-col gap-1">
-                        <span className="text-[15px] text-white/95">{en ? "Light & weather alerts" : "光と天気の知らせ"}</span>
-                        <span className="text-xs leading-relaxed text-white/60">
-                            {en ? "This week's light and weather at your wishlist places" : "行きたい場所の、今週の光と天気"}
-                        </span>
-                    </span>
-                    <span aria-hidden="true" className="text-white/50">›</span>
-                </Link>
-                <div className="border-t border-white/[0.08] flex items-center gap-3 px-4 py-3" style={{ minHeight: "54px" }}>
-                    {/* 2026-10-11 判断: 上の行の絵（20px）と同じ幅を空け、2行の書き出しをそろえる
-                        （空けないと上の行より 32px 左から始まり、ずれて見えた） */}
-                    <span aria-hidden="true" className="flex-shrink-0" style={{ width: ICON_PX }} data-testid="light-alert-indent" />
-                    <span className="flex-1 min-w-0 flex flex-col gap-1">
-                        <span className="text-[15px] text-white/95">{label}</span>
-                        <span className="text-xs leading-relaxed text-white/60">
-                            {en
-                                ? "If a wishlist place looks set for a clear, glowing sunrise, we'll tell you the evening before (in the iPhone app)."
-                                : "行きたい場所が、明日の朝に晴れて朝焼けになりそうなら前の晩に（iPhone のアプリに届きます）。"}
-                        </span>
-                    </span>
-                    {/* 板のトグル（51×31・入は accent-deep に白い玉）。押せる高さは 44px */}
-                    <button
-                        type="button"
-                        role="switch"
-                        aria-checked={wants}
-                        aria-label={label}
-                        disabled={saving}
-                        onClick={() => void toggle()}
-                        className="flex-shrink-0 flex items-center disabled:opacity-60"
-                        style={{ width: "51px", minHeight: "44px", touchAction: "manipulation" }}
+                    <span
+                        className={`relative block rounded-full transition-colors ${wants ? "bg-accent-deep" : "bg-white/20"}`}
+                        style={{ width: "51px", height: "31px" }}
                     >
                         <span
-                            className={`relative block rounded-full transition-colors ${wants ? "bg-accent-deep" : "bg-white/20"}`}
-                            style={{ width: "51px", height: "31px" }}
-                        >
-                            <span
-                                className="absolute rounded-full bg-white transition-transform"
-                                style={{
-                                    width: "27px", height: "27px", top: "2px", left: "2px",
-                                    boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
-                                    transform: wants ? "translateX(20px)" : "translateX(0)",
-                                }}
-                            />
-                        </span>
-                    </button>
-                </div>
-                {error && <p role="alert" className="px-4 pb-3 text-xs text-danger">{error}</p>}
+                            className="absolute rounded-full bg-white transition-transform"
+                            style={{
+                                width: "27px", height: "27px", top: "2px", left: "2px",
+                                boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                                transform: wants ? "translateX(20px)" : "translateX(0)",
+                            }}
+                        />
+                    </span>
+                </button>
             </div>
-        </section>
+            {error && <SettingsNote role="alert" tone="danger">{error}</SettingsNote>}
+        </>
     );
 }

@@ -37,7 +37,8 @@ vi.mock("../../../../lib/auth/cognito", async (importActual) => ({
     signOutEverywhere: (...a: unknown[]) => mockSignOutEverywhere(...a),
 }));
 
-const SettingsPage = (await import("../page")).default;
+// 2026-11-04: 設定の下の画面（`/user/settings/password`）へ移した（iOS と同じく行 → 画面）
+const SettingsPage = (await import("../password/page")).default;
 
 const ok = (data: unknown) => ({ ok: true, json: async () => data });
 
@@ -45,7 +46,7 @@ const ok = (data: unknown) => ({ ok: true, json: async () => data });
 // 描くだけで、いまのメールアドレスを読む `getCurrentEmail` の解決を待つ
 async function openLoaded() {
     render(<SettingsPage />);
-    await screen.findByRole("heading", { name: "設定" });
+    await screen.findByRole("heading", { name: "パスワードを変える" });
 }
 
 const btn = () => screen.getByRole("button", { name: /すべての端末からログアウトする/ });
