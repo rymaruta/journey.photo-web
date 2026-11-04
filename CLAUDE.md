@@ -169,6 +169,11 @@
     AI 照合では出せない（確認者つきの出典が要るまま）
   - 写真（`spot-images.json`）は `aiCheck.imageChecked` かつ座標のずれ無しのときだけアプリに出す
   - 写真の小さい版（`public/images/spots/thumb/`・アプリの `thumbUrl`）は**自動で作られる**（`localize-spot-images.mjs` と本番のビルドが `scripts/spot-thumbs.mjs` を呼ぶ）。揃っているかは `node scripts/spot-thumbs.mjs --check` で見られる
+- **撮影スポットを足す束は `docs/spot-batch-runbook.md` の手順で回す**（2026-11-04）。候補 → 書く → 反証 → 直す →
+  二度目の確かめ → 台帳 → 作例 → 目視 → verify → develop → 本番 → 本番で確かめる → #410 に報告、の台本は
+  `scripts/spot-batch/`、担当への指示書と雛形は `scripts/spot-batch/prompts/`。見た候補の控えは
+  `scripts/spot-batch/state/seen-qids.json`（束ごとに更新してコミット）。**確かめずに公開する自動化は入れない**
+  （2026-11-04: 冒頭を切り取って公開する枝 `feat/auto-verified-world-spots` は、台帳のテスト4件が落ち、重なりの判定も効かなかった）
 - **Wikipedia / Wikidata の API は叩きすぎない**（2026-09-28・owner の指示）。
   国内と海外の収集を同時に流して 429（要求過多）を返され、待っては再試行する
   ループで1件十数秒かかった。守ること:

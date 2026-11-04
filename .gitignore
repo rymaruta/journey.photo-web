@@ -63,3 +63,6 @@ api-user/.serverless/
 # vitest が拾って同じテストを二重に走らせ、件数まで狂わせる。
 __ztmp/
 *.bak
+
+# 撮影スポットの束の台本（scripts/spot-batch）が作る Python の控え
+scripts/spot-batch/__pycache__/
