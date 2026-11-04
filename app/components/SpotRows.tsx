@@ -10,10 +10,18 @@ import React from "react";
 import Link from "next/link";
 import { MapPinIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import { distanceLabel } from "@/lib/utils/journey";
-import { CARD_LIST, ROW_TALL, ROW_ICON_BOX, ROW_ICON, ROW_TITLE, ROW_SUB, ROW_VALUE, ROW_CHEVRON } from "./rowStyles";
+import { spotRowThumbPath } from "@/lib/utils/spotThumbPath";
+import SpotThumbMark, { SPOT_MARK_PX } from "./SpotThumbMark";
+import { CARD_LIST, ROW_TALL, ROW_ICON, ROW_TITLE, ROW_SUB, ROW_VALUE, ROW_CHEVRON } from "./rowStyles";
 
-/** 一覧の1行（`km` はこのスポットからの距離・両方に座標があるときだけ） */
-export type SpotRow = { slug: string; name: string; region?: string; km?: number };
+/**
+ * 一覧の1行（`km` はこのスポットからの距離・両方に座標があるときだけ）。
+ * `thumb` は丸い印に出す写真の小さい版が在る印（サーバーが `hasSpotRowThumb` で決める・場所は `spotRowThumbPath(slug)`）
+ */
+export type SpotRow = { slug: string; name: string; region?: string; km?: number; thumb?: true };
+
+/** 写真の無い行の印の箱。写真の丸（40）と同じ幅にして、写真のある行とない行で題の左端をそろえる */
+const MARK_BOX = "flex-shrink-0 inline-flex items-center justify-center text-text-3";
 
 /**
  * ほかのスポットの一覧（iOS の `nearbyRow`: 面の箱に、印 → 名前 → 距離 → 矢印）。
@@ -29,7 +37,9 @@ export default function SpotRows({ rows, isJa }: { rows: SpotRow[]; isJa: boolea
                 return (
                     <li key={n.slug}>
                         <Link href={`/spots/${n.slug}`} prefetch={false} className={ROW_TALL}>
-                            <span className={ROW_ICON_BOX}><MapPinIcon className={ROW_ICON} aria-hidden /></span>
+                            <SpotThumbMark
+                                src={n.thumb ? spotRowThumbPath(n.slug) : undefined}
+                                fallback={<span className={MARK_BOX} style={{ width: SPOT_MARK_PX, height: SPOT_MARK_PX }}><MapPinIcon className={ROW_ICON} aria-hidden /></span>} />
                             <span className="min-w-0 flex-1 py-2">
                                 <span className={ROW_TITLE}>{n.name}</span>
                                 {n.region && <span className={ROW_SUB}>{n.region}</span>}

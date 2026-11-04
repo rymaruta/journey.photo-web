@@ -6,6 +6,8 @@ import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { CameraIcon } from "@heroicons/react/24/solid";
 import type { SpotPin } from "../../lib/data/spotLink";
 import { ROUTES } from "../../lib/routes";
+import { spotRowThumbPath } from "../../lib/utils/spotThumbPath";
+import SpotThumbMark from "../components/SpotThumbMark";
 
 /**
  * 地図に出ている**公式撮影スポット**の一覧。
@@ -99,27 +101,14 @@ export default function MapSpotList({ spots, total = spots.length, categoryActiv
                         >
                             {/* 代表写真。**権利の判断はサーバー側で済んでいる**ので、
                                 在れば出す・無ければ真鍮の丸にカメラの印を置くだけ */}
-                            {s.cover ? (
-                                <span className="flex-shrink-0 block overflow-hidden rounded-full bg-accent ring-2 ring-inset ring-accent"
-                                      style={{ width: "40px", height: "40px" }}>
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img
-                                        src={s.cover.src}
-                                        alt=""
-                                        width={40}
-                                        height={40}
-                                        loading="lazy"
-                                        decoding="async"
-                                        className="w-full h-full object-cover rounded-full"
-                                        style={{ padding: "2px" }}
-                                    />
-                                </span>
-                            ) : (
-                                <span className="flex-shrink-0 inline-flex items-center justify-center rounded-full bg-accent text-ink"
-                                      style={{ width: "40px", height: "40px", boxShadow: "inset 0 0 0 2px rgb(255 255 255 / 0.92)" }}>
-                                    <CameraIcon className="w-[16px] h-[16px]" aria-hidden="true" />
-                                </span>
-                            )}
+                            <SpotThumbMark
+                                src={s.cover?.src ?? (s.thumb ? spotRowThumbPath(s.slug) : undefined)}
+                                fallback={
+                                    <span className="flex-shrink-0 inline-flex items-center justify-center rounded-full bg-accent text-ink"
+                                          style={{ width: "40px", height: "40px", boxShadow: "inset 0 0 0 2px rgb(255 255 255 / 0.92)" }}>
+                                        <CameraIcon className="w-[16px] h-[16px]" aria-hidden="true" />
+                                    </span>
+                                } />
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate font-serif font-bold text-white" style={{ fontSize: "18px", lineHeight: "24px" }}>
                                     {s.name}

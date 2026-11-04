@@ -117,8 +117,10 @@ const EXEMPT: Array<[string, string, string]> = [
      + "ない**——運営が台帳（`content/spots.json`）に書いたサイト内のパスで、"
      + "CloudFront の写真URLではないので `publicImageUrl` を通す対象ではない。"
      + "権利の判断はサーバー側（`lib/data/spotLink.ts` の `toSpotLink`）で済ませてある"],
-    ["app/map/MapSpotList.tsx", "s.cover.src",
-     "地図の下の公式スポット一覧の代表写真。上と同じ値・同じ経路"],
+    ["app/components/SpotThumbMark.tsx", "src",
+     "撮影スポットの一覧の行の丸い印（地図の下の一覧 `MapSpotList`・近くの撮影スポット `SpotRows`・2026-11-04）。"
+     + "渡されるのは台帳の代表写真（`SpotPin.cover`）か、サイトに同梱した小さい版（`spotRowThumbPath(slug)`＝`/images/spots/thumb/<slug>.jpg`）だけ。"
+     + "**利用者が上げた写真ではない**。出してよいかの判断はサーバー側（`lib/data/spotThumbs.ts` の `hasSpotRowThumb`）で済ませてある"],
     ["app/components/SpotIndexClient.tsx", "s.cover!.src",
      "県の頁（`/spots/area/<県>`）のカードの代表写真。季節・テーマの頁と同じ値"
      + "（`topicCardCover`＝`spotCoverImage` のサイト内のパスかそのサムネ・2026-10-22）。"
