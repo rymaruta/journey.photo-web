@@ -23,6 +23,8 @@ import HomeMosaic from "./components/HomeMosaic";
 import { EmptyState } from "./components/StateViews";
 import HomeTopCards from "./components/HomeTopCards";
 import SpotsEntry from "./components/SpotsEntry";
+import StoriesBar from "./components/stories/StoriesBar";
+import StickyTabRow from "./components/StickyTabRow";
 import type { HomeSeasonal } from "../lib/data/spotTopics";
 import { useMySaves } from "../lib/hooks/useMySaves";
 import { nextTabIndex } from "../lib/utils/tabKeys";
@@ -46,9 +48,16 @@ const HOME_PRIORITY_COUNT = 3;
 const HOME_TABS = [
     { key: "featured", ja: "おすすめ", en: "For you" },
     { key: "following", ja: "フォロー中", en: "Following" },
-    { key: "all", ja: "新着", en: "New" },
+    // 英語の名前は iOS の `HomeFeed.latest`（「Latest」）と同じ
+    { key: "all", ja: "新着", en: "Latest" },
 ] as const;
 const HOME_PANEL_ID = "home-tabpanel";
+
+/**
+ * 「おすすめ」で、いまの季節の撮影スポットの段の前に置く写真の数（iOS の `HomeFeed.seasonShelfAfter`・#417 ④）。
+ * **大1→2→2 のひと回り**の切れ目なので、段の後ろの写真も大きい1枚から始まり、並びのリズムは変わらない
+ */
+export const SEASON_SHELF_AFTER = 5;
 
 /**
  * **ホームの PC は「左に写真の並び（`HomeMosaic`）＋右の柱」**（owner の指示書 4・11・17:
@@ -99,8 +108,15 @@ const SEARCH_SCOPES: ReadonlyArray<{ key: SearchScopeKey | "people"; ja: string;
   { key: "places", ja: "撮影地", en: "Places" },
 ];
 
+/**
+ * タブの面の最低の高さ＝「見えている高さ − 見出し − 切り替えの行（44＋線 1＋下の間 12）」（iOS の `ProfileTabScroll.minPageHeight`）。
+ * 短い一覧（0件の「フォロー中」など）へ替えても頁が縮んで送りの位置が詰められず、留まった行の真下から
+ * 新しい一覧（または空の知らせ）が始まる（`StickyTabRow` の `resetKey` が行を上端へ戻す先が、いつも在る）
+ */
+export const HOME_PANEL_MIN_HEIGHT = "calc(100dvh - var(--header-h) - 57px)";
+
 function HomePanel({ scope, children }: { scope: string; children: React.ReactNode }) {
-  return <div id={HOME_PANEL_ID} role="tabpanel" aria-labelledby={`home-tab-${scope}`}>{children}</div>;
+  return <div id={HOME_PANEL_ID} role="tabpanel" aria-labelledby={`home-tab-${scope}`} style={{ minHeight: HOME_PANEL_MIN_HEIGHT }}>{children}</div>;
 }
 
 function HomeColumns({ rail, children }: { rail: React.ReactNode; children: React.ReactNode }) {
@@ -597,6 +613,8 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
    * 一言（`subtitle`）はサイトの看板なのでトップにだけ置く。
    */
   const isSearch = surface !== "home";
+  /** 季節の段を出すか（「おすすめ」で写真が1枚以上・数件が選ばれているとき。写真が0枚の日は出さない＝iOS と同じ） */
+  const seasonalShelfShown = !!seasonalSpots && seasonalSpots.spots.length > 0;
   const heading = isSearch
     ? (labels.search?.heading ?? (locale === "en" ? "Find photos" : "写真をさがす"))
     : (labels.site?.title ?? "Gallery");
@@ -652,9 +670,23 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
          見た目の話の前に、指で押す的が小さすぎた。
          **px で書く**——以前は 640px 未満の root が 14px で `gap-6` も
          `text-sm` も縮んでいた（`gap-6` は 21px・2026-10-30 束 0a で外した）。 */}
+      {/* **ホームの並びは iOS と同じ: ストーリーの輪 → 上の札 → 切り替え → 中身**（`GalleryView.feed`・2026-11-04）。
+          以前の Web は「切り替え → 上の札 → 季節の段 → 中身」で、ストーリーはマイページにだけあった
+          （2026-09-20 に移したが、iOS はその後ホームの一番上に戻している——「いま誰が旅に出ているか」は開いた瞬間に見たいもの）。
+          輪の列は未ログインでは何も描かない（`StoriesBar`・iOS の `StoriesRow` も同じ） */}
+      {surface === "home" && <StoriesBar />}
+
+      {/* **上段のめくる札**（今日のテーマ・今日の一問・撮影スポット・2026-10-31 束 1 H2・iOS の `HomeTopCardView`）。
+          輪の列の下・切り替えの上（iOS と同じ）＝どのタブでも同じ位置。以前は文字だけの帯 3 本（`QuizEntry`・`SpotsEntry`・`ThemeEntry`） */}
+      {surface === "home" && <HomeTopCards locale={locale === "en" ? "en" : "ja"} photos={PHOTOS} seasonal={seasonalSpots} />}
+
+      {/* 切り替えは写真の一覧の頭。**下へ送ると見出しの下に留まる**（iOS の #417 ⑧ `pinnedFeedRow`・`StickyTabRow`）。
+          留まっていればタブを替えるのに上まで戻らなくてよい */}
       {surface === "home" && (
+        <StickyTabRow className="mb-3" resetKey={filters.scope}>
         <div role="tablist" aria-label={locale === "en" ? "Which photos" : "どの写真を見るか"}
-             className={`${TAB_ROW} mb-3`}>
+             // 下の線は留める行（`StickyTabRow`）が引く（スマホは画面の端から端まで・留まったら白 12%）
+             className={TAB_ROW} style={{ borderBottomWidth: 0 }}>
           {HOME_TABS.map((t) => {
             const active = filters.scope === t.key;
             return (
@@ -678,16 +710,8 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
             );
           })}
         </div>
+        </StickyTabRow>
       )}
-
-      {/* **上段のめくる札**（今日のテーマ・今日の一問・撮影スポット・2026-10-31 束 1 H2・iOS の `HomeTopCardView`）。
-          タブの直下＝どのタブでも同じ位置。以前は文字だけの帯 3 本（`QuizEntry`・`SpotsEntry`・`ThemeEntry`） */}
-      {surface === "home" && <HomeTopCards locale={locale === "en" ? "en" : "ja"} photos={PHOTOS} seasonal={seasonalSpots} />}
-      {/* いまの季節の撮影スポットの段（iOS の #417 ④⑤⑥ が出るまで今の形・束 5）。帯の行は上の札へ移した */}
-      {surface === "home" && <SpotsEntry locale={locale === "en" ? "en" : "ja"} seasonal={seasonalSpots} showRow={false} />}
-
-      {/* ストーリーはマイページへ移した（owner:「ストーリー見れる場所もマイページに
-          移設したいな」）。投稿する入口も同じ場所に集めた流れに揃える */}
 
       {/* フォロー中: 絞り込み・件数・グリッドは出さず、新着と同じ並び（`HomeMosaic`）で
           投稿順に流れる。撮った人の名前は撮影地と一緒に写真に重ねる（撮影地が無い写真は
@@ -732,11 +756,31 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
             {filteredPhotos.length === 0 ? (
               <EmptyState className="py-16" message={locale === "en" ? "No photos yet." : "まだ写真がありません。"} testId="gallery-empty" />
             ) : (
-              <HomeMosaic
-                photos={filteredPhotos}
-                locale={locale === "en" ? "en" : "ja"}
-                priorityCount={hasFeatured && !narrowedNow ? 0 : HOME_PRIORITY_COUNT}
-              />
+              <>
+                {/* **いまの季節の撮影スポットの段は「おすすめ」の中だけ、写真 5 枚（大1→2→2）の後ろ**
+                    （iOS の #417 ④ `HomeFeed.showsSeasonShelf`・`splitForSeasonShelf`）。以前はどのタブでも上の札の直下。
+                    段の有無に関係なくいつも 5 枚で割る（段の中身で並びの組み方を変えない・iOS と同じ）。
+                    間は iOS と同じ: 写真 → 段が 16、段 → 写真が 12（`SpotsEntry` の下の 12）。段が無ければ写真の隙間 4 */}
+                <HomeMosaic
+                  photos={filteredPhotos.slice(0, SEASON_SHELF_AFTER)}
+                  locale={locale === "en" ? "en" : "ja"}
+                  priorityCount={hasFeatured && !narrowedNow ? 0 : HOME_PRIORITY_COUNT}
+                />
+                {seasonalShelfShown && (
+                  <div className="mt-4">
+                    <SpotsEntry locale={locale === "en" ? "en" : "ja"} seasonal={seasonalSpots} showRow={false} />
+                  </div>
+                )}
+                {filteredPhotos.length > SEASON_SHELF_AFTER && (
+                  <div style={{ marginTop: seasonalShelfShown ? 0 : 4 }}>
+                    <HomeMosaic
+                      photos={filteredPhotos.slice(SEASON_SHELF_AFTER)}
+                      locale={locale === "en" ? "en" : "ja"}
+                      priorityCount={0}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </HomePanel>
