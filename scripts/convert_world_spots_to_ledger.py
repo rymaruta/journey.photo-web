@@ -53,6 +53,9 @@ def convert(candidate, editorial):
         return None
     if checked_date > datetime.date.today():
         return None
+    attribution = editorial.get("attribution") if auto_verified else None
+    if auto_verified and (not isinstance(attribution, str) or "Wikipedia contributors" not in attribution or "CC BY-SA" not in attribution):
+        return None
     today = datetime.date.today().isoformat()
     key = hashlib.sha256(qid.encode("ascii")).hexdigest()[:12]
     return {
@@ -70,6 +73,7 @@ def convert(candidate, editorial):
         "createdAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "updatedAt": datetime.datetime.now(datetime.timezone.utc).isoformat(),
         "wikidataId": qid,
+        **({"attribution": attribution, "sourceLanguage": editorial.get("sourceLanguage")} if auto_verified else {}),
     }
 
 def main():
