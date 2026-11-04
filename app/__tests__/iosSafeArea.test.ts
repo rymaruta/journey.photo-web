@@ -90,19 +90,22 @@ describe("横向きの iPhone", () => {
 
     it("横に貼り付く柱は、ヘッダーの高さを直書きしない", () => {
         for (const f of ["app/GalleryPageClient.tsx", "app/components/SpotGuideClient.tsx", "app/user/upload/page.tsx"]) {
-            const src = code(f);
-            expect(src, f).not.toContain("lg:top-[88px]");
-            expect(src, f).toContain("lg:top-[calc(var(--header-h)_+_16px)]");
+            expect(code(f), f).not.toContain("lg:top-[88px]");
         }
+        for (const f of ["app/components/SpotGuideClient.tsx", "app/user/upload/page.tsx"]) {
+            expect(code(f), f).toContain("lg:top-[calc(var(--header-h)_+_16px)]");
+        }
+        // ホームの柱は、留まった切り替えの行（45）の下に留まる（2026-11-04・`StickyTabRow`）。見出しの高さは変数のまま
+        expect(code("app/GalleryPageClient.tsx")).toContain("lg:top-[calc(var(--header-h)_+_45px_+_16px)]");
         // 上端を安全領域ぶん下げたら、高さの上限も同じ変数から引く。
         // 88px 前提の上限のままだと、下端がタブバーの裏に潜る（iPad・ホーム画面起動）
         for (const f of ["app/GalleryPageClient.tsx", "app/components/SpotGuideClient.tsx"]) {
-            const src = code(f);
-            expect(src, f).not.toContain("100vh-168px");
-            // 下部タブは実寸の変数（safe-area 込み）で引く。決め打ちの数だと
-            // タブの形が変わったときに柱の下端が潜る（カプセル化で 4px 潜った）
-            expect(src, f).toContain("lg:max-h-[calc(100vh_-_var(--header-h)_-_var(--bottom-bar-h,84px)_-_32px)]");
+            expect(code(f), f).not.toContain("100vh-168px");
         }
+        // 下部タブは実寸の変数（safe-area 込み）で引く。決め打ちの数だと
+        // タブの形が変わったときに柱の下端が潜る（カプセル化で 4px 潜った）
+        expect(code("app/components/SpotGuideClient.tsx")).toContain("lg:max-h-[calc(100vh_-_var(--header-h)_-_var(--bottom-bar-h,84px)_-_32px)]");
+        expect(code("app/GalleryPageClient.tsx")).toContain("lg:max-h-[calc(100vh_-_var(--header-h)_-_45px_-_var(--bottom-bar-h,84px)_-_32px)]");
     });
 
     it("ヘッダーの地は本文の左右の余白を打ち消して端まで届く", () => {
