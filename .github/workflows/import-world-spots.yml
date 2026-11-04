@@ -14,7 +14,10 @@ on:
         default: '0'
         type: string
   schedule:
-    - cron: '*/5 * * * *'
+    # 1日1回（02:20 JST）。5分ごと（1日288回・月 約8,600分）は Actions の枠を超えて
+    # owner の請求になるので止めた（rymaruta/journey.photo-ios#410・2026-11-04）。
+    # 翌朝の prepare-daily-world-spots（03:00 JST）が直近26時間の結果を拾う。
+    - cron: '20 17 * * *'
   pull_request:
     paths:
       - 'scripts/import_world_spots.py'
@@ -49,8 +52,8 @@ jobs:
           from datetime import datetime, timezone
           event = os.environ["EVENT"]
           if event == "schedule":
-              # Rotate among 48 countries across 48 five-minute slots.
-              tick = int(datetime.now(timezone.utc).timestamp()) // 300
+              # 1日に1か国ずつ、48か国を回る。48日で一周したら次の 250 件へ進む。
+              tick = int(datetime.now(timezone.utc).timestamp()) // 86400
               slot = tick % 48
               offset = ((tick // 48) % 20) * 250
           elif event == "pull_request":
@@ -67,4 +70,4 @@ jobs:
           name: world-spot-candidates-${{ github.run_id }}
           path: data/imports/world/*.json
           if-no-files-found: error
-          retention-days: 90
+          retention-days: 30
