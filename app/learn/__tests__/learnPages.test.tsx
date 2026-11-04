@@ -1,3 +1,4 @@
+import { LEARN_ARTICLES } from "@/lib/data/learn/articles";
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within, fireEvent } from "@testing-library/react";
@@ -21,13 +22,16 @@ const crumbHrefs = () =>
     within(screen.getByRole("navigation", { name: "パンくずリスト" })).queryAllByRole("link").map((a) => a.getAttribute("href"));
 
 describe("/learn（一覧）", () => {
-    it("パンくず・明朝の h1・3本のカード（3本目は構図ガイド）・構造化データ", async () => {
+    it("パンくず・明朝の h1・台帳の全記事のカード（入門→…→構図→…→メーカー の順）・構造化データ", async () => {
         const { container } = render(await LearnPage());
         expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("写真とカメラの教科書");
         expect(screen.getByRole("heading", { level: 1 }).className).toContain("font-serif");
         expect(crumbHrefs()).toEqual(["/"]);
         const cards = screen.getAllByTestId("learn-card").map((a) => a.getAttribute("href"));
-        expect(cards).toEqual(["/learn/camera-basics", "/learn/camera-brands", "/composition"]);
+        expect(cards).toEqual(LEARN_ARTICLES.map((a) => a.href));
+        // 順は教科書の順: 入門が先頭・構図（6）はメーカー比較（11）より前
+        expect(cards[0]).toBe("/learn/camera-basics");
+        expect(cards.indexOf("/composition")).toBeLessThan(cards.indexOf("/learn/camera-brands"));
         // カードには本物の写真（コミット済みのデータには F値の小さい写真がある）
         // （happy-dom は画像を読めないので、Thumb は読めなかった形＝名前つきの `role="img"` に替わる）
         expect(screen.getAllByTestId("learn-card")[0].querySelector("img, [role=img]")).not.toBeNull();

@@ -4,15 +4,21 @@
 // 一覧のカード・パンくず・構造化データ・サイトマップが同じ値を読む（題や URL を2か所に書かない）。
 
 import { ROUTES } from "@/lib/routes";
+import { CHAPTERS } from "./chapters";
 
 export type LearnArticle = {
     /** 記事の id（実例の写真の選び分けに使う） */
-    id: "camera-basics" | "camera-brands" | "composition";
+    id: string;
+    /** 教科書の中の順（既存の3頁: 入門 1・構図 6・メーカー 11。章は `Chapter.number`） */
+    number: number;
     href: string;
     /** 一覧のカードの眉（日本語） */
     eyebrow: string;
     title: string;
     description: string;
+    /** 読む時間の目安（分）と難しさ（章だけ。既存の3頁は持たない） */
+    minutes?: number;
+    level?: string;
     /** 頁の公開日と最終更新日（構造化データ）。構図ガイドは別の頁なので持たない */
     published?: string;
     modified?: string;
@@ -21,9 +27,10 @@ export type LearnArticle = {
 /** 教科書の頁の名前（h1・パンくず・構造化データ） */
 export const LEARN_TITLE = "写真とカメラの教科書";
 
-export const LEARN_ARTICLES: LearnArticle[] = [
+const BASE_ARTICLES: LearnArticle[] = [
     {
         id: "camera-basics",
+        number: 1,
         href: ROUTES.LEARN_CAMERA_BASICS,
         eyebrow: "はじめてのカメラ",
         title: "カメラの使い方 完全入門",
@@ -33,6 +40,7 @@ export const LEARN_ARTICLES: LearnArticle[] = [
     },
     {
         id: "camera-brands",
+        number: 11,
         href: ROUTES.LEARN_CAMERA_BRANDS,
         eyebrow: "カメラ選び",
         title: "カメラメーカーの特徴を比較",
@@ -42,12 +50,30 @@ export const LEARN_ARTICLES: LearnArticle[] = [
     },
     {
         id: "composition",
+        number: 6,
         href: ROUTES.COMPOSITION,
         eyebrow: "構図",
         title: "構図ガイド",
         description: "三分割・日の丸・対角線・シンメトリーなど。ガイド線を自分の写真に重ねて確かめられる。",
     },
 ];
+
+/** 台帳（既存の3頁＋書き終えた章）。`number` の順 */
+export const LEARN_ARTICLES: LearnArticle[] = [
+    ...BASE_ARTICLES,
+    ...CHAPTERS.map((c): LearnArticle => ({
+        id: c.slug,
+        number: c.number,
+        href: `/learn/${c.slug}`,
+        eyebrow: c.eyebrow,
+        title: c.title,
+        description: c.description,
+        minutes: c.minutes,
+        level: c.level,
+        published: c.published,
+        modified: c.modified,
+    })),
+].sort((a, b) => a.number - b.number);
 
 export function learnArticle(id: LearnArticle["id"]): LearnArticle {
     const a = LEARN_ARTICLES.find((x) => x.id === id);

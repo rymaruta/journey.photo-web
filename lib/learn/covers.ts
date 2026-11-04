@@ -8,6 +8,7 @@ import type { Photo } from "@/lib/data/photos";
 import type { LearnArticle } from "@/lib/data/learn/articles";
 import { exampleRule } from "@/lib/data/learn/cameraBasics";
 import { brandOfCamera } from "@/lib/data/learn/cameraBrands";
+import { CHAPTERS } from "@/lib/data/learn/chapters";
 import { isExampleCandidate, pickExamples, cameraOf } from "./examples";
 
 const stamp = (p: Photo) => String(p.date || p.createdAt || "");
@@ -25,5 +26,7 @@ export function coverPhotos(photos: Photo[]): Partial<Record<LearnArticle["id"],
         "camera-basics": take(pickExamples(candidates, exampleRule("wide-aperture"), 10)),
         "camera-brands": take(newest.filter((p) => !!brandOfCamera(cameraOf(p)))),
         composition: take(newest),
+        // 章（書き終えたもの）: 新しい写真から、記事どうしで重ならないように
+        ...Object.fromEntries(CHAPTERS.map((c) => [c.slug, take(newest)] as const)),
     };
 }
