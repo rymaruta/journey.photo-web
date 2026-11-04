@@ -26,6 +26,7 @@ export default function Footer() {
         { href: ROUTES.HOME, label: navLabels.works || (locale === "en" ? "Works" : "作品") },
         { href: ROUTES.MAP, label: navLabels.map || (locale === "en" ? "Map" : "撮影地マップ") },
         { href: ROUTES.SPOTS, label: locale === "en" ? "Photo spots" : "撮影スポット" },
+        { href: "/learn", label: locale === "en" ? "Photography guides" : "カメラの教科書" },
         { href: ROUTES.FAVORITES, label: navLabels.favorites || (locale === "en" ? "Liked Photos" : "いいねした写真") },
         { href: ROUTES.SAVES, label: navLabels.saves || (locale === "en" ? "Saved Photos" : "保存した写真") },
         { href: ROUTES.SAVED_SPOTS, label: locale === "en" ? "Want to go" : "行きたい場所" },
