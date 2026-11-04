@@ -1,0 +1,64 @@
+// lib/learn/seo.ts
+//
+// **教科書（/learn）の頁のメタデータと記事の構造化データ**（2026-11-04）。
+//
+// - 題はサイト名を足さない（ルートの `title.template` が足す。`pageTitles.test.ts` の決まり）
+// - robots は `INDEXABLE_ROBOTS`（`max-image-preview: large` を消さない。`pageRobots` の注記）
+// - 共有カードの画像は固定の代表画像（`shareOgImage`）。利用者の写真を勝手に代表にしない（#432）
+// - FAQPage の構造化データは付けない。Google は 2023-08 から FAQ のリッチリザルトを
+//   政府・医療の権威あるサイトに限っていて、このサイトでは出ない
+
+import type { Metadata } from "next";
+import { siteConfig, shareOgImage, shareImageUrl, INDEXABLE_ROBOTS } from "@/lib/utils/seo";
+
+export function learnMetadata(path: string, title: string, description: string, type: "website" | "article"): Metadata {
+    const url = `${siteConfig.url}${path}`;
+    return {
+        title,
+        description,
+        alternates: { canonical: url },
+        robots: INDEXABLE_ROBOTS,
+        openGraph: {
+            type,
+            locale: siteConfig.locale.ja,
+            url,
+            siteName: siteConfig.name,
+            title,
+            description,
+            images: [shareOgImage()],
+        },
+        twitter: {
+            card: "summary_large_image",
+            title,
+            description,
+            images: [shareImageUrl()],
+        },
+    };
+}
+
+/** 記事（Article）の構造化データ。画像は記事に並べた実例の写真（無ければ代表画像） */
+export function articleStructuredData(input: {
+    path: string;
+    headline: string;
+    description: string;
+    published: string;
+    modified: string;
+    images: string[];
+}) {
+    const url = `${siteConfig.url}${input.path}`;
+    const org = { "@type": "Organization", name: "Journey Photo", url: siteConfig.url };
+    return {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        headline: input.headline,
+        description: input.description,
+        inLanguage: "ja-JP",
+        mainEntityOfPage: url,
+        url,
+        image: input.images.length > 0 ? input.images : [shareImageUrl()],
+        author: org,
+        publisher: org,
+        datePublished: input.published,
+        dateModified: input.modified,
+    };
+}
