@@ -18,7 +18,7 @@ import { useToast } from "../../../../lib/hooks/useToast";
 import { ROUTES } from "../../../../lib/routes";
 import { getCurrentEmail, startEmailChange, confirmEmailChange } from "../../../../lib/auth/cognito";
 import { SettingsShell } from "../SettingsParts";
-import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, SETTINGS_PRIMARY_CLASS } from "../formStyles";
+import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, SETTINGS_PRIMARY_CLASS } from "../../../components/accountFormStyles";
 
 export default function ChangeEmailPage() {
     const { locale } = useLocale();

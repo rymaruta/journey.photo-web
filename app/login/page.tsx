@@ -9,13 +9,13 @@ import { useAuth } from "../auth/context";
 import { useToast } from "../../lib/hooks/useToast";
 import { forgotPassword, confirmForgotPassword, PASSWORD_RULE_MESSAGE } from "../../lib/auth/cognito";
 import { userFetch } from "../../lib/utils/api";
+import { LoadingState } from "../components/StateViews";
 import { ROUTES, safeNextPath } from "../../lib/routes";
 import { pendingNameKey } from "../../lib/utils/pendingName";
 import { WISH_VIA } from "../../lib/utils/analytics";
-import { LockClosedIcon, EnvelopeIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
-import { BTN_FILL } from "../components/buttonStyles";
+import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
 
-type Step = "login" | "forgot-send" | "forgot-confirm" | "forgot-done";
+type Step = "login" | "forgot-send" | "forgot-confirm";
 
 // 公開写真のみを背景に使用し、レンダーのたびに全件走査しない。
 const loginBackgroundPhotos = publishedPhotos.filter((photo) => photo.published && photo.src && (!("sensitive" in photo) || photo.sensitive !== true)).slice(0, 12);
@@ -49,6 +49,8 @@ function LoginForm() {
     const [error, setError] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [needsVerification, setNeedsVerification] = useState(false);
+    /** 案内（送りました、など）。エラーとは別に出す（iOS `notice`） */
+    const [notice, setNotice] = useState("");
 
     // **replace で出る。** push にすると、ログイン済みで /login に着地する
     // たびに履歴が伸び、戻るが「/login → next → /login」の往復から
@@ -62,6 +64,7 @@ function LoginForm() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+        setNotice("");
         setNeedsVerification(false);
         setSubmitting(true);
         try {
@@ -133,11 +136,13 @@ function LoginForm() {
     const handleForgotSend = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+        setNotice("");
         setSubmitting(true);
         try {
             const result = await forgotPassword(username.trim());
             if (result.success) {
                 setStep("forgot-confirm");
+                setNotice("送りました。メールをご確認ください。");
             } else {
                 setError(result.error ?? "エラーが発生しました");
             }
@@ -151,6 +156,7 @@ function LoginForm() {
     const handleForgotConfirm = async (e: React.FormEvent) => {
         e.preventDefault();
         setError("");
+        setNotice("");
         // **送る前に見る。** 登録側（`app/signup`）は長さと一致を見ているのに
         // ここは空でなければ送っていた。3文字でも往復して、しかも戻ってくる
         // のは AWS の `InvalidPasswordException` の文言（記号の話が抜けていた）
@@ -173,7 +179,12 @@ function LoginForm() {
             // `code.trim()` に加えて長さまで見ている
             const result = await confirmForgotPassword(username.trim(), resetCode.trim(), newPassword);
             if (result.success) {
-                setStep("forgot-done");
+                // iOS と同じく、ログインの欄へ戻して案内する（完了だけの画面を挟まない）
+                setStep("login");
+                setPassword("");
+                setResetCode("");
+                setNewPassword("");
+                setNotice("変えました。新しいパスワードでログインしてください。");
             } else {
                 setError(result.error ?? "エラーが発生しました");
             }
@@ -186,16 +197,36 @@ function LoginForm() {
 
     if (loading) {
         return (
-            <main className="min-h-screen bg-bg flex items-center justify-center">
-                <div className="w-10 h-10 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+            <main className="min-h-screen bg-bg">
+                <h1 className="sr-only">ログイン</h1>
+                {/* 判定中は灰の骨格（iOS `JPLoadingState`・回る輪にしない） */}
+                <div className="mx-auto w-full max-w-sm px-6 pt-[250px]"><LoadingState kind="rows" /></div>
             </main>
         );
     }
 
+    // 2026-11-04: iOS `SignInView`（板 SignIn）の形に。**札で囲まない**——写真の帯（380）の下へ溶かし、
+    // 帯の上から 250 でワードマークが始まる（帯に 130 食い込む・`SignInLayout.contentOverlap`）。
+    // 左寄せ・左右 24・行の間 14。主ボタンは白（写真のある画面）、2番手は線のボタン。
+    // 失敗は欄の下に danger の1文（iOS と同じ並び: 欄 → 案内 → エラー → 確認の入口）
+    const errorFor = (s: Step) => (error && step === s ? { "aria-invalid": true as const, "aria-describedby": "login-form-error" } : {});
+    const field = (id: string, label: string, input: React.ReactNode) => (
+        <div>
+            <label htmlFor={id} className={SETTINGS_LABEL_CLASS}>{label}</label>
+            {input}
+        </div>
+    );
+    const spinner = <span aria-hidden="true" className="w-4 h-4 border-2 border-ink/30 border-t-ink rounded-full animate-spin" />;
+    const backToLogin = (
+        <button type="button" onClick={() => { setStep("login"); setError(""); setResetCode(""); setNewPassword(""); }}
+            disabled={submitting} className={AUTH_OUTLINE_CLASS} style={{ touchAction: "manipulation" }}>
+            ログインに戻る
+        </button>
+    );
+
     return (
-        <main className="relative isolate min-h-screen overflow-hidden bg-black flex items-center justify-center px-4 pt-[290px] pb-16 sm:pt-[310px]">
-            {/* 公開済みの旅写真を背景に使い、フォームの可読性は暗いオーバーレイで保つ。 */}
-            {/* iOS SignInView: 4列×3段・-4度の写真タイル。フォームの背後ではなく上部に敷く。 */}
+        <main className="relative isolate min-h-screen overflow-hidden bg-black px-6 pt-[250px] pb-16">
+            {/* iOS SignInView: 4列×3段・-4度の写真タイル。上に敷き、下で黒へ溶かす（飾りなので読み上げない） */}
             <div aria-hidden="true" data-testid="login-photo-collage"
                  className="pointer-events-none absolute inset-x-0 top-0 z-0 h-[380px] overflow-hidden">
                 <div className="absolute -inset-x-5 -top-[30px] grid grid-cols-4 gap-[3px]"
@@ -209,225 +240,130 @@ function LoginForm() {
                         </div>
                     ))}
                 </div>
-                <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/45 to-black" />
+                {/* iOS: 上 20% → 40% で 40% → 92% で黒 */}
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to bottom, rgb(0 0 0 / 0.2) 0%, rgb(0 0 0 / 0.4) 40%, #000 92%)" }} />
             </div>
-            <div className="relative z-10 w-full max-w-sm rounded-2xl border border-white/20 bg-black/85 p-6 shadow-2xl backdrop-blur-xl sm:p-8">
 
-                {/* ロゴ */}
-                <div className="mb-10 text-center">
-                    <div className="flex items-center justify-center gap-3 mb-3">
-                        {/* iOS版と同じアパーチャマークを添えたワードマーク */}
+            <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-[14px]" data-testid="login-content">
+                {/* 画面の題は読み上げだけ（iOS は大きいワードマークが見出し） */}
+                <h1 className="sr-only">
+                    {step === "login" ? "ログイン" : step === "forgot-send" ? "パスワードを忘れた" : "確認コードを入力"}
+                </h1>
+                {/* ワードマーク（40・明朝 Bold・字間 -0.025em）と一文（明朝 18・白72%）。iOS `AppLogo(.hero)`・`Labels.Brand.tagline` */}
+                <div className="flex flex-col gap-[10px] pb-3" data-testid="login-wordmark">
+                    <div className="flex items-center gap-3">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/logo-aperture.png" alt="" width={40} height={40} className="h-10 w-10 object-contain" />
-                        <p className="font-serif text-3xl font-bold tracking-tight text-white">Journey Photo</p>
+                        <img src="/logo-aperture.png" alt="" width={30} height={30} className="h-[30px] w-[30px] object-contain" />
+                        <p className="m-0 font-serif font-bold text-white whitespace-nowrap" style={{ fontSize: "40px", lineHeight: 1.15, letterSpacing: "-0.025em" }}>Journey Photo</p>
                     </div>
-                    <p className="text-white/65 text-sm mb-5">旅の一瞬を、誰かの次の旅へ。</p>
-                    <h1 className="text-2xl font-bold text-white">
-                        {step === "login" && "ログイン"}
-                        {step === "forgot-send" && "パスワードをリセット"}
-                        {step === "forgot-confirm" && "コードを確認"}
-                        {step === "forgot-done" && "リセット完了"}
-                    </h1>
-                    {step === "login" && (
-                        <p className="text-white/50 text-sm mt-2">写真をアップロードするにはログインが必要です</p>
-                    )}
-                    {step === "forgot-send" && (
-                        <p className="text-white/50 text-sm mt-2">登録したメールアドレスに確認コードを送信します</p>
-                    )}
-                    {step === "forgot-confirm" && (
-                        <p className="text-white/50 text-sm mt-2">{username} に送信されたコードを入力してください</p>
-                    )}
+                    <p className="m-0 font-serif text-white/70" style={{ fontSize: "18px", lineHeight: 1.4 }}>写真から、次の旅が始まる。</p>
                 </div>
 
-                {/* メール認証完了バナー */}
-                {verified && step === "login" && (
-                    <div className="mb-4 px-4 py-3 rounded-lg bg-success/10 border border-success/20 text-success text-sm">
-                        ✓ メールアドレスの確認が完了しました。ログインしてください。
-                    </div>
-                )}
-
-                {/* エラー */}
-                {error && (
-                    <div role="alert" className="mb-4 px-4 py-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-sm">
-                        {error}
-                    </div>
-                )}
-
-                {/* 未確認アカウント誘導 */}
-                {needsVerification && step === "login" && (
-                    <div className="mb-6 px-4 py-3 rounded-lg bg-accent-soft border border-accent/20 text-sm">
-                        <p className="text-white/85 mb-2 text-xs">確認コードのメールが届いているか確認してください。</p>
-                        <Link
-                            href={`/signup?email=${encodeURIComponent(username)}`}
-                            prefetch={false}
-                            className="text-accent hover:text-accent-strong underline text-xs transition-colors"
-                        >
-                            確認コードを入力・再送する →
-                        </Link>
-                    </div>
-                )}
-
-                {/* ログインフォーム */}
+                {/* ログイン */}
                 {step === "login" && (
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div>
-                            <label htmlFor="login-email" className="block text-xs text-white/50 mb-1.5 tracking-wide">メールアドレス</label>
-                            <input
-                                id="login-email"
-                                type="email"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                required
-                                autoComplete="email"
-                                placeholder="example@email.com"
-                                disabled={submitting}
-                                className="w-full px-4 py-3 bg-surface-2 border border-line-strong rounded-field text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:bg-white/8 transition-colors"
-                            />
+                    <form onSubmit={handleLogin} className="flex flex-col gap-[14px]">
+                        {field("login-email", "メールアドレス", (
+                            <input id="login-email" {...errorFor("login")} type="email" value={username}
+                                onChange={(e) => setUsername(e.target.value)} required autoComplete="email"
+                                placeholder="you@example.com" disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                        ))}
+                        {field("login-password", "パスワード", (
+                            <input id="login-password" {...errorFor("login")} type="password" value={password}
+                                onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
+                                disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                        ))}
+                        {/* 板: 欄の下に右寄せ・13・白72% */}
+                        <div className="flex justify-end -my-2">
+                            <button type="button" onClick={() => { setStep("forgot-send"); setError(""); setPassword(""); }}
+                                disabled={submitting} className={AUTH_TEXT_BUTTON_CLASS} style={{ touchAction: "manipulation" }}>
+                                パスワードを忘れた
+                            </button>
                         </div>
-                        <div>
-                            <label htmlFor="login-password" className="block text-xs text-white/50 mb-1.5 tracking-wide">パスワード</label>
-                            <input
-                                id="login-password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                autoComplete="current-password"
-                                placeholder="••••••••"
-                                disabled={submitting}
-                                className="w-full px-4 py-3 bg-surface-2 border border-line-strong rounded-field text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/30 focus:bg-white/8 transition-colors"
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={submitting || !username || !password}
-                            className={`${BTN_FILL} w-full bg-white text-black hover:bg-white/90 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2`}
-                        >
-                            {submitting ? (
-                                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                            ) : (
-                                <LockClosedIcon className="w-4 h-4" />
-                            )}
-                            {submitting ? "ログイン中..." : "ログイン"}
+                        <button type="submit" disabled={submitting || !username || !password} className={AUTH_PRIMARY_CLASS}
+                            style={{ touchAction: "manipulation" }}>
+                            {submitting && spinner}
+                            {submitting ? "ログインしています…" : "ログイン"}
                         </button>
-
-                        <button
-                            type="button"
-                            onClick={() => { setStep("forgot-send"); setError(""); }}
-                            className="w-full text-right text-xs text-white/70 hover:text-white transition-colors py-3"
-                        >
-                            パスワードをお忘れですか？
-                        </button>
-
-                        <p className="text-center text-xs text-white/50 pt-1">アカウントをお持ちでない方は</p>
                         {/* 登録先へ next と via を維持する */}
-                        <Link
-                            href={signupHref}
-                            prefetch={false}
-                            aria-label="新規登録"
-                            className="flex min-h-12 w-full items-center justify-center rounded-full border border-white/45 text-sm font-medium text-white hover:bg-white/10 transition-colors"
-                        >
+                        <Link href={signupHref} prefetch={false} className={AUTH_OUTLINE_CLASS} style={{ touchAction: "manipulation" }}>
                             アカウントを作る
-                        </Link>             </form>
-                )}
-
-                {/* パスワードリセット: メール送信 */}
-                {step === "forgot-send" && (
-                    <form onSubmit={handleForgotSend} className="space-y-4">
-                        <div>
-                            <label htmlFor="reset-email" className="block text-xs text-white/50 mb-1.5 tracking-wide">メールアドレス</label>
-                            <input
-                                id="reset-email"
-                                type="email"
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                                required
-                                autoComplete="email"
-                                placeholder="example@email.com"
-                                disabled={submitting}
-                                className="w-full px-4 py-3 bg-surface-2 border border-line-strong rounded-field text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-colors"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={submitting || !username}
-                            className={`${BTN_FILL} w-full bg-accent-fill text-ink hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
-                        >
-                            {submitting ? (
-                                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                            ) : (
-                                <EnvelopeIcon className="w-4 h-4" />
-                            )}
-                            {submitting ? "送信中..." : "確認コードを送信"}
-                        </button>
-                        <button type="button" onClick={() => { setStep("login"); setError(""); }}
-                            className="w-full text-center text-xs text-white/50 hover:text-white/75 transition-colors py-2 flex items-center justify-center gap-1">
-                            <ArrowLeftIcon className="w-3 h-3" /> ログインに戻る
-                        </button>
+                        </Link>
                     </form>
                 )}
 
-                {/* パスワードリセット: コード入力 */}
+                {/* パスワードの再設定（iOS `resetSection`）: メールアドレス → コードを送る */}
+                {step === "forgot-send" && (
+                    <form onSubmit={handleForgotSend} className="flex flex-col gap-[14px]">
+                        {field("reset-email", "メールアドレス", (
+                            <input id="reset-email" {...errorFor("forgot-send")} type="email" value={username}
+                                onChange={(e) => setUsername(e.target.value)} required autoComplete="email"
+                                placeholder="you@example.com" disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                        ))}
+                        <p className={AUTH_CAPTION_CLASS}>登録したメールアドレスに、確認コードを送ります。</p>
+                        <button type="submit" disabled={submitting || !username} className={AUTH_PRIMARY_CLASS}
+                            style={{ touchAction: "manipulation" }}>
+                            {submitting && spinner}
+                            {submitting ? "送っています…" : "コードを送る"}
+                        </button>
+                        {backToLogin}
+                    </form>
+                )}
+
+                {/* 確認コードと新しいパスワード */}
                 {step === "forgot-confirm" && (
-                    <form onSubmit={handleForgotConfirm} className="space-y-4">
-                        <div>
-                            <label htmlFor="reset-code" className="block text-xs text-white/50 mb-1.5 tracking-wide">確認コード</label>
+                    <form onSubmit={handleForgotConfirm} className="flex flex-col gap-[14px]">
+                        {field("reset-email-fixed", "メールアドレス", (
+                            <input id="reset-email-fixed" type="email" autoComplete="email" value={username} readOnly disabled className={SETTINGS_INPUT_CLASS} />
+                        ))}
+                        {field("reset-code", "確認コード", (
                             <input
                                 autoComplete="one-time-code"
                                 id="reset-code"
+                                {...errorFor("forgot-confirm")}
                                 type="text"
-                                // 数字だけのコード。登録・設定の確認コードと揃える（ここだけ
-                                // 全文字のキーボードが出ていた）
+                                // 数字だけのコード。登録・設定の確認コードと揃える
                                 inputMode="numeric"
                                 value={resetCode}
                                 onChange={(e) => setResetCode(e.target.value)}
                                 required
-                                placeholder="メールに届いたコードを入力"
                                 disabled={submitting}
-                                className="w-full px-4 py-3 bg-surface-2 border border-line-strong rounded-field text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-colors tracking-widest"
+                                className={`${SETTINGS_INPUT_CLASS} tracking-widest`}
                             />
-                        </div>
-                        <div>
-                            <label htmlFor="reset-new-password" className="block text-xs text-white/50 mb-1.5 tracking-wide">新しいパスワード</label>
-                            <input
-                                autoComplete="new-password"
-                                id="reset-new-password"
-                                type="password"
-                                value={newPassword}
-                                onChange={(e) => setNewPassword(e.target.value)}
-                                required
-                                placeholder="8文字以上、英大・小文字・数字・記号を含む"
-                                disabled={submitting}
-                                className="w-full px-4 py-3 bg-surface-2 border border-line-strong rounded-field text-white text-sm placeholder:text-white/20 focus:outline-none focus:border-white/30 transition-colors"
-                            />
-                        </div>
-                        <button
-                            type="submit"
-                            disabled={submitting || resetCode.trim().length < 6 || !newPassword}
-                            className={`${BTN_FILL} w-full bg-accent-fill text-ink hover:brightness-110 active:scale-[0.98] transition disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2`}
-                        >
-                            {submitting ? (
-                                <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin" />
-                            ) : null}
-                            {submitting ? "更新中..." : "パスワードを更新"}
+                        ))}
+                        {field("reset-new-password", "新しいパスワード", (
+                            <input autoComplete="new-password" id="reset-new-password" type="password" value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)} required disabled={submitting}
+                                aria-describedby="reset-password-rule" className={SETTINGS_INPUT_CLASS} />
+                        ))}
+                        <p id="reset-password-rule" className={AUTH_CAPTION_CLASS}>{PASSWORD_RULE_MESSAGE}</p>
+                        <button type="submit" disabled={submitting || resetCode.trim().length < 6 || !newPassword}
+                            className={AUTH_PRIMARY_CLASS} style={{ touchAction: "manipulation" }}>
+                            {submitting && spinner}
+                            {submitting ? "変えています…" : "パスワードを変える"}
                         </button>
+                        {backToLogin}
                     </form>
                 )}
 
-                {/* 完了 */}
-                {step === "forgot-done" && (
-                    <div className="text-center space-y-6">
-                        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center mx-auto">
-                            <LockClosedIcon className="w-6 h-6 text-white" />
-                        </div>
-                        <p className="text-white/60 text-sm">パスワードが更新されました。</p>
-                        <button
-                            onClick={() => { setStep("login"); setError(""); setPassword(""); }}
-                            className={`${BTN_FILL} w-full bg-accent-fill text-ink hover:brightness-110 active:scale-[0.98] transition`}
-                        >
-                            ログインする
-                        </button>
+                {/* 案内（iOS `notice`・callout・白72%） */}
+                {notice && <p role="status" className="m-0 text-[15px] leading-[22px] text-white/70">{notice}</p>}
+                {verified && step === "login" && !notice && (
+                    <p role="status" className="m-0 text-[15px] leading-[22px] text-white/70">メールアドレスの確認が完了しました。ログインしてください。</p>
+                )}
+                {/* エラー（iOS: danger の1文）。欄からは aria-describedby で結ぶ（#491） */}
+                {error && (
+                    <p role="alert" id="login-form-error" aria-live="assertive" className="m-0 text-[15px] leading-[22px] text-danger">
+                        {error}
+                    </p>
+                )}
+                {/* 未確認アカウントへの入口（iOS `verificationOffer`: 一文 → 線のボタン） */}
+                {needsVerification && step === "login" && (
+                    <div className="flex flex-col gap-[10px]">
+                        <p className="m-0 text-[15px] leading-[22px] text-white">確認コードのメールが届いているか確認してください。</p>
+                        <Link href={`/signup?email=${encodeURIComponent(username)}`} prefetch={false}
+                            className={AUTH_OUTLINE_CLASS} style={{ touchAction: "manipulation" }}>
+                            確認コードを入力・再送する
+                        </Link>
                     </div>
                 )}
             </div>

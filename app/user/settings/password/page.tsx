@@ -23,7 +23,7 @@ import {
     signOutEverywhere,
 } from "../../../../lib/auth/cognito";
 import { SettingsGroup, SettingsRowButton, SettingsNote, SettingsShell } from "../SettingsParts";
-import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, SETTINGS_PRIMARY_CLASS } from "../formStyles";
+import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, SETTINGS_PRIMARY_CLASS } from "../../../components/accountFormStyles";
 
 export default function ChangePasswordPage() {
     const { locale } = useLocale();
