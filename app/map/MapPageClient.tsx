@@ -11,7 +11,7 @@ import MapControls, { type MapView } from "./MapControls";
 import MapPhotoList from "./MapPhotoList";
 import { collectionPath, slugify } from "../../lib/utils/collections";
 import {
-    filterMapPhotos, filterMapSpots, mapCategories, photosInBounds, type MapBounds,
+    filterMapPhotos, filterMapSpots, mapCategories, normalizeBounds, photosInBounds, type MapBounds,
 } from "../../lib/utils/mapFilter";
 import type { SpotPin } from "../../lib/data/spotLink";
 import MapSpotSheet from "./MapSpotSheet";
@@ -49,6 +49,33 @@ export default function MapPageClient({ spots }: { spots: readonly SpotPin[] }) 
     const [view, setView] = useState<MapView>("map");
     /** 「このエリアを検索」で決めた範囲。`null` は指定なし */
     const [area, setArea] = useState<MapBounds | null>(null);
+    const [locating, setLocating] = useState(false);
+    const [locationError, setLocationError] = useState<string | null>(null);
+    const searchNearby = useCallback(() => {
+        if (locating) return;
+        if (typeof navigator === "undefined" || !navigator.geolocation) {
+            setLocationError(en ? "Location is not supported." : "現在地を取得できません。");
+            return;
+        }
+        setLocating(true);
+        setLocationError(null);
+        navigator.geolocation.getCurrentPosition(
+            ({ coords }) => {
+                const lat = coords.latitude;
+                const lng = coords.longitude;
+                const latitudeDelta = 10 / 111.32;
+                const longitudeDelta = 10 / (111.32 * Math.max(0.1, Math.cos(lat * Math.PI / 180)));
+                setArea(normalizeBounds({ south: Math.max(-90, lat - latitudeDelta), north: Math.min(90, lat + latitudeDelta), west: lng - longitudeDelta, east: lng + longitudeDelta }));
+                setView("list");
+                setLocating(false);
+            },
+            () => {
+                setLocationError(en ? "Location unavailable. Check permissions." : "位置情報の許可を確認してください。");
+                setLocating(false);
+            },
+            { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 },
+        );
+    }, [en, locating]);
 
     // チップは**いま地図に在るカテゴリだけ**（決め打ちで並べない）。
     // 数えるのは語と範囲で絞る前——絞るたびにチップが消えると、
@@ -216,6 +243,14 @@ export default function MapPageClient({ spots }: { spots: readonly SpotPin[] }) 
                             locale={locale}
                         />
 
+                        <div className="mt-3 flex items-center gap-3">
+                            <button type="button" onClick={searchNearby} disabled={locating} data-testid="map-nearby"
+                                className="rounded-full border border-white/20 px-4 py-2 text-sm text-white hover:border-white/50 disabled:opacity-50"
+                                aria-busy={locating}>
+                                {locating ? (en ? "Locating…" : "現在地を取得中…") : (en ? "Near me (10 km)" : "現在地周辺を探す（10km）")}
+                            </button>
+                            {locationError && <span role="alert" className="text-xs text-red-300">{locationError}</span>}
+                        </div>
                         {/* 範囲を絞っているときの断り＋解除。モックの
                             「このエリアの写真／12件の写真／×」に当たる */}
                         {area && (

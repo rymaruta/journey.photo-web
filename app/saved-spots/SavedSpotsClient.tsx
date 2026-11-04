@@ -11,6 +11,7 @@ import { ROUTES, loginWithNext } from "../../lib/routes";
 import { collectEntries, collectionPath } from "../../lib/utils/collections";
 import type { SpotLink } from "../../lib/data/spotLink";
 import { parseSavedKey, dedupeSavedKeys } from "../../lib/utils/savedSpotKey";
+import { loadSpotSearchIndex } from "../../lib/hooks/useSpotSearchIndex";
 
 /**
  * 行きたい場所（保存した撮影スポット）の一覧。
@@ -51,12 +52,30 @@ import { parseSavedKey, dedupeSavedKeys } from "../../lib/utils/savedSpotKey";
  * **その全文がこのページのチャンクに載る**（台帳に1件入れてビルドして実測）。
  * **受け取るのは解いたあとの `SpotLink` だけ**——解くのは `page.tsx`。
  */
-export default function SavedSpotsClient({ spots }: { spots: Record<string, SpotLink> }) {
+type SpotPreview = Pick<SpotLink, "name" | "region"> & { stage?: SpotLink["stage"] };
+export default function SavedSpotsClient({ spots, embedded = false }: { spots: Record<string, SpotPreview>; embedded?: boolean }) {
     const { locale } = useLocale();
     const en = locale === "en";
     const { isAuthenticated, loading: authLoading } = useAuth();
     const { photos, loaded } = usePhotos();
     const { slugs, pending, failed, retry, toggle, busy } = useSavedSpots(isAuthenticated, authLoading);
+    // Profile is public: load this name-only index only after the owner opens the wishlist tab.
+    // Do not import the full spots ledger into the client or embed it in every profile HTML.
+    const [spotPreviews, setSpotPreviews] = React.useState<Record<string, SpotPreview> | null>(null);
+    React.useEffect(() => {
+        if (!embedded || spotPreviews || !slugs.some((key) => parseSavedKey(key).kind === "spot")) return;
+        let active = true;
+        void loadSpotSearchIndex().then((rows) => {
+            if (!active || !rows) return;
+            const preview: Record<string, SpotPreview> = {};
+            for (const row of rows) preview[row.s] = { name: row.n, region: row.g ?? "" };
+            // The name-only feed has no publication status: don't invent an "Official" badge.
+            setSpotPreviews(preview);
+        });
+        return () => { active = false; };
+    }, [embedded, spotPreviews, slugs]);
+    const availableSpots = embedded ? (spotPreviews ?? {}) : spots;
+
 
     /**
      * 保存したスラッグ → 見出しと枚数。
@@ -75,7 +94,7 @@ export default function SavedSpotsClient({ spots }: { spots: Record<string, Spot
             if (parsed.kind === "spot") {
                 // 台帳に無い＝公開条件を満たさない／下書きに戻った
                 // ＝そのページは作られていない（＝リンク先が無い）
-                const sp = spots[parsed.slug];
+                const sp = availableSpots[parsed.slug];
                 return {
                     key,
                     kind: "spot" as const,
@@ -100,11 +119,11 @@ export default function SavedSpotsClient({ spots }: { spots: Record<string, Spot
                 stage: null,
             };
         });
-    }, [photos, slugs, en, loaded, spots]);
+    }, [photos, slugs, en, loaded, availableSpots]);
 
     if (!authLoading && !isAuthenticated) {
         return (
-            <Shell locale={locale}>
+            <Shell locale={locale} embedded={embedded}>
                 <Empty
                     text={en ? "Sign in to keep spots you want to visit." : "行きたい場所を残すにはログインしてください。"}
                     action={
@@ -127,7 +146,7 @@ export default function SavedSpotsClient({ spots }: { spots: Record<string, Spot
         // docstring が「混ぜない」と書いている当の形）。
         // **数えるのは描く一覧そのもの**（`entries`）——生の `slugs` で
         // 数えると、畳んだぶん・壊れた値のぶんだけ行数と食い違う
-        <Shell locale={locale} count={pending || failed ? null : entries.length}>
+        <Shell locale={locale} count={pending || failed ? null : entries.length} embedded={embedded}>
             {/* 取りに行って失敗した回は、黙って短い一覧を出さない
                 （`/favorites` が同じ場面で同じ断りを出している） */}
             {failed && (
@@ -253,12 +272,14 @@ function decodeSlug(slug: string): string {
     }
 }
 
-function Shell({ locale, count, children }: { locale: "ja" | "en"; count?: number | null; children: React.ReactNode }) {
+function Shell({ locale, count, children, embedded = false }: { locale: "ja" | "en"; count?: number | null; children: React.ReactNode; embedded?: boolean }) {
     const en = locale === "en";
+    const Root = embedded ? "section" : "main";
+    const Heading = embedded ? "h2" : "h1";
     return (
-        <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg max-w-5xl mx-auto w-full pb-28">
+        <Root className={embedded ? "w-full text-white" : "p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg max-w-5xl mx-auto w-full pb-28"}>
             <div className="mb-4 sm:mb-6">
-                <h1 className="text-2xl sm:text-3xl font-bold">{en ? "Want to go" : "行きたい場所"}</h1>
+                <Heading className={embedded ? "text-lg font-bold" : "text-2xl sm:text-3xl font-bold"}>{en ? "Want to go" : "行きたい場所"}</Heading>
                 <p className="text-sm text-white/60 mt-1">
                     {/* **「まだ」と「0件」を混ぜない**（`/favorites` と同じ判断） */}
                     {count === null || count === undefined
@@ -269,7 +290,7 @@ function Shell({ locale, count, children }: { locale: "ja" | "en"; count?: numbe
                 </p>
             </div>
             {children}
-        </main>
+        </Root>
     );
 }
 
