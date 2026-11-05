@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { SPOTS, type Spot } from "../spots";
 import {
     CATEGORY_SLUGS, REGION_SLUGS, MIN_TOPIC_SPOTS, MIN_INDEXABLE_COUNTRY, SEASONS,
-    topicSpots, countryTopics, themeTopics, seasonTopics,
-    countryView, themeView, seasonView, overseasView,
+    topicSpots, countryTopics, themeTopics, seasonTopics, cityTopics, seasonThemeTopics,
+    countryView, themeView, seasonView, overseasView, cityView, seasonThemeView, cityLinksForPrefecture,
     topicStructuredData, topicTitle, topicMetadata, topicLinksForSpot, spotIndexTopics,
     homeSeasonalSpots, seasonOfMonth, SEASON_TOP_CARDS, spotTopicSitemapEntries, themePath, seasonPath,
 } from "../spotTopics";
@@ -291,9 +291,13 @@ describe("内部リンク（スポットの頁 → 切り口）", () => {
         for (const spot of sample) {
             for (const l of topicLinksForSpot(spot)) {
                 total++;
-                const m = /^\/spots\/(?:area\/overseas\/([a-z]+)|theme\/([a-z0-9-]+)\/([a-z0-9-]+)|season\/([a-z]+)(?:\/([a-z0-9-]+))?)$/.exec(l.href);
+                const m = /^\/spots\/(?:area\/overseas\/([a-z]+)|theme\/([a-z0-9-]+)\/([a-z0-9-]+)|city\/([a-z0-9-]+)\/([^/]+)|season\/([a-z]+)\/theme\/([a-z0-9-]+)|season\/([a-z]+)(?:\/([a-z0-9-]+))?)$/.exec(l.href);
                 expect(m, l.href).toBeTruthy();
-                const view = m![1] ? countryView(m![1]) : m![2] ? themeView(m![2], m![3]) : seasonView(m![4], m![5] ?? null);
+                const view = m![1] ? countryView(m![1])
+                    : m![2] ? themeView(m![2], m![3])
+                        : m![4] ? cityView(m![4], decodeURIComponent(m![5]))
+                            : m![6] ? seasonThemeView(m![6], m![7])
+                                : seasonView(m![8], m![9] ?? null);
                 expect(view?.cards.map((c) => c.slug), `${spot.slug} → ${l.href}`).toContain(spot.slug);
             }
         }
@@ -329,7 +333,8 @@ describe("`/spots` の入口・サイトマップ", () => {
         expect(urls).toContain("https://x.test/spots/season/autumn/kinki");
         expect(urls).toContain("https://x.test/spots/area/overseas/fr");
         expect(entries.length).toBe(
-            countryTopics().filter((c) => c.spots.length >= MIN_INDEXABLE_COUNTRY).length + themeTopics().length + seasonTopics().length);
+            countryTopics().filter((c) => c.spots.length >= MIN_INDEXABLE_COUNTRY).length + themeTopics().length + seasonTopics().length
+            + cityTopics().length + seasonThemeTopics().length);
         const fr = entries.find((e) => e.url.endsWith("/overseas/fr"))!;
         const latest = countryTopics().find((c) => c.code === "fr")!.spots.map((s) => s.updatedAt).sort().pop();
         expect(fr.lastModified).toBe(latest);
@@ -391,3 +396,78 @@ describe("区画（`/spots/area/<x>`）との関係", () => {
 });
 
 void SPOTS;
+
+describe("市区町村の頁（2026-11-05）", () => {
+    it("頁は日本の市区町村で MIN_TOPIC_SPOTS 件以上・中身は全部その県その市区町村（薄い頁を作らない）", () => {
+        const all = cityTopics();
+        expect(all.length).toBeGreaterThan(20);
+        for (const t of all) {
+            expect(t.spots.length, `${t.prefName}${t.city}`).toBeGreaterThanOrEqual(MIN_TOPIC_SPOTS);
+            for (const s of t.spots) {
+                expect(jp(s)).toBe(true);
+                expect(s.region?.city).toBe(t.city);
+                expect(prefectureByName(s.region?.prefecture)?.slug).toBe(t.prefSlug);
+            }
+        }
+    });
+
+    it("同じ名前の市が別の県にあっても混ぜない（県＋市区町村で1つ）・URL が重ならない", () => {
+        const urls = cityTopics().map((t) => t.prefSlug + "/" + t.city);
+        expect(new Set(urls).size).toBe(urls.length);
+        // 4件の市は頁にならない（件数の線）
+        const base = shown.find((s) => s.region?.prefecture === "京都府")!;
+        const fake = Array.from({ length: 4 }, () => clone(base, { region: { country: "日本", prefecture: "京都府", city: "架空市" } }));
+        expect(cityTopics([...shown, ...fake]).some((t) => t.city === "架空市")).toBe(false);
+        expect(cityTopics([...shown, ...fake, clone(base, { region: { country: "日本", prefecture: "京都府", city: "架空市" } })]).some((t) => t.city === "架空市")).toBe(true);
+    });
+
+    it("頁の題は「N選」・導入文はデータの事実・パンくずは県", () => {
+        const t = cityTopics()[0];
+        const v = cityView(t.prefSlug, t.city)!;
+        expect(v.heading).toBe(`${t.prefName}${t.city}の撮影スポット`);
+        expect(topicTitle(v)).toBe(`${v.heading}${v.cards.length}選`);
+        expect(v.intro).toContain(`${t.spots.length}件`);
+        expect(v.crumbs[0].href).toBe(`/spots/area/${t.prefSlug}`);
+        expect(v.cards.map((c) => c.slug).sort()).toEqual(t.spots.map((s) => s.slug).sort());
+        expect(cityView("kyoto", "存在しない市")).toBeNull();
+    });
+
+    it("県の頁へ張る市区町村のリンクは、頁がある市区町村だけ", () => {
+        const t = cityTopics()[0];
+        const links = cityLinksForPrefecture(t.prefSlug);
+        expect(links.map((l) => l.href)).toContain(`/spots/city/${t.prefSlug}/${encodeURIComponent(t.city)}`);
+        expect(links.length).toBe(cityTopics().filter((x) => x.prefSlug === t.prefSlug).length);
+    });
+});
+
+describe("季節 × 種類の頁（2026-11-05）", () => {
+    it("頁はその季節の案内を持つ行のうち、そのカテゴリの MIN_TOPIC_SPOTS 件以上", () => {
+        const all = seasonThemeTopics();
+        expect(all.length).toBeGreaterThan(20);
+        for (const t of all) {
+            expect(t.spots.length).toBeGreaterThanOrEqual(MIN_TOPIC_SPOTS);
+            for (const s of t.spots) {
+                expect(s.category).toBe(t.category);
+                expect((s.seasonalGuide ?? []).some((g) => g?.season === t.season)).toBe(true);
+            }
+        }
+    });
+
+    it("題は「春の寺社の撮影スポットN選」の形・URL は季節/theme/カテゴリ・同じ頁が2枚にならない", () => {
+        const t = seasonThemeTopics()[0];
+        const v = seasonThemeView(t.season, t.categorySlug)!;
+        expect(v.path).toBe(`/spots/season/${t.season}/theme/${t.categorySlug}`);
+        expect(topicTitle(v)).toMatch(/^[春夏秋冬]の.+の撮影スポット\d+選$/);
+        const paths = seasonThemeTopics().map((x) => x.season + "/" + x.categorySlug);
+        expect(new Set(paths).size).toBe(paths.length);
+        expect(seasonThemeView("autumn", "zzz")).toBeNull();
+    });
+
+    it("季節の全体の頁と入口から、種類の頁に辿れる", () => {
+        const t = seasonThemeTopics()[0];
+        const top = seasonView(t.season, null)!;
+        expect(top.related.flatMap((g) => g.links.map((l) => l.href))).toContain(`/spots/season/${t.season}/theme/${t.categorySlug}`);
+        expect(spotIndexTopics().seasonThemes.length).toBe(seasonThemeTopics().length);
+        expect(spotIndexTopics().cities.length).toBe(cityTopics().length);
+    });
+});

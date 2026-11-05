@@ -206,6 +206,8 @@ export function topicSpots(spots: readonly Spot[] = SPOTS): Spot[] {
 const countryCache = new WeakMap<readonly Spot[], CountryTopic[]>();
 const themeCache = new WeakMap<readonly Spot[], ThemeTopic[]>();
 const seasonCache = new WeakMap<readonly Spot[], SeasonTopic[]>();
+const cityCache = new WeakMap<readonly Spot[], CityTopic[]>();
+const seasonThemeCache = new WeakMap<readonly Spot[], SeasonThemeTopic[]>();
 function memo<T>(cache: WeakMap<readonly Spot[], T>, spots: readonly Spot[], build: (s: readonly Spot[]) => T): T {
     let v = cache.get(spots);
     if (v === undefined) {
@@ -348,6 +350,64 @@ function buildSeasonTopics(spots: readonly Spot[]): SeasonTopic[] {
     }
     return out;
 }
+
+/**
+ * 市区町村の頁（2026-11-05・「○○市の撮影スポット」）。**日本の行だけ**・`MIN_TOPIC_SPOTS` 件以上の市区町村だけ。
+ * 同じ名前の市が別の県にある（府中市・伊達市）ので、鍵は**県＋市区町村**。URL は
+ * `/spots/city/<県の綴り>/<市区町村名>`（`/location/<名前>` と同じく日本語の綴り）
+ */
+export type CityTopic = { prefSlug: string; prefName: string; prefNameEn: string; region: RegionName; city: string; spots: Spot[] };
+
+export function cityTopics(spots: readonly Spot[] = SPOTS): CityTopic[] {
+    return memo(cityCache, spots, buildCityTopics);
+}
+function buildCityTopics(spots: readonly Spot[]): CityTopic[] {
+    const by = new Map<string, CityTopic>();
+    for (const s of topicSpots(spots)) {
+        if (!isJapan(s)) continue;
+        const city = (s.region?.city ?? "").trim();
+        const pref = prefectureByName(s.region?.prefecture);
+        if (!city || !pref) continue;
+        const key = `${pref.slug}/${city}`;
+        const t = by.get(key) ?? { prefSlug: pref.slug, prefName: pref.name, prefNameEn: pref.nameEn, region: pref.region, city, spots: [] };
+        t.spots.push(s);
+        by.set(key, t);
+    }
+    return [...by.values()].filter((t) => t.spots.length >= MIN_TOPIC_SPOTS)
+        .sort((a, b) => b.spots.length - a.spots.length || a.prefSlug.localeCompare(b.prefSlug) || a.city.localeCompare(b.city, "ja"));
+}
+
+export const cityHeading = (t: Pick<CityTopic, "prefName" | "city">) => `${t.prefName}${t.city}の撮影スポット`;
+export const cityHeadingEn = (t: Pick<CityTopic, "prefNameEn" | "city">) => `Photo spots in ${t.city}, ${t.prefNameEn}`;
+export const cityPath = (t: Pick<CityTopic, "prefSlug" | "city">) => ROUTES.SPOT_CITY(t.prefSlug, t.city);
+
+/** 季節 × カテゴリの頁（2026-11-05・「秋の寺社の撮影スポット」）。季節の案内を持つ行のうち、そのカテゴリの `MIN_TOPIC_SPOTS` 件以上 */
+export type SeasonThemeTopic = { season: SpotSeason; category: string; categorySlug: string; spots: Spot[] };
+
+export function seasonThemeTopics(spots: readonly Spot[] = SPOTS): SeasonThemeTopic[] {
+    return memo(seasonThemeCache, spots, buildSeasonThemeTopics);
+}
+function buildSeasonThemeTopics(spots: readonly Spot[]): SeasonThemeTopic[] {
+    const by = new Map<string, SeasonThemeTopic>();
+    for (const s of topicSpots(spots)) {
+        const category = (s.category ?? "").trim();
+        const categorySlug = CATEGORY_SLUGS[category];
+        if (!categorySlug) continue;
+        for (const season of SEASONS) {
+            if (!hasSeason(s, season)) continue;
+            const key = `${season}/${categorySlug}`;
+            const t = by.get(key) ?? { season, category, categorySlug, spots: [] };
+            t.spots.push(s);
+            by.set(key, t);
+        }
+    }
+    return [...by.values()].filter((t) => t.spots.length >= MIN_TOPIC_SPOTS)
+        .sort((a, b) => SEASONS.indexOf(a.season) - SEASONS.indexOf(b.season) || b.spots.length - a.spots.length || a.category.localeCompare(b.category, "ja"));
+}
+
+export const seasonThemeHeading = (t: Pick<SeasonThemeTopic, "season" | "category">) => `${SEASON_JA[t.season]}の${t.category}の撮影スポット`;
+export const seasonThemeHeadingEn = (t: Pick<SeasonThemeTopic, "season" | "categorySlug">) => `${SEASON_EN[t.season]} ${categoryEn(t.categorySlug)} photo spots`;
+export const seasonThemePath = (t: Pick<SeasonThemeTopic, "season" | "categorySlug">) => ROUTES.SPOT_SEASON_THEME(t.season, t.categorySlug);
 
 // ─────────────────────────────────────────────────────────────
 // 題・道・導入文
@@ -607,6 +667,10 @@ export function themeView(categorySlug: string, place: string, spots: readonly S
         related: [
             { heading: `${t.place.name}のほかのテーマ`, headingEn: `Other themes in ${placeEn(t.place)}`, links: samePlace.map(themeLink) },
             { heading: `ほかの地域の${t.category}`, headingEn: `${categoryEn(t.categorySlug)} in other areas`, links: sameCategory.map(themeLink) },
+            {
+                heading: `季節でさがす（${t.category}）`, headingEn: `${categoryEn(t.categorySlug)} by season`,
+                links: seasonThemeTopics(spots).filter((x) => x.categorySlug === t.categorySlug).map(seasonThemeLink),
+            },
         ].filter((g) => g.links.length > 0),
         indexable: true,
         descriptionExtra: timeGuideNote(t.spots),
@@ -675,6 +739,95 @@ export function seasonView(season: string, area: string | null, spots: readonly 
                 links: subs.filter((x) => x !== t).map(seasonLink),
             },
             { heading: "ほかの季節", headingEn: "Other seasons", links: otherSeasons.map(seasonLink) },
+            {
+                heading: `${SEASON_JA[t.season]}の撮影スポットを種類でさがす`, headingEn: `${SEASON_EN[t.season]} by type`,
+                links: t.area ? [] : seasonThemeTopics(spots).filter((x) => x.season === t.season).map(seasonThemeLink),
+            },
+        ].filter((g) => g.links.length > 0),
+        indexable: true,
+        descriptionExtra: timeGuideNote(t.spots),
+        ogImage: ogImageOf(t.spots, cards),
+        lastModified: latest(t.spots),
+    };
+}
+
+const cityLink = (t: CityTopic): TopicLink => ({
+    ...link(cityPath(t), `${t.prefName}${t.city}`, t.spots.length),
+    labelEn: `${t.city}, ${t.prefNameEn}`,
+});
+const seasonThemeLink = (t: SeasonThemeTopic): TopicLink => ({
+    ...link(seasonThemePath(t), `${SEASON_JA[t.season]}の${t.category}`, t.spots.length),
+    labelEn: `${SEASON_EN[t.season]} ${categoryEn(t.categorySlug)}`,
+});
+
+/** 県の頁に並べる「市区町村でさがす」（その県の市区町村の頁・件数の多い順） */
+export function cityLinksForPrefecture(prefSlug: string, spots: readonly Spot[] = SPOTS): TopicLink[] {
+    return cityTopics(spots).filter((t) => t.prefSlug === prefSlug).map((t) => ({ ...link(cityPath(t), t.city, t.spots.length), labelEn: t.city }));
+}
+
+export function cityIntro(t: CityTopic, cards: readonly TopicCard[]): string {
+    const n = t.spots.length;
+    const seasonal = seasonalCount(t.spots);
+    const kinds = categoryBreakdown(t.spots);
+    return `${t.prefName}${t.city}の撮影スポットを${n}件まとめました。`
+        + (kinds ? `種類は${kinds}など。` : "")
+        + `${names(cards)}など。`
+        + (seasonal > 0 ? `うち${seasonal}件は季節ごとの撮影の案内があります。` : "");
+}
+
+export function seasonThemeIntro(t: SeasonThemeTopic, cards: readonly TopicCard[]): string {
+    const n = t.spots.length;
+    const label = SEASON_JA[t.season];
+    let text = `${label}の撮影の案内がある${t.category}のスポットを${n}件まとめました。${names(cards)}など。`;
+    const kw = SEASON_KEYWORD[t.season];
+    if (kw) {
+        const k = t.spots.filter((s) => hasSeasonKeyword(s, t.season)).length;
+        if (k > 0) text += `うち${k}件は${label}の案内に「${kw}」の記述があります。`;
+    }
+    return text;
+}
+
+export function cityView(prefSlug: string, city: string, spots: readonly Spot[] = SPOTS): TopicView | null {
+    const all = cityTopics(spots);
+    const t = all.find((x) => x.prefSlug === prefSlug && x.city === city);
+    if (!t) return null;
+    const cards = topicCards(t.spots);
+    const sameRegion = all.filter((x) => x.prefSlug === prefSlug && x !== t);
+    const themes = themeTopics(spots).filter((x) => x.place.kind === "prefecture" && x.place.slug === prefSlug);
+    return {
+        path: cityPath(t),
+        heading: cityHeading(t),
+        headingEn: cityHeadingEn(t),
+        intro: cityIntro(t, cards),
+        crumbs: [{ name: t.prefName, nameEn: t.prefNameEn, href: ROUTES.SPOT_AREA(t.prefSlug) }],
+        cards,
+        related: [
+            { heading: `${t.prefName}のほかの市区町村`, headingEn: `Other cities in ${t.prefNameEn}`, links: sameRegion.map(cityLink) },
+            { heading: `${t.prefName}のテーマ`, headingEn: `Themes in ${t.prefNameEn}`, links: themes.map(themeLink) },
+        ].filter((g) => g.links.length > 0),
+        indexable: true,
+        descriptionExtra: timeGuideNote(t.spots),
+        ogImage: ogImageOf(t.spots, cards),
+        lastModified: latest(t.spots),
+    };
+}
+
+export function seasonThemeView(season: string, categorySlug: string, spots: readonly Spot[] = SPOTS): TopicView | null {
+    const all = seasonThemeTopics(spots);
+    const t = all.find((x) => x.season === season && x.categorySlug === categorySlug);
+    if (!t) return null;
+    const cards = topicCards(t.spots);
+    const top = seasonTopics(spots).find((x) => x.season === t.season && x.area === null);
+    return {
+        path: seasonThemePath(t),
+        heading: seasonThemeHeading(t),
+        headingEn: seasonThemeHeadingEn(t),
+        intro: seasonThemeIntro(t, cards),
+        crumbs: top ? [{ name: seasonHeading(top), nameEn: seasonHeadingEn(top), href: seasonPath(top) }] : [],
+        cards,
+        related: [
+            { heading: `${SEASON_JA[t.season]}のほかの種類`, headingEn: `Other types in ${SEASON_EN[t.season]}`, links: all.filter((x) => x.season === t.season && x !== t).map(seasonThemeLink) },
+            { heading: `ほかの季節の${t.category}`, headingEn: `${categoryEn(t.categorySlug)} in other seasons`, links: all.filter((x) => x.categorySlug === t.categorySlug && x !== t).map(seasonThemeLink) },
         ].filter((g) => g.links.length > 0),
         indexable: true,
         descriptionExtra: timeGuideNote(t.spots),
@@ -780,12 +933,17 @@ export function topicLinksForSpot(spot: Spot, spots: readonly Spot[] = SPOTS): T
     for (const t of themeTopics(spots)) {
         if (t.spots.some((s) => s.spotId === spot.spotId)) out.push({ ...link(themePath(t), themeHeading(t), t.spots.length), labelEn: themeHeadingEn(t) });
     }
+    const city = cityTopics(spots).find((t) => t.spots.some((x) => x.spotId === spot.spotId));
+    if (city) out.push({ ...link(cityPath(city), cityHeading(city), city.spots.length), labelEn: cityHeadingEn(city) });
     const seasons = seasonTopics(spots);
     for (const season of SEASONS) {
         if (!hasSeason(spot, season)) continue;
         const mine = seasons.filter((t) => t.season === season && t.spots.some((s) => s.spotId === spot.spotId));
         const best = mine.find((t) => t.area !== null) ?? mine.find((t) => t.area === null);
         if (best) out.push({ ...link(seasonPath(best), seasonHeading(best), best.spots.length), labelEn: seasonHeadingEn(best) });
+    }
+    for (const t of seasonThemeTopics(spots)) {
+        if (t.spots.some((x) => x.spotId === spot.spotId)) out.push({ ...link(seasonThemePath(t), seasonThemeHeading(t), t.spots.length), labelEn: seasonThemeHeadingEn(t) });
     }
     return out;
 }
@@ -809,6 +967,8 @@ export function spotCountryRef(spot: Spot, spots: readonly Spot[] = SPOTS): { hr
 export function spotIndexTopics(spots: readonly Spot[] = SPOTS): {
     seasons: TopicLink[];
     themes: Array<{ category: string; categoryEn: string; links: TopicLink[] }>;
+    seasonThemes: TopicLink[];
+    cities: TopicLink[];
 } {
     const seasons = seasonTopics(spots).filter((t) => t.area === null)
         .map((t) => ({ ...link(seasonPath(t), seasonHeading(t), t.spots.length), labelEn: seasonHeadingEn(t) }));
@@ -818,7 +978,11 @@ export function spotIndexTopics(spots: readonly Spot[] = SPOTS): {
         if (!g) themes.push(g = { category: t.category, categoryEn: categoryEn(t.categorySlug), links: [] });
         g.links.push({ ...link(themePath(t), t.place.name, t.spots.length), labelEn: placeEn(t.place) });
     }
-    return { seasons, themes };
+    return {
+        seasons, themes,
+        seasonThemes: seasonThemeTopics(spots).map(seasonThemeLink),
+        cities: cityTopics(spots).map(cityLink),
+    };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -902,6 +1066,8 @@ export function spotTopicSitemapEntries(baseUrl: string = siteConfig.url, spots:
         ...countryTopics(spots).filter((c) => c.spots.length >= MIN_INDEXABLE_COUNTRY).map((c) => entry(ROUTES.SPOT_COUNTRY(c.code), c.spots, 0.6)),
         ...themeTopics(spots).map((t) => entry(themePath(t), t.spots, 0.5)),
         ...seasonTopics(spots).map((t) => entry(seasonPath(t), t.spots, t.area ? 0.5 : 0.6)),
+        ...cityTopics(spots).map((t) => entry(cityPath(t), t.spots, 0.5)),
+        ...seasonThemeTopics(spots).map((t) => entry(seasonThemePath(t), t.spots, 0.5)),
     ];
 }
 

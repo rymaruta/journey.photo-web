@@ -5,7 +5,8 @@ import { spotCheckedClaim } from "@/lib/data/spotPageMeta";
 import { withPlaceholderParam } from "@/lib/server/staticParams";
 import { siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
 import SpotTopicPage from "@/app/components/SpotTopicPage";
-import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta } from "@/lib/data/spotTopics";
+import { TopicChips, Lang } from "@/app/components/SpotTopicLists";
+import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta, cityLinksForPrefecture } from "@/lib/data/spotTopics";
 import { OVERSEAS_SLUG } from "@/lib/data/prefectures";
 
 /** JSON-LD を `<script>` に埋める形（`SpotTopicPage.tsx` と同じ。`</script>` で閉じられないように） */
@@ -100,6 +101,7 @@ export default async function SpotAreaPage({ params }: { params: Promise<{ area:
     if (area === OVERSEAS_SLUG) return <SpotTopicPage view={overseasView()} eyebrow="Photo spots · Outside Japan" />;
     const found = spotAreas().find((a) => a.slug === area);
     // パンくずと並べたスポットの `ItemList`（2026-10-16・切り口の頁と同じ形。県の頁だけ無かった）
+    const cityLinks = found ? cityLinksForPrefecture(found.slug) : [];
     const ld = found ? areaStructuredData(found, visibleSpotsInArea(found.slug)) : null;
     return (
         <>
@@ -109,6 +111,13 @@ export default async function SpotAreaPage({ params }: { params: Promise<{ area:
                 spots={spotIndexItemsForArea(area)}
                 area={found ? { name: found.name, nameEn: found.nameEn } : undefined}
             />
+            {/* 市区町村でさがす（2026-11-05・5件以上の市区町村の頁。HTML の本文に出るのでクロールの入口になる） */}
+            {found && cityLinks.length > 0 && (
+                <section className="mx-auto w-full max-w-5xl lg:max-w-6xl px-4 sm:px-6 md:px-8 pb-10 text-white" data-testid="area-city-links">
+                    <h2 className="font-serif text-xl font-bold m-0 mb-3"><Lang ja={`${found.name}の市区町村でさがす`} en={`Cities in ${found.nameEn}`} /></h2>
+                    <TopicChips links={cityLinks} />
+                </section>
+            )}
         </>
     );
 }
