@@ -21,6 +21,8 @@ describe("フッターの導線", () => {
             ["撮影スポット", ROUTES.SPOTS],
             // 写真とカメラの教科書（2026-11-04）。撮影スポットの隣（どちらも「撮りに行く前に読む」）
             ["写真とカメラの教科書", ROUTES.LEARN],
+            // 構図ガイド（2026-11-05）。教科書の頁の中からしか行けなかった。教科書の隣（どちらも「読む」）
+            ["構図ガイド", ROUTES.COMPOSITION],
             ["いいねした写真", ROUTES.FAVORITES],
             // **いいねの隣に置く。** 別の棚だと分かるのは並んでいるとき
             ["保存した写真", ROUTES.SAVES],
@@ -29,6 +31,14 @@ describe("フッターの導線", () => {
             ["行きたい場所", ROUTES.SAVED_SPOTS],
             ["利用規約", ROUTES.TERMS],
             ["プライバシーポリシー", ROUTES.PRIVACY],
+            // 撮影スポットの切り口への入口（2026-11-05・2つ目の nav「撮影スポットをさがす」）。
+            // 3,000 件を超える撮影スポットへ、どの頁の下からも1クリックで入れる
+            ["春の撮影スポット", ROUTES.SPOT_SEASON("spring")],
+            ["夏の撮影スポット", ROUTES.SPOT_SEASON("summer")],
+            ["秋の撮影スポット", ROUTES.SPOT_SEASON("autumn")],
+            ["冬の撮影スポット", ROUTES.SPOT_SEASON("winter")],
+            ["海外の撮影スポット", ROUTES.SPOT_AREA("overseas")],
+            ["撮影スポットの一覧", ROUTES.SPOTS],
             ["iOSアプリをApp Storeで入手", "https://apps.apple.com/jp/app/id6814335283"],
         ]);
     });
@@ -57,10 +67,14 @@ describe("フッターのリンクの押す的と字", () => {
 
     it("ナビのリンクの字は px で 13（rem の段に頼らない）", () => {
         render(<Footer />);
-        const nav = screen.getByRole("navigation");
-        for (const a of Array.from(nav.querySelectorAll("a"))) {
-            expect((a as HTMLElement).style.fontSize, a.textContent!).toBe("13px");
-            expect(a.className).not.toMatch(/(^|\s)text-(xs|sm)(\s|$)/);
+        // ナビは2つ（フッター・撮影スポットをさがす）。どちらも同じ字の大きさ
+        const navs = screen.getAllByRole("navigation");
+        expect(navs.map((n) => n.getAttribute("aria-label"))).toEqual(["フッター", "撮影スポットをさがす"]);
+        for (const nav of navs) {
+            for (const a of Array.from(nav.querySelectorAll("a"))) {
+                expect((a as HTMLElement).style.fontSize, a.textContent!).toBe("13px");
+                expect(a.className).not.toMatch(/(^|\s)text-(xs|sm)(\s|$)/);
+            }
         }
     });
 });
