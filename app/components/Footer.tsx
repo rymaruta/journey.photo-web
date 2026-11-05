@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSyncExternalStore, useState } from "react";
 import { useLocale } from "../i18n/context";
 import { ROUTES } from "../../lib/routes";
+import { OVERSEAS_SLUG } from "../../lib/data/prefectures";
 import { track } from "../../lib/utils/analytics";
 
 export default function Footer() {
@@ -28,12 +29,27 @@ export default function Footer() {
         { href: ROUTES.MAP, label: navLabels.map || (locale === "en" ? "Map" : "撮影地マップ") },
         { href: ROUTES.SPOTS, label: locale === "en" ? "Photo spots" : "撮影スポット" },
         { href: ROUTES.LEARN, label: locale === "en" ? "Photography guides" : "写真とカメラの教科書" },
+        // 構図ガイド（2026-11-05）: ホーム・ヘッダー・フッターのどこからも直接は行けなかった（教科書の頁の中だけ）
+        { href: ROUTES.COMPOSITION, label: locale === "en" ? "Composition guide" : "構図ガイド" },
         { href: ROUTES.FAVORITES, label: navLabels.favorites || (locale === "en" ? "Liked Photos" : "いいねした写真") },
         { href: ROUTES.SAVES, label: navLabels.saves || (locale === "en" ? "Saved Photos" : "保存した写真") },
         { href: ROUTES.SAVED_SPOTS, label: locale === "en" ? "Want to go" : "行きたい場所" },
         { href: ROUTES.TERMS, label: locale === "en" ? "Terms" : "利用規約" },
         { href: ROUTES.PRIVACY, label: locale === "en" ? "Privacy" : "プライバシーポリシー" },
     ];
+
+    // 撮影スポットの切り口への入口（2026-11-05 owner「WEB版をもっと認知してもらいたい」）。
+    // 3,000 件を超える撮影スポットと、その「○選」の頁へ、どの頁の下からも1クリックで入れる。
+    // 検索エンジンの巡回の入口にもなる（ヘッダーのメニューはボタンでリンクではない）
+    const spotLinks = [
+        { href: ROUTES.SPOT_SEASON("spring"), label: locale === "en" ? "Spring" : "春の撮影スポット" },
+        { href: ROUTES.SPOT_SEASON("summer"), label: locale === "en" ? "Summer" : "夏の撮影スポット" },
+        { href: ROUTES.SPOT_SEASON("autumn"), label: locale === "en" ? "Autumn" : "秋の撮影スポット" },
+        { href: ROUTES.SPOT_SEASON("winter"), label: locale === "en" ? "Winter" : "冬の撮影スポット" },
+        { href: ROUTES.SPOT_AREA(OVERSEAS_SLUG), label: locale === "en" ? "Outside Japan" : "海外の撮影スポット" },
+        { href: ROUTES.SPOTS, label: locale === "en" ? "All photo spots" : "撮影スポットの一覧" },
+    ];
+    const linkClass = "inline-flex min-h-[44px] items-center justify-center px-1 text-text-2 transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
 
     return (
         <footer className="border-t border-line bg-bg" style={{ paddingBottom: "var(--page-bar-h, 0px)" }}>
@@ -94,6 +110,19 @@ export default function Footer() {
                                 className="inline-flex min-h-[44px] items-center justify-center px-1 text-text-2 transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                                 style={{ fontSize: "13px", lineHeight: "18px", touchAction: "manipulation" }}
                             >
+                                {label}
+                            </Link>
+                        ))}
+                    </nav>
+
+                    <nav
+                        aria-label={locale === "en" ? "Find photo spots" : "撮影スポットをさがす"}
+                        className="grid w-full max-w-[640px] grid-cols-2 gap-x-5 sm:grid-cols-3 sm:gap-x-6"
+                        data-testid="footer-spot-links"
+                    >
+                        {spotLinks.map(({ href, label }) => (
+                            <Link key={href} href={href} prefetch={false} className={linkClass}
+                                  style={{ fontSize: "13px", lineHeight: "18px", touchAction: "manipulation" }}>
                                 {label}
                             </Link>
                         ))}
