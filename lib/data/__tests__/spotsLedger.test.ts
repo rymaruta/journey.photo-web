@@ -523,7 +523,7 @@ describe("撮影スポット台帳（content/spots.json）", () => {
         // 手で書いた一覧だと、ルートを足した日に見張りが漏れる）
         const RESERVED = fs.readdirSync(path.join(process.cwd(), "app", "spots"), { withFileTypes: true })
             .filter((d) => d.isDirectory() && !d.name.startsWith("[")).map((d) => d.name);
-        expect(RESERVED).toEqual(expect.arrayContaining(["area", "season", "theme"]));
+        expect(RESERVED).toEqual(expect.arrayContaining(["area", "season", "theme", "city"]));
         const hit = SPOTS.filter((s) => RESERVED.includes(s.slug)).map((s) => s.slug);
         expect(hit, "`/spots/` の下の固定ルートと同じ綴りのスポットがある").toEqual([]);
     });
