@@ -23,6 +23,7 @@ import TimelineFeed from "./components/TimelineFeed";
 import HomeMosaic from "./components/HomeMosaic";
 import { EmptyState, ErrorState, LoadingState } from "./components/StateViews";
 import HomeTopCards from "./components/HomeTopCards";
+import AppInstallCard from "./components/AppInstallCard";
 import SpotsEntry from "./components/SpotsEntry";
 import dynamic from "next/dynamic";
 import StickyTabRow from "./components/StickyTabRow";
@@ -711,6 +712,8 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
       {/* **上段のめくる札**（今日のテーマ・今日の一問・撮影スポット・2026-10-31 束 1 H2・iOS の `HomeTopCardView`）。
           輪の列の下・切り替えの上（iOS と同じ）＝どのタブでも同じ位置。以前は文字だけの帯 3 本（`QuizEntry`・`SpotsEntry`・`ThemeEntry`） */}
       {surface === "home" && <HomeTopCards locale={locale === "en" ? "en" : "ja"} photos={PHOTOS} seasonal={seasonalSpots} />}
+      {/* アプリのご案内（2026-11-06 owner「目立つところに」）。上段の札のすぐ下＝最初の画面の続きで目に入る位置 */}
+      {surface === "home" && <AppInstallCard placement="home" className="mb-4" />}
 
       {/* 切り替えは写真の一覧の頭。**下へ送ると見出しの下に留まる**（iOS の #417 ⑧ `pinnedFeedRow`・`StickyTabRow`）。
           留まっていればタブを替えるのに上まで戻らなくてよい */}

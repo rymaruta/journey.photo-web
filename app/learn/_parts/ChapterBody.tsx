@@ -6,6 +6,7 @@
 
 import React from "react";
 import TrackedLink from "@/app/components/TrackedLink";
+import AppInstallCard from "@/app/components/AppInstallCard";
 import { ROUTES } from "@/lib/routes";
 import type { Photo } from "@/lib/data/photos";
 import type { Block, Chapter } from "@/lib/data/learn/chapterTypes";
@@ -189,6 +190,9 @@ export default function ChapterBody({ chapter, examples }: { chapter: Chapter; e
                     </li>
                 </ul>
             </aside>
+
+            {/* 読み終えたところで、アプリのご案内（2026-11-06）。「次に読む」の下＝フッターの札の手前 */}
+            <AppInstallCard placement="article" className="mt-6" />
         </>
     );
 }

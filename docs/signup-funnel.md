@@ -47,7 +47,7 @@
 
 | イベント | いつ | 値 |
 |---|---|---|
-| `app_store_click` | App Store へのリンクを押した | `placement`: `footer`（フッターの文字リンク）/ `banner`（iOS の端末に出すフッターの案内カード）/ `article`（記事内のリンク用。いまは記事内に App Store リンクが無く未使用） |
+| `app_store_click` | App Store へのリンクを押した（アプリのご案内の札・`AppInstallCard`・2026-11-06 に目立つ位置へ移した） | `placement`: `banner`（フッターの先頭の札。以前は iOS の端末だけに出る小さなカード）/ `home`（ホームの上段の札の下）/ `article`（教科書の章の終わり）/ `footer`（以前のフッター最下段の文字リンク。2026-11-06 に札へ置き換えて未使用） |
 | `upload_start` | 投稿（公開・下書き保存）を押した | `photo_count`（枚数） |
 | `upload_complete` | **公開に成功した**（下書き保存は数えない）。成果の候補 | `photo_count` |
 | `upload_error` | 投稿に失敗した写真があった（1回の操作で1度） | `reason`: `unsupported_file` / `network` / `server` / `other` |

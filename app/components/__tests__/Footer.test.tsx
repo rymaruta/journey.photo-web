@@ -13,6 +13,8 @@ describe("フッターの導線", () => {
         const links = screen.getAllByRole("link").map((a) => [a.textContent, a.getAttribute("href")]);
         // 並びごと見る（`toContainEqual` の羅列だと順序の入れ替えが素通りする）
         expect(links).toEqual([
+            // フッターの先頭はアプリのご案内の札（2026-11-06）。下の文字リンクだった入口を、目立つ位置へ移した
+            ["App Storeで入手", "https://apps.apple.com/jp/app/id6814335283"],
             ["作品", ROUTES.HOME],
             ["撮影地マップ", ROUTES.MAP],
             // 公式撮影地ガイドの索引。**写真の投稿が0枚の場所も載る**面なので、
@@ -29,8 +31,6 @@ describe("フッターの導線", () => {
             // **行きたい場所はいいねの隣**（どちらも「自分が取っておいたもの」）。
             // 入口がスポット詳細のボタンしか無いと、押したあとに見に行く場所が無い
             ["行きたい場所", ROUTES.SAVED_SPOTS],
-            ["利用規約", ROUTES.TERMS],
-            ["プライバシーポリシー", ROUTES.PRIVACY],
             // 撮影スポットの切り口への入口（2026-11-05・2つ目の nav「撮影スポットをさがす」）。
             // 3,000 件を超える撮影スポットへ、どの頁の下からも1クリックで入れる
             ["紅葉の撮影スポット", ROUTES.SPOT_MOMIJI()],
@@ -40,7 +40,9 @@ describe("フッターの導線", () => {
             ["冬の撮影スポット", ROUTES.SPOT_SEASON("winter")],
             ["海外の撮影スポット", ROUTES.SPOT_AREA("overseas")],
             ["撮影スポットの一覧", ROUTES.SPOTS],
-            ["iOSアプリをApp Storeで入手", "https://apps.apple.com/jp/app/id6814335283"],
+            // 規約は3つ目の縦の組（左端をそろえるため、サイトのリンクと分けた・2026-11-06）
+            ["利用規約", ROUTES.TERMS],
+            ["プライバシーポリシー", ROUTES.PRIVACY],
         ]);
     });
 });
@@ -54,7 +56,8 @@ describe("フッターのリンクの押す的と字", () => {
         expect(links.length).toBeGreaterThan(3);
         for (const a of links) expect(a.className.split(/\s+/), a.textContent!).toEqual(expect.arrayContaining(["inline-flex", "min-h-[44px]"]));
         // 行の間隔は的の高さで取る（行の隙間を足すと、的どうしの間が空きすぎる・フッターが伸びる）
-        const nav = links[0].parentElement!;
+        const nav = screen.getByRole("navigation", { name: "フッター" });
+        expect(nav.querySelectorAll("a").length).toBeGreaterThan(3);
         expect(nav.className, "行の隙間を重ねて足している").not.toMatch(/(^|\s)gap-y-/);
     });
 
@@ -68,9 +71,9 @@ describe("フッターのリンクの押す的と字", () => {
 
     it("ナビのリンクの字は px で 13（rem の段に頼らない）", () => {
         render(<Footer />);
-        // ナビは2つ（フッター・撮影スポットをさがす）。どちらも同じ字の大きさ
+        // ナビは3つ（フッター・撮影スポットをさがす・規約）。どれも同じ字の大きさ
         const navs = screen.getAllByRole("navigation");
-        expect(navs.map((n) => n.getAttribute("aria-label"))).toEqual(["フッター", "撮影スポットをさがす"]);
+        expect(navs.map((n) => n.getAttribute("aria-label"))).toEqual(["フッター", "撮影スポットをさがす", "規約"]);
         for (const nav of navs) {
             for (const a of Array.from(nav.querySelectorAll("a"))) {
                 expect((a as HTMLElement).style.fontSize, a.textContent!).toBe("13px");
@@ -80,35 +83,35 @@ describe("フッターのリンクの押す的と字", () => {
     });
 });
 
-// App Store への入口の計測（2026-11-04）。placement だけ送る（URL・端末の情報は送らない）。
-// Smart App Banner（`app/layout.tsx` の meta）は Safari が描く帯で、押下をページから取れないので対象外
-describe("App Store リンクの計測", () => {
-    it("下の「App Storeで入手」を押す → app_store_click placement=footer", async () => {
-        const gtag = vi.fn();
-        sessionStorage.clear();
-        (window as unknown as { gtag?: unknown }).gtag = gtag;
-        const { default: userEvent } = await import("@testing-library/user-event");
-        render(<Footer />);
-        const link = screen.getByRole("link", { name: "iOSアプリをApp Storeで入手" });
-        link.addEventListener("click", (e) => e.preventDefault());   // 遷移はさせない
-        await userEvent.setup().click(link);
-        expect(gtag).toHaveBeenCalledWith("event", "app_store_click", expect.objectContaining({ placement: "footer" }));
-        expect(gtag.mock.calls.filter((c) => c[1] === "app_store_click")).toHaveLength(1);
-        expect(JSON.stringify(gtag.mock.calls)).not.toContain("apple.com");
+// フッターの整列（2026-11-06 owner「フッターの左揃えなどの整列感大事にして」）。
+// 以前は全部が中央揃えで行ごとに左端がばらついていた。いまは左揃えで、リンクの組は縦に積んで左端をそろえる
+describe("フッターの整列", () => {
+    it("中央揃えにしない: 全体は左揃え、リンクの組は左端そろえの縦並び", () => {
+        const { container } = render(<Footer />);
+        const root = container.querySelector("footer > div") as HTMLElement;
+        expect(root.className).toContain("text-left");
+        expect(root.className).not.toMatch(/(^|\s)text-center(\s|$)/);
+        // 案内の札のボタンの中の文字は中央でよい（札は別の部品）。それ以外に中央揃えの指定が残っていないこと
+        const rest = root.cloneNode(true) as HTMLElement;
+        rest.querySelector("[data-testid=app-install-card]")?.remove();
+        expect(rest.outerHTML).not.toMatch(/items-center justify-center|text-center/);
+        for (const nav of screen.getAllByRole("navigation")) {
+            expect(nav.className, nav.getAttribute("aria-label")!).toContain("items-start");
+            expect(nav.className).toContain("flex-col");
+            for (const a of Array.from(nav.querySelectorAll("a"))) {
+                expect(a.className, a.textContent!).toContain("justify-start");
+                expect(a.className, a.textContent!).not.toContain("justify-center");
+            }
+        }
     });
 
-    it("iOS の案内カードの「App Storeで入手」→ placement=banner", async () => {
-        const gtag = vi.fn();
-        sessionStorage.clear();
-        (window as unknown as { gtag?: unknown }).gtag = gtag;
-        const ua = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)");
-        try {
-            const { default: userEvent } = await import("@testing-library/user-event");
-            render(<Footer />);
-            const link = screen.getByRole("link", { name: "App Storeで入手" });
-            link.addEventListener("click", (e) => e.preventDefault());
-            await userEvent.setup().click(link);
-            expect(gtag).toHaveBeenCalledWith("event", "app_store_click", expect.objectContaining({ placement: "banner" }));
-        } finally { ua.mockRestore(); }
+    it("組の見出しは 12px 以上（本文の最小）", () => {
+        render(<Footer />);
+        for (const name of ["サイト", "撮影スポット", "規約"]) {
+            const nav = screen.getByRole("navigation", { name: name === "サイト" ? "フッター" : name === "撮影スポット" ? "撮影スポットをさがす" : "規約" });
+            const h = nav.querySelector("p") as HTMLElement;
+            expect(h.textContent).toBe(name);
+            expect(parseInt(h.style.fontSize, 10)).toBeGreaterThanOrEqual(12);
+        }
     });
 });
