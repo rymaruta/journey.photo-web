@@ -46,6 +46,20 @@ jobs:
           token = os.environ["GH_TOKEN"]
           url = f"https://api.github.com/repos/{repo}/actions/artifacts?per_page=100"
           headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json"}
+
+          # 🔴 2026-11-06: artifact のダウンロード（archive_download_url）は、保存先の別サーバーへの 302 で返る。
+          # urllib はリダイレクト先にも Authorization を付けたまま送り、保存先が 401 で拒否していた
+          # （11/3 に作ってから 4 回とも `HTTP Error 401: Server failed to authenticate the request` で失敗）。
+          # リダイレクトでは Authorization を外す（手元で、今の書き方は 401・外す書き方は成功を再現して確かめた）
+          class DropAuthOnRedirect(urllib.request.HTTPRedirectHandler):
+              def redirect_request(self, req, fp, code, msg, hdrs, newurl):
+                  new = super().redirect_request(req, fp, code, msg, hdrs, newurl)
+                  if new is not None:
+                      new.headers.pop("Authorization", None)
+                      new.unredirected_hdrs.pop("Authorization", None)
+                  return new
+
+          download = urllib.request.build_opener(DropAuthOnRedirect)
           count = 0
           seen = set()
           cutoff = datetime.now(timezone.utc) - timedelta(hours=26)
@@ -70,7 +84,7 @@ jobs:
                   if created < cutoff:
                       continue
                   req = urllib.request.Request(item["archive_download_url"], headers=headers)
-                  with urllib.request.urlopen(req, timeout=60) as response:
+                  with download.open(req, timeout=60) as response:
                       data = response.read()
                   with zipfile.ZipFile(io.BytesIO(data)) as archive:
                       for name in archive.namelist():
