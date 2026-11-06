@@ -84,6 +84,13 @@ describe("/learn/camera-brands", () => {
         expect(within(canon).queryByTestId("learn-brand-cameras")).toBeNull();
         expect(ldOf(container).map((x) => x["@type"])).toEqual(["BreadcrumbList", "Article"]);
         expect(String(brandsMeta.title)).not.toContain("Journey Photo");
+        // シリーズ名の眉は大文字にしない（α が Α にならない）
+        expect(within(sony).getByTestId("learn-brand-series").className).toContain("normal-case");
+        // 表はスマホ幅では札、パソコン幅では表（両方を持ち、CSS で片方だけ出す）
+        const table = screen.getAllByTestId("learn-table")[0];
+        expect(within(table).getByTestId("learn-table-cards").className).toContain("md:hidden");
+        expect(within(table).getByTestId("learn-table-grid").className).toContain("hidden md:block");
+        expect(within(within(table).getByTestId("learn-table-cards")).getAllByRole("listitem")).toHaveLength(BRANDS.length);
     });
 });
 
@@ -95,6 +102,15 @@ describe("ExposureLab", () => {
         fireEvent.change(screen.getByLabelText(/^F値/), { target: { value: "7" } }); // F16
         expect(screen.getByTestId("exposure-reading").textContent).toBe("ちょうど良い明るさ");
         expect(screen.getByTestId("exposure-summary").textContent).toContain("F16");
+    });
+
+    it("A → M に替えると、カメラが選んでいたシャッターから始まる（晴れに替えても明るさが飛ばない）", () => {
+        render(<ExposureLab />);
+        fireEvent.click(screen.getByRole("radio", { name: /晴れた日の屋外/ }));
+        expect(screen.getByTestId("exposure-reading").textContent).toBe("ちょうど良い明るさ");
+        fireEvent.click(screen.getByRole("radio", { name: /M（マニュアル）/ }));
+        expect(screen.getByTestId("exposure-reading").textContent).toBe("ちょうど良い明るさ");
+        expect((screen.getByLabelText(/^シャッター/) as HTMLInputElement).getAttribute("aria-valuetext")).toBe("1/1000秒");
     });
 
     it("M モードで F値だけ絞ると暗くなり、露出計が振れる", () => {

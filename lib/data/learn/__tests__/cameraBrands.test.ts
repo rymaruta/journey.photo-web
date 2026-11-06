@@ -34,6 +34,13 @@ describe("メーカーの台帳", () => {
         expect(brandOfCamera(undefined)).toBeUndefined();
     });
 
+    it("マイクロフォーサーズの換算は「焦点距離2倍のレンズに相当」と書く（「2倍の範囲」は逆に読める）", () => {
+        const wildlife = USE_CASES.find((u) => u.need.startsWith("動物"))!.look;
+        expect(wildlife).not.toContain("2倍の範囲");
+        expect(wildlife).toContain("焦点距離2倍のレンズに相当");
+        expect(wildlife).toContain("100mm なら 200mm 相当");
+    });
+
     it("用途・買う前の確認は空でない", () => {
         expect(USE_CASES.length).toBeGreaterThanOrEqual(5);
         expect(BUYING_CHECKLIST).toHaveLength(5);
