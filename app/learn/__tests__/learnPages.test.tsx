@@ -136,8 +136,11 @@ describe("記事内リンクの計測（select_content）", () => {
         stay(spots);
         fireEvent.click(spots);
         expect(picks()).toEqual(["article", "spot"]);
+        // 2026-11-06: item_id は href の最後の区切りだけ送る。パス全体（/learn/…・/spots）は送らない
+        const ids = gtag.mock.calls.filter((c) => c[1] === "select_content").map((c) => c[2].item_id);
+        expect(ids).toEqual(["camera-basics", "spots"]);
         const sent = JSON.stringify(gtag.mock.calls);
-        expect(sent).not.toContain("camera-basics");
+        expect(sent).not.toContain("/learn/");
         expect(sent).not.toContain("/spots");
     });
 
