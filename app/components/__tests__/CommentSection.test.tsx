@@ -149,7 +149,9 @@ describe("CommentSection: 送ったコメントを見せる", () => {
         // 並びは新しい順のまま（先頭が送った1件）
         const items = screen.getAllByRole("listitem");
         expect(items[0].textContent).toContain("送った");
-        expect(scrolled).toHaveLength(1);
+        // 読み上げの文は描画と同時に出るが、スクロールは描画後の useEffect で起きる。
+        // 負荷の高い CI で文のほうが先に見える瞬間があるので、スクロールの記録が入るまで待つ（2026-11-06）
+        await waitFor(() => expect(scrolled).toHaveLength(1));
         expect(scrolled[0].el).toBe(items[0]);
         expect(scrolled[0].opts).toEqual({ block: "nearest", behavior: "smooth" });
     });
@@ -162,6 +164,8 @@ describe("CommentSection: 送ったコメントを見せる", () => {
         fireEvent.change(screen.getByPlaceholderText("Add a comment…"), { target: { value: "送った" } });
         fireEvent.click(screen.getByRole("button", { name: "Post" }));
         await waitFor(() => expect(screen.getByTestId("comment-posted-status").textContent).toBe("Comment posted"));
+        // スクロールは描画後の useEffect で起きる。文が先に見える瞬間があるので、記録が入るまで待つ（2026-11-06）
+        await waitFor(() => expect(scrolled).toHaveLength(1));
         expect(scrolled[0].opts).toEqual({ block: "nearest", behavior: "auto" });
     });
 
