@@ -33,6 +33,7 @@ describe("フッターの導線", () => {
             ["プライバシーポリシー", ROUTES.PRIVACY],
             // 撮影スポットの切り口への入口（2026-11-05・2つ目の nav「撮影スポットをさがす」）。
             // 3,000 件を超える撮影スポットへ、どの頁の下からも1クリックで入れる
+            ["紅葉の撮影スポット", ROUTES.SPOT_MOMIJI()],
             ["春の撮影スポット", ROUTES.SPOT_SEASON("spring")],
             ["夏の撮影スポット", ROUTES.SPOT_SEASON("summer")],
             ["秋の撮影スポット", ROUTES.SPOT_SEASON("autumn")],

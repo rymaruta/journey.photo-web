@@ -82,7 +82,7 @@ const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c").
  * サーバーで描くので、切り口の一覧はクライアントの props に乗らない（HTML の本文だけ）
  */
 function SpotIndexTopicSections() {
-    const { seasons, themes, seasonThemes, cities } = spotIndexTopics();
+    const { seasons, themes, seasonThemes, cities, momiji } = spotIndexTopics();
     if (seasons.length === 0 && themes.length === 0) return null;
     return (
         <div data-testid="spots-topic-index">
@@ -90,6 +90,12 @@ function SpotIndexTopicSections() {
                 <section className="mb-7">
                     <SectionHead id="spots-by-season" eyebrow="SEASON" title={<Lang ja="季節でさがす" en="By season" />} />
                     <TopicChips links={seasons} />
+                </section>
+            )}
+            {momiji.length > 0 && (
+                <section className="mb-7">
+                    <SectionHead id="spots-momiji" eyebrow="AUTUMN FOLIAGE" title={<Lang ja="紅葉の撮影スポット" en="Autumn foliage photo spots" />} />
+                    <TopicChips links={momiji} />
                 </section>
             )}
             {seasonThemes.length > 0 && (

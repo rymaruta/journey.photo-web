@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { SPOTS, type Spot } from "../spots";
 import {
     CATEGORY_SLUGS, REGION_SLUGS, MIN_TOPIC_SPOTS, MIN_INDEXABLE_COUNTRY, SEASONS,
-    topicSpots, countryTopics, themeTopics, seasonTopics, cityTopics, seasonThemeTopics,
+    topicSpots, countryTopics, themeTopics, seasonTopics, cityTopics, seasonThemeTopics, momijiTopics, momijiView, hasSeasonKeyword, MOMIJI_TOP_CARDS,
     countryView, themeView, seasonView, overseasView, cityView, seasonThemeView, cityLinksForPrefecture,
     topicStructuredData, topicTitle, topicMetadata, topicLinksForSpot, spotIndexTopics,
     homeSeasonalSpots, seasonOfMonth, SEASON_TOP_CARDS, spotTopicSitemapEntries, themePath, seasonPath,
@@ -291,9 +291,10 @@ describe("内部リンク（スポットの頁 → 切り口）", () => {
         for (const spot of sample) {
             for (const l of topicLinksForSpot(spot)) {
                 total++;
-                const m = /^\/spots\/(?:area\/overseas\/([a-z]+)|theme\/([a-z0-9-]+)\/([a-z0-9-]+)|city\/([a-z0-9-]+)\/([^/]+)|season\/([a-z]+)\/theme\/([a-z0-9-]+)|season\/([a-z]+)(?:\/([a-z0-9-]+))?)$/.exec(l.href);
+                const m = /^\/spots\/(?:area\/overseas\/([a-z]+)|theme\/([a-z0-9-]+)\/([a-z0-9-]+)|city\/([a-z0-9-]+)\/([^/]+)|season\/([a-z]+)\/theme\/([a-z0-9-]+)|season\/([a-z]+)(?:\/([a-z0-9-]+))?|(momiji)(?:\/([a-z0-9-]+))?)$/.exec(l.href);
                 expect(m, l.href).toBeTruthy();
-                const view = m![1] ? countryView(m![1])
+                const view = m![10] ? momijiView(m![11] ?? null)
+                    : m![1] ? countryView(m![1])
                     : m![2] ? themeView(m![2], m![3])
                         : m![4] ? cityView(m![4], decodeURIComponent(m![5]))
                             : m![6] ? seasonThemeView(m![6], m![7])
@@ -334,7 +335,7 @@ describe("`/spots` の入口・サイトマップ", () => {
         expect(urls).toContain("https://x.test/spots/area/overseas/fr");
         expect(entries.length).toBe(
             countryTopics().filter((c) => c.spots.length >= MIN_INDEXABLE_COUNTRY).length + themeTopics().length + seasonTopics().length
-            + cityTopics().length + seasonThemeTopics().length);
+            + cityTopics().length + seasonThemeTopics().length + momijiTopics().length);
         const fr = entries.find((e) => e.url.endsWith("/overseas/fr"))!;
         const latest = countryTopics().find((c) => c.code === "fr")!.spots.map((s) => s.updatedAt).sort().pop();
         expect(fr.lastModified).toBe(latest);
@@ -469,5 +470,61 @@ describe("季節 × 種類の頁（2026-11-05）", () => {
         expect(top.related.flatMap((g) => g.links.map((l) => l.href))).toContain(`/spots/season/${t.season}/theme/${t.categorySlug}`);
         expect(spotIndexTopics().seasonThemes.length).toBe(seasonThemeTopics().length);
         expect(spotIndexTopics().cities.length).toBe(cityTopics().length);
+    });
+});
+
+describe("紅葉の頁（2026-11-06）", () => {
+    it("まとめ1枚＋地方・県。載るのは日本の、秋の案内に「紅葉」の語があるスポットだけ", () => {
+        const all = momijiTopics();
+        expect(all.filter((t) => t.place === null).length).toBe(1);
+        const hub = all.find((t) => t.place === null)!;
+        expect(hub.spots.length).toBeGreaterThan(30);
+        for (const s of hub.spots) {
+            expect(jp(s)).toBe(true);
+            expect(hasSeasonKeyword(s, "autumn")).toBe(true);
+        }
+        // 地方・県の頁は MIN_TOPIC_SPOTS 件以上・まとめの部分集合
+        const hubIds = new Set(hub.spots.map((s) => s.spotId));
+        for (const t of all.filter((x) => x.place)) {
+            expect(t.spots.length, t.place!.name).toBeGreaterThanOrEqual(MIN_TOPIC_SPOTS);
+            for (const s of t.spots) expect(hubIds.has(s.spotId)).toBe(true);
+        }
+    });
+
+    it("綴りが重ならない（北海道は県と地方が同じ綴り＝県だけ）", () => {
+        const slugs = momijiTopics().filter((t) => t.place).map((t) => t.place!.slug);
+        expect(new Set(slugs).size).toBe(slugs.length);
+    });
+
+    it("🔴 まとめの頁は並べる数を絞る（600KB に戻さない）が、地方・県の頁が無い行は全部載せ、どの行もどこかの紅葉の頁に載る", () => {
+        const hubView = momijiView(null)!;
+        const all = momijiTopics();
+        const subs = all.filter((t) => t.place);
+        const inSub = new Set(subs.flatMap((t) => t.spots.map((s) => s.slug)));
+        const hub = all.find((t) => t.place === null)!;
+        const orphans = hub.spots.filter((s) => !inSub.has(s.slug));
+        expect(hubView.cards.length).toBeLessThanOrEqual(Math.max(MOMIJI_TOP_CARDS, orphans.length));
+        const shown = new Set(hubView.cards.map((c) => c.slug));
+        for (const s of orphans) expect(shown.has(s.slug), s.slug).toBe(true);
+    });
+
+    it("題は「…の紅葉の撮影スポットN選」・導入文は数えた事実・見頃の日付は書かない", () => {
+        const v = momijiView(null)!;
+        expect(v.heading).toBe("紅葉の撮影スポット");
+        expect(topicTitle(v)).toBe(`紅葉の撮影スポット${v.cards.length}選`);
+        expect(v.intro).toContain("「紅葉」の記述があるスポットを");
+        expect(v.intro + (v.descriptionExtra ?? "")).not.toMatch(/見頃|\d+月|例年/);
+        const sub = momijiTopics().find((t) => t.place)!;
+        const sv = momijiView(sub.place!.slug)!;
+        expect(sv.heading).toBe(`${sub.place!.name}の紅葉の撮影スポット`);
+        expect(sv.crumbs[0].href).toBe("/spots/momiji");
+        expect(sv.cards.map((c) => c.slug).sort()).toEqual(sub.spots.map((s) => s.slug).sort());
+        expect(momijiView("nowhere")).toBeNull();
+    });
+
+    it("入口（/spots）とサイトマップに出る", () => {
+        expect(spotIndexTopics().momiji.length).toBe(momijiTopics().length);
+        const urls = spotTopicSitemapEntries("https://x.test").map((e) => e.url);
+        expect(urls).toContain("https://x.test/spots/momiji");
     });
 });
