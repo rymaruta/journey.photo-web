@@ -5,7 +5,8 @@
  * 2026-11-04 に登録の漏斗・アプリの入口・投稿・推奨イベントを足した（一覧と値の範囲は
  * `EVENT_SPEC`、意味と漏斗の定義は `docs/signup-funnel.md`）。
  *
- * **送らないもの: uid・メール・氏名・撮影スポットの slug・検索語そのもの。** 引数の型を表の値だけに絞り、
+ * **送らないもの: uid・メール・氏名・検索語そのもの。** 撮影スポットの slug・記事の slug・写真の id は
+ * `select_content` の `item_id` だけで送る（2026-11-06・値は `ITEM_ID_PATTERN` の形だけ）。引数の型を表の値だけに絞り、
  * 自由な文字列を渡せないようにしてある（後から足す人が slug を混ぜないように）。
  *
  * ## GA4 の読み込み前に押されたイベント
@@ -30,12 +31,20 @@ import { getLandingType } from "./landingType";
  *  - 配列 … その中の値だけ
  *  - `COUNT` … 0〜`COUNT_MAX` の整数（枚数・文字数・件数）
  *
- * **送らないもの: uid・メール・氏名・ユーザー名・検索語そのもの・撮影スポットの slug や写真の id・
- * エラーの文言・入力した値。** 足すときも、自由な文字列の欄は作らない。
+ * **送らないもの: uid・メール・氏名・ユーザー名・検索語そのもの・エラーの文言・入力した値。
+ * 撮影スポットの slug・記事の slug・写真の id は `select_content` の `item_id` だけ（2026-11-06）。** 足すときも、自由な文字列の欄は作らない。
  * `landing_type` は表には書かず、`track` が全イベントに足す（`lib/utils/landingType.ts`）。
  */
 const COUNT = "count" as const;
 export const COUNT_MAX = 10000;
+
+/**
+ * 公開されている頁の識別子（記事の slug・撮影スポットの slug・写真の id）。2026-11-06 owner「どちらでも」→
+ * 記事・スポットの `item_id` は送る（どの記事が読まれたかを見るため）。
+ * **英数字・`-`・`_` だけ・80 字以内**に絞り、自由な文章は通さない。範囲外ならそのイベントごと送らない
+ */
+const ITEM_ID = "item_id" as const;
+export const ITEM_ID_PATTERN = /^[A-Za-z0-9_-]{1,80}$/;
 
 export const SIGNUP_FROM = ["wish", "other"] as const;
 export const SIGNUP_ERROR_REASONS = [
@@ -64,8 +73,8 @@ export const EVENT_SPEC = {
     upload_start: { photo_count: COUNT },
     upload_complete: { photo_count: COUNT },
     upload_error: { reason: UPLOAD_ERROR_REASONS },
-    // 推奨イベント（欄は GA4 の推奨名に合わせ、値は絞る。`item_id`・`search_term` は送らない）
-    select_content: { content_type: SELECT_CONTENT_TYPES },
+    // 推奨イベント（欄は GA4 の推奨名に合わせ、値は絞る。`item_id` は送る・`search_term`（検索語）は送らない）
+    select_content: { content_type: SELECT_CONTENT_TYPES, item_id: ITEM_ID },
     search: { search_term_length: COUNT, result_count: COUNT },
     share: { method: SHARE_METHODS, content_type: SHARE_CONTENT_TYPES },
     like_photo: {},
@@ -73,7 +82,7 @@ export const EVENT_SPEC = {
 } as const;
 
 type Spec = typeof EVENT_SPEC;
-type ParamOf<T> = T extends typeof COUNT ? number : T extends readonly (infer U)[] ? U : never;
+type ParamOf<T> = T extends typeof COUNT ? number : T extends typeof ITEM_ID ? string : T extends readonly (infer U)[] ? U : never;
 type EventMap = { [K in keyof Spec]: { [P in keyof Spec[K]]: ParamOf<Spec[K][P]> } };
 export type EventName = keyof EventMap;
 
@@ -111,6 +120,9 @@ export function sanitizeParams(name: string, params: unknown): Record<string, st
         if (rule === COUNT) {
             if (typeof v !== "number" || !Number.isFinite(v)) return null;
             out[key] = Math.min(COUNT_MAX, Math.max(0, Math.trunc(v)));
+        } else if (rule === ITEM_ID) {
+            if (typeof v !== "string" || !ITEM_ID_PATTERN.test(v)) return null;
+            out[key] = v;
         } else if (Array.isArray(rule) && (rule as readonly unknown[]).includes(v)) {
             out[key] = v as string | number;
         } else {

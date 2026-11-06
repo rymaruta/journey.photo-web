@@ -89,7 +89,7 @@ describe("イベントごとの形", () => {
         ["upload_start", { photo_count: 3 }],
         ["upload_complete", { photo_count: 3 }],
         ["upload_error", { reason: "network" }],
-        ["select_content", { content_type: "spot" }],
+        ["select_content", { content_type: "spot", item_id: "hanauma-bay" }],
         ["search", { search_term_length: 4, result_count: 12 }],
         ["share", { method: "line", content_type: "photo" }],
         ["like_photo", {}],
@@ -115,18 +115,29 @@ describe("イベントごとの形", () => {
         expect(calls).toEqual([]);
     });
 
-    it("表に無い欄（検索語・item_id・メール・uid）は落ちる", () => {
+    it("表に無い欄（検索語・メール・uid）は落ちる。検索には item_id も付かない", () => {
         const calls = capture();
         (track as (n: string, p: unknown) => void)("search", {
             search_term_length: 3, result_count: 0,
             search_term: "花火", item_id: "hanauma-bay", email: "u@example.com", uid: "abc",
         });
-        (track as (n: string, p: unknown) => void)("select_content", { content_type: "photo", item_id: "p123" });
+        (track as (n: string, p: unknown) => void)("select_content", {
+            content_type: "photo", item_id: "p123", email: "u@example.com", uid: "abc",
+        });
         const sent = JSON.stringify(calls);
-        for (const leak of ["花火", "hanauma", "u@example.com", "abc", "p123", "item_id", "search_term\""]) {
+        for (const leak of ["花火", "hanauma", "u@example.com", "abc", "search_term\""]) {
             expect(sent).not.toContain(leak);
         }
         expect(calls).toHaveLength(2);
+        expect(calls.find((c) => c[1] === "select_content")?.[2]).toMatchObject({ content_type: "photo", item_id: "p123" });
+    });
+
+    it("select_content の item_id は公開の識別子の形だけ（英数字・-・_・80字以内）。外れたら送らない", () => {
+        expect(sanitizeParams("select_content", { content_type: "spot", item_id: "hanauma-bay" }))
+            .toEqual({ content_type: "spot", item_id: "hanauma-bay" });
+        for (const bad of ["", "a b", "花火", "x?q=1", "a/b", "u@example.com", "a".repeat(81), 12, undefined]) {
+            expect(sanitizeParams("select_content", { content_type: "spot", item_id: bad })).toBeNull();
+        }
     });
 
     it("数は整数に丸め、0〜上限に収める", () => {
