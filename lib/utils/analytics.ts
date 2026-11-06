@@ -56,7 +56,7 @@ export const UPLOAD_ERROR_REASONS = ["unsupported_file", "network", "server", "o
 export const SHARE_METHODS = ["native", "copy", "x", "line"] as const;
 export const SHARE_CONTENT_TYPES = ["photo", "spot", "quiz", "trip"] as const;
 export const SELECT_CONTENT_TYPES = ["spot", "photo", "article"] as const;
-export const APP_STORE_PLACEMENTS = ["footer", "banner", "article"] as const;
+export const APP_STORE_PLACEMENTS = ["footer", "banner", "article", "home"] as const;
 
 export const EVENT_SPEC = {
     // 既存（名前と欄は変えない）

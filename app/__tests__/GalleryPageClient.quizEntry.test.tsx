@@ -62,7 +62,11 @@ describe("ホームの上段の札", () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         await screen.findByTestId("home-top-cards");
         // 札の次は、切り替えの行の元の位置の目印（`StickyTabRow`）→ 留まる行
-        expect(cards().nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
+        // 札のすぐ下にアプリのご案内の札（2026-11-06・Web だけ）を置く。そのあとに切り替え。
+        // 札の並び（今日のテーマ → 今日の一問 → 撮影スポット）の順序そのものは変えない
+        const next = cards().nextElementSibling as HTMLElement;
+        expect(next.getAttribute("data-testid")).toBe("app-install-card");
+        expect(next.nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
         expect(screen.getByTestId("home-feed-row")).toContainElement(screen.getByRole("tablist"));
         expect(order()).toEqual(["home-theme-card", "home-quiz-entry", "home-spots-entry", "home-learn-entry"]);
     });

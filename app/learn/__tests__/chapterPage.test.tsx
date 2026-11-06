@@ -1,5 +1,9 @@
 import "react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+// 章の頁の終わりにアプリのご案内の札（2026-11-06）。札は言語を読むので、提供元の代わりに固定する
+vi.mock("@/app/i18n/context", () => ({ useLocale: () => ({ locale: "ja", labels: {} }) }));
+
 import { render, screen, fireEvent } from "@testing-library/react";
 import ChapterPage, { generateStaticParams } from "../[slug]/page";
 import { CHAPTERS } from "@/lib/data/learn/chapters";
