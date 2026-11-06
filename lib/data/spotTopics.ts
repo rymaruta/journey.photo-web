@@ -208,6 +208,7 @@ const themeCache = new WeakMap<readonly Spot[], ThemeTopic[]>();
 const seasonCache = new WeakMap<readonly Spot[], SeasonTopic[]>();
 const cityCache = new WeakMap<readonly Spot[], CityTopic[]>();
 const seasonThemeCache = new WeakMap<readonly Spot[], SeasonThemeTopic[]>();
+const momijiCache = new WeakMap<readonly Spot[], MomijiTopic[]>();
 function memo<T>(cache: WeakMap<readonly Spot[], T>, spots: readonly Spot[], build: (s: readonly Spot[]) => T): T {
     let v = cache.get(spots);
     if (v === undefined) {
@@ -408,6 +409,50 @@ function buildSeasonThemeTopics(spots: readonly Spot[]): SeasonThemeTopic[] {
 export const seasonThemeHeading = (t: Pick<SeasonThemeTopic, "season" | "category">) => `${SEASON_JA[t.season]}の${t.category}の撮影スポット`;
 export const seasonThemeHeadingEn = (t: Pick<SeasonThemeTopic, "season" | "categorySlug">) => `${SEASON_EN[t.season]} ${categoryEn(t.categorySlug)} photo spots`;
 export const seasonThemePath = (t: Pick<SeasonThemeTopic, "season" | "categorySlug">) => ROUTES.SPOT_SEASON_THEME(t.season, t.categorySlug);
+
+/**
+ * 紅葉の頁（2026-11-06 owner「紅葉シーズンで調べられることが多いから充実させて欲しい」）。
+ *
+ * 対象は**日本の、秋の案内に「紅葉」の語があるスポット**（`hasSeasonKeyword`・台帳の記述だけを根拠にする）。
+ * 見頃の日付は台帳に無いので書かない（数えられない事実を頁に書かない）。
+ * 頁は まとめ（place なし）・地方別・県別。**地方別・県別は `MIN_TOPIC_SPOTS` 件以上だけ**（薄い頁を作らない）。
+ * 北海道は県と地方が同じ顔ぶれなので県の側だけ（`themeTopics` と同じ判断）。
+ */
+export type MomijiPlace =
+    | { kind: "prefecture"; slug: string; name: string; nameEn: string; region: RegionName }
+    | { kind: "region"; slug: string; name: string; region: RegionName };
+export type MomijiTopic = { place: MomijiPlace | null; spots: Spot[] };
+
+export function momijiTopics(spots: readonly Spot[] = SPOTS): MomijiTopic[] {
+    return memo(momijiCache, spots, buildMomijiTopics);
+}
+function buildMomijiTopics(spots: readonly Spot[]): MomijiTopic[] {
+    const all = topicSpots(spots).filter((s) => isJapan(s) && hasSeasonKeyword(s, "autumn"));
+    if (all.length === 0) return [];
+    const byPref = new Map<string, MomijiTopic>();
+    const byRegion = new Map<string, MomijiTopic>();
+    for (const s of all) {
+        const pref = prefectureByName(s.region?.prefecture);
+        if (!pref) continue;
+        const pk = byPref.get(pref.slug) ?? { place: { kind: "prefecture" as const, slug: pref.slug, name: pref.name, nameEn: pref.nameEn, region: pref.region }, spots: [] };
+        pk.spots.push(s); byPref.set(pref.slug, pk);
+        const rk = byRegion.get(pref.region) ?? { place: { kind: "region" as const, slug: REGION_SLUGS[pref.region], name: REGION_LABEL[pref.region], region: pref.region }, spots: [] };
+        rk.spots.push(s); byRegion.set(pref.region, rk);
+    }
+    const prefs = [...byPref.values()].filter((t) => t.spots.length >= MIN_TOPIC_SPOTS);
+    const prefSlugs = new Set(prefs.map((t) => (t.place as { slug: string }).slug));
+    // 地方の頁: 5 件以上で、県の頁と同じ綴り（北海道）・同じ顔ぶれでないもの
+    const regions = [...byRegion.values()].filter((t) => t.spots.length >= MIN_TOPIC_SPOTS && !prefSlugs.has((t.place as { slug: string }).slug)
+        && !prefs.some((p) => p.spots.length === t.spots.length && (p.place as { region: string }).region === (t.place as { region: string }).region));
+    const order = (a: MomijiTopic, b: MomijiTopic) => b.spots.length - a.spots.length
+        || (a.place as { slug: string }).slug.localeCompare((b.place as { slug: string }).slug);
+    return [{ place: null, spots: all }, ...regions.sort(order), ...prefs.sort(order)];
+}
+
+export const momijiPath = (t: Pick<MomijiTopic, "place">) => ROUTES.SPOT_MOMIJI(t.place?.slug);
+export const momijiHeading = (t: Pick<MomijiTopic, "place">) => `${t.place ? t.place.name : ""}の紅葉の撮影スポット`.replace(/^の/, "");
+export const momijiHeadingEn = (t: Pick<MomijiTopic, "place">) =>
+    `Autumn foliage photo spots${t.place ? ` in ${t.place.kind === "prefecture" ? t.place.nameEn : REGION_EN[t.place.region]}` : ""}`;
 
 // ─────────────────────────────────────────────────────────────
 // 題・道・導入文
@@ -836,6 +881,81 @@ export function seasonThemeView(season: string, categorySlug: string, spots: rea
     };
 }
 
+const momijiLink = (t: MomijiTopic): TopicLink => ({
+    ...link(momijiPath(t), t.place ? `${t.place.name}の紅葉` : "紅葉の撮影スポット", t.spots.length),
+    labelEn: t.place ? `Autumn foliage in ${t.place.kind === "prefecture" ? t.place.nameEn : REGION_EN[t.place.region]}` : "Autumn foliage photo spots",
+});
+
+export function momijiIntro(t: MomijiTopic, cards: readonly TopicCard[]): string {
+    const n = t.spots.length;
+    const where = t.place ? `${t.place.name}で、` : "";
+    const kinds = categoryBreakdown(t.spots);
+    const time = t.spots.filter((s) => (s.timeOfDayGuide ?? []).length > 0).length;
+    let text = `${where}秋の撮影の案内に「紅葉」の記述があるスポットを${n}件まとめました。`
+        + (kinds ? `種類は${kinds}など。` : "")
+        + `${names(cards)}など。`;
+    if (time > 0) text += `うち${time}件は時間帯ごとの撮影の案内もあります。`;
+    return text;
+}
+
+/** まとめの頁に並べる数（全部は並べない・`SEASON_TOP_CARDS` と同じ理由）。地方・県の頁が無い行は全部残す */
+export const MOMIJI_TOP_CARDS = 36;
+
+function momijiTopCards(t: MomijiTopic, subs: readonly MomijiTopic[]): TopicCard[] {
+    const covered = new Set(subs.flatMap((x) => x.spots.map((s) => s.spotId)));
+    const ranked = topicCards(t.spots);                 // 写真のあるものが先
+    const bySlug = new Map(t.spots.map((s) => [s.slug, s]));
+    const orphans = ranked.filter((c) => !covered.has(bySlug.get(c.slug)!.spotId));
+    // 地方を順に 1 件ずつ（多い地方が並びを占めない）
+    const buckets = new Map<string, TopicCard[]>();
+    for (const c of ranked.filter((c) => covered.has(bySlug.get(c.slug)!.spotId))) {
+        const r = regionOf(bySlug.get(c.slug)!) ?? "?";
+        buckets.set(r, [...(buckets.get(r) ?? []), c]);
+    }
+    const lists = [...buckets.values()];
+    const rest: TopicCard[] = [];
+    for (let i = 0; lists.some((l) => i < l.length); i++) for (const l of lists) if (i < l.length) rest.push(l[i]);
+    const keep = new Set([...orphans, ...rest.slice(0, Math.max(0, MOMIJI_TOP_CARDS - orphans.length))].map((c) => c.slug));
+    return ranked.filter((c) => keep.has(c.slug));
+}
+
+export function momijiView(place: string | null, spots: readonly Spot[] = SPOTS): TopicView | null {
+    const all = momijiTopics(spots);
+    const t = all.find((x) => (x.place?.slug ?? null) === place);
+    if (!t) return null;
+    const hub = all.find((x) => x.place === null)!;
+    const subs = all.filter((x) => x.place !== null);
+    const cards = t.place ? topicCards(t.spots) : momijiTopCards(t, subs);
+    const seasonTop = seasonTopics(spots).find((x) => x.season === "autumn" && x.area === null);
+    const prefsInRegion = t.place?.kind === "region"
+        ? subs.filter((x) => x.place!.kind === "prefecture" && (x.place as { region: string }).region === t.place!.region) : [];
+    return {
+        path: momijiPath(t),
+        heading: momijiHeading(t),
+        headingEn: momijiHeadingEn(t),
+        intro: momijiIntro(t, cards),
+        crumbs: t.place ? [{ name: "紅葉の撮影スポット", nameEn: "Autumn foliage photo spots", href: momijiPath(hub) }] : [],
+        cards,
+        related: [
+            { heading: "地方でさがす", headingEn: "By region", links: t.place ? [] : subs.filter((x) => x.place!.kind === "region").map(momijiLink) },
+            { heading: "県でさがす", headingEn: "By prefecture", links: t.place ? prefsInRegion.map(momijiLink) : subs.filter((x) => x.place!.kind === "prefecture").map(momijiLink) },
+            {
+                heading: "ほかの地方・県の紅葉", headingEn: "Other areas",
+                links: t.place ? subs.filter((x) => x !== t && !prefsInRegion.includes(x)).slice(0, 12).map(momijiLink) : [],
+            },
+            { heading: "秋の撮影スポット", headingEn: "Autumn photo spots", links: seasonTop ? [seasonLink(seasonTop)] : [] },
+            {
+                heading: "秋の撮影スポットを種類でさがす", headingEn: "Autumn by type",
+                links: seasonThemeTopics(spots).filter((x) => x.season === "autumn").map(seasonThemeLink),
+            },
+        ].filter((g) => g.links.length > 0),
+        indexable: true,
+        descriptionExtra: timeGuideNote(t.spots),
+        ogImage: ogImageOf(t.spots, cards),
+        lastModified: latest(t.spots),
+    };
+}
+
 /** 構造化データ（パンくず・並べたスポットの `ItemList`）。**画面に並べたものと同じ順** */
 export function topicStructuredData(view: TopicView) {
     const abs = (p: string) => `${siteConfig.url}${p}`;
@@ -942,6 +1062,10 @@ export function topicLinksForSpot(spot: Spot, spots: readonly Spot[] = SPOTS): T
         const best = mine.find((t) => t.area !== null) ?? mine.find((t) => t.area === null);
         if (best) out.push({ ...link(seasonPath(best), seasonHeading(best), best.spots.length), labelEn: seasonHeadingEn(best) });
     }
+    // 紅葉（県の頁があればそれ、無ければ地方、無ければまとめ）
+    const momijiMine = momijiTopics(spots).filter((t) => t.spots.some((x) => x.spotId === spot.spotId));
+    const momiji = momijiMine.find((t) => t.place?.kind === "prefecture") ?? momijiMine.find((t) => t.place?.kind === "region") ?? momijiMine[0];
+    if (momiji) out.push({ ...link(momijiPath(momiji), momijiHeading(momiji), momiji.spots.length), labelEn: momijiHeadingEn(momiji) });
     for (const t of seasonThemeTopics(spots)) {
         if (t.spots.some((x) => x.spotId === spot.spotId)) out.push({ ...link(seasonThemePath(t), seasonThemeHeading(t), t.spots.length), labelEn: seasonThemeHeadingEn(t) });
     }
@@ -969,6 +1093,7 @@ export function spotIndexTopics(spots: readonly Spot[] = SPOTS): {
     themes: Array<{ category: string; categoryEn: string; links: TopicLink[] }>;
     seasonThemes: TopicLink[];
     cities: TopicLink[];
+    momiji: TopicLink[];
 } {
     const seasons = seasonTopics(spots).filter((t) => t.area === null)
         .map((t) => ({ ...link(seasonPath(t), seasonHeading(t), t.spots.length), labelEn: seasonHeadingEn(t) }));
@@ -982,6 +1107,7 @@ export function spotIndexTopics(spots: readonly Spot[] = SPOTS): {
         seasons, themes,
         seasonThemes: seasonThemeTopics(spots).map(seasonThemeLink),
         cities: cityTopics(spots).map(cityLink),
+        momiji: momijiTopics(spots).map(momijiLink),
     };
 }
 
@@ -1068,6 +1194,8 @@ export function spotTopicSitemapEntries(baseUrl: string = siteConfig.url, spots:
         ...seasonTopics(spots).map((t) => entry(seasonPath(t), t.spots, t.area ? 0.5 : 0.6)),
         ...cityTopics(spots).map((t) => entry(cityPath(t), t.spots, 0.5)),
         ...seasonThemeTopics(spots).map((t) => entry(seasonThemePath(t), t.spots, 0.5)),
+        // 紅葉（まとめは秋の全体と同じ 0.6・季節の需要が大きい）
+        ...momijiTopics(spots).map((t) => entry(momijiPath(t), t.spots, t.place ? 0.5 : 0.6)),
     ];
 }
 
