@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import SpotAreaIndexClient from "@/app/components/SpotAreaIndexClient";
 import { SPOTS } from "@/lib/data/spots";
 import { spotAreas } from "@/lib/data/spotLink";
@@ -65,6 +66,7 @@ export default function SpotIndexPage() {
             {areas.length > 0 && (
                 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(spotAreaItemList(areas)) }} />
             )}
+            <div className="mx-auto max-w-6xl px-4 pt-5 sm:px-8"><Link href="/spots/compare" className="inline-flex min-h-11 items-center rounded-lg border border-white/25 px-4 text-sm text-white hover:bg-white/10">撮影スポットを比較する →</Link></div>
             <SpotAreaIndexClient areas={areas} total={total} draftCount={total - publishableSpots(SPOTS).length}>
                 <SpotIndexTopicSections />
             </SpotAreaIndexClient>
