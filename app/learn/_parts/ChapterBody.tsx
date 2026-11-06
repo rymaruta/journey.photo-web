@@ -175,6 +175,13 @@ export default function ChapterBody({ chapter, examples }: { chapter: Chapter; e
                             </li>
                         );
                     })}
+                    {(chapter.links ?? []).map((l) => (
+                        <li key={l.href}>
+                            <TrackedLink contentType="article" href={l.href} prefetch={false} className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
+                                {l.label}
+                            </TrackedLink>
+                        </li>
+                    ))}
                     <li>
                         <TrackedLink contentType="article" href={ROUTES.LEARN} prefetch={false} className="inline-flex items-center min-h-[44px] text-text-2 underline underline-offset-4 hover:text-white" style={{ fontSize: "15px" }}>
                             教科書の一覧に戻る

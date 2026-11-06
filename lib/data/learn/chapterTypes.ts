@@ -69,6 +69,8 @@ export type Chapter = {
     faq?: { q: string; a: string }[];
     /** 次に読む（slug か href） */
     next: string[];
+    /** 章に関係する、教科書の外の頁（撮影スポットの一覧など）。「次に読む」の下に並べる（2026-11-06） */
+    links?: { href: string; label: string }[];
     published: string;
     modified: string;
 };
