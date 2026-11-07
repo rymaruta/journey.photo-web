@@ -133,7 +133,7 @@ describe("classifyStaleObjects（デプロイ時の削除判定）", () => {
 });
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { invalidationPathsFor } = require("../deploy-static-site.js");
+const { invalidationPathsFor, isNoStore, isInvalidatable } = require("../deploy-static-site.js");
 
 // 以前は毎回 "/*" を無効化していた。写真も同じディストリビューションから
 // 配信していて max-age=31536000 を付けているのに、push と1日4回の定期ビルドの
@@ -143,23 +143,34 @@ describe("invalidationPathsFor", () => {
         expect(invalidationPathsFor([])).toEqual([]);
     });
 
-    it("写真1枚の追加なら、その分だけを消す（写真本体は消さない）", () => {
+    // **no-store で配るものは消さない**（2026-11-06・AWS の予算の通知）。HTML は `Cache-Control: no-cache, no-store`
+    // で配り、配信は MinTTL 1 秒。本番を2回続けて取ると 2 回目は `RefreshHit`＝古い HTML が残るのは最大 1 秒。
+    // それなのに毎デプロイ全ページ（約 245 パス）を消し、月 1,000 パスの無料枠を約 4 回で使い切って
+    // 1 パス 0.005 ドルかかっていた（11/1〜11/6 で 4,167 パス・15.8 ドル）
+    it("写真1枚の追加（HTML・サイトマップ・photos.json）は、何も消さない（no-store 配信）", () => {
         const paths = invalidationPathsFor([
             "index.html", "photo/new.html", "sitemap.xml", "app/data/photos.json",
         ]);
-        expect(paths).toContain("/");
-        expect(paths).toContain("/photo/new.html");
-        expect(paths).toContain("/photo/new");       // 拡張子なしのURLでも配信される
-        expect(paths).toContain("/sitemap.xml");
-        expect(paths).not.toContain("/*");
-        expect(paths.some((p: string) => p.startsWith("/uploads"))).toBe(false);
+        expect(paths).toEqual([]);
     });
 
-    // **フィードも写真を追加するたびに変わる。** 入れないと 1時間 immutable で
-    // 配られ、しかも**無効化の対象にもならない**（対象は .html/.txt と
-    // `NO_CACHE_KEYS` だけ）——`sitemap.xml` を入れたのと同じ理由
-    it("フィードが変わったら無効化する", () => {
-        expect(invalidationPathsFor(["feed.xml"]), "更新が届かない").toContain("/feed.xml");
+    it("消す・消さないの分類: no-store で配るものは消さず、max-age で配るものは消す", () => {
+        for (const k of ["index.html", "photo/a.html", "robots.txt", "__next._full.txt", "sw.js", "manifest.webmanifest",
+            "app/data/photos.json", "sitemap.xml", "sitemap-images.xml", "feed.xml"]) {
+            expect(isNoStore(k), `${k} は no-store`).toBe(true);
+            expect(isInvalidatable(k), `${k} は消さない`).toBe(false);
+        }
+        for (const k of ["favicon.ico", "icon-512.png", "images/a.jpg", "app/data/spots/a.json", "app/data/quiz/q.json"]) {
+            expect(isNoStore(k), `${k} は max-age=3600`).toBe(false);
+            expect(isInvalidatable(k), `${k} は消す`).toBe(true);
+        }
+        expect(isInvalidatable("_next/static/chunks/a.js")).toBe(false);
+    });
+
+    // フィード・サイトマップは no-store で配るので消さない（以前は入れないと更新が届かなかったが、
+    // それは 1 時間 max-age で配っていた頃の話。いまは `NO_CACHE_KEYS` ＝ no-store）
+    it("フィードは no-store で配るので消さない（更新は次の取得で届く）", () => {
+        expect(invalidationPathsFor(["feed.xml"])).toEqual([]);
     });
 
     // **固定名の資産は差し替えても届かなかった。** `favicon.ico` は `max-age=3600` で
@@ -173,56 +184,58 @@ describe("invalidationPathsFor", () => {
     });
 
     it("ハッシュ付きアセットは無効化しない（内容が変われば名前も変わる）", () => {
-        const paths = invalidationPathsFor(["_next/static/chunks/main-abc123.js", "index.html"]);
+        const paths = invalidationPathsFor(["_next/static/chunks/main-abc123.js", "images/a.jpg"]);
         expect(paths.some((p: string) => p.startsWith("/_next"))).toBe(false);
-        expect(paths).toEqual(["/"]);
+        expect(paths).toEqual(["/images/a.jpg"]);
     });
 
-    it("HTMLが2ページだけ変わった場合も1パスにまとめる", () => {
-        expect(invalidationPathsFor(["photo/a.html", "photo/b.html"])).toEqual(["/photo/*"]);
+    it("HTML は何ページ変わっても消さない（no-store 配信・古い HTML は最大 1 秒）", () => {
+        expect(invalidationPathsFor(["photo/a.html", "photo/b.html"])).toEqual([]);
     });
 
     it("画像の変更は少数なら個別に無効化する", () => {
         expect(invalidationPathsFor(["images/a.jpg", "images/b.jpg"])).toEqual(["/images/a.jpg", "/images/b.jpg"]);
     });
 
-    it("同じディレクトリのページが多ければワイルドカードにまとめる", () => {
-        const many = Array.from({ length: 20 }, (_, i) => `photo/p${i}.html`);
-        expect(invalidationPathsFor(many)).toEqual(["/photo/*"]);
+    it("同じディレクトリの固定名の資産が多ければワイルドカードにまとめる", () => {
+        const many = Array.from({ length: 20 }, (_, i) => `images/p${i}.jpg`);
+        expect(invalidationPathsFor(many)).toEqual(["/images/*"]);
     });
 
-    it("全ページが変わるビルドでも /* にしない（＝写真を巻き添えにしない）", () => {
+    it("全ページが変わるビルドでも、何も消さない（＝写真も巻き添えにしない・課金もしない）", () => {
         // これが実際のデプロイの姿。generateBuildId はコミットごとに変わり、
         // ビルドIDは全ページの RSC ペイロードに埋まるので、**毎回**全HTMLが変わる。
-        // 以前はここで "/*" に落ちていたため、「写真がエッジから消える問題を
-        // 直した」はずが、実際のデプロイでは一度も直っていなかった。
+        // 以前は全ページ（実データで 245 パス）を消していて、"/*" に落ちていた頃は写真まで巻き添えにしていた。
+        // いまは no-store 配信の HTML は消さない。**消すのは max-age で配る資産だけ**
         const dirs = ["_not-found", "admin", "category", "favorites", "location",
             "login", "photo", "privacy", "signup", "tag", "user", "users"];
-        const files = dirs.flatMap((d) => Array.from({ length: 20 }, (_, i) => `${d}/p${i}.html`));
-        const paths = invalidationPathsFor(files);
-        expect(paths).not.toContain("/*");
-        expect(paths.some((p: string) => p.startsWith("/uploads"))).toBe(false);
-        // 各ディレクトリはワイルドカード1本にまとまる
-        for (const d of dirs) expect(paths).toContain(`/${d}/*`);
+        const files = [
+            ...dirs.flatMap((d) => Array.from({ length: 20 }, (_, i) => `${d}/p${i}.html`)),
+            "index.html", "sitemap.xml", "feed.xml", "robots.txt", "app/data/photos.json", "sw.js",
+            "_next/static/chunks/a.js", "__next._full.txt",
+        ];
+        expect(invalidationPathsFor(files)).toEqual([]);
+        // 同じビルドで max-age の資産（アイコン）だけが変わったなら、その分だけ
+        expect(invalidationPathsFor([...files, "icon-512.png"])).toEqual(["/icon-512.png"]);
     });
 
     it("ワイルドカードの枠を超えた分は実パスで消す（/* には落とさない）", () => {
         // 枠は「ページ数の多いディレクトリ」から使う。あふれた分は実パスへ。
         const dirs = Array.from({ length: 20 }, (_, i) => `d${i}`);
         const files = dirs.flatMap((d, di) =>
-            // d0 が最多、d19 が最少になるようにする
-            Array.from({ length: 40 - di }, (_, i) => `${d}/p${i}.html`));
+            // d0 が最多、d19 が最少になるようにする（HTML は消さないので、消す種類の JSON で数える）
+            Array.from({ length: 40 - di }, (_, i) => `${d}/p${i}.json`));
         const paths = invalidationPathsFor(files);
         expect(paths).not.toContain("/*");
         const wildcards = paths.filter((p: string) => p.endsWith("/*"));
         expect(wildcards.length).toBeLessThanOrEqual(12);
         expect(wildcards).toContain("/d0/*");        // 多い方が枠を取る
         expect(wildcards).not.toContain("/d19/*");   // あふれた分は
-        expect(paths).toContain("/d19/p0.html");     // 実パスで消える
+        expect(paths).toContain("/d19/p0.json");     // 実パスで消える
     });
 
     it("uploads/ を巻き込む入力は例外にする（安全側に倒す）", () => {
-        expect(() => invalidationPathsFor(["uploads/a.html"])).toThrow(/uploads/);
+        expect(() => invalidationPathsFor(["uploads/a.jpg"])).toThrow(/uploads/);
     });
 });
 
@@ -246,10 +259,10 @@ describe("changedKeys", () => {
     // changedKeys は `out/` を直接読む（deploy-static-site.js:134 の outDir は
     // モジュール定数）ので、前提はテスト側で作る。実ビルドの成果物とは
     // 名前が衝突しない専用ファイルにして、必ず後始末する。
-    const FIXTURE = "__changed-keys-fixture__.html";
+    const FIXTURE = "__changed-keys-fixture__.json";   // 消す種類（max-age で配る）。HTML は消さないので changedKeys に数えない
     const outDir = nodePath.join(process.cwd(), "out");
     const fixturePath = nodePath.join(outDir, FIXTURE);
-    const CONTENT = "<!doctype html><title>fixture</title>";
+    const CONTENT = '{"fixture":true}';
     const md5 = nodeCrypto.createHash("md5").update(CONTENT).digest("hex");
     const sample = [FIXTURE];
 
@@ -517,14 +530,13 @@ describe("削除したキーも無効化の対象に入れる", () => {
         expect(invalidationPathsFor(invalidationTargets([], [], ["images/old.jpg"]))).toContain("/images/old.jpg");
     });
 
-    it("消したページは拡張子ありでもなしでも無効化される", () => {
-        const paths = invalidationPathsFor(invalidationTargets([], [], ["photo/gone.html"]));
-        expect(paths).toContain("/photo/gone.html");
-        expect(paths).toContain("/photo/gone");   // 拡張子なしのURLでも配信される
+    it("消したページ（HTML）は消さない（no-store 配信）。消した JSON は無効化される", () => {
+        expect(invalidationPathsFor(invalidationTargets([], [], ["photo/gone.html"]))).toEqual([]);
+        expect(invalidationPathsFor(invalidationTargets([], [], ["app/data/spots/gone.json"]))).toEqual(["/app/data/spots/gone.json"]);
     });
 
     it("消したぶんを混ぜても uploads/ を巻き込まない（安全側に倒す）", () => {
-        expect(() => invalidationPathsFor(invalidationTargets([], [], ["uploads/a.html"])))
+        expect(() => invalidationPathsFor(invalidationTargets([], [], ["uploads/a.jpg"])))
             .toThrow(/uploads/);
     });
 });
