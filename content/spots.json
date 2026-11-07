@@ -249182,5 +249182,5262 @@
       ],
       "imageChecked": false
     }
+  },
+  {
+    "spotId": "sp_c673d38ac4fd",
+    "slug": "verrazzano-narrows-bridge",
+    "name": "ヴェラザノ＝ナローズ・ブリッジ",
+    "nameEn": "Verrazzano-Narrows Bridge",
+    "reading": "ヴェラザノ・ナローズ・ブリッジ",
+    "aliases": [
+      "ヴェラザノ・ナローズ橋",
+      "ヴェラザノ橋"
+    ],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.61,
+      "lng": -74.05
+    },
+    "category": "橋",
+    "summary": "ニューヨーク港のザ・ナローズをまたぎ、スタテンアイランドとブルックリンを結ぶ、上下2層の自動車専用の吊橋です。",
+    "description": "1964年11月21日にまず上層部の往復6車線が開通しました。主スパン長は1298メートルで、1981年にイギリスのハンバー橋に抜かれるまで世界最長の吊橋で、アメリカ国内の吊橋としては現在も最長です。2つある橋塔の高さは209メートルあります。",
+    "highlights": [
+      "主スパン長1298メートルの吊橋",
+      "高さ209メートルの2つの橋塔",
+      "毎年恒例のニューヨークシティマラソンのスタート地点"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "橋塔の高さが209メートルあるので、離れた位置から橋塔の先まで入れて収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%B4%E3%82%A7%E3%83%A9%E3%82%B6%E3%83%8E%EF%BC%9D%E3%83%8A%E3%83%AD%E3%83%BC%E3%82%BA%E3%83%BB%E3%83%96%E3%83%AA%E3%83%83%E3%82%B8",
+          "title": "Wikipedia「ヴェラザノ＝ナローズ・ブリッジ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q125673",
+          "title": "Wikidata「Q125673」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_04e9a986a9b2",
+    "slug": "george-washington-bridge",
+    "name": "ジョージ・ワシントン・ブリッジ",
+    "nameEn": "George Washington Bridge",
+    "reading": "ジョージ・ワシントン・ブリッジ",
+    "aliases": [
+      "ジョージ・ワシントン橋"
+    ],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.85,
+      "lng": -73.95
+    },
+    "category": "橋",
+    "summary": "ハドソン川に架かり、ニューヨーク市マンハッタン区のワシントン・ハイツとニュージャージー州のフォートリーを結ぶ吊橋です。",
+    "description": "1927年9月に着工し、1931年10月24日に完成して翌日から一般に開放されました。完成当時は中央支間長1,067メートルで世界一でしたが、1937年にゴールデンゲート橋に抜かれました。建築家のル・コルビュジエは「ハドソン川に架かるジョージ・ワシントン橋は、世界で一番美しい橋」と讃えました。",
+    "highlights": [
+      "完成当時に世界一だった中央支間長1,067メートル",
+      "後から追加された上層と下層の2層構造",
+      "ハドソン川をまたぐ全景"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "上層と下層の二層に分かれているので、断面の重なりが見える角度を探します"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A7%E3%83%BC%E3%82%B8%E3%83%BB%E3%83%AF%E3%82%B7%E3%83%B3%E3%83%88%E3%83%B3%E3%83%BB%E3%83%96%E3%83%AA%E3%83%83%E3%82%B8",
+          "title": "Wikipedia「ジョージ・ワシントン・ブリッジ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q125821",
+          "title": "Wikidata「Q125821」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_e7df9f37d3ed",
+    "slug": "manhattan-bridge",
+    "name": "マンハッタン橋",
+    "nameEn": "Manhattan Bridge",
+    "reading": "マンハッタンばし",
+    "aliases": [],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.71,
+      "lng": -73.99
+    },
+    "category": "橋",
+    "summary": "ニューヨーク市のイースト川をまたぎ、マンハッタンとブルックリンを結ぶ鋼製の吊橋です。",
+    "description": "ロウアー・マンハッタンのキャナル・ストリートとブルックリンのフラットブッシュ・アベニュー・エクステンションを結んでいます。1909年12月31日に開通し、主径間長は448メートル、全長は2,089メートルです。下流にはブルックリン橋、上流にはウィリアムズバーグ橋があります。",
+    "highlights": [
+      "主径間長448メートルの鋼製吊橋",
+      "下流のブルックリン橋と上流のウィリアムズバーグ橋に挟まれた位置",
+      "自動車道と鉄道線路、歩行者通路、自転車通路をあわせ持つ構造"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "隣り合って架かるブルックリン橋との位置関係を意識して構図を決めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9E%E3%83%B3%E3%83%8F%E3%83%83%E3%82%BF%E3%83%B3%E6%A9%8B",
+          "title": "Wikipedia「マンハッタン橋」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q125050",
+          "title": "Wikidata「Q125050」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_199bba1754e0",
+    "slug": "williamsburg-bridge",
+    "name": "ウィリアムズバーグ橋",
+    "nameEn": "Williamsburg Bridge",
+    "reading": "ウィリアムズバーグばし",
+    "aliases": [],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.71,
+      "lng": -73.97
+    },
+    "category": "橋",
+    "summary": "ニューヨーク市のイースト川に架かり、マンハッタン区のロウアー・イースト・サイドとブルックリン区のウィリアムズバーグを結ぶ吊橋です。",
+    "description": "1903年12月19日に開通しました。スパンは約488メートル、全長は約2,227メートルで、開通当時はブルックリン橋を抜いて世界一長い吊橋でしたが、1924年にベアー・マウンテン・ブリッジに抜かれました。歩道と自転車道があり、1988年4月11日の全面閉鎖のあと、大規模な修繕工事が行われました。",
+    "highlights": [
+      "約488メートルのスパン",
+      "ニューヨーク市地下鉄も走る鉄道道路併用橋",
+      "歩道と自転車道"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "歩道から渡りながら、ケーブルと橋塔の連なりを入れて撮ります"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%A3%E3%83%AA%E3%82%A2%E3%83%A0%E3%82%BA%E3%83%90%E3%83%BC%E3%82%B0%E6%A9%8B",
+          "title": "Wikipedia「ウィリアムズバーグ橋」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q125068",
+          "title": "Wikidata「Q125068」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_bac5ad1f61d1",
+    "slug": "queensboro-bridge",
+    "name": "クイーンズボロ橋",
+    "nameEn": "Queensboro Bridge",
+    "reading": "クイーンズボロばし",
+    "aliases": [
+      "59丁目橋",
+      "エド・コッチ・クイーンズボロ橋"
+    ],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.76,
+      "lng": -73.95
+    },
+    "category": "橋",
+    "summary": "ニューヨーク市のイースト川に架かる片持ち梁橋で、クイーンズ区のロングアイランド・シティからルーズベルト島を通ってマンハッタンと結んでいます。",
+    "description": "1909年に完成しました。正式名称はエド・コッチ・クイーンズボロ橋で、マンハッタン側が59丁目と60丁目の間に位置するため59丁目橋とも呼ばれます。橋の北側には、独立したルーズベルト島トラムウェイが走っています。",
+    "highlights": [
+      "ルーズベルト島を通ってマンハッタンと結ぶ片持ち梁橋",
+      "橋の北側を走るルーズベルト島トラムウェイ",
+      "59丁目橋という別の呼び名"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "橋の北側を走るトラムウェイも一緒に入れると、橋の特徴が伝わります"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AF%E3%82%A4%E3%83%BC%E3%83%B3%E3%82%BA%E3%83%9C%E3%83%AD%E6%A9%8B",
+          "title": "Wikipedia「クイーンズボロ橋」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q125157",
+          "title": "Wikidata「Q125157」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_5c5a68074f72",
+    "slug": "tacoma-narrows-bridge",
+    "name": "タコマナローズ橋",
+    "nameEn": "Tacoma Narrows Bridge",
+    "reading": "タコマナローズきょう",
+    "aliases": [],
+    "address": "ワシントン州 タコマ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ワシントン州",
+      "city": "タコマ"
+    },
+    "coords": {
+      "lat": 47.27,
+      "lng": -122.55
+    },
+    "category": "橋",
+    "summary": "ワシントン州のピュージェット湾口の海峡タコマナローズに架かる吊橋で、初代の橋が落橋した出来事で知られます。",
+    "description": "初代の橋は1940年7月1日に開通し、同年11月7日に落橋しました。その後に建設された新しい橋は1950年10月14日に開通し、2007年7月15日には隣に新しい吊橋が開通して、従来の橋は西向き、新しい橋は東向きの車線に使われています。崩落した橋の残骸は、人工漁礁として機能しています。",
+    "highlights": [
+      "2本が並んで架かる吊橋",
+      "1940年に落橋した初代の橋の歴史",
+      "海峡タコマナローズの眺め"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "2本の橋が並ぶ様子を、海峡の広がりごと収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BF%E3%82%B3%E3%83%9E%E3%83%8A%E3%83%AD%E3%83%BC%E3%82%BA%E6%A9%8B",
+          "title": "Wikipedia「タコマナローズ橋」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q226035",
+          "title": "Wikidata「Q226035」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_316f9d0b54d8",
+    "slug": "lake-pontchartrain-causeway",
+    "name": "ポンチャートレイン湖コーズウェイ",
+    "nameEn": "Lake Pontchartrain Causeway",
+    "reading": "ポンチャートレインこコーズウェイ",
+    "aliases": [],
+    "address": "ルイジアナ州 マンデビル",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ルイジアナ州",
+      "city": "マンデビル"
+    },
+    "coords": {
+      "lat": 30.2,
+      "lng": -90.12
+    },
+    "category": "橋",
+    "summary": "ルイジアナ州のポンチャートレイン湖にかかる、全長38.42キロメートルの橋です。北詰のマンデビルから南詰のメテリーを結んでいます。",
+    "description": "1956年8月に初期のものが竣工しました。一続きの水上橋としては世界最長で、ギネスブックにも登録されています。ただし2016年にトンネルを含む全長50.0キロメートルの港珠澳大橋が開通し、これらの記録は更新されました。",
+    "highlights": [
+      "全長38.42キロメートルの水上橋",
+      "一続きの水上橋として世界最長と登録された経歴",
+      "北詰マンデビルと南詰メテリーを結ぶ線形"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "橋が水平線へ延びていく様子を、低い位置から広く収めます"
+    ],
+    "timeZone": "America/Chicago",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9D%E3%83%B3%E3%83%81%E3%83%A3%E3%83%BC%E3%83%88%E3%83%AC%E3%82%A4%E3%83%B3%E6%B9%96%E3%82%B3%E3%83%BC%E3%82%BA%E3%82%A6%E3%82%A7%E3%82%A4",
+          "title": "Wikipedia「ポンチャートレイン湖コーズウェイ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1132510",
+          "title": "Wikidata「Q1132510」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c090dd6b8b77",
+    "slug": "seven-mile-bridge",
+    "name": "セブンマイル・ブリッジ",
+    "nameEn": "Seven Mile Bridge",
+    "reading": "セブンマイル・ブリッジ",
+    "aliases": [
+      "セブンマイル橋"
+    ],
+    "address": "フロリダ州 フロリダ・キーズ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "フロリダ州",
+      "city": "フロリダ・キーズ"
+    },
+    "coords": {
+      "lat": 24.7,
+      "lng": -81.18
+    },
+    "category": "橋",
+    "summary": "フロリダ半島の南端からキーウェストを結ぶオーバーシーズ・ハイウェイにある、全長6.765マイルの橋です。",
+    "description": "オーバーシーズ・ハイウェイの42の橋の中で一番長く、1979年から1982年にかけて建設され、1982年5月24日に開通しました。北隣の旧鉄道橋は車では走れませんが、西側約1キロメートルの区間は世界一長いフィッシングピアとして開放され、自由に歩けます。",
+    "highlights": [
+      "全長6.765マイル（10.887キロメートル）の橋",
+      "北隣に並ぶ旧鉄道橋",
+      "歩いて渡れる世界一長いフィッシングピア"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "現道と北隣の旧橋が並ぶ位置から、二本の橋を一緒に入れて撮ります"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BB%E3%83%96%E3%83%B3%E3%83%9E%E3%82%A4%E3%83%AB%E3%83%BB%E3%83%96%E3%83%AA%E3%83%83%E3%82%B8",
+          "title": "Wikipedia「セブンマイル・ブリッジ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2164354",
+          "title": "Wikidata「Q2164354」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_53593e9c1bf4",
+    "slug": "eads-bridge",
+    "name": "イーズ橋",
+    "nameEn": "Eads Bridge",
+    "reading": "イーズばし",
+    "aliases": [],
+    "address": "ミズーリ州 セントルイス",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ミズーリ州",
+      "city": "セントルイス"
+    },
+    "coords": {
+      "lat": 38.63,
+      "lng": -90.17
+    },
+    "category": "橋",
+    "summary": "ミシシッピ川に架かり、セントルイスとイーストセントルイスを結ぶ鉄道道路併用橋で、1874年に架けられました。",
+    "description": "全長は1964メートルで、完成した1874年当時は世界で最も長いアーチ橋でした。大型建造物に鋼鉄を使用した世界最初の例とされています。現在は上層が歩行者と自動車用、下層がメトロリンクのライトレールに使われています。",
+    "highlights": [
+      "1874年完成の鋼鉄アーチ橋",
+      "ミシシッピ川に架かる全長1964メートルの橋",
+      "南にあるゲートウェイアーチ国立公園"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "アーチの連なりを正面から、リズムを意識して収めます"
+    ],
+    "timeZone": "America/Chicago",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A4%E3%83%BC%E3%82%BA%E6%A9%8B",
+          "title": "Wikipedia「イーズ橋」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1239907",
+          "title": "Wikidata「Q1239907」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_596f40cd60c4",
+    "slug": "washington-national-cathedral",
+    "name": "ワシントン大聖堂",
+    "nameEn": "Washington National Cathedral",
+    "reading": "ワシントンだいせいどう",
+    "aliases": [
+      "ワシントン国立大聖堂"
+    ],
+    "address": "ワシントンD.C. ワシントンD.C.",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ワシントンD.C.",
+      "city": "ワシントンD.C."
+    },
+    "coords": {
+      "lat": 38.93,
+      "lng": -77.07
+    },
+    "category": "教会",
+    "summary": "ワシントンD.C.にあるキリスト教聖公会の教会で、米国聖公会のワシントン教区の主教座聖堂です。",
+    "description": "1907年に建設を始め、83年の年月をかけて1990年に完成しました。ネオ・ゴシック建築で、米国ではこの分野で2番目に大きな建築物です。国家行事にも使われ、アイゼンハワー大統領をはじめとする大統領の葬儀もここで行われました。",
+    "highlights": [
+      "ネオ・ゴシック建築の大聖堂",
+      "83年をかけて1990年に完成した歴史",
+      "正式名称は聖ペトロ聖パウロ大聖堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "ネオ・ゴシック建築の外観を、少し引いた位置から縦位置で収めます"
+    ],
+    "timeZone": "America/New_York",
+    "officialWebsiteUrl": "https://cathedral.org/",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%AF%E3%82%B7%E3%83%B3%E3%83%88%E3%83%B3%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「ワシントン大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q668710",
+          "title": "Wikidata「Q668710」（座標・所在地）"
+        },
+        {
+          "url": "https://cathedral.org/",
+          "title": "公式サイト「Home - Washington National Cathedral」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_91da1e1a3376",
+    "slug": "st-patricks-cathedral-new-york",
+    "name": "ニューヨーク セント・パトリック大聖堂",
+    "nameEn": "St. Patrick's Cathedral",
+    "reading": "セント・パトリックだいせいどう",
+    "aliases": [],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.76,
+      "lng": -73.98
+    },
+    "category": "教会",
+    "summary": "ニューヨーク市マンハッタン区ミッドタウンにある、カトリック教会のニューヨーク大司教区の大司教座聖堂です。",
+    "description": "装飾ネオ・ゴシック様式で、ニューヨーク市の主要な観光地の一つです。50丁目と5番街の交点の北東の角に、ロックフェラー・センターと向かい合うように立っています。礎石は1858年8月15日に据えられ、南北戦争中の中断を経て1878年に完成しました。",
+    "highlights": [
+      "装飾ネオ・ゴシック様式の外観",
+      "ロックフェラー・センターと向かい合う立地",
+      "1878年に完成した大聖堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "向かい合うロックフェラー・センターとの位置関係を意識して構図を決めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BB%E3%83%B3%E3%83%88%E3%83%BB%E3%83%91%E3%83%88%E3%83%AA%E3%83%83%E3%82%AF%E5%A4%A7%E8%81%96%E5%A0%82_%28%E3%83%8B%E3%83%A5%E3%83%BC%E3%83%A8%E3%83%BC%E3%82%AF%29",
+          "title": "Wikipedia「セント・パトリック大聖堂 (ニューヨーク)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q624556",
+          "title": "Wikidata「Q624556」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_cd9dcf7e121c",
+    "slug": "cathedral-of-st-john-the-divine",
+    "name": "セント・ジョン・ザ・ディヴァイン大聖堂",
+    "nameEn": "Cathedral of St. John the Divine",
+    "reading": "セント・ジョン・ザ・ディヴァインだいせいどう",
+    "aliases": [],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.8,
+      "lng": -73.96
+    },
+    "category": "教会",
+    "summary": "ニューヨーク市マンハッタン区にある、キリスト教米国聖公会ニューヨーク主教区の聖堂で、アメリカ最大級の教会建築とされます。",
+    "description": "建物面積は11,200平方メートル、長さは183メートル、高さは70メートルあります。1892年に建設が始まり、1941年に内陣と身廊が完成して使用が始まりましたが、現在も建設中で、完成すれば世界最大のゴシック大聖堂になる予定です。2001年12月18日の大火事のあと一時閉鎖され、2008年11月に再開されました。",
+    "highlights": [
+      "アメリカ最大級の教会建築",
+      "現在も建設が続く未完成の聖堂",
+      "アムステルダム・アベニューに面した正面"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "長さ183メートルの大きさが伝わるよう、離れた位置から全体を収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BB%E3%83%B3%E3%83%88%E3%83%BB%E3%82%B8%E3%83%A7%E3%83%B3%E3%83%BB%E3%82%B6%E3%83%BB%E3%83%87%E3%82%A3%E3%83%B4%E3%82%A1%E3%82%A4%E3%83%B3%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「セント・ジョン・ザ・ディヴァイン大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q865655",
+          "title": "Wikidata「Q865655」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_00951ec4aa12",
+    "slug": "cathedral-of-our-lady-of-the-angels",
+    "name": "天使のマリア大聖堂",
+    "nameEn": "Cathedral of Our Lady of the Angels",
+    "reading": "てんしのマリアだいせいどう",
+    "aliases": [],
+    "address": "カリフォルニア州 ロサンゼルス",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "ロサンゼルス"
+    },
+    "coords": {
+      "lat": 34.06,
+      "lng": -118.25
+    },
+    "category": "教会",
+    "summary": "ロサンゼルスのダウンタウンにあるカトリックの大聖堂で、ロサンゼルス教区の司教座聖堂です。2002年に完成しました。",
+    "description": "旧大聖堂が1994年のノースリッジ地震で損傷したため建て替えが決まり、新大聖堂は1998年10月に建設が始まって2002年9月に完成しました。設計はスペインの建築家ホセ・ラファエル・モネオで、ロサンゼルスの多民族性を象徴するため、カトリックの伝統的な建築様式はあえて採用していません。コンクリートに着色し、アドベのような質感を出しています。",
+    "highlights": [
+      "スペインの建築家モネオの設計",
+      "伝統的な様式を採用しなかったデザイン",
+      "ロサンゼルス市庁舎に近い立地"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "伝統的な様式とは異なる造形を、壁面の連なりを生かして収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%A4%A9%E4%BD%BF%E3%81%AE%E3%83%9E%E3%83%AA%E3%82%A2%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「天使のマリア大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1631067",
+          "title": "Wikidata「Q1631067」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_22140912d1d6",
+    "slug": "saint-louis-cathedral-new-orleans",
+    "name": "セント・ルイス大聖堂",
+    "nameEn": "Saint Louis Cathedral",
+    "reading": "セント・ルイスだいせいどう",
+    "aliases": [],
+    "address": "ルイジアナ州 ニューオーリンズ フレンチ・クオーター",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ルイジアナ州",
+      "city": "ニューオーリンズ"
+    },
+    "coords": {
+      "lat": 29.96,
+      "lng": -90.06
+    },
+    "category": "教会",
+    "summary": "ニューオーリンズのフレンチ・クオーターにある司教座聖堂で、アメリカ合衆国の現役カトリック司教座聖堂としては最古のものです。",
+    "description": "ジャクソン広場とミシシッピ川に接していて、市のシンボル的存在です。ここに初めてカトリック教会が建てられたのは1718年で、現在の聖堂は三代目にあたり、礎石は1789年に据えられて1794年に完成しました。1819年に時計を備えた中央の塔と鐘楼が付け加えられ、1850年代の大規模な改修で今日の姿になりました。",
+    "highlights": [
+      "現役の司教座聖堂としてアメリカ最古",
+      "ジャクソン広場に面した正面",
+      "時計を備えた中央の塔"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "ジャクソン広場側から、中央の塔を中心に左右対称を意識して収めます"
+    ],
+    "timeZone": "America/Chicago",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BB%E3%83%B3%E3%83%88%E3%83%BB%E3%83%AB%E3%82%A4%E3%82%B9%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「セント・ルイス大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q167538",
+          "title": "Wikidata「Q167538」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_aca0fad1cf0b",
+    "slug": "transamerica-pyramid",
+    "name": "トランスアメリカ・ピラミッド",
+    "nameEn": "Transamerica Pyramid",
+    "reading": "トランスアメリカ・ピラミッド",
+    "aliases": [],
+    "address": "カリフォルニア州 サンフランシスコ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "サンフランシスコ"
+    },
+    "coords": {
+      "lat": 37.8,
+      "lng": -122.4
+    },
+    "category": "建築",
+    "summary": "サンフランシスコにある超高層ビルで、街のランドマークの1つです。2018年までサンフランシスコで最も高い超高層ビルでした。",
+    "description": "高さは260メートルで46階建て、設計はウイリアム・ペレイラです。1969年に着工し、1972年に完成しました。計画の発表時にはデザインへの反対運動が起きましたが、現在はランドマークの1つになっています。地震の多い土地を考慮した耐震設計で、1989年の大地震でも無傷でした。",
+    "highlights": [
+      "高さ260メートルの46階建て",
+      "ピラミッドの形をした超高層ビル",
+      "耐震設計"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "離れた位置から、周囲のビルと並べて高さの違いを見せます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%A9%E3%83%B3%E3%82%B9%E3%82%A2%E3%83%A1%E3%83%AA%E3%82%AB%E3%83%BB%E3%83%94%E3%83%A9%E3%83%9F%E3%83%83%E3%83%89",
+          "title": "Wikipedia「トランスアメリカ・ピラミッド」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q216865",
+          "title": "Wikidata「Q216865」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_88fd2e4005e3",
+    "slug": "washington-monument",
+    "name": "ワシントン記念塔",
+    "nameEn": "Washington Monument",
+    "reading": "ワシントンきねんとう",
+    "aliases": [
+      "ワシントン・モニュメント"
+    ],
+    "address": "ワシントンD.C. ワシントンD.C.",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ワシントンD.C.",
+      "city": "ワシントンD.C."
+    },
+    "coords": {
+      "lat": 38.89,
+      "lng": -77.04
+    },
+    "category": "史跡",
+    "summary": "ワシントンD.C.の中心部、ナショナル・モールの中心にそびえ立つ巨大な白色のオベリスクで、初代大統領ジョージ・ワシントンの功績を称えて建てられました。",
+    "description": "基礎の起工は1848年7月4日で、冠石が完成したのは1884年12月6日です。高さは169メートルで、1889年にパリのエッフェル塔が完成するまで世界で最も高い建築物でした。南北戦争や資金不足で工事が中断したため、地上から約46メートルの位置を境に大理石の色の明るさが異なって見えます。2011年8月23日の地震で内部が破損し、立入禁止になりましたが、修復工事のあと2014年5月12日に一般公開が再開されました。",
+    "highlights": [
+      "高さ169メートルの白色のオベリスク",
+      "約46メートルの位置で変わる大理石の色の明るさ",
+      "ナショナル・モールの中心に立つ姿"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "オベリスクの高さが伝わるよう、離れた位置から縦位置で全体を収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%AF%E3%82%B7%E3%83%B3%E3%83%88%E3%83%B3%E8%A8%98%E5%BF%B5%E5%A1%94",
+          "title": "Wikipedia「ワシントン記念塔」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q178114",
+          "title": "Wikidata「Q178114」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_5b80f1feb7dc",
+    "slug": "vietnam-veterans-memorial",
+    "name": "ベトナム戦争戦没者慰霊碑",
+    "nameEn": "Vietnam Veterans Memorial",
+    "reading": "ベトナムせんそうせんぼつしゃいれいひ",
+    "aliases": [
+      "ベトナム戦争記念碑"
+    ],
+    "address": "ワシントンD.C. ワシントンD.C.",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ワシントンD.C.",
+      "city": "ワシントンD.C."
+    },
+    "coords": {
+      "lat": 38.89,
+      "lng": -77.05
+    },
+    "category": "史跡",
+    "summary": "ワシントンD.C.のナショナル・モールにある慰霊碑で、リンカーン記念館の北東に位置します。主な部分は1982年に完成しました。",
+    "description": "メモリアル・ウォールは2個の黒い花崗岩で作られた壁で、全長は75メートル、高さは3メートルあります。設計は当時21歳のイェール大学の学生だったマヤ・リンで、壁には戦没兵士の名前が刻まれています。管理は内務省・国立公園管理局が行い、年間およそ3百万人が訪れます。",
+    "highlights": [
+      "全長75メートルの黒い花崗岩の壁",
+      "マヤ・リンによる抽象的なデザイン",
+      "戦没兵士の名前が刻まれた壁面"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "ここは慰霊の場なので、訪れる人への配慮を忘れずに、壁の連なりを低い位置から収めます"
+    ],
+    "timeZone": "America/New_York",
+    "officialWebsiteUrl": "https://www.nps.gov/vive/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%99%E3%83%88%E3%83%8A%E3%83%A0%E6%88%A6%E4%BA%89%E6%88%A6%E6%B2%A1%E8%80%85%E6%85%B0%E9%9C%8A%E7%A2%91",
+          "title": "Wikipedia「ベトナム戦争戦没者慰霊碑」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q713628",
+          "title": "Wikidata「Q713628」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/vive/index.htm",
+          "title": "公式サイト「Vietnam Veterans Memorial (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_4b3e7d6af89c",
+    "slug": "national-mall",
+    "name": "ナショナル・モール",
+    "nameEn": "National Mall",
+    "reading": "ナショナル・モール",
+    "aliases": [
+      "モール地区"
+    ],
+    "address": "ワシントンD.C. ワシントンD.C.",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ワシントンD.C.",
+      "city": "ワシントンD.C."
+    },
+    "coords": {
+      "lat": 38.89,
+      "lng": -77.02
+    },
+    "category": "公園",
+    "summary": "ワシントンD.C.の中心部に位置する国立公園で、スミソニアン博物館群や記念館に沿って庭園と緑地が広がります。",
+    "description": "ワシントン記念塔からアメリカ合衆国議会議事堂まで、まっすぐ東へ伸びています。構想は1791年にフランス人技術者のピエール・シャルル・ランファンが考え出したもので、20世紀初頭のマクミラン委員会の提案まで実現しませんでした。観光地としても知られ、集会や行進が行われる場所でもあります。",
+    "highlights": [
+      "ワシントン記念塔から議事堂へ続く直線",
+      "スミソニアン博物館群に沿った庭園と緑地",
+      "大規模な集会や行進の舞台"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "直線の軸を生かして、記念塔や議事堂を奥に置いた構図で撮ります"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%8A%E3%82%B7%E3%83%A7%E3%83%8A%E3%83%AB%E3%83%BB%E3%83%A2%E3%83%BC%E3%83%AB",
+          "title": "Wikipedia「ナショナル・モール」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q465811",
+          "title": "Wikidata「Q465811」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_74fc4f0a3603",
+    "slug": "hawaii-volcanoes-national-park",
+    "name": "ハワイ火山国立公園",
+    "nameEn": "Hawaiʻi Volcanoes National Park",
+    "reading": "ハワイかざんこくりつこうえん",
+    "aliases": [],
+    "address": "ハワイ州 ハワイ島",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ハワイ州",
+      "city": "ハワイ島"
+    },
+    "coords": {
+      "lat": 19.38,
+      "lng": -155.2
+    },
+    "category": "火山",
+    "summary": "ハワイ島の南に広がる火山地帯を中心とした国立公園で、マウナロアとキラウエアという二つの巨大な活火山があります。",
+    "description": "133,200ヘクタールの保護区の中に二つの活火山を持ち、1987年にユネスコの世界遺産（自然遺産）に登録されました。キラウエア火山の熔岩は周辺施設にも影響し、1987年に海岸沿いの道路、1990年にカラパナの町、1994年にカモアモア・ビーチなどが熔岩に飲み込まれました。キラウエア・カルデラ内のハレマウマウ・トレイルなどは、2008年の噴火以降は通行禁止になっています。",
+    "highlights": [
+      "マウナロアとキラウエアの二つの活火山",
+      "熔岩に飲み込まれた土地の歴史",
+      "1987年に登録された世界遺産"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "dawn",
+        "text": "夜明け前後は光が弱く、空の色が少しずつ変わっていく様子を写せます。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "火山活動に関する規制や通行禁止の情報を確かめたうえで、開放されている場所から収めます"
+    ],
+    "timeZone": "Pacific/Honolulu",
+    "officialWebsiteUrl": "https://www.nps.gov/havo/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%8F%E3%83%AF%E3%82%A4%E7%81%AB%E5%B1%B1%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「ハワイ火山国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q205952",
+          "title": "Wikidata「Q205952」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/havo/index.htm",
+          "title": "公式サイト「Hawaiʻi Volcanoes National Park (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_b7026dd77a5a",
+    "slug": "great-smoky-mountains-national-park",
+    "name": "グレート・スモーキー山脈国立公園",
+    "nameEn": "Great Smoky Mountains National Park",
+    "reading": "グレート・スモーキーさんみゃくこくりつこうえん",
+    "aliases": [
+      "グレート・スモーキー・マウンテンズ国立公園"
+    ],
+    "address": "テネシー州・ノースカロライナ州",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "テネシー州",
+      "city": "ガトリンバーグ"
+    },
+    "coords": {
+      "lat": 35.61,
+      "lng": -83.42
+    },
+    "category": "公園",
+    "summary": "ノースカロライナ州とテネシー州の州境をまたぐ国立公園で、アパラチア山脈を構成するブルー・リッジ山脈の一部が含まれます。",
+    "description": "1934年に米国議会が設立を認め、1940年にフランクリン・ルーズベルト大統領によって公式にオープンしました。面積は2,110平方キロメートルで、米国東部で最も広い保護地域の一つです。標高は250メートルから2,000メートルに及び、最も高い場所はクリングマンズ・ドームです。公園の入口は、国道441号線沿いのギャトリンバーグとチェロキーの町にあります。",
+    "highlights": [
+      "米国東部で最も広い保護地域の一つ",
+      "標高250メートルから2,000メートルまでの高低差",
+      "アパラチアン・トレイルが横切る山並み"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "標高差を生かして、尾根が奥へ重なっていく山並みを望遠で収めます"
+    ],
+    "timeZone": "America/New_York",
+    "officialWebsiteUrl": "https://www.nps.gov/grsm/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%AC%E3%83%BC%E3%83%88%E3%83%BB%E3%82%B9%E3%83%A2%E3%83%BC%E3%82%AD%E3%83%BC%E5%B1%B1%E8%84%88%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「グレート・スモーキー山脈国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q464004",
+          "title": "Wikidata「Q464004」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/grsm/index.htm",
+          "title": "公式サイト「Great Smoky Mountains National Park (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_13d3432cff34",
+    "slug": "acadia-national-park",
+    "name": "アーカディア国立公園",
+    "nameEn": "Acadia National Park",
+    "reading": "アーカディアこくりつこうえん",
+    "aliases": [
+      "アカディア国立公園",
+      "アケーディア国立公園"
+    ],
+    "address": "メイン州 マウント・デザート島",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "メイン州",
+      "city": "マウント・デザート島"
+    },
+    "coords": {
+      "lat": 44.35,
+      "lng": -68.22
+    },
+    "category": "公園",
+    "summary": "メイン州の大西洋沖のマウント・デザート島と、周囲の小さな島々の多くを保護している国立公園です。山、海岸線、森林、湖があります。",
+    "description": "1916年7月8日にウッドロウ・ウィルソン大統領によってド・モン卿国立モニュメントとして設立されました。マウント・デザート島に加え、アイル・オ・オの大部分とベイカー島の一部、本土のスクーディック半島の一部も公園に含まれます。面積はマウント・デザート島が30,300エーカー、アイル・オ・オが2,728エーカー、スクーディック半島が2,266エーカーです。",
+    "highlights": [
+      "山と海岸線が近接するマウント・デザート島",
+      "アイル・オ・オやスクーディック半島も含む広がり",
+      "森林や湖のある自然"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "山と海岸線が同時に入る位置を探し、広い景色として収めます"
+    ],
+    "timeZone": "America/New_York",
+    "officialWebsiteUrl": "https://www.nps.gov/acad/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%BC%E3%82%AB%E3%83%87%E3%82%A3%E3%82%A2%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「アーカディア国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q337396",
+          "title": "Wikidata「Q337396」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/acad/index.htm",
+          "title": "公式サイト「Acadia National Park (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_50d805fa3f90",
+    "slug": "petrified-forest-national-park",
+    "name": "化石の森国立公園",
+    "nameEn": "Petrified Forest National Park",
+    "reading": "かせきのもりこくりつこうえん",
+    "aliases": [],
+    "address": "アリゾナ州 ホルブルック",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "アリゾナ州",
+      "city": "ホルブルック"
+    },
+    "coords": {
+      "lat": 35.09,
+      "lng": -109.81
+    },
+    "category": "公園",
+    "summary": "アリゾナ州北東部、ホルブルックとナバホの間の州間高速道路40号線沿いにある国立公園で、世界最大で最も色彩豊かな珪化木の集積の1つがあります。",
+    "description": "公園は南北通路で結ばれた2つの地区からなります。北地区はペインテッド砂漠として知られる色々な色が付いた悪地の一部に広がり、南地区には珪化木の集積のほか色彩豊かな地形があります。1906年12月8日に国定公園に指定され、1962年12月9日に国立公園に変更されました。",
+    "highlights": [
+      "世界最大級の珪化木の集積",
+      "色々な色が付いたペインテッド砂漠の悪地",
+      "1930年代に再建されたアゲート・ハウス"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "悪地の色の違いを生かして、斜めの光が当たる時間に撮ります"
+    ],
+    "timeZone": "America/Phoenix",
+    "officialWebsiteUrl": "https://www.nps.gov/pefo/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%8C%96%E7%9F%B3%E3%81%AE%E6%A3%AE%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「化石の森国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q305949",
+          "title": "Wikidata「Q305949」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/pefo/index.htm",
+          "title": "公式サイト「Petrified Forest National Park (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_77606469194a",
+    "slug": "great-sand-dunes-national-park",
+    "name": "グレートサンドデューンズ国立公園",
+    "nameEn": "Great Sand Dunes National Park and Preserve",
+    "reading": "グレートサンドデューンズこくりつこうえん",
+    "aliases": [],
+    "address": "コロラド州 アラモサ郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "コロラド州",
+      "city": "アラモサ郡"
+    },
+    "coords": {
+      "lat": 37.73,
+      "lng": -105.51
+    },
+    "category": "公園",
+    "summary": "コロラド州南部のサン・ルイス・ヴァレー東端にある国立公園で、北米で最も標高の高い場所にある砂丘があります。",
+    "description": "砂丘はサングレ・デ・クリスト山脈の西の麓にあり、谷底から230メートル高く、面積は78平方キロメートルです。砂は長い年月をかけて川の堆積平野から運ばれ、風によって形を日々変えながらゆっくり成長しています。1932年にナショナル・モニュメントに指定され、2004年9月13日に米国議会によって国立公園になりました。",
+    "highlights": [
+      "谷底から230メートル高い砂丘",
+      "風で日々形を変える砂丘",
+      "サングレ・デ・クリスト山脈の麓"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dawn",
+        "text": "夜明け前後は光が弱く、空の色が少しずつ変わっていく様子を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "砂丘の稜線の曲線を生かし、斜めの光で陰影を出して撮ります"
+    ],
+    "timeZone": "America/Denver",
+    "officialWebsiteUrl": "https://www.nps.gov/grsa/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%AC%E3%83%BC%E3%83%88%E3%82%B5%E3%83%B3%E3%83%89%E3%83%87%E3%83%A5%E3%83%BC%E3%83%B3%E3%82%BA%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「グレートサンドデューンズ国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q609097",
+          "title": "Wikidata「Q609097」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/grsa/index.htm",
+          "title": "公式サイト「Great Sand Dunes National Park & Preserve (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1a12b2f86b15",
+    "slug": "black-canyon-of-the-gunnison-national-park",
+    "name": "ブラックキャニオン国立公園",
+    "nameEn": "Black Canyon of the Gunnison National Park",
+    "reading": "ブラックキャニオンこくりつこうえん",
+    "aliases": [],
+    "address": "コロラド州 モントローズ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "コロラド州",
+      "city": "モントローズ"
+    },
+    "coords": {
+      "lat": 38.58,
+      "lng": -107.73
+    },
+    "category": "渓谷",
+    "summary": "コロラド州西部にある国立公園で、ガニソン川によって侵食された峡谷、ブラックキャニオン（直訳は黒の峡谷）を保護しています。",
+    "description": "面積は47平方マイル（122平方キロメートル）です。入口は2つあり、多くの観光客が訪れるサウスリム側はモントローズの東15マイルに、ノースリム側はクロフォードの南11マイルに位置し、ノースリム側は冬季は閉鎖されます。園内にはハイキングコースがあり、キャンプもできます。",
+    "highlights": [
+      "ガニソン川に侵食された黒の峡谷",
+      "サウスリムとノースリムの2つの入口",
+      "園内のハイキングコース"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "峡谷の縁から、深い谷の奥行きを広角で収めます"
+    ],
+    "timeZone": "America/Denver",
+    "officialWebsiteUrl": "https://www.nps.gov/blca/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%96%E3%83%A9%E3%83%83%E3%82%AF%E3%82%AD%E3%83%A3%E3%83%8B%E3%82%AA%E3%83%B3%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「ブラックキャニオン国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q305880",
+          "title": "Wikidata「Q305880」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/blca/index.htm",
+          "title": "公式サイト「Black Canyon Of The Gunnison National Park (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_58fbe2b527d5",
+    "slug": "saguaro-national-park",
+    "name": "サワロ国立公園",
+    "nameEn": "Saguaro National Park",
+    "reading": "サワロこくりつこうえん",
+    "aliases": [],
+    "address": "アリゾナ州 ツーソン",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "アリゾナ州",
+      "city": "ツーソン"
+    },
+    "coords": {
+      "lat": 32.18,
+      "lng": -110.74
+    },
+    "category": "公園",
+    "summary": "アリゾナ州にある国立公園で、ツーソン市を挟んで東西2つの地区に分かれ、ソノラ砂漠の地域を保護しています。",
+    "description": "ツーソン市の中心から東へおよそ32キロメートルと、西へ24キロメートルの位置に地区があり、それぞれにビジター・センターがあります。総面積は370平方キロメートルで、公園の名は原産のサワロサボテンにちなみます。ほかにもタマサボテンやウチワサボテンなど多くのサボテンが見られます。",
+    "highlights": [
+      "名前の由来になったサワロサボテン",
+      "東西2つの地区",
+      "ソノラ砂漠の風景"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "サボテンの輪郭が際立つよう、斜めの光の時間に撮ります"
+    ],
+    "timeZone": "America/Phoenix",
+    "officialWebsiteUrl": "https://www.nps.gov/sagu/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%AF%E3%83%AD%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「サワロ国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q676206",
+          "title": "Wikidata「Q676206」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/sagu/index.htm",
+          "title": "公式サイト「Saguaro National Park (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_64cbaffc873b",
+    "slug": "great-basin-national-park",
+    "name": "グレートベースン国立公園",
+    "nameEn": "Great Basin National Park",
+    "reading": "グレートベースンこくりつこうえん",
+    "aliases": [],
+    "address": "ネバダ州 ベーカー",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ネバダ州",
+      "city": "ベーカー"
+    },
+    "coords": {
+      "lat": 39.01,
+      "lng": -114.22
+    },
+    "category": "公園",
+    "summary": "ネバダ州の東中央部、ユタ州との州境近くにある1986年設立の国立公園です。世界最長寿とされる生き物の一種の森で知られます。",
+    "description": "公園の面積は312.3平方キロメートルです。寿命が5000年弱のものが確認されているグレートベースン・ブリッスルコーン・パインの森と、ネバダ州第2の高峰で標高3,981.6メートルのホイーラー・ピークの麓にあるリーマン洞窟で有名です。ラスベガスの北、およそ466.7キロメートルに位置します。",
+    "highlights": [
+      "単一個体として世界最長寿と言われる五葉松の一種の森",
+      "標高3,981.6メートルのホイーラー・ピーク",
+      "リーマン洞窟"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "樹木の形を主役にして、背景に山を入れた構図で撮ります"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "officialWebsiteUrl": "https://www.nps.gov/grba/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%AC%E3%83%BC%E3%83%88%E3%83%99%E3%83%BC%E3%82%B9%E3%83%B3%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「グレートベースン国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1137657",
+          "title": "Wikidata「Q1137657」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/grba/index.htm",
+          "title": "公式サイト「Great Basin National Park (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_9ae3912b6e71",
+    "slug": "theodore-roosevelt-national-park",
+    "name": "セオドア・ルーズベルト国立公園",
+    "nameEn": "Theodore Roosevelt National Park",
+    "reading": "セオドア・ルーズベルトこくりつこうえん",
+    "aliases": [],
+    "address": "ノースダコタ州 メドラ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ノースダコタ州",
+      "city": "メドラ"
+    },
+    "coords": {
+      "lat": 46.97,
+      "lng": -103.45
+    },
+    "category": "公園",
+    "summary": "ノースダコタ州西部の悪地で構成される国立公園で、1978年11月10日に設立されました。",
+    "description": "公園は北地区、南地区、エルクホーン牧場の3つに分かれ、面積は合わせて285平方キロメートルです。名前は、牧場を数年間所有して働いたセオドア・ルーズベルト大統領にちなみます。アメリカバイソンは非常に危険で、特に分娩する春は危険だと記されているので、野生動物には近づきすぎないことが大切です。",
+    "highlights": [
+      "悪地の景観",
+      "3つに分かれた地区",
+      "セオドア・ルーズベルト大統領ゆかりの牧場"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "野生動物には近づかず、望遠レンズで離れた位置から収めます"
+    ],
+    "timeZone": "America/Denver",
+    "officialWebsiteUrl": "https://www.nps.gov/thro/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BB%E3%82%AA%E3%83%89%E3%82%A2%E3%83%BB%E3%83%AB%E3%83%BC%E3%82%BA%E3%83%99%E3%83%AB%E3%83%88%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「セオドア・ルーズベルト国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1137669",
+          "title": "Wikidata「Q1137669」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/thro/index.htm",
+          "title": "公式サイト「Theodore Roosevelt National Park (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1440cea359e9",
+    "slug": "kenai-fjords-national-park",
+    "name": "キーナイ・フィヨルド国立公園",
+    "nameEn": "Kenai Fjords National Park",
+    "reading": "キーナイ・フィヨルドこくりつこうえん",
+    "aliases": [],
+    "address": "アラスカ州 スワード",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "アラスカ州",
+      "city": "スワード"
+    },
+    "coords": {
+      "lat": 59.92,
+      "lng": -149.99
+    },
+    "category": "公園",
+    "summary": "アラスカ州南央のキーナイ半島に位置する国立公園で、スワードの町に近く、米国内最大の氷原の一つであるハーディング氷原があります。",
+    "description": "1980年12月2日にアラスカ国家利益土地保護法によって設立されました。面積は2,833平方キロメートルです。アンカレッジから南南東へ126キロメートルのスワードから行け、車で行けるアラスカ州内の3つの国立公園の1つで、エグジット氷河の入口から入れます。スワードからボートで日帰りツアーに行く方法もあり、海洋動物や切り立ったフィヨルド、潮間氷河が観察できます。",
+    "highlights": [
+      "米国内最大級の氷原の一つ、ハーディング氷原",
+      "エグジット氷河の末端",
+      "切り立ったフィヨルド"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "氷河や切り立ったフィヨルドの大きさが伝わるよう、手前に水面を入れて収めます"
+    ],
+    "timeZone": "America/Anchorage",
+    "officialWebsiteUrl": "https://www.nps.gov/kefj/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AD%E3%83%BC%E3%83%8A%E3%82%A4%E3%83%BB%E3%83%95%E3%82%A3%E3%83%A8%E3%83%AB%E3%83%89%E5%9B%BD%E7%AB%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「キーナイ・フィヨルド国立公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q841503",
+          "title": "Wikidata「Q841503」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/kefj/index.htm",
+          "title": "公式サイト「Kenai Fjords National Park (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c5776b801ddc",
+    "slug": "mount-whitney",
+    "name": "ホイットニー山",
+    "nameEn": "Mount Whitney",
+    "reading": "ホイットニーさん",
+    "aliases": [],
+    "address": "カリフォルニア州 インヨー郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "インヨー郡"
+    },
+    "coords": {
+      "lat": 36.58,
+      "lng": -118.29
+    },
+    "category": "山岳",
+    "summary": "カリフォルニア州のシエラネヴァダ山脈にある山で、セコイア国立公園に属します。標高は4,421メートルで、アメリカ合衆国本土で最も高い山です。",
+    "description": "名前は、カリフォルニア地質学調査に来ていたハーヴァード大学の地質学教授ジョサイア・ホイットニーにちなみます。1873年に最初の登頂が行われました。指定区域内への入山はデイハイクの人数制限があり、1日100人と定められています。5月から10月の入山予約は、その年の2月に応募が締め切られ、4月に抽選が行われます。",
+    "highlights": [
+      "標高4,421メートルのアメリカ本土最高峰",
+      "シエラネヴァダ山脈の稜線",
+      "マンザナール収容所の敷地から見えたという山"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "dawn",
+        "text": "夜明け前後は光が弱く、空の色が少しずつ変わっていく様子を写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      }
+    ],
+    "compositionTips": [
+      "入山には予約と抽選が要るため、麓から見える山の姿を中心に撮ります"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9B%E3%82%A4%E3%83%83%E3%83%88%E3%83%8B%E3%83%BC%E5%B1%B1",
+          "title": "Wikipedia「ホイットニー山」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q235539",
+          "title": "Wikidata「Q235539」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_30639e6df1bf",
+    "slug": "mount-shasta",
+    "name": "シャスタ山",
+    "nameEn": "Mount Shasta",
+    "reading": "シャスタさん",
+    "aliases": [],
+    "address": "カリフォルニア州 シスキュー郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "シスキュー郡"
+    },
+    "coords": {
+      "lat": 41.41,
+      "lng": -122.19
+    },
+    "category": "火山",
+    "summary": "カリフォルニア州北部に位置するカスケード山脈南部の火山で、標高は4,321.8メートルです。",
+    "description": "カスケード山脈ではレーニア山に次いで2番目に高く、カリフォルニア州内では5番目に高い山です。古くからこの地方に住むアメリカ先住民の聖なる山とされ、山頂は氷河と万年雪を戴いています。雪解け水はサクラメント川の源となり、約500キロメートル南流してサンフランシスコ湾に注ぎます。",
+    "highlights": [
+      "氷河と万年雪を戴く山頂",
+      "側火山のシャスティーナ",
+      "先住民の聖なる山という歴史"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "dawn",
+        "text": "夜明け前後は光が弱く、空の色が少しずつ変わっていく様子を写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      }
+    ],
+    "compositionTips": [
+      "山頂の氷河と万年雪が見えるように、離れた位置から山全体を収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B7%E3%83%A3%E3%82%B9%E3%82%BF%E5%B1%B1",
+          "title": "Wikipedia「シャスタ山」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q748355",
+          "title": "Wikidata「Q748355」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_066c705854e3",
+    "slug": "pikes-peak",
+    "name": "パイクス・ピーク",
+    "nameEn": "Pikes Peak",
+    "reading": "パイクス・ピーク",
+    "aliases": [
+      "パイクスピーク"
+    ],
+    "address": "コロラド州 コロラドスプリングス",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "コロラド州",
+      "city": "コロラドスプリングス"
+    },
+    "coords": {
+      "lat": 38.84,
+      "lng": -105.04
+    },
+    "category": "山岳",
+    "summary": "ロッキー山脈内にある山の一つで、アメリカで最も有名な山頂の1つです。コロラド州東部の都市コロラド・スプリングスが山麓に位置します。",
+    "description": "1806年に探検家のゼブロン・パイクによって紹介されたことから、パイクの頂と名付けられました。マニトウ・スプリングスから頂上までは、1890年に開業したラック式のパイクス・ピーク・コグ鉄道が通っており、「世界一高い登山鉄道」と言われています。モータースポーツのヒルクライムレースが行われる場所としても知られます。",
+    "highlights": [
+      "アメリカで最も有名な山頂の1つ",
+      "1890年に開業した登山鉄道",
+      "ヒルクライムレースの舞台"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "コロラド・スプリングスの側から、山の全体の姿を収めます"
+    ],
+    "timeZone": "America/Denver",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%91%E3%82%A4%E3%82%AF%E3%82%B9%E3%83%BB%E3%83%94%E3%83%BC%E3%82%AF",
+          "title": "Wikipedia「パイクス・ピーク」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q665321",
+          "title": "Wikidata「Q665321」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_16f2ecc807d1",
+    "slug": "three-sisters-oregon",
+    "name": "オレゴン スリー・シスターズ",
+    "nameEn": "Three Sisters",
+    "reading": "スリー・シスターズ",
+    "aliases": [],
+    "address": "オレゴン州 デシューツ郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "オレゴン州",
+      "city": "デシューツ郡"
+    },
+    "coords": {
+      "lat": 44.1,
+      "lng": -121.77
+    },
+    "category": "火山",
+    "summary": "オレゴン州のスリー・シスターズ原生地域内にある3つの火山で、カスケード山脈の一部です。最も近い町シスターズの南へおよそ16キロメートルにあります。",
+    "description": "3つの火山はすべて標高3,000メートル以上で、オレゴン州でそれぞれ3番目、4番目、5番目に高い山です。サウス・シスターはおよそ2000年前に最後の噴火を起こしています。2017年8月には落雷による森林火災の影響で、原生地域の西半分にあたる1,080平方キロメートルへの一般人の立ち入りが禁止されたことがあります。",
+    "highlights": [
+      "3つの火山が並ぶ姿",
+      "すべて標高3,000メートル以上",
+      "夏に登山客が訪れる原生地域"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "dawn",
+        "text": "夜明け前後は光が弱く、空の色が少しずつ変わっていく様子を写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      }
+    ],
+    "compositionTips": [
+      "立入規制の情報を確かめたうえで、3つの山が並ぶ様子を一枚に収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B9%E3%83%AA%E3%83%BC%E3%83%BB%E3%82%B7%E3%82%B9%E3%82%BF%E3%83%BC%E3%82%BA_%28%E3%82%AA%E3%83%AC%E3%82%B4%E3%83%B3%E5%B7%9E%29",
+          "title": "Wikipedia「スリー・シスターズ (オレゴン州)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1566089",
+          "title": "Wikidata「Q1566089」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_3bd9e4597dc5",
+    "slug": "nantucket",
+    "name": "ナンタケット",
+    "nameEn": "Nantucket",
+    "reading": "ナンタケット",
+    "aliases": [],
+    "address": "マサチューセッツ州 ナンタケット郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "マサチューセッツ州",
+      "city": "ナンタケット郡"
+    },
+    "coords": {
+      "lat": 41.28,
+      "lng": -70.09
+    },
+    "category": "島",
+    "summary": "マサチューセッツ州のケープ・コッドの南48キロメートルに位置する島で、観光地として有名なリゾート地です。",
+    "description": "島全体が米国国立公園局によって国立歴史地区に指定されており、南北戦争前の構造物が最も集中している地域の一つという特色があります。島の人口は、観光客と別荘を持つ人のため、夏の間は約5万人に増えます。名前はワンパノアグ語又はナラガンセット語に由来し、「鋭い角の周りの潮の流れ」を意味します。",
+    "highlights": [
+      "島全体が国立歴史地区",
+      "南北戦争前の構造物が集中する町並み",
+      "夏の間に約5万人に増える人口"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "歴史地区の古い建物が並ぶ通りを、人の動きと一緒に収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%8A%E3%83%B3%E3%82%BF%E3%82%B1%E3%83%83%E3%83%88",
+          "title": "Wikipedia「ナンタケット」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q49149",
+          "title": "Wikidata「Q49149」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_3062042fff57",
+    "slug": "mackinac-island",
+    "name": "マキノー島",
+    "nameEn": "Mackinac Island",
+    "reading": "マキノーとう",
+    "aliases": [
+      "マッキノー島",
+      "マキナック島"
+    ],
+    "address": "ミシガン州 マキノー島",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ミシガン州",
+      "city": "マキノー島"
+    },
+    "coords": {
+      "lat": 45.86,
+      "lng": -84.63
+    },
+    "category": "島",
+    "summary": "ヒューロン湖に浮かぶミシガン州の島で、アッパー半島とロウアー半島を隔てるマキノー海峡のすぐ東側に位置します。",
+    "description": "面積は約9.8平方キロメートルで、島の外周は約13キロメートルです。かつては五大湖の毛皮交易の拠点で、独立戦争中にイギリスがマキナック砦を築きました。島内では緊急車両など特別に許可されたもの以外の自動車の使用が禁止されていて、移動手段は徒歩、自転車、馬車、乗馬です。ヴィクトリアン調のグランドホテルが有名です。",
+    "highlights": [
+      "自動車が使えない島内の移動",
+      "ヴィクトリアン調のグランドホテル",
+      "毛皮交易の拠点だった歴史"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "自動車が走らない島の雰囲気が伝わるよう、馬車や自転車と一緒に収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9E%E3%82%AD%E3%83%8E%E3%83%BC%E5%B3%B6",
+          "title": "Wikipedia「マキノー島」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1431148",
+          "title": "Wikidata「Q1431148」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d31758dcd509",
+    "slug": "santa-catalina-island",
+    "name": "サンタカタリナ島",
+    "nameEn": "Santa Catalina Island",
+    "reading": "サンタカタリナとう",
+    "aliases": [],
+    "address": "カリフォルニア州 アバロン",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "アバロン"
+    },
+    "coords": {
+      "lat": 33.38,
+      "lng": -118.42
+    },
+    "category": "島",
+    "summary": "カリフォルニア州南部のチャネル諸島に属する島で、ロサンゼルス港から南南西38キロメートルに位置します。",
+    "description": "本土とはサンペドロ海峡で隔てられ、この諸島では唯一の都市であるアバロンがあります。1547年にフアン・ロドリゲス・カブリロが発見し、海賊の根拠地となりました。1920年代にウィリアム・リグレー・ジュニア・カンパニーが取得して観光地として開発され、現在は保養地になっています。",
+    "highlights": [
+      "チャネル諸島で唯一の都市アバロン",
+      "サンペドロ海峡に浮かぶ島",
+      "観光地として開発された歴史"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "島の海岸線と町を、海側から広く収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%82%AB%E3%82%BF%E3%83%AA%E3%83%8A%E5%B3%B6",
+          "title": "Wikipedia「サンタカタリナ島」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q845229",
+          "title": "Wikidata「Q845229」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_68aa6247fdf8",
+    "slug": "ellis-island",
+    "name": "エリス島",
+    "nameEn": "Ellis Island",
+    "reading": "エリスとう",
+    "aliases": [],
+    "address": "ニューヨーク州 ニューヨーク港",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク港"
+    },
+    "coords": {
+      "lat": 40.7,
+      "lng": -74.04
+    },
+    "category": "史跡",
+    "summary": "アッパー・ニューヨーク湾内にある島で、アメリカ合衆国移民局が置かれていたことで有名です。",
+    "description": "19世紀後半から60年余りの間、ヨーロッパからの移民は必ずこの島からアメリカへ入国しました。約1200万人から1700万人の移民が通過し、アメリカ人の5人に2人がこの島を通った移民を祖先に持つと言われています。1954年に移民局は閉鎖され、現在は博物館になっています。2012年のハリケーン・サンディの被害で一時閉鎖され、2013年秋に観光が再開されました。",
+    "highlights": [
+      "『希望の島』と呼ばれた移民の玄関口",
+      "博物館になった旧移民局",
+      "1965年に指定されたナショナル・モニュメント"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "島の建物を、ニューヨーク港の水面を手前に入れて収めます"
+    ],
+    "timeZone": "America/New_York",
+    "officialWebsiteUrl": "https://www.nps.gov/elis/index.htm",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A8%E3%83%AA%E3%82%B9%E5%B3%B6",
+          "title": "Wikipedia「エリス島」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q202175",
+          "title": "Wikidata「Q202175」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nps.gov/elis/index.htm",
+          "title": "公式サイト「Ellis Island Part of Statue of Liberty National Monument (U.S. National Park Service)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_4dfbef648c6f",
+    "slug": "governors-island",
+    "name": "ガバナーズ島",
+    "nameEn": "Governors Island",
+    "reading": "ガバナーズとう",
+    "aliases": [],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.69,
+      "lng": -74.02
+    },
+    "category": "島",
+    "summary": "ニューヨーク市マンハッタン区に所属するアッパー・ニューヨーク湾の島で、マンハッタン島の南約730メートルの位置にあります。",
+    "description": "面積は172エーカー（70ヘクタール）です。島の北部の小さな区画は米国立公園局がナショナル・モニュメントとして管理しており、ジェイ砦とウィリアムズ城という旧軍事要塞が2つあります。残りの150エーカーは、歴史的建造物52件を含めて、ガバナーズ島トラストが公園として運営しています。",
+    "highlights": [
+      "マンハッタン島の南約730メートルの島",
+      "旧軍事要塞のジェイ砦とウィリアムズ城",
+      "公園として運営される島の大部分"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "島から対岸のマンハッタンの高層ビル群を望む構図を探します"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AC%E3%83%90%E3%83%8A%E3%83%BC%E3%82%BA%E5%B3%B6",
+          "title": "Wikipedia「ガバナーズ島」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1190547",
+          "title": "Wikidata「Q1190547」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_8f331caa3568",
+    "slug": "battery-park",
+    "name": "バッテリー・パーク",
+    "nameEn": "Battery Park",
+    "reading": "バッテリー・パーク",
+    "aliases": [],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.7,
+      "lng": -74.02
+    },
+    "category": "公園",
+    "summary": "ニューヨーク港に面するマンハッタン島南端のバッテリーに位置する、10ヘクタールの公共公園です。",
+    "description": "「バッテリー」はラテン語で砲台のことで、都市が建設されて数年後に町を守るため砲台が設置されました。公園の北側には、防御の工事の名残であるクリントン城があり、海岸からは自由の女神像とエリス島へ向かうクルーズ・フェリーが出港しています。エイズ犠牲者のメモリアルであるホープ・ガーデンや、イースト・コースト・メモリアルなどの記念碑もあります。",
+    "highlights": [
+      "砲台の名残であるクリントン城",
+      "自由の女神像へ向かうフェリーの発着場",
+      "ホープ・ガーデンなどの記念碑"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "港の水面を入れて、公園から海側を広く収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%90%E3%83%83%E3%83%86%E3%83%AA%E3%83%BC%E3%83%BB%E3%83%91%E3%83%BC%E3%82%AF",
+          "title": "Wikipedia「バッテリー・パーク」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q13689",
+          "title": "Wikidata「Q13689」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_f0effa7e4656",
+    "slug": "coney-island",
+    "name": "コニーアイランド",
+    "nameEn": "Coney Island",
+    "reading": "コニーアイランド",
+    "aliases": [
+      "コニー・アイランド"
+    ],
+    "address": "ニューヨーク州 ニューヨーク市ブルックリン区",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.58,
+      "lng": -73.98
+    },
+    "category": "海岸",
+    "summary": "ニューヨーク市ブルックリン区の南端にある半島および地区で、近郊型のリゾート地、観光地として知られます。",
+    "description": "ルナ・パーク遊園地やニューヨーク水族館、ビーチなどがあります。大西洋に面する全長約4.0キロメートルのビーチが広がり、遊園地とビーチの間にはボードウォークが整備されています。1920年から稼働している観覧車ワンダー・ホイールや、木製ジェットコースターのサイクロンは、保存されています。",
+    "highlights": [
+      "全長約4.0キロメートルのビーチ",
+      "ビーチと遊園地の間のボードウォーク",
+      "1920年から稼働する観覧車ワンダー・ホイール"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "ボードウォーク越しに、観覧車や遊園地の施設を入れて撮ります"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B3%E3%83%8B%E3%83%BC%E3%82%A2%E3%82%A4%E3%83%A9%E3%83%B3%E3%83%89",
+          "title": "Wikipedia「コニーアイランド」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q628201",
+          "title": "Wikidata「Q628201」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_682eda72c54e",
+    "slug": "horsetail-fall",
+    "name": "ホーステール滝",
+    "nameEn": "Horsetail Fall",
+    "reading": "ホーステールたき",
+    "aliases": [
+      "ファイアフォール"
+    ],
+    "address": "カリフォルニア州 ヨセミテ国立公園",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "ヨセミテ国立公園"
+    },
+    "coords": {
+      "lat": 37.73,
+      "lng": -119.63
+    },
+    "category": "滝",
+    "summary": "カリフォルニア州のヨセミテ国立公園にある、冬季から初春にかけてのみ流れる滝で、エル・キャピタンの東面から流れ落ちます。",
+    "description": "水の流れる2月には、気象条件がよければ、夕日に照らされた滝がオレンジや赤で輝き、「ファイアフォール（火の滝）」と呼ばれます。この現象は、2月21日前後の日没という限られた時間に撮影された、山岳写真家ギャラン・ローウェルの写真によって著名になりました。滝は2本に分かれ、落差は東側が470メートル、西側が480メートルです。",
+    "highlights": [
+      "夕日で赤く輝くファイアフォール",
+      "エル・キャピタンの東面を流れる滝",
+      "落差470メートルと480メートルの2本"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "winter",
+        "text": "水が流れるのは冬季から初春にかけてで、2月には夕日に照らされて輝くことがあります。"
+      },
+      {
+        "season": "summer",
+        "text": "夏は滝に水が流れません。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日没の前後が、夕日で滝が輝くファイアフォールを狙う時間帯です。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "夕日が当たる限られた時間に合わせて、エル・キャピタンの岩壁ごと収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9B%E3%83%BC%E3%82%B9%E3%83%86%E3%83%BC%E3%83%AB%E6%BB%9D",
+          "title": "Wikipedia「ホーステール滝」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q37385",
+          "title": "Wikidata「Q37385」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d5960891fee6",
+    "slug": "bridalveil-fall",
+    "name": "ブライダルベール滝",
+    "nameEn": "Bridalveil Fall",
+    "reading": "ブライダルベールたき",
+    "aliases": [
+      "ブライダルベール・フォール"
+    ],
+    "address": "カリフォルニア州 ヨセミテ国立公園",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "ヨセミテ国立公園"
+    },
+    "coords": {
+      "lat": 37.72,
+      "lng": -119.65
+    },
+    "category": "滝",
+    "summary": "カリフォルニア州のヨセミテ渓谷にある、最も有名な滝の1つです。高さは188メートルで、1年中水が流れています。",
+    "description": "毎年、ヨセミテ国立公園を訪れる何百万人もの観光客が見に来ます。アワニチ族は、この滝には渓谷の入口を守る復讐神が住んでいると信じ、滝の霧が人の結婚する機会をつくるとも信じています。ヨセミテ渓谷を創造した氷河は、渓谷へ流れ込む滝を多く生む傾斜した谷を残しました。",
+    "highlights": [
+      "高さ188メートルの滝",
+      "1年中水が流れる滝",
+      "アワニチ族に伝わる滝の言い伝え"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "滝の高さが伝わるよう、離れた位置から縦位置で収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%96%E3%83%A9%E3%82%A4%E3%83%80%E3%83%AB%E3%83%99%E3%83%BC%E3%83%AB%E6%BB%9D_%28%E3%83%A8%E3%82%BB%E3%83%9F%E3%83%86%29",
+          "title": "Wikipedia「ブライダルベール滝 (ヨセミテ)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2360422",
+          "title": "Wikidata「Q2360422」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_157f457ac7c5",
+    "slug": "vernal-fall",
+    "name": "バーナル滝",
+    "nameEn": "Vernal Fall",
+    "reading": "バーナルたき",
+    "aliases": [],
+    "address": "カリフォルニア州 ヨセミテ国立公園",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "ヨセミテ国立公園"
+    },
+    "coords": {
+      "lat": 37.73,
+      "lng": -119.54
+    },
+    "category": "滝",
+    "summary": "ヨセミテ国立公園内のマーセド川にある、ネバダ滝のすぐ下流の大きな滝です。落差は97メートルです。",
+    "description": "ミスト・トレイルからアクセスでき、グレイシャー・ポイントからもよく見えます。滝は一年中流れていますが、夏の終わりを過ぎると水量が減り、複数の滝に分かれます。もとの名前はヤノパで、1851年にラファイエット・バンネルによってバーナルと名づけられました。",
+    "highlights": [
+      "落差97メートルの滝",
+      "ミスト・トレイルからの眺め",
+      "夏の終わりに複数に分かれる流れ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏の終わりを過ぎると水量が減り、滝が複数に分かれて落ちます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "少し離れた位置から滝全体を収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%90%E3%83%BC%E3%83%8A%E3%83%AB%E6%BB%9D",
+          "title": "Wikipedia「バーナル滝」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2620166",
+          "title": "Wikidata「Q2620166」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d3955072691e",
+    "slug": "golden-gate-park",
+    "name": "ゴールデン・ゲート・パーク",
+    "nameEn": "Golden Gate Park",
+    "reading": "ゴールデン・ゲート・パーク",
+    "aliases": [],
+    "address": "カリフォルニア州 サンフランシスコ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "サンフランシスコ"
+    },
+    "coords": {
+      "lat": 37.77,
+      "lng": -122.48
+    },
+    "category": "公園",
+    "summary": "サンフランシスコにある都市公園で、ニューヨークのセントラルパークと形や規模が似ているため、よく比較されます。",
+    "description": "面積は412ヘクタールで、セントラルパークより2割ほど広く、全米の都市公園のなかではセントラル・パーク、シカゴのリンカーン・パークに次いで3番目に利用者が多い公園です。1870年に開園し、敷地の大部分は砂丘の上にあるため、ユーカリや松、檜など乾燥に強い樹木が植林されました。2004年10月15日に国家歴史登録財に登録されました。",
+    "highlights": [
+      "面積412ヘクタールの都市公園",
+      "砂丘の上に植林された木々",
+      "国家歴史登録財に登録された公園"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "広い園内の木々の連なりを生かし、奥行きのある構図で撮ります"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "officialWebsiteUrl": "https://sfrecpark.org/770/Golden-Gate-Park",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B4%E3%83%BC%E3%83%AB%E3%83%87%E3%83%B3%E3%83%BB%E3%82%B2%E3%83%BC%E3%83%88%E3%83%BB%E3%83%91%E3%83%BC%E3%82%AF",
+          "title": "Wikipedia「ゴールデン・ゲート・パーク」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q635559",
+          "title": "Wikidata「Q635559」（座標・所在地）"
+        },
+        {
+          "url": "https://sfrecpark.org/770/Golden-Gate-Park",
+          "title": "公式サイト「Discover Golden Gate Park | San Francisco Recreation and Parks, CA」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_87cf1c5966cd",
+    "slug": "presidio-of-san-francisco",
+    "name": "サンフランシスコ・プレシディオ",
+    "nameEn": "Presidio of San Francisco",
+    "reading": "サンフランシスコ・プレシディオ",
+    "aliases": [],
+    "address": "カリフォルニア州 サンフランシスコ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "サンフランシスコ"
+    },
+    "coords": {
+      "lat": 37.8,
+      "lng": -122.47
+    },
+    "category": "公園",
+    "summary": "サンフランシスコ半島の北端にある元アメリカ軍基地で、現在は国立公園局に移管され、ゴールデン・ゲート国立保養地の一部になっています。",
+    "description": "スペイン帝国領時代の1776年に開設され、1994年に閉鎖されました。面積は約600ヘクタールで、サンフランシスコ湾の入口を見渡す戦略的な位置にあります。国道101号線が通り、ゴールデン・ゲート・ブリッジを渡ってマリン郡と連絡しています。1776年にスペイン帝国の軍人フアン・バウティスタ・デ・アンサが砦を建設したことに始まります。",
+    "highlights": [
+      "1776年に砦として開設された歴史",
+      "サンフランシスコ湾の入口を見渡す位置",
+      "ゴールデン・ゲート国立保養地の一部"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "湾の入口を見渡せる場所から、ゴールデン・ゲート・ブリッジと湾を一緒に収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "officialWebsiteUrl": "https://presidio.gov/",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%95%E3%83%A9%E3%83%B3%E3%82%B7%E3%82%B9%E3%82%B3%E3%83%BB%E3%83%97%E3%83%AC%E3%82%B7%E3%83%87%E3%82%A3%E3%82%AA",
+          "title": "Wikipedia「サンフランシスコ・プレシディオ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1755360",
+          "title": "Wikidata「Q1755360」（座標・所在地）"
+        },
+        {
+          "url": "https://presidio.gov/",
+          "title": "公式サイト「Welcome to the Presidio National Park Site (San Francisco)」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_38111f5ab59c",
+    "slug": "millennium-park",
+    "name": "ミレニアム・パーク",
+    "nameEn": "Millennium Park",
+    "reading": "ミレニアム・パーク",
+    "aliases": [],
+    "address": "イリノイ州 シカゴ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "イリノイ州",
+      "city": "シカゴ"
+    },
+    "coords": {
+      "lat": 41.88,
+      "lng": -87.62
+    },
+    "category": "公園",
+    "summary": "シカゴの中心部に位置する公園で、グラント・パークの一部という位置付けです。名前の通り比較的新しい施設です。",
+    "description": "かつては鉄道用地でしたが、1998年に工事が着工し、当初の予定より4年遅れて2004年7月16日にオープンしました。面積は約10ヘクタールで、園内にはコンサートホール、劇場、広場などがあります。主な施設にジェイ・プリツカー・パビリオンやクラウド・ゲート、クラウン・ファウンテン、ペデストリアン・ブリッジなどがあります。",
+    "highlights": [
+      "クラウド・ゲートのあるプラザ",
+      "クラウン・ファウンテン",
+      "ペデストリアン・ブリッジ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "園内の施設を主役に、シカゴ中心部の街並みを背景に入れて撮ります"
+    ],
+    "timeZone": "America/Chicago",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9F%E3%83%AC%E3%83%8B%E3%82%A2%E3%83%A0%E3%83%BB%E3%83%91%E3%83%BC%E3%82%AF",
+          "title": "Wikipedia「ミレニアム・パーク」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1130516",
+          "title": "Wikidata「Q1130516」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_67b97ceb01a4",
+    "slug": "high-line",
+    "name": "ハイライン",
+    "nameEn": "High Line",
+    "reading": "ハイライン",
+    "aliases": [],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.75,
+      "lng": -74.0
+    },
+    "category": "公園",
+    "summary": "ニューヨーク市マンハッタンにある全長2.3キロメートルの線形公園で、ウエストサイド線の廃線跡地の高架部分に建設されました。",
+    "description": "2009年から順次、部分開園しました。ミートパッキング地区のガンズヴォート・ストリートからチェルシー地区を通り、34丁目のジャヴィッツ・コンベンション・センターの近くに至ります。パリの全長4.8キロメートルのプロムナード・プランテに着想を得て、空中緑道および廃線跡公園として再設計されました。",
+    "highlights": [
+      "廃線跡の高架を利用した全長2.3キロメートルの公園",
+      "ミートパッキング地区からチェルシー地区へ延びる線形",
+      "アーバン・ウィルダネスの代表例"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "高架の線形を生かして、奥へ延びる遊歩道を低い位置から収めます"
+    ],
+    "timeZone": "America/New_York",
+    "officialWebsiteUrl": "https://www.thehighline.org/",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%8F%E3%82%A4%E3%83%A9%E3%82%A4%E3%83%B3",
+          "title": "Wikipedia「ハイライン」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q843869",
+          "title": "Wikidata「Q843869」（座標・所在地）"
+        },
+        {
+          "url": "https://www.thehighline.org/",
+          "title": "公式サイト「Home | The High Line」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_f61e3a2f0f03",
+    "slug": "washington-square-park",
+    "name": "ワシントン・スクエア公園",
+    "nameEn": "Washington Square Park",
+    "reading": "ワシントン・スクエアこうえん",
+    "aliases": [
+      "ワシントン・スクエア・パーク"
+    ],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.73,
+      "lng": -74.0
+    },
+    "category": "公園",
+    "summary": "ニューヨーク市マンハッタン区のグリニッジ・ヴィレッジにある公園で、面積は9.75エーカーです。",
+    "description": "公園の北側入り口付近には1892年に建てられた凱旋門があり、そこから北に5番街が伸びています。噴水のある池の周辺は市民や観光客の憩いの場所で、大道芸人やストリートミュージシャンも多くいます。道をはさんでニューヨーク大学に隣接し、周辺は住宅街です。",
+    "highlights": [
+      "1892年に建てられた凱旋門",
+      "噴水のある池",
+      "大道芸人やストリートミュージシャンのいる広場"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "凱旋門を中心に、5番街へ延びる軸を意識して収めます"
+    ],
+    "timeZone": "America/New_York",
+    "officialWebsiteUrl": "https://www.nycgovparks.org/parks/washington-square-park",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%AF%E3%82%B7%E3%83%B3%E3%83%88%E3%83%B3%E3%83%BB%E3%82%B9%E3%82%AF%E3%82%A8%E3%82%A2%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「ワシントン・スクエア公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q909592",
+          "title": "Wikidata「Q909592」（座標・所在地）"
+        },
+        {
+          "url": "https://www.nycgovparks.org/parks/washington-square-park",
+          "title": "公式サイト「Washington Square Park : NYC Parks」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_0c098c24587d",
+    "slug": "mill-ends-park",
+    "name": "ミル・エンズ公園",
+    "nameEn": "Mill Ends Park",
+    "reading": "ミル・エンズこうえん",
+    "aliases": [],
+    "address": "オレゴン州 ポートランド",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "オレゴン州",
+      "city": "ポートランド"
+    },
+    "coords": {
+      "lat": 45.52,
+      "lng": -122.67
+    },
+    "category": "公園",
+    "summary": "ポートランドのダウンタウンにある、直径約60.96センチメートルの円形の公園で、2025年2月まで「世界一小さな公園」にギネスブックから認定されていました。",
+    "description": "公園の面積は0.29平方メートルで、サウスウェスト・ナイトーパークウェイとサウスウェスト・テイラー通りの交差点付近に位置します。もともとは1948年に街灯の台座として作られたもので、街灯を埋め込む穴だけが残り、その穴が公園になりました。蝶のためのプールやミニチュアの観覧車など、様々な趣向を凝らした飾りが設置されてきました。",
+    "highlights": [
+      "直径約60.96センチメートルの円形の公園",
+      "街灯の穴から生まれた由来",
+      "趣向を凝らした飾り"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "公園の小ささが伝わるよう、周囲の歩道や通りを入れて撮ります"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "officialWebsiteUrl": "https://www.portland.gov/parks/mill-ends-park",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9F%E3%83%AB%E3%83%BB%E3%82%A8%E3%83%B3%E3%82%BA%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「ミル・エンズ公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q753064",
+          "title": "Wikidata「Q753064」（座標・所在地）"
+        },
+        {
+          "url": "https://www.portland.gov/parks/mill-ends-park",
+          "title": "公式サイト「Mill Ends Park | Portland.gov」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_f4c7fe441036",
+    "slug": "grand-coulee-dam",
+    "name": "グランドクーリーダム",
+    "nameEn": "Grand Coulee Dam",
+    "reading": "グランドクーリーダム",
+    "aliases": [],
+    "address": "ワシントン州 グランドクーリー",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ワシントン州",
+      "city": "グランドクーリー"
+    },
+    "coords": {
+      "lat": 47.96,
+      "lng": -118.98
+    },
+    "category": "ダム",
+    "summary": "ワシントン州を流れるコロンビア川に建設されたダムで、フーバーダムと並んで、アメリカで特に有名なダムのひとつです。",
+    "description": "ダムの横幅（堤頂長）は約1.6キロメートル、高さは168メートルあり、ナイアガラ滝の2倍以上、ギザの大ピラミッドよりも高いとされます。1941年に当時世界最大のダムとして完成しました。ダムがせき止めてできた貯水池は、フランクリン・ルーズベルト大統領の名をとってルーズベルト湖と名付けられました。1989年から、夏の夕方にはダム堤体にレーザー光線を利用したイルミネーションが投影されています。",
+    "highlights": [
+      "堤頂長約1.6キロメートル、高さ168メートルの堤体",
+      "ルーズベルト湖",
+      "夏の夕方のレーザー光線のイルミネーション"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏の夕方には、ダム堤体にレーザー光線を利用したイルミネーションが投影されます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "dusk",
+        "text": "夏の夕方には、暗くなる時間帯にダムの堤体へイルミネーションが投影されます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      }
+    ],
+    "compositionTips": [
+      "堤体の大きさが伝わるよう、離れた位置から全体を収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "officialWebsiteUrl": "https://www.usbr.gov/pn/grandcoulee/",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A9%E3%83%B3%E3%83%89%E3%82%AF%E3%83%BC%E3%83%AA%E3%83%BC%E3%83%80%E3%83%A0",
+          "title": "Wikipedia「グランドクーリーダム」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q930391",
+          "title": "Wikidata「Q930391」（座標・所在地）"
+        },
+        {
+          "url": "https://www.usbr.gov/pn/grandcoulee/",
+          "title": "公式サイト「Grand Coulee Dam | Bureau of Reclamation」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_79b105e16217",
+    "slug": "glen-canyon-dam",
+    "name": "グレンキャニオンダム",
+    "nameEn": "Glen Canyon Dam",
+    "reading": "グレンキャニオンダム",
+    "aliases": [],
+    "address": "アリゾナ州 ペイジ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "アリゾナ州",
+      "city": "ペイジ"
+    },
+    "coords": {
+      "lat": 36.94,
+      "lng": -111.48
+    },
+    "category": "ダム",
+    "summary": "アリゾナ州のペイジにあるコロラド川のダムで、人造湖のパウエル湖をつくっています。",
+    "description": "高さは216メートル、幅は475メートルで、1956年に建設が始まり1966年に完成しました。ダムがつくる人造湖がパウエル湖です。",
+    "highlights": [
+      "高さ216メートル、幅475メートルのダム",
+      "人造湖パウエル湖をつくる堤体",
+      "コロラド川をせき止める景観"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "ダムの高さが伝わるよう、離れた位置から堤体の全体を収めます"
+    ],
+    "timeZone": "America/Phoenix",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%AC%E3%83%B3%E3%82%AD%E3%83%A3%E3%83%8B%E3%82%AA%E3%83%B3%E3%83%80%E3%83%A0",
+          "title": "Wikipedia「グレンキャニオンダム」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1530724",
+          "title": "Wikidata「Q1530724」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_ebbabc71de12",
+    "slug": "boston-common",
+    "name": "ボストン・コモン",
+    "nameEn": "Boston Common",
+    "reading": "ボストン・コモン",
+    "aliases": [
+      "ザ・コモン"
+    ],
+    "address": "マサチューセッツ州 ボストン",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "マサチューセッツ州",
+      "city": "ボストン"
+    },
+    "coords": {
+      "lat": 42.35,
+      "lng": -71.07
+    },
+    "category": "公園",
+    "summary": "ボストン市中心部にある、1634年に創立されたアメリカ最古の都市公園です。ザ・コモンとも呼ばれます。",
+    "description": "トレモント、パーク、ビーコン、チャールズ、ボイルストンの各通りに囲まれ、面積は20ヘクタールです。公園の南からロクスバリーのフランクリン・パークまで広がる「エメラルド・ネックレス」の一部になっています。1977年にはボストン・ランドマーク委員会からボストン・ランドマークに認定されました。",
+    "highlights": [
+      "1634年創立のアメリカ最古の都市公園",
+      "面積20ヘクタールの公園",
+      "エメラルド・ネックレスの一部"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "公園の木々と周囲の通りの建物を一緒に収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9C%E3%82%B9%E3%83%88%E3%83%B3%E3%82%B3%E3%83%A2%E3%83%B3",
+          "title": "Wikipedia「ボストンコモン」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q49132",
+          "title": "Wikidata「Q49132」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1d66eb8455b3",
+    "slug": "bunker-hill-monument",
+    "name": "バンカーヒル記念塔",
+    "nameEn": "Bunker Hill Monument",
+    "reading": "バンカーヒルきねんとう",
+    "aliases": [],
+    "address": "マサチューセッツ州 ボストン",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "マサチューセッツ州",
+      "city": "ボストン"
+    },
+    "coords": {
+      "lat": 42.38,
+      "lng": -71.06
+    },
+    "category": "史跡",
+    "summary": "ボストン市北東部のチャールズタウン地区にある記念塔で、独立戦争の主な戦いのひとつであるバンカーヒルの戦いを記念して建てられました。",
+    "description": "1825年から17年の歳月を費やして建てられた同国最初のオベリスクで、高さは67メートルです。塔の内部には294段の階段があり、屋上まで上ることができます。建材の御影石は近隣のクインシー市で採掘され、運んだグラニット鉄道は1826年10月9日に営業を開始したアメリカ最初の鉄道でした。塔の実際の位置は、戦闘の大部分が行われた近隣のブリーズヒルです。",
+    "highlights": [
+      "高さ67メートルのオベリスク",
+      "294段の階段で屋上へ",
+      "同国最初のオベリスクという歴史"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "オベリスクの高さが伝わるよう、足元から見上げる縦位置で収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%90%E3%83%B3%E3%82%AB%E3%83%BC%E3%83%92%E3%83%AB%E8%A8%98%E5%BF%B5%E5%A1%94",
+          "title": "Wikipedia「バンカーヒル記念塔」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1009561",
+          "title": "Wikidata「Q1009561」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_449feaacf86f",
+    "slug": "lake-powell",
+    "name": "パウエル湖",
+    "nameEn": "Lake Powell",
+    "reading": "パウエルこ",
+    "aliases": [
+      "パウェル湖"
+    ],
+    "address": "ユタ州・アリゾナ州",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "アリゾナ州",
+      "city": "ペイジ"
+    },
+    "coords": {
+      "lat": 36.94,
+      "lng": -111.48
+    },
+    "category": "湖沼",
+    "summary": "ユタ州とアリゾナ州にまたがり、コロラド川の途中にある貯水池（人工湖）です。毎年約200万人が訪れる観光スポットです。",
+    "description": "グレンキャニオンダムでグレンキャニオンに水を湛えてできた湖で、満水時の貯水量は24,321,000エーカー・フィートあり、アメリカ合衆国ではミード湖に次いで第2位の人工貯水池です。名前は、1869年に3隻の木製ボートでこの川を探検した、退役兵のジョン・ウェズリー・パウエルにちなみます。1972年にグレンキャニオン国定レクリエーション地域が設定され、国立公園局が管理しています。",
+    "highlights": [
+      "アメリカ第2位の貯水量の人工湖",
+      "グレンキャニオン国定レクリエーション地域",
+      "コロラド川を堰き止めてできた湖"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "湖岸の形と水面の広がりが伝わるよう、高い位置から広く収めます"
+    ],
+    "timeZone": "America/Phoenix",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%91%E3%82%A6%E3%82%A8%E3%83%AB%E6%B9%96",
+          "title": "Wikipedia「パウエル湖」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q667507",
+          "title": "Wikidata「Q667507」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_0f392084bedf",
+    "slug": "lake-mead",
+    "name": "ミード湖",
+    "nameEn": "Lake Mead",
+    "reading": "ミードこ",
+    "aliases": [],
+    "address": "ネバダ州 ラスベガス",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ネバダ州",
+      "city": "ラスベガス"
+    },
+    "coords": {
+      "lat": 36.25,
+      "lng": -114.39
+    },
+    "category": "湖沼",
+    "summary": "ネバダ州ラスベガスの東約48キロメートルのコロラド川に位置し、ネバダ州とアリゾナ州にまたがる、アメリカ合衆国最大の人造湖です。",
+    "description": "フーバーダムによって作られ、ダムの上流180キロメートルまで伸びています。名前は、1924年から1936年まで開拓局局長だったエルウッド・ミードにちなみ、1964年に最初の国立保養地であるミード湖国立保養地に指定されました。2000年代以降は周辺地域の旱魃で水位が低下しており、2022年には湖岸線が過去の最大湛水時と比べて200メートル以上後退したと報告されています。",
+    "highlights": [
+      "アメリカ合衆国最大の人造湖",
+      "フーバーダムが作った湖",
+      "最初の国立保養地に指定された湖"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "湖岸の線を生かして、広い水面が奥へ続く構図で撮ります"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9F%E3%83%BC%E3%83%89%E6%B9%96",
+          "title": "Wikipedia「ミード湖」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q654515",
+          "title": "Wikidata「Q654515」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7eabee85fca4",
+    "slug": "bonneville-salt-flats",
+    "name": "ボンネビル・ソルトフラッツ",
+    "nameEn": "Bonneville Salt Flats",
+    "reading": "ボンネビル・ソルトフラッツ",
+    "aliases": [],
+    "address": "ユタ州 トゥーイル郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ユタ州",
+      "city": "トゥーイル郡"
+    },
+    "coords": {
+      "lat": 40.8,
+      "lng": -113.8
+    },
+    "category": "湖沼",
+    "summary": "ユタ州北西部のグレートソルト湖の西にある、100平方マイルにも及ぶ塩湖の跡の平原で、グレートソルト湖の西に位置する中では最も大きいものです。",
+    "description": "毎年8月に開催されるボンネビル・スピードウェイでは、地上最速を競うモータースポーツ『スピードウィーク』が行われることで知られます。1912年からスピード競争に使われ始め、1930年代にアブ・ジェンキンスとマルコム・キャンベル卿のスピード競争で多くの人に知られました。湖面の標高は約1282メートルで、厚さ数十センチの塩の塊の上にあります。",
+    "highlights": [
+      "100平方マイルに及ぶ塩の平原",
+      "毎年8月のスピードウィーク",
+      "標高約1282メートルの湖面"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "平らな地平線を生かして、空の面積を大きくとった構図で撮ります"
+    ],
+    "timeZone": "America/Denver",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9C%E3%83%B3%E3%83%8D%E3%83%93%E3%83%AB%E3%83%BB%E3%82%BD%E3%83%AB%E3%83%88%E3%83%95%E3%83%A9%E3%83%83%E3%83%84",
+          "title": "Wikipedia「ボンネビル・ソルトフラッツ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1081023",
+          "title": "Wikidata「Q1081023」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_aea54b5fbc58",
+    "slug": "old-faithful-geyser",
+    "name": "オールド・フェイスフル・ガイザー",
+    "nameEn": "Old Faithful Geyser",
+    "reading": "オールド・フェイスフル・ガイザー",
+    "aliases": [
+      "オールド・フェイスフル"
+    ],
+    "address": "ワイオミング州 イエローストーン国立公園",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ワイオミング州",
+      "city": "イエローストーン国立公園"
+    },
+    "coords": {
+      "lat": 44.46,
+      "lng": -110.83
+    },
+    "category": "自然現象",
+    "summary": "イエローストーン国立公園内にある、おそらく世界で最も有名な間欠泉です。ワイオミング州ティトン郡に属します。",
+    "description": "1870年にウォシュバーン探検隊によってオールド・フェイスフルと名づけられ、公園内で最初に名前をつけられた間欠泉です。一定間隔で忠実に噴出することが名前の由来で、1回に熱湯が30メートルから50メートルの高さに噴き出します。噴出の間隔は65分から92分で、平均は91分と記されています。",
+    "highlights": [
+      "30メートルから50メートルの高さに噴き出す熱湯",
+      "一定間隔で噴出する間欠泉",
+      "公園内で最初に名前がつけられた間欠泉"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "噴き上がる湯と蒸気の形がわかるよう、少し離れて縦位置で収めます"
+    ],
+    "timeZone": "America/Denver",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AA%E3%83%BC%E3%83%AB%E3%83%89%E3%83%BB%E3%83%95%E3%82%A7%E3%82%A4%E3%82%B9%E3%83%95%E3%83%AB%E3%83%BB%E3%82%AC%E3%82%A4%E3%82%B6%E3%83%BC",
+          "title": "Wikipedia「オールド・フェイスフル・ガイザー」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q858794",
+          "title": "Wikidata「Q858794」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_8cc5e94e7565",
+    "slug": "big-sur",
+    "name": "ビッグサー",
+    "nameEn": "Big Sur",
+    "reading": "ビッグサー",
+    "aliases": [],
+    "address": "カリフォルニア州 モントレー郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "モントレー郡"
+    },
+    "coords": {
+      "lat": 36.11,
+      "lng": -121.63
+    },
+    "category": "海岸",
+    "summary": "カリフォルニア州のセントラルコーストにある人口の希薄な地域で、サンタルシア山脈が太平洋岸から急に立ち上がっている所にあります。",
+    "description": "地形は絶景の連続で、人気のある観光地になっています。コーン山は標高1571メートルで、大陸アメリカ合衆国48州の海岸線にある山としては最高峰です。2車線舗装道路の州道1号線が1937年に完成して、地域は急速に変わりました。冬の雨で州道1号線が数日から数週間通行止めになることがあり、2008年の山火事のときも閉鎖されました。",
+    "highlights": [
+      "太平洋岸から急に立ち上がるサンタルシア山脈",
+      "標高1571メートルのコーン山",
+      "海沿いを通る州道1号線"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "道路の状況を確かめたうえで、海岸線が重なって見える位置から収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%93%E3%83%83%E3%82%B0%E3%82%B5%E3%83%BC",
+          "title": "Wikipedia「ビッグサー」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q859413",
+          "title": "Wikidata「Q859413」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_4a2936d4780a",
+    "slug": "painted-hills-oregon",
+    "name": "ペインテッド・ヒルズ",
+    "nameEn": "Painted Hills",
+    "reading": "ペインテッド・ヒルズ",
+    "aliases": [],
+    "address": "オレゴン州 ウィーラー郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "オレゴン州",
+      "city": "ウィーラー郡"
+    },
+    "coords": {
+      "lat": 44.66,
+      "lng": -120.27
+    },
+    "category": "自然現象",
+    "summary": "ジョン・デイ化石層国定公園を構成する、オレゴン州ウィーラー郡の一地域です。ベンドの東121キロメートルに位置します。",
+    "description": "名前は、丘の斜面に見られる色彩豊かな地層から付けられました。大昔にこの地域が川の氾濫原だった時代に形成され、黒い土は亜炭、灰色のものは泥岩、シルト岩、頁岩、赤いものは氾濫原の沈殿物から作られたラテライト土壌です。初期のウマ、ラクダ、サイの化石が数多く発見されることから、古脊椎動物学における重要な地域です。",
+    "highlights": [
+      "丘の斜面に見える色彩豊かな地層",
+      "黒、灰色、赤の層の色の違い",
+      "面積1,267ヘクタールの地域"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "地層の色の違いが際立つよう、斜めの光のもとで丘の斜面を撮ります"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9A%E3%82%A4%E3%83%B3%E3%83%86%E3%83%83%E3%83%89%E3%83%BB%E3%83%92%E3%83%AB%E3%82%BA",
+          "title": "Wikipedia「ペインテッド・ヒルズ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q5978455",
+          "title": "Wikidata「Q5978455」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6c992c940476",
+    "slug": "haystack-rock-cannon-beach",
+    "name": "ヘイスタック・ロック",
+    "nameEn": "Haystack Rock",
+    "reading": "ヘイスタック・ロック",
+    "aliases": [],
+    "address": "オレゴン州 クラトソップ郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "オレゴン州",
+      "city": "クラトソップ郡"
+    },
+    "coords": {
+      "lat": 45.88,
+      "lng": -123.97
+    },
+    "category": "海岸",
+    "summary": "オレゴン州のクラトソップ郡にある海食柱で、観光地としても有名です。「干草の山のような岩」という意味の名前を持ちます。",
+    "description": "玄武岩の一枚岩でできていて、高さは約72メートルです。すぐ南には、まとめて「ザ・ニードルズ（針）」と呼ばれる3つの小さな岩があります。アジサシやツノメドリなどの海鳥が営巣していて、バードウォッチングが行われるほか、『グーニーズ』などの映画が撮影された場所としても知られます。潮が満ちてくる時に岩に近づきすぎて取り残され、救助される人が毎年いるため、注意が必要です。",
+    "highlights": [
+      "高さ約72メートルの玄武岩の海食柱",
+      "南にある3つの小さな岩ザ・ニードルズ",
+      "営巣する海鳥"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "岩に近づきすぎないよう、離れた位置から岩全体を収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%98%E3%82%A4%E3%82%B9%E3%82%BF%E3%83%83%E3%82%AF%E3%83%BB%E3%83%AD%E3%83%83%E3%82%AF",
+          "title": "Wikipedia「ヘイスタック・ロック」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1592015",
+          "title": "Wikidata「Q1592015」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_23abb0baeebe",
+    "slug": "lake-tahoe",
+    "name": "タホ湖",
+    "nameEn": "Lake Tahoe",
+    "reading": "タホこ",
+    "aliases": [],
+    "address": "カリフォルニア州・ネバダ州",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "タホ湖"
+    },
+    "coords": {
+      "lat": 39.09,
+      "lng": -120.04
+    },
+    "category": "湖沼",
+    "summary": "カリフォルニア州とネバダ州の州境のシエラネヴァダ山中にある湖で、湖岸線の3分の2はカリフォルニア州に属します。",
+    "description": "最大水深は501メートルで、世界では16番目、アメリカ合衆国内ではクレーター湖に次いで2番目に深い湖です。透明度は世界屈指ですが、富栄養化が進み、年間0.25メートルずつ透明度が低下してきているとされます。スキーリゾートとして著名で、ネバダ州側にはカジノがあります。",
+    "highlights": [
+      "最大水深501メートルの湖",
+      "世界屈指の透明度",
+      "スキーリゾートとして著名な湖畔"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "湖の広がりと山並みが一緒に入る位置から広く収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BF%E3%83%9B%E6%B9%96",
+          "title": "Wikipedia「タホ湖」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q169962",
+          "title": "Wikidata「Q169962」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_5cc5d91ff3b8",
+    "slug": "glacier-point",
+    "name": "グレイシャーポイント",
+    "nameEn": "Glacier Point",
+    "reading": "グレイシャーポイント",
+    "aliases": [],
+    "address": "カリフォルニア州 ヨセミテ国立公園",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "ヨセミテ国立公園"
+    },
+    "coords": {
+      "lat": 37.73,
+      "lng": -119.57
+    },
+    "category": "展望台",
+    "summary": "ヨセミテバレーの直上にある展望地で、ヨセミテバレーの南壁の標高2199メートルの場所にあります。",
+    "description": "カリー・ビレッジの直上975メートルにあたり、ヨセミテ滝、ハーフドーム、バーナル滝、ネバダ滝、クラウズレストを含むヨセミテ国立公園のすばらしい眺望が得られます。グレーシャーポイントロードは、通常5月下旬から10月または11月までの期間、自動車で利用できます。道が閉鎖されている間は、バジャーパススキー場からのアクセスがスキーか雪靴に限られます。フォーマイルトレイルからも行くことができます。",
+    "highlights": [
+      "標高2199メートルの展望地",
+      "ハーフドームやヨセミテ滝などを望む眺め",
+      "カリー・ビレッジの直上975メートルの高さ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "谷を見下ろす高さが伝わるよう、手前の岩の縁を入れて収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%AC%E3%82%A4%E3%82%B7%E3%83%A3%E3%83%BC%E3%83%9D%E3%82%A4%E3%83%B3%E3%83%88",
+          "title": "Wikipedia「グレイシャーポイント」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3108318",
+          "title": "Wikidata「Q3108318」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_0744818b5195",
+    "slug": "rockefeller-center",
+    "name": "ロックフェラー・センター",
+    "nameEn": "Rockefeller Center",
+    "reading": "ロックフェラー・センター",
+    "aliases": [],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.76,
+      "lng": -73.98
+    },
+    "category": "建築",
+    "summary": "ニューヨーク市ミッドタウンマンハッタンの5番街および6番街にある、超高層ビルを含む複数のビルからなる複合施設です。",
+    "description": "大富豪のジョン・D・ロックフェラーによって1930年から建設され、すべての建築物が完成したのは9年後の1939年でした。48番街と51番街の22エーカーの土地に19の商業ビルが建ち、各ビルの低層階は1つの建物としてつながっています。一番大きいコムキャスト・ビルディングは高さ259メートル、70階建てです。プロメテウス像やアトラス像が有名です。",
+    "highlights": [
+      "高さ259メートル、70階建てのコムキャスト・ビルディング",
+      "プロメテウス像とアトラス像",
+      "19の商業ビルからなる複合施設"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "高さが伝わるよう、足元の彫像を前景に入れて見上げて収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%AD%E3%83%83%E3%82%AF%E3%83%95%E3%82%A7%E3%83%A9%E3%83%BC%E3%83%BB%E3%82%BB%E3%83%B3%E3%82%BF%E3%83%BC",
+          "title": "Wikipedia「ロックフェラー・センター」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11277",
+          "title": "Wikidata「Q11277」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_ad8204b7804b",
+    "slug": "grand-central-terminal",
+    "name": "グランド・セントラル駅",
+    "nameEn": "Grand Central Terminal",
+    "reading": "グランド・セントラルえき",
+    "aliases": [
+      "グランド・セントラル・ターミナル"
+    ],
+    "address": "ニューヨーク州 ニューヨーク市",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "ニューヨーク市"
+    },
+    "coords": {
+      "lat": 40.75,
+      "lng": -73.98
+    },
+    "category": "駅",
+    "summary": "ニューヨーク市マンハッタン区のミッドタウン、パーク・アベニューと42丁目にあるターミナル駅で、正式名称はグランド・セントラル・ターミナルです。",
+    "description": "ペンシルベニア駅と並ぶニューヨークの2大ターミナル駅の1つです。現在の駅舎は古典主義風のボザール様式の建築物で、1913年2月1日に完成しました。44面のプラットホームがあり、単一の駅としては世界最大です。1966年に駅舎を解体して高層ビルに建て替える計画が発表されましたが、反対があり、連邦最高裁判所まで争った末に撤回されました。",
+    "highlights": [
+      "古典主義風のボザール様式の駅舎",
+      "44面のプラットホーム",
+      "1913年2月1日に完成した三代目の駅舎"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      }
+    ],
+    "compositionTips": [
+      "ボザール様式の建築の対称性を生かして、正面から収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B0%E3%83%A9%E3%83%B3%E3%83%89%E3%83%BB%E3%82%BB%E3%83%B3%E3%83%88%E3%83%A9%E3%83%AB%E9%A7%85",
+          "title": "Wikipedia「グランド・セントラル駅」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11290",
+          "title": "Wikidata「Q11290」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c863e9dc9ed0",
+    "slug": "walt-disney-concert-hall",
+    "name": "ウォルト・ディズニー・コンサートホール",
+    "nameEn": "Walt Disney Concert Hall",
+    "reading": "ウォルト・ディズニー・コンサートホール",
+    "aliases": [],
+    "address": "カリフォルニア州 ロサンゼルス",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "カリフォルニア州",
+      "city": "ロサンゼルス"
+    },
+    "coords": {
+      "lat": 34.06,
+      "lng": -118.25
+    },
+    "category": "建築",
+    "summary": "ロサンゼルスのミュージックセンター内にある、ヴィンヤード型のコンサートホールです。ウォルト・ディズニー・カンパニーが所有しています。",
+    "description": "1987年にウォルト・ディズニーの妻リリアン・ディズニーがホールの建設を決め、ディズニー家は総額で1億ドル以上を拠出しました。設計はフランク・ゲーリー、音響は豊田泰久が担当しました。メインホールは硬質木製パネルで構成され、2003年10月23日にこけら落とし公演が行われました。",
+    "highlights": [
+      "フランク・ゲーリーの設計",
+      "硬質木製パネルのメインホール",
+      "2003年10月23日のこけら落とし"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "建築の曲面が際立つよう、斜めの光が当たる時間に外観を撮ります"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%A9%E3%83%AB%E3%83%88%E3%83%BB%E3%83%87%E3%82%A3%E3%82%BA%E3%83%8B%E3%83%BC%E3%83%BB%E3%82%B3%E3%83%B3%E3%82%B5%E3%83%BC%E3%83%88%E3%83%9B%E3%83%BC%E3%83%AB",
+          "title": "Wikipedia「ウォルト・ディズニー・コンサートホール」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q474326",
+          "title": "Wikidata「Q474326」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_57e32983e0a9",
+    "slug": "columbia-river-gorge",
+    "name": "コロンビア川峡谷",
+    "nameEn": "Columbia River Gorge",
+    "reading": "コロンビアがわきょうこく",
+    "aliases": [],
+    "address": "オレゴン州・ワシントン州",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "オレゴン州",
+      "city": "フッドリバー郡"
+    },
+    "coords": {
+      "lat": 45.7,
+      "lng": -121.79
+    },
+    "category": "渓谷",
+    "summary": "アメリカ合衆国太平洋岸北西部を流れるコロンビア川にある峡谷で、ワシントン州とオレゴン州の州境にもなっています。",
+    "description": "深さは最大で1,200メートル、長さは130キロメートルにおよびます。川がカスケード山脈を横断する部分に形成されていて、コロンビア川台地と太平洋を結ぶ唯一の峡谷です。人気のレジャースポットで、連邦政府によってコロンビア峡谷国立風致地区として保護されています。標高の多様さと降水量の差から、西部では温帯雨林が形成されています。",
+    "highlights": [
+      "深さ最大1,200メートルの峡谷",
+      "ワシントン州とオレゴン州の州境",
+      "国立風致地区に保護された峡谷"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "峡谷の奥行きが伝わるよう、川の流れに沿って高い位置から収めます"
+    ],
+    "timeZone": "America/Los_Angeles",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B3%E3%83%AD%E3%83%B3%E3%83%93%E3%82%A2%E5%B7%9D%E5%B3%A1%E8%B0%B7",
+          "title": "Wikipedia「コロンビア川峡谷」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1112581",
+          "title": "Wikidata「Q1112581」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_f41df3cb4207",
+    "slug": "cloud-gate-chicago",
+    "name": "クラウド・ゲート",
+    "nameEn": "Cloud Gate",
+    "reading": "クラウド・ゲート",
+    "aliases": [
+      "ザ・ビーン"
+    ],
+    "address": "イリノイ州 シカゴ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "イリノイ州",
+      "city": "シカゴ"
+    },
+    "coords": {
+      "lat": 41.88,
+      "lng": -87.62
+    },
+    "category": "アート",
+    "summary": "シカゴのミレニアム・パークにある、インド出身の彫刻家アニッシュ・カプーアによる巨大な彫像で、豆のような形から「ザ・ビーン」の愛称でも呼ばれます。",
+    "description": "2004年から2006年にかけて作成されました。168枚のステンレス板を溶接してつなぎ合わせてあり、十分に研磨された表面には継ぎ目が見えず、鏡の塊のような外観です。高さは10メートル、幅は20メートル、奥行きは13メートル、重量は99.8トンあります。表面にはシカゴのスカイラインがゆがみつつ映し出され、下部のアーチの下や周囲を歩いて楽しめます。",
+    "highlights": [
+      "168枚のステンレス板でできた鏡面",
+      "表面に映るシカゴのスカイライン",
+      "アーチ下の空間『オンパロス』"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "表面に映る街並みと空を、ゆがみごと構図に取り入れて撮ります"
+    ],
+    "timeZone": "America/Chicago",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AF%E3%83%A9%E3%82%A6%E3%83%89%E3%83%BB%E3%82%B2%E3%83%BC%E3%83%88",
+          "title": "Wikipedia「クラウド・ゲート」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q589099",
+          "title": "Wikidata「Q589099」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_aa5bcb6756de",
+    "slug": "jefferson-memorial",
+    "name": "ジェファーソン記念館",
+    "nameEn": "Thomas Jefferson Memorial",
+    "reading": "ジェファーソンきねんかん",
+    "aliases": [],
+    "address": "ワシントンD.C. ワシントンD.C.",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ワシントンD.C.",
+      "city": "ワシントンD.C."
+    },
+    "coords": {
+      "lat": 38.88,
+      "lng": -77.04
+    },
+    "category": "史跡",
+    "summary": "ワシントンD.C.中心部のナショナル・モール南側にあるタイダルベイスンの畔に建つ、第3代大統領トーマス・ジェファーソンを記念した建造物です。",
+    "description": "記念館は1943年に建てられ、中には1947年に完成したジェファーソンの銅像が置かれています。アメリカ合衆国国定記念建造物に指定されています。",
+    "highlights": [
+      "タイダルベイスンの畔に建つ記念館",
+      "1947年に完成したジェファーソンの銅像",
+      "アメリカ合衆国国定記念建造物"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "dusk",
+        "text": "日没後の薄明かりの時間は、空の色の変化を写せます。"
+      }
+    ],
+    "compositionTips": [
+      "タイダルベイスンの水面を前景に入れて、記念館を収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B8%E3%82%A7%E3%83%95%E3%82%A1%E3%83%BC%E3%82%BD%E3%83%B3%E8%A8%98%E5%BF%B5%E9%A4%A8",
+          "title": "Wikipedia「ジェファーソン記念館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q326183",
+          "title": "Wikidata「Q326183」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_52fbab1cc334",
+    "slug": "monticello",
+    "name": "モンティチェロ",
+    "nameEn": "Monticello",
+    "reading": "モンティチェロ",
+    "aliases": [
+      "モンティセロ"
+    ],
+    "address": "バージニア州 シャーロッツビル",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "バージニア州",
+      "city": "シャーロッツビル"
+    },
+    "coords": {
+      "lat": 38.01,
+      "lng": -78.45
+    },
+    "category": "建築",
+    "summary": "バージニア州シャーロッツビルにある、第3代大統領トーマス・ジェファーソンの邸宅と歴史的なプランテーションがあった場所です。",
+    "description": "邸宅は主にジェファーソン独自のデザインで、1769年に建設が始まり、再設計・増築を経て1809年に完成しました。高さ260メートルの峰の頂上に建てられていて、名前はイタリア語で「小さな山」を意味します。1987年にユネスコの世界遺産に登録され、世界遺産に選定されたアメリカ合衆国で唯一の私人の住居です。来訪者は地下貯蔵庫の各部屋と1階を見学でき、2階と3階は一般に公開されていません。",
+    "highlights": [
+      "ジェファーソン自身がデザインした邸宅",
+      "1987年に登録された世界遺産",
+      "1938年から2003年の5セント硬貨の裏面に描かれた姿"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "邸宅の正面を、離れた位置から全体が入るように収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%A2%E3%83%B3%E3%83%86%E3%82%A3%E3%83%81%E3%82%A7%E3%83%AD",
+          "title": "Wikipedia「モンティチェロ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q199618",
+          "title": "Wikidata「Q199618」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_52de85acf0f3",
+    "slug": "mount-vernon",
+    "name": "マウントバーノン",
+    "nameEn": "Mount Vernon",
+    "reading": "マウントバーノン",
+    "aliases": [
+      "マウント・バーノン"
+    ],
+    "address": "バージニア州 フェアファクス郡",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "バージニア州",
+      "city": "フェアファクス郡"
+    },
+    "coords": {
+      "lat": 38.71,
+      "lng": -77.09
+    },
+    "category": "史跡",
+    "summary": "バージニア州のフェアファクス郡にある、初代大統領ジョージ・ワシントンのプランテーションがあった所で、ワシントンD.C.の南25キロメートルに位置します。",
+    "description": "木製の邸宅は新古典主義ジョージア調建築様式で、地所はポトマック川の堤にあります。1960年にアメリカ合衆国国定歴史建造物に指定され、国家歴史登録財にも登録されました。現在はマウントバーノン婦人協会による信託で所有され維持されており、当時の家具や装飾もそのままに観光客に人気のある場所です。",
+    "highlights": [
+      "新古典主義ジョージア調建築様式の木製邸宅",
+      "ポトマック川の堤にある地所",
+      "1960年に指定された国定歴史建造物"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "邸宅と周囲の地所が入るように、少し離れた位置から収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9E%E3%82%A6%E3%83%B3%E3%83%88%E3%83%90%E3%83%BC%E3%83%8E%E3%83%B3",
+          "title": "Wikipedia「マウントバーノン」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q731635",
+          "title": "Wikidata「Q731635」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_0d58c33c8331",
+    "slug": "faneuil-hall",
+    "name": "ファニエル・ホール",
+    "nameEn": "Faneuil Hall",
+    "reading": "ファニエル・ホール",
+    "aliases": [],
+    "address": "マサチューセッツ州 ボストン",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "マサチューセッツ州",
+      "city": "ボストン"
+    },
+    "coords": {
+      "lat": 42.36,
+      "lng": -71.06
+    },
+    "category": "史跡",
+    "summary": "ボストン市中心部の海岸近くに位置する歴史的建造物で、1743年から商店街および会議場として使われています。",
+    "description": "サミュエル・アダムズやジェームス・オティスなど独立派の有力者が演説を行った場所でもあり、「自由のゆりかご」と呼ばれることがあります。現在はボストン国立歴史公園の一角をなし、フリーダムトレイルに沿った観光地のひとつです。2008年には全米最多観光客数25選の第4位に選ばれました。",
+    "highlights": [
+      "1743年から使われる商店街と会議場",
+      "「自由のゆりかご」という呼び名",
+      "フリーダムトレイルに沿った観光地"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "歴史的な建物の外観を、周囲の街並みと一緒に収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%95%E3%82%A1%E3%83%8B%E3%82%A8%E3%83%AB%E3%83%BB%E3%83%9B%E3%83%BC%E3%83%AB",
+          "title": "Wikipedia「ファニエル・ホール」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q49137",
+          "title": "Wikidata「Q49137」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_9d185c5e02f3",
+    "slug": "french-quarter-new-orleans",
+    "name": "フレンチ・クオーター",
+    "nameEn": "The French Quarter",
+    "reading": "フレンチ・クオーター",
+    "aliases": [
+      "ヴュー・カレ"
+    ],
+    "address": "ルイジアナ州 ニューオーリンズ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ルイジアナ州",
+      "city": "ニューオーリンズ"
+    },
+    "coords": {
+      "lat": 29.96,
+      "lng": -90.06
+    },
+    "category": "町並み",
+    "summary": "ニューオーリンズの地区のひとつで、フランス語で「古き街」の意味のヴュー・カレとしても知られます。",
+    "description": "カナル・ストリート、エスプラネード・アベニュー、ランパート・ストリート、ミシシッピ川の4辺で仕切られた地域を指します。多くの建物はフランス植民地時代やスペイン植民地時代のもので、1920年代からフレンチ・クオーターの建築の保護が法定化されました。2005年8月下旬のハリケーン・カトリーナでは他の地域に比べて被害が少なく、1か月以内にほとんどの地区が再開されました。",
+    "highlights": [
+      "フランス・スペイン植民地時代の建物",
+      "4辺で仕切られた古い街区",
+      "1920年代から法定化された建築の保護"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "古い建物が並ぶ通りを、歩く人も入れて奥行きを出して撮ります"
+    ],
+    "timeZone": "America/Chicago",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%95%E3%83%AC%E3%83%B3%E3%83%81%E3%83%BB%E3%82%AF%E3%82%AA%E3%83%BC%E3%82%BF%E3%83%BC",
+          "title": "Wikipedia「フレンチ・クオーター」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q602939",
+          "title": "Wikidata「Q602939」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_f9cb965d779d",
+    "slug": "walden-pond",
+    "name": "ウォールデン池",
+    "nameEn": "Walden Pond",
+    "reading": "ウォールデンいけ",
+    "aliases": [],
+    "address": "マサチューセッツ州 コンコード",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "マサチューセッツ州",
+      "city": "コンコード"
+    },
+    "coords": {
+      "lat": 42.44,
+      "lng": -71.34
+    },
+    "category": "湖沼",
+    "summary": "マサチューセッツ州コンコードにある水深31メートルの池で、作家ヘンリー・デイヴィッド・ソローが暮らした場所として知られます。",
+    "description": "広さは61エーカー、周囲は1.7マイルで、堆積氷河が溶けた後にできたケトルと呼ばれる穴の有名な例です。ソローは1845年の夏から2年間、この池の北側の岸辺に居住し、その経験は『ウォールデン 森の生活』に記録されています。",
+    "highlights": [
+      "水深31メートルの池",
+      "氷河が作ったケトル",
+      "ソローが暮らした北側の岸辺"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "池の水面と周囲の木々の連なりを、低い位置から収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A6%E3%82%A9%E3%83%BC%E3%83%AB%E3%83%87%E3%83%B3%E6%B1%A0",
+          "title": "Wikipedia「ウォールデン池」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2023853",
+          "title": "Wikidata「Q2023853」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_389e553b8da3",
+    "slug": "new-york-state-capitol",
+    "name": "ニューヨーク州会議事堂",
+    "nameEn": "New York State Capitol",
+    "reading": "ニューヨークしゅうかいぎじどう",
+    "aliases": [],
+    "address": "ニューヨーク州 オールバニ",
+    "region": {
+      "country": "アメリカ",
+      "prefecture": "ニューヨーク州",
+      "city": "オールバニ"
+    },
+    "coords": {
+      "lat": 42.65,
+      "lng": -73.76
+    },
+    "category": "建築",
+    "summary": "ニューヨーク州の州都オールバニにある州議会の議事堂で、エンパイア・ステート・プラザなどと地下道でつながっています。",
+    "description": "建設は1867年から1899年まで32年間にわたって行われ、その間に3グループの建築家が設計・建設に携わりました。庁舎のデザインの基になったのはパリの市庁舎で、建設費は約2,500万ドルと、当時のアメリカ合衆国議会議事堂のおよそ2倍に上りました。",
+    "highlights": [
+      "32年をかけて建てられた議事堂",
+      "パリの市庁舎を基にしたデザイン",
+      "約2,500万ドルの建設費"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、夕方の光を使える時間が長くなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は太陽の位置が低く、日中でも斜めの光で陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "日の出や日没の前後は、斜めの光で陰影のある写真になります。"
+      },
+      {
+        "time": "day",
+        "text": "日中は明るい光で、全体の形をはっきり写せます。"
+      }
+    ],
+    "compositionTips": [
+      "建物の対称性を生かして、正面から全体を収めます"
+    ],
+    "timeZone": "America/New_York",
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:50:49.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%8B%E3%83%A5%E3%83%BC%E3%83%A8%E3%83%BC%E3%82%AF%E5%B7%9E%E4%BC%9A%E8%AD%B0%E4%BA%8B%E5%A0%82",
+          "title": "Wikipedia「ニューヨーク州会議事堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1510431",
+          "title": "Wikidata「Q1510431」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
   }
 ]
