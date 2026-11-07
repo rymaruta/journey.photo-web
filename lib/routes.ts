@@ -104,6 +104,12 @@ export const ROUTES = {
     SPOT_SEASON_THEME: (season: string, category: string) => `/spots/season/${encodeURIComponent(season)}/theme/${encodeURIComponent(category)}`,
     /** 紅葉の撮影スポット（`/spots/momiji`＝まとめ・`/spots/momiji/<地方か県の綴り>`・2026-11-06） */
     SPOT_MOMIJI: (place?: string) => `/spots/momiji${place ? `/${encodeURIComponent(place)}` : ""}`,
+    /** 桜（春）の撮影スポット（`/spots/sakura`＝まとめ・`/spots/sakura/<地方か県の綴り>`・2026-11-07） */
+    SPOT_SAKURA: (place?: string) => `/spots/sakura${place ? `/${encodeURIComponent(place)}` : ""}`,
+    /** 雪景色（冬）の撮影スポット（`/spots/snow`＝まとめ・`/spots/snow/<地方か県の綴り>`・2026-11-07） */
+    SPOT_SNOW: (place?: string) => `/spots/snow${place ? `/${encodeURIComponent(place)}` : ""}`,
+    /** 見どころ別の撮影スポット（紅葉・桜・雪景色の共通の入口） */
+    SPOT_FEATURE: (feature: "momiji" | "sakura" | "snow", place?: string) => `/spots/${feature}${place ? `/${encodeURIComponent(place)}` : ""}`,
     /** 写真をさがす（絞り込みと一覧）。**検索結果に出さない**——トップと中身が重なる */
     SEARCH: "/search",
     /**

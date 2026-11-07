@@ -31,7 +31,9 @@ export default function Footer() {
     // 3,000 件を超える撮影スポットと、その「○選」の頁へ、どの頁の下からも1クリックで入れる。
     // 検索エンジンの巡回の入口にもなる（ヘッダーのメニューはボタンでリンクではない）
     const spotLinks = [
+        { href: ROUTES.SPOT_SAKURA(), label: locale === "en" ? "Cherry blossoms" : "桜の撮影スポット" },
         { href: ROUTES.SPOT_MOMIJI(), label: locale === "en" ? "Autumn foliage" : "紅葉の撮影スポット" },
+        { href: ROUTES.SPOT_SNOW(), label: locale === "en" ? "Snow scenery" : "雪景色の撮影スポット" },
         { href: ROUTES.SPOT_SEASON("spring"), label: locale === "en" ? "Spring" : "春の撮影スポット" },
         { href: ROUTES.SPOT_SEASON("summer"), label: locale === "en" ? "Summer" : "夏の撮影スポット" },
         { href: ROUTES.SPOT_SEASON("autumn"), label: locale === "en" ? "Autumn" : "秋の撮影スポット" },
