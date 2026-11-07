@@ -9,6 +9,7 @@ import { commonsThumbAt, commonsSrcSet } from "@/lib/utils/commonsThumb";
 import { showsField, sourcesFor, needsVisibleCredit, usesMapHero, isVerified, isPublished, hasAiCheck } from "@/lib/utils/spotGuide";
 import { useLocale } from "@/app/i18n/context";
 import { ROUTES } from "@/lib/routes";
+import { OVERSEAS_SLUG } from "@/lib/data/prefectures";
 import { MapIcon, ArrowUpOnSquareIcon, ChevronRightIcon, ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { useToast } from "@/lib/hooks/useToast";
 import { shareUrl } from "@/lib/utils/share";
@@ -912,6 +913,17 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                         )}
 
                         {light && <LightTable light={light} sky={sky} isJa={isJa} />}
+                        {/* 日本のスポットは、その県の「今日の日の出・日の入り」へ（2026-11-07）。海外は県の頁が無い */}
+                        {light && area && spot.region?.country === "日本" && area.slug !== OVERSEAS_SLUG && (
+                            <p className="m-0 mt-2" data-testid="spot-today-link">
+                                <Link href={ROUTES.TODAY_PREF(area.slug)} prefetch={false}
+                                      className="inline-flex min-h-[44px] items-center text-white/60 hover:text-white transition-colors"
+                                      style={{ fontSize: "13px" }}>
+                                    {isJa ? `${area.name.replace(/[都府県]$/, "")}の今日の日の出・日の入り時刻` : `Today's sunrise and sunset in ${area.nameEn}`}
+                                    <span aria-hidden="true" className="ml-1">›</span>
+                                </Link>
+                            </p>
+                        )}
                         {sky && <NightSky sky={sky} isJa={isJa} />}
 
                         {officialSite}

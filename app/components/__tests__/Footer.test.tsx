@@ -25,6 +25,8 @@ describe("フッターの導線", () => {
             ["写真とカメラの教科書", ROUTES.LEARN],
             // 構図ガイド（2026-11-05）。教科書の頁の中からしか行けなかった。教科書の隣（どちらも「読む」）
             ["構図ガイド", ROUTES.COMPOSITION],
+            // 今日の日の出・日の入り（2026-11-07）。構図ガイドの隣（どちらも「撮りに行く前に見る」）
+            ["今日の日の出・日の入り", ROUTES.TODAY],
             ["いいねした写真", ROUTES.FAVORITES],
             // **いいねの隣に置く。** 別の棚だと分かるのは並んでいるとき
             ["保存した写真", ROUTES.SAVES],
@@ -33,7 +35,9 @@ describe("フッターの導線", () => {
             ["行きたい場所", ROUTES.SAVED_SPOTS],
             // 撮影スポットの切り口への入口（2026-11-05・2つ目の nav「撮影スポットをさがす」）。
             // 3,000 件を超える撮影スポットへ、どの頁の下からも1クリックで入れる
+            ["桜の撮影スポット", ROUTES.SPOT_SAKURA()],
             ["紅葉の撮影スポット", ROUTES.SPOT_MOMIJI()],
+            ["雪景色の撮影スポット", ROUTES.SPOT_SNOW()],
             ["春の撮影スポット", ROUTES.SPOT_SEASON("spring")],
             ["夏の撮影スポット", ROUTES.SPOT_SEASON("summer")],
             ["秋の撮影スポット", ROUTES.SPOT_SEASON("autumn")],

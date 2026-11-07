@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import SpotTopicPage from "@/app/components/SpotTopicPage";
-import { momijiTopics, momijiView, topicMetadata } from "@/lib/data/spotTopics";
+import { featureTopics, featureView, FEATURES, topicMetadata } from "@/lib/data/spotTopics";
 import { EMPTY_PARAM_PLACEHOLDER } from "@/lib/server/staticParams";
 
 // 静的エクスポート: 列挙した組のみ生成し、それ以外は 404
@@ -12,18 +12,18 @@ export const dynamicParams = false;
  * `MIN_TOPIC_SPOTS` 件以上の地方・県だけ（薄い頁を作らない・`lib/data/spotTopics.ts`）。
  */
 export function generateStaticParams() {
-    const params = momijiTopics().filter((t) => t.place).map((t) => ({ place: t.place!.slug }));
+    const params = featureTopics("momiji").filter((t) => t.place).map((t) => ({ place: t.place!.slug }));
     return params.length > 0 ? params : [{ place: EMPTY_PARAM_PLACEHOLDER }];
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ place: string }> }): Promise<Metadata> {
     const { place } = await params;
-    return topicMetadata(momijiView(place));
+    return topicMetadata(featureView("momiji", place));
 }
 
 export default async function SpotMomijiPlacePage({ params }: { params: Promise<{ place: string }> }) {
     const { place } = await params;
-    const view = momijiView(place);
+    const view = featureView("momiji", place);
     if (!view) notFound();
-    return <SpotTopicPage view={view} eyebrow="Photo spots · Autumn foliage" />;
+    return <SpotTopicPage view={view} eyebrow={FEATURES.momiji.eyebrow} />;
 }

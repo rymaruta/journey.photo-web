@@ -17,6 +17,8 @@ export default function Footer() {
         { href: ROUTES.LEARN, label: locale === "en" ? "Photography guides" : "写真とカメラの教科書" },
         // 構図ガイド（2026-11-05）: ホーム・ヘッダー・フッターのどこからも直接は行けなかった（教科書の頁の中だけ）
         { href: ROUTES.COMPOSITION, label: locale === "en" ? "Composition guide" : "構図ガイド" },
+        // 今日の日の出・日の入り（2026-11-07）。また開く理由の入口。撮影のための「光」の頁なので構図ガイドの隣
+        { href: ROUTES.TODAY, label: locale === "en" ? "Today's sunrise & sunset" : "今日の日の出・日の入り" },
         { href: ROUTES.FAVORITES, label: navLabels.favorites || (locale === "en" ? "Liked Photos" : "いいねした写真") },
         { href: ROUTES.SAVES, label: navLabels.saves || (locale === "en" ? "Saved Photos" : "保存した写真") },
         { href: ROUTES.SAVED_SPOTS, label: locale === "en" ? "Want to go" : "行きたい場所" },
@@ -31,7 +33,9 @@ export default function Footer() {
     // 3,000 件を超える撮影スポットと、その「○選」の頁へ、どの頁の下からも1クリックで入れる。
     // 検索エンジンの巡回の入口にもなる（ヘッダーのメニューはボタンでリンクではない）
     const spotLinks = [
+        { href: ROUTES.SPOT_SAKURA(), label: locale === "en" ? "Cherry blossoms" : "桜の撮影スポット" },
         { href: ROUTES.SPOT_MOMIJI(), label: locale === "en" ? "Autumn foliage" : "紅葉の撮影スポット" },
+        { href: ROUTES.SPOT_SNOW(), label: locale === "en" ? "Snow scenery" : "雪景色の撮影スポット" },
         { href: ROUTES.SPOT_SEASON("spring"), label: locale === "en" ? "Spring" : "春の撮影スポット" },
         { href: ROUTES.SPOT_SEASON("summer"), label: locale === "en" ? "Summer" : "夏の撮影スポット" },
         { href: ROUTES.SPOT_SEASON("autumn"), label: locale === "en" ? "Autumn" : "秋の撮影スポット" },

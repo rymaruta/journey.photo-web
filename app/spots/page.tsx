@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { CHIP_OFF, CHIP_SIZE, CHIP_HIT } from "@/app/components/chipStyles";
 import SpotAreaIndexClient from "@/app/components/SpotAreaIndexClient";
 import { SPOTS } from "@/lib/data/spots";
 import { spotAreas } from "@/lib/data/spotLink";
@@ -9,6 +11,7 @@ import { spotCheckedClaim } from "@/lib/data/spotPageMeta";
 import { spotIndexTopics, firstSpotOgImage, spotTwitterMeta } from "@/lib/data/spotTopics";
 import { TopicChips, Lang } from "@/app/components/SpotTopicLists";
 import SectionHead, { SectionTitle } from "@/app/components/SectionHead";
+import { ROUTES } from "@/lib/routes";
 
 /**
  * **撮影地ガイドの入口。**
@@ -67,6 +70,7 @@ export default function SpotIndexPage() {
             )}
             <SpotAreaIndexClient areas={areas} total={total} draftCount={total - publishableSpots(SPOTS).length}>
                 <SpotIndexTopicSections />
+                <SpotIndexTodayEntry />
             </SpotAreaIndexClient>
         </>
     );
@@ -82,7 +86,7 @@ const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c").
  * サーバーで描くので、切り口の一覧はクライアントの props に乗らない（HTML の本文だけ）
  */
 function SpotIndexTopicSections() {
-    const { seasons, themes, seasonThemes, cities, momiji } = spotIndexTopics();
+    const { seasons, themes, seasonThemes, cities, momiji, sakura, snow } = spotIndexTopics();
     if (seasons.length === 0 && themes.length === 0) return null;
     return (
         <div data-testid="spots-topic-index">
@@ -92,10 +96,22 @@ function SpotIndexTopicSections() {
                     <TopicChips links={seasons} />
                 </section>
             )}
+            {sakura.length > 0 && (
+                <section className="mb-7">
+                    <SectionHead id="spots-sakura" eyebrow="CHERRY BLOSSOMS" title={<Lang ja="桜の撮影スポット" en="Cherry blossom photo spots" />} />
+                    <TopicChips links={sakura} />
+                </section>
+            )}
             {momiji.length > 0 && (
                 <section className="mb-7">
                     <SectionHead id="spots-momiji" eyebrow="AUTUMN FOLIAGE" title={<Lang ja="紅葉の撮影スポット" en="Autumn foliage photo spots" />} />
                     <TopicChips links={momiji} />
+                </section>
+            )}
+            {snow.length > 0 && (
+                <section className="mb-7">
+                    <SectionHead id="spots-snow" eyebrow="SNOW SCENERY" title={<Lang ja="雪景色の撮影スポット" en="Snow scenery photo spots" />} />
+                    <TopicChips links={snow} />
                 </section>
             )}
             {seasonThemes.length > 0 && (
@@ -122,5 +138,25 @@ function SpotIndexTopicSections() {
                 </section>
             )}
         </div>
+    );
+}
+
+/**
+ * **「今日の日の出・日の入り」への入口**（2026-11-07）。撮影に向く時間帯を日付で見る頁（`/today`）。
+ * 県庁所在地の市付近の座標から計算した目安で、現在地でも調べられる
+ */
+function SpotIndexTodayEntry() {
+    return (
+        <section className="mb-7" data-testid="spots-today-entry">
+            <SectionHead id="spots-today" eyebrow="TODAY" title={<Lang ja="今日の日の出・日の入り" en="Today's sunrise and sunset" />} />
+            <p className="m-0 mb-2 max-w-2xl text-text-2" style={{ fontSize: "13px", lineHeight: "20px" }}>
+                今日の日の出・日の入り時刻と、朝夕のゴールデンアワー。現在地か県を選んで調べられます。
+            </p>
+            <Link href={ROUTES.TODAY} prefetch={false}
+                  className={`${CHIP_HIT} inline-flex items-center rounded-full ${CHIP_OFF} transition-colors`}
+                  style={CHIP_SIZE}>
+                今日の日の出・日の入りを調べる
+            </Link>
+        </section>
     );
 }

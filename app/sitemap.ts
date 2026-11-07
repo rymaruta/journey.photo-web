@@ -12,6 +12,7 @@ import RAW_PHOTOS from "@/lib/data/photos";
 import type { Photo } from "@/lib/data/photos";
 import { ROUTES } from "../lib/routes";
 import { LEARN_ARTICLES } from "../lib/data/learn/articles";
+import { PREFECTURES } from "../lib/data/prefectures";
 
 export const dynamic = "force-static";
 
@@ -162,6 +163,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             priority: 0.6,
         }));
 
+    // 今日の日の出・日の入り（2026-11-07）。ハブと47県。HTML は日付で変わらない（今日の値は開いたブラウザが計算する）ので
+    // lastModified は付けない（ビルドの時刻を「更新日」と申告しない）
+    const todayUrls: MetadataRoute.Sitemap = [
+        { url: `${baseUrl}${ROUTES.TODAY}`, changeFrequency: "monthly" as const, priority: 0.6 },
+        ...PREFECTURES.map((p) => ({ url: `${baseUrl}${ROUTES.TODAY_PREF(p.slug)}`, changeFrequency: "monthly" as const, priority: 0.5 })),
+    ];
+
     return [
         {
             url: baseUrl,
@@ -209,6 +217,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: "monthly" as const,
             priority: 0.6,
         },
+        ...todayUrls,
         ...spotIndexUrls,
         ...spotAreaUrls,
         // 国・テーマ・季節の切り口の頁（2026-10-11・`lib/data/spotTopics.ts`）
