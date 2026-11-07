@@ -249182,5 +249182,5674 @@
       ],
       "imageChecked": false
     }
+  },
+  {
+    "spotId": "sp_200eb029febd",
+    "slug": "basilica-san-paolo-fuori-le-mura",
+    "name": "サン・パオロ・フオーリ・レ・ムーラ大聖堂",
+    "nameEn": "Basilica of Saint Paul Outside the Walls",
+    "reading": "サンパオロフオーリレムーラダイセイドウ",
+    "aliases": [
+      "城壁外の聖パウロ大聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.86,
+      "lng": 12.48
+    },
+    "category": "教会",
+    "summary": "ローマにあるカトリック教会の大聖堂で、ローマの五大バジリカの一つです。名称は「城壁外の聖パウロ大聖堂」の意味です。",
+    "description": "コンスタンティヌス1世によって、聖パウロの墓を祀る聖堂としてつくられました。386年にテオドシウス1世によって大規模に建設され、1823年7月15日の火災で大部分を焼失しましたが、その後再建されています。",
+    "highlights": [
+      "ローマの五大バジリカの一つ",
+      "聖パウロの墓を祀る聖堂",
+      "火災のあとに再建された大聖堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "建物全体が入る位置から、正面を水平に構えて写します",
+      "内部に入れるときは、奥へ続く空間を縦の構図で切り取ります"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%83%91%E3%82%AA%E3%83%AD%E3%83%BB%E3%83%95%E3%82%AA%E3%83%BC%E3%83%AA%E3%83%BB%E3%83%AC%E3%83%BB%E3%83%A0%E3%83%BC%E3%83%A9%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サン・パオロ・フオーリ・レ・ムーラ大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q231699",
+          "title": "Wikidata「Q231699」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_cdb143f00de0",
+    "slug": "santa-maria-della-salute",
+    "name": "サンタ・マリア・デッラ・サルーテ聖堂",
+    "nameEn": "Santa Maria della Salute",
+    "reading": "サンタマリアデッラサルーテセイドウ",
+    "aliases": [
+      "サルーテ",
+      "救済の聖母マリア聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェネツィア県",
+      "city": "ヴェネツィア"
+    },
+    "coords": {
+      "lat": 45.43,
+      "lng": 12.33
+    },
+    "category": "教会",
+    "summary": "ヴェネツィアにあるカトリック教会のバシリカで、一般にサルーテと縮めて呼ばれます。カナル・グランデとバチノ・ディ・サン・マルコの間の、狭い指状の土地の上に建っています。",
+    "description": "1629年夏に始まった黒死病の大流行を受け、1630年10月22日にヴェネツィア政府が新しい教会の建設を宣言しました。設計は建築家バルダッサーレ・ロンゲーナの案が選ばれ、聖堂は1681年に完成しています。水上からサン・マルコ広場へ向かう玄関口の目印となっています。",
+    "highlights": [
+      "水上から見える玄関口の目印",
+      "ロンゲーナ設計の聖堂",
+      "聖母マリアの祝日に行われる行進"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で水辺の景色を撮れる時間が広がります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋の11月21日は聖母マリアの祝日で、カナル・グランデに舟橋を渡す行進が行われます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "水辺の対岸や水上から、聖堂と水面を一緒に収めます",
+      "祝日の行進を狙うなら、日程を調べてから訪れます"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://basilicasalutevenezia.it/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%83%9E%E3%83%AA%E3%82%A2%E3%83%BB%E3%83%87%E3%83%83%E3%83%A9%E3%83%BB%E3%82%B5%E3%83%AB%E3%83%BC%E3%83%86%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サンタ・マリア・デッラ・サルーテ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q52531",
+          "title": "Wikidata「Q52531」（座標・所在地）"
+        },
+        {
+          "url": "https://basilicasalutevenezia.it/",
+          "title": "公式サイト「Basilica Della Salute di Venezia」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d81e47fc06a9",
+    "slug": "florence-baptistery",
+    "name": "サン・ジョヴァンニ洗礼堂",
+    "nameEn": "Florence Baptistery",
+    "reading": "サンジョヴァンニセンレイドウ",
+    "aliases": [
+      "フィレンツェの洗礼堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "フィレンツェ県",
+      "city": "フィレンツェ"
+    },
+    "coords": {
+      "lat": 43.77,
+      "lng": 11.26
+    },
+    "category": "教会",
+    "summary": "フィレンツェのサンタ・マリア・デル・フィオーレ大聖堂に付属する洗礼堂です。大聖堂の正面玄関に向き合って立つ八角形の建築物で、ロマネスク様式の最も重要な集中形式の教会建築のひとつです。",
+    "description": "起原は4世紀から5世紀にさかのぼり、現在の建物は11世紀に起工されました。屋根全体は1128年、頂部のランターンは1150年に完成しています。ロレンツォ・ギベルティによる東側の扉は1452年に完成し、ミケランジェロが「天国への門」と賞賛しました。現在設置されている扉はレプリカで、本物はドゥオーモ付属博物館に所蔵されています。",
+    "highlights": [
+      "八角形の洗礼堂",
+      "ギベルティの「天国への門」",
+      "13世紀のモザイク画『最後の審判』"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "大聖堂の正面側から、扉と八角形の外観を一緒に入れます",
+      "扉の浮き彫りは、斜めの光が当たる時間に寄って写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%82%B8%E3%83%A7%E3%83%B4%E3%82%A1%E3%83%B3%E3%83%8B%E6%B4%97%E7%A4%BC%E5%A0%82",
+          "title": "Wikipedia「サン・ジョヴァンニ洗礼堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q732511",
+          "title": "Wikidata「Q732511」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_b5338bd5b8bd",
+    "slug": "church-of-the-gesu-rome",
+    "name": "ジェズ教会",
+    "nameEn": "Church of the Gesù",
+    "reading": "ジェズキョウカイ",
+    "aliases": [
+      "イル・ジェズ聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.9,
+      "lng": 12.48
+    },
+    "category": "教会",
+    "summary": "かつてイエズス会の本拠地(母教会)だったローマの教会です。ジェズー広場に面して建ち、ファサードは「世界初の真のバロック様式のファサード」と言われています。",
+    "description": "イエズス会を創立した聖イグナチオ・デ・ロヨラが構想し、1568年にヴィニョーラの設計に基づいて着工、1580年に完成しました。ファサードは当初のヴィニョーラの設計から、デッラ・ポルタの設計に変更されています。内部の天井には、ガウッリのフレスコ画『イエスの御名の勝利』が描かれています。",
+    "highlights": [
+      "バロック様式のファサード",
+      "ガウッリの天井フレスコ画",
+      "世界のイエズス会の教会の手本"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "広場からファサードの縦の線を生かして、見上げる角度で写します",
+      "内部では天井のフレスコ画を、真上に近い角度で切り取ります"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B8%E3%82%A7%E3%82%BA%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「ジェズ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q719794",
+          "title": "Wikidata「Q719794」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7c3edb0605c8",
+    "slug": "santa-maria-novella-florence",
+    "name": "サンタ・マリア・ノヴェッラ教会",
+    "nameEn": "Basilica of Santa Maria Novella",
+    "reading": "サンタマリアノヴェッラキョウカイ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "フィレンツェ県",
+      "city": "フィレンツェ"
+    },
+    "coords": {
+      "lat": 43.77,
+      "lng": 11.25
+    },
+    "category": "教会",
+    "summary": "イタリアのフィレンツェで最も重要な教会の一つです。白色と緑色の大理石で飾られたファサードは、レオン・バッティスタ・アルベルティが意匠を考案しました。",
+    "description": "1219年にドメニコ会の修道士がフィレンツェへやってきて、1242年に教会を新しくより大きな建物へ改築することを決めました。建設は14世紀半ばに完了し、1420年に正式に聖別されています。ファサードの上部は1470年に完成し、2006年4月から2008年3月にかけて修復が行われました。",
+    "highlights": [
+      "アルベルティによる大理石のファサード",
+      "ジョットの《キリスト磔刑》",
+      "ドメニコ会の教会"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "広場の端から、ファサードの幾何学的な模様を正面で写します",
+      "ファサード全体は、日が当たる時間を選ぶと模様がはっきり出ます"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%83%9E%E3%83%AA%E3%82%A2%E3%83%BB%E3%83%8E%E3%83%B4%E3%82%A7%E3%83%83%E3%83%A9%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「サンタ・マリア・ノヴェッラ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q51175",
+          "title": "Wikidata「Q51175」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_8aa8a852a845",
+    "slug": "pisa-cathedral",
+    "name": "ピサ大聖堂",
+    "nameEn": "Pisa Cathedral",
+    "reading": "ピサダイセイドウ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ピサ県",
+      "city": "ピサ"
+    },
+    "coords": {
+      "lat": 43.72,
+      "lng": 10.4
+    },
+    "category": "教会",
+    "summary": "イタリア・トスカーナ州のピサにある、ロマネスク時代を代表する建築物の一つです。1987年に世界遺産に登録されたドゥオモ広場に建っています。",
+    "description": "大聖堂は1064年に起工され、ブスケットの設計と指導のもとで着工、12世紀にライナールドがファサードを完成させました。身廊は五廊式、翼廊は三廊式で、交差部には楕円形のドームが八角形のティーブリオに覆われて載っています。広場には洗礼堂、墓所回廊、斜塔も建ち、「奇跡の広場」とも呼ばれます。",
+    "highlights": [
+      "ロマネスク時代を代表する大聖堂",
+      "交差部の楕円形のドーム",
+      "洗礼堂・墓所回廊・斜塔と並ぶドゥオモ広場"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "広場の芝生側から、大聖堂のファサードと洗礼堂を並べて収めます",
+      "斜塔も入る位置から、広場全体のまとまりを写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%94%E3%82%B5%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「ピサ大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1754247",
+          "title": "Wikidata「Q1754247」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_81f6bd942f29",
+    "slug": "basilica-sant-antonio-padua",
+    "name": "サンタントーニオ・ダ・パードヴァ聖堂",
+    "nameEn": "Basilica of Saint Anthony of Padua",
+    "reading": "サンタントーニオダパードヴァセイドウ",
+    "aliases": [
+      "イル・サント"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "パドヴァ県",
+      "city": "パードヴァ"
+    },
+    "coords": {
+      "lat": 45.4,
+      "lng": 11.88
+    },
+    "category": "教会",
+    "summary": "パードヴァで最も重要な教会の一つで、市民には「イル・サント」と呼ばれるカトリック教会のバシリカです。パードヴァの聖アントニオの聖遺物を保管しています。",
+    "description": "ロマネスクのファサード、ゴシックのアーチ、ビザンティン様式のクーポラ、イスラム美術を取り入れた鐘楼など、異なる様式が調和した巨大な建築物です。建設は1232年に始まったと考えられ、完成は1310年に及びました。正面の広場には、ドナテッロによるガッタメラータ騎馬像が置かれています。",
+    "highlights": [
+      "異なる様式が調和した聖堂",
+      "イスラム美術を取り入れた鐘楼",
+      "ドナテッロのガッタメラータ騎馬像"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "広場から騎馬像と聖堂を重ねて、奥行きのある構図にします",
+      "クーポラと鐘楼が並ぶ眺めを、少し離れた位置から写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%B3%E3%83%88%E3%83%BC%E3%83%8B%E3%82%AA%E3%83%BB%E3%83%80%E3%83%BB%E3%83%91%E3%83%BC%E3%83%89%E3%83%B4%E3%82%A1%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サンタントーニオ・ダ・パードヴァ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q810139",
+          "title": "Wikidata「Q810139」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c768b98f3e56",
+    "slug": "basilica-di-san-lorenzo-florence",
+    "name": "サン・ロレンツォ聖堂",
+    "nameEn": "Basilica of San Lorenzo",
+    "reading": "サンロレンツォセイドウ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "フィレンツェ県",
+      "city": "フィレンツェ"
+    },
+    "coords": {
+      "lat": 43.77,
+      "lng": 11.25
+    },
+    "category": "教会",
+    "summary": "聖ラウレンティウスに捧げられた、フィレンツェ歴史地区にある最も古い教会の一つです。メディチ家の埋葬の場となった聖堂です。",
+    "description": "393年に聖アンブロシウスらの隣席のもと、司教座大聖堂として奉献されたと伝えられます。15世紀にはフィリッポ・ブルネッレスキが再建に関わり、メディチ家が出資しました。ファサードは未完のまま残され、ミケランジェロは木製の模型をつくりましたが完成しませんでした。",
+    "highlights": [
+      "ブルネッレスキが関わった再建",
+      "メディチ家の埋葬の場",
+      "未完のまま残るファサード"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "未完のファサードを、周囲の街並みと合わせて写します",
+      "内部は柱の並びを使って、奥行きを強調します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%83%AD%E3%83%AC%E3%83%B3%E3%83%84%E3%82%A9%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サン・ロレンツォ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q573881",
+          "title": "Wikidata「Q573881」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_4bbed45b4840",
+    "slug": "santa-maria-della-vittoria-rome",
+    "name": "サンタ・マリア・デッラ・ヴィットーリア教会",
+    "nameEn": "Santa Maria della Vittoria",
+    "reading": "サンタマリアデッラヴィットーリアキョウカイ",
+    "aliases": [
+      "サンタ・マリア・デッラ・ヴィットーリア聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.9,
+      "lng": 12.49
+    },
+    "category": "教会",
+    "summary": "ローマの9月20日通りに面した小バシリカの教会堂です。名前の「ヴィットーリア」は勝利を意味し、オスマン帝国の国旗が掛けられていることも理由の1つとされています。",
+    "description": "1605年に跣足カルメル会が聖パウロに捧げた礼拝堂として始まり、1620年に白山の戦いがカトリック側の勝利に終わったあと、聖母マリアに再奉納されました。ファサードの建設資金が提供されたのは1624年で、その2年後に教会が完成しています。初期バロック建築の建築家カルロ・マデルノが、唯一設計から完成まで指揮した教会です。",
+    "highlights": [
+      "初期バロックの教会堂",
+      "掛けられたオスマン帝国の国旗",
+      "カルロ・マデルノが設計から完成まで指揮"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "通りに面したファサードを、正面から水平に構えて写します",
+      "通りが狭いので、見上げる角度で縦位置にすると全体を収めやすくなります"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.carmelitanicentroitalia.it/dove-siamo/conventi-della-provincia/s-maria-della-vittoria-roma",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%83%9E%E3%83%AA%E3%82%A2%E3%83%BB%E3%83%87%E3%83%83%E3%83%A9%E3%83%BB%E3%83%B4%E3%82%A3%E3%83%83%E3%83%88%E3%83%BC%E3%83%AA%E3%82%A2%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「サンタ・マリア・デッラ・ヴィットーリア教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q863593",
+          "title": "Wikidata「Q863593」（座標・所在地）"
+        },
+        {
+          "url": "https://www.carmelitanicentroitalia.it/dove-siamo/conventi-della-provincia/s-maria-della-vittoria-roma",
+          "title": "公式サイト「S. MARIA DELLA VITTORIA - ROMA - Carmelitani dell' Italia Centrale」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_ddd755340d24",
+    "slug": "san-luigi-dei-francesi",
+    "name": "サン・ルイジ・デイ・フランチェージ教会",
+    "nameEn": "San Luigi dei Francesi",
+    "reading": "サンルイジデイフランチェージキョウカイ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.9,
+      "lng": 12.47
+    },
+    "category": "教会",
+    "summary": "ローマにあるカトリックの小バシリカで、ナヴォーナ広場の近くにあるローマ在住フランス人の国民教会です。聖母マリア、聖ドニ、フランス王聖ルイ9世に捧げられています。",
+    "description": "1518年から1589年にかけて、ジャコモ・デッラ・ポルタが設計し、ドメニコ・フォンターナが完成させました。ファサードにはカール大帝や聖王ルイなど、フランスの歴史を思い起こさせる彫像が設置されています。コンタレッリ礼拝堂には、カラヴァッジオが1599年から1600年に聖マタイの生涯を描いた3枚の絵があります。",
+    "highlights": [
+      "フランスの歴史を思わせるファサードの彫像",
+      "コンタレッリ礼拝堂のカラヴァッジオの絵",
+      "ドメニキーノの聖セシリアのフレスコ画"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "ファサードの彫像は、望遠で一体ずつ切り取ると並びが分かります",
+      "堂内の撮影は決まりを確かめてから、許される範囲で行います"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%83%AB%E3%82%A4%E3%82%B8%E3%83%BB%E3%83%87%E3%82%A4%E3%83%BB%E3%83%95%E3%83%A9%E3%83%B3%E3%83%81%E3%82%A7%E3%83%BC%E3%82%B8%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「サン・ルイジ・デイ・フランチェージ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q638283",
+          "title": "Wikidata「Q638283」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d7a9eee89164",
+    "slug": "san-carlo-alle-quattro-fontane",
+    "name": "サン・カルロ・アッレ・クワトロ・フォンターネ聖堂",
+    "nameEn": "Saint Charles at the Four Fountains",
+    "reading": "サンカルロアッレクワトロフォンターネセイドウ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.9,
+      "lng": 12.49
+    },
+    "category": "教会",
+    "summary": "ローマにあるカトリック教会の聖堂で、建築家フランチェスコ・ボッロミーニが独立したあと最初に手がけた作品です。バロック建築の傑作の1つとされています。",
+    "description": "4つの角にそれぞれ噴水がある「クワトロ・フォンターネ」の交差点の南西の角に建っています。敷地が限られていたため、かなり難しい設計を強いられました。修道院の建物と回廊が先に完成し、教会は1638年から1641年に建設され、1646年に聖カルロ・ボッロメーオに捧げられています。うねるようなファサードは、ボッロミーニの死後に上部が完成しました。",
+    "highlights": [
+      "ボッロミーニ初の独立作品",
+      "うねるようなファサード",
+      "4つの噴水がある交差点の角"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "交差点の向かいから、うねるファサードを斜めに入れます",
+      "ファサードの曲線は、斜めの光が当たると陰影がはっきり出ます"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.sancarlino.es/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%82%AB%E3%83%AB%E3%83%AD%E3%83%BB%E3%82%A2%E3%83%83%E3%83%AC%E3%83%BB%E3%82%AF%E3%83%AF%E3%83%88%E3%83%AD%E3%83%BB%E3%83%95%E3%82%A9%E3%83%B3%E3%82%BF%E3%83%BC%E3%83%8D%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サン・カルロ・アッレ・クワトロ・フォンターネ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q867329",
+          "title": "Wikidata「Q867329」（座標・所在地）"
+        },
+        {
+          "url": "https://www.sancarlino.es/",
+          "title": "公式サイト「San Carlo alle Quattro Fontane - La obra cumbre de la arquitectura barroca de Bo」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6d27027c0643",
+    "slug": "basilica-santa-sabina",
+    "name": "サンタ・サビーナ聖堂",
+    "nameEn": "Basilica of Saint Sabina",
+    "reading": "サンタサビーナセイドウ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.88,
+      "lng": 12.48
+    },
+    "category": "教会",
+    "summary": "ローマのアヴェンティーノの丘の上、テヴェレ川のほとりにある名義小バシリカで、ドミニコ会の母教会です。5世紀に創建された古いバシリカです。",
+    "description": "422年から432年にダルマチア出身のイリュリアのペトルスが建てました。上から見ると古典的な長方形で、円柱を使っています。装飾はたいてい白く、創建時の簡素な状態に復元されているため、窓から差し込む光に照らされた内部は広々としています。灰の水曜日の指定巡礼聖堂になっています。",
+    "highlights": [
+      "5世紀に創建された古いバシリカ",
+      "創建時の簡素な状態に復元された内部",
+      "窓から差し込む光"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "堂内では窓から差し込む光を主役にして、円柱の並びを入れます",
+      "簡素な内部なので、構図は左右対称にまとめます"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://basilicasantasabina.it/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%82%B5%E3%83%93%E3%83%BC%E3%83%8A%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サンタ・サビーナ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q592244",
+          "title": "Wikidata「Q592244」（座標・所在地）"
+        },
+        {
+          "url": "https://basilicasantasabina.it/",
+          "title": "公式サイト「Basilica di Santa Sabina - Chiesa all'Aventino nel rione Ripa」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1e75e721f484",
+    "slug": "turin-cathedral",
+    "name": "トリノ大聖堂",
+    "nameEn": "Turin Cathedral",
+    "reading": "トリノダイセイドウ",
+    "aliases": [
+      "洗礼者聖ヨハネ大聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "トリノ県",
+      "city": "トリノ"
+    },
+    "coords": {
+      "lat": 45.07,
+      "lng": 7.69
+    },
+    "category": "教会",
+    "summary": "イタリア北部トリノにあるローマ・カトリックの大聖堂で、洗礼者ヨハネに捧げられ、トリノ大司教座が置かれています。",
+    "description": "大聖堂は1491年から1498年にかけて建設され、1470年に建てられた鐘塔に隣接しています。古代ローマ都市の劇場があった場所に建てられました。聖骸布礼拝堂はグアリーノ・グアリーニによって設計され、1668年から1694年にかけて増築されています。",
+    "highlights": [
+      "古代ローマの劇場跡に建つ大聖堂",
+      "隣接する鐘塔",
+      "グアリーニ設計の聖骸布礼拝堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "鐘塔と大聖堂の外観を、並べて一枚に収めます",
+      "外観は正面から、建物の左右のバランスを整えて写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%88%E3%83%AA%E3%83%8E%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「トリノ大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q958699",
+          "title": "Wikidata「Q958699」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_088572208e1a",
+    "slug": "santa-maria-in-trastevere",
+    "name": "サンタ・マリア・イン・トラステヴェレ聖堂",
+    "nameEn": "Santa Maria in Trastevere",
+    "reading": "サンタマリアイントラステヴェレセイドウ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.89,
+      "lng": 12.47
+    },
+    "category": "教会",
+    "summary": "ローマのトラステヴェレ地区に現存する聖堂で、建築様式としてはロマネスクに分類されます。東面にあるファサードの金モザイクが目をひきます。",
+    "description": "5世紀末の教会会議参加者リストにその名が記されており、222年に殉教した司教カリストゥスを記念して、司教ユリウスが建造させたとされます。現在の建築は、12世紀の教皇インノケンティウス2世による全面的な改築後のものです。13世紀に後陣円蓋のモザイクが作成され、16世紀には格天井がつくられました。",
+    "highlights": [
+      "ファサードの金モザイク",
+      "後陣円蓋のモザイク",
+      "16世紀の格天井"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "ファサードの金モザイクは、正面からやや離れて全体を収めます",
+      "堂内では天井の格子の連なりを、奥行きのある構図で写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%83%9E%E3%83%AA%E3%82%A2%E3%83%BB%E3%82%A4%E3%83%B3%E3%83%BB%E3%83%88%E3%83%A9%E3%82%B9%E3%83%86%E3%83%B4%E3%82%A7%E3%83%AC%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サンタ・マリア・イン・トラステヴェレ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1137391",
+          "title": "Wikidata「Q1137391」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6da3e5d7010f",
+    "slug": "santa-maria-gloriosa-dei-frari",
+    "name": "サンタ・マリア・グロリオーザ・デイ・フラーリ聖堂",
+    "nameEn": "Santa Maria Gloriosa dei Frari",
+    "reading": "サンタマリアグロリオーザデイフラーリセイドウ",
+    "aliases": [
+      "フラーリ"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェネツィア県",
+      "city": "ヴェネツィア"
+    },
+    "coords": {
+      "lat": 45.44,
+      "lng": 12.33
+    },
+    "category": "教会",
+    "summary": "通常フラーリと縮めて呼ばれる、ヴェネツィアにあるカトリック教会のバシリカです。サン・ポーロ地区の心臓部、カンポ・デイ・フラーリに建っています。",
+    "description": "1250年にフランチェスコ会が教会を建てる土地を譲渡され、建物は1338年に完成しました。現在の教会は、より大きな後継者として1世紀で建てられたものです。イタリアのゴシック様式で煉瓦造りの外観はむしろ簡素ですが、鐘楼は1396年に完成したサン・マルコ寺院の次に、ヴェネツィアで2番目に高いとされています。",
+    "highlights": [
+      "煉瓦造りのゴシック様式の外観",
+      "ヴェネツィアで2番目に高い鐘楼",
+      "ティツィアーノの『聖母被昇天』"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "広場側から、鐘楼と本堂の屋根を並べて入れます",
+      "簡素な外観は、煉瓦の連なりが見える斜めの光で撮ります"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%83%9E%E3%83%AA%E3%82%A2%E3%83%BB%E3%82%B0%E3%83%AD%E3%83%AA%E3%82%AA%E3%83%BC%E3%82%B6%E3%83%BB%E3%83%87%E3%82%A4%E3%83%BB%E3%83%95%E3%83%A9%E3%83%BC%E3%83%AA%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サンタ・マリア・グロリオーザ・デイ・フラーリ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q224961",
+          "title": "Wikidata「Q224961」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_540447f275d2",
+    "slug": "cefalu-cathedral",
+    "name": "チェファル大聖堂",
+    "nameEn": "Cefalù Cathedral",
+    "reading": "チェファルダイセイドウ",
+    "aliases": [
+      "チェファルのドゥオーモ"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "パレルモ県",
+      "city": "チェファル"
+    },
+    "coords": {
+      "lat": 38.04,
+      "lng": 14.02
+    },
+    "category": "教会",
+    "summary": "シチリア島のパレルモ県チェファルにある大聖堂で、ノルマン建築様式の代表的遺産の1つです。2015年にパレルモの建造物群などとともに、世界遺産リストに登録されました。",
+    "description": "大聖堂は1131年にノルマン建築様式で建設が始まりました。伝説によると、シチリア王ルッジェーロ2世が嵐から逃れてチェファルの浜に上陸し、「聖なる救い主」に誓いを立てたことが建設のきっかけとされています。建物は要塞のような性質をもち、遠くから見ると周辺の中世の町のスカイラインを威圧するように立っています。アプスのモザイクは1145年に開始されました。",
+    "highlights": [
+      "ノルマン建築様式の大聖堂",
+      "要塞のような外観",
+      "アプスのモザイク"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "町の外から、大聖堂と周辺の町のスカイラインを一緒に収めます",
+      "要塞のような外観は、斜めの光で陰影を出して写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://duomocefalu.it",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%81%E3%82%A7%E3%83%95%E3%82%A1%E3%83%AB%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「チェファル大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1354756",
+          "title": "Wikidata「Q1354756」（座標・所在地）"
+        },
+        {
+          "url": "https://duomocefalu.it",
+          "title": "公式サイト「Ticket Duomo di Cefalù - Le Torri della Cattedrale | Biglietto Itinerari」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c0d831882f15",
+    "slug": "sant-apollinare-in-classe",
+    "name": "サンタポリナーレ・イン・クラッセ聖堂",
+    "nameEn": "Basilica of Sant'Apollinare in Classe",
+    "reading": "サンタポリナーレインクラッセセイドウ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ラヴェンナ県",
+      "city": "ラヴェンナ"
+    },
+    "coords": {
+      "lat": 44.38,
+      "lng": 12.23
+    },
+    "category": "教会",
+    "summary": "ラヴェンナ近郊にあるビザンティン建築の教会堂で、アプスにあるモザイク画が有名です。ビザンティン総督府として隆盛を誇った最盛期のラヴェンナを物語る遺構です。",
+    "description": "東ゴート王国の女王アマラスンタの命により、6世紀中期に建設された、初期キリスト教建築のバシリカのひとつです。ラヴェンナ司教ウルシキヌスにより、聖アポリナリスの記念教会堂として当時のラヴェンナの外港であったクラッシスに建てられました。現存するモザイクは、アプスと勝利の門とよばれる壁面部分に限られています。",
+    "highlights": [
+      "アプスのモザイク画",
+      "6世紀中期の初期キリスト教建築",
+      "聖アポリナリスの記念教会堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "堂内では、アプスのモザイクが正面に見える位置から左右対称に写します",
+      "外観は、周囲の広がりを入れて教会堂の佇まいを写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%9D%E3%83%AA%E3%83%8A%E3%83%BC%E3%83%AC%E3%83%BB%E3%82%A4%E3%83%B3%E3%83%BB%E3%82%AF%E3%83%A9%E3%83%83%E3%82%BB%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サンタポリナーレ・イン・クラッセ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q744552",
+          "title": "Wikidata「Q744552」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1849efd9b40b",
+    "slug": "santa-maria-in-cosmedin",
+    "name": "サンタ・マリア・イン・コスメディン教会",
+    "nameEn": "Santa Maria in Cosmedin",
+    "reading": "サンタマリアインコスメディンキョウカイ",
+    "aliases": [
+      "サンタ・マリア・イン・コスメディン聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.89,
+      "lng": 12.48
+    },
+    "category": "教会",
+    "summary": "ローマのリパのリオネに位置するバシリカの聖堂です。ローマ時代の遺跡が多く残る一帯に建ち、「真実の口」が聖堂にあることで有名です。",
+    "description": "6世紀頃に食料市場であった場所に建てられ、8世紀に教皇ハドリアヌス1世によって増築されました。東方の聖像破壊運動の迫害から逃れてきたギリシャ人に与えられた聖堂で、「コスメディン」はギリシャ語で「装飾」を意味します。典型的なバシリカ建築で、鐘楼はロマネスク様式を模しています。",
+    "highlights": [
+      "「真実の口」",
+      "ロマネスク様式を模した鐘楼",
+      "古代ローマの遺跡が多く残る一帯"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "鐘楼と聖堂の正面を、少し離れた位置から並べて写します",
+      "聖堂の外観は、周囲の広がりを入れて古い街並みの雰囲気を出します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%83%9E%E3%83%AA%E3%82%A2%E3%83%BB%E3%82%A4%E3%83%B3%E3%83%BB%E3%82%B3%E3%82%B9%E3%83%A1%E3%83%87%E3%82%A3%E3%83%B3%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「サンタ・マリア・イン・コスメディン教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q609293",
+          "title": "Wikidata「Q609293」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_86b2ae34d3c7",
+    "slug": "san-pietro-in-montorio",
+    "name": "サン・ピエトロ・イン・モントリオ教会",
+    "nameEn": "San Pietro in Montorio",
+    "reading": "サンピエトロインモントリオキョウカイ",
+    "aliases": [
+      "テンピエット"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.89,
+      "lng": 12.47
+    },
+    "category": "教会",
+    "summary": "ローマのジャニコロの丘にある教会です。中庭には、ルネサンスの建築家ドナト・ブラマンテが建てた小さな殉教者記念礼拝堂のテンピエットがあります。",
+    "description": "聖ペトロを祀って9世紀初頭に建てられた教会で、スペインのフェルナンド2世とイサベル1世の権限で、聖ペテロが十字架にかけられた場所とされました。16世紀から17世紀の巨匠たちの美術作品で装飾されており、右側の1番目の礼拝堂には、セバスティアーノ・デル・ピオンボの『鞭打ち』と『キリストの変容』があります。",
+    "highlights": [
+      "ブラマンテのテンピエット",
+      "ジャニコロの丘に建つ教会",
+      "セバスティアーノ・デル・ピオンボの絵画"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "中庭では、小さな礼拝堂の円形の形が分かる距離から写します",
+      "中庭の全体を入れると、礼拝堂の規模が伝わります"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%83%94%E3%82%A8%E3%83%88%E3%83%AD%E3%83%BB%E3%82%A4%E3%83%B3%E3%83%BB%E3%83%A2%E3%83%B3%E3%83%88%E3%83%AA%E3%82%AA%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「サン・ピエトロ・イン・モントリオ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1258576",
+          "title": "Wikidata「Q1258576」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d02a4b7c687c",
+    "slug": "san-zaccaria-venice",
+    "name": "サン・ザッカリーア教会",
+    "nameEn": "San Zaccaria",
+    "reading": "サンザッカリーアキョウカイ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェネツィア県",
+      "city": "ヴェネツィア"
+    },
+    "coords": {
+      "lat": 45.43,
+      "lng": 12.34
+    },
+    "category": "教会",
+    "summary": "ヴェネツィアのサン・ザッカリーア地区にあるベネディクト派の教会です。洗礼者ヨハネの父と言われるザカリアに捧げられています。",
+    "description": "現在の教会は、ゴシック建築と初期ルネサンス建築が合わさった形で、1458年から1515年にかけて建設されました。ファサードは後期ゴシック建築とルネサンス建築の調和により堂々としています。最初の教会は9世紀に建設が始まり、当初はロマネスク建築様式でした。",
+    "highlights": [
+      "ゴシックと初期ルネサンスが合わさった建築",
+      "後期ゴシックとルネサンスが調和したファサード",
+      "ザカリアに捧げられた教会"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "ファサード全体が入る位置から、正面を水平に写します",
+      "ファサードの細部は、斜めの光が当たる時間に寄って写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%82%B6%E3%83%83%E3%82%AB%E3%83%AA%E3%83%BC%E3%82%A2%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「サン・ザッカリーア教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q794876",
+          "title": "Wikidata「Q794876」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_fd569a0ed6d7",
+    "slug": "basilica-di-sant-ambrogio",
+    "name": "サンタンブロージョ教会",
+    "nameEn": "Basilica of Sant'Ambrogio",
+    "reading": "サンタンブロージョキョウカイ",
+    "aliases": [
+      "サンタンブロージョ聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ミラノ県",
+      "city": "ミラノ"
+    },
+    "coords": {
+      "lat": 45.46,
+      "lng": 9.18
+    },
+    "category": "教会",
+    "summary": "ミラノに建つカトリックの聖堂で、縁起は4世紀にさかのぼり、ミラノでも最古の聖堂です。ミラノの守護聖人、聖アンブロジウスを祀っています。",
+    "description": "献堂は386年で、時のミラノ司教アンブロジウスによって行われました。建築様式はロマネスクで、ロンバルディア・ロマネスクと呼ばれる様式の代表格とも評されます。この聖堂が建てられる前の場所には、バッカス神殿の遺構がありました。後陣には金のモザイクが施されていますが、祭壇より奥は立ち入れない区域になっています。",
+    "highlights": [
+      "ロンバルディア・ロマネスクの代表格",
+      "ミラノ最古の聖堂",
+      "後陣の金のモザイク"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "前庭から、聖堂の正面を水平に収めます",
+      "内部は祭壇へ向かう奥行きを生かして、縦に長く切り取ります"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%B3%E3%83%96%E3%83%AD%E3%83%BC%E3%82%B8%E3%83%A7%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「サンタンブロージョ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1071570",
+          "title": "Wikidata「Q1071570」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1010e9028632",
+    "slug": "medici-chapels-florence",
+    "name": "メディチ家礼拝堂",
+    "nameEn": "Medici Chapels",
+    "reading": "メディチケレイハイドウ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "フィレンツェ県",
+      "city": "フィレンツェ"
+    },
+    "coords": {
+      "lat": 43.78,
+      "lng": 11.25
+    },
+    "category": "教会",
+    "summary": "フィレンツェのサン・ロレンツォ聖堂に付属する、「新聖具室」と「君主の礼拝堂」と呼ばれる2棟の建物の総称です。",
+    "description": "メディチ家礼拝堂は、サン・ロレンツォ聖堂の拡張建造物として、16世紀から17世紀にかけて建設されました。新聖具室はミケランジェロの設計による建物で、建築家および彫刻家としてのミケランジェロの最高傑作の一つに数えられます。君主の礼拝堂の建設計画は16世紀からありましたが、着工されたのは17世紀初めになってからです。",
+    "highlights": [
+      "ミケランジェロ設計の新聖具室",
+      "君主の礼拝堂",
+      "サン・ロレンツォ聖堂の拡張建造物"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "新聖具室では、ミケランジェロ設計の空間を左右対称に写します",
+      "堂内の撮影は決まりを確かめてから、許される範囲で行います"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://bargellomusei.it/musei/cappelle-medicee/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%A1%E3%83%87%E3%82%A3%E3%83%81%E5%AE%B6%E7%A4%BC%E6%8B%9D%E5%A0%82",
+          "title": "Wikipedia「メディチ家礼拝堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1357573",
+          "title": "Wikidata「Q1357573」（座標・所在地）"
+        },
+        {
+          "url": "https://bargellomusei.it/musei/cappelle-medicee/",
+          "title": "公式サイト「Cappelle Medicee | Musei del Bargello」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d780e2a350ba",
+    "slug": "amalfi-cathedral",
+    "name": "アマルフィ大聖堂",
+    "nameEn": "Amalfi Cathedral",
+    "reading": "アマルフィダイセイドウ",
+    "aliases": [
+      "聖アンデレ大聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "サレルノ県",
+      "city": "アマルフィ"
+    },
+    "coords": {
+      "lat": 40.63,
+      "lng": 14.6
+    },
+    "category": "教会",
+    "summary": "アマルフィの町の中心部にある大聖堂で、ドゥオーモ広場から階段を上った場所にあります。聖アンデレに捧げられ、9世紀頃に建設されました。",
+    "description": "大聖堂は7回もの改修がなされており、ロマネスク建築、バロック建築、イスラーム建築、ロココ建築、ゴシック建築、ビザンチン建築など様々な建築様式が混在しています。地下には地下聖堂があり、1208年に完成して聖アンデレの聖遺物が安置されました。ファサードは1891年に改装され、外壁はストライプのマーブル模様になっています。",
+    "highlights": [
+      "広場から階段を上った大聖堂",
+      "ストライプのマーブル模様の外壁",
+      "様々な建築様式が混在する建物"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "階段の下から、大聖堂の正面を見上げる角度で写します",
+      "外壁のストライプ模様は、正面から平行に構えると整います"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%9E%E3%83%AB%E3%83%95%E3%82%A3%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「アマルフィ大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q686306",
+          "title": "Wikidata「Q686306」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c6f9c54c9eb5",
+    "slug": "basilica-di-san-lorenzo-maggiore-milan",
+    "name": "サン・ロレンツォ・マッジョーレ大聖堂",
+    "nameEn": "Basilica of San Lorenzo Maggiore",
+    "reading": "サンロレンツォマッジョーレダイセイドウ",
+    "aliases": [
+      "サン・ロレンツォ大聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ミラノ県",
+      "city": "ミラノ"
+    },
+    "coords": {
+      "lat": 45.46,
+      "lng": 9.18
+    },
+    "category": "教会",
+    "summary": "ミラノのナヴィリオ地区にある、何世紀もの間改築を繰り返してきたカトリック教会の重要建築物です。中世に建てられたティチネーゼ門に接する位置にあり、ミラノ最古の教会の一つです。",
+    "description": "大聖堂は4世紀末から5世紀初頭に建築されていますが、建築依頼者や創設にまつわる状況、正確な日付は不明です。円形建築の設計としては、当時西ヨーロッパ最大の大きさでした。590年以降、カトリック殉教者である聖ラウレンティウスに献呈されている記録が残っています。1944-1945年の第二次世界大戦中の爆撃後に公園がつくられ、大聖堂の全景が見えるようになりました。",
+    "highlights": [
+      "ミラノ最古の教会の一つ",
+      "ティチネーゼ門に接する位置",
+      "公園から見える大聖堂の全景"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "公園側から、大聖堂の全景を水平に構えて収めます",
+      "ティチネーゼ門と大聖堂を一緒に入れ、街の歴史が分かる構図にします"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%83%AD%E3%83%AC%E3%83%B3%E3%83%84%E3%82%A9%E5%A4%A7%E8%81%96%E5%A0%82_%28%E3%83%9F%E3%83%A9%E3%83%8E%29",
+          "title": "Wikipedia「サン・ロレンツォ大聖堂 (ミラノ)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q810080",
+          "title": "Wikidata「Q810080」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_149097951fc5",
+    "slug": "il-redentore-venice",
+    "name": "レデントーレ教会",
+    "nameEn": "Il Redentore",
+    "reading": "レデントーレキョウカイ",
+    "aliases": [
+      "イル・レデントーレ聖堂"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェネツィア県",
+      "city": "ヴェネツィア"
+    },
+    "coords": {
+      "lat": 45.42,
+      "lng": 12.33
+    },
+    "category": "教会",
+    "summary": "ヴェネツィアのジュデッカ島にあるカトリックの教会です。ジュデッカ運河に面した目立つ場所に建てられ、「レデントーレ」はイタリア語で「救世主」「イエス・キリスト」を意味します。",
+    "description": "ペストの脅威が1576年に収束したことへの記念と神への感謝を込めて、1577年に建設が始まり、1599年に完成しました。設計はアンドレーア・パッラーディオで、最終的に身廊の両サイドに礼拝堂を擁する十字架の形に設計されました。教会正面はパンテオンを彷彿とさせるデザインになっています。",
+    "highlights": [
+      "パッラーディオ設計の教会",
+      "ジュデッカ運河に面した建物",
+      "パンテオンを彷彿とさせる正面"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "運河の対岸から、水面と教会を一緒に収めます",
+      "正面は水平に構え、パッラーディオの設計らしい左右のバランスを写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%AC%E3%83%87%E3%83%B3%E3%83%88%E3%83%BC%E3%83%AC%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「レデントーレ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q830807",
+          "title": "Wikidata「Q830807」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_4dc508c946ea",
+    "slug": "santa-maria-maggiore-bergamo",
+    "name": "サンタ・マリア・マッジョーレ教会（ベルガモ）",
+    "nameEn": "Santa Maria Maggiore, Bergamo",
+    "reading": "サンタマリアマッジョーレキョウカイ",
+    "aliases": [
+      "ベルガモのサンタ・マリア・マッジョーレ教会"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ベルガモ県",
+      "city": "ベルガモ"
+    },
+    "coords": {
+      "lat": 45.7,
+      "lng": 9.66
+    },
+    "category": "教会",
+    "summary": "イタリアのベルガモにあるカトリック教会の教会堂です。8世紀から存在した聖母教会を取り壊したあと、1137年にこの地で起工されました。",
+    "description": "1185年に主祭壇が、1187年にクワイヤと左右の翼廊が完成しましたが、経済的状況により建設は13世紀から14世紀頃まで進みませんでした。1436年に鐘楼が建て始められ、完成したのは15世紀末頃でした。1521年には南西側の入口であるポルタ・フォンタナが完成し、17世紀には教会堂全体の改修工事が行われています。",
+    "highlights": [
+      "8世紀の聖母教会の跡に起工された教会",
+      "鐘楼",
+      "ポルタ・フォンタナと呼ばれる南西の入口"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "広場から、教会堂と鐘楼を並べて入れます",
+      "隣のコッレオーニ礼拝堂と一緒に収めると、広場の広がりが伝わります"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.fondazionemia.it/it/basilica/storia",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%83%9E%E3%83%AA%E3%82%A2%E3%83%BB%E3%83%9E%E3%83%83%E3%82%B8%E3%83%A7%E3%83%BC%E3%83%AC%E6%95%99%E4%BC%9A_%28%E3%83%99%E3%83%AB%E3%82%AC%E3%83%A2%29",
+          "title": "Wikipedia「サンタ・マリア・マッジョーレ教会 (ベルガモ)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2001128",
+          "title": "Wikidata「Q2001128」（座標・所在地）"
+        },
+        {
+          "url": "https://www.fondazionemia.it/it/basilica/storia",
+          "title": "公式サイト「Basilica di Santa Maria Maggiore - Storia」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_62692456d7df",
+    "slug": "colleoni-chapel-bergamo",
+    "name": "コッレオーニ礼拝堂",
+    "nameEn": "Cappella Colleoni",
+    "reading": "コッレオーニレイハイドウ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ベルガモ県",
+      "city": "ベルガモ"
+    },
+    "coords": {
+      "lat": 45.7,
+      "lng": 9.66
+    },
+    "category": "教会",
+    "summary": "イタリアのベルガモにある、教会であり霊廟でもある建物です。ベルガモ領主バルトロメーオ・コッレオーニによって、彼自身と娘メデアの霊廟とするために建設されました。",
+    "description": "1472年(又は1471年)から1476年にかけて建設され、隣接するサンタ・マリア・マッジョーレ教会の聖具室を取り壊して建てられました。基本設計は15世紀の著名な建築家ジョヴァンニ・アントニオ・アマデーオが行い、八角柱を絞って太鼓を逆にしたような形のドームと、先端に燭台のような尖塔が乗せられているところに特徴があります。",
+    "highlights": [
+      "バルトロメーオ・コッレオーニの霊廟",
+      "八角柱を絞った太鼓を逆にしたような形のドーム",
+      "ドームの先端の燭台のような尖塔"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "広場から斜めの位置で、ドームと尖塔を一緒に収めます",
+      "隣のサンタ・マリア・マッジョーレ教会と並べると、建物の対比が出ます"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B3%E3%83%83%E3%83%AC%E3%82%AA%E3%83%BC%E3%83%8B%E7%A4%BC%E6%8B%9D%E5%A0%82",
+          "title": "Wikipedia「コッレオーニ礼拝堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1034843",
+          "title": "Wikidata「Q1034843」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_cc3d94e587b3",
+    "slug": "sacro-monte-di-varallo",
+    "name": "ヴァラッロのサクロ・モンテ",
+    "nameEn": "Sacro Monte di Varallo",
+    "reading": "ヴァラッロノサクロモンテ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェルチェッリ県",
+      "city": "ヴァラッロ"
+    },
+    "coords": {
+      "lat": 45.82,
+      "lng": 8.25
+    },
+    "category": "教会",
+    "summary": "ピエモンテ州のヴァラッロにある、ピエモンテ最古のサクロ・モンテです。聖地巡礼の仮想体験をするための宗教施設で、世界遺産「ピエモンテ州とロンバルディア州のサクリ・モンティ」のひとつを構成します。",
+    "description": "1491年に僧ベルナルディーノ・カイミによって創設されました。ヴァラッロ・セージアの居住区域の上、高さ603メートルのトレ・クローチ山の高台にあります。建設の本来の意図は、信者に聖地巡りの仮想体験をさせるため、聖なる場所を再現することでした。1世紀後には、ガウデンツィオ・フェラーリによるイエスの生涯を表現した彫像とフレスコ画を収めた50の礼拝堂が出迎える聖域となりました。",
+    "highlights": [
+      "ピエモンテ最古のサクロ・モンテ",
+      "50の礼拝堂が出迎える聖域",
+      "トレ・クローチ山の高台"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "高台から、町と山の斜面を一緒に収めます",
+      "礼拝堂をたどる道では、奥へ続く眺めを縦の構図で写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%B4%E3%82%A1%E3%83%A9%E3%83%83%E3%83%AD%E3%81%AE%E3%82%B5%E3%82%AF%E3%83%AD%E3%83%BB%E3%83%A2%E3%83%B3%E3%83%86",
+          "title": "Wikipedia「ヴァラッロのサクロ・モンテ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2211082",
+          "title": "Wikidata「Q2211082」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d7d377886f4e",
+    "slug": "martorana-palermo",
+    "name": "マルトラーナ教会",
+    "nameEn": "Martorana",
+    "reading": "マルトラーナキョウカイ",
+    "aliases": [
+      "海軍提督の聖母マリア教会"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "パレルモ県",
+      "city": "パレルモ"
+    },
+    "coords": {
+      "lat": 38.11,
+      "lng": 13.36
+    },
+    "category": "教会",
+    "summary": "シチリア州パレルモにあるカトリックの教会で、海軍提督の聖母マリア教会とも呼ばれます。サン・カタルド教会に隣接し、パレルモ中心部のベッリーニ広場を見下ろす場所に建っています。",
+    "description": "「提督」という呼び名は、教会の創設者であるギリシャ人提督、アンティオキアのゲオルギオスに由来します。ゲオルギオスはルッジェーロ2世の主席大臣でした。ギリシャ語とアラビア語で書かれた教会創設時の憲章は、1143年から保存されています。",
+    "highlights": [
+      "海軍提督の聖母マリア教会",
+      "サン・カタルド教会との隣り合う並び",
+      "ベッリーニ広場を見下ろす立地"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "ベッリーニ広場から、隣のサン・カタルド教会と並べて収めます",
+      "外観は、広場の広がりを入れて周囲との位置関係が分かる構図にします"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9E%E3%83%AB%E3%83%88%E3%83%A9%E3%83%BC%E3%83%8A%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「マルトラーナ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1644597",
+          "title": "Wikidata「Q1644597」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_b436977dca5e",
+    "slug": "madonna-del-ghisallo",
+    "name": "マドンナ・デル・ギザッロ教会",
+    "nameEn": "Madonna del Ghisallo",
+    "reading": "マドンナデルギザッロキョウカイ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "コモ県",
+      "city": "マグレーリオ"
+    },
+    "coords": {
+      "lat": 45.92,
+      "lng": 9.27
+    },
+    "category": "教会",
+    "summary": "ロンバルディア州コモ県マグレーリオにある教会です。コモ湖を見下ろすギザッロ峠の頂上にあり、古くからサイクリストの聖地となっています。",
+    "description": "元は17世紀に建立された聖母マリアを祀った聖母教会でしたが、峠の頂上にあることからサイクリストにとって自然な休憩地点になっていました。1949年10月13日には、教皇ピオ十二世より正式に「サイクリストの女神が祀られた教会である」と公布されました。",
+    "highlights": [
+      "サイクリストの聖地",
+      "コモ湖を見下ろす峠の頂上",
+      "17世紀に建立された聖母教会"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "峠の上から、教会とコモ湖方向の眺めを一緒に収めます",
+      "教会の前を走る自転車を、流し撮りで写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9E%E3%83%89%E3%83%B3%E3%83%8A%E3%83%BB%E3%83%87%E3%83%AB%E3%83%BB%E3%82%AE%E3%82%B6%E3%83%83%E3%83%AD%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「マドンナ・デル・ギザッロ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2738068",
+          "title": "Wikidata「Q2738068」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c06480e43c19",
+    "slug": "giottos-campanile",
+    "name": "ジョットの鐘楼",
+    "nameEn": "Giotto's Campanile",
+    "reading": "ジョットノショウロウ",
+    "aliases": [
+      "フィレンツェの鐘楼"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "フィレンツェ県",
+      "city": "フィレンツェ"
+    },
+    "coords": {
+      "lat": 43.77,
+      "lng": 11.26
+    },
+    "category": "教会",
+    "summary": "フィレンツェのサンタ・マリア・デル・フィオーレ大聖堂の脇に建っている、高さ約84メートルの鐘楼です。大聖堂と同じく赤、白、緑の大理石で作られたゴシック様式の建築です。",
+    "description": "大聖堂の建設にあたって1334年に工匠頭に任命されたジョット・ディ・ボンドーネが鐘楼の建築を始めましたが、基底部分が済んだ1337年に亡くなりました。その後は弟子のアンドレア・ピサーノ、1350年以降はフランチェスコ・タレンティが引き継ぎ、1387年に塔は完成しています。当初計画された塔頂部の尖塔は造られませんでした。",
+    "highlights": [
+      "赤・白・緑の大理石のゴシック様式の鐘楼",
+      "ジョットが着手した鐘楼",
+      "造られなかった塔頂部の尖塔"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "大聖堂のドームと並べて、塔の高さが伝わるよう見上げて写します",
+      "塔の全体は、離れた位置から縦位置で収めます"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%A7%E3%83%83%E3%83%88%E3%81%AE%E9%90%98%E6%A5%BC",
+          "title": "Wikipedia「ジョットの鐘楼」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1140023",
+          "title": "Wikidata「Q1140023」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6e73fbd3af62",
+    "slug": "santa-croce-florence",
+    "name": "サンタ・クローチェ聖堂",
+    "nameEn": "Basilica of Santa Croce",
+    "reading": "サンタクローチェセイドウ",
+    "aliases": [
+      "サンタ・クローチェ聖堂（フィレンツェ）"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "フィレンツェ県",
+      "city": "フィレンツェ"
+    },
+    "coords": {
+      "lat": 43.77,
+      "lng": 11.26
+    },
+    "category": "教会",
+    "summary": "フィレンツェにあるコンベツァル聖フランシスコ会の最も重要な教会のうちの一つで、イタリアにおける代表的なゴシック建築の一例です。サンタ・クローチェ広場にあります。",
+    "description": "この聖堂は、ミケランジェロ、ガリレオ、マキャヴェッリ、ロッシーニといった有名なイタリア人たちの埋葬場所でもあります。そのことから「イタリアの栄光のパンテオン」として知られています。聖別されたあとも、7世紀に渡って増築、改修され続けてきました。元々は市の城壁の外側にある湿地帯だった場所に建っています。",
+    "highlights": [
+      "ゴシック建築の聖堂",
+      "ミケランジェロらが眠る聖堂",
+      "サンタ・クローチェ広場"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "広場の端から、聖堂の正面を水平に収めます",
+      "堂内は、柱の並びが作る奥行きを縦長の構図で写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.santacroceopera.it",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%82%AF%E3%83%AD%E3%83%BC%E3%83%81%E3%82%A7%E8%81%96%E5%A0%82_%28%E3%83%95%E3%82%A3%E3%83%AC%E3%83%B3%E3%83%84%E3%82%A7%29",
+          "title": "Wikipedia「サンタ・クローチェ聖堂 (フィレンツェ)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q51177",
+          "title": "Wikidata「Q51177」（座標・所在地）"
+        },
+        {
+          "url": "https://www.santacroceopera.it",
+          "title": "公式サイト「Spiritualità, Bellezza, Memoria, Tutela | Santa Croce」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_80369d7a38d7",
+    "slug": "santa-maria-sopra-minerva",
+    "name": "サンタ・マリア・ソプラ・ミネルヴァ教会",
+    "nameEn": "Santa Maria sopra Minerva",
+    "reading": "サンタマリアソプラミネルヴァキョウカイ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ローマ県",
+      "city": "ローマ"
+    },
+    "coords": {
+      "lat": 41.9,
+      "lng": 12.48
+    },
+    "category": "教会",
+    "summary": "ローマにある名義小バシリカで、カトリック教会のドミニコ会にとって重要な教会堂です。ミネルヴァ広場に面していて、ローマで唯一のゴシック建築の教会とされています。",
+    "description": "エジプトの女神イシスの神殿の基礎の上に建てられました。ドミニコ会は1280年から現在のようなゴシック様式に改修し始め、16世紀末にカルロ・マデルノがバロック建築のファサードにしましたが、19世紀に現在の新中世様式に改修されています。シエナのカタリナやフラ・アンジェリコの墓があり、ガリレオ・ガリレイは1633年6月22日にこの教会で自らの科学的命題を否認しました。",
+    "highlights": [
+      "ローマ唯一のゴシック建築の教会",
+      "ミネルヴァ広場に面する立地",
+      "フラ・アンジェリコの墓"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "広場側から、ファサードの正面を水平に収めます",
+      "堂内では、ゴシック様式の天井の連なりを奥行きのある構図で写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.santamariasopraminerva.it",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%83%9E%E3%83%AA%E3%82%A2%E3%83%BB%E3%82%BD%E3%83%97%E3%83%A9%E3%83%BB%E3%83%9F%E3%83%8D%E3%83%AB%E3%83%B4%E3%82%A1%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「サンタ・マリア・ソプラ・ミネルヴァ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q823685",
+          "title": "Wikidata「Q823685」（座標・所在地）"
+        },
+        {
+          "url": "https://www.santamariasopraminerva.it",
+          "title": "公式サイト「Basilica di Santa Maria sopra Minerva」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_29d0acf1d9cc",
+    "slug": "san-giorgio-maggiore-church",
+    "name": "サン・ジョルジョ・マッジョーレ聖堂",
+    "nameEn": "Church of San Giorgio Maggiore",
+    "reading": "サンジョルジョマッジョーレセイドウ",
+    "aliases": [
+      "サン・ジョルジョ・マッジョーレ教会"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェネツィア県",
+      "city": "ヴェネツィア"
+    },
+    "coords": {
+      "lat": 45.43,
+      "lng": 12.34
+    },
+    "category": "教会",
+    "summary": "ヴェネツィアのサン・マルコ広場の対岸にある、ベネディクト会の教会です。現在の建物はアンドレーア・パッラーディオにより設計されました。",
+    "description": "現在の建物は、1566年から1610年にかけて、同名の島に建設されました。790年頃に最初の教会の建設が始まり、982年に島全体がベネディクト会へ与えられましたが、1223年の地震により建物全体が崩壊しました。地震後に修道士の手で再建され、1565年にパッラーディオによる大幅な改修がなされています。",
+    "highlights": [
+      "サン・マルコ広場の対岸に建つ聖堂",
+      "パッラーディオ設計の建物",
+      "同名の島の教会"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "サン・マルコ広場の対岸から、水面越しに聖堂を収めます",
+      "聖堂の正面は、島の側から水平に構えて写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.abbaziasangiorgio.it",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%82%B8%E3%83%A7%E3%83%AB%E3%82%B8%E3%83%A7%E3%83%BB%E3%83%9E%E3%83%83%E3%82%B8%E3%83%A7%E3%83%BC%E3%83%AC%E8%81%96%E5%A0%82_%28%E3%83%B4%E3%82%A7%E3%83%8D%E3%83%84%E3%82%A3%E3%82%A2%29",
+          "title": "Wikipedia「サン・ジョルジョ・マッジョーレ聖堂 (ヴェネツィア)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q713558",
+          "title": "Wikidata「Q713558」（座標・所在地）"
+        },
+        {
+          "url": "https://www.abbaziasangiorgio.it",
+          "title": "公式サイト「Home page - Abbazia di San Giorgio Maggiore」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_ee4b145e9bfb",
+    "slug": "santi-giovanni-e-paolo-venice",
+    "name": "サンティ・ジョヴァンニ・エ・パオロ聖堂",
+    "nameEn": "Santi Giovanni e Paolo",
+    "reading": "サンティジョヴァンニエパオロセイドウ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェネツィア県",
+      "city": "ヴェネツィア"
+    },
+    "coords": {
+      "lat": 45.44,
+      "lng": 12.34
+    },
+    "category": "教会",
+    "summary": "ヴェネツィアにあるドミニコ会の聖堂で、ヴェネツィア共和国歴代元首の葬式などを執り行い、25人の元首が埋葬されています。ヴェネツィア内でも大きな聖堂の1つです。",
+    "description": "ゴシック建築を元にした煉瓦造りの巨大な聖堂で、ヴェネツィアのドミニコ会の主教会としての役割を果たしてきました。1246年に建設が始まったきっかけは、当時の元首ヤコポ・ティエポロが「沼地の上を白いハトの大群が飛ぶ夢」を見たことでした。ティエポロはその沼地をドミニコ会へ寄贈し、聖堂が建設されました。",
+    "highlights": [
+      "煉瓦造りの巨大な聖堂",
+      "元首が埋葬された聖堂",
+      "ドミニコ会の主教会"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "前の広場から、聖堂の大きさが伝わる位置で見上げて写します",
+      "煉瓦の壁面は、斜めの光が当たる時間に陰影を出して写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://santigiovanniepaolo.it/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%86%E3%82%A3%E3%83%BB%E3%82%B8%E3%83%A7%E3%83%B4%E3%82%A1%E3%83%B3%E3%83%8B%E3%83%BB%E3%82%A8%E3%83%BB%E3%83%91%E3%82%AA%E3%83%AD%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サンティ・ジョヴァンニ・エ・パオロ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q155225",
+          "title": "Wikidata「Q155225」（座標・所在地）"
+        },
+        {
+          "url": "https://santigiovanniepaolo.it/",
+          "title": "公式サイト「Santi Giovanni e Paolo」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_67a51594372b",
+    "slug": "santo-spirito-florence",
+    "name": "サント・スピリト聖堂",
+    "nameEn": "Santo Spirito",
+    "reading": "サントスピリトセイドウ",
+    "aliases": [
+      "サント・スピリト聖堂（フィレンツェ）"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "フィレンツェ県",
+      "city": "フィレンツェ"
+    },
+    "coords": {
+      "lat": 43.77,
+      "lng": 11.25
+    },
+    "category": "教会",
+    "summary": "フィレンツェのアルノ河沿いにある、初期ルネサンスの教会です。建造期間は1441年から1487年で、ブルネレスキが設計を行いました。",
+    "description": "建造の途中でブルネレスキは亡くなり、後継者が建造を引き継ぎました。後継者の建造期間に計画の変更があり、完成した聖堂にはブルネレスキの設計と異なる箇所が見られます。この地にはもともと13世紀に建造されたアウグスティアーノ修道院の聖堂があり、1434年にブルネレスキに仕事が依頼されました。",
+    "highlights": [
+      "ブルネレスキ設計の初期ルネサンスの教会",
+      "アルノ河沿いの立地",
+      "13世紀の修道院の聖堂の跡"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "アルノ河側から、聖堂の位置関係が分かるように収めます",
+      "堂内は、左右対称の構図で奥行きを写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.basilicasantospirito.it",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%88%E3%83%BB%E3%82%B9%E3%83%94%E3%83%AA%E3%83%88%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サント・スピリト聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1519975",
+          "title": "Wikidata「Q1519975」（座標・所在地）"
+        },
+        {
+          "url": "https://www.basilicasantospirito.it",
+          "title": "公式サイト「Basilica di Santo Spirito a Firenze - Basilica di Santo Spirito」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c15a0a1f6809",
+    "slug": "santa-maria-dei-miracoli-venice",
+    "name": "サンタ・マリア・デイ・ミラーコリ教会",
+    "nameEn": "Santa Maria dei Miracoli",
+    "reading": "サンタマリアデイミラーコリキョウカイ",
+    "aliases": [
+      "ミラーコリ教会"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェネツィア県",
+      "city": "ヴェネツィア"
+    },
+    "coords": {
+      "lat": 45.44,
+      "lng": 12.34
+    },
+    "category": "教会",
+    "summary": "ヴェネツィアのカンナレージョ地区にある教会です。教会正面上部に半円形のペディメントを擁し、外壁にはカラフルな大理石や付柱をあしらった、初期ルネッサンス建築の代表作として知られています。",
+    "description": "ヴェネツィアで活動した彫刻家・建築家ピエトロ・ロンバルドにより、1481年から1489年にかけて、聖母マリアの奇蹟に捧げられて建設されました。建設途中の1484年には、アッシジのキアラを祀る修道女用の修道院を教会東側に建設する拡張工事も行われました。",
+    "highlights": [
+      "半円形のペディメントをもつ正面",
+      "カラフルな大理石の外壁",
+      "ロンバルドによる初期ルネッサンスの代表作"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "正面から、半円形のペディメントと外壁の模様を一緒に収めます",
+      "運河沿いからは、外壁を斜めに入れて奥行きを出します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%82%BF%E3%83%BB%E3%83%9E%E3%83%AA%E3%82%A2%E3%83%BB%E3%83%87%E3%82%A4%E3%83%BB%E3%83%9F%E3%83%A9%E3%83%BC%E3%82%B3%E3%83%AA%E6%95%99%E4%BC%9A_%28%E3%83%B4%E3%82%A7%E3%83%8D%E3%83%84%E3%82%A3%E3%82%A2%29",
+          "title": "Wikipedia「サンタ・マリア・デイ・ミラーコリ教会 (ヴェネツィア)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q533680",
+          "title": "Wikidata「Q533680」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_a7aa35e5b5d8",
+    "slug": "almudena-cathedral",
+    "name": "アルムデナ大聖堂",
+    "nameEn": "Almudena Cathedral",
+    "reading": "アルムデナダイセイドウ",
+    "aliases": [
+      "サンタ・マリア・ラ・レアル・デ・ラ・アルムデナ大聖堂"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "マドリード州",
+      "city": "マドリード"
+    },
+    "coords": {
+      "lat": 40.42,
+      "lng": -3.71
+    },
+    "category": "教会",
+    "summary": "スペイン・マドリードにあるカトリックの大聖堂で、「アルムデナの聖母」に捧げられています。正式名はサンタ・マリア・ラ・レアル・デ・ラ・アルムデナ大聖堂です。",
+    "description": "マドリードの新大聖堂の建設計画は16世紀に始まりましたが、建設は遅く、1879年になっても着工しませんでした。建設はスペイン内戦の間完全に中断され、計画は1950年まで頓挫していました。反対側に建つ王宮の灰色と白のファサードに合うよう、ネオクラシカル様式の外観になり、ヨハネ・パウロ2世に聖別された1993年まで完成しませんでした。",
+    "highlights": [
+      "王宮の向かいに建つ大聖堂",
+      "ネオクラシカル様式の外観",
+      "ゴシック・リヴァイヴァル建築の内装"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "王宮との位置関係が分かるように、広場から大聖堂を収めます",
+      "外観は、正面から水平に構えて左右の整いを写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%AB%E3%83%A0%E3%83%87%E3%83%8A%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「アルムデナ大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q849711",
+          "title": "Wikidata「Q849711」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_2ffe71197e41",
+    "slug": "bilbao-cathedral",
+    "name": "ビルバオ大聖堂",
+    "nameEn": "Bilbao Cathedral",
+    "reading": "ビルバオダイセイドウ",
+    "aliases": [
+      "サンティアゴ大聖堂"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ビスカヤ県",
+      "city": "ビルバオ"
+    },
+    "coords": {
+      "lat": 43.26,
+      "lng": -2.92
+    },
+    "category": "教会",
+    "summary": "スペイン・バスク州ビスカヤ県ビルバオのカスコ・ビエホ地区にある、ローマ・カトリックの大聖堂です。正式名称はサンティアゴ大聖堂です。",
+    "description": "1397年にビルバオの教区教会として建設が開始され、15世紀半ばまでに完成を見ました。1913年に開場したサッカークラブ、アスレティック・ビルバオの旧ホームスタジアム、サン・マメスは、この大聖堂に因んで「ラ・カテドラル」という愛称で知られていました。",
+    "highlights": [
+      "カスコ・ビエホ地区の大聖堂",
+      "正式名称はサンティアゴ大聖堂",
+      "15世紀半ばまでに完成した教区教会"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "旧市街の路地から、大聖堂の塔を見上げる構図で収めます",
+      "大聖堂の正面は、広場の端から水平に構えて写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%93%E3%83%AB%E3%83%90%E3%82%AA%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「ビルバオ大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2350964",
+          "title": "Wikidata「Q2350964」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_aaf7d49eff1c",
+    "slug": "palma-cathedral",
+    "name": "パルマ・デ・マヨルカ大聖堂",
+    "nameEn": "Palma Cathedral",
+    "reading": "パルマデマヨルカダイセイドウ",
+    "aliases": [
+      "マヨルカ大聖堂"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "バレアレス諸島州",
+      "city": "パルマ・デ・マヨルカ"
+    },
+    "coords": {
+      "lat": 39.57,
+      "lng": 2.65
+    },
+    "category": "教会",
+    "summary": "スペイン・バレアレス諸島州パルマ・デ・マヨルカにあるローマ・カトリックの大聖堂です。西地中海に浮かぶマヨルカ島にあり、ラ・セウとも呼ばれます。",
+    "description": "1229年にアラゴン＝カタルーニャ連合王国のハイメ1世がマヨルカ島を征服し、1230年に建設が開始されましたが、完成したのは1601年のことです。イスラーム教徒の時代のこの地にはモスクが存在したため、エルサレムではなくメッカの方角を向いています。1,236枚のガラスからなる世界有数の規模のステンドグラスがあります。",
+    "highlights": [
+      "1,236枚のガラスからなるステンドグラス",
+      "メッカの方角を向く大聖堂",
+      "マヨルカ島の大聖堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "堂内ではステンドグラスを逆光で見上げ、色の広がりを写します",
+      "外観は、離れた位置から全体を水平に収めます"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%91%E3%83%AB%E3%83%9E%E5%A4%A7%E8%81%96%E5%A0%82_%28%E3%82%B9%E3%83%9A%E3%82%A4%E3%83%B3%29",
+          "title": "Wikipedia「パルマ大聖堂 (スペイン)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1298819",
+          "title": "Wikidata「Q1298819」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_5f67fc21ce6a",
+    "slug": "basilica-of-candelaria",
+    "name": "ヌエストラ・セニョーラ・デ・ラ・カンデラリア教会",
+    "nameEn": "Basilica of Candelaria",
+    "reading": "ヌエストラセニョーラデラカンデラリアキョウカイ",
+    "aliases": [
+      "カンデラリア教会",
+      "カンデラリアの聖母聖堂"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "サンタ・クルス・デ・テネリフェ県",
+      "city": "カンデラリア"
+    },
+    "coords": {
+      "lat": 28.35,
+      "lng": -16.37
+    },
+    "category": "教会",
+    "summary": "スペイン・カナリア諸島テネリフェ島のカンデラリアにあるカトリック教会のバシリカです。カナリア諸島全域の守護聖人とされるカンデラリアの聖母を祀っており、巡礼地となっています。",
+    "description": "伝説によれば1390年、先住民であるグアンチェ族の2人の牧人が、聖母マリアの像を発見しました。堂にはドームと鐘楼があり、主祭壇背後のカマリンに、守護聖人である聖母マリアの像「カンデラリアの聖母」が安置されています。像のオリジナルは1826年に嵐によって失われたため、現在の像はその復刻です。",
+    "highlights": [
+      "カナリア諸島の守護聖人を祀るバシリカ",
+      "ドームと鐘楼を持つ聖堂",
+      "巡礼地となっているカンデラリアの聖母"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "海沿いの広場から、バシリカの正面を水平に収めます",
+      "ドームと鐘楼が並ぶ角度を探して、建物の輪郭を写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%8C%E3%82%A8%E3%82%B9%E3%83%88%E3%83%A9%E3%83%BB%E3%82%BB%E3%83%8B%E3%83%A7%E3%83%BC%E3%83%A9%E3%83%BB%E3%83%87%E3%83%BB%E3%83%A9%E3%83%BB%E3%82%AB%E3%83%B3%E3%83%87%E3%83%A9%E3%83%AA%E3%82%A2%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「ヌエストラ・セニョーラ・デ・ラ・カンデラリア教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q34485",
+          "title": "Wikidata「Q34485」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    },
+    "timeZone": "Atlantic/Canary"
+  },
+  {
+    "spotId": "sp_12de98b6729a",
+    "slug": "segovia-cathedral",
+    "name": "セゴビア大聖堂",
+    "nameEn": "Segovia Cathedral",
+    "reading": "セゴビアダイセイドウ",
+    "aliases": [
+      "カテドラルの貴婦人"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "セゴビア県",
+      "city": "セゴビア"
+    },
+    "coords": {
+      "lat": 40.95,
+      "lng": -4.13
+    },
+    "category": "教会",
+    "summary": "スペイン・カスティーリャ・イ・レオン州セゴビア県セゴビアにある、カトリック教会の大聖堂です。世界遺産「セゴビア旧市街と水道橋」の構成遺産です。",
+    "description": "コムネロスの反乱で大部分が破壊されたあと、1525年にカルロス1世が再建に着手し、243年後の1768年に完成しました。ゴシック様式で、「カテドラルの貴婦人」の通称を持ちます。高さは88メートル、内部は奥行き105メートル、幅は50メートルです。付属の美術館には、エンリケ2世の子ペトロの墓があります。",
+    "highlights": [
+      "ゴシック様式の大聖堂",
+      "「カテドラルの貴婦人」の通称",
+      "旧市街の構成遺産"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "広場から、大聖堂の塔を見上げる構図で収めます",
+      "旧市街の街並みと一緒に、塔の高さが伝わる位置を探します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BB%E3%82%B4%E3%83%93%E3%82%A2%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「セゴビア大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1499912",
+          "title": "Wikidata「Q1499912」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_fd396377f54c",
+    "slug": "san-millan-de-la-cogolla-monasteries",
+    "name": "サン・ミジャンのユソ修道院とスソ修道院",
+    "nameEn": "Monasteries of San Millán de la Cogolla",
+    "reading": "サンミジャンノユソシュウドウインスソシュウドウイン",
+    "aliases": [
+      "ユソとスソのサン・ミジャン修道院"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ラ・リオハ州",
+      "city": "サン・ミジャン・デ・ラ・コゴージャ"
+    },
+    "coords": {
+      "lat": 42.33,
+      "lng": -2.87
+    },
+    "category": "教会",
+    "summary": "スペインの世界遺産のひとつで、ラ・リオハ州のサン・ミジャン・デ・ラ・コゴージャにあります。数百メートルを隔てた異なる時代の2つの建造物群に分かれています。",
+    "description": "スソは「上方」、ユソは「下方」の意味で、ともに聖エミリアヌスに因む修道院です。2つのうち古いスソ修道院は、10世紀の再入植期の建築様式の簡素さを守っています。ユソ修道院は元々1050年に建てられましたが、1367年にエドワード黒太子に荒らされ、その後再建されました。現存最古のカスティーリャ語文書が書かれたのも、この修道院でした。",
+    "highlights": [
+      "上方のスソ修道院と下方のユソ修道院",
+      "10世紀の建築様式の簡素さ",
+      "現存最古のカスティーリャ語文書"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "谷の側から、修道院の建物が谷に建つ様子を収めます",
+      "スソ修道院では、岩壁と建物の関係が分かる距離から写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%83%9F%E3%82%B8%E3%83%A3%E3%83%B3%E3%81%AE%E3%83%A6%E3%82%BD%E4%BF%AE%E9%81%93%E9%99%A2%E3%81%A8%E3%82%B9%E3%82%BD%E4%BF%AE%E9%81%93%E9%99%A2",
+          "title": "Wikipedia「サン・ミジャンのユソ修道院とスソ修道院」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2284354",
+          "title": "Wikidata「Q2284354」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_644725a70ad1",
+    "slug": "colonia-guell-church",
+    "name": "コロニア・グエル教会",
+    "nameEn": "Church of Colònia Güell",
+    "reading": "コロニアグエルキョウカイ",
+    "aliases": [
+      "コロニア・グエル教会堂"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "バルセロナ県",
+      "city": "サンタ・クローマ・ダ・サルバリョー"
+    },
+    "coords": {
+      "lat": 41.36,
+      "lng": 2.03
+    },
+    "category": "教会",
+    "summary": "アントニ・ガウディの設計により、バルセロナ近郊のサンタ・クローマ・ダ・サルバリョーに建てられた教会です。工業団地コロニア・グエルの礼拝用につくられました。",
+    "description": "敷地は住宅街外れの松林に囲まれた、小高い丘の傾斜面にあります。半地階部と上層の教会堂との2層構成で、上部が完成していなかったため教会堂に転用されました。地下聖堂の内部は卵型の平面をしており、中央に四本の玄武岩の柱があります。壁の大窓には、花びらの形をした枠の中に黄、青、緑及びバラ色のステンドグラスがはめ込まれています。",
+    "highlights": [
+      "ガウディ設計の教会",
+      "玄武岩の柱がある卵型の地下聖堂",
+      "花びらの形をした枠のステンドグラス"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "松林の中から、教会の外観を周囲の緑と一緒に収めます",
+      "堂内では、ステンドグラスから漏れる光を主役にして写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B3%E3%83%AD%E3%83%8B%E3%82%A2%E3%83%BB%E3%82%B0%E3%82%A8%E3%83%AB%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「コロニア・グエル教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2160663",
+          "title": "Wikidata「Q2160663」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_2176b2b964c5",
+    "slug": "sanctuary-of-arantzazu",
+    "name": "アランツァス聖堂",
+    "nameEn": "Sanctuary of Arantzazu",
+    "reading": "アランツァスセイドウ",
+    "aliases": [
+      "アランサス聖堂"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ギプスコア県",
+      "city": "オニャティ"
+    },
+    "coords": {
+      "lat": 42.98,
+      "lng": -2.4
+    },
+    "category": "教会",
+    "summary": "スペイン・バスク自治州ギプスコア県オニャティにある、フランシスコ修道会の聖堂です。ギプスコア県の守護聖人であるアランツァスの聖母が主要な崇敬対象です。",
+    "description": "1468年に羊飼いの前に聖母が現れた後、フランシスコ修道会の聖堂が建設されました。聖堂は数度の火災に見舞われ、オリジナルの部分は完全に焼失しましたが、1950年に再建計画が考案されました。1955年にバシリカの建物が完成し、1969年に全体が完成しています。入口扉はエドゥアルド・チリーダによるものです。",
+    "highlights": [
+      "再建されたバシリカ",
+      "チリーダによる入口扉",
+      "アランツァスの聖母"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "正面から、バシリカの外観を水平に構えて写します",
+      "入口扉は、斜めの光が当たる時間に寄って写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.arantzazu.org/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%A9%E3%83%B3%E3%83%84%E3%82%A1%E3%82%B9%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「アランツァス聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3108092",
+          "title": "Wikidata「Q3108092」（座標・所在地）"
+        },
+        {
+          "url": "https://www.arantzazu.org/",
+          "title": "公式サイト「Hasiera」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_ed6664a27239",
+    "slug": "san-miguel-de-escalada",
+    "name": "サン・ミゲル・デ・エスカラーダ修道院",
+    "nameEn": "Monastery of San Miguel de Escalada",
+    "reading": "サンミゲルデエスカラーダシュウドウイン",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "レオン県",
+      "city": "グラデフェス"
+    },
+    "coords": {
+      "lat": 42.57,
+      "lng": -5.3
+    },
+    "category": "教会",
+    "summary": "スペインのレオン県に、教会堂と鐘楼のみが現存する旧修道院です。教会堂の建設は913年で、プレロマネスクに分類され、モサラベ様式を見せています。",
+    "description": "レオンの南東9キロメートル、道のりで30キロメートルほどのところに位置し、農地の只中に建っています。碑文によれば、廃墟になっていたかつての聖ミカエルの教会堂を、コルドバから来た修道院長アルフォンソが再建し、手狭だったため913年に新しい教会を建てました。",
+    "highlights": [
+      "モサラベ様式の教会堂",
+      "913年に建てられた教会堂",
+      "農地の中に建つ旧修道院"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "農地の広がりを入れて、教会堂のぽつんとした佇まいを写します",
+      "堂内では、柱の連なりが作る奥行きを正面から収めます"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%83%9F%E3%82%B2%E3%83%AB%E3%83%BB%E3%83%87%E3%83%BB%E3%82%A8%E3%82%B9%E3%82%AB%E3%83%A9%E3%83%BC%E3%83%80%E4%BF%AE%E9%81%93%E9%99%A2",
+          "title": "Wikipedia「サン・ミゲル・デ・エスカラーダ修道院」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q203741",
+          "title": "Wikidata「Q203741」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_4bb8b81621f8",
+    "slug": "san-anton-church-bilbao",
+    "name": "サン・アントン教会",
+    "nameEn": "Church of San Antón",
+    "reading": "サンアントンキョウカイ",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ビスカヤ県",
+      "city": "ビルバオ"
+    },
+    "coords": {
+      "lat": 43.26,
+      "lng": -2.92
+    },
+    "category": "教会",
+    "summary": "スペイン・バスク自治州ビスカヤ県ビルバオのカスコ・ビエホ地区(旧市街)にある、大アントニオスに捧げられたカトリック教会です。ネルビオン川の河岸にあります。",
+    "description": "ビルバオ市の紋章には、サン・アントン橋とともにこの教会が描かれています。1300年にディエゴ・ロペス・デ・アロ5世がビルバオを建設して特権を与えました。歴史を通じて教会は多くの被害を受け、2度閉鎖されています。直近の洪水は1983年で、建物内部を破壊し、扉や手すりを流しました。",
+    "highlights": [
+      "ビルバオ市の紋章に描かれた教会",
+      "サン・アントン橋とともにある眺め",
+      "ネルビオン川沿いの旧市街"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "サン・アントン橋と教会を、川沿いから一緒に収めます",
+      "川面に映る姿を狙って、水際の低い位置から写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%82%A2%E3%83%B3%E3%83%88%E3%83%B3%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「サン・アントン教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3750901",
+          "title": "Wikidata「Q3750901」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_0de6ac576bdc",
+    "slug": "basilica-of-begona",
+    "name": "ベゴニャ教会",
+    "nameEn": "Basilica of Begoña",
+    "reading": "ベゴニャキョウカイ",
+    "aliases": [
+      "ベゴニャのバシリカ"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ビスカヤ県",
+      "city": "ビルバオ"
+    },
+    "coords": {
+      "lat": 43.26,
+      "lng": -2.91
+    },
+    "category": "教会",
+    "summary": "スペイン・バスク州ビスカヤ県ビルバオにあるバシリカ(カトリック教会)です。ビスカヤ地方の守護聖人である修道女ベゴニャに捧げられています。",
+    "description": "ゴシック様式を主としますが、様々な様式が混合しています。サンチョ・マルティネス・デ・アレゴによって設計され、16世紀前半に建設されました。3つの身廊を持ち、1511年に建設が開始されたアーチ形天井は、約1世紀を経た17世紀にようやく完成しています。",
+    "highlights": [
+      "ゴシック様式を主とするバシリカ",
+      "3つの身廊",
+      "ビスカヤ地方の守護聖人に捧げられた教会"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "正面から、バシリカの外観を水平に収めます",
+      "建物全体が入る位置から、左右のバランスを整えて写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%99%E3%82%B4%E3%83%8B%E3%83%A3%E6%95%99%E4%BC%9A",
+          "title": "Wikipedia「ベゴニャ教会」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3297735",
+          "title": "Wikidata「Q3297735」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_822521937625",
+    "slug": "gaztelugatxe",
+    "name": "ガステルガチェ",
+    "nameEn": "Gaztelugatxe",
+    "reading": "ガステルガチェ",
+    "aliases": [
+      "サン・フアン・デ・ガステルガチェ"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ビスカヤ県",
+      "city": "ベルメオ"
+    },
+    "coords": {
+      "lat": 43.45,
+      "lng": -2.79
+    },
+    "category": "島",
+    "summary": "ビスケー湾南部にある島で、人工的に築かれた石橋によってイベリア半島本土と結ばれています。スペイン・バスク州ビスカヤ県ベルメオに属し、バキオの町とベルメオの町の中間に位置します。",
+    "description": "名称はバスク語で「岩山の城」を意味します。島には9世紀に遡るとされるサン・フアン礼拝堂があり、本土から石橋を渡り、200段以上とされる石段を登って向かいます。礼拝堂は1978年11月10日に火災で建物が破壊されましたが、1980年6月24日に再建されました。冬季には礼拝堂が閉鎖されます。",
+    "highlights": [
+      "石橋で本土と結ばれた島",
+      "石段の先のサン・フアン礼拝堂",
+      "ビスケー湾の荒波が作る海岸"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春と秋は気候が穏やかで、訪れるのに適した季節とされています。"
+      },
+      {
+        "season": "summer",
+        "text": "夏は6月や7月に、ガステルガチェから夕焼けを眺められます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "石橋と礼拝堂の島を、本土側の高い位置から一緒に収めます",
+      "訪れる前に、礼拝堂に入れるかどうかを確かめておきます"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AC%E3%82%B9%E3%83%86%E3%83%AB%E3%82%AC%E3%83%81%E3%82%A7",
+          "title": "Wikipedia「ガステルガチェ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1496690",
+          "title": "Wikidata「Q1496690」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_dfb1a0364dc8",
+    "slug": "monastery-of-leyre",
+    "name": "レイレ修道院",
+    "nameEn": "Monastery of Leyre",
+    "reading": "レイレシュウドウイン",
+    "aliases": [
+      "サン・サルバドール修道院"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ナバーラ州",
+      "city": "イエサ"
+    },
+    "coords": {
+      "lat": 42.64,
+      "lng": -1.17
+    },
+    "category": "教会",
+    "summary": "スペインのナバラ州にある、ロマネスク様式を見せる現役の修道院です。レイレ山の中ほどにあり、ナバラ州内でもアラゴン州との境界付近に立地します。",
+    "description": "かつてナバラ王国のサンチョ3世は、この修道院を「国の心臓」と称賛しました。身廊は1076年ごろ、ファサードは12世紀にロマネスクの様式で造られ、14世紀に身廊はゴシックに変更されています。1954年にサント・ドミンゴ・デ・シロス修道院からベネディクト会修道士が派遣されて復活し、現在も日々の勤めが行われています。",
+    "highlights": [
+      "山の中ほどに建つ修道院",
+      "ロマネスク様式のファサード",
+      "国の心臓と称賛された修道院"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "山の斜面に建つ修道院の全景を、離れた位置から収めます",
+      "ファサードは、斜めの光が当たる時間に寄って陰影を出します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.monasteriodeleyre.com/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%AC%E3%82%A4%E3%83%AC%E4%BF%AE%E9%81%93%E9%99%A2",
+          "title": "Wikipedia「レイレ修道院」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q669194",
+          "title": "Wikidata「Q669194」（座標・所在地）"
+        },
+        {
+          "url": "https://www.monasteriodeleyre.com/",
+          "title": "公式サイト「Monasterio de Leyre - Sitio Oficial」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_3f365474ee02",
+    "slug": "san-pedro-de-la-nave",
+    "name": "サン・ペドロ・デ・ラ・ナーベ聖堂",
+    "nameEn": "San Pedro de la Nave",
+    "reading": "サンペドロデラナーベセイドウ",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "サモラ県",
+      "city": "エル・カンピージョ"
+    },
+    "coords": {
+      "lat": 41.58,
+      "lng": -5.96
+    },
+    "category": "教会",
+    "summary": "スペイン・カスティーリャ・イ・レオン州サモラ県エル・カンピージョの町外れに建つ、西ゴート様式のキリスト教聖堂です。1912年4月22日にスペインの重要文化財に指定されました。",
+    "description": "創建時期は680年から711年の間とされ、現存する西ゴート様式の建築物の中でも最後期に位置します。当初はエスラ川の岸に建っていましたが、ダムの建設計画が持ち上がり、水没を避けるために建築家マヌエル・ゴメス＝モレーノにより現在の場所に移設されました。この事業は1930-32年に行われました。",
+    "highlights": [
+      "西ゴート様式の聖堂",
+      "水没を避けて移設された建物",
+      "680年から711年の間に創建"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "町外れの敷地から、聖堂の外観を周囲の広がりと一緒に収めます",
+      "小さな建物なので、少し離れて全体を水平に写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B5%E3%83%B3%E3%83%BB%E3%83%9A%E3%83%89%E3%83%AD%E3%83%BB%E3%83%87%E3%83%BB%E3%83%A9%E3%83%BB%E3%83%8A%E3%83%BC%E3%83%99%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「サン・ペドロ・デ・ラ・ナーベ聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2219985",
+          "title": "Wikidata「Q2219985」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_60800d1e3abc",
+    "slug": "tudela-cathedral",
+    "name": "トゥデラ大聖堂",
+    "nameEn": "Tudela Cathedral",
+    "reading": "トゥデラダイセイドウ",
+    "aliases": [
+      "サンタ・マリア大聖堂"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ナバーラ州",
+      "city": "トゥデラ"
+    },
+    "coords": {
+      "lat": 42.06,
+      "lng": -1.61
+    },
+    "category": "教会",
+    "summary": "スペイン・ナバーラ州トゥデラにあるローマ・カトリックの大聖堂で、正式名称はサンタ・マリア大聖堂です。",
+    "description": "もともと協同教会として建設され、1783年にトゥデラ司教区が設置された際に大聖堂の地位を与えられました。現在はパンプローナ大聖堂とともに、パンプローナ＝トゥデラ大司教区の共同司教座聖堂です。アラゴン王アルフォンソ1世がトゥデラを再征服したのは1119年のことで、21世紀初頭には修復工事が行われ、2006年7月16日に完了しました。",
+    "highlights": [
+      "サンタ・マリア大聖堂",
+      "共同司教座聖堂",
+      "2006年7月16日に完了した修復"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "広場側から、大聖堂の外観を水平に構えて収めます",
+      "塔と本堂の屋根が並ぶ眺めを、少し離れた位置から写します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%88%E3%82%A5%E3%83%87%E3%83%A9%E5%A4%A7%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「トゥデラ大聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2942843",
+          "title": "Wikidata「Q2942843」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_32c012a88f51",
+    "slug": "assisi-town",
+    "name": "アッシジ",
+    "nameEn": "Assisi",
+    "reading": "アッシジ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ペルージャ県",
+      "city": "アッシジ"
+    },
+    "coords": {
+      "lat": 43.07,
+      "lng": 12.61
+    },
+    "category": "町並み",
+    "summary": "イタリア・ウンブリア州ペルージャ県にある都市で、フランシスコ会の創設者である聖フランチェスコの出身地として知られています。キリスト教の巡礼地としての性格を持つ町です。",
+    "description": "フランチェスコの名を冠した聖堂やフランシスコ会関連施設は、「アッシジ、フランチェスコ聖堂と関連修道施設群」として世界遺産に登録されています。1997年9月には、ウンブリア州を襲った2度の大地震に見舞われ、多くの史跡も被害を受けました。",
+    "highlights": [
+      "聖フランチェスコの出身地",
+      "フランチェスコ聖堂と関連修道施設群",
+      "巡礼地としての町"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "丘の下の道から、町全体の広がりを見上げて収めます",
+      "石の路地は、斜めの光が当たる時間に陰影を出して写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%83%E3%82%B7%E3%82%B8",
+          "title": "Wikipedia「アッシジ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q20103",
+          "title": "Wikidata「Q20103」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_8fdf1ecd4ac2",
+    "slug": "urbino-town",
+    "name": "ウルビーノ",
+    "nameEn": "Urbino",
+    "reading": "ウルビーノ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ペーザロ・エ・ウルビーノ県",
+      "city": "ウルビーノ"
+    },
+    "coords": {
+      "lat": 43.73,
+      "lng": 12.64
+    },
+    "category": "町並み",
+    "summary": "イタリア・マルケ州北西部にある、人口約14,000人の都市です。街は2つの丘にまたがって広がり、起伏のある道を歩きながらルネサンス期の建物をみることができます。",
+    "description": "中世にはウルビーノ公国の首府であり、ルネサンス期にモンテフェルトロ家のもとで最盛期を迎えました。「ウルビーノ歴史地区」は1998年にユネスコの世界遺産に登録されています。旧市街は山間にあり、城壁で囲まれた小さな街です。1444年にフェデリーコ公が建て始めたドゥカーレ宮殿は、現在国立マルケ美術館として公開されています。",
+    "highlights": [
+      "2つの丘にまたがる旧市街",
+      "ドゥカーレ宮殿",
+      "ラファエロの生家"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "丘の上の高い位置から、旧市街の屋根の連なりを収めます",
+      "城壁沿いの道から、街の外観を写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.comune.urbino.pu.it/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A6%E3%83%AB%E3%83%93%E3%83%BC%E3%83%8E",
+          "title": "Wikipedia「ウルビーノ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2759",
+          "title": "Wikidata「Q2759」（座標・所在地）"
+        },
+        {
+          "url": "https://www.comune.urbino.pu.it/",
+          "title": "公式サイト「Comune di Urbino」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_47446a26bd5a",
+    "slug": "orvieto-town",
+    "name": "オルヴィエート",
+    "nameEn": "Orvieto",
+    "reading": "オルヴィエート",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "テルニ県",
+      "city": "オルヴィエート"
+    },
+    "coords": {
+      "lat": 42.72,
+      "lng": 12.11
+    },
+    "category": "町並み",
+    "summary": "イタリア・ウンブリア州テルニ県にある、人口約19,000人の都市です。周囲が崖となった丘の上に作られた要塞都市です。",
+    "description": "古くはエトルリア人が住んでいましたが、紀元前280年ごろにローマ人に攻め落とされました。ゴシック様式の大聖堂(オルヴィエートのドゥオーモ)をはじめ、今も中世さながらの街並みを残しています。16世紀に作られたサン・パトリツィオの井戸は、直径13メートル、深さ62メートルの縦穴で、二重螺旋状の階段が設けられています。",
+    "highlights": [
+      "崖の上の要塞都市",
+      "ゴシック様式の大聖堂",
+      "サン・パトリツィオの井戸"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "丘の下から、崖の上に立つ町の姿を見上げて収めます",
+      "旧市街の路地は、石畳の奥行きを生かして縦に写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AA%E3%83%AB%E3%83%B4%E3%82%A3%E3%82%A8%E3%83%BC%E3%83%88",
+          "title": "Wikipedia「オルヴィエート」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q541",
+          "title": "Wikidata「Q541」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c04c2ca1cf57",
+    "slug": "amalfi-town",
+    "name": "アマルフィ",
+    "nameEn": "Amalfi",
+    "reading": "アマルフィ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "サレルノ県",
+      "city": "アマルフィ"
+    },
+    "coords": {
+      "lat": 40.63,
+      "lng": 14.6
+    },
+    "category": "町並み",
+    "summary": "イタリア・カンパニア州サレルノ県にある、急峻なアマルフィ海岸に面して築かれた都市です。ユネスコの世界遺産に登録されているアマルフィ海岸の中心都市です。",
+    "description": "中世にはアマルフィ公国(アマルフィ共和国)として自立した海洋国家で、839年にナポリ公国から独立を宣言しました。狭い土地を有効活用するためアーチの上に家を建て、上へと建て増したので、断崖にへばりつくように建物が密集し、階段の路地が複雑に入り組んでいます。急斜面にはところどころレモン畑があります。",
+    "highlights": [
+      "断崖に密集する建物",
+      "階段の路地",
+      "アラブ＝シチリア様式の大聖堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "海側から、断崖に重なる建物の連なりを収めます",
+      "階段の路地では、段の連なりが作る奥行きを縦位置で写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://comune.amalfi.sa.it",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A2%E3%83%9E%E3%83%AB%E3%83%95%E3%82%A3",
+          "title": "Wikipedia「アマルフィ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q80563",
+          "title": "Wikidata「Q80563」（座標・所在地）"
+        },
+        {
+          "url": "https://comune.amalfi.sa.it",
+          "title": "公式サイト「Città di Amalfi」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d0fe64a59813",
+    "slug": "sorrento-town",
+    "name": "ソレント",
+    "nameEn": "Sorrento",
+    "reading": "ソレント",
+    "aliases": [
+      "ソッレント"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ナポリ県",
+      "city": "ソレント"
+    },
+    "coords": {
+      "lat": 40.63,
+      "lng": 14.37
+    },
+    "category": "町並み",
+    "summary": "イタリア・カンパニア州ナポリ県にある、人口約1万6000人の都市です。ナポリ湾を挟んで南南東へ約30キロメートル、ソレント半島の北海岸に位置します。",
+    "description": "対岸にヴェスヴィオ山を望む、風光明媚なリゾート地として著名で、ナポリ民謡「帰れソレントへ」でもその名が知られています。この曲は1902年にエルネスト・デ・クルティスによって作曲されました。特産のレモンで作られたリキュールのリモンチェッロや、寄木細工もソレントの特産品です。",
+    "highlights": [
+      "ソレント半島の北海岸",
+      "対岸のヴェスヴィオ山",
+      "リモンチェッロと寄木細工"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "海沿いから、対岸のヴェスヴィオ山を入れて収めます",
+      "夕方の港では、船と町の輪郭を一緒に写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BD%E3%83%AC%E3%83%B3%E3%83%88",
+          "title": "Wikipedia「ソレント」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q72672",
+          "title": "Wikidata「Q72672」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_e041bff94dae",
+    "slug": "cefalu-town",
+    "name": "チェファル",
+    "nameEn": "Cefalù",
+    "reading": "チェファル",
+    "aliases": [
+      "チェファルー"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "パレルモ県",
+      "city": "チェファル"
+    },
+    "coords": {
+      "lat": 38.04,
+      "lng": 14.02
+    },
+    "category": "町並み",
+    "summary": "イタリア・シチリア自治州パレルモ県のティレニア海沿岸にある、人口約1万4000人の都市です。古代ギリシャ人の植民都市に起源を持つ都市です。",
+    "description": "海に突き出した非常に高い絶壁の岩の上にあることから、市名が生まれたとされます。「イタリアの最も美しい村」クラブに加盟するコムーネで、2015年には大聖堂が世界遺産に登録されました。",
+    "highlights": [
+      "海に突き出した絶壁の岩",
+      "古代ギリシャの植民都市に起源",
+      "世界遺産に登録された大聖堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "海沿いから、絶壁の岩と町を一緒に収めます",
+      "町の中から、大聖堂の塔を入れて通りの奥行きを写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%81%E3%82%A7%E3%83%95%E3%82%A1%E3%83%AB",
+          "title": "Wikipedia「チェファル」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q235163",
+          "title": "Wikidata「Q235163」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_a76bd7215a8a",
+    "slug": "taormina-town",
+    "name": "タオルミーナ",
+    "nameEn": "Taormina",
+    "reading": "タオルミーナ",
+    "aliases": [
+      "タウロメニオン"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "メッシーナ県",
+      "city": "タオルミーナ"
+    },
+    "coords": {
+      "lat": 37.85,
+      "lng": 15.29
+    },
+    "category": "町並み",
+    "summary": "イタリア・シチリア州メッシーナ県にある、人口約11,000人の都市です。古代ギリシャおよびローマ帝国の支配下にあり、当時の神殿や遺跡を今に伝えています。",
+    "description": "海に突き出た崖の上に建つギリシャ劇場は、使われたレンガからローマ時代に改修されたことが判明しています。劇場の客席からは、舞台中央越しにエトナ山を望めます。ジュゼッペ・ガリバルディがシチリアに上陸するという誤報が届けられた日にちなんだ「4月9日広場」からは、眼下に地中海が広がります。1983年以降、毎年7～8月に芸術祭が開催されています。",
+    "highlights": [
+      "崖の上のギリシャ劇場",
+      "劇場から望むエトナ山",
+      "地中海を見下ろす4月9日広場"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏の7～8月は芸術祭が開催され、日が長い夕方の光で町を撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "ギリシャ劇場の客席から、舞台越しのエトナ山を入れて収めます",
+      "4月9日広場では、眼下に広がる地中海を入れて町の高さが伝わるよう写します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.comune.taormina.me.it/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BF%E3%82%AA%E3%83%AB%E3%83%9F%E3%83%BC%E3%83%8A",
+          "title": "Wikipedia「タオルミーナ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q199952",
+          "title": "Wikidata「Q199952」（座標・所在地）"
+        },
+        {
+          "url": "https://www.comune.taormina.me.it/",
+          "title": "公式サイト「Comune di Taormina」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_3e6f938a2682",
+    "slug": "noto-town",
+    "name": "ノート",
+    "nameEn": "Noto",
+    "reading": "ノート",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "シラクーザ県",
+      "city": "ノート"
+    },
+    "coords": {
+      "lat": 36.88,
+      "lng": 15.08
+    },
+    "category": "町並み",
+    "summary": "イタリア・シチリア州シラクーザ県にある、人口約2万4000人の都市です。その町並みは世界遺産「ヴァル・ディ・ノートの後期バロック様式の町々」の一部を構成しています。",
+    "description": "シチリア島で最大のコムーネであり、イタリアの中でも4番目に大きい面積のコムーネです。世界遺産「ヴァル・ディ・ノートの後期バロック様式の町々」の一部として、後期バロック様式の町並みを見ることができます。",
+    "highlights": [
+      "後期バロック様式の町並み",
+      "世界遺産の構成都市",
+      "シチリア島で最大のコムーネ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "通りの端から、バロック様式の建物が並ぶ奥行きを収めます",
+      "広場では、建物の正面を水平に構えて写します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%8E%E3%83%BC%E3%83%88_%28%E3%82%A4%E3%82%BF%E3%83%AA%E3%82%A2%29",
+          "title": "Wikipedia「ノート (イタリア)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q487174",
+          "title": "Wikidata「Q487174」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_36b995ca55bf",
+    "slug": "lecce-town",
+    "name": "レッチェ",
+    "nameEn": "Lecce",
+    "reading": "レッチェ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "レッチェ県",
+      "city": "レッチェ"
+    },
+    "coords": {
+      "lat": 40.35,
+      "lng": 18.17
+    },
+    "category": "町並み",
+    "summary": "イタリア・プッリャ州南東部にある都市で、レッチェ県の県都です。サレント半島の内陸にある主要都市で、古代ギリシャ時代以来2000年以上の歴史を持ちます。",
+    "description": "バロック様式の建築が市内に多いことから、「南イタリアのフィレンツェ」とも呼ばれます。2世紀に建てられたローマ時代の円形闘技場がサントロンツォ広場の近くにあり、現在は半分が地中に埋まっています。1539年から1549年にかけて建設されたカルロ5世城や、1592年に建てられたセディーレもあります。",
+    "highlights": [
+      "バロック様式の建築が多い町",
+      "ローマ時代の円形闘技場",
+      "聖オロンツォ像を掲げる円柱"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "サントロンツォ広場から、円形闘技場と周囲の建物を一緒に収めます",
+      "バロック様式の建物は、斜めの光で陰影を出して写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%AC%E3%83%83%E3%83%81%E3%82%A7",
+          "title": "Wikipedia「レッチェ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q13386",
+          "title": "Wikidata「Q13386」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_cbd02a8c9223",
+    "slug": "spoleto-town",
+    "name": "スポレート",
+    "nameEn": "Spoleto",
+    "reading": "スポレート",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ペルージャ県",
+      "city": "スポレート"
+    },
+    "coords": {
+      "lat": 42.73,
+      "lng": 12.74
+    },
+    "category": "町並み",
+    "summary": "イタリア・ウンブリア州ペルージャ県にある、人口約36,000人の都市です。古代に起源を持ち、中世には中部イタリア一帯を支配したスポレート公国の都でした。",
+    "description": "紀元前1世紀に建てられたサングイナリオ橋が今もあり、ウンブリ族が紀元前5世紀に築いた壁の一部も見ることができます。1958年に始まったドゥエ・モンディ祭は、毎年6月下旬から7月上旬に開催され、3週間の日程で音楽、演劇、ダンスが行われます。",
+    "highlights": [
+      "紀元前1世紀のサングイナリオ橋",
+      "ウンブリ族が築いた壁",
+      "6月下旬から7月上旬のドゥエ・モンディ祭"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏の6月下旬から7月上旬には、ドゥエ・モンディ祭が開催されます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "古い橋は、少し離れた位置から全体を水平に収めます",
+      "古い壁は、斜めの光が当たる時間に石の質感を写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B9%E3%83%9D%E3%83%AC%E3%83%BC%E3%83%88",
+          "title": "Wikipedia「スポレート」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q20571",
+          "title": "Wikidata「Q20571」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_63d079a9d62f",
+    "slug": "bergamo-citta-alta",
+    "name": "ベルガモ",
+    "nameEn": "Bergamo",
+    "reading": "ベルガモ",
+    "aliases": [
+      "チッタ・アルタ"
+    ],
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ベルガモ県",
+      "city": "ベルガモ"
+    },
+    "coords": {
+      "lat": 45.7,
+      "lng": 9.67
+    },
+    "category": "町並み",
+    "summary": "イタリア・ロンバルディア州中部にある都市で、ベルガモ県の県都です。ミラノの北東約40キロメートルのアルプスの麓に位置し、丘の上の旧市街チッタ・アルタと、丘の下の新市街チッタ・バッサからなります。",
+    "description": "城壁に囲まれたチッタ・アルタには、中世の面影を残す景観や多くの文化財があります。2017年には、旧市街の一部が「ベルガモの要塞都市」として世界遺産に登録されました。旧市街には、ヴェッキア広場、ラジョーネ宮、サンタ・マリア・マッジョーレ教会、コッレオーニ礼拝堂などがあります。",
+    "highlights": [
+      "城壁に囲まれた旧市街チッタ・アルタ",
+      "中世の面影を残す景観",
+      "世界遺産「ベルガモの要塞都市」"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "丘の下の新市街から、城壁に囲まれた旧市街を見上げて収めます",
+      "旧市街の広場では、周囲の建物を入れて広がりを写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.comune.bergamo.it",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%99%E3%83%AB%E3%82%AC%E3%83%A2",
+          "title": "Wikipedia「ベルガモ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q628",
+          "title": "Wikidata「Q628」（座標・所在地）"
+        },
+        {
+          "url": "https://www.comune.bergamo.it",
+          "title": "公式サイト「Homepage | Comune di Bergamo」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_793c46e69ddc",
+    "slug": "mantua-town",
+    "name": "マントヴァ",
+    "nameEn": "Mantua",
+    "reading": "マントヴァ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "マントヴァ県",
+      "city": "マントヴァ"
+    },
+    "coords": {
+      "lat": 45.16,
+      "lng": 10.79
+    },
+    "category": "町並み",
+    "summary": "イタリア・ロンバルディア州南東部にある、人口約49,000人の都市で、マントヴァ県の県都です。三方を12世紀につくられた人工湖によって囲まれています。",
+    "description": "3つの湖は大きな方から、スペリオーレ湖、メッツォ湖、インフェリオーレ湖と呼ばれ、ガルダ湖から発したミンチョ川の水をせき止めたものです。ゴンザーガ家の居城だったドゥカーレ宮殿があり、フェデリーコ2世・ゴンザーガの夏の宮殿だったパラッツォ・デル・テは、ジュリオ・ロマーノが成熟したルネサンス様式でつくりました。",
+    "highlights": [
+      "人工湖に囲まれた町",
+      "ゴンザーガ家のドゥカーレ宮殿",
+      "ジュリオ・ロマーノのパラッツォ・デル・テ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "湖畔から、水面越しに町の建物の連なりを収めます",
+      "宮殿の広場では、建物の正面を水平に構えて写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9E%E3%83%B3%E3%83%88%E3%83%B4%E3%82%A1",
+          "title": "Wikipedia「マントヴァ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q6247",
+          "title": "Wikidata「Q6247」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_ed4fabff8d71",
+    "slug": "pienza-town",
+    "name": "ピエンツァ",
+    "nameEn": "Pienza",
+    "reading": "ピエンツァ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "シエーナ県",
+      "city": "ピエンツァ"
+    },
+    "coords": {
+      "lat": 43.08,
+      "lng": 11.68
+    },
+    "category": "町並み",
+    "summary": "イタリア・トスカーナ州シエーナ県にある、人口約2,000人の小さな町です。市街地の歴史地区は1996年に世界遺産に登録されています。",
+    "description": "当初は小さな村落に過ぎませんでしたが、この地の出身者のピウス2世が教皇になると、この地を自らにちなんで名づけ、理想のルネッサンス期の街づくりに挑みました。フィレンツェの建築家ベルナルド・ロッセリーノを呼び寄せ、1459年から工事が始まり、大聖堂をはじめとする建造物が残されました。大聖堂や教皇の館が連なるピッコロミニ広場などの街並みが現存しています。",
+    "highlights": [
+      "理想のルネッサンス期の街づくり",
+      "大聖堂と教皇の館が連なる広場",
+      "世界遺産の歴史地区"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "ピッコロミニ広場で、大聖堂と周囲の建物を一緒に収めます",
+      "小さな町なので、広場から路地へ歩きながら奥行きのある通りを写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%94%E3%82%A8%E3%83%B3%E3%83%84%E3%82%A1",
+          "title": "Wikipedia「ピエンツァ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q91341",
+          "title": "Wikidata「Q91341」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_4eb13f485584",
+    "slug": "stresa-town",
+    "name": "ストレーザ",
+    "nameEn": "Stresa",
+    "reading": "ストレーザ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェルバーノ・クジオ・オッソラ県",
+      "city": "ストレーザ"
+    },
+    "coords": {
+      "lat": 45.88,
+      "lng": 8.54
+    },
+    "category": "町並み",
+    "summary": "イタリア・ピエモンテ州ヴェルバーノ・クジオ・オッソラ県にある、人口約5,000人の町です。イタリア・アルプス山脈の南にあり、マッジョーレ湖に面しています。",
+    "description": "保養・観光地として名高く、コモ湖にも近く、イタリア・アルプス山脈のモンテ・ローザやシンプロン峠などにも比較的近い位置にあります。1935年4月11日には、ヒトラー政権の再軍備を受けてストレーザ会議が開催され、イタリア・イギリス・フランスによるストレーザ戦線が結成されました。",
+    "highlights": [
+      "マッジョーレ湖に面した町",
+      "保養・観光地",
+      "ストレーザ会議の開催地"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "湖畔の遊歩道から、湖と町の景色を一緒に収めます",
+      "夕方の低い光で、湖面の色を入れて写します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B9%E3%83%88%E3%83%AC%E3%83%BC%E3%82%B6",
+          "title": "Wikipedia「ストレーザ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q23700",
+          "title": "Wikidata「Q23700」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_302975c7790a",
+    "slug": "segovia-old-town-aqueduct",
+    "name": "セゴビア旧市街と水道橋",
+    "nameEn": "Old Town of Segovia and its Aqueduct",
+    "reading": "セゴビアキュウシガイトスイドウキョウ",
+    "aliases": [
+      "セゴビアの水道橋"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "セゴビア県",
+      "city": "セゴビア"
+    },
+    "coords": {
+      "lat": 40.95,
+      "lng": -4.12
+    },
+    "category": "町並み",
+    "summary": "スペインのセゴビアにある世界遺産で、1985年に登録されました。ローマ帝国時代に建設された水道橋と、アルカサル、セゴビア大聖堂が評価されています。",
+    "description": "旧市街は長く狭い高台の上にあり、眼下には田舎の景色が広がっています。水道橋は紀元1世紀頃に造られ、全長は728メートルで、166個のアーチが支えています。中心部では二層構造で、高さは28メートルあり、花崗岩をアーチ構造で積み上げ、モルタルなどで固定していません。アルカサルは旧市街の西端、2つの川の間の岩山に建てられています。",
+    "highlights": [
+      "166個のアーチが支える水道橋",
+      "高台の上の旧市街",
+      "2つの川の間の岩山に建つアルカサル"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "水道橋の足元から、アーチの連なりを見上げて収めます",
+      "旧市街の外の高い位置から、高台の上の町と周囲の景色を一緒に写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%BB%E3%82%B4%E3%83%93%E3%82%A2%E6%97%A7%E5%B8%82%E8%A1%97%E3%81%A8%E6%B0%B4%E9%81%93%E6%A9%8B",
+          "title": "Wikipedia「セゴビア旧市街と水道橋」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q244947",
+          "title": "Wikidata「Q244947」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c2e871947aef",
+    "slug": "cuenca-town",
+    "name": "クエンカ",
+    "nameEn": "Cuenca",
+    "reading": "クエンカ",
+    "aliases": [
+      "歴史的城塞都市クエンカ"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "クエンカ県",
+      "city": "クエンカ"
+    },
+    "coords": {
+      "lat": 40.07,
+      "lng": -2.13
+    },
+    "category": "町並み",
+    "summary": "スペイン・カスティーリャ＝ラ・マンチャ州クエンカ県の県都です。「歴史的城塞都市クエンカ」としてユネスコの世界遺産に登録されています。",
+    "description": "名前はフカール川とウエカル川の峡谷を指す、ラテン語の「川の盆地」に由来するとされます。丘の上に建てられていることから「鷲の巣」としても知られています。ウエカル川の断崖の上に建てられた「宙吊りの家」が有名で、自然と人工物のユニークな組み合わせが見られます。2つの川による峡谷では、秋に紅葉が見られます。",
+    "highlights": [
+      "ウエカル川の断崖に建つ宙吊りの家",
+      "丘の上の歴史的城塞都市",
+      "2つの川がつくる峡谷"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で断崖の家並みを撮れる時間が広がります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は2つの川による峡谷で紅葉が見られ、町と自然の組み合わせを写せます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "峡谷の対岸から、断崖に建つ家並みを見上げて収めます",
+      "秋は峡谷の紅葉を入れて、町との組み合わせを写します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://www.cuenca.es/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AF%E3%82%A8%E3%83%B3%E3%82%AB_%28%E3%82%B9%E3%83%9A%E3%82%A4%E3%83%B3%29",
+          "title": "Wikipedia「クエンカ (スペイン)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q15098",
+          "title": "Wikidata「Q15098」（座標・所在地）"
+        },
+        {
+          "url": "https://www.cuenca.es/",
+          "title": "公式サイト「cuenca.es」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_a8c394d3f0b5",
+    "slug": "ubeda-town",
+    "name": "ウベダ",
+    "nameEn": "Úbeda",
+    "reading": "ウベダ",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ハエン県",
+      "city": "ウベダ"
+    },
+    "coords": {
+      "lat": 38.01,
+      "lng": -3.37
+    },
+    "category": "町並み",
+    "summary": "スペイン・アンダルシア州ハエン県の町で、この地域の行政、経済の中心地です。2003年に西隣の町バエサの建造物とともに、世界遺産に登録されました。",
+    "description": "世界遺産の名称は「ウベダとバエサのルネサンス様式の記念碑的建造物群」です。グラナダ王国へのレコンキスタが終了した後、カルロス1世の宰相フランシスコ・デ・ロス・コボスがこの町を支配しました。コボスが町作りに力を注いだ結果、バスケス・デ・モリーナ広場を中心に美しい建築物が残されています。",
+    "highlights": [
+      "ルネサンス様式の記念碑的建造物群",
+      "バスケス・デ・モリーナ広場",
+      "西隣の町バエサとともに登録された世界遺産"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "日中は明るい光の下で、細部まではっきり写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "バスケス・デ・モリーナ広場で、周囲の建築物を一緒に収めます",
+      "建物の正面は、斜めの光が当たる時間に寄って写します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%A6%E3%83%99%E3%83%80",
+          "title": "Wikipedia「ウベダ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q329984",
+          "title": "Wikidata「Q329984」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_12437dcbfed7",
+    "slug": "burano-island",
+    "name": "ブラーノ",
+    "nameEn": "Burano",
+    "reading": "ブラーノ",
+    "region": {
+      "country": "イタリア",
+      "prefecture": "ヴェネツィア県",
+      "city": "ヴェネツィア"
+    },
+    "coords": {
+      "lat": 45.49,
+      "lng": 12.42
+    },
+    "category": "町並み",
+    "summary": "イタリア北東部ヴェネツィアの潟にある島で、コムーネとしてはヴェネツィアの一部となっています。4つの小島で構成される群島で、それぞれの島は橋で行き来できます。",
+    "description": "レース編みの生産と、色とりどりに塗られた独特の家々が特徴です。家の色は、霧のなかでも漁にでた漁師がどこが自分の家か判別できるようにと彩色されました。トルチェッロやトレポルティを結ぶ汽船の通常路線によって、姉妹島のムラーノを経由してヴェネツィア本島と結ばれています。",
+    "highlights": [
+      "色とりどりに塗られた家々",
+      "レース編み",
+      "橋で結ばれた4つの小島"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "水路沿いから、色とりどりの家並みを水面と一緒に収めます",
+      "家の色の対比を生かして、正面を水平に構えて写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%96%E3%83%A9%E3%83%BC%E3%83%8E",
+          "title": "Wikipedia「ブラーノ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q52439",
+          "title": "Wikidata「Q52439」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6279018790f4",
+    "slug": "baeza-town",
+    "name": "バエサ",
+    "nameEn": "Baeza",
+    "reading": "バエサ",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ハエン県",
+      "city": "バエサ"
+    },
+    "coords": {
+      "lat": 37.98,
+      "lng": -3.47
+    },
+    "category": "町並み",
+    "summary": "スペイン・アンダルシア州ハエン県の町で、イタリア・ルネサンス様式の建築物が良好な保存状態で多く残る都市として知られています。2003年には、ウベダの建造物とともにユネスコの世界遺産に登録されました。",
+    "description": "バエサ丘陵の崖に位置し、歴史は古代ローマ帝国時代の都市ベアティアにまで遡ります。16世紀には織物生産で豊かになり、地元の貴族たちが優れた建築家を雇い入れて、当時流行だったイタリア様式の宮殿、聖堂、広場などを設計させました。17世紀以降は新しい建造物群がほとんど建てられなかったため、16世紀の建造物群が保存されました。",
+    "highlights": [
+      "イタリア・ルネサンス様式の建築物",
+      "丘の崖に位置する町",
+      "ウベダとともに登録された世界遺産"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "丘の上から、周囲の景色と町を一緒に収めます",
+      "広場では、ルネサンス様式の建物の正面を水平に構えて写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%90%E3%82%A8%E3%82%B5",
+          "title": "Wikipedia「バエサ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q488555",
+          "title": "Wikidata「Q488555」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_ca3ad6e545ab",
+    "slug": "ronda-town",
+    "name": "ロンダ",
+    "nameEn": "Ronda",
+    "reading": "ロンダ",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "マラガ県",
+      "city": "ロンダ"
+    },
+    "coords": {
+      "lat": 36.74,
+      "lng": -5.16
+    },
+    "category": "町並み",
+    "summary": "スペイン・アンダルシア州マラガ県の町で、海抜739メートルの岩がちな台地の上に位置し、周囲を百メートル台の高さの崖に囲まれています。",
+    "description": "グアダレビン川に侵食されて形成されたロンダ峡谷によって、市街地は2つに分断されています。峡谷の南側がイスラム支配時に発展した旧市街で、北側がスペイン王国時代に発展した新市街です。旧市街と新市街は、ビエホ橋やヌエボ橋で結ばれています。",
+    "highlights": [
+      "台地の上の町",
+      "峡谷で分かれた旧市街と新市街",
+      "ビエホ橋とヌエボ橋"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しが穏やかで、明暗の差をおさえて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "峡谷の対岸から、崖の上に連なる町を収めます",
+      "橋の上からは、峡谷の深さが伝わるよう下を入れて写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%AD%E3%83%B3%E3%83%80_%28%E3%82%B9%E3%83%9A%E3%82%A4%E3%83%B3%29",
+          "title": "Wikipedia「ロンダ (スペイン)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q13153",
+          "title": "Wikidata「Q13153」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_975d955ba925",
+    "slug": "vejer-de-la-frontera",
+    "name": "ベヘール・デ・ラ・フロンテーラ",
+    "nameEn": "Vejer de la Frontera",
+    "reading": "ベヘールデラフロンテーラ",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "カディス県",
+      "city": "ベヘール・デ・ラ・フロンテーラ"
+    },
+    "coords": {
+      "lat": 36.25,
+      "lng": -5.96
+    },
+    "category": "町並み",
+    "summary": "スペイン・アンダルシア州カディス県の町で、イベリア半島とアフリカ大陸を隔てるジブラルタル海峡を見下ろす小高い丘の上にあります。",
+    "description": "新石器時代から人が定住し、青銅器時代には既に要塞が築かれていました。現在も残る市壁の一部は紀元前7世紀からあります。550年余り続いたイスラム支配時代には、城の扉(11世紀)、市壁、通りに面した場所の格子窓といったイスラムの影響を物語る痕跡が残されました。",
+    "highlights": [
+      "海峡を見下ろす丘の上の町",
+      "紀元前7世紀からある市壁",
+      "イスラムの影響を残す格子窓"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、朝夕の斜めの光で撮れる時間が広がります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "丘の下の道から、丘の上に連なる町を見上げて収めます",
+      "市壁は、斜めの光が当たる時間に陰影を出して写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%99%E3%83%98%E3%83%BC%E3%83%AB%E3%83%BB%E3%83%87%E3%83%BB%E3%83%A9%E3%83%BB%E3%83%95%E3%83%AD%E3%83%B3%E3%83%86%E3%83%BC%E3%83%A9",
+          "title": "Wikipedia「ベヘール・デ・ラ・フロンテーラ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q827393",
+          "title": "Wikidata「Q827393」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_a0a2c654b0ff",
+    "slug": "cadiz-town",
+    "name": "カディス",
+    "nameEn": "Cádiz",
+    "reading": "カディス",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "カディス県",
+      "city": "カディス"
+    },
+    "coords": {
+      "lat": 36.53,
+      "lng": -6.28
+    },
+    "category": "町並み",
+    "summary": "スペイン南西部、アンダルシア州カディス県の県都で、港湾都市として重要な役割を果たしています。大西洋に面した海岸は、コスタ・デ・ラ・ルス(光の海岸)と呼ばれます。",
+    "description": "紀元前10世紀頃、地中海交易で活躍していたフェニキア人が築いた拠点が起源とされ、ガディルと称されました。当初はイベリア半島から離れた小島だったと考えられており、土砂の堆積などによってやがて半島と結びつきました。大聖堂、大地の門、サンタ・カタリーナ城、トレー・タビラ、バレーラ庭などがあります。",
+    "highlights": [
+      "大西洋に面した港町",
+      "フェニキア人の拠点に起源",
+      "大聖堂・大地の門・サンタ・カタリーナ城"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "海沿いの道から、海と町の建物を一緒に収めます",
+      "夕方の低い光で、海に面した町の輪郭を写します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AB%E3%83%87%E3%82%A3%E3%82%B9",
+          "title": "Wikipedia「カディス」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q15682",
+          "title": "Wikidata「Q15682」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_dd3ddd325e6d",
+    "slug": "pontevedra-town",
+    "name": "ポンテベドラ",
+    "nameEn": "Pontevedra",
+    "reading": "ポンテベドラ",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ポンテベドラ県",
+      "city": "ポンテベドラ"
+    },
+    "coords": {
+      "lat": 42.43,
+      "lng": -8.65
+    },
+    "category": "町並み",
+    "summary": "スペイン・ガリシア州ポンテベドラ県の県都で、リアス・バイシャスに位置し、レレス川河岸とリア・デ・ポンテベドラ沿岸にあります。ガリシア7都市のひとつに数えられます。",
+    "description": "巡礼者広場にある巡礼者礼拝堂、歴史的な旧市街、レーニャ広場、市場、アラメダ、リアス式海岸沿いの遊歩道などがみどころです。旧市街と周辺地区には広範囲の舗装された地域があり、多くの公園と公共の広場は散策に適しています。2006年には、中世の雰囲気が漂う中心街への車の乗り入れが禁止されました。",
+    "highlights": [
+      "歴史的な旧市街",
+      "巡礼者広場の巡礼者礼拝堂",
+      "リアス式海岸沿いの遊歩道"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、建物の立体感を出しやすい光が増えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "旧市街の広場で、周囲の建物の連なりを収めます",
+      "遊歩道からは、海岸線の広がりを入れて町の位置を写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "officialWebsiteUrl": "https://pontevedra.gal/",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9D%E3%83%B3%E3%83%86%E3%83%99%E3%83%89%E3%83%A9",
+          "title": "Wikipedia「ポンテベドラ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q12411",
+          "title": "Wikidata「Q12411」（座標・所在地）"
+        },
+        {
+          "url": "https://pontevedra.gal/",
+          "title": "公式サイト「Inicio | Concello de Pontevedra」"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6f9e0f856466",
+    "slug": "girona-town",
+    "name": "ジローナ",
+    "nameEn": "Girona",
+    "reading": "ジローナ",
+    "aliases": [
+      "ヘローナ"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ジローナ県",
+      "city": "ジローナ"
+    },
+    "coords": {
+      "lat": 41.98,
+      "lng": 2.82
+    },
+    "category": "町並み",
+    "summary": "スペイン・カタルーニャ州ジローナ県の県都です。カスティーリャ語ではヘローナと表記されます。",
+    "description": "オニャル川の上に吊されたかのように続く建物群が、ジローナの象徴となっています。サンタ・マリーア・デ・ジローナ大聖堂は、11世紀から18世紀にかけて建設されたゴシック様式の建物です。旧ユダヤ人居住区は15世紀までゲットーで、狭い中世の通りが交差しています。毎年5月には花祭りが開催されます。",
+    "highlights": [
+      "オニャル川沿いの吊されたような建物群",
+      "ゴシック様式の大聖堂",
+      "狭い中世の通りが交差する旧ユダヤ人居住区"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春の5月には花祭りが開催され、町の中の花の景色を写せます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日差しが低くなり、川沿いの建物群の陰影を出しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の低い光は、全体を暖かい色合いにまとめてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "川沿いの橋の上から、水面に連なる建物群を収めます",
+      "旧ユダヤ人居住区の狭い通りは、奥行きを生かして縦に写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B8%E3%83%AD%E3%83%BC%E3%83%8A",
+          "title": "Wikipedia「ジローナ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q7038",
+          "title": "Wikidata「Q7038」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d3cdec7db709",
+    "slug": "peniscola-town",
+    "name": "ペニスコラ",
+    "nameEn": "Peñíscola",
+    "reading": "ペニスコラ",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "カステリョン県",
+      "city": "ペニスコラ"
+    },
+    "coords": {
+      "lat": 40.36,
+      "lng": 0.41
+    },
+    "category": "町並み",
+    "summary": "スペイン・バレンシア州カステリョン県の町で、地中海沿岸のコスタ・デル・アサールに位置します。「バレンシアのジブラルタル」と呼ばれる、要塞化された海港です。",
+    "description": "要塞はおよそ67メートルの高さの岩でできた岬に建てられ、灯台を持ち、本土とは狭い土地でつながっているだけです。ベネディクトゥス13世が1417年から亡くなる1423年まで暮らした城は修繕され、1960年に映画『エル・シド』が撮影された際に新たな壁が付け加えられました。",
+    "highlights": [
+      "岩の岬に建つ要塞化された海港",
+      "ベネディクトゥス13世が暮らした城",
+      "映画『エル・シド』が撮影された町"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は日差しが低い日が多く、一日を通して陰影のある写真を狙えます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "砂浜側から、岬に建つ城と町を一緒に収めます",
+      "朝夕の斜めの光で、岩の岬の形を際立たせて写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%9A%E3%83%8B%E3%82%B9%E3%82%B3%E3%83%A9",
+          "title": "Wikipedia「ペニスコラ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q845424",
+          "title": "Wikidata「Q845424」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_607049a28ebb",
+    "slug": "teruel-town",
+    "name": "テルエル",
+    "nameEn": "Teruel",
+    "reading": "テルエル",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "テルエル県",
+      "city": "テルエル"
+    },
+    "coords": {
+      "lat": 40.34,
+      "lng": -1.11
+    },
+    "category": "町並み",
+    "summary": "スペイン・アラゴン州テルエル県の県都で、名称はアラビア語で「雄牛」を意味します。ユネスコの世界遺産「アラゴンのムデハル様式の建築物」には、テルエルの4つの教会が含まれています。",
+    "description": "山がちな地域にあり、標高は915メートルです。イスラム教徒の影響による建築物があり、特に華麗な大聖堂はムデハル様式で有名です。13世紀初頭の悲劇的な恋愛「テルエルの恋人たち」の物語が知られ、2人の遺骸はサン・ペドロ教会に収められています。カルロス・カステル広場には、トリーコと呼ばれる小さな雄牛の像があります。",
+    "highlights": [
+      "ムデハル様式の建築物",
+      "世界遺産に含まれる4つの教会",
+      "トリーコの像がある広場"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、建物や地形に陰影をつけて立体感を出してくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "広場から、ムデハル様式の塔や教会の外観を収めます",
+      "雄牛の像を手前に入れて、広場の雰囲気を写します"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%86%E3%83%AB%E3%82%A8%E3%83%AB",
+          "title": "Wikipedia「テルエル」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q14336",
+          "title": "Wikidata「Q14336」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_fbadd90e3fae",
+    "slug": "olite-town",
+    "name": "オリテ",
+    "nameEn": "Olite",
+    "reading": "オリテ",
+    "aliases": [
+      "エリベリ"
+    ],
+    "region": {
+      "country": "スペイン",
+      "prefecture": "ナバーラ州",
+      "city": "オリテ"
+    },
+    "coords": {
+      "lat": 42.49,
+      "lng": -1.66
+    },
+    "category": "町並み",
+    "summary": "スペイン・ナバラ州の町で、バスク語ではエリベリと呼ばれます。中世のナバラ王国時代には、メリンダーデス・デ・オリテの中心地でした。",
+    "description": "オリテ王宮は防衛用の砦が前身で、カルロス3世によってナバラ王家の居住地にふさわしく改修され、当時ヨーロッパ有数の美しい宮殿とうたわれました。1813年に放火され、20世紀になって修復が始まりました。テオバルドス宮殿は現在、国営のパラドールになっています。サン・ペドロ教会はオリテ最古の教会で、ロマネスク様式で建てられ、のちにゴシック様式の拡張工事がなされました。",
+    "highlights": [
+      "オリテ王宮",
+      "テオバルドス宮殿",
+      "オリテ最古のサン・ペドロ教会"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日の出が早く、朝の光の中でゆっくり撮影に取り組めます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで輪郭をはっきり写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "王宮の前の広場から、塔の連なりを見上げて収めます",
+      "夕方の低い光で、王宮の外観を暖かい色合いで写します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%AA%E3%83%AA%E3%83%86",
+          "title": "Wikipedia「オリテ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q837062",
+          "title": "Wikidata「Q837062」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1dc318946d65",
+    "slug": "siguenza-town",
+    "name": "シグエンサ",
+    "nameEn": "Sigüenza",
+    "reading": "シグエンサ",
+    "region": {
+      "country": "スペイン",
+      "prefecture": "グアダラハラ県",
+      "city": "シグエンサ"
+    },
+    "coords": {
+      "lat": 41.07,
+      "lng": -2.64
+    },
+    "category": "町並み",
+    "summary": "スペイン・カスティーリャ＝ラ・マンチャ州グアダラハーラ県の町で、県北部に位置し、県都グアダラハーラから73キロメートル離れています。",
+    "description": "サンタ・マリア・デ・シグエンサ大聖堂は、初代司教ベルナルド時代の1124年に建造され、ロマネスク様式とゴシック様式が混合しています。シグエンサ城は12世紀に建てられたイスラム建築を元とし、14世紀から19世紀まで幾度も修繕作業が行われ、現在は国営のパラドールになっています。ウエルトスの聖母修道院は16世紀に完成しました。",
+    "highlights": [
+      "ロマネスクとゴシックが混合した大聖堂",
+      "12世紀に建てられたイスラム建築を元とする城",
+      "16世紀完成のウエルトスの聖母修道院"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は日差しがやわらかく、明るい空と建物を無理なく一枚に収めやすい季節です。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は日が傾くのが早く、夕方の暖かい光を狙いやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝は光が低く、建物の凹凸がはっきり写る時間帯です。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "日没前の斜めの光は、壁面や屋根を暖かい色に染めて写します。"
+      }
+    ],
+    "compositionTips": [
+      "大聖堂の前の広場から、正面を見上げて収めます",
+      "城は、少し離れた位置から町との位置関係が分かるように写します"
+    ],
+    "status": "draft",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T15:44:14.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%82%B7%E3%82%B0%E3%82%A8%E3%83%B3%E3%82%B5",
+          "title": "Wikipedia「シグエンサ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q47475",
+          "title": "Wikidata「Q47475」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
   }
 ]
