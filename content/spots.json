@@ -249182,5 +249182,6018 @@
       ],
       "imageChecked": false
     }
+  },
+  {
+    "spotId": "sp_b29ea453b392",
+    "slug": "kokkai-gijido",
+    "name": "日本の国会議事堂",
+    "nameEn": "National Diet Building (Japan)",
+    "reading": "こっかいぎじどう",
+    "aliases": [
+      "国会議事堂",
+      "National Diet Building"
+    ],
+    "address": "東京都千代田区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "千代田区"
+    },
+    "coords": {
+      "lat": 35.68,
+      "lng": 139.74
+    },
+    "category": "建築",
+    "summary": "東京都千代田区永田町にある、日本の国会が開かれる議事堂です。1936年11月に帝国議会の新議事堂として建設されたのが始まりです。",
+    "description": "中央塔を中心に左右対称の形で、正面に向かって左側に衆議院、右側に参議院（旧貴族院）が配置されています。1919年に意匠設計が公募され、宮内省の渡辺福三案が1等に選ばれ、実際の設計は大蔵省臨時議院建築局が行いました。",
+    "highlights": [
+      "左右対称の外観",
+      "中央塔",
+      "衆議院と参議院の配置",
+      "1936年に建てられた議事堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "autumn",
+        "text": "秋は日差しがやわらかくなり、斜めの光で外壁の陰影を出しやすくなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に青空を背にして、左右対称の外観を撮りやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝のやわらかい光は、建物の凹凸を落ち着いた調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、中央塔の立体感を引き出してくれます。"
+      }
+    ],
+    "compositionTips": [
+      "中央塔を画面の中心に置き、左右対称の構図で撮る。",
+      "衆議院側と参議院側を片側ずつ入れると、左右の配置が伝わる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%9B%BD%E4%BC%9A%E8%AD%B0%E4%BA%8B%E5%A0%82",
+          "title": "Wikipedia「国会議事堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1338856",
+          "title": "Wikidata「Q1338856」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_523d944e2544",
+    "slug": "nikolai-do",
+    "name": "ニコライ堂",
+    "nameEn": "Holy Resurrection Cathedral (Nikolai-do)",
+    "reading": "にこらいどう",
+    "aliases": [
+      "東京復活大聖堂"
+    ],
+    "address": "東京都千代田区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "千代田区"
+    },
+    "coords": {
+      "lat": 35.7,
+      "lng": 139.77
+    },
+    "category": "教会",
+    "summary": "東京都千代田区神田駿河台にある、日本ハリストス正教会の大聖堂です。緑青を纏った高さ35メートルのドーム屋根が特徴です。",
+    "description": "正式名称は東京復活大聖堂で、日本で初めての本格的なビザンティン様式の教会建築といわれます。1891年に竣工し、関東大震災で大きな被害を受けたあと、一部構成の変更と修復を経て現在に至ります。1962年6月21日に国の重要文化財に指定されました。",
+    "highlights": [
+      "緑青のドーム屋根",
+      "ビザンティン様式の大聖堂",
+      "国の重要文化財",
+      "駿河台の高台に立つ姿"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節の柔らかい光で、緑青のドームの色を落ち着いて写せます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、ドームと壁面の陰影が出やすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、ドーム屋根の緑青の色をやわらかく写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光で、建物の立体感が増します。"
+      }
+    ],
+    "compositionTips": [
+      "ドーム屋根と十字架を見上げる構図で、緑青の色を主役にする。",
+      "離れた位置から、周囲の建物との高さの違いが分かるように全体を入れる。",
+      "礼拝の場なので、拝観の案内に従って撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%8B%E3%82%B3%E3%83%A9%E3%82%A4%E5%A0%82",
+          "title": "Wikipedia「ニコライ堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2660430",
+          "title": "Wikidata「Q2660430」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_94de05acca92",
+    "slug": "kyu-iwasaki-tei-teien",
+    "name": "旧岩崎邸庭園",
+    "nameEn": "Kyu-Iwasaki-tei Gardens",
+    "reading": "きゅういわさきていていえん",
+    "aliases": [],
+    "address": "東京都台東区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "台東区"
+    },
+    "coords": {
+      "lat": 35.71,
+      "lng": 139.77
+    },
+    "category": "庭園",
+    "summary": "東京都台東区池之端にある都立庭園で、三菱財閥岩崎家の茅町本邸だった建物と庭園を公園として整備したものです。",
+    "description": "園内の歴史的建造物は国の重要文化財に指定されています。明治11年（1878年）に岩崎弥太郎が屋敷を構え、久弥は洋館の完成後、洋館まわりを洋風の芝庭に改造しました。",
+    "highlights": [
+      "重要文化財の歴史的建造物",
+      "洋館まわりの洋風の芝庭",
+      "三菱財閥岩崎家の本邸跡",
+      "池之端の都立庭園"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は芝庭の緑が明るく、洋館の外観と合わせて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、洋館の壁面や庭の陰影を出しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、洋館と芝庭を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、建物の外観に温かみを加えます。"
+      }
+    ],
+    "compositionTips": [
+      "洋風の芝庭と洋館を一緒に入れ、庭と建物の関係が分かる構図にする。",
+      "建物の内部は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%97%A7%E5%B2%A9%E5%B4%8E%E9%82%B8%E5%BA%AD%E5%9C%92",
+          "title": "Wikipedia「旧岩崎邸庭園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1358767",
+          "title": "Wikidata「Q1358767」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_386057610d14",
+    "slug": "koishikawa-korakuen",
+    "name": "小石川後楽園",
+    "nameEn": "Koishikawa Korakuen",
+    "reading": "こいしかわこうらくえん",
+    "aliases": [],
+    "address": "東京都文京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "文京区"
+    },
+    "coords": {
+      "lat": 35.71,
+      "lng": 139.75
+    },
+    "category": "庭園",
+    "summary": "東京都文京区後楽にある都立庭園で、江戸時代初期に水戸徳川家の江戸上屋敷内につくられた築山泉水回遊式の大名庭園です。国の特別史跡及び特別名勝に指定されています。",
+    "description": "戦災で焼失した唐門は復元が進められ、2020年12月に、古写真や絵図をもとに井波彫刻協同組合が復元した欄間や妻壁6枚を組み込んだ唐門が完成しました。唐門は開設時の正門にあたります。",
+    "highlights": [
+      "築山泉水回遊式の大名庭園",
+      "特別史跡・特別名勝",
+      "復元された唐門",
+      "水戸徳川家の上屋敷の庭"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい緑が池に映え、水辺の景色を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、池と築山の陰影が深まります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、池の水面と木々を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、築山や石組みに立体感を与えます。"
+      }
+    ],
+    "compositionTips": [
+      "池の水面を前景に入れ、築山と木々を重ねて奥行きを出す。",
+      "復元された唐門は、彫刻の欄間が見える位置から狙う。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%B0%8F%E7%9F%B3%E5%B7%9D%E5%BE%8C%E6%A5%BD%E5%9C%92",
+          "title": "Wikipedia「小石川後楽園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1778881",
+          "title": "Wikidata「Q1778881」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_2d89b00a3281",
+    "slug": "kiyosumi-teien",
+    "name": "清澄庭園",
+    "nameEn": "Kiyosumi Garden",
+    "reading": "きよすみていえん",
+    "aliases": [],
+    "address": "東京都江東区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "江東区"
+    },
+    "coords": {
+      "lat": 35.68,
+      "lng": 139.8
+    },
+    "category": "庭園",
+    "summary": "東京都江東区清澄にある都立庭園で、池の周囲に築山や名石を配置した回遊式林泉庭園です。東京都指定名勝になっています。",
+    "description": "池を中心に築山と名石を配した回遊式の庭園で、歩きながら水辺と石組みの景色が移り変わります。江戸時代の清住町の一帯が始まりの地で、水路が深川木場への流通に使われた土地です。",
+    "highlights": [
+      "回遊式林泉庭園",
+      "池の周囲の名石",
+      "築山",
+      "東京都指定名勝"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑が池に映り、水面と石組みを組み合わせて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光が名石や築山の陰影を深めてくれます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、池の水面と石の質感をやわらかく写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、庭の石や木々に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "池の水面に石組みと木々を映し込み、静かな構図にする。",
+      "歩きながら、石と水辺の位置関係が変わる場所を選んで撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B8%85%E6%BE%84%E5%BA%AD%E5%9C%92",
+          "title": "Wikipedia「清澄庭園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q4388146",
+          "title": "Wikidata「Q4388146」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_0561b72578a9",
+    "slug": "kyu-furukawa-teien",
+    "name": "旧古河庭園",
+    "nameEn": "Kyu-Furukawa Gardens",
+    "reading": "きゅうふるかわていえん",
+    "aliases": [],
+    "address": "東京都北区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "北区"
+    },
+    "coords": {
+      "lat": 35.74,
+      "lng": 139.75
+    },
+    "category": "庭園",
+    "summary": "東京都北区西ケ原にある都立庭園で、洋館、西洋庭園、日本庭園を備え、東京のバラの名所として親しまれています。国の名勝に指定されています。",
+    "description": "1919年（大正8年）に古河財閥の古河虎之助男爵の邸宅として現在の形に整えられました。本邸は外観が英国風の2階建てです。1956年に都立庭園として開園し、2006年1月に「旧古河氏庭園」として国の名勝に指定されました。",
+    "highlights": [
+      "洋館と西洋庭園",
+      "日本庭園",
+      "東京のバラの名所",
+      "国の名勝"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、洋館と庭の緑を組み合わせて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、洋館の壁面と庭の陰影を出しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、洋館と庭を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、洋館の外観に温かみを加えます。"
+      }
+    ],
+    "compositionTips": [
+      "洋館を背景に西洋庭園の植栽を入れ、洋風の景色にまとめる。",
+      "日本庭園側からは、池と木々を使って和の構図を撮り分ける。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%97%A7%E5%8F%A4%E6%B2%B3%E5%BA%AD%E5%9C%92",
+          "title": "Wikipedia「旧古河庭園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3082256",
+          "title": "Wikidata「Q3082256」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_e92458602af5",
+    "slug": "eitai-bashi",
+    "name": "永代橋",
+    "nameEn": "Eitai Bridge",
+    "reading": "えいたいばし",
+    "aliases": [],
+    "address": "東京都中央区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "中央区"
+    },
+    "coords": {
+      "lat": 35.68,
+      "lng": 139.79
+    },
+    "category": "橋",
+    "summary": "隅田川にかかる橋で、西岸は中央区新川、東岸は江東区佐賀・永代にあたります。2007年に国の重要文化財に指定されました。",
+    "description": "東京都道・千葉県道10号東京浦安線（永代通り）を通す橋で、下流側には東京メトロ東西線が通ります。夜は青白くライトアップされるので、川面への映り込みも狙えます。",
+    "highlights": [
+      "国の重要文化財の橋",
+      "青白いライトアップ",
+      "隅田川の景色",
+      "東西線の鉄道橋が並ぶ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は空気の柔らかい日に、川と橋を合わせた景色を撮りやすくなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、夜景のライトアップが引き立ちます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、鉄骨の橋の陰影を際立たせます。"
+      },
+      {
+        "time": "night",
+        "text": "夜は青白いライトアップが川面に映り、橋の形が浮かびます。"
+      }
+    ],
+    "compositionTips": [
+      "川岸から橋の全体が入る位置から、川と橋の長さを見せる。",
+      "夜は三脚が使えない場所も多いので、手ぶれに注意して川面の映り込みを狙う。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B0%B8%E4%BB%A3%E6%A9%8B",
+          "title": "Wikipedia「永代橋」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11549876",
+          "title": "Wikidata「Q11549876」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_b37870eec788",
+    "slug": "tokyo-gate-bridge",
+    "name": "東京ゲートブリッジ",
+    "nameEn": "Tokyo Gate Bridge",
+    "reading": "とうきょうげーとぶりっじ",
+    "aliases": [
+      "恐竜橋"
+    ],
+    "address": "東京都江東区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "江東区"
+    },
+    "coords": {
+      "lat": 35.61,
+      "lng": 139.83
+    },
+    "category": "橋",
+    "summary": "東京港第三航路をまたぎ、中央防波堤外側埋立地と江東区若洲を結ぶ橋です。2012年2月12日に開通しました。",
+    "description": "恐竜が向かい合っているような特異な形状から「恐竜橋」の異名があります。建設時の仮称は東京港臨海大橋で、一般公募の中から現在の名が付けられました。",
+    "highlights": [
+      "恐竜が向かい合うような形",
+      "東京港の航路をまたぐ橋",
+      "若洲側から望む景色",
+      "2012年開通の橋"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は空気がやわらかく、海と橋を合わせて撮りやすくなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、橋の輪郭がはっきり写ります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、橋の形と海面を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、橋の鋼材の立体感を強調します。"
+      }
+    ],
+    "compositionTips": [
+      "離れた位置から、向かい合う二つの塔を左右対称に入れる。",
+      "海面を前景に入れ、橋の長さと奥行きを見せる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%9D%B1%E4%BA%AC%E3%82%B2%E3%83%BC%E3%83%88%E3%83%96%E3%83%AA%E3%83%83%E3%82%B8",
+          "title": "Wikipedia「東京ゲートブリッジ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1644970",
+          "title": "Wikidata「Q1644970」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_046c8ad4fd19",
+    "slug": "national-art-center-tokyo",
+    "name": "国立新美術館",
+    "nameEn": "The National Art Center, Tokyo",
+    "reading": "こくりつしんびじゅつかん",
+    "aliases": [],
+    "address": "東京都港区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "港区"
+    },
+    "coords": {
+      "lat": 35.67,
+      "lng": 139.73
+    },
+    "category": "建築",
+    "summary": "東京・六本木にある美術館で、黒川紀章の設計により2007年1月に開館しました。日本で5館目の国立美術館です。",
+    "description": "延床面積約49,830平方メートルは国内の美術館で最大とされ、1・2階の展示室は高さ8メートルあります。収蔵品を持たない国立美術館で、英語名にはミュージアムではなくアートセンターを使っています。",
+    "highlights": [
+      "黒川紀章設計の建築",
+      "日本最大級の延床面積",
+      "高さ8メートルの展示室",
+      "六本木アート・トライアングルの一つ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節の柔らかい光で、建物の曲面と緑を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、建物の外観の陰影が出やすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、建物の曲面を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、外観に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "曲面の外観を斜めから入れ、建物の形のうねりを見せる。",
+      "展示室内は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%9B%BD%E7%AB%8B%E6%96%B0%E7%BE%8E%E8%A1%93%E9%A4%A8",
+          "title": "Wikipedia「国立新美術館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1362638",
+          "title": "Wikidata「Q1362638」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_e44e69ec8622",
+    "slug": "national-museum-western-art",
+    "name": "国立西洋美術館",
+    "nameEn": "The National Museum of Western Art",
+    "reading": "こくりつせいようびじゅつかん",
+    "aliases": [],
+    "address": "東京都台東区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "台東区"
+    },
+    "coords": {
+      "lat": 35.72,
+      "lng": 139.78
+    },
+    "category": "建築",
+    "summary": "東京都台東区の上野公園内にある、西洋美術を専門とする国立美術館です。本館は世界文化遺産の構成資産に登録されています。",
+    "description": "本館の設計はル・コルビュジエで、弟子の前川國男・坂倉準三・吉阪隆正が実施設計と監理に協力しました。緑色の外壁は緑色の小石を貼り付けたもので、建物の平面は正方形です。1959年に開館しました。",
+    "highlights": [
+      "ル・コルビュジエ設計の本館",
+      "世界文化遺産の構成資産",
+      "緑色の小石を貼った外壁",
+      "正方形の平面"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は上野公園の新緑の中で、本館の外観を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、コンクリートの打ち放しや外壁の陰影が出やすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、外壁の質感を落ち着いた調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、建物の幾何学的な形を際立たせます。"
+      }
+    ],
+    "compositionTips": [
+      "正方形の平面が分かる角度から、コンクリートの柱と外壁を入れる。",
+      "改修や工事で外観が見えにくい時期もあるので、訪ねる前に確かめる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%9B%BD%E7%AB%8B%E8%A5%BF%E6%B4%8B%E7%BE%8E%E8%A1%93%E9%A4%A8",
+          "title": "Wikipedia「国立西洋美術館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1362629",
+          "title": "Wikidata「Q1362629」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_62f668e8e26c",
+    "slug": "tokyo-national-museum",
+    "name": "東京国立博物館",
+    "nameEn": "Tokyo National Museum",
+    "reading": "とうきょうこくりつはくぶつかん",
+    "aliases": [],
+    "address": "東京都台東区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "台東区"
+    },
+    "coords": {
+      "lat": 35.72,
+      "lng": 139.78
+    },
+    "category": "博物館",
+    "summary": "東京都台東区の上野恩賜公園内にある、1872年創設の日本最古かつ最大の博物館です。本館、表慶館、東洋館、平成館、法隆寺宝物館の5つの展示館があります。",
+    "description": "本館は1937年に竣工した渡辺仁の設計で、鉄筋コンクリートの建物に和風の瓦屋根を載せた和洋折衷の形です。2001年に「旧東京帝室博物館本館」の名称で重要文化財に指定されました。",
+    "highlights": [
+      "和洋折衷の本館",
+      "重要文化財の建物",
+      "5つの展示館",
+      "上野恩賜公園の中の博物館"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は上野公園の新緑の中で、本館の瓦屋根を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、本館の屋根と壁面の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、本館の外観を落ち着いた調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、瓦屋根の立体感を強調します。"
+      }
+    ],
+    "compositionTips": [
+      "本館の正面から、中央の大屋根と左右の広がりを入れる。",
+      "展示室内は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%9D%B1%E4%BA%AC%E5%9B%BD%E7%AB%8B%E5%8D%9A%E7%89%A9%E9%A4%A8",
+          "title": "Wikipedia「東京国立博物館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q653433",
+          "title": "Wikidata「Q653433」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_fb0069b8309b",
+    "slug": "shibamata-taishakuten",
+    "name": "柴又帝釈天（題経寺）",
+    "nameEn": "Shibamata Taishakuten (Daikyoji Temple)",
+    "reading": "しばまたたいしゃくてん",
+    "aliases": [
+      "題経寺"
+    ],
+    "address": "東京都葛飾区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "葛飾区"
+    },
+    "coords": {
+      "lat": 35.76,
+      "lng": 139.88
+    },
+    "category": "寺院",
+    "summary": "東京都葛飾区柴又にある日蓮宗の寺院で、正式には経栄山題経寺といいます。江戸時代初期の寛永6年（1629年）に開創されました。",
+    "description": "18世紀末から帝釈天の信仰を集めるようになり、「柴又帝釈天」として知られるようになりました。夏目漱石の『彼岸過迄』など多くの文芸作品に登場し、映画『男はつらいよ』シリーズのゆかりの寺としても知られます。",
+    "highlights": [
+      "柴又帝釈天の名で知られる寺",
+      "寛永6年の開創",
+      "文芸作品に登場した寺",
+      "映画『男はつらいよ』ゆかりの地"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、境内の建物を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、建物の陰影が出やすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、木の彫刻や屋根の立体感を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "参道から門と本堂へ向かう視線の流れを入れる。",
+      "境内では参拝の妨げにならない位置で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%9F%B4%E5%8F%88%E5%B8%9D%E9%87%88%E5%A4%A9",
+          "title": "Wikipedia「柴又帝釈天」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3137192",
+          "title": "Wikidata「Q3137192」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d6595eabde3b",
+    "slug": "jindaiji",
+    "name": "深大寺",
+    "nameEn": "Jindaiji Temple",
+    "reading": "じんだいじ",
+    "aliases": [],
+    "address": "東京都調布市",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "調布市"
+    },
+    "coords": {
+      "lat": 35.67,
+      "lng": 139.55
+    },
+    "category": "寺院",
+    "summary": "東京都調布市深大寺元町にある天台宗別格本山の寺院で、武蔵野の森の中に位置し、背後は深い雑木林になっています。",
+    "description": "国宝の銅造釈迦如来倚像（7世紀の作）が釈迦堂に安置されています。境内には複数の湧水源があり、湧水を利用した「不動の滝」は「東京の名湧水57選」に選ばれています。日本三大だるま市の一つ「深大寺だるま市」でも知られます。",
+    "highlights": [
+      "国宝の銅造釈迦如来倚像",
+      "不動の滝（名湧水57選）",
+      "深大寺だるま市",
+      "武蔵野の雑木林"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、雑木林と境内の建物を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は雑木林の葉の色づきと、斜めの光の陰影を一緒に撮れます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、木漏れ日と境内の建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、雑木林の中に陰影をつくります。"
+      }
+    ],
+    "compositionTips": [
+      "雑木林を背景に、本堂や門を木々の間から見せる。",
+      "不動の滝は、水の流れを前景にして落ち着いた構図にする。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B7%B1%E5%A4%A7%E5%AF%BA",
+          "title": "Wikipedia「深大寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q500736",
+          "title": "Wikidata「Q500736」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_04ddd4c549bf",
+    "slug": "gotokuji",
+    "name": "豪徳寺",
+    "nameEn": "Gotokuji Temple",
+    "reading": "ごうとくじ",
+    "aliases": [],
+    "address": "東京都世田谷区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "世田谷区"
+    },
+    "coords": {
+      "lat": 35.65,
+      "lng": 139.65
+    },
+    "category": "寺院",
+    "summary": "東京都世田谷区豪徳寺にある曹洞宗の寺院で、招き猫発祥の地とする説があります。参拝者が奉納した招福猫児が境内に並びます。",
+    "description": "豪徳寺では招き猫を「招福猫児（まねぎねこ）」と呼び、右手を上げた素朴な白い招き猫です。願が成就したお礼に奉納された招福猫児が、招猫殿の横に数多く並び、境内には1万体以上が並ぶとされます。彦根藩主井伊家墓所は国の史跡です。",
+    "highlights": [
+      "招福猫児の奉納所",
+      "招き猫発祥の地とする説",
+      "彦根藩主井伊家墓所（国の史跡）",
+      "井伊直弼の墓"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、境内の建物と奉納された猫たちを撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、並んだ招福猫児に陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、白い招福猫児を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、白い猫たちに温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "奉納された招福猫児を前景に、招猫殿を奥に置いて数の多さを見せる。",
+      "奉納所は参拝の場なので、周囲に配慮して撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E8%B1%AA%E5%BE%B3%E5%AF%BA",
+          "title": "Wikipedia「豪徳寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11634381",
+          "title": "Wikidata「Q11634381」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_2b129e0825b7",
+    "slug": "yushima-seido",
+    "name": "湯島聖堂",
+    "nameEn": "Yushima Seido",
+    "reading": "ゆしませいどう",
+    "aliases": [],
+    "address": "東京都文京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "文京区"
+    },
+    "coords": {
+      "lat": 35.7,
+      "lng": 139.77
+    },
+    "category": "史跡",
+    "summary": "東京都文京区湯島にある孔子廟で、江戸時代の元禄3年（1690年）に徳川綱吉が建てました。後に幕府直轄の学問所となり、国の史跡に指定されています。",
+    "description": "JR御茶ノ水駅の聖橋口から聖橋を渡った右手の森の中にあります。関東大震災で入徳門と水屋以外の建物が焼失し、現在の大成殿は伊東忠太の設計で1935年に鉄筋コンクリート造で再建されたものです。",
+    "highlights": [
+      "江戸幕府の孔子廟",
+      "大成殿",
+      "入徳門",
+      "国の史跡"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、森の中の建物を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、大成殿の屋根と柱の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、森に囲まれた建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、屋根の形と木々の影をつくります。"
+      }
+    ],
+    "compositionTips": [
+      "入徳門から大成殿へ向かう視線の流れを入れる。",
+      "建物の屋根と森の緑を重ねて、静かな構図にする。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B9%AF%E5%B3%B6%E8%81%96%E5%A0%82",
+          "title": "Wikipedia「湯島聖堂」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1760591",
+          "title": "Wikidata「Q1760591」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_025a54b03aed",
+    "slug": "yushima-tenmangu",
+    "name": "湯島天満宮",
+    "nameEn": "Yushima Tenmangu Shrine",
+    "reading": "ゆしまてんまんぐう",
+    "aliases": [
+      "湯島天神"
+    ],
+    "address": "東京都文京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "文京区"
+    },
+    "coords": {
+      "lat": 35.71,
+      "lng": 139.77
+    },
+    "category": "神社",
+    "summary": "東京都文京区湯島にある天満宮で、菅原道真を祀り、通称は湯島天神です。境内は梅の名所として知られます。",
+    "description": "雄略天皇2年（458年）の創建と伝わり、江戸時代から梅の花見の名所でした。第二次世界大戦後は2〜3月に「梅まつり」が開かれ、白梅を中心に2024年時点で約200本の梅があります。学問の神様として、受験シーズンには合格祈願の参拝者が訪れます。",
+    "highlights": [
+      "梅の名所",
+      "梅まつり",
+      "菅原道真を祀る天満宮",
+      "湯島天神の名で親しまれる神社"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "winter",
+        "text": "冬の終わりの梅の季節は、白梅と境内の建物を合わせて撮れます。"
+      },
+      {
+        "season": "spring",
+        "text": "春は新緑の季節の柔らかい光で、境内の建物を撮りやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、白梅の花と境内の建物を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、梅の花と社殿に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "白梅を前景にぼかし、社殿を奥に置いて春の気配を出す。",
+      "梅の開花は年ごとに違うので、訪ねる前に開花の様子を確かめる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B9%AF%E5%B3%B6%E5%A4%A9%E6%BA%80%E5%AE%AE",
+          "title": "Wikipedia「湯島天満宮」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q335606",
+          "title": "Wikidata「Q335606」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_15ed839d3e4c",
+    "slug": "tetsugakudo-koen",
+    "name": "哲学堂公園",
+    "nameEn": "Tetsugakudo Park",
+    "reading": "てつがくどうこうえん",
+    "aliases": [],
+    "address": "東京都中野区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "中野区"
+    },
+    "coords": {
+      "lat": 35.72,
+      "lng": 139.67
+    },
+    "category": "公園",
+    "summary": "東京都中野区にある中野区立の公園で、2020年に国の名勝に指定されました。哲学館（現在の東洋大学）の創設者、井上円了が築いた精神修養の場が始まりです。",
+    "description": "ソクラテス、カント、孔子、釈迦を祀った「四聖堂」を建てたのが公園の始まりで、1909年〜1912年の間に哲理門、六賢台、三学亭などが整えられました。古建築物は中野区の有形文化財に指定されています。",
+    "highlights": [
+      "四聖堂",
+      "哲理門",
+      "六賢台と三学亭",
+      "髑髏庵などの古建築"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、古建築と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、建物の屋根と木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、公園内の古建築を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、門や楼の立体感を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "哲理門を正面から入れ、門の奥に続く園内の景色を見せる。",
+      "六賢台や三学亭は、木々を前景に入れて奥行きを出す。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%93%B2%E5%AD%A6%E5%A0%82%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「哲学堂公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q9087421",
+          "title": "Wikidata「Q9087421」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_107ede35598f",
+    "slug": "ikegami-honmonji",
+    "name": "池上本門寺",
+    "nameEn": "Ikegami Honmonji Temple",
+    "reading": "いけがみほんもんじ",
+    "aliases": [],
+    "address": "東京都大田区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "大田区"
+    },
+    "coords": {
+      "lat": 35.58,
+      "lng": 139.71
+    },
+    "category": "寺院",
+    "summary": "東京都大田区池上にある日蓮宗の大本山で、日蓮入滅の霊場として日蓮宗の十四霊蹟寺院のひとつです。山号は長栄山です。",
+    "description": "表参道の石段「此経難持坂」は96段で、加藤清正が寄進したと伝わります。仁王門は1945年の空襲で焼失した旧国宝の山門にかわり、1977年に再建されたものです。春まつりの時期には五重塔の特別開帳が行われます。",
+    "highlights": [
+      "此経難持坂の96段の石段",
+      "仁王門",
+      "五重塔",
+      "日蓮入滅の霊場"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑や花の季節に、石段と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、石段や門の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、石段と門を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、五重塔や門の立体感を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "石段を下から見上げる構図で、段の連なりと門を入れる。",
+      "五重塔は特別開帳の日が限られるので、訪ねる前に確かめる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B1%A0%E4%B8%8A%E6%9C%AC%E9%96%80%E5%AF%BA",
+          "title": "Wikipedia「池上本門寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1537312",
+          "title": "Wikidata「Q1537312」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_5aeb6fa1a2bd",
+    "slug": "jindai-botanical-garden",
+    "name": "神代植物公園",
+    "nameEn": "Jindai Botanical Garden",
+    "reading": "じんだいしょくぶつこうえん",
+    "aliases": [],
+    "address": "東京都調布市",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "調布市"
+    },
+    "coords": {
+      "lat": 35.67,
+      "lng": 139.55
+    },
+    "category": "植物園",
+    "summary": "東京都調布市にある、都内唯一の都立植物公園です。園内には約4,800種類、10万本・株の植物が30ブロックに分かれて植えられています。",
+    "description": "梅や桜の名所として知られ、ばら園は2009年に世界バラ会連合優秀庭園賞を受けています。隣接する深大寺はかつての寺領で、公園はその旧寺領にあたります。",
+    "highlights": [
+      "約4,800種類の植物",
+      "ばら園",
+      "梅と桜の名所",
+      "大温室"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は桜やバラの季節に、花の色を前景に入れて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋はバラの季節の柔らかい光と、斜めの光の陰影が合います。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、花の色をやわらかく写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、花びらを透かして温かい色を出します。"
+      }
+    ],
+    "compositionTips": [
+      "バラや桜を前景にぼかし、園内の景色を奥に置く。",
+      "花の見ごろは年ごとに違うので、訪ねる前に開花の様子を確かめる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%A5%9E%E4%BB%A3%E6%A4%8D%E7%89%A9%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「神代植物公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q606827",
+          "title": "Wikidata「Q606827」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_35ec22dc92ff",
+    "slug": "kyu-shiba-rikyu-onshi-teien",
+    "name": "旧芝離宮恩賜庭園",
+    "nameEn": "Kyu-Shiba-rikyu Gardens",
+    "reading": "きゅうしばりきゅうおんしていえん",
+    "aliases": [],
+    "address": "東京都港区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "港区"
+    },
+    "coords": {
+      "lat": 35.66,
+      "lng": 139.76
+    },
+    "category": "庭園",
+    "summary": "東京都港区海岸にある都立庭園で、大久保忠朝上屋敷の庭園「楽寿園」が始まりです。宮内庁管理の離宮を経て、1924年に東京市に下賜されました。",
+    "description": "主な見どころに藤棚（開花は4月末頃）、比較的大ぶりの雪見灯籠、砂浜を模した州浜、石組みで滝を模した枯滝があります。西湖堤は中国の西湖を模した堤です。",
+    "highlights": [
+      "藤棚",
+      "雪見灯籠",
+      "州浜",
+      "枯滝"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は4月末頃の藤の花と新緑を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、石組みと池の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、池と石組みを穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、灯籠や石の立体感を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "藤棚の下から花を見上げる構図と、池越しに藤棚を入れる構図を撮り分ける。",
+      "雪見灯籠を前景に置き、池の景色を奥に入れる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%97%A7%E8%8A%9D%E9%9B%A2%E5%AE%AE%E6%81%A9%E8%B3%9C%E5%BA%AD%E5%9C%92",
+          "title": "Wikipedia「旧芝離宮恩賜庭園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3266874",
+          "title": "Wikidata「Q3266874」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7285d73078d3",
+    "slug": "mukojima-hyakkaen",
+    "name": "向島百花園",
+    "nameEn": "Mukojima Hyakkaen Garden",
+    "reading": "むこうじまひゃっかえん",
+    "aliases": [],
+    "address": "東京都墨田区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "墨田区"
+    },
+    "coords": {
+      "lat": 35.72,
+      "lng": 139.82
+    },
+    "category": "庭園",
+    "summary": "東京都墨田区東向島にある都立庭園で、江戸時代に佐原鞠塢が開いた花園が始まりです。1978年に国の名勝・史跡に指定されています。",
+    "description": "1939年7月に開園し、みどころは早春の梅と秋の萩です。隅田川七福神の一つにも数えられます。",
+    "highlights": [
+      "早春の梅",
+      "秋の萩",
+      "江戸時代の花園",
+      "国指定の名勝・史跡"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "winter",
+        "text": "冬の終わりから早春は、梅の花を前景に庭の景色を撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は萩の花に斜めの光が当たる時間に、花の色が引き立ちます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、梅や萩の花をやわらかく写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、花の背景を温かい色にします。"
+      }
+    ],
+    "compositionTips": [
+      "萩のトンネルや梅の枝を前景に、庭の道を奥に入れる。",
+      "開花の時期は年ごとに違うので、訪ねる前に確かめる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%90%91%E5%B3%B6%E7%99%BE%E8%8A%B1%E5%9C%92",
+          "title": "Wikipedia「向島百花園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q7076776",
+          "title": "Wikidata「Q7076776」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_45ec8f453e04",
+    "slug": "tokyo-metropolitan-teien-art-museum",
+    "name": "東京都庭園美術館",
+    "nameEn": "Tokyo Metropolitan Teien Art Museum",
+    "reading": "とうきょうとていえんびじゅつかん",
+    "aliases": [
+      "旧朝香宮邸"
+    ],
+    "address": "東京都港区",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "港区"
+    },
+    "coords": {
+      "lat": 35.64,
+      "lng": 139.72
+    },
+    "category": "美術館",
+    "summary": "東京都港区白金台にある都立美術館で、旧朝香宮邸とも呼ばれます。邸は1933年5月に完成した鉄筋コンクリート造2階建て（一部3階建て）です。",
+    "description": "朝香宮邸の内装は、フランスの装飾芸術家アンリ・ラパンやガラス工芸家ルネ・ラリックらが手がけました。200メートルほどの誘導路の先に邸があります。",
+    "highlights": [
+      "旧朝香宮邸の建物",
+      "アンリ・ラパンの装飾",
+      "ルネ・ラリックのガラス工芸",
+      "庭園と誘導路"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、建物と庭の緑を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、外観の陰影が出やすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、建物の外観を落ち着いた調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、外壁に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "誘導路の奥に建物を置き、奥行きのある構図で撮る。",
+      "館内は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%9D%B1%E4%BA%AC%E9%83%BD%E5%BA%AD%E5%9C%92%E7%BE%8E%E8%A1%93%E9%A4%A8",
+          "title": "Wikipedia「東京都庭園美術館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q743773",
+          "title": "Wikidata「Q743773」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_77e3b7946ff5",
+    "slug": "okunitama-jinja",
+    "name": "大國魂神社",
+    "nameEn": "Okunitama Shrine",
+    "reading": "おおくにたまじんじゃ",
+    "aliases": [],
+    "address": "東京都府中市",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "府中市"
+    },
+    "coords": {
+      "lat": 35.67,
+      "lng": 139.48
+    },
+    "category": "神社",
+    "summary": "東京都府中市宮町にある神社で、武蔵国の総社です。武蔵国の一之宮から六之宮までを合わせ祀るため、「六所宮」とも呼ばれます。",
+    "description": "古代の国司が任国内の神社を順に巡拝していた長い巡礼を簡単にするため、国府の近くに国内の神を合祀した総社が設けられ、当社はその武蔵国の総社にあたります。東京五社の一社です。",
+    "highlights": [
+      "武蔵国の総社",
+      "六所宮",
+      "東京五社の一社",
+      "府中市中心部の神社"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、境内の建物と木々を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、社殿の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の木々と社殿を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、社殿の立体感を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "参道から社殿へ向かう視線の流れを入れる。",
+      "木々の間から社殿が見える位置で、奥行きを出す。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%A4%A7%E5%9C%8B%E9%AD%82%E7%A5%9E%E7%A4%BE",
+          "title": "Wikipedia「大國魂神社」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q611678",
+          "title": "Wikidata「Q611678」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_af6c72e23ed7",
+    "slug": "edo-tokyo-open-air-architectural-museum",
+    "name": "江戸東京たてもの園",
+    "nameEn": "Edo-Tokyo Open Air Architectural Museum",
+    "reading": "えどとうきょうたてものえん",
+    "aliases": [],
+    "address": "東京都小金井市",
+    "region": {
+      "country": "日本",
+      "prefecture": "東京都",
+      "city": "小金井市"
+    },
+    "coords": {
+      "lat": 35.72,
+      "lng": 139.51
+    },
+    "category": "博物館",
+    "summary": "東京都小金井市の都立小金井公園内にある野外博物館で、失われてゆく江戸・東京の歴史的な建物を移築保存して展示しています。",
+    "description": "園内は3つのゾーンに分かれ、西ゾーンは武蔵野の農家と山の手の住宅、センターゾーンは格式ある歴史的建造物、東ゾーンは下町の町並みが再現されています。",
+    "highlights": [
+      "移築された歴史的建造物",
+      "下町の町並みの再現",
+      "武蔵野の農家",
+      "山の手の住宅"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、古い建物と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、木造の建物の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、木造の建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、下町の町並みに温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "下町の町並みは、通りの奥行きが出る位置から撮る。",
+      "建物の内部は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B1%9F%E6%88%B8%E6%9D%B1%E4%BA%AC%E3%81%9F%E3%81%A6%E3%82%82%E3%81%AE%E5%9C%92",
+          "title": "Wikipedia「江戸東京たてもの園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1051229",
+          "title": "Wikidata「Q1051229」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6ead7c85a4b7",
+    "slug": "sakuranomiya-koen",
+    "name": "桜之宮公園",
+    "nameEn": "Sakuranomiya Park",
+    "reading": "さくらのみやこうえん",
+    "aliases": [],
+    "address": "大阪府大阪市都島区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "大阪市都島区"
+    },
+    "coords": {
+      "lat": 34.7,
+      "lng": 135.52
+    },
+    "category": "公園",
+    "summary": "大川の上流部の両岸、大阪市都島区と北区にまたがる総合公園で、1923年3月に開園しました。",
+    "description": "公園の名は、都島区中野町に鎮座する櫻宮（桜宮神社）に由来します。櫻宮付近の大川両岸は江戸時代から桜の名所で、1885年の淀川大洪水で東岸の桜が大きな被害を受けて以降は、西岸の桜が整えられていきました。",
+    "highlights": [
+      "大川の両岸の桜",
+      "江戸時代から続く桜の名所",
+      "大川沿いの散策路"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は桜が川沿いに続き、水面と花を合わせた景色を撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、川沿いの木々と水面の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、川面と桜並木を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、大川の水面と桜に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "川面を前景に、対岸の桜並木を奥に入れて奥行きを出す。",
+      "桜の開花は年ごとに違うので、訪ねる前に開花の様子を確かめる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%A1%9C%E4%B9%8B%E5%AE%AE%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「桜之宮公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11537741",
+          "title": "Wikidata「Q11537741」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_a7bafb3cf0ee",
+    "slug": "yodoyabashi",
+    "name": "淀屋橋",
+    "nameEn": "Yodoyabashi Bridge",
+    "reading": "よどやばし",
+    "aliases": [],
+    "address": "大阪府大阪市北区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "大阪市北区"
+    },
+    "coords": {
+      "lat": 34.69,
+      "lng": 135.5
+    },
+    "category": "橋",
+    "summary": "大阪市北区中之島1丁目と中央区北浜3丁目を結ぶ、土佐堀川に架かる御堂筋（国道25号）の橋です。2008年に大江橋とともに国の重要文化財に指定されました。",
+    "description": "現在の橋は1935年に完成した鉄筋コンクリート造の3径間のアーチ橋で、橋長53.5メートル、幅員36.5メートルです。御堂筋の拡幅工事の一環で、周辺は大阪を代表するビジネス街・金融街になっています。",
+    "highlights": [
+      "重要文化財のコンクリートのアーチ橋",
+      "御堂筋の橋",
+      "大江橋と対になる橋",
+      "中之島とビジネス街の眺め"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は空気がやわらかく、川面と橋を合わせて撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、アーチの陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、橋とビルの並ぶ景色を落ち着いた調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、橋の欄干やアーチを立体的に見せます。"
+      }
+    ],
+    "compositionTips": [
+      "川岸から3つのアーチが並ぶ姿を入れる。",
+      "ビル群を背景に、橋の曲線と街の直線を対比させる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B7%80%E5%B1%8B%E6%A9%8B",
+          "title": "Wikipedia「淀屋橋」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11559697",
+          "title": "Wikidata「Q11559697」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_3a09c7d2e214",
+    "slug": "national-museum-of-art-osaka",
+    "name": "国立国際美術館",
+    "nameEn": "The National Museum of Art, Osaka",
+    "reading": "こくりつこくさいびじゅつかん",
+    "aliases": [],
+    "address": "大阪府大阪市北区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "大阪市北区"
+    },
+    "coords": {
+      "lat": 34.69,
+      "lng": 135.49
+    },
+    "category": "美術館",
+    "summary": "大阪市北区中之島にある国立美術館で、第二次世界大戦以後の国内外の現代美術が収蔵品の中心です。設立は1977年で、当初は吹田市の万博記念公園にありました。",
+    "description": "設計はシーザー・ペリで、主要部分をすべて地下に収めた建物です。エントランスと講堂、レストランなどは地下1階、展示室と収蔵庫は地下2・3階にあり、大阪市立科学館に隣接しています。",
+    "highlights": [
+      "主要部分を地下に収めた建築",
+      "シーザー・ペリの設計",
+      "中之島の美術館",
+      "現代美術の収蔵"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、建物の外観と植栽を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、外観の線と陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、外観のシャープな線を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、建物の外観に立体感を与えます。"
+      }
+    ],
+    "compositionTips": [
+      "地上に出ている部分の造形を、広場から斜めに入れる。",
+      "館内は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%9B%BD%E7%AB%8B%E5%9B%BD%E9%9A%9B%E7%BE%8E%E8%A1%93%E9%A4%A8",
+          "title": "Wikipedia「国立国際美術館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1055037",
+          "title": "Wikidata「Q1055037」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_ce61c120b758",
+    "slug": "ikukunitama-jinja",
+    "name": "生國魂神社",
+    "nameEn": "Ikukunitama Shrine",
+    "reading": "いくくにたまじんじゃ",
+    "aliases": [
+      "生国魂神社",
+      "難波大社"
+    ],
+    "address": "大阪府大阪市天王寺区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "大阪市天王寺区"
+    },
+    "coords": {
+      "lat": 34.67,
+      "lng": 135.51
+    },
+    "category": "神社",
+    "summary": "大阪市天王寺区生玉町にある式内社（名神大社）で、旧社格は官幣大社です。「いくたまさん」と呼ばれ、別称は「難波大社」です。",
+    "description": "難波宮跡や大坂城の南西方に鎮座します。かつては現在の大坂城の地にありましたが、豊臣秀吉の大坂城築城の際に現在地に遷座しました。",
+    "highlights": [
+      "難波大社の別称",
+      "式内社（名神大社）",
+      "いくたまさんの愛称",
+      "大坂城の地から遷座した歴史"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、社殿と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、社殿の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の社殿を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、社殿の屋根の立体感を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "鳥居から社殿へ向かう視線の流れを入れる。",
+      "社殿は屋根の形が分かる位置から、木々と合わせて撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%94%9F%E5%9C%8B%E9%AD%82%E7%A5%9E%E7%A4%BE",
+          "title": "Wikipedia「生國魂神社」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11574477",
+          "title": "Wikidata「Q11574477」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d34be51e4df0",
+    "slug": "imamiya-ebisu-jinja",
+    "name": "今宮戎神社",
+    "nameEn": "Imamiya Ebisu Shrine",
+    "reading": "いまみやえびすじんじゃ",
+    "aliases": [],
+    "address": "大阪府大阪市浪速区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "大阪市浪速区"
+    },
+    "coords": {
+      "lat": 34.66,
+      "lng": 135.5
+    },
+    "category": "神社",
+    "summary": "大阪市浪速区にある神社で、大阪七福神の恵比寿を祀ります。商売繁盛の神様「えべっさん」として知られます。",
+    "description": "毎年1月9日から11日にかけて十日戎が開催されます。地元では単に「戎神社」と言えば当社のことを指します。",
+    "highlights": [
+      "えべっさんの神社",
+      "十日戎",
+      "大阪七福神の恵比寿"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "winter",
+        "text": "冬の十日戎の時期は、行事の様子と社殿を撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、社殿の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、社殿を落ち着いた調子で写します。"
+      },
+      {
+        "time": "night",
+        "text": "夜は社殿の明かりが際立ち、闇の中に建物が浮かびます。"
+      }
+    ],
+    "compositionTips": [
+      "社殿の正面から、屋根の形が分かるように入れる。",
+      "十日戎の期間は参拝の流れに従い、周囲に配慮して撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E4%BB%8A%E5%AE%AE%E6%88%8E%E7%A5%9E%E7%A4%BE",
+          "title": "Wikipedia「今宮戎神社」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11376859",
+          "title": "Wikidata「Q11376859」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7e637f39ef90",
+    "slug": "nanshuji",
+    "name": "南宗寺",
+    "nameEn": "Nanshuji Temple",
+    "reading": "なんしゅうじ",
+    "aliases": [],
+    "address": "大阪府堺市堺区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "堺市堺区"
+    },
+    "coords": {
+      "lat": 34.57,
+      "lng": 135.47
+    },
+    "category": "寺院",
+    "summary": "大阪府堺市堺区にある臨済宗大徳寺派の寺院で、三好氏の菩提寺です。茶人の武野紹鴎、千利休が修行をした縁の寺です。",
+    "description": "古田織部作と伝わる枯山水庭園は国の名勝に指定されています。徳川家康の墓とされるものが開山堂の跡地にあり、寺に伝わる『南宗寺史』にその伝承が記されています。",
+    "highlights": [
+      "枯山水庭園（国の名勝）",
+      "茶人ゆかりの寺",
+      "三好氏の菩提寺",
+      "伝・徳川家康の墓"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、枯山水と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、石庭の陰影が深まります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、枯山水の砂紋と石を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、砂の紋様に陰影をつくります。"
+      }
+    ],
+    "compositionTips": [
+      "枯山水の砂紋を前景に、石組みを奥に入れる。",
+      "庭園は拝観の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%8D%97%E5%AE%97%E5%AF%BA",
+          "title": "Wikipedia「南宗寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11407716",
+          "title": "Wikidata「Q11407716」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_a91b13469022",
+    "slug": "hamadera-koen",
+    "name": "浜寺公園",
+    "nameEn": "Hamadera Park",
+    "reading": "はまでらこうえん",
+    "aliases": [],
+    "address": "大阪府堺市西区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "堺市西区"
+    },
+    "coords": {
+      "lat": 34.54,
+      "lng": 135.44
+    },
+    "category": "公園",
+    "summary": "大阪府堺市西区と高石市の沿岸部に広がる大阪府営の都市公園で、約5,500本の松林で知られます。",
+    "description": "古くから白砂青松で知られた和泉海岸の中でも、特に名高い高師浜の近くに残る松林です。この一帯は有名な別荘地としても知られました。",
+    "highlights": [
+      "約5,500本の松林",
+      "白砂青松の海岸の名残",
+      "別荘地として知られた一帯"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、松林を通る光を撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光が松の幹に当たり、木漏れ日の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、松林の中に柔らかい木漏れ日をつくります。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、松の幹と影を長く引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "松並木の道を奥に伸ばし、幹の連なりで奥行きを出す。",
+      "木漏れ日の筋が入る時間帯を選んで撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B5%9C%E5%AF%BA%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「浜寺公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11557632",
+          "title": "Wikidata「Q11557632」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7850feef4db8",
+    "slug": "kongoji-kawachinagano",
+    "name": "金剛寺（河内長野）",
+    "nameEn": "Kongoji Temple (Kawachinagano)",
+    "reading": "こんごうじ",
+    "aliases": [
+      "女人高野"
+    ],
+    "address": "大阪府河内長野市",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "河内長野市"
+    },
+    "coords": {
+      "lat": 34.43,
+      "lng": 135.53
+    },
+    "category": "寺院",
+    "summary": "大阪府河内長野市天野町にある真言宗御室派の大本山の寺院で、山号は天野山です。高野山が女人禁制だったのに対し、女性も参詣できたため「女人高野」と呼ばれます。",
+    "description": "境内の多宝塔は平安時代後期の建立で、日本最古の多宝塔であり、大阪府最古の木造建築物です。南北朝時代には南朝の最重要拠点の一つで、延元元年（1336年）に後醍醐天皇の勅願寺に指定されました。日本遺産の構成文化財です。",
+    "highlights": [
+      "日本最古の多宝塔",
+      "女人高野",
+      "日本遺産の構成文化財",
+      "南朝ゆかりの寺"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、多宝塔と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は紅葉や斜めの光で、塔と境内の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、山あいの境内を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、多宝塔の形を際立たせます。"
+      }
+    ],
+    "compositionTips": [
+      "多宝塔を木々の間から入れ、塔の形がはっきり見える位置を探す。",
+      "山あいの寺なので、足元と天候を確かめてから訪ねる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E9%87%91%E5%89%9B%E5%AF%BA_(%E6%B2%B3%E5%86%85%E9%95%B7%E9%87%8E%E5%B8%82)",
+          "title": "Wikipedia「金剛寺 (河内長野市)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11646520",
+          "title": "Wikidata「Q11646520」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_e8575265a58f",
+    "slug": "eifukuji",
+    "name": "叡福寺",
+    "nameEn": "Eifukuji Temple",
+    "reading": "えいふくじ",
+    "aliases": [],
+    "address": "大阪府南河内郡太子町",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "南河内郡太子町"
+    },
+    "coords": {
+      "lat": 34.52,
+      "lng": 135.64
+    },
+    "category": "寺院",
+    "summary": "大阪府南河内郡太子町にある太子宗の本山の寺院で、聖徳太子の墓所とされる叡福寺北古墳（磯長墓）があります。",
+    "description": "古墳には聖徳太子、母の穴穂部間人皇女、妃の膳部菩岐々美郎女が埋葬されているとされ、「三骨一廟」と呼ばれます。叡福寺北古墳は宮内庁により皇族の陵墓に指定されています。",
+    "highlights": [
+      "聖徳太子の墓所",
+      "三骨一廟",
+      "磯長墓",
+      "新西国三十三箇所の札所"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、境内の建物を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、境内の木々と建物の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、建物の屋根の形を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "参道から本堂へ向かう視線の流れを入れる。",
+      "陵墓の区域は立ち入りや撮影の案内に従う。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%8F%A1%E7%A6%8F%E5%AF%BA",
+          "title": "Wikipedia「叡福寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11410732",
+          "title": "Wikidata「Q11410732」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_acd8f086d523",
+    "slug": "ishikiri-tsurugiya-jinja",
+    "name": "石切劔箭神社",
+    "nameEn": "Ishikiri Tsurugiya Shrine",
+    "reading": "いしきりつるぎやじんじゃ",
+    "aliases": [
+      "石切神社",
+      "石切さん"
+    ],
+    "address": "大阪府東大阪市",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "東大阪市"
+    },
+    "coords": {
+      "lat": 34.68,
+      "lng": 135.65
+    },
+    "category": "神社",
+    "summary": "大阪府東大阪市東石切町にある神社で、「石切さん」「でんぼ（腫れ物）の神様」として親しまれています。",
+    "description": "延喜式神名帳に記載された河内郡の式内社で、饒速日尊とその御子の可美真手命を祀ります。本殿前と神社入り口の百度石の間を行き来するお百度参りをする人が見られます。",
+    "highlights": [
+      "石切さんの愛称",
+      "お百度参り",
+      "式内社",
+      "でんぼの神様"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、社殿と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、社殿の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、社殿を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、社殿の屋根の立体感を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "参道から社殿へ向かう視線の流れを入れる。",
+      "お百度参りの方々の邪魔にならない位置から撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%9F%B3%E5%88%87%E5%89%A3%E7%AE%AD%E7%A5%9E%E7%A4%BE",
+          "title": "Wikipedia「石切剣箭神社」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11585189",
+          "title": "Wikidata「Q11585189」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1dce38c5471d",
+    "slug": "osaka-konjakukan",
+    "name": "大阪くらしの今昔館",
+    "nameEn": "Osaka Museum of Housing and Living",
+    "reading": "おおさかくらしのこんじゃくかん",
+    "aliases": [
+      "大阪市立住まいのミュージアム"
+    ],
+    "address": "大阪府大阪市北区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "大阪市北区"
+    },
+    "coords": {
+      "lat": 34.71,
+      "lng": 135.51
+    },
+    "category": "博物館",
+    "summary": "大阪市北区にある市立の博物館で、正式名称は大阪市立住まいのミュージアムです。「住まい」をテーマにした日本初の専門博物館です。",
+    "description": "9階には、江戸時代の天保期（1830年代）の大坂の町家と町並みが実物大で復元されています。10階の展望フロアからは、吹き抜けを通して階下の江戸時代の町並みが一望できます。",
+    "highlights": [
+      "天保期の大坂の町並みの復元",
+      "町家と裏長屋",
+      "10階の展望フロア",
+      "住まいをテーマにした専門博物館"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は館内の展示が中心で、天候に左右されず撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋も館内の照明の中で、町並みの陰影を撮れます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "館内の町並みは、開館直後の落ち着いた時間に撮りやすくなります。"
+      },
+      {
+        "time": "day",
+        "text": "館内は照明の中で、昼でも町家の陰影が出ます。"
+      }
+    ],
+    "compositionTips": [
+      "10階の展望フロアから、町並み全体を見下ろして撮る。",
+      "町家の並びと木戸門を入れ、江戸時代の雰囲気を出す。",
+      "館内の撮影は案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%A4%A7%E9%98%AA%E3%81%8F%E3%82%89%E3%81%97%E3%81%AE%E4%BB%8A%E6%98%94%E9%A4%A8",
+          "title": "Wikipedia「大阪くらしの今昔館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11439926",
+          "title": "Wikidata「Q11439926」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_4810f9326464",
+    "slug": "tekijuku",
+    "name": "適塾（旧緒方洪庵住宅）",
+    "nameEn": "Tekijuku (Former Ogata Koan Residence)",
+    "reading": "てきじゅく",
+    "aliases": [
+      "適々斎塾",
+      "旧緒方洪庵住宅"
+    ],
+    "address": "大阪府大阪市中央区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "大阪市中央区"
+    },
+    "coords": {
+      "lat": 34.69,
+      "lng": 135.5
+    },
+    "category": "史跡",
+    "summary": "緒方洪庵が江戸時代後期に大坂船場に開いた蘭学の私塾で、1838年に開学しました。遺構は国の史跡で、建物は重要文化財に指定されています。",
+    "description": "卒塾生は1000名を超え、福澤諭吉など、幕末から明治維新にかけて近代日本の形成に関わった人物が学びました。建物は1964年に国の重要文化財に指定され、「旧緒方洪庵住宅」の名でも呼ばれます。大阪大学の源流とされます。",
+    "highlights": [
+      "蘭学の私塾の建物",
+      "国の史跡・重要文化財",
+      "福澤諭吉ら塾生の学びの場",
+      "大阪大学の源流"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は外光の柔らかい日に、町家の外観を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、木造の屋根や壁に陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、木造の外観を穏やかな調子で写します。"
+      },
+      {
+        "time": "day",
+        "text": "昼の光は、町家の外観を明るく見せます。"
+      }
+    ],
+    "compositionTips": [
+      "町家の外観を、屋根の線が分かる位置から撮る。",
+      "内部は見学の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E9%81%A9%E5%A1%BE",
+          "title": "Wikipedia「適塾」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1049405",
+          "title": "Wikidata「Q1049405」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6cc5103e9970",
+    "slug": "minase-jingu",
+    "name": "水無瀬神宮",
+    "nameEn": "Minase Shrine",
+    "reading": "みなせじんぐう",
+    "aliases": [],
+    "address": "大阪府三島郡島本町",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "三島郡島本町"
+    },
+    "coords": {
+      "lat": 34.88,
+      "lng": 135.67
+    },
+    "category": "神社",
+    "summary": "大阪府三島郡島本町にある神社で、旧社格は官幣大社です。境内には環境庁認定の「名水百選」に選ばれた「離宮の水」があります。",
+    "description": "後鳥羽上皇が気に入った離宮・水無瀬殿の跡地に、仁治元年（1240年）に御影堂が建てられたのが始まりです。主祭神は後鳥羽天皇、土御門天皇、順徳天皇です。",
+    "highlights": [
+      "離宮の水（名水百選）",
+      "後鳥羽上皇ゆかりの神社",
+      "水無瀬殿の跡地"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、境内の水辺と木々を撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、木々と水辺の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、水辺と木々を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、木々の間に長い影をつくります。"
+      }
+    ],
+    "compositionTips": [
+      "離宮の水の流れを前景に、木々を奥に置く。",
+      "周囲の参拝者の邪魔にならない位置から撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B0%B4%E7%84%A1%E7%80%AC%E7%A5%9E%E5%AE%AE",
+          "title": "Wikipedia「水無瀬神宮」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q705121",
+          "title": "Wikidata「Q705121」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_f694b061e4fd",
+    "slug": "keitakuen",
+    "name": "慶沢園",
+    "nameEn": "Keitakuen Garden",
+    "reading": "けいたくえん",
+    "aliases": [],
+    "address": "大阪府大阪市天王寺区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "大阪市天王寺区"
+    },
+    "coords": {
+      "lat": 34.65,
+      "lng": 135.51
+    },
+    "category": "庭園",
+    "summary": "大阪市天王寺区の天王寺公園内にある日本庭園で、大小3つの島が浮かぶ池の周囲を巡る林泉回遊式の庭園です。",
+    "description": "元は住友家の茶臼山本邸庭園として、小川治兵衛の作庭、木津聿斎の設計により1908年に造園が始まり、完成までに10年を費やして1918年に仕上がりました。1925年に住友家本邸が神戸に移転したことで、旧本邸敷地とともに大阪市に寄贈されました。",
+    "highlights": [
+      "3つの島が浮かぶ池",
+      "小川治兵衛の作庭",
+      "林泉回遊式の庭園",
+      "全国から集めた名石・名木"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑が池に映り、水辺の景色を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、池と木々の陰影が深まります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、池の水面と木々を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、石組みや木々に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "池の水面を前景に、島と石組みを奥に入れる。",
+      "庭園内の道を歩きながら、景色の変わる場所を選んで撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%85%B6%E6%B2%A2%E5%9C%92",
+          "title": "Wikipedia「慶沢園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q10855180",
+          "title": "Wikidata「Q10855180」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_72c7337f18cb",
+    "slug": "osaka-city-museum-of-fine-arts",
+    "name": "大阪市立美術館",
+    "nameEn": "Osaka City Museum of Fine Arts",
+    "reading": "おおさかしりつびじゅつかん",
+    "aliases": [],
+    "address": "大阪府大阪市天王寺区",
+    "region": {
+      "country": "日本",
+      "prefecture": "大阪府",
+      "city": "大阪市天王寺区"
+    },
+    "coords": {
+      "lat": 34.65,
+      "lng": 135.51
+    },
+    "category": "美術館",
+    "summary": "大阪市天王寺区の天王寺公園内にある美術館で、1936年に旧住友家本邸跡地に開館しました。",
+    "description": "敷地は1914年に建てられた住友家本邸の跡地で、住友家から日本庭園「慶沢園」とともに寄贈されたものです。本館は伊藤正文と海上静一の設計で、世界恐慌の影響による工事の中断もあり、10年近くをかけて1936年4月に完成しました。",
+    "highlights": [
+      "旧住友家本邸の跡地",
+      "慶沢園に隣接",
+      "1936年に完成した本館",
+      "天王寺公園の美術館"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は公園の新緑の中で、建物の外観を撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、建物の外観の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、外観を落ち着いた調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、外観に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "本館の正面を、前景の植栽や広場と一緒に入れる。",
+      "館内は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%A4%A7%E9%98%AA%E5%B8%82%E7%AB%8B%E7%BE%8E%E8%A1%93%E9%A4%A8",
+          "title": "Wikipedia「大阪市立美術館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q9004920",
+          "title": "Wikidata「Q9004920」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_218c94ed23ee",
+    "slug": "kenninji",
+    "name": "建仁寺",
+    "nameEn": "Kennin-ji Temple",
+    "reading": "けんにんじ",
+    "aliases": [],
+    "address": "京都府京都市東山区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市東山区"
+    },
+    "coords": {
+      "lat": 35,
+      "lng": 135.77
+    },
+    "category": "寺院",
+    "summary": "京都市東山区にある臨済宗建仁寺派の大本山の寺院で、山号は東山です。開基は源頼家、開山は栄西で、かつて京都五山の第3位でした。",
+    "description": "俵屋宗達の「風神雷神図」や海北友松の襖絵などの文化財を伝えます。方丈は長享元年（1487年）の建立で、安芸国の安国寺から移築されたものです。塔頭の両足院は桃山時代の池泉回遊式庭園で知られます。",
+    "highlights": [
+      "方丈（重要文化財）",
+      "風神雷神図",
+      "両足院の池泉回遊式庭園",
+      "京都五山の一つ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、境内の木々と建物を撮りやすくなります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、建物と庭の陰影が深まります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の建物と庭を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、屋根と庭に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "方丈と庭を縁側の水平線に合わせて撮る。",
+      "堂内は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%BB%BA%E4%BB%81%E5%AF%BA",
+          "title": "Wikipedia「建仁寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1440954",
+          "title": "Wikidata「Q1440954」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_e13135e594e2",
+    "slug": "yasaka-jinja",
+    "name": "八坂神社",
+    "nameEn": "Yasaka Shrine",
+    "reading": "やさかじんじゃ",
+    "aliases": [
+      "祇園さん",
+      "祇園社"
+    ],
+    "address": "京都府京都市東山区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市東山区"
+    },
+    "coords": {
+      "lat": 35,
+      "lng": 135.78
+    },
+    "category": "神社",
+    "summary": "京都市東山区祇園町北側にある神社で、二十二社（下八社）の一社です。「祇園さん」「八坂さん」と呼ばれ、祇園祭の胴元でもあります。",
+    "description": "元の祭神の牛頭天王が祇園精舎の守護神とされることから、もとは「祇園神社」「祇園社」「祇園感神院」などと呼ばれ、慶応4年（1868年）の神仏分離令で八坂神社と改名されました。全国にある八坂神社や素戔嗚尊を祭神とする関連神社の総本社であると主張しています。",
+    "highlights": [
+      "祇園祭の胴元",
+      "祇園さんの愛称",
+      "二十二社の一社",
+      "全国の八坂神社の総本社"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、社殿と木々を合わせて撮れます。"
+      },
+      {
+        "season": "summer",
+        "text": "夏は祇園祭の月で、境内の様子を撮れます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の社殿を穏やかな調子で写します。"
+      },
+      {
+        "time": "night",
+        "text": "夜は社殿の明かりが際立ち、闇の中に建物が浮かびます。"
+      }
+    ],
+    "compositionTips": [
+      "楼門から社殿へ向かう視線の流れを入れる。",
+      "参拝の流れの邪魔にならない位置で、朱の色を主役にして撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%85%AB%E5%9D%82%E7%A5%9E%E7%A4%BE",
+          "title": "Wikipedia「八坂神社」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q692714",
+          "title": "Wikidata「Q692714」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_9b5139dcb34e",
+    "slug": "hokanji-yasaka-no-to",
+    "name": "法観寺（八坂の塔）",
+    "nameEn": "Hokan-ji Temple (Yasaka Pagoda)",
+    "reading": "ほうかんじ",
+    "aliases": [
+      "八坂の塔"
+    ],
+    "address": "京都府京都市東山区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市東山区"
+    },
+    "coords": {
+      "lat": 35,
+      "lng": 135.78
+    },
+    "category": "寺院",
+    "summary": "京都市東山区八坂上町にある臨済宗建仁寺派の寺院で、飛鳥時代に創建された京都で最も古い寺院の一つです。五重塔は通称「八坂の塔」と呼ばれます。",
+    "description": "五重塔は永享12年（1440年）に足利義教により再建された、高さ46メートルの純和様・本瓦葺の建築で、国の重要文化財です。東山周辺のランドマークで、八坂神社と清水寺のほぼ中間（約1キロメートル）に位置します。",
+    "highlights": [
+      "八坂の塔（五重塔）",
+      "重要文化財",
+      "東山のランドマーク",
+      "京都で最も古い寺院の一つ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、塔と周囲の街並みを合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、塔の屋根の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、塔を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、塔に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "坂道の先に塔を入れ、街並みの中に立つ姿を見せる。",
+      "塔を見上げる構図で、五層の屋根の重なりを見せる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B3%95%E8%A6%B3%E5%AF%BA",
+          "title": "Wikipedia「法観寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11555353",
+          "title": "Wikidata「Q11555353」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_fa9999e7eea3",
+    "slug": "eikando-zenrinji",
+    "name": "永観堂（禅林寺）",
+    "nameEn": "Eikando (Zenrin-ji Temple)",
+    "reading": "えいかんどう",
+    "aliases": [
+      "禅林寺"
+    ],
+    "address": "京都府京都市左京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市左京区"
+    },
+    "coords": {
+      "lat": 35.01,
+      "lng": 135.8
+    },
+    "category": "寺院",
+    "summary": "京都市左京区永観堂町にある浄土宗西山禅林寺派の総本山で、通称は永観堂です。紅葉の名所で、古くから「秋はもみじの永観堂」といわれます。",
+    "description": "本尊の阿弥陀如来立像は、頭部を左（向かって右）に向けた特異な姿から「みかえり阿弥陀」と呼ばれ、重要文化財です。永保2年（1082年）に永観が念仏を唱えながら阿弥陀如来の周囲を行道していたときの伝承が伝わります。",
+    "highlights": [
+      "紅葉の名所",
+      "みかえり阿弥陀",
+      "秋はもみじの永観堂",
+      "重要文化財の本尊"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "autumn",
+        "text": "秋は紅葉の季節に、赤く色づいた木々と境内の建物を合わせて撮れます。"
+      },
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、庭の緑を撮りやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、紅葉の色を柔らかく写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、紅葉の葉を透かして温かい色を出します。"
+      }
+    ],
+    "compositionTips": [
+      "紅葉を前景にぼかし、建物を奥に置いて秋の景色を作る。",
+      "紅葉の時期は拝観の流れに従い、周囲に配慮して撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%A6%85%E6%9E%97%E5%AF%BA_(%E4%BA%AC%E9%83%BD%E5%B8%82)",
+          "title": "Wikipedia「禅林寺 (京都市)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2380134",
+          "title": "Wikidata「Q2380134」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_fc696f40cfee",
+    "slug": "tetsugaku-no-michi",
+    "name": "哲学の道",
+    "nameEn": "Philosopher's Path",
+    "reading": "てつがくのみち",
+    "aliases": [],
+    "address": "京都府京都市左京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市左京区"
+    },
+    "coords": {
+      "lat": 35.03,
+      "lng": 135.8
+    },
+    "category": "町並み",
+    "summary": "京都市左京区で、琵琶湖疏水分線の西岸に沿って若王子橋と銀閣寺橋を結ぶ、約1.5キロメートルの歩道です。「日本の道100選」にも入っています。",
+    "description": "京都帝国大学で哲学を研究した西田幾多郎や田辺元が思索しながら散策したことからこう呼ばれるようになりました。春は約420本の桜が花を咲かせる観光地としても知られます。",
+    "highlights": [
+      "疏水に沿った桜並木",
+      "約1.5キロメートルの歩道",
+      "日本の道100選",
+      "西田幾多郎ゆかりの散策路"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は約420本の桜が疏水沿いに咲き、水面と花を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、疏水沿いの木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、疏水の水面と木々を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、疏水沿いの木々に長い影をつくります。"
+      }
+    ],
+    "compositionTips": [
+      "疏水の水面を前景に、並木の道を奥に伸ばして奥行きを出す。",
+      "桜の開花は年ごとに違うので、訪ねる前に開花の様子を確かめる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%93%B2%E5%AD%A6%E3%81%AE%E9%81%93",
+          "title": "Wikipedia「哲学の道」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1510488",
+          "title": "Wikidata「Q1510488」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_dfb8bfb3278f",
+    "slug": "keage-incline",
+    "name": "蹴上インクライン",
+    "nameEn": "Keage Incline",
+    "reading": "けあげいんくらいん",
+    "aliases": [],
+    "address": "京都府京都市左京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市左京区"
+    },
+    "coords": {
+      "lat": 35.01,
+      "lng": 135.79
+    },
+    "category": "産業遺産",
+    "summary": "京都市左京区の南禅寺と蹴上の間にあった、琵琶湖疏水による舟運ルートの傾斜鉄道です。1891年から1948年まで実用に供されました。",
+    "description": "国宝「琵琶湖疏水施設」・史跡「琵琶湖疏水」の一部として国宝・国の史跡に指定されています。勾配のある水路にレールを敷き、台車に直接船を載せてケーブルで引く方式で、現在は桜並木の観光スポットになっています。",
+    "highlights": [
+      "レールが続く傾斜鉄道の跡",
+      "桜並木",
+      "国宝・国の史跡",
+      "琵琶湖疏水の舟運"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は桜並木とレールが続く景色を撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、レールと木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、レールと桜並木を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、レールの線に陰影をつくります。"
+      }
+    ],
+    "compositionTips": [
+      "レールの線を画面の奥へ伸ばし、桜並木と合わせて奥行きを出す。",
+      "線路跡では、立ち入りの案内に従い、決められた範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E8%B9%B4%E4%B8%8A%E3%82%A4%E3%83%B3%E3%82%AF%E3%83%A9%E3%82%A4%E3%83%B3",
+          "title": "Wikipedia「蹴上インクライン」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q17990723",
+          "title": "Wikidata「Q17990723」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_44d34106053f",
+    "slug": "kyoto-gosho",
+    "name": "京都御所",
+    "nameEn": "Kyoto Imperial Palace",
+    "reading": "きょうとごしょ",
+    "aliases": [],
+    "address": "京都府京都市上京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市上京区"
+    },
+    "coords": {
+      "lat": 35.03,
+      "lng": 135.76
+    },
+    "category": "史跡",
+    "summary": "京都市上京区にある皇室関連施設で、1337年から1869年までの間の内裏でした。現存する建物は概ね1855年に造営した安政度内裏です。",
+    "description": "主な建物に、内裏の正殿だった紫宸殿、天皇が政務を執った清涼殿などがあります。建物群は大きく3つの区画に分かれ、南寄りには紫宸殿と清涼殿をはじめ、儀式や政務のための表向きの建物が残ります。宮内庁京都事務所が管理しています。",
+    "highlights": [
+      "紫宸殿",
+      "清涼殿",
+      "安政度内裏の建物群",
+      "内裏だった場所"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、建物と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、屋根や回廊の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、白砂と建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、屋根の形を際立たせます。"
+      }
+    ],
+    "compositionTips": [
+      "紫宸殿の屋根と前庭の白砂を合わせて、格式のある構図にする。",
+      "見学の範囲や撮影の案内に従って撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E4%BA%AC%E9%83%BD%E5%BE%A1%E6%89%80",
+          "title": "Wikipedia「京都御所」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1202239",
+          "title": "Wikidata「Q1202239」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7589d84ec485",
+    "slug": "nishi-hongwanji",
+    "name": "西本願寺",
+    "nameEn": "Nishi Hongan-ji Temple",
+    "reading": "にしほんがんじ",
+    "aliases": [],
+    "address": "京都府京都市下京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市下京区"
+    },
+    "coords": {
+      "lat": 34.99,
+      "lng": 135.75
+    },
+    "category": "寺院",
+    "summary": "京都市下京区本願寺門前町にある浄土真宗本願寺派の本山の寺院で、山号は龍谷山です。「古都京都の文化財」の構成資産として世界遺産に登録されています。",
+    "description": "境内南東隅の滴翠園（てきすいえん）内には、国宝の飛雲閣があります。滄浪池に面して建つ3階建ての庭間建築で、各階は平面の大きさを変え、屋根などの意匠も左右対称を避けています。京都市民からは「お西さん」の愛称で親しまれています。",
+    "highlights": [
+      "国宝の飛雲閣",
+      "世界遺産の構成資産",
+      "お西さんの愛称",
+      "滴翠園"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、堂宇と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、屋根と木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、広い境内の建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、大きな屋根の立体感を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "大きな屋根と木々を一緒に入れ、境内の広がりを見せる。",
+      "飛雲閣などは公開の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E8%A5%BF%E6%9C%AC%E9%A1%98%E5%AF%BA",
+          "title": "Wikipedia「西本願寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1146038",
+          "title": "Wikidata「Q1146038」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_8e2cd22c1984",
+    "slug": "kyoto-tower",
+    "name": "京都タワー",
+    "nameEn": "Kyoto Tower",
+    "reading": "きょうとたわー",
+    "aliases": [],
+    "address": "京都府京都市下京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市下京区"
+    },
+    "coords": {
+      "lat": 34.99,
+      "lng": 135.76
+    },
+    "category": "展望台",
+    "summary": "京都市下京区にある塔で、京都駅中央口（烏丸口）のほぼ正面、東本願寺の南に位置します。京都市内で最も高い建造物です。",
+    "description": "ビルの高さ31メートルにタワー100メートルを合わせ、全体の高さは131メートルです。タワー部は白を基調とし、展望室とその上部の一部に赤色が使われています。京都駅前の景色の中でひときわ目立ちます。",
+    "highlights": [
+      "京都市で最も高い建造物",
+      "高さ131メートル",
+      "京都駅前のランドマーク",
+      "白と赤の外観"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は晴れた日に、青空とタワーの白い外観を合わせて撮れます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、タワーの輪郭がはっきり写ります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、タワーの白い外観に温かい色を添えます。"
+      },
+      {
+        "time": "night",
+        "text": "夜はタワーの明かりが際立ち、駅前の夜景に映えます。"
+      }
+    ],
+    "compositionTips": [
+      "駅前や東本願寺の側から、周囲の建物と合わせて塔の高さを見せる。",
+      "下から見上げる構図で、塔の細い形を強調する。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E4%BA%AC%E9%83%BD%E3%82%BF%E3%83%AF%E3%83%BC",
+          "title": "Wikipedia「京都タワー」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1201304",
+          "title": "Wikidata「Q1201304」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7ab1bb1a730b",
+    "slug": "pontocho",
+    "name": "先斗町",
+    "nameEn": "Pontocho",
+    "reading": "ぽんとちょう",
+    "aliases": [],
+    "address": "京都府京都市中京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市中京区"
+    },
+    "coords": {
+      "lat": 35.01,
+      "lng": 135.77
+    },
+    "category": "町並み",
+    "summary": "京都市中京区にあり、鴨川と木屋町通の間に位置する花街・歓楽街です。京都五花街の一つで、四条河原町の東端にあたります。",
+    "description": "だんだら模様などが続く約500メートルの石畳の通りで、通りの東側の店は鴨川に面し、納涼床を設ける飲食店が多くあります。先斗町歌舞練場は北の端寄りにあり、鴨川に大きな姿を映します。",
+    "highlights": [
+      "約500メートルの石畳の通り",
+      "鴨川沿いの納涼床",
+      "京都五花街の一つ",
+      "先斗町歌舞練場"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は鴨川沿いの納涼床の景色が見られ、川と床の並びを撮れます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む夜に、通りの灯りが際立ちます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、石畳と町家の壁に温かい色を添えます。"
+      },
+      {
+        "time": "night",
+        "text": "夜は通りの灯りがともり、石畳に光が映ります。"
+      }
+    ],
+    "compositionTips": [
+      "石畳の通りを奥へ伸ばし、両側の店の灯りで奥行きを出す。",
+      "店の前や通行の妨げにならないよう、周囲に配慮して撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%85%88%E6%96%97%E7%94%BA",
+          "title": "Wikipedia「先斗町」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q536881",
+          "title": "Wikidata「Q536881」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_ab234f8ed2a5",
+    "slug": "jojakkoji",
+    "name": "常寂光寺",
+    "nameEn": "Jojakko-ji Temple",
+    "reading": "じょうじゃっこうじ",
+    "aliases": [],
+    "address": "京都府京都市右京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市右京区"
+    },
+    "coords": {
+      "lat": 35.02,
+      "lng": 135.67
+    },
+    "category": "寺院",
+    "summary": "京都市右京区嵯峨小倉山にある日蓮宗の寺院で、山号は小倉山です。百人一首で詠まれる小倉山の中腹の斜面にあり、境内から嵯峨野を一望できます。",
+    "description": "境内の庭園には200余本のカエデが植えられています。本堂は慶長年間（1596年〜1615年）に小早川秀秋の助力で伏見城の客殿を移築したものです。",
+    "highlights": [
+      "200余本のカエデ",
+      "小倉山の中腹の境内",
+      "嵯峨野を望む景色",
+      "伏見城の客殿を移した本堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "autumn",
+        "text": "秋はカエデが色づき、境内の建物と合わせて撮れます。"
+      },
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、カエデの若葉を撮りやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、カエデの葉を柔らかく写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、葉を透かして温かい色を出します。"
+      }
+    ],
+    "compositionTips": [
+      "カエデを前景にぼかし、建物と嵯峨野の景色を奥に置く。",
+      "石段や坂が続くので、足元に気をつけて撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%B8%B8%E5%AF%82%E5%85%89%E5%AF%BA",
+          "title": "Wikipedia「常寂光寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11060322",
+          "title": "Wikidata「Q11060322」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1d8de291f122",
+    "slug": "nisonin",
+    "name": "二尊院",
+    "nameEn": "Nison-in Temple",
+    "reading": "にそんいん",
+    "aliases": [],
+    "address": "京都府京都市右京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市右京区"
+    },
+    "coords": {
+      "lat": 35.02,
+      "lng": 135.67
+    },
+    "category": "寺院",
+    "summary": "京都市右京区嵯峨にある天台宗の寺院で、山号は小倉山です。本尊は「発遣の釈迦」と「来迎の阿弥陀」の二尊で、これが寺の名の由来です。",
+    "description": "総門を入った「紅葉の馬場」と呼ばれる参道は、紅葉と桜の名所です。奥には『小倉百人一首』ゆかりの藤原定家が営んだ時雨亭跡と伝わる場所があり、小倉あん発祥の地としても伝わります。",
+    "highlights": [
+      "紅葉の馬場",
+      "発遣の釈迦と来迎の阿弥陀",
+      "時雨亭跡と伝わる場所",
+      "小倉あん発祥の地"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "autumn",
+        "text": "秋は参道が紅葉に染まり、並木の奥行きを撮れます。"
+      },
+      {
+        "season": "spring",
+        "text": "春は桜と新緑の季節に、参道の色の変化を撮れます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、参道の木々を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、参道の紅葉に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "参道の奥行きを生かし、紅葉の並木を遠近で見せる。",
+      "参道は参拝の方の妨げにならない位置で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E4%BA%8C%E5%B0%8A%E9%99%A2",
+          "title": "Wikipedia「二尊院」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3096514",
+          "title": "Wikidata「Q3096514」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_8dab6288c09f",
+    "slug": "adashino-nenbutsuji",
+    "name": "化野念仏寺",
+    "nameEn": "Adashino Nenbutsu-ji Temple",
+    "reading": "あだしのねんぶつじ",
+    "aliases": [],
+    "address": "京都府京都市右京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市右京区"
+    },
+    "coords": {
+      "lat": 35.03,
+      "lng": 135.66
+    },
+    "category": "寺院",
+    "summary": "京都市右京区嵯峨鳥居本にある浄土宗の寺院で、山号は華西山です。化野は平安時代以来の墓地で、風葬の地でもありました。",
+    "description": "境内の「西院の河原」には、約8,000体の石仏・石塔が安置されています。かつて化野に散在していた無縁仏を集めたもので、平安から江戸の各時代に及ぶとされます。",
+    "highlights": [
+      "西院の河原の石仏・石塔",
+      "約8,000体の無縁仏",
+      "十三重石塔",
+      "竹林の中の角倉素庵の墓"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、石仏の陰影が出やすくなります。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む朝に、石仏の質感が引き立ちます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の柔らかい光は、石仏の表情を穏やかに写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、石仏の影を長く引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "石仏の連なりを斜めから入れ、数の多さと奥行きを見せる。",
+      "供養の場なので、静かに、周囲に配慮して撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%8C%96%E9%87%8E%E5%BF%B5%E4%BB%8F%E5%AF%BA",
+          "title": "Wikipedia「化野念仏寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q2824122",
+          "title": "Wikidata「Q2824122」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c6c39636f932",
+    "slug": "mimurotoji",
+    "name": "三室戸寺",
+    "nameEn": "Mimuroto-ji Temple",
+    "reading": "みむろとじ",
+    "aliases": [],
+    "address": "京都府宇治市",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "宇治市"
+    },
+    "coords": {
+      "lat": 34.9,
+      "lng": 135.82
+    },
+    "category": "寺院",
+    "summary": "京都府宇治市にある本山修験宗の別格本山の寺院で、山号は明星山です。本尊は千手観世音菩薩で、西国三十三所の第10番札所です。",
+    "description": "庭園「与楽園」は5,000坪の広さで、中根金作が1989年に作庭した枯山水庭園と池泉回遊式庭園、広庭からなります。5月は2万株のツツジと1千本のシャクナゲ、6月は1万株のアジサイ、7月はハスが咲き、秋は紅葉の名所です。",
+    "highlights": [
+      "与楽園",
+      "2万株のツツジ",
+      "1万株のアジサイ",
+      "ハスと紅葉"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春はツツジやシャクナゲが咲き、庭の色を撮れます。"
+      },
+      {
+        "season": "summer",
+        "text": "夏はアジサイやハスが咲き、水辺の花を撮れます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、花の色をやわらかく写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、花と庭に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "花を前景にぼかし、庭の景色を奥に入れる。",
+      "花の見ごろは年ごとに違うので、訪ねる前に開花の様子を確かめる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E4%B8%89%E5%AE%A4%E6%88%B8%E5%AF%BA",
+          "title": "Wikipedia「三室戸寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11355140",
+          "title": "Wikidata「Q11355140」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_819a2e1299e2",
+    "slug": "ujigami-jinja",
+    "name": "宇治上神社",
+    "nameEn": "Ujigami Shrine",
+    "reading": "うじがみじんじゃ",
+    "aliases": [],
+    "address": "京都府宇治市",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "宇治市"
+    },
+    "coords": {
+      "lat": 34.89,
+      "lng": 135.81
+    },
+    "category": "神社",
+    "summary": "京都府宇治市宇治山田にある式内社で、旧社格は村社です。ユネスコの世界遺産「古都京都の文化財」の構成資産の一つに登録されています。",
+    "description": "隣接する宇治神社とは対をなす神社で、祭神は菟道稚郎子命ほか計3柱です。菟道稚郎子は応神天皇の皇子で、異母兄の仁徳天皇に皇位を譲るため自殺したと『日本書紀』にあるとされます。",
+    "highlights": [
+      "世界遺産の構成資産",
+      "式内社",
+      "宇治神社と対をなす神社",
+      "宇治の山あいの境内"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、社殿と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、社殿と木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、山あいの境内を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、社殿の屋根を際立たせます。"
+      }
+    ],
+    "compositionTips": [
+      "社殿を木々の間から入れ、森の中の静けさを出す。",
+      "世界遺産の境内では、参拝の妨げにならない位置で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%AE%87%E6%B2%BB%E4%B8%8A%E7%A5%9E%E7%A4%BE",
+          "title": "Wikipedia「宇治上神社」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q583589",
+          "title": "Wikidata「Q583589」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_8d7ca0f1707a",
+    "slug": "matsunoo-taisha",
+    "name": "松尾大社",
+    "nameEn": "Matsunoo Taisha",
+    "reading": "まつのおたいしゃ",
+    "aliases": [],
+    "address": "京都府京都市西京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市西京区"
+    },
+    "coords": {
+      "lat": 35,
+      "lng": 135.69
+    },
+    "category": "神社",
+    "summary": "京都市西京区嵐山宮町にある式内社（名神大社）で、二十二社（上七社）の一社です。四条通の西端に鎮座し、松尾山の磐座での祭祀が始まりとされます。",
+    "description": "中世以降は酒の神としても信仰され、現在も醸造家からの信仰が篤い神社です。神使を亀と鯉とすることでも知られています。男神像2躯・女神像1躯の計3躯が国の重要文化財です。",
+    "highlights": [
+      "酒の神としての信仰",
+      "亀と鯉の神使",
+      "松尾山の磐座",
+      "二十二社の一社"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、社殿と山の緑を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、社殿の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、社殿と山を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、社殿の朱の色を深く見せます。"
+      }
+    ],
+    "compositionTips": [
+      "社殿と背後の松尾山を重ねて、山と神社の関係を見せる。",
+      "亀や鯉に関する場所は、周囲に配慮して撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%9D%BE%E5%B0%BE%E5%A4%A7%E7%A4%BE",
+          "title": "Wikipedia「松尾大社」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q710302",
+          "title": "Wikidata「Q710302」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_930e0efa466d",
+    "slug": "joruriji",
+    "name": "浄瑠璃寺",
+    "nameEn": "Joruri-ji Temple",
+    "reading": "じょうるりじ",
+    "aliases": [
+      "九体寺"
+    ],
+    "address": "京都府木津川市",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "木津川市"
+    },
+    "coords": {
+      "lat": 34.72,
+      "lng": 135.87
+    },
+    "category": "寺院",
+    "summary": "京都府木津川市加茂町にある真言律宗の寺院で、本堂に9体の阿弥陀如来像を安置することから「九体寺」の通称があります。",
+    "description": "嘉承2年（1107年）に再建された本堂は国宝で、当時多数建立された九体阿弥陀堂の唯一の遺構とされます。緑深い境内には、池を中心とした浄土式庭園と、平安末期の本堂および三重塔が残ります。",
+    "highlights": [
+      "国宝の本堂",
+      "九体阿弥陀",
+      "浄土式庭園",
+      "三重塔"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、池と本堂を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、池の水面と建物の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、池と本堂を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、本堂の屋根を温かく照らします。"
+      }
+    ],
+    "compositionTips": [
+      "池越しに本堂と三重塔を入れ、浄土式庭園の構成を見せる。",
+      "堂内は拝観の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B5%84%E7%91%A0%E7%92%83%E5%AF%BA",
+          "title": "Wikipedia「浄瑠璃寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1093645",
+          "title": "Wikidata「Q1093645」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_2a96ecc6f8bb",
+    "slug": "yoshiminedera",
+    "name": "善峯寺",
+    "nameEn": "Yoshimine-dera Temple",
+    "reading": "よしみねでら",
+    "aliases": [],
+    "address": "京都府京都市西京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市西京区"
+    },
+    "coords": {
+      "lat": 34.94,
+      "lng": 135.64
+    },
+    "category": "寺院",
+    "summary": "京都市西京区にある善峰観音宗の本山の寺院で、山号は西山です。西国三十三所の第20番札所で、桜や紅葉の名所です。",
+    "description": "境内各所から京都市街や比叡山を一望できます。本尊は十一面千手観世音菩薩2躯で、秘仏の本尊は毎月第2日曜などに開扉されます。",
+    "highlights": [
+      "境内から望む京都市街",
+      "桜と紅葉の名所",
+      "比叡山の眺め",
+      "西国三十三所の札所"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は桜の季節に、花と市街の眺めを合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は紅葉と市街の景色を一緒に撮れます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、市街の眺めを穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、境内の木々と市街に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "境内の高い位置から、木々の間に京都市街を入れる。",
+      "坂や石段が続くので、足元に気をつけて撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%96%84%E5%B3%AF%E5%AF%BA",
+          "title": "Wikipedia「善峯寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q169621",
+          "title": "Wikidata「Q169621」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_48f9f88ced0e",
+    "slug": "konkai-komyoji",
+    "name": "金戒光明寺",
+    "nameEn": "Konkai-Komyo-ji Temple",
+    "reading": "こんかいこうみょうじ",
+    "aliases": [
+      "くろ谷さん"
+    ],
+    "address": "京都府京都市左京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市左京区"
+    },
+    "coords": {
+      "lat": 35.02,
+      "lng": 135.79
+    },
+    "category": "寺院",
+    "summary": "京都市左京区黒谷町にある浄土宗の大本山の寺院で、山号は紫雲山です。通称は「くろ谷さん」で、知恩院と並ぶ格式を誇る浄土宗の七大本山の一つです。",
+    "description": "初めは念仏道場として利用されました。境内には皇族・公家の茶の湯に使われた名水「黒谷明星水」があります。御影堂は1934年に火災で焼失し、1944年に再建されました。",
+    "highlights": [
+      "御影堂",
+      "黒谷明星水",
+      "浄土宗の七大本山",
+      "くろ谷さん"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、堂宇と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、堂宇の屋根と木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、堂宇と境内を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、大きな屋根に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "石段と門、堂宇の屋根の連なりを入れる。",
+      "堂内は拝観の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E9%87%91%E6%88%92%E5%85%89%E6%98%8E%E5%AF%BA",
+          "title": "Wikipedia「金戒光明寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q6134090",
+          "title": "Wikidata「Q6134090」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_5776dac0fb3b",
+    "slug": "shinnyodo",
+    "name": "真如堂（真正極楽寺）",
+    "nameEn": "Shinnyo-do (Shinsho-Gokuraku-ji Temple)",
+    "reading": "しんにょどう",
+    "aliases": [
+      "真正極楽寺"
+    ],
+    "address": "京都府京都市左京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市左京区"
+    },
+    "coords": {
+      "lat": 35.02,
+      "lng": 135.79
+    },
+    "category": "寺院",
+    "summary": "京都市左京区浄土寺真如町にある天台宗の寺院で、正式名は真正極楽寺、通称は真如堂です。山号は鈴聲山で、本尊は阿弥陀如来です。",
+    "description": "「真如堂縁起」によると、不慮の死に遭った安倍晴明が閻魔大王の前に引き出されたとき、晴明の念持仏の不動明王が飛来して命乞いをしたという蘇生伝説が伝わります。境内にある新長谷寺は洛陽三十三所観音霊場の第5番札所です。",
+    "highlights": [
+      "安倍晴明蘇生伝説",
+      "新長谷寺",
+      "天台宗の寺院",
+      "阿弥陀如来の本尊"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、境内の建物と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、建物と木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、屋根の形を引き立てます。"
+      }
+    ],
+    "compositionTips": [
+      "参道から本堂へ向かう視線の流れを入れる。",
+      "境内は参拝の妨げにならない位置で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%9C%9F%E6%AD%A3%E6%A5%B5%E6%A5%BD%E5%AF%BA",
+          "title": "Wikipedia「真正極楽寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1089231",
+          "title": "Wikidata「Q1089231」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6c8b8d995681",
+    "slug": "tenjuan",
+    "name": "天授庵",
+    "nameEn": "Tenju-an Temple",
+    "reading": "てんじゅあん",
+    "aliases": [],
+    "address": "京都府京都市左京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市左京区"
+    },
+    "coords": {
+      "lat": 35.01,
+      "lng": 135.79
+    },
+    "category": "庭園",
+    "summary": "京都市左京区南禅寺福地町にある臨済宗南禅寺派の寺院で、大本山南禅寺の塔頭です。山号は瑞龍山で、本尊は釈迦如来です。",
+    "description": "方丈前庭（東庭）の「淵黙庭」は、白砂の庭を苔に縁取られた菱形の畳石が横切る枯山水庭園で、小堀遠州の発案です。書院南庭は杉や楓が茂る池泉回遊式庭園で、明治時代に改修されていますが南北朝時代の面影を残します。",
+    "highlights": [
+      "淵黙庭の枯山水",
+      "書院南庭の池泉回遊式庭園",
+      "南禅寺の塔頭",
+      "長谷川等伯筆の障壁画"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "autumn",
+        "text": "秋は書院南庭の楓が色づき、池と合わせて撮れます。"
+      },
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、苔と庭の緑を撮りやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、枯山水の苔と砂を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、楓の葉を透かして温かい色を出します。"
+      }
+    ],
+    "compositionTips": [
+      "枯山水の砂と苔の対比を、低い位置から撮る。",
+      "書院南庭は、楓を前景に池を奥に置く。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%A4%A9%E6%8E%88%E5%BA%B5",
+          "title": "Wikipedia「天授庵」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11442642",
+          "title": "Wikidata「Q11442642」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_98778ca7cb89",
+    "slug": "kono-jinja",
+    "name": "籠神社",
+    "nameEn": "Kono Shrine",
+    "reading": "このじんじゃ",
+    "aliases": [
+      "元伊勢籠神社"
+    ],
+    "address": "京都府宮津市",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "宮津市"
+    },
+    "coords": {
+      "lat": 35.58,
+      "lng": 135.2
+    },
+    "category": "神社",
+    "summary": "京都府宮津市大垣にある丹後国一宮で、式内社（名神大社）です。元伊勢の一社で、「元伊勢籠神社」とも称します。",
+    "description": "2017年4月に、文化庁の日本遺産「丹後ちりめん回廊」を構成する文化財の一つに認定されました。現在まで海部氏が宮司を世襲しています。主祭神は彦火明命で、豊受大神、天照大神、海神などを祀ります。",
+    "highlights": [
+      "丹後国一宮",
+      "元伊勢",
+      "日本遺産の構成文化財",
+      "海部氏が世襲する宮司"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、社殿と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、社殿の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の社殿を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、社殿の屋根に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "鳥居から社殿へ向かう視線の流れを入れる。",
+      "参拝の妨げにならない位置で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%B1%A0%E7%A5%9E%E7%A4%BE",
+          "title": "Wikipedia「籠神社」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q705126",
+          "title": "Wikidata「Q705126」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_75cb0661e19f",
+    "slug": "honen-in",
+    "name": "法然院",
+    "nameEn": "Honen-in Temple",
+    "reading": "ほうねんいん",
+    "aliases": [],
+    "address": "京都府京都市左京区",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市左京区"
+    },
+    "coords": {
+      "lat": 35.02,
+      "lng": 135.8
+    },
+    "category": "寺院",
+    "summary": "京都市左京区鹿ヶ谷にある浄土宗系単立の寺院で、山号は善気山です。哲学の道の近くにあり、本堂は延宝9年（1681年）に客殿として建立されました。",
+    "description": "本堂北側の中庭「椿の庭」には、三銘椿（五色散り椿・貴椿・花笠椿）が植えられています。方丈は貞享4年（1687年）に後西天皇の皇女の御殿が移されたものです。寺の一部は講演会やコンサートの場として開放されています。",
+    "highlights": [
+      "椿の庭",
+      "三銘椿",
+      "哲学の道の近く",
+      "延宝9年建立の本堂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は椿が咲く時期に、庭の花を撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、境内の苔と木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の木々と建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、苔と木々に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "椿の花を前景にぼかし、庭の景色を奥に置く。",
+      "境内は静かな場所なので、周囲に配慮して撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B3%95%E7%84%B6%E9%99%A2",
+          "title": "Wikipedia「法然院」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11555257",
+          "title": "Wikidata「Q11555257」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7fb930da2bbb",
+    "slug": "yokohama-landmark-tower",
+    "name": "横浜ランドマークタワー",
+    "nameEn": "Yokohama Landmark Tower",
+    "reading": "よこはまらんどまーくたわー",
+    "aliases": [],
+    "address": "神奈川県横浜市西区",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横浜市西区"
+    },
+    "coords": {
+      "lat": 35.45,
+      "lng": 139.63
+    },
+    "category": "展望台",
+    "summary": "横浜市西区のみなとみらい地区にある超高層複合ビルで、1993年7月16日に開業しました。タワー棟は地上70階建て、高さ296.33メートルです。",
+    "description": "みなとみらい地区のランドマーク・シンボルとして知られ、タワー棟のオフィスやホテルのほか、スカイガーデン（展望フロア）があります。高さは2023年時点で日本で3番目とされます。",
+    "highlights": [
+      "高さ296.33メートルの超高層ビル",
+      "スカイガーデン",
+      "みなとみらいのシンボル",
+      "タワー棟とプラザ棟"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、港の夜景と遠景がくっきり写ります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、ビルの外観の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、ビルのガラスに空の色を映します。"
+      },
+      {
+        "time": "night",
+        "text": "夜はビルの明かりと港の灯りが重なり、夜景が映えます。"
+      }
+    ],
+    "compositionTips": [
+      "離れた位置から、港の水面と合わせて塔の高さを見せる。",
+      "展望フロアでは、ガラスへの映り込みに気をつけて撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%A8%AA%E6%B5%9C%E3%83%A9%E3%83%B3%E3%83%89%E3%83%9E%E3%83%BC%E3%82%AF%E3%82%BF%E3%83%AF%E3%83%BC",
+          "title": "Wikipedia「横浜ランドマークタワー」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q587108",
+          "title": "Wikidata「Q587108」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_82142c218d94",
+    "slug": "yokohama-bay-bridge",
+    "name": "横浜ベイブリッジ",
+    "nameEn": "Yokohama Bay Bridge",
+    "reading": "よこはまべいぶりっじ",
+    "aliases": [],
+    "address": "神奈川県横浜市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横浜市"
+    },
+    "coords": {
+      "lat": 35.45,
+      "lng": 139.67
+    },
+    "category": "橋",
+    "summary": "横浜市の本牧埠頭と大黒埠頭を結ぶ、長さ860メートル（中央支間長460メートル）の斜張橋です。1989年9月27日に開通しました。",
+    "description": "上層部は首都高速湾岸線、下層部は国道357号で、横浜港と東京を結ぶ道路の一部です。下層部は自転車などでも通れます。",
+    "highlights": [
+      "斜張橋",
+      "横浜港の橋",
+      "本牧埠頭と大黒埠頭を結ぶ",
+      "1989年開通"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、橋の輪郭と港の景色がくっきり写ります。"
+      },
+      {
+        "season": "spring",
+        "text": "春は空気がやわらかく、海と橋を合わせて撮りやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、橋のケーブルと塔を際立たせます。"
+      },
+      {
+        "time": "night",
+        "text": "夜は橋の灯りが海面に映り、港の景色に映えます。"
+      }
+    ],
+    "compositionTips": [
+      "海面を前景に、橋の塔とケーブルの扇形を入れる。",
+      "港の見える位置から、橋の長さと奥行きを見せる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%A8%AA%E6%B5%9C%E3%83%99%E3%82%A4%E3%83%96%E3%83%AA%E3%83%83%E3%82%B8",
+          "title": "Wikipedia「横浜ベイブリッジ」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1138655",
+          "title": "Wikidata「Q1138655」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_06962cb9bd74",
+    "slug": "yamashita-koen",
+    "name": "山下公園",
+    "nameEn": "Yamashita Park",
+    "reading": "やましたこうえん",
+    "aliases": [],
+    "address": "神奈川県横浜市中区",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横浜市中区"
+    },
+    "coords": {
+      "lat": 35.45,
+      "lng": 139.65
+    },
+    "category": "公園",
+    "summary": "横浜市中区山下町にある風致公園で、横浜港に面して約750メートル、幅約100メートルにわたって設けられています。面積は7.4ヘクタールです。",
+    "description": "関東大震災の復興事業として、市内の瓦礫を使って海を埋め立てて造成し、1930年3月15日に開園しました。",
+    "highlights": [
+      "横浜港に面した約750メートルの公園",
+      "関東大震災の復興事業でつくられた公園",
+      "氷川丸が係留される岸壁"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、港と公園の緑を合わせて撮れます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、港の景色がくっきり写ります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、港と公園を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、海面と公園に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "海沿いの遊歩道を奥へ伸ばし、港の景色と合わせる。",
+      "氷川丸や港の船を入れて、港の公園らしさを出す。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%B1%B1%E4%B8%8B%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「山下公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q5372158",
+          "title": "Wikidata「Q5372158」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6176b989ec11",
+    "slug": "hikawa-maru",
+    "name": "氷川丸",
+    "nameEn": "Hikawa Maru",
+    "reading": "ひかわまる",
+    "aliases": [],
+    "address": "神奈川県横浜市中区",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横浜市中区"
+    },
+    "coords": {
+      "lat": 35.45,
+      "lng": 139.65
+    },
+    "category": "産業遺産",
+    "summary": "日本郵船が1930年に竣工させた12,000トン級の貨客船で、横浜市中区の山下公園で博物館船として公開されています。国の重要文化財に指定されています。",
+    "description": "横浜船渠（現在の三菱重工業横浜製作所）で建造され、北太平洋航路で長く運航されました。太平洋戦争では病院船として運用され、戦後は1960年まで運航を続けました。運航終了後は山下公園前に係留されています。",
+    "highlights": [
+      "国の重要文化財の貨客船",
+      "山下公園前に係留",
+      "北太平洋航路の船",
+      "1930年竣工"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、公園の緑と船体を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、船体の曲線と陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、船体の白と海面を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、船体に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "岸壁から船体を斜めに入れ、船の長さを見せる。",
+      "公園の木々を前景に入れて、港の景色の中の船を見せる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B0%B7%E5%B7%9D%E4%B8%B8",
+          "title": "Wikipedia「氷川丸」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1186344",
+          "title": "Wikidata「Q1186344」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_e8cc707e4eff",
+    "slug": "yokohama-marine-tower",
+    "name": "横浜マリンタワー",
+    "nameEn": "Yokohama Marine Tower",
+    "reading": "よこはままりんたわー",
+    "aliases": [],
+    "address": "神奈川県横浜市中区",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横浜市中区"
+    },
+    "coords": {
+      "lat": 35.44,
+      "lng": 139.65
+    },
+    "category": "展望台",
+    "summary": "横浜市中区山下町にあるタワーで、横浜港開港100周年記念事業の一つとして建設され、1961年1月15日に開業しました。高さは106メートルです。",
+    "description": "頭頂部はかつて灯台として機能し、ギネスブックに最も高い灯台として記録されていました。2006年12月に営業をいったん終了して改装工事が行われ、2009年5月23日にリニューアルオープンしました。",
+    "highlights": [
+      "高さ106メートルのタワー",
+      "かつて灯台だった頭頂部",
+      "山下公園の目の前",
+      "横浜のシンボルの一つ"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、港と街の景色がくっきり写ります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、タワーの外観の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、タワーの外観に温かい色を添えます。"
+      },
+      {
+        "time": "night",
+        "text": "夜はタワーの灯りが港の景色に映えます。"
+      }
+    ],
+    "compositionTips": [
+      "公園側から見上げ、塔の高さを強調する。",
+      "港の景色と合わせ、周囲の建物とのバランスで撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%A8%AA%E6%B5%9C%E3%83%9E%E3%83%AA%E3%83%B3%E3%82%BF%E3%83%AF%E3%83%BC",
+          "title": "Wikipedia「横浜マリンタワー」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1207989",
+          "title": "Wikidata「Q1207989」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_27e382f5cb1c",
+    "slug": "yokohama-kaiko-kinen-kaikan",
+    "name": "横浜市開港記念会館",
+    "nameEn": "Yokohama Port Opening Memorial Hall",
+    "reading": "よこはましかいこうきねんかいかん",
+    "aliases": [],
+    "address": "神奈川県横浜市中区",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横浜市中区"
+    },
+    "coords": {
+      "lat": 35.45,
+      "lng": 139.64
+    },
+    "category": "建築",
+    "summary": "横浜市中区の関内地区にある歴史的建造物で、国の重要文化財です。1909年の横浜港開港50周年記念事業として計画され、1917年に完成しました。",
+    "description": "関東大震災で全焼しましたが、1927年に初期の建築を復元した状態で再建されました。",
+    "highlights": [
+      "国の重要文化財",
+      "開港50周年記念の建物",
+      "震災後に復元された建築"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、街路樹と建物を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、建物の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、建物の外観を落ち着いた調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、外壁の立体感を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "建物の正面から、塔と外壁の線を入れて撮る。",
+      "周囲の街並みと合わせ、開港の街の雰囲気を出す。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%A8%AA%E6%B5%9C%E5%B8%82%E9%96%8B%E6%B8%AF%E8%A8%98%E5%BF%B5%E4%BC%9A%E9%A4%A8",
+          "title": "Wikipedia「横浜市開港記念会館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11121599",
+          "title": "Wikidata「Q11121599」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_f168b1013f93",
+    "slug": "yokohama-customs",
+    "name": "横浜税関",
+    "nameEn": "Yokohama Customs",
+    "reading": "よこはまぜいかん",
+    "aliases": [
+      "クイーンの塔"
+    ],
+    "address": "神奈川県横浜市中区",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横浜市中区"
+    },
+    "coords": {
+      "lat": 35.45,
+      "lng": 139.64
+    },
+    "category": "建築",
+    "summary": "横浜市中区海岸通に主たる事務所を置く税関です。1934年に完成した本関庁舎は、緑青色のドームがシンボルで、「クイーンの塔」として親しまれています。",
+    "description": "1923年の関東大震災で庁舎が倒壊焼失し、帝都復興事業の一環として1934年に完成したのが現在の本関庁舎です。",
+    "highlights": [
+      "クイーンの塔",
+      "緑青色のドーム",
+      "震災後の帝都復興事業の庁舎"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、街路樹と塔を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、塔の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、緑青のドームを柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、塔に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "塔を見上げる構図で、緑青のドームを主役にする。",
+      "周囲の建物の中に立つ塔の姿を入れる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%A8%AA%E6%B5%9C%E7%A8%8E%E9%96%A2",
+          "title": "Wikipedia「横浜税関」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11121610",
+          "title": "Wikidata「Q11121610」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_d7ab1c90761e",
+    "slug": "zou-no-hana-park",
+    "name": "象の鼻パーク",
+    "nameEn": "Zou-no-hana Park",
+    "reading": "ぞうのはなぱーく",
+    "aliases": [],
+    "address": "神奈川県横浜市中区",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横浜市中区"
+    },
+    "coords": {
+      "lat": 35.45,
+      "lng": 139.64
+    },
+    "category": "公園",
+    "summary": "横浜市中区海岸通1丁目にある公園で、横浜港発祥の地です。象の鼻波止場を明治中期の形状に復元し、2009年6月2日に開園しました。",
+    "description": "横浜港開港150周年にあたる2009年に開園しました。象の鼻防波堤は明治中期の姿に復元され、ガス灯を模した照明灯が設置されています。",
+    "highlights": [
+      "復元された象の鼻防波堤",
+      "横浜港発祥の地",
+      "ガス灯を模した照明灯",
+      "開港150周年の公園"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、港と芝生を合わせて撮れます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、港の景色がくっきり写ります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、防波堤と海面に温かい色を添えます。"
+      },
+      {
+        "time": "night",
+        "text": "夜は照明灯が防波堤を照らし、港の景色が映えます。"
+      }
+    ],
+    "compositionTips": [
+      "曲がった防波堤を奥へ伸ばし、港の景色と合わせる。",
+      "照明灯を前景に入れ、港の夜景に奥行きを出す。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E8%B1%A1%E3%81%AE%E9%BC%BB%E3%83%91%E3%83%BC%E3%82%AF",
+          "title": "Wikipedia「象の鼻パーク」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11634331",
+          "title": "Wikidata「Q11634331」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_6b94f416a713",
+    "slug": "komyoji-kamakura",
+    "name": "光明寺（鎌倉）",
+    "nameEn": "Komyo-ji Temple (Kamakura)",
+    "reading": "こうみょうじ",
+    "aliases": [],
+    "address": "神奈川県鎌倉市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "鎌倉市"
+    },
+    "coords": {
+      "lat": 35.3,
+      "lng": 139.55
+    },
+    "category": "寺院",
+    "summary": "神奈川県鎌倉市材木座にある浄土宗の大本山の寺院で、山号は天照山です。本尊は阿弥陀如来です。",
+    "description": "山門は五間三戸の二重門で、浄土宗関東総本山にふさわしい大規模な門です。鶴岡八幡宮から移築されたものとされ、弘化4年（1847年）ごろの建築です。",
+    "highlights": [
+      "二重門の山門",
+      "浄土宗の大本山",
+      "材木座の寺院"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、山門と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、山門の屋根の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、山門と境内を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、山門の屋根を温かく照らします。"
+      }
+    ],
+    "compositionTips": [
+      "山門を正面から入れ、二重の屋根の形を見せる。",
+      "境内では参拝の妨げにならない位置で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%85%89%E6%98%8E%E5%AF%BA_(%E9%8E%8C%E5%80%89%E5%B8%82)",
+          "title": "Wikipedia「光明寺 (鎌倉市)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3076914",
+          "title": "Wikidata「Q3076914」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7daa337ef53b",
+    "slug": "jochiji-kamakura",
+    "name": "浄智寺",
+    "nameEn": "Jochi-ji Temple",
+    "reading": "じょうちじ",
+    "aliases": [],
+    "address": "神奈川県鎌倉市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "鎌倉市"
+    },
+    "coords": {
+      "lat": 35.33,
+      "lng": 139.55
+    },
+    "category": "寺院",
+    "summary": "神奈川県鎌倉市山ノ内にある臨済宗円覚寺派の禅宗の寺院で、鎌倉五山第四位です。本尊は阿弥陀・釈迦・弥勒の三世仏です。",
+    "description": "東慶寺の東、建長寺の西南の谷戸に位置し、参道は砂岩の一種の鎌倉石で舗装されています。重層一間一戸の鐘楼門は上層が鐘楼を兼ねる珍しい形式で、花頭窓をあしらった形式です。",
+    "highlights": [
+      "鐘楼門",
+      "花頭窓",
+      "鎌倉石の参道",
+      "鎌倉五山第四位"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、鐘楼門と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、谷戸の木々と門の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、谷戸の木々と門を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、門の屋根の形を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "参道の石畳を前景に、鐘楼門を奥に置く。",
+      "門の花頭窓が見える位置から、細部を撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B5%84%E6%99%BA%E5%AF%BA",
+          "title": "Wikipedia「浄智寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1504539",
+          "title": "Wikidata「Q1504539」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_03792881ade8",
+    "slug": "eishoji-kamakura",
+    "name": "英勝寺",
+    "nameEn": "Eisho-ji Temple",
+    "reading": "えいしょうじ",
+    "aliases": [],
+    "address": "神奈川県鎌倉市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "鎌倉市"
+    },
+    "coords": {
+      "lat": 35.33,
+      "lng": 139.55
+    },
+    "category": "寺院",
+    "summary": "神奈川県鎌倉市扇ガ谷にある浄土宗の寺院で、現在は鎌倉唯一の尼寺です。山号は東光山です。",
+    "description": "寺域は、開基の英勝院尼の祖先で扇谷上杉氏の家宰だった太田道灌の邸跡地とされます。東国花の寺百ヶ寺の鎌倉6番札所です。",
+    "highlights": [
+      "鎌倉唯一の尼寺",
+      "太田道灌邸跡とされる寺域",
+      "東国花の寺の札所"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑や花の季節に、境内の建物と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、建物と木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、屋根の形を引き立てます。"
+      }
+    ],
+    "compositionTips": [
+      "門から本堂へ向かう視線の流れを入れる。",
+      "境内は参拝の妨げにならない位置で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E8%8B%B1%E5%8B%9D%E5%AF%BA",
+          "title": "Wikipedia「英勝寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11616891",
+          "title": "Wikidata「Q11616891」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_3d5e12fcded0",
+    "slug": "sugimotodera-kamakura",
+    "name": "杉本寺",
+    "nameEn": "Sugimoto-dera Temple",
+    "reading": "すぎもとでら",
+    "aliases": [],
+    "address": "神奈川県鎌倉市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "鎌倉市"
+    },
+    "coords": {
+      "lat": 35.32,
+      "lng": 139.57
+    },
+    "category": "寺院",
+    "summary": "神奈川県鎌倉市二階堂にある天台宗の寺院で、鎌倉最古の寺とされます。本尊は十一面観世音菩薩で、坂東三十三観音と鎌倉三十三箇所の第1番札所です。",
+    "description": "参道の途中に苔むした石段があることでも知られます。山門（仁王門）から本堂（観音堂）へ上る正面の鎌倉石の石段はすり減って苔むしており、通行禁止で、参拝者は左側の新しい階段を使います。",
+    "highlights": [
+      "苔むした石段",
+      "仁王門",
+      "観音堂",
+      "鎌倉最古の寺"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑が苔と重なり、石段の緑が引き立ちます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、苔と石段の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、苔むした石段を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、石段と苔に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "苔むした石段の質感を、低い位置から撮る。",
+      "石段の通行禁止の案内に従い、決められた範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%9D%89%E6%9C%AC%E5%AF%BA",
+          "title": "Wikipedia「杉本寺」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3503094",
+          "title": "Wikidata「Q3503094」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_7e43cfdc9ed5",
+    "slug": "nihon-minkaen",
+    "name": "日本民家園",
+    "nameEn": "Japan Open-Air Folk House Museum",
+    "reading": "にほんみんかえん",
+    "aliases": [],
+    "address": "神奈川県川崎市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "川崎市"
+    },
+    "coords": {
+      "lat": 35.61,
+      "lng": 139.56
+    },
+    "category": "博物館",
+    "summary": "神奈川県川崎市多摩区の生田緑地にある、日本の古民家を中心とした野外博物館です。正式名称は川崎市立日本民家園です。",
+    "description": "生田緑地の丘陵地形を生かしたつくりで、川崎市内および東日本一帯で伝承されてきた古民家が移築されています。もとは市内の農家「伊藤家」が横浜の庭園へ移築される話を、市の職員が聞きつけたことが始まりです。",
+    "highlights": [
+      "移築された古民家",
+      "生田緑地の丘陵",
+      "野外博物館",
+      "東日本の古民家"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、茅葺きの屋根と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、古民家の屋根と木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、古民家と木々を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、古民家の屋根に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "古民家の屋根の形が分かる位置から、周囲の木々と合わせる。",
+      "建物の内部は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%97%A5%E6%9C%AC%E6%B0%91%E5%AE%B6%E5%9C%92",
+          "title": "Wikipedia「日本民家園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1989934",
+          "title": "Wikidata「Q1989934」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_da07a7a920c8",
+    "slug": "ishigakiyama-jo",
+    "name": "石垣山一夜城（石垣山城）",
+    "nameEn": "Ishigakiyama Castle (Ichiya Castle)",
+    "reading": "いしがきやまじょう",
+    "aliases": [
+      "石垣山一夜城",
+      "太閤一夜城"
+    ],
+    "address": "神奈川県小田原市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "小田原市"
+    },
+    "coords": {
+      "lat": 35.24,
+      "lng": 139.13
+    },
+    "category": "城跡",
+    "summary": "神奈川県小田原市早川にあった城で、石垣山一夜城や太閤一夜城とも呼ばれます。豊臣秀吉が天正18年（1590年）の小田原征伐の際に築きました。",
+    "description": "標高261.9メートルの天守台を頂点に、東西270メートル、南北550メートルにわたって丘陵上に位置していました。",
+    "highlights": [
+      "石垣山の城跡",
+      "天守台",
+      "太閤一夜城",
+      "小田原征伐の城"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、石垣と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、石垣の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、石垣と木々を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、石垣の表情を引き出します。"
+      }
+    ],
+    "compositionTips": [
+      "石垣の積み方が分かる位置から、斜めの光で撮る。",
+      "山の斜面なので、足元と天候を確かめてから訪ねる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%9F%B3%E5%9E%A3%E5%B1%B1%E5%9F%8E",
+          "title": "Wikipedia「石垣山城」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q8012031",
+          "title": "Wikidata「Q8012031」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_4a24705f0986",
+    "slug": "hakone-seki",
+    "name": "箱根関所",
+    "nameEn": "Hakone Checkpoint",
+    "reading": "はこねせきしょ",
+    "aliases": [
+      "箱根関"
+    ],
+    "address": "神奈川県足柄下郡箱根町",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "足柄下郡箱根町"
+    },
+    "coords": {
+      "lat": 35.19,
+      "lng": 139.03
+    },
+    "category": "史跡",
+    "summary": "江戸幕府によって元和5年（1619年）から明治2年（1869年）まで、相模国足柄下郡箱根の芦ノ湖湖畔に設置されていた東海道の関所です。",
+    "description": "箱根山には箱根関所を中心として、根府川・仙石原・矢倉沢・川村・谷ヶ村の5か所にも関所が設置され、小田原城主が管理していました。",
+    "highlights": [
+      "芦ノ湖畔の関所",
+      "東海道の関所",
+      "江戸幕府が置いた関所"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、湖畔の景色と建物を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、建物と湖畔の木々の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、湖畔の建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、建物の屋根に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "湖を背景に、関所の建物の並びを入れる。",
+      "建物の中は撮影の案内に従い、許される範囲で撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%AE%B1%E6%A0%B9%E9%96%A2",
+          "title": "Wikipedia「箱根関」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11603393",
+          "title": "Wikidata「Q11603393」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_a167fb1523e9",
+    "slug": "gora-koen",
+    "name": "強羅公園",
+    "nameEn": "Gora Park",
+    "reading": "ごうらこうえん",
+    "aliases": [],
+    "address": "神奈川県足柄下郡箱根町",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "足柄下郡箱根町"
+    },
+    "coords": {
+      "lat": 35.25,
+      "lng": 139.04
+    },
+    "category": "公園",
+    "summary": "神奈川県足柄下郡箱根町強羅にある、小田急箱根が運営する公園で、国の登録記念物です。箱根強羅公園とも呼ばれます。",
+    "description": "フランス式整型庭園のほか、熱帯植物館などの温室、バラ園、牡丹園、アジサイ園、高山植物園・山野草園、茶室などの施設があります。",
+    "highlights": [
+      "フランス式整型庭園",
+      "バラ園",
+      "熱帯植物館",
+      "アジサイ園"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は花の季節に、庭園の花と整形された園路を撮れます。"
+      },
+      {
+        "season": "summer",
+        "text": "夏はアジサイの季節に、園内の花の色を撮れます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、庭園の花を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、花と園路に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "整形された園路を奥へ伸ばし、花壇の幾何学的な形を見せる。",
+      "花の見ごろは年ごとに違うので、訪ねる前に確かめる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%BC%B7%E7%BE%85%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「強羅公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11487751",
+          "title": "Wikidata「Q11487751」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c3253a8c984f",
+    "slug": "manazuru-hanto",
+    "name": "真鶴半島",
+    "nameEn": "Manazuru Peninsula",
+    "reading": "まなづるはんとう",
+    "aliases": [
+      "真鶴岬"
+    ],
+    "address": "神奈川県足柄下郡真鶴町",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "足柄下郡真鶴町"
+    },
+    "coords": {
+      "lat": 35.15,
+      "lng": 139.15
+    },
+    "category": "岬",
+    "summary": "神奈川県足柄下郡真鶴町にある小さな半島で、海岸は高さ20メートルほどの岸壁が続きます。先端の真鶴岬の先に、三ツ石があります。",
+    "description": "陸上には松や楠、椎などの常緑樹の大木とシダ類が茂る原生林が残ります。三ツ石（正式には笠島）は神奈川県の名勝地とされ、引き潮の際にはここまで歩いて渡れます。本小松石はこの半島でしか採れない石です。",
+    "highlights": [
+      "三ツ石",
+      "岸壁が続く海岸",
+      "常緑樹の原生林",
+      "本小松石"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、原生林の緑と海を合わせて撮れます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、相模湾の景色がくっきり写ります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、海岸と岩場を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、三ツ石と海面に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "三ツ石を海面越しに入れ、岬の先端の景色を見せる。",
+      "岩場は足元が悪く、潮の満ち引きもあるので、時刻と天候を確かめてから訪ねる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%9C%9F%E9%B6%B4%E5%8D%8A%E5%B3%B6",
+          "title": "Wikipedia「真鶴半島」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11583648",
+          "title": "Wikidata「Q11583648」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_25b6f6a08c66",
+    "slug": "kinenkan-mikasa",
+    "name": "記念艦三笠（三笠公園）",
+    "nameEn": "Memorial Ship Mikasa (Mikasa Park)",
+    "reading": "きねんかんみかさ",
+    "aliases": [
+      "三笠公園",
+      "戦艦三笠"
+    ],
+    "address": "神奈川県横須賀市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横須賀市"
+    },
+    "coords": {
+      "lat": 35.29,
+      "lng": 139.67
+    },
+    "category": "公園",
+    "summary": "神奈川県横須賀市に静態保存されている日本海軍の戦艦「三笠」と、それを保存・公開している三笠公園です。三笠は日露戦争の日本海海戦で連合艦隊旗艦を務めました。",
+    "description": "三笠は日本では世界三大記念艦の一つとされます。三笠公園は「日本の都市公園100選」「日本の歴史公園100選」に選ばれ、テーマは「水と光と音」で、園内には流れるせせらぎや音楽噴水があります。",
+    "highlights": [
+      "保存されている戦艦三笠",
+      "世界三大記念艦の一つ",
+      "音楽噴水",
+      "横須賀新港に面した公園"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、艦と公園の緑を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、艦の形と陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、艦と海面を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、艦の船体に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "艦の船首から船尾までが分かる位置から、艦の長さを見せる。",
+      "公園の噴水や水辺を前景に入れ、艦を奥に置く。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E4%B8%89%E7%AC%A0%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「三笠公園」"
+        },
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E4%B8%89%E7%AC%A0_(%E6%88%A6%E8%89%A6)",
+          "title": "Wikipedia「三笠 (戦艦)」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q6845719",
+          "title": "Wikidata「Q6845719」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_1180e4c633aa",
+    "slug": "verny-koen",
+    "name": "ヴェルニー公園",
+    "nameEn": "Verny Park",
+    "reading": "う゛ぇるにーこうえん",
+    "aliases": [],
+    "address": "神奈川県横須賀市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "横須賀市"
+    },
+    "coords": {
+      "lat": 35.28,
+      "lng": 139.66
+    },
+    "category": "公園",
+    "summary": "神奈川県横須賀市汐入町にある市立の都市公園（近隣公園）で、年中無休です。名称は日本の近代化を支援したフランス人技術者レオンス・ヴェルニーに由来します。",
+    "description": "1946年に開園した「臨海公園」を、2001年にフランス式庭園の様式を取り入れてリニューアルオープンした公園です。海側の歩道はボードウォークやベンチが整備され、夜にはガス灯を模した電灯が辺りを照らします。",
+    "highlights": [
+      "フランス式庭園",
+      "ボードウォーク",
+      "ガス灯を模した電灯",
+      "横須賀の海沿い"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の季節に、庭園と海を合わせて撮れます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、海の景色がくっきり写ります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、海沿いの歩道と庭園に温かい色を添えます。"
+      },
+      {
+        "time": "night",
+        "text": "夜はガス灯を模した電灯が点り、海辺の景色が映えます。"
+      }
+    ],
+    "compositionTips": [
+      "ボードウォークを奥へ伸ばし、電灯と海の景色で奥行きを出す。",
+      "海沿いの景色と庭園の幾何学的な形を合わせる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E3%83%B4%E3%82%A7%E3%83%AB%E3%83%8B%E3%83%BC%E5%85%AC%E5%9C%92",
+          "title": "Wikipedia「ヴェルニー公園」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11352164",
+          "title": "Wikidata「Q11352164」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_a72d4a9a221f",
+    "slug": "samukawa-jinja",
+    "name": "寒川神社",
+    "nameEn": "Samukawa Shrine",
+    "reading": "さむかわじんじゃ",
+    "aliases": [],
+    "address": "神奈川県高座郡寒川町",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "高座郡寒川町"
+    },
+    "coords": {
+      "lat": 35.38,
+      "lng": 139.38
+    },
+    "category": "神社",
+    "summary": "神奈川県高座郡寒川町宮山に鎮座する相模國一之宮で、式内社（名神大社）です。関東地方の著名な神社の一つです。",
+    "description": "創建時期は不詳ですが極めて古いとされ、約1600年前の雄略天皇の御代にはすでに朝廷から幣帛の奉勅があったとされます。初詣の参拝者数は神奈川県内で、鶴岡八幡宮に次いで2番目に多い神社です。",
+    "highlights": [
+      "相模國一之宮",
+      "式内社（名神大社）",
+      "関東の著名な神社",
+      "初詣の参拝者数が県内2位"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、社殿と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、社殿の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、境内の社殿を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、社殿の屋根を温かく照らします。"
+      }
+    ],
+    "compositionTips": [
+      "参道から社殿へ向かう視線の流れを入れる。",
+      "参拝の妨げにならない位置で、屋根の形が分かるように撮る。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%AF%92%E5%B7%9D%E7%A5%9E%E7%A4%BE",
+          "title": "Wikipedia「寒川神社」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q48744",
+          "title": "Wikidata「Q48744」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_e27f93a83c86",
+    "slug": "shonandaira",
+    "name": "湘南平",
+    "nameEn": "Shonandaira",
+    "reading": "しょうなんだいら",
+    "aliases": [],
+    "address": "神奈川県平塚市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "平塚市"
+    },
+    "coords": {
+      "lat": 35.32,
+      "lng": 139.31
+    },
+    "category": "展望台",
+    "summary": "神奈川県の平塚市と大磯町の境にある、標高約180メートルの泡垂山の山頂一帯を指す地名です。高麗山公園として整備されています。",
+    "description": "高麗山、浅間山と連なる丘陵の一角で、テレビ塔展望台と高麗山公園レストハウス展望台の2つの展望台があります。相模湾、富士山、箱根連山、丹沢山塊などが望めます。",
+    "highlights": [
+      "相模湾の眺め",
+      "富士山と箱根連山の眺め",
+      "2つの展望台",
+      "高麗山公園"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、富士山や相模湾がくっきり写ります。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は空気が澄みはじめ、遠景が見えやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、相模湾の景色を柔らかい調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、山並みと海に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "展望台から相模湾と山並みを広く入れる。",
+      "遠景が霞む日もあるので、空気が澄んだ日を選ぶ。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%B9%98%E5%8D%97%E5%B9%B3",
+          "title": "Wikipedia「湘南平」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q10395095",
+          "title": "Wikidata「Q10395095」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_8f395a64da22",
+    "slug": "hinata-yakushi",
+    "name": "日向薬師",
+    "nameEn": "Hinata Yakushi",
+    "reading": "ひなたやくし",
+    "aliases": [],
+    "address": "神奈川県伊勢原市",
+    "region": {
+      "country": "日本",
+      "prefecture": "神奈川県",
+      "city": "伊勢原市"
+    },
+    "coords": {
+      "lat": 35.44,
+      "lng": 139.28
+    },
+    "category": "寺院",
+    "summary": "神奈川県伊勢原市日向にある高野山真言宗の寺院で、本尊は薬師三尊です。かつては日向山霊山寺と称し、中世以来薬師如来の霊場として信仰を集めています。",
+    "description": "東丹沢の懐、日向川の谷戸に位置し、境内にある推定樹齢800年の幡かけ杉（県指定天然記念物）をはじめ、ケヤキやタブノキなどの自然植生林が守られています。廃仏毀釈で多くの堂舎が失われました。",
+    "highlights": [
+      "幡かけ杉",
+      "東丹沢の谷戸の境内",
+      "薬師三尊",
+      "自然植生林"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "spring",
+        "text": "春は新緑の柔らかい光で、杉と木々を合わせて撮れます。"
+      },
+      {
+        "season": "autumn",
+        "text": "秋は斜めの光で、谷戸の木々と建物の陰影が出ます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光は、谷戸の木々と建物を穏やかな調子で写します。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、杉の幹に温かい色を添えます。"
+      }
+    ],
+    "compositionTips": [
+      "幡かけ杉を見上げる構図で、木の大きさを見せる。",
+      "山あいの寺なので、足元と天候を確かめてから訪ねる。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-07",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-07T00:00:00.000Z",
+    "updatedAt": "2026-11-07T09:00:00.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-07",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%97%A5%E5%90%91%E8%96%AC%E5%B8%AB",
+          "title": "Wikipedia「日向薬師」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11505171",
+          "title": "Wikidata「Q11505171」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
   }
 ]
