@@ -44,8 +44,9 @@ export function AuthBrand() {
     return (
                 <div className="flex flex-col gap-[10px] pb-3" data-testid="login-wordmark">
                     <div className="flex items-center gap-3">
+                        {/* 2026-11-07 owner「アイコンが小さい」: 文字 40px に対し 30px（0.75 倍）だった。ヘッダー（22px に 28〜32px）・フッター（26px に 36px）と同じく文字より大きく、40px（1.0 倍・幅 320px の端末でも文字が折れない上限）にする */}
                         {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src="/logo-aperture.png" alt="" width={30} height={30} className="h-[30px] w-[30px] object-contain" />
+                        <img src="/logo-aperture.png" alt="" width={40} height={40} className="h-10 w-10 shrink-0 object-contain" />
                         <p className="m-0 font-serif font-bold text-white whitespace-nowrap" style={{ fontSize: "40px", lineHeight: 1.15, letterSpacing: "-0.025em" }}>Journey Photo</p>
                     </div>
                     <p className="m-0 font-serif text-white/70" style={{ fontSize: "18px", lineHeight: 1.4 }}>写真から、次の旅が始まる。</p>
