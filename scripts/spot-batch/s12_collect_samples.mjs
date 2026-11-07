@@ -18,11 +18,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let last = 0; const stats = { req: 0, r429: 0, waited: 0 };
 async function api(base, params) {
     const url = `${base}?${new URLSearchParams({ format: "json", formatversion: "2", maxlag: "5", ...params })}`;
-    for (let attempt = 0; attempt < 10; attempt++) {
+    for (let attempt = 0; attempt < 40; attempt++) {
         const w = last + MIN_INTERVAL_MS - Date.now(); if (w > 0) await sleep(w);
         last = Date.now(); stats.req++;
         const res = await fetch(url, { headers: { "User-Agent": USER_AGENT, "Api-User-Agent": USER_AGENT } });
-        if (res.status === 429 || res.status >= 500) { const a = Number(res.headers.get("retry-after")) || 10 * (attempt + 1); stats.r429++; stats.waited += a; await sleep(a * 1000); continue; }
+        if (res.status === 429 || res.status >= 500) { const a = Math.max(Number(res.headers.get("retry-after")) || 0, Math.min(10 * (attempt + 1), 120)); stats.r429++; stats.waited += a; await sleep(a * 1000); continue; }
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
         const body = await res.json();
         if (body?.error?.code === "cirrussearch-too-busy-error") { stats.busy = (stats.busy ?? 0) + 1; stats.waited += 30 * (attempt + 1); await sleep(30000 * (attempt + 1)); continue; }
