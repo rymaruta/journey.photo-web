@@ -117,6 +117,9 @@ export const ROUTES = {
     LEARN_CAMERA_BRANDS: "/learn/camera-brands",
     /** 構図ガイド（ガイド線を自分の写真に重ねる）。設定と教科書の一覧から入る */
     COMPOSITION: "/composition",
+    /** 今日の日の出・日の入り（現在地で調べる）。県ごとの頁は `TODAY_PREF`（県スラッグは `lib/data/prefectures.ts`） */
+    TODAY: "/today",
+    TODAY_PREF: (pref: string) => `/today/${encodeURIComponent(pref)}`,
     PRIVACY: "/privacy",
     TERMS: "/terms",
     ADMIN: "/admin",
