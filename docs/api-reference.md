@@ -309,7 +309,7 @@ export async function readApiError(res: Response, fallback: string): Promise<str
   season?: spring|summer|autumn|winter, timeslot?: dawn|dusk|night,
   milestone?: first|posts10|posts50|posts100|firstCountry, seed(整数), at, foil?, pos? }`。絵はアプリが `seed` と `kind` から描く
 - `GET` → `{ model, effectiveModel, pocket, stuck, limit, isPro, rerolls{left, month}, pendingReroll?, receiveLabels,
-  coins, parts, fragments, equipped, showTrunk, ticket, posts }`（`showTrunk`・`ticket` は 2026-10-18 に足した。下の「人のトランク」）。
+  coins, parts, fragments, equipped, showTrunk, tagPicks, ticket, posts }`（`showTrunk`・`ticket` は 2026-10-18、`tagPicks` は 2026-11-08 に足した。下の「人のトランク」「手荷物タグの選び」）。
   更新の口は同じ形から `posts` を除いたものを返す。失敗は `{ error, code }`
   （`notFound` / `full` / `storage` / `proOnly` / `pendingReroll` / `noRerollsLeft` / `noPending` / `badSeed` / `badModel` / `badRequest` / `busy` /
   `badPlace` / `notStuck` / `noCoins` / `badPart` / `owned` / `notEnoughFragments` / `badKind` / `notOwned`）
@@ -399,7 +399,14 @@ export async function readApiError(res: Response, fallback: string): Promise<str
 
 *人のトランク（2026-10-18 owner「トランクはマイページに載せたい。他の人のトランクの中身とか見れたら楽しい」・板 TheirTrunk・TheirInside・TrunkPrivacy）*
 
-- **見せる設定**: `PUT /user/trunk/settings { receiveLabels?, showTrunk?, ticket? }`。本文に在る項目だけ変える
+- **手荷物タグの選び**（2026-11-08 owner 承認・札 #501）: `PUT /user/trunk/settings { tagPicks: [...] }`。枠の順に、貼ったラベルの `id`・
+  `""`（おまかせ＝今までの自動）・`"_"`（その枠にタグを吊るさない）。最大 3 枠、**全部をまとめて置き換える**（`[]` で全部おまかせ）。
+  同じラベル・同じ地名を2枠に載せられない（409 `tagPickDuplicate`）、貼っていないラベルは 409 `tagPickNotStuck`、地名の無いラベルは
+  409 `tagPickNoPlace`、形の誤り・4枠以上・重複 id は 400 `badRequest`。保存は `trunk#` の行の `tagPicks`（文字の配列・新しい GSI/テーブルなし）。
+  読む側（`GET /user/trunk` の `tagPicks`）は、**はがした・取り消された・同じ地名が前の枠で使われている枠を `""` に直して返す**（保存は書き換えない。
+  はがす操作は同じ1回で外す）。人の口（`GET /users/{uid}/trunk`）の `tagPicks` は同じ選びを `stuck[].id`（返答の中の番号 `s<n>`）で指し、
+  地名を見せてよいと確かめていないラベルの枠は `""`。旧アプリは欄を知らないので従来どおり。
+- **見せる設定**: `PUT /user/trunk/settings { receiveLabels?, showTrunk?, ticket?, tagPicks? }`。本文に在る項目だけ変える
   （1つも無い・真偽でない・形が違うは 400 `badRequest`／乗車券の形は 400 `badTicket`）。応答は `GET` と同じ形（`posts` なし）。
   - `showTrunk`（既定 `true`）: `false` の間は人の口が 404。行に書くのは `trunk#<uid>`（rev 条件・今までの設定と同じ書き方）
   - `ticket`: **わたしの乗車券**（すれちがいで交換する本人の1枚。今までは端末の中だけにあった）
@@ -408,7 +415,7 @@ export async function readApiError(res: Response, fallback: string): Promise<str
     写真は**本人の公開写真だけ**（下書き・ストーリー・公開範囲を絞った写真・ほかの人の写真・無い写真は 409 `ticketNotPublic`）
 - **読む**: `GET /users/{uid}/trunk`（**ログインした人だけ**）→
 
-      { userId, model, stuck: [ラベル], equipped, posts?,
+      { userId, model, stuck: [ラベル], equipped, posts?, tagPicks: [ "s<番号>" | "" | "_" ],
         inside: { badges, card: { pro } | null, ticket: { photoId, note, origin, destination, face, showsFrom } | null } }
 
   - `model` は見せている型（`effectiveModel`。Pro をやめた人の Pro の型は出さない）。`equipped` は `GET` と同じ形
