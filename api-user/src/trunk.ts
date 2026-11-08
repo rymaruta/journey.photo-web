@@ -1717,8 +1717,9 @@ export const modelMutation = (model: unknown): Mutation => (doc, { pro }) => {
  * - `tagPicks`（文字の配列・2026-11-08・札 #501）: 手荷物タグの枠ごとの選び。要素は貼ったラベルの id・"" （おまかせ）・
  *   `TAG_PICK_NONE`（その枠にタグを吊るさない）。長さは `TAG_PICKS_MAX` まで（枠の枚数は投稿の数で増えるが、本人の画面の数え方と
  *   人の口の数え方がずれうるので、ここでは上限だけ見る。吊るす枚数は描く側が `tagCount` で切る）。**全部をまとめて置き換える**
- *   （`[]` で全部おまかせ）。同じラベル・同じ地名を2枠に載せない（409 `tagPickDuplicate`）、貼ってない・地名の無いラベルは 409
- *   （`tagPickNotStuck`・`tagPickNoPlace`）。形の誤りは 400
+ *   （`[]` で全部おまかせ）。同じラベルの id を2枠に載せると 400、別のラベルでも同じ地名を2枠に載せると 409 `tagPickDuplicate`。
+ *   貼ってない・地名の無いラベルは 409（`tagPickNotStuck`・`tagPickNoPlace`）。形の誤りは 400。
+ *   2台の端末が同時に選んだときは、後から送った方が全部を置き換える
  */
 export const settingsMutation = (b: Record<string, unknown>, ticketOk = true): Mutation => (doc) => {
     const keys = ["receiveLabels", "showTrunk", "ticket", "tagPicks"].filter((k) => k in b);
@@ -1806,6 +1807,8 @@ export function revokeFrom(
             pocket: doc.pocket.filter((l) => l.id !== label.id),
             stuck: doc.stuck.filter((l) => l.id !== label.id),
             ...(doc.pendingReroll?.labelId === label.id ? { pendingReroll: undefined } : {}),
+            // タグに載せていたラベルが取り消されたら、その枠もおまかせに戻す（`unstickMutation` と同じ）
+            ...(doc.tagPicks?.includes(label.id) ? { tagPicks: trimPicks(doc.tagPicks.map((p) => (p === label.id ? "" : p))) } : {}),
         } : {}),
         ...(dropCoin ? {
             coins: Math.max(0, doc.coins - 1),

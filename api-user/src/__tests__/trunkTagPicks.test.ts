@@ -206,6 +206,25 @@ describe("はがしたとき（POST /user/trunk/labels/{id}/unstick）", () => {
     });
 });
 
+describe("投稿の取り消し（revokeFrom）", () => {
+    it("タグに載せていたラベルが取り消されたら、その枠もおまかせに戻る（unstick と同じ）", () => {
+        seed({ tagPicks: ["naha", "hokkaido"] });
+        const doc = parseTrunk(trunkRow(OWNER)!)!;
+        const at = new Date(1_790_000_000 * 1000 + 60_000);
+        const out = T.revokeFrom(doc, { photoId: "naha" }, at);
+        expect(out).not.toBeNull();
+        expect(out!.stuck.map((l) => l.id)).not.toContain("naha");
+        expect(out!.tagPicks).toEqual(["", "hokkaido"]);
+        // 選びに無いラベルの取り消しでは選びは変わらない
+        const other = T.revokeFrom(doc, { photoId: "kyoto" }, at);
+        expect(other!.tagPicks).toEqual(["naha", "hokkaido"]);
+        // 最後の選びなら項目ごと消える
+        seed({ tagPicks: ["naha"] });
+        const last = T.revokeFrom(parseTrunk(trunkRow(OWNER)!)!, { photoId: "naha" }, at);
+        expect(last!.tagPicks).toBeUndefined();
+    });
+});
+
 describe("人のトランク（GET /users/{uid}/trunk）の tagPicks", () => {
     const their = () => call("GET /users/{uid}/trunk", { uid: OWNER, sub: VIEWER });
 
