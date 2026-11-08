@@ -56,6 +56,8 @@ import { goneIfDeleted } from "./liveCaller";
  *     parts[]        持っている部品の id（`trunkParts.ts`・新しい順）
  *     fragments      かけらの数（ガチャで持っている部品が出たら +1・5つで交換）
  *     equipped       付けている部品 { handle, corner, lock, lining, tag, charm, key, pins[≤3], patches[≤2] }
+ *     tagPicks       手荷物タグの枠ごとに載せるラベルの id（2026-11-08 owner 承認・札 #501）。"" はおまかせ・"_" はタグを外した枠。
+ *                    無ければ全部おまかせ（今までの行はそのまま）。はがした・無いラベルは読むときに無視する（`effectiveTagPicks`）
  *     showTrunk      ほかの人にトランクを見せるか（既定 true・2026-10-18 owner「他の人のトランクの中身とか見れたら楽しい」）
  *     ticket         わたしの乗車券 { photoId, note, origin, destination, face, showsFrom }（人のトランクの中に出す1枚・無ければ項目ごと無い）
  *     posts          公開している投稿の数の控え（人のトランクの古び方に使う。本人が開いた・投稿したときに書く）
@@ -103,6 +105,10 @@ export const POCKET_LIMIT_FREE = 30;
 export const POCKET_LIMIT_PRO = 150;
 /** 貼った一覧の上限。写真の上限（`photoLimit.ts` の 1000）に余裕を見て */
 export const STUCK_MAX = 1200;
+/** 手荷物タグの枠の数の上限（アプリの `TrunkDesign.tagSlots`。枚数そのものは投稿の数で増える） */
+export const TAG_PICKS_MAX = 3;
+/** `tagPicks` の「この枠にはタグを吊るさない」。ラベルの id の形（`LABEL_ID_RE`）に入らない文字にしてある */
+export const TAG_PICK_NONE = "_";
 export const REROLLS_PER_MONTH = 3;
 export const REROLL_CANDIDATES = 3;
 /**
@@ -265,6 +271,11 @@ export type TrunkDoc = {
     parts: string[];
     fragments: number;
     equipped: Equipped;
+    /**
+     * 手荷物タグの選び（枠の順・最大 `TAG_PICKS_MAX`）。"" = おまかせ、`TAG_PICK_NONE` = その枠にタグを吊るさない、
+     * それ以外は貼ったラベルの id。末尾のおまかせは持たない。無ければ undefined（全部おまかせ）
+     */
+    tagPicks?: string[];
     /** ほかの人に見せるか（既定 true） */
     showTrunk: boolean;
     /** わたしの乗車券（`PUT /user/trunk/settings` の `ticket`）。無ければ undefined */
@@ -433,6 +444,7 @@ export function parseTrunk(item: Record<string, unknown> | undefined, ledger?: R
         fragments: count(item?.fragments),
         equipped: parseEquipped(item?.equipped, new Set(parts)),
         showTrunk: item?.showTrunk !== false,
+        ...(storedTagPicks(item?.tagPicks) ? { tagPicks: storedTagPicks(item?.tagPicks) } : {}),
         ...(storedTicket(item?.ticket) ? { ticket: storedTicket(item?.ticket) } : {}),
         ...(isCount(item?.posts) ? { posts: item!.posts as number } : {}),
         ...(typeof item?.welcomeCoinsAt === "string" ? { welcomeCoinsAt: item.welcomeCoinsAt } : {}),
@@ -450,6 +462,38 @@ export function parseTrunk(item: Record<string, unknown> | undefined, ledger?: R
 function camperField(main: unknown, ledger: Record<string, unknown> | undefined): { camper?: CamperDoc } {
     const c = parseCamper(main, ledger);
     return isEmptyCamper(c) ? {} : { camper: c };
+}
+
+/** 末尾のおまかせ（""）を落とす。空なら undefined（項目ごと持たない） */
+function trimPicks(picks: string[]): string[] | undefined {
+    const out = [...picks];
+    while (out.length > 0 && out[out.length - 1] === "") out.pop();
+    return out.length > 0 ? out : undefined;
+}
+
+/** 保存されている手荷物タグの選びを読む（形の違うものは無いことにする・枠は `TAG_PICKS_MAX` まで） */
+function storedTagPicks(v: unknown): string[] | undefined {
+    if (!Array.isArray(v)) return undefined;
+    const ok = (x: unknown): x is string => typeof x === "string" && (x === "" || x === TAG_PICK_NONE || LABEL_ID_RE.test(x));
+    return trimPicks((v as unknown[]).slice(0, TAG_PICKS_MAX).map((x) => (ok(x) ? x : "")));
+}
+
+/**
+ * 読み出すときの手荷物タグの選び（枠ごとに ""・`TAG_PICK_NONE`・貼ったラベルの id）。**はがした・取り消された・
+ * 地名の無い・同じ地名が前の枠で使われているラベルの枠は "" （おまかせ）に戻す**——保存は書き換えない
+ * （貼り直せば戻る。はがす操作は `unstickMutation` が一緒に外す）。末尾のおまかせは持たない
+ */
+export function effectiveTagPicks(doc: TrunkDoc): string[] {
+    const names = new Set<string>();
+    const out = (doc.tagPicks ?? []).slice(0, TAG_PICKS_MAX).map((pick) => {
+        if (pick === "" || pick === TAG_PICK_NONE) return pick;
+        const l = doc.stuck.find((x) => x.id === pick);
+        const name = l?.place.name.trim();
+        if (!l || !name || names.has(name)) return "";
+        names.add(name);
+        return pick;
+    });
+    return trimPicks(out) ?? [];
 }
 
 const isCount = (v: unknown): v is number => typeof v === "number" && Number.isInteger(v) && v >= 0;
@@ -540,6 +584,7 @@ function serializeRows(doc: TrunkDoc): { main: Record<string, unknown>; ledger: 
             fragments: doc.fragments,
             equipped: compactEquipped(doc.equipped),
             showTrunk: doc.showTrunk,
+            ...(doc.tagPicks?.length ? { tagPicks: doc.tagPicks } : {}),
             ...(doc.ticket ? { ticket: doc.ticket } : {}),
             ...(doc.posts !== undefined ? { posts: doc.posts } : {}),
             ...(doc.welcomeCoinsAt ? { welcomeCoinsAt: doc.welcomeCoinsAt } : {}),
@@ -1390,6 +1435,7 @@ function view(doc: TrunkDoc, pro: boolean, now: Date) {
         fragments: doc.fragments,
         equipped: viewEquipped(doc.equipped),
         showTrunk: doc.showTrunk,
+        tagPicks: effectiveTagPicks(doc),
         ticket: doc.ticket ?? null,
     };
 }
@@ -1506,7 +1552,13 @@ export const unstickMutation = (id: string, slots: Record<string, number> = {}):
     const { pos: _p, slot: _s, ...rest } = label;
     void _p;
     void _s;
-    const plain = { ...doc, stuck: doc.stuck.filter((l) => l.id !== id), pocket: [rest, ...doc.pocket] };
+    const plain = {
+        ...doc,
+        stuck: doc.stuck.filter((l) => l.id !== id),
+        pocket: [rest, ...doc.pocket],
+        // 2026-11-08: タグに載せていたラベルをはがしたら、その枠はおまかせに戻す（貼り直しても勝手に戻さない）
+        ...(doc.tagPicks?.includes(id) ? { tagPicks: trimPicks(doc.tagPicks.map((p) => (p === id ? "" : p))) } : {}),
+    };
     // 2026-10-19: ずれるラベルにおまかせの置き場の番号を、はがすのと同じ1回で書く（置き場つきのラベル・
     // はがす1枚・どこにも無い id には書かない）。番号を書くと容量を越えるなら、番号なしではがす（はがせない、をしない）
     if (Object.keys(slots).length === 0) return plain;
@@ -1662,9 +1714,15 @@ export const modelMutation = (model: unknown): Mutation => (doc, { pro }) => {
  * - `showTrunk`（真偽・2026-10-18）: ほかの人にトランクを見せるか。false の間は `GET /users/{uid}/trunk` が 404
  * - `ticket`（`{ photoId, note?, origin?, destination?, face?, showsFrom? }` か `null`・2026-10-18）: わたしの乗車券。
  *   `null` で外す。写真が本人の公開写真かは口で先に確かめる（`ticketOk`）
+ * - `tagPicks`（文字の配列・2026-11-08・札 #501）: 手荷物タグの枠ごとの選び。要素は貼ったラベルの id・"" （おまかせ）・
+ *   `TAG_PICK_NONE`（その枠にタグを吊るさない）。長さは `TAG_PICKS_MAX` まで（枠の枚数は投稿の数で増えるが、本人の画面の数え方と
+ *   人の口の数え方がずれうるので、ここでは上限だけ見る。吊るす枚数は描く側が `tagCount` で切る）。**全部をまとめて置き換える**
+ *   （`[]` で全部おまかせ）。同じラベルの id を2枠に載せると 400、別のラベルでも同じ地名を2枠に載せると 409 `tagPickDuplicate`。
+ *   貼ってない・地名の無いラベルは 409（`tagPickNotStuck`・`tagPickNoPlace`）。形の誤りは 400。
+ *   2台の端末が同時に選んだときは、後から送った方が全部を置き換える
  */
 export const settingsMutation = (b: Record<string, unknown>, ticketOk = true): Mutation => (doc) => {
-    const keys = ["receiveLabels", "showTrunk", "ticket"].filter((k) => k in b);
+    const keys = ["receiveLabels", "showTrunk", "ticket", "tagPicks"].filter((k) => k in b);
     if (keys.length === 0) throw new TrunkError(400, "設定が正しくありません", "badRequest");
     const next: TrunkDoc = { ...doc };
     if ("receiveLabels" in b) {
@@ -1681,8 +1739,30 @@ export const settingsMutation = (b: Record<string, unknown>, ticketOk = true): M
         if (ticket) next.ticket = ticket;
         else delete next.ticket;
     }
+    if ("tagPicks" in b) {
+        const picks = b.tagPicks;
+        if (!Array.isArray(picks) || picks.length > TAG_PICKS_MAX
+            || !picks.every((p) => typeof p === "string" && (p === "" || p === TAG_PICK_NONE || LABEL_ID_RE.test(p)))) {
+            throw new TrunkError(400, "設定が正しくありません", "badRequest");
+        }
+        const ids = (picks as string[]).filter((p) => p !== "" && p !== TAG_PICK_NONE);
+        if (new Set(ids).size !== ids.length) throw new TrunkError(400, "設定が正しくありません", "badRequest");
+        const names = new Set<string>();
+        for (const id of ids) {
+            const l = doc.stuck.find((x) => x.id === id);
+            if (!l) throw new TrunkError(409, "貼っていないラベルです", "tagPickNotStuck");
+            const name = l.place.name.trim();
+            if (!name) throw new TrunkError(409, "地名のないラベルはタグに載せられません", "tagPickNoPlace");
+            if (names.has(name)) throw new TrunkError(409, "同じ地名はタグに1枚だけ載せられます", "tagPickDuplicate");
+            names.add(name);
+        }
+        const kept = trimPicks(picks as string[]);
+        if (kept) next.tagPicks = kept;
+        else delete next.tagPicks;
+    }
     const same = next.receiveLabels === doc.receiveLabels && next.showTrunk === doc.showTrunk
-        && JSON.stringify(next.ticket ?? null) === JSON.stringify(doc.ticket ?? null);
+        && JSON.stringify(next.ticket ?? null) === JSON.stringify(doc.ticket ?? null)
+        && JSON.stringify(next.tagPicks ?? null) === JSON.stringify(doc.tagPicks ?? null);
     return same ? null : next;
 };
 
@@ -1727,6 +1807,8 @@ export function revokeFrom(
             pocket: doc.pocket.filter((l) => l.id !== label.id),
             stuck: doc.stuck.filter((l) => l.id !== label.id),
             ...(doc.pendingReroll?.labelId === label.id ? { pendingReroll: undefined } : {}),
+            // タグに載せていたラベルが取り消されたら、その枠もおまかせに戻す（`unstickMutation` と同じ）
+            ...(doc.tagPicks?.includes(label.id) ? { tagPicks: trimPicks(doc.tagPicks.map((p) => (p === label.id ? "" : p))) } : {}),
         } : {}),
         ...(dropCoin ? {
             coins: Math.max(0, doc.coins - 1),
@@ -1958,6 +2040,19 @@ export function theirLabel(index: number, l: TrunkLabel): TheirLabel {
     };
 }
 
+/**
+ * 人の口の手荷物タグの選び。ラベルは**この返答の中の番号**（`theirLabel` の id）で指す。地名を見せてよいと確かめていない
+ * ラベル（`placeOk` なし）を選んでいた枠は "" （おまかせ）——選んだ事実から伏せたラベルの在りかを漏らさない
+ */
+export function theirTagPicks(doc: TrunkDoc): string[] {
+    const picks = effectiveTagPicks(doc).map((pick) => {
+        if (pick === "" || pick === TAG_PICK_NONE) return pick;
+        const i = doc.stuck.findIndex((l) => l.id === pick);
+        return i >= 0 && doc.stuck[i].placeOk ? `s${doc.stuck.length - 1 - i}` : "";
+    });
+    return trimPicks(picks) ?? [];
+}
+
 /** 人のトランクを見せない（区別しない 404 にする）とき */
 class HiddenTrunk extends Error {}
 
@@ -2020,6 +2115,7 @@ export async function readTheirTrunk(viewer: string, target: string, now: Date =
         stuck: doc.stuck.map((l, i) => theirLabel(doc.stuck.length - 1 - i, l)),
         equipped: viewEquipped(doc.equipped),
         ...(doc.posts !== undefined ? { posts: doc.posts } : {}),
+        tagPicks: theirTagPicks(doc),
         inside: {
             badges: sanitizeBadges(profile.badges) ?? {},
             card: publicSupporter(profile, now.getTime()) ? { pro } : null,

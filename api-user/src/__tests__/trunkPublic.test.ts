@@ -113,7 +113,7 @@ describe("人のトランク（GET /users/{uid}/trunk）", () => {
         fullOwner();
         const r = await their();
         expect(r.status).toBe(200);
-        expect(Object.keys(r.json).sort()).toEqual(["equipped", "inside", "model", "posts", "stuck", "userId"]);
+        expect(Object.keys(r.json).sort()).toEqual(["equipped", "inside", "model", "posts", "stuck", "tagPicks", "userId"]);
         expect(r.json.userId).toBe(OWNER);
         expect(r.json.model).toBe("starchart");
         expect(r.json.posts).toBe(42);
