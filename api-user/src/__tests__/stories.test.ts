@@ -488,6 +488,22 @@ describe("createStory", () => {
         expect(puts[3].songOnPhoto).toBeUndefined();
     });
 
+    it("撮影地の札を焼き込んだ印は、撮影地があって true のときだけ保存する（撮影地は残る）", async () => {
+        mockDdbSend.mockResolvedValue({ Count: 0 });
+        const url = "https://cdn.test/uploads/u1/a.jpg";
+        await invoke(createStory, authedEvent("u1", { body: JSON.stringify({ publicUrl: url, location: "江ノ島", locationOnPhoto: true }) }));
+        await invoke(createStory, authedEvent("u1", { body: JSON.stringify({ publicUrl: url, location: "江ノ島", locationOnPhoto: "true" }) }));
+        await invoke(createStory, authedEvent("u1", { body: JSON.stringify({ publicUrl: url, locationOnPhoto: true }) }));
+        await invoke(createStory, authedEvent("u1", { body: JSON.stringify({ publicUrl: url, location: "江ノ島" }) }));
+        const puts = storyPuts();
+        expect(puts[0].location).toBe("江ノ島");
+        expect(puts[0].locationOnPhoto).toBe(true);
+        expect(puts[1].locationOnPhoto, "形の違う値で立てている").toBeUndefined();
+        expect(puts[2].locationOnPhoto, "撮影地が無いのに立てている").toBeUndefined();
+        expect(puts[3].locationOnPhoto, "欄なし（旧クライアント）は従来どおり").toBeUndefined();
+        expect(puts[3].location).toBe("江ノ島");
+    });
+
     it("外部ホストの音源URLは保存しない（曲ごと落とす）", async () => {
         // ストーリーはログイン中の全員のトレイに出るので、任意のURLを
         // 1回仕込むだけで利用者ほぼ全員の IP・User-Agent・時刻を集められた。

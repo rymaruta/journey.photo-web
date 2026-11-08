@@ -578,7 +578,7 @@ describe("getHighlight（開いたときの中身）", () => {
     it("保存した並びで、表示に要る列だけを返す", async () => {
         serve({
             [highlightKey(HID)]: row,
-            [sid(1)]: archived(1, { viewers: { [OTHER]: { displayName: "見た人" } }, replyCount: 3, keptAs: "p1", lat: 35, lng: 139, caption: "朝", texts: [{ t: "x" }], song: { title: "海", previewUrl: "https://audio-ssl.itunes.apple.com/p.m4a" }, songOnPhoto: true }),
+            [sid(1)]: archived(1, { viewers: { [OTHER]: { displayName: "見た人" } }, replyCount: 3, keptAs: "p1", lat: 35, lng: 139, caption: "朝", texts: [{ t: "x" }], song: { title: "海", previewUrl: "https://audio-ssl.itunes.apple.com/p.m4a" }, songOnPhoto: true, locationOnPhoto: true, location: "江ノ島" }),
             [sid(2)]: archived(2, { viewers: {}, replyCount: 0, storyFeed: "1", archivedAt: undefined }),
             [sid(3)]: archived(3),
         });
@@ -597,6 +597,11 @@ describe("getHighlight（開いたときの中身）", () => {
         expect(b.items[1].texts).toEqual([{ t: "x" }]);
         // 曲の札を焼き込んだ印も引き継ぐ（落とすとハイライトで曲名が2か所に出る）
         expect(b.items[1].songOnPhoto).toBe(true);
+        // 撮影地の札を焼き込んだ印も引き継ぐ（落とすとハイライトで撮影地が2か所に出る）。撮影地そのものも残る
+        expect(b.items[1].locationOnPhoto).toBe(true);
+        expect(b.items[1].location).toBe("江ノ島");
+        // 欄なしの行は欄を生やさない（旧データ互換）
+        expect("locationOnPhoto" in b.items[0]).toBe(false);
         // 返信の欄は出させない・アーカイブとして開かせる（掃除前の行にも期限の時刻を埋める）
         for (const s of b.items) {
             expect(s.allowReplies).toBe(false);

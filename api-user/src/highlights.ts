@@ -216,6 +216,7 @@ function publicStoryShape(row: Record<string, unknown>) {
         ...pick("location"),
         ...pick("song"),
         ...pick("songOnPhoto"),
+        ...pick("locationOnPhoto"),
         ...pick("durationSec"),
         ...pick("texts"),
     };
