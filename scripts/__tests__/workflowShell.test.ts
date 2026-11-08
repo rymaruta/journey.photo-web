@@ -38,7 +38,15 @@ describe("コンテナで動くジョブは shell を明示する", () => {
 // 設定次第では `contents: write` まで乗る。渡していない権限は漏らせない。
 describe("ワークフローは権限を明示する", () => {
     it.each(files())("%s に permissions がある", (file) => {
-        expect(read(file), `${file}: permissions が無い（既定の権限がそのまま渡る）`)
-            .toMatch(/^permissions:\s*\n\s{2}contents:\s*read\s*$/m);
+        const src = read(file);
+        expect(src, `${file}: permissions が無い（既定の権限がそのまま渡る）`)
+            .toMatch(/^permissions:\s*\n(?:\s{2}[a-z-]+:\s*(?:read|write|none)\s*\n?)+/m);
+        if (file !== "prepare-daily-world-spots.yml") {
+            expect(src, `${file}: 予期しない contents: write`)
+                .toMatch(/^permissions:\s*\n\s{2}contents:\s*read\s*$/m);
+        } else {
+            expect(src).toMatch(/^\s{2}contents:\s*write\s*$/m);
+            expect(src).toMatch(/^\s{2}actions:\s*write\s*$/m);
+        }
     });
 });

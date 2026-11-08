@@ -118,9 +118,10 @@ jobs:
             exit 0
           fi
           python scripts/aggregate_world_spots.py --input-dir data/imports/daily --output /tmp/world-spot-candidates.json
+          python scripts/verify_world_spot_sources.py --candidates /tmp/world-spot-candidates.json --output /tmp/world-spot-auto-editorial.json --max-checks 30
           python scripts/convert_world_spots_to_ledger.py \
             --candidates /tmp/world-spot-candidates.json \
-            --editorial content/world-spot-editorial.json \
+            --editorial /tmp/world-spot-auto-editorial.json \
             --existing content/spots.json \
             --output /tmp/world-spots-merged.json --write
           python - <<'PY'
@@ -135,7 +136,7 @@ jobs:
       - name: Commit vetted spots to main
         env:
           GH_TOKEN: ${{ github.token }}
-        if: github.event_name == 'workflow_dispatch' && inputs.publish == true && github.ref == 'refs/heads/main' && env.SPOT_NEW_COUNT != '' && env.SPOT_NEW_COUNT != '0'
+        if: (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.publish == true)) && github.ref == 'refs/heads/main' && env.SPOT_NEW_COUNT != '' && env.SPOT_NEW_COUNT != '0'
         run: |
           set -euo pipefail
           cp /tmp/world-spots-merged.json content/spots.json
