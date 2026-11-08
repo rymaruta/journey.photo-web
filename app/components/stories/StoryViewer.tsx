@@ -1107,7 +1107,7 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
      */
     const hasAudio = isVideo || !!item.song;
     /** 左下に出すチップ（撮影地・BGM）が1つでも在るか */
-    const hasBottomChips = !!item.location || !!item.song;
+    const hasBottomChips = (!!item.location && item.locationOnPhoto !== true) || !!item.song;
     const hasTexts = !!item.texts?.length || !!item.caption;
     /**
      * 下のひとことの欄を出すか。**文字の項目が在るときだけ隠す**——そのとき
@@ -1509,7 +1509,7 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
                         まだ写真が1枚も無い場所でもよく、`/location/<スラッグ>` は
                         ビルド時に在る場所しか作られない（静的書き出し）。
                         行き止まりのリンクを置くくらいなら、出すのは文字だけにする */}
-                    {item.location && (
+                    {item.location && item.locationOnPhoto !== true && (
                         <span className="max-w-full inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-black/55 backdrop-blur-sm ring-1 ring-white/15 text-white/90 text-[12px]">
                             <MapPinIcon className="w-3.5 h-3.5 flex-shrink-0 text-white/70" aria-hidden="true" />
                             <span className="truncate">{item.location}</span>

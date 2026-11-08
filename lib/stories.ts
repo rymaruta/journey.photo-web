@@ -36,6 +36,11 @@ export type Story = {
      * 帯そのもの（音を出す／止めるボタン）は残す
      */
     songOnPhoto?: boolean;
+    /**
+     * 撮影地の札を写真に焼き込んだ印（アプリの場所ツールが立てる）。立っていれば
+     * 固定の撮影地の札を**出さない**——写真の上の札と2度出る。`location` は残る
+     */
+    locationOnPhoto?: boolean;
     /** 画像ストーリーの表示秒数（投稿者が指定）。未指定なら既定の5秒 */
     durationSec?: number;
     /**
