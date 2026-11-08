@@ -95,7 +95,8 @@ export default async function CameraBrandsPage() {
                                 className="scroll-mt-24 rounded-2xl bg-surface ring-1 ring-line p-5 flex flex-col"
                                 data-testid="learn-brand"
                             >
-                                <p aria-hidden="true" className="m-0 eyebrow text-accent">{b.series}</p>
+                                {/* 眉は大文字にする決まり（`eyebrow`）だが、シリーズ名は書いたとおりに出す——「α」が「Α」になる（2026-11-04） */}
+                                <p aria-hidden="true" className="m-0 eyebrow normal-case text-accent" data-testid="learn-brand-series">{b.series}</p>
                                 <h2 id={`${b.id}-name`} className="m-0 mt-1 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.3 }}>{b.name}</h2>
                                 <p className="m-0 mt-3 text-white font-medium" style={{ fontSize: "15px", lineHeight: "24px" }}>{b.character}</p>
                                 <p className="m-0 mt-2 text-chip-text" style={{ fontSize: "15px", lineHeight: "26px" }}>{b.detail}</p>

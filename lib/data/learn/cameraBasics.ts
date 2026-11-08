@@ -28,36 +28,53 @@ export type Lesson = {
     pitfalls?: string[];
 };
 
-/** 実例の条件。見出しは「〜で撮った写真」まで書く */
+/**
+ * スマートフォンで撮った写真か（機種名の頭で見る。他社の機種名の形は確かめていないので、
+ * 確かめた Apple・Google・Samsung だけ）
+ */
+export function isSmartphone(camera: string | undefined): boolean {
+    return !!camera && /^(apple|google|samsung)\b/i.test(camera);
+}
+
+/**
+ * 実例の条件。見出しは「〜で撮った写真」まで書き、**見出しの言葉と条件の境目をそろえる**
+ * （「以下」「以上」「か、それより速い」は境目の値を含む）。
+ *
+ * 2026-11-04 判断（確かめ役の指摘）: F値・シャッター・ISO の実例から**スマートフォンを外す**。
+ * スマホは F値が固定で、設定はカメラ任せ——iPhone の f/1.8・7mm の風景は背景がぼけず、
+ * 「小さい F 値でぼける」の実例として逆の絵になっていた。スマホの写真は専用の塊（`smartphone`）に出す。
+ * F値の小さい実例は、焦点距離 20mm 以上のものだけ（EXIF は実焦点距離。広角すぎるとぼけが見えない）。
+ */
 export const EXAMPLE_RULES: ExampleRule[] = [
     {
         id: "wide-aperture",
         heading: "F2.8 以下（小さい F 値）で撮った写真",
-        match: (s) => s.aperture !== undefined && s.aperture <= 2.8,
+        match: (s) => !isSmartphone(s.camera) && s.aperture !== undefined && s.aperture <= 2.8
+            && s.focalLength !== undefined && s.focalLength >= 20,
         rank: (s) => s.aperture ?? 99,
     },
     {
         id: "narrow-aperture",
         heading: "F8 以上（大きい F 値）で撮った写真",
-        match: (s) => s.aperture !== undefined && s.aperture >= 8,
+        match: (s) => !isSmartphone(s.camera) && s.aperture !== undefined && s.aperture >= 8,
         rank: (s) => -(s.aperture ?? 0),
     },
     {
         id: "fast-shutter",
-        heading: "1/1000 秒より速いシャッターで撮った写真",
-        match: (s) => s.shutterSeconds !== undefined && s.shutterSeconds <= 1 / 1000,
+        heading: "1/1000 秒か、それより速いシャッターで撮った写真",
+        match: (s) => !isSmartphone(s.camera) && s.shutterSeconds !== undefined && s.shutterSeconds <= 1 / 1000,
         rank: (s) => s.shutterSeconds ?? 1,
     },
     {
         id: "slow-shutter",
-        heading: "1/15 秒より遅いシャッターで撮った写真",
-        match: (s) => s.shutterSeconds !== undefined && s.shutterSeconds >= 1 / 15,
+        heading: "1/15 秒か、それより遅いシャッターで撮った写真",
+        match: (s) => !isSmartphone(s.camera) && s.shutterSeconds !== undefined && s.shutterSeconds >= 1 / 15,
         rank: (s) => -(s.shutterSeconds ?? 0),
     },
     {
         id: "high-iso",
         heading: "ISO 1600 以上で撮った写真",
-        match: (s) => s.iso !== undefined && s.iso >= 1600,
+        match: (s) => !isSmartphone(s.camera) && s.iso !== undefined && s.iso >= 1600,
         rank: (s) => -(s.iso ?? 0),
     },
     {
@@ -75,7 +92,7 @@ export const EXAMPLE_RULES: ExampleRule[] = [
     {
         id: "smartphone",
         heading: "スマートフォンで撮った写真",
-        match: (s) => !!s.camera && /^(apple|google|samsung)\b/i.test(s.camera),
+        match: (s) => isSmartphone(s.camera),
         rank: () => 0,
     },
 ];
