@@ -13,14 +13,12 @@ import { track, type NavDest } from "../../lib/utils/analytics";
 import { ROUTES } from "../../lib/routes";
 import NotificationsBell from "./NotificationsBell";
 import { HEADER_ICON_BTN, HEADER_ICON_BTN_STYLE, HEADER_ICON_STYLE } from "./headerIcon";
-import { useFavorites } from "../../lib/hooks/useFavorites";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
 
 export default function HeaderNav({ className = "" }: { className?: string }) {
     const router = useRouter();
     const { isAuthenticated, isAdminUser, isGeneralUser, userId, logout, loading } = useAuth();
     const { locale, labels } = useLocale();
-    const { favorites } = useFavorites();
 
     useEffect(() => {
         log.info("HeaderNav: 認証状態", { isAuthenticated, isAdminUser, loading });
@@ -148,8 +146,9 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
             {isAuthenticated && <NotificationsBell />}
             {/* **未ログインの人にだけ「ログイン」の文字リンクと「登録」**（ログインは 2026-11-09 owner「任せる」・入口の案A の最小。
                 登録は同日 owner 承認「はい」・9人のレビュー: 登録の入口が ☰ の6項目目だけだった）。
-                どちらも `next/link` の文字リンクなので最初の HTML に出る。**判定中は出さない**（ログイン済みの人に一瞬出ないように・
-                ☰ の中の行と同じ判断）。ログイン・新規登録の画面そのものでは出さない。
+                どちらも `next/link` の文字リンク。**最初の HTML にも初回の描画にも出ない**——`AuthProvider` の初期値が `loading: true` で、
+                判定中は出さない（ログイン済みの人に一瞬出ないように・☰ の中の行と同じ判断）ので、認証が確定したあとにクライアントで出る。
+                出る瞬間にロゴの幅が動かないよう、ロゴの切れ方は「登録」だけが並んだ幅でも切れないことを実測している（下のログインの注記）。ログイン・登録の画面そのものでは出さない。
                 ログインは地の無い文字（高さ 44px・字 14px・輪は他のヘッダーの押し面と同じ白60%）。
                 登録は**白の塗りに墨の字**（板 05・写真を持つ画面の主ボタン＝白。ホームの「参加する」と同じ。見た目 36・当たり 44・字 13）。
                 2つ目の真鍮の塗りは置かない */}
@@ -160,7 +159,9 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                     prefetch={false}
                     data-testid="header-login"
                     onClick={() => track("nav_click", { area: "header", dest: "login" })}
-                    className="inline-flex items-center justify-center rounded-full px-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                    // **414px 未満では出さない**（2026-11-09）: 右側が「ログイン・登録・☰」で約194px になり、ロゴ「Journey Photo」が
+                    // 320〜375px で切れた（実測）。ログインは下のタブにある。登録は常に残す。414px 以上は両方（実測: 400px は余白16px で薄いので 414 にした）
+                    className="hidden min-[414px]:inline-flex items-center justify-center rounded-full px-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
                     style={{ minHeight: "44px", minWidth: "44px", fontSize: "14px", lineHeight: "20px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
                 >
                     {locale === "en" ? "Log in" : "ログイン"}
@@ -268,9 +269,9 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                                         {locale === "en" ? "Photography guides" : "写真とカメラの教科書"}
                                     </button>
                                 </li>
-                                {/* いいねした写真: 未ログインの初回訪問者には出さない（空ページになるため）。
-                                    ログイン中、または実際にお気に入りがある人にだけ表示する。 */}
-                                {(isAuthenticated || favorites.length > 0) && (
+                                {/* いいねした写真: **ログイン中だけ**（2026-11-09 から。未ログインのいいねは端末に溜めない・
+                                    以前に端末へ残ったお気に入りも出さない＝空の頁にしかならない） */}
+                                {isAuthenticated && (
                                     <li style={{ margin: 0, padding: 0 }}>
                                         <button onClick={() => handleNavigation(ROUTES.FAVORITES)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
                                             {navLabels.favorites || "Favorites"}

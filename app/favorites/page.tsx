@@ -10,7 +10,7 @@ import GalleryGrid from "../components/GalleryGrid";
 import { EDITORIAL_HERO_SIZES, EDITORIAL_PAIR_SIZES } from "../components/gridSizes";
 import ListPageHeader from "../components/ListPageHeader";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateViews";
-import { ROUTES } from "../../lib/routes";
+import { ROUTES, loginWithNext } from "../../lib/routes";
 import { useLocale } from "../i18n/context";
 import { photoCategoryMap } from "../../lib/utils/categoryMap";
 
@@ -26,12 +26,16 @@ export default function FavoritesPage() {
     const serverLikes = useMyServerLikes(isAuthenticated, authLoading);
 
     // いいねした写真。**サーバーと端末の和**——サーバーは別の端末のぶんを、
-    // 端末は未ログインで押したぶんと、一覧の書き込みが落ちた回を拾う
+    // 端末は一覧の書き込みが落ちた回（ログイン中に押したが一覧に入らなかった分）を拾う。
+    // 2026-11-09: **端末の控えを足すのはログイン済みだけ。** 未ログインのいいねは端末に溜めなくなった
+    // （サーバーに届かない・件数にも通知にも入らない）ので、以前に端末へ残った分を「いいねした写真」と
+    // 出さない（`useLocalFavoritesShown` と同じ判断。判定中も出さない）
+    const showLocal = !authLoading && isAuthenticated;
     const favoritePhotos = React.useMemo(() => {
-        const ids = new Set<string>(favorites);
+        const ids = new Set<string>(showLocal ? favorites : []);
         for (const id of serverLikes.photoIds) ids.add(id);
         return allPhotos.filter((p) => ids.has(p.id));
-    }, [favorites, serverLikes.photoIds, allPhotos]);
+    }, [favorites, showLocal, serverLikes.photoIds, allPhotos]);
 
     // お気に入りの画像をプリロード
     React.useEffect(() => {
@@ -78,7 +82,16 @@ export default function FavoritesPage() {
                 </p>
             )}
 
-            {serverLikes.pending && n === 0 ? (
+            {authLoading ? (
+                <LoadingState kind="grid" locale={en ? "en" : "ja"} />
+            ) : !isAuthenticated ? (
+                // 未ログイン: ここに並べるものは無い。ログインへ（戻り先はこの頁・via=like）
+                <EmptyState
+                    testId="favorites-guest"
+                    message={en ? "Log in to see the photos you liked." : "ログインすると、いいねした写真がここに並びます。"}
+                    action={{ label: en ? "Log in" : "ログイン", href: loginWithNext(ROUTES.FAVORITES, "like") }}
+                />
+            ) : serverLikes.pending && n === 0 ? (
                 // 読み込み中は格子の灰の骨格（iOS `JPLoadingState(kind: .grid)`・0.3 秒より早ければ出さない）
                 <LoadingState kind="grid" locale={en ? "en" : "ja"} />
             ) : n === 0 && serverLikes.failed ? (

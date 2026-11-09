@@ -33,7 +33,8 @@ vi.mock("../../../lib/hooks/useFollow", () => ({
     fetchFollowingSet: () => follow.fetch(),
     subscribeFollowingSet: (fn: () => void) => { follow.listeners.add(fn); return () => follow.listeners.delete(fn); },
 }));
-const TimelineFeed = (await import("../TimelineFeed")).default;
+const feedMod = await import("../TimelineFeed");
+const TimelineFeed = feedMod.default;
 const Feed = () => <TimelineFeed locale="ja" />;
 
 const PHOTOS = [
@@ -50,6 +51,7 @@ beforeEach(() => {
     photosState.current = { photos: PHOTOS, loading: false, loaded: true, failed: false };
     follow.fetch.mockReset();
     follow.listeners.clear();
+    feedMod.resetGuestPromptCounted();
 });
 
 describe("TimelineFeed", () => {
@@ -119,7 +121,9 @@ describe("TimelineFeed", () => {
         follow.fetch.mockResolvedValue(new Set(["A"]));
         render(<Feed />);
         const login = screen.getByRole("link", { name: "ログイン" });
-        expect(login.getAttribute("href")).toMatch(/^\/login\?next=/);
+        expect(login.getAttribute("href")).toMatch(/^\/login\?next=.*&via=follow$/);
+        // 2026-11-09: 何も起きないように見えないよう、タブの中で「見られる」条件を言う
+        expect(screen.getByText("ログインすると、フォロー中の人の写真が見られます")).toBeTruthy();
         expect(follow.fetch, "未ログインなのに一覧を取りに行っている").not.toHaveBeenCalled();
         expect(cardIds()).toEqual([]);
     });
@@ -229,5 +233,50 @@ describe("TimelineFeed", () => {
         await waitFor(() => expect(screen.getByRole("status")).toHaveTextContent("読み込み中"));
         expect(screen.queryByTestId("following-empty"), "取り直し中に0人と言っている").toBeNull();
         expect(cardIds()).toEqual([]);
+    });
+});
+
+// 2026-11-09: 未ログインの「フォロー中」の案内が**実際に出た回だけ**・ページを開いている間に1回数える（login_prompt）
+describe("TimelineFeed: login_prompt{following_tab}", () => {
+    const gtag = vi.fn();
+    const counted = () => gtag.mock.calls.filter((c) => c[1] === "login_prompt");
+    beforeEach(() => {
+        gtag.mockReset();
+        sessionStorage.clear();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+        authState.current = { isAuthenticated: false, userId: "", loading: false };
+    });
+
+    it("案内が出た回に1回。trigger だけ", () => {
+        render(<Feed />);
+        expect(counted()).toHaveLength(1);
+        expect(counted()[0][2].trigger).toBe("following_tab");
+        expect(Object.keys(counted()[0][2]).sort()).toEqual(["landing_type", "trigger"]);
+    });
+
+    it("再描画・再マウント（タブを替えて戻る）でも1回だけ", () => {
+        const { rerender, unmount } = render(<Feed />);
+        rerender(<Feed />);
+        rerender(<Feed />);
+        unmount();
+        render(<Feed />);
+        expect(counted()).toHaveLength(1);
+    });
+
+    it("判定中は数えない（案内が出ていない）。確定して未ログインなら数える", () => {
+        authState.current = { isAuthenticated: false, userId: "", loading: true };
+        const { rerender } = render(<Feed />);
+        expect(counted()).toHaveLength(0);
+        authState.current = { isAuthenticated: false, userId: "", loading: false };
+        rerender(<Feed />);
+        expect(counted()).toHaveLength(1);
+    });
+
+    it("ログイン済みは数えない", async () => {
+        authState.current = { isAuthenticated: true, userId: "me", loading: false };
+        follow.fetch.mockResolvedValue(new Set(["A"]));
+        render(<Feed />);
+        await waitFor(() => expect(cardIds().length).toBeGreaterThan(0));
+        expect(counted()).toHaveLength(0);
     });
 });

@@ -35,6 +35,15 @@ describe("useMemberGate", () => {
         expect(String(mockReplace.mock.calls[0][0])).toContain("/login");
     });
 
+    // 2026-11-09: via は呼ぶ画面が決める。投稿の画面だけ upload（編集・下書き・アルバムは付けず、ログイン画面が汎用の1行を出す）
+    it("via を渡した画面だけ、ログインへの行き先に via が付く", () => {
+        renderHook(() => useMemberGate(false, "upload"));
+        expect(String(mockReplace.mock.calls[0][0])).toContain("via=upload");
+        mockReplace.mockReset();
+        renderHook(() => useMemberGate());
+        expect(String(mockReplace.mock.calls[0][0])).not.toContain("via=");
+    });
+
     // **push だと戻るで抜けられなくなる。**
     //   [/] [/user/upload] [/login?next=/user/upload]
     // ログイン後に /user/upload へ進み、そこで戻ると /login に着地する。

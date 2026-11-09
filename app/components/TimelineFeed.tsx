@@ -6,10 +6,15 @@ import { usePhotos } from "../../lib/hooks/usePhotos";
 import { fetchFollowingSet, subscribeFollowingSet } from "../../lib/hooks/useFollow";
 import { timelinePhotos } from "../../lib/utils/timeline";
 import { ROUTES, loginWithNext } from "../../lib/routes";
+import { track } from "../../lib/utils/analytics";
 import HomeMosaic from "./HomeMosaic";
 import { EmptyState, ErrorState, LoadingState } from "./StateViews";
 
 type Props = { locale: string };
+
+/** 「フォロー中」の未ログイン案内を数えたか（ページを開いている間に1回）。試験が戻すための口だけ公開 */
+let guestPromptCounted = false;
+export function resetGuestPromptCounted() { guestPromptCounted = false; }
 
 /**
  * フォローしている人の写真が**投稿の新しい順に流れる**面（Instagram のホームに
@@ -53,6 +58,15 @@ export default function TimelineFeed({ locale }: Props) {
         return () => { aborted = true; };
     }, [authLoading, isAuthenticated, reloadKey]);
 
+    // 未ログインで「フォロー中」の案内（下の `following-guest`）が**実際に出た回**を数える（2026-11-09・登録の入口の数え方）。
+    // 判定中・ログイン済みでは出さない。再描画・タブを替えて戻る（再マウント）でも**ページを開いている間に1回**
+    // （モジュールの印。再読み込みで戻る）
+    React.useEffect(() => {
+        if (authLoading || isAuthenticated || guestPromptCounted) return;
+        guestPromptCounted = true;
+        track("login_prompt", { trigger: "following_tab" });
+    }, [authLoading, isAuthenticated]);
+
     // フォロー・解除・ブロックで共有の一覧が変わったら取り直す
     // （結果をコピーして持つので、購読しないと伝わらない）
     React.useEffect(() => subscribeFollowingSet(() => setReloadKey((k) => k + 1)), []);
@@ -75,10 +89,13 @@ export default function TimelineFeed({ locale }: Props) {
      */
     if (authLoading) return <LoadingState kind="grid" locale={loc} />;
     if (!isAuthenticated) {
+        // 2026-11-09: 押しても何も起きないように見えていたので、タブの中で「ログインすると見られる」ことを言い、
+        // ログインへ進める（戻り先は今の頁・`via=follow` でログイン画面が理由を言う）
         return (
-            <EmptyState className="py-16"
-                message={isJa ? "ログインすると、フォローしている人の写真がここに流れます。" : "Log in to see photos from people you follow."}
-                action={{ label: isJa ? "ログイン" : "Log in", href: loginWithNext(typeof window === "undefined" ? null : window.location.pathname) }} />
+            <EmptyState className="py-16" testId="following-guest"
+                title={isJa ? "ログインすると、フォロー中の人の写真が見られます" : "Log in to see photos from people you follow"}
+                message={isJa ? "気になる作者をフォローすると、新しい写真がここに並びます。" : "Follow photographers you like and their new photos will appear here."}
+                action={{ label: isJa ? "ログイン" : "Log in", href: loginWithNext(typeof window === "undefined" ? null : window.location.pathname + window.location.search, "follow") }} />
         );
     }
     if (followingError) {

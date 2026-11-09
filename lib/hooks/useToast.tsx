@@ -10,11 +10,15 @@ export type Toast = {
     message: string;
     type: ToastType;
     duration?: number;
+    /** 案内の次の一手（「ログイン」など）。内部の頁への遷移だけ（`href` はサイト内の絶対パス） */
+    action?: ToastAction;
 };
+
+export type ToastAction = { label: string; href: string };
 
 type ToastContextType = {
     toasts: Toast[];
-    showToast: (message: string, type?: ToastType, duration?: number) => void;
+    showToast: (message: string, type?: ToastType, duration?: number, action?: ToastAction) => void;
     removeToast: (id: string) => void;
 };
 
@@ -30,9 +34,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         return () => { timers.forEach(clearTimeout); };
     }, []);
 
-    const showToast = useCallback((message: string, type: ToastType = "success", duration: number = 3000) => {
+    const showToast = useCallback((message: string, type: ToastType = "success", duration: number = 3000, action?: ToastAction) => {
         const id = Math.random().toString(36).substring(2, 9);
-        const newToast: Toast = { id, message, type, duration };
+        const newToast: Toast = { id, message, type, duration, ...(action ? { action } : {}) };
 
         setToasts((prev) => [...prev, newToast]);
 

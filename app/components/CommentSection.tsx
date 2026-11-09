@@ -10,6 +10,7 @@ import { ChatBubbleOvalLeftIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useComments } from "../../lib/hooks/useComments";
 import { useAuth } from "../auth/context";
 import { useToast } from "../../lib/hooks/useToast";
+import { useGuestPrompt } from "../../lib/hooks/useGuestPrompt";
 import { ROUTES } from "../../lib/routes";
 import UserAvatar from "./UserAvatar";
 import { EmptyState, ErrorState, LoadingState } from "./StateViews";
@@ -40,12 +41,13 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
     // 戻り先が無いと、コメントしようとしていた写真を見失う。
     const loginHref = typeof window === "undefined"
         ? ROUTES.LOGIN
-        : loginWithNext(window.location.pathname + window.location.search);
+        : loginWithNext(window.location.pathname + window.location.search, "comment");   // 2026-11-09: via=comment（ログイン画面が理由を言う）
     // authLoading = ログイン状態がまだ分からない期間。ここを見ないと、
     // ログイン済みの人にも一瞬「ログインするとコメントできます」が出て、
     // その間にリンクを押すとログインページ経由で別の場所へ飛ばされる。
     const { isAuthenticated, userId, loading: authLoading } = useAuth();
     const { showToast } = useToast();
+    const promptLogin = useGuestPrompt(locale);
     const { items, count, loading, loadError, reload, pending, add, remove } = useComments(photoId, isAuthenticated, initialCount, authLoading);
     const [text, setText] = useState("");
     useEffect(() => { onCountChange?.(count); }, [count, onCountChange]);
@@ -74,7 +76,7 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
             setText("");
             setPostedTick((n) => n + 1);
         }
-        else if (r.status === "auth-required") showToast(locale === "en" ? "Log in to comment" : "コメントするにはログインしてください", "info");
+        else if (r.status === "auth-required") promptLogin("comment");   // 2026-11-09: 「ログイン」のリンク付き
         // 断られた理由はサーバーが日本語で返している
         // （「同じ写真へのコメントは10件までです」など）。
         // 一律「投稿に失敗しました」だと障害だと思って送り直され、

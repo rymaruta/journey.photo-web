@@ -587,3 +587,46 @@ describe("ログイン: iOS の形", () => {
         }
     });
 });
+
+// ──────────────────────────────────────────────────────────────
+// 2026-11-09: 何を押して来たか（via）に応じた「理由と得られるもの」。許可リストの値だけ文にする
+// ──────────────────────────────────────────────────────────────
+describe("LoginPage - via に応じた理由の文", () => {
+    const reason = () => screen.getByTestId("login-reason").textContent;
+
+    it("via=like: いいねの理由と得られるもの", () => {
+        mockSearchParams = new URLSearchParams("next=%2Fphoto%2Fp1&via=like");
+        render(<LoginPage />);
+        expect(reason()).toContain("いいねにはログインが必要です");
+    });
+
+    it("via=wish: 行きたい場所の理由", () => {
+        mockSearchParams = new URLSearchParams("via=wish");
+        render(<LoginPage />);
+        expect(reason()).toBe("行きたい場所の保存にはログインが必要です。ログインすると、あとで見返せます。");
+    });
+
+    it("via が無い・許可外は汎用の1行。URL の文字列は画面に出さない", () => {
+        const { unmount } = render(<LoginPage />);
+        expect(reason()).toBe("ログインすると、いいね・コメント・投稿ができます。");
+        unmount();
+        mockSearchParams = new URLSearchParams("via=%3Cb%3Eevil%3C%2Fb%3E");
+        render(<LoginPage />);
+        expect(reason()).toBe("ログインすると、いいね・コメント・投稿ができます。");
+        expect(document.body.textContent).not.toContain("evil");
+    });
+
+    it("via と next を新規登録のリンクへ引き継ぐ（wish 以外も）", () => {
+        mockSearchParams = new URLSearchParams("next=%2Fphoto%2Fp1&via=follow");
+        render(<LoginPage />);
+        expect(screen.getByRole("link", { name: "アカウントを作る" }))
+            .toHaveAttribute("href", `/signup?next=${encodeURIComponent("/photo/p1")}&via=follow`);
+    });
+
+    it("パスワード再設定の画面には理由を出さない", async () => {
+        mockSearchParams = new URLSearchParams("via=like");
+        render(<LoginPage />);
+        await userEvent.click(screen.getByRole("button", { name: "パスワードを忘れた" }));
+        expect(screen.queryByTestId("login-reason")).toBeNull();
+    });
+});
