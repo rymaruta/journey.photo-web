@@ -73,14 +73,14 @@ export default async function CameraBrandsPage() {
 
                 <nav aria-label="メーカーへ移動" className="mt-12 flex flex-wrap gap-2">
                     {BRANDS.map((b) => (
-                        <a
+                        <Link
                             key={b.id}
                             href={`#${b.id}`}
                             className="inline-flex items-center min-h-[44px] px-4 rounded-full bg-chip ring-1 ring-line text-chip-text hover:text-white"
                             style={{ fontSize: "13px", touchAction: "manipulation" }}
                         >
                             {b.name}
-                        </a>
+                        </Link>
                     ))}
                 </nav>
 
