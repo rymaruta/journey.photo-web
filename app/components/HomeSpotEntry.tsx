@@ -75,7 +75,8 @@ export default function HomeSpotEntry({ data }: { data: HomeSpotEntryData }) {
             <p className="m-0 mt-2 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
                 県や国を選ぶと、その撮影スポットが一覧で見られます。右の数字は掲載している件数です。
             </p>
-            <nav aria-labelledby={HEADING_ID}>
+            {/* id はホームの日本地図（`HomeJapanMap`）の「地図を飛ばして文字の一覧へ」「すべての県を文字で見る」の行き先 */}
+            <nav aria-labelledby={HEADING_ID} id="home-spot-entry-list" className="scroll-mt-20">
                 <h3 className="m-0 mt-7 pt-4 border-t border-line font-semibold text-white" style={SUBHEAD_STYLE}>国内（{data.areas.length}都道府県）</h3>
                 {regions.map((g) => (
                     <Group key={g.name} name={g.name} sub={g.name === "北海道" ? "1道" : `${g.items.length}都道府県`}>

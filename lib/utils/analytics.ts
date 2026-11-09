@@ -67,6 +67,8 @@ export const APP_STORE_PLACEMENTS = ["footer", "banner", "article", "home", "spo
 export const NAV_AREAS = ["header", "menu", "tab", "footer", "spot_next", "home_entry"] as const;
 export const NAV_DESTS = [
     "home", "search", "map", "me", "login", "signup", "post", "spots", "area", "topic", "nearby", "learn", "people", "saved",
+    // `map_pref` … ホームの日本地図で県を選んで県の頁へ（2026-11-09・文字の一覧の `area` と分けて、地図が使われたかを見る）
+    "map_pref",
 ] as const;
 
 export const EVENT_SPEC = {

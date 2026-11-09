@@ -1,0 +1,117 @@
+// lib/utils/japanMap.ts
+//
+// ホームの日本地図（`app/components/HomeJapanMap.tsx`）の**計算だけ**を切り出したもの（DOM を持たない）。
+// 形のデータは `lib/data/prefectureShapes.ts`（生成物）。ここは「近くの県」「矢印キーの隣」「海のタップ」
+// 「濃淡の段」「直接移動するかどうか」。部品とテストが同じ関数を見る。
+//
+// 2026-11-09 判断（デザイナーの提案書・案D。owner「任せる」）:
+//   - 44px 以上の県は押したら直接移動、それより小さい県は札（名前・件数・近くの県3つ）を出す。
+//     **大きさは「いま画面に出ている大きさ」**（拡大すると小さな県も 44 を超えて直接移動になる）
+//   - 海のタップは、県の外接箱までの距離が 14px 以内でいちばん近い県を選ぶ（指のずれの保険）
+
+import { MAP_W, OKINAWA_FRAME, PREFECTURE_SHAPES, type PrefectureShape } from "../data/prefectureShapes";
+
+/** 直接移動する県の最小の大きさ（外接箱の短い辺・画面の px）。押せる大きさの基準 44 */
+export const DIRECT_TAP_MIN_PX = 44;
+/** 海のタップを近くの県に寄せる距離（画面の px） */
+export const NEAR_TAP_PX = 14;
+/** 拡大の範囲 */
+export const ZOOM_MIN = 1;
+export const ZOOM_MAX = 4;
+
+const BY_SLUG = new Map<string, PrefectureShape>(PREFECTURE_SHAPES.map((s) => [s[0], s]));
+
+export function shapeOf(slug: string): PrefectureShape | undefined {
+    return BY_SLUG.get(slug);
+}
+
+/**
+ * 近くの県（地図の上の重心の近い順）。`among` に載る県（リンクのある県）だけ。
+ * 沖縄は枠で右下に動かしてあるので、地図の距離だと本州の県が並んでしまう——実際の近さ（九州の3県）に決め打ちする
+ */
+const NEAR_OVERRIDE: Readonly<Record<string, readonly string[]>> = {
+    okinawa: ["kagoshima", "miyazaki", "kumamoto"],
+};
+
+export function nearestSlugs(slug: string, n: number, among: ReadonlySet<string>): string[] {
+    const forced = (NEAR_OVERRIDE[slug] ?? []).filter((s) => among.has(s));
+    if (forced.length >= n) return forced.slice(0, n);
+    const a = BY_SLUG.get(slug);
+    if (!a) return [];
+    const rest = PREFECTURE_SHAPES
+        .filter((s) => s[0] !== slug && among.has(s[0]) && !forced.includes(s[0]))
+        // 沖縄は動かした位置にあるので、ほかの県の「近く」には入れない
+        .filter((s) => s[0] !== "okinawa")
+        .map((s) => [Math.hypot(s[3][0] - a[3][0], s[3][1] - a[3][1]), s[0]] as const)
+        .sort((x, y) => x[0] - y[0])
+        .map((x) => x[1]);
+    return [...forced, ...rest].slice(0, n);
+}
+
+/** 矢印キーで動く先: その向きにいちばん近い県（向きの軸の距離＋横ずれ×1.6）。無ければ null */
+export function neighborInDirection(slug: string, dx: number, dy: number, among: ReadonlySet<string>): string | null {
+    const p = BY_SLUG.get(slug);
+    if (!p) return null;
+    let best: string | null = null;
+    let bd = Infinity;
+    for (const q of PREFECTURE_SHAPES) {
+        if (q[0] === slug || !among.has(q[0])) continue;
+        const ddx = q[3][0] - p[3][0];
+        const ddy = q[3][1] - p[3][1];
+        const along = ddx * dx + ddy * dy;
+        if (along <= 1) continue;
+        const across = Math.abs(ddx * dy) + Math.abs(ddy * dx);
+        const d = along + across * 1.6;
+        if (d < bd) { bd = d; best = q[0]; }
+    }
+    return best;
+}
+
+/** 点 (x, y)（viewBox の単位）に、外接箱までの距離が `limit` 以内でいちばん近い県。無ければ null */
+export function nearestByBox(x: number, y: number, limit: number, among: ReadonlySet<string>): string | null {
+    let best: string | null = null;
+    let bd = limit;
+    for (const s of PREFECTURE_SHAPES) {
+        if (!among.has(s[0])) continue;
+        const [bx, by, bw, bh] = s[2];
+        const dx = Math.max(bx - x, 0, x - (bx + bw));
+        const dy = Math.max(by - y, 0, y - (by + bh));
+        const d = Math.hypot(dx, dy);
+        if (d < bd) { bd = d; best = s[0]; }
+    }
+    return best;
+}
+
+/**
+ * 押したら直接移動するか。`pxPerUnit` = 画面の px ÷ viewBox の単位（拡大した後の値）。
+ * 沖縄は枠ぜんたい（175×110）が当たりなので、いつも直接
+ */
+export function isDirectTap(slug: string, pxPerUnit: number): boolean {
+    if (slug === "okinawa") return true;
+    const s = BY_SLUG.get(slug);
+    if (!s) return false;
+    return Math.min(s[2][2], s[2][3]) * pxPerUnit >= DIRECT_TAP_MIN_PX;
+}
+
+/** 件数の濃淡の段の切れ目（四分位）。`counts` は県ごとの件数 */
+export function densityCuts(counts: readonly number[]): [number, number, number] {
+    const sorted = [...counts].sort((a, b) => a - b);
+    const at = (k: number) => sorted[Math.max(0, Math.ceil((sorted.length * k) / 4) - 1)] ?? 0;
+    return [at(1), at(2), at(3)];
+}
+
+export function densityBin(n: number, cuts: readonly [number, number, number]): 0 | 1 | 2 | 3 {
+    return n <= cuts[0] ? 0 : n <= cuts[1] ? 1 : n <= cuts[2] ? 2 : 3;
+}
+
+export type MapView = { z: number; x: number; y: number };
+
+/** 見える窓を地図の中に収める */
+export function clampView(v: MapView, h: number): MapView {
+    const z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, v.z));
+    const w = MAP_W / z;
+    const vh = h / z;
+    return { z, x: Math.max(0, Math.min(MAP_W - w, v.x)), y: Math.max(0, Math.min(h - vh, v.y)) };
+}
+
+export { OKINAWA_FRAME };

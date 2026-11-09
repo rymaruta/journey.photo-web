@@ -28,6 +28,12 @@ describe("nav_click の仕様", () => {
         expect(sanitizeParams("nav_click", { area: "tab" })).toBeNull();
     });
 
+    it("dest に map_pref（ホームの日本地図→県の頁）を許す。県の名前は通さない", () => {
+        expect(NAV_DESTS).toContain("map_pref");
+        expect(sanitizeParams("nav_click", { area: "home_entry", dest: "map_pref" })).toEqual({ area: "home_entry", dest: "map_pref" });
+        expect(sanitizeParams("nav_click", { area: "home_entry", dest: "kanagawa" })).toBeNull();
+    });
+
     it("track は gtag に nav_click を送り、範囲外なら送らない", () => {
         const gtag = vi.fn();
         (window as unknown as { gtag?: unknown }).gtag = gtag;
