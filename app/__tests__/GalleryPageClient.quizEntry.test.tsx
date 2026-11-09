@@ -66,7 +66,10 @@ describe("ホームの上段の札", () => {
         // 札の並び（今日のテーマ → 今日の一問 → 撮影スポット）の順序そのものは変えない
         const next = cards().nextElementSibling as HTMLElement;
         expect(next.getAttribute("data-testid")).toBe("app-install-card");
-        expect(next.nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
+        // その下に入口の帯（2026-11-09・撮影スポット・地図・探す・ログイン）。そのあとに切り替え
+        const band = next.nextElementSibling as HTMLElement;
+        expect(band).toBe(screen.getByTestId("home-entry-band"));
+        expect(band.nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
         expect(screen.getByTestId("home-feed-row")).toContainElement(screen.getByRole("tablist"));
         expect(order()).toEqual(["home-theme-card", "home-quiz-entry", "home-spots-entry", "home-learn-entry"]);
     });

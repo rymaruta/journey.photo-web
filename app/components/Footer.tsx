@@ -2,14 +2,20 @@
 
 import type React from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useLocale } from "../i18n/context";
 import { ROUTES } from "../../lib/routes";
 import { OVERSEAS_SLUG } from "../../lib/data/prefectures";
 import AppInstallCard from "./AppInstallCard";
+import TrackedLink from "./TrackedLink";
+import { isSpotDetailPath } from "../../lib/utils/spotDetailPath";
+import type { NavDest } from "../../lib/utils/analytics";
 
 export default function Footer() {
     const { locale, labels } = useLocale();
     const navLabels = labels.navigation || {};
+    // 撮影スポット詳細は説明文の下に自分のアプリの札を持つので、ここの札は出さない（`spotDetailPath.ts`）
+    const showBanner = !isSpotDetailPath(usePathname());
     const links = [
         { href: ROUTES.HOME, label: navLabels.works || (locale === "en" ? "Works" : "作品") },
         { href: ROUTES.MAP, label: navLabels.map || (locale === "en" ? "Map" : "撮影地マップ") },
@@ -32,16 +38,16 @@ export default function Footer() {
     // 撮影スポットの切り口への入口（2026-11-05 owner「WEB版をもっと認知してもらいたい」）。
     // 3,000 件を超える撮影スポットと、その「○選」の頁へ、どの頁の下からも1クリックで入れる。
     // 検索エンジンの巡回の入口にもなる（ヘッダーのメニューはボタンでリンクではない）
-    const spotLinks = [
-        { href: ROUTES.SPOT_SAKURA(), label: locale === "en" ? "Cherry blossoms" : "桜の撮影スポット" },
-        { href: ROUTES.SPOT_MOMIJI(), label: locale === "en" ? "Autumn foliage" : "紅葉の撮影スポット" },
-        { href: ROUTES.SPOT_SNOW(), label: locale === "en" ? "Snow scenery" : "雪景色の撮影スポット" },
-        { href: ROUTES.SPOT_SEASON("spring"), label: locale === "en" ? "Spring" : "春の撮影スポット" },
-        { href: ROUTES.SPOT_SEASON("summer"), label: locale === "en" ? "Summer" : "夏の撮影スポット" },
-        { href: ROUTES.SPOT_SEASON("autumn"), label: locale === "en" ? "Autumn" : "秋の撮影スポット" },
-        { href: ROUTES.SPOT_SEASON("winter"), label: locale === "en" ? "Winter" : "冬の撮影スポット" },
-        { href: ROUTES.SPOT_AREA(OVERSEAS_SLUG), label: locale === "en" ? "Outside Japan" : "海外の撮影スポット" },
-        { href: ROUTES.SPOTS, label: locale === "en" ? "All photo spots" : "撮影スポットの一覧" },
+    const spotLinks: Array<{ dest: NavDest; href: string; label: string }> = [
+        { dest: "topic", href: ROUTES.SPOT_SAKURA(), label: locale === "en" ? "Cherry blossoms" : "桜の撮影スポット" },
+        { dest: "topic", href: ROUTES.SPOT_MOMIJI(), label: locale === "en" ? "Autumn foliage" : "紅葉の撮影スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SNOW(), label: locale === "en" ? "Snow scenery" : "雪景色の撮影スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SEASON("spring"), label: locale === "en" ? "Spring" : "春の撮影スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SEASON("summer"), label: locale === "en" ? "Summer" : "夏の撮影スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SEASON("autumn"), label: locale === "en" ? "Autumn" : "秋の撮影スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SEASON("winter"), label: locale === "en" ? "Winter" : "冬の撮影スポット" },
+        { dest: "area", href: ROUTES.SPOT_AREA(OVERSEAS_SLUG), label: locale === "en" ? "Outside Japan" : "海外の撮影スポット" },
+        { dest: "spots", href: ROUTES.SPOTS, label: locale === "en" ? "All photo spots" : "撮影スポットの一覧" },
     ];
     const linkClass = "inline-flex min-h-[44px] items-center justify-start text-left text-text-2 transition-colors hover:text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent";
     const linkStyle: React.CSSProperties = { fontSize: "13px", lineHeight: "18px", touchAction: "manipulation" };
@@ -55,9 +61,9 @@ export default function Footer() {
                 ご案内の札 → ブランド（左）｜リンクの3つの組（右）。3つの組は見出しと各リンクの左端が縦にそろい、
                 電話の幅は1列に積んで、どの行も同じ左端から始まる */}
             <div className="mx-auto max-w-5xl px-6 py-10 text-left md:px-8 md:py-12">
-                <AppInstallCard placement="banner" />
+                {showBanner && <AppInstallCard placement="banner" />}
 
-                <div className="mt-10 grid gap-10 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-12">
+                <div className={`${showBanner ? "mt-10" : ""} grid gap-10 md:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] md:gap-12`}>
                     <div className="flex flex-col items-start gap-3">
                         <div className="inline-flex items-center gap-3">
                             {/* ヘッダー・アプリアイコンと共通の公式アパーチャロゴ */}
@@ -84,8 +90,8 @@ export default function Footer() {
                             data-testid="footer-spot-links"
                         >
                             <p className={headingClass} style={headingStyle}>{locale === "en" ? "Photo spots" : "撮影スポット"}</p>
-                            {spotLinks.map(({ href, label }) => (
-                                <Link key={href} href={href} prefetch={false} className={linkClass} style={linkStyle}>{label}</Link>
+                            {spotLinks.map(({ href, label, dest }) => (
+                                <TrackedLink key={href} href={href} navArea="footer" navDest={dest} className={linkClass} style={linkStyle}>{label}</TrackedLink>
                             ))}
                         </nav>
 

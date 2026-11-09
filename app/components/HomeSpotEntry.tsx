@@ -21,11 +21,11 @@
 // 電話は 3 列（札は 2 行: 「神奈川県の」／「撮影スポット 46件」）、sm 以上は 1 行で 3 列・右端に件数、lg は左に地方名を置く。4 列にするのは xl（1280）から（1024 の 4 列だと長い国名が折り返した・Chromium で実測）。
 
 import React from "react";
-import Link from "next/link";
 import type { HomeSpotEntryData } from "@/lib/data/homeSpotEntry";
 import { PREFECTURES, REGIONS } from "@/lib/data/prefectures";
 import { ROUTES } from "@/lib/routes";
 import SectionHead from "./SectionHead";
+import TrackedLink from "./TrackedLink";
 
 const HEADING_ID = "home-spot-entry-h";
 
@@ -33,7 +33,7 @@ const HEADING_ID = "home-spot-entry-h";
 function Row({ href, name, count }: { href: string; name: string; count: number }) {
     return (
         <li>
-            <Link href={href} prefetch={false} className="home-spot-link">
+            <TrackedLink href={href} navArea="home_entry" navDest="area" className="home-spot-link">
                 {/* 電話は「名前の」と「撮影スポット 件数」の2行・sm 以上は1行で件数は右端（`globals.css` の `home-spot-*`） */}
                 <span className="home-spot-text">
                     <span className="home-spot-name">{name}の</span>
@@ -41,7 +41,7 @@ function Row({ href, name, count }: { href: string; name: string; count: number 
                 </span>
                 {" "}
                 <span className="home-spot-count">{count}件</span>
-            </Link>
+            </TrackedLink>
         </li>
     );
 }

@@ -24,6 +24,7 @@ import HomeMosaic from "./components/HomeMosaic";
 import { EmptyState, ErrorState, LoadingState } from "./components/StateViews";
 import HomeTopCards from "./components/HomeTopCards";
 import AppInstallCard from "./components/AppInstallCard";
+import HomeEntryBand from "./components/HomeEntryBand";
 import SpotsEntry from "./components/SpotsEntry";
 import dynamic from "next/dynamic";
 import StickyTabRow from "./components/StickyTabRow";
@@ -714,6 +715,8 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
       {surface === "home" && <HomeTopCards locale={locale === "en" ? "en" : "ja"} photos={PHOTOS} seasonal={seasonalSpots} />}
       {/* アプリのご案内（2026-11-06 owner「目立つところに」）。上段の札のすぐ下＝最初の画面の続きで目に入る位置 */}
       {surface === "home" && <AppInstallCard placement="home" className="mb-4" />}
+      {/* **入口の帯**（2026-11-09 owner「任せる」・提案書 4b の(a)）。アプリの札の下・切り替えの上に文字リンクを1行。写真の並びは動かさない */}
+      {surface === "home" && <HomeEntryBand className="mb-4" />}
 
       {/* 切り替えは写真の一覧の頭。**下へ送ると見出しの下に留まる**（iOS の #417 ⑧ `pinnedFeedRow`・`StickyTabRow`）。
           留まっていればタブを替えるのに上まで戻らなくてよい */}
