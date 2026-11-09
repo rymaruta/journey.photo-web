@@ -171,9 +171,15 @@ type Props = {
    * 台帳はクライアントに持ち込まない（`SpotsEntry` の注記）
    */
   seasonalSpots?: HomeSeasonal | null;
+  /**
+   * ホームの「撮影スポットを地図から探す」（`HomeJapanMap`・2026-11-09・owner の置き場の指示）。
+   * **写真のタブの面より上**（札・アプリの案内の下）に出す——写真の並びが長く、地図に辿り着く前に離れるのを避ける。
+   * `app/page.tsx` が作って渡す（台帳を読むのはサーバー側）。ホームの `surface="home"` だけ
+   */
+  entryMap?: React.ReactNode;
 };
 
-export default function GalleryPageClient({ surface = "home", seasonalSpots = null }: Props) {
+export default function GalleryPageClient({ surface = "home", seasonalSpots = null, entryMap = null }: Props) {
   const { locale, labels } = useLocale();
   const { showToast } = useToast();
   const { photos, loaded: photosLoaded, failed: photosFailed, retry: retryPhotos } = usePhotos();
@@ -714,6 +720,8 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
       {surface === "home" && <HomeTopCards locale={locale === "en" ? "en" : "ja"} photos={PHOTOS} seasonal={seasonalSpots} />}
       {/* アプリのご案内（2026-11-06 owner「目立つところに」）。上段の札のすぐ下＝最初の画面の続きで目に入る位置 */}
       {surface === "home" && <AppInstallCard placement="home" className="mb-4" />}
+      {/* 撮影スポットを地図から探す（2026-11-09）。写真のタブより上＝タブと写真の並びはこの下にそのまま残る */}
+      {surface === "home" && entryMap}
 
       {/* 切り替えは写真の一覧の頭。**下へ送ると見出しの下に留まる**（iOS の #417 ⑧ `pinnedFeedRow`・`StickyTabRow`）。
           留まっていればタブを替えるのに上まで戻らなくてよい */}
