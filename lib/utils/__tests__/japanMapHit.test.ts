@@ -206,6 +206,14 @@ describe("当たり判定: 触れている県を優先する粘り（別の県�
         const [x, y] = INNER.get("tochigi")!;
         const prev: Hit = { k: "pref", slug: "ibaraki" };
         expect(key(pickHit(x, y, ctx("関東"), prev))).toBe("pref:tochigi");
+        // 🔴 粘りの幅（6px）の中でも、形の中なら切り替える: 栃木の形の中・茨城の輪郭から 2.21px の固定の点（関東の画面・s≈6.14）。
+        // 粘りだけで判定すると茨城のまま（`japanMapHit.ts` の「新しい候補が形の中なら粘らない」の行を守る）
+        const [bx, by] = [243.18, 221.54];
+        expect(insideShape("tochigi", bx, by)).toBe(true);
+        const di = prefDistancePx("ibaraki", bx, by, ctx("関東").s);
+        expect(di).toBeGreaterThan(2);
+        expect(di).toBeLessThan(STICK_PX);
+        expect(key(pickHit(bx, by, ctx("関東"), prev))).toBe("pref:tochigi");
     });
 
     it("触れていた県が 16px より遠くなったら、粘らない（どこにも当たらなければ null）", () => {
@@ -246,6 +254,7 @@ describe("当たり判定: 固定のベクトル（docs/home-map-hit-vectors.jso
         const island = g.rings.find((r) => r !== main && r.length >= 6)!;
         add("離島・鹿児島の離島の頂点・九州", "九州", island[0], island[1]);
         add("切り替え・関東の画面の長野の中", "関東", ...INNER.get("nagano")!);
+        add("形の中は粘らない・茨城に触れたまま栃木の形の中（茨城の輪郭から 2.21px）", "関東", 243.18, 221.54, { k: "pref", slug: "ibaraki" });
         // 粘り
         const v = viewFor("関東"), s = scaleOf("関東");
         let found = 0;

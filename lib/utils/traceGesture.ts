@@ -31,7 +31,8 @@ export type TraceWhy = "dwell" | "horizontal" | "orphan" | "mouse";
 export type TraceAbort = "pointercancel" | "second-finger";
 export type TraceMode = "idle" | "pending" | "scroll" | "tracing" | "multi";
 
-export type PointerIn = { id: number; x: number; y: number; type: string; button: number };
+/** `primary` は PointerEvent の isPrimary（最初の指）。渡さなければ判定に使わない */
+export type PointerIn = { id: number; x: number; y: number; type: string; button: number; primary?: boolean };
 
 export type TraceHandlers = {
     /** 押した（長押しの輪の進みを出す）。座標は画面の px */
@@ -71,7 +72,13 @@ export class TraceGesture {
 
     down(p: PointerIn) {
         if (p.button > 0) return;
-        if (this.ids.has(p.id) && this.mode === "idle") this.ids.clear(); // 取りこぼした離しの後始末
+        // 取りこぼした離し（pointerup / cancel が来なかった指）の後始末（2026-11-09 レビュー）:
+        //   - idle で置かれた指は 1 本目。残っている番号は古いので捨てる
+        //   - 最初の指（isPrimary）が置かれたら、ほかに触れている指は無い。multi などの途中状態ごと捨てる
+        if (this.mode === "idle" || p.primary === true) {
+            if (this.mode !== "idle") { this.clear(); this.h.pendingEnd(); if (this.mode === "tracing") this.h.abort("pointercancel"); this.mode = "idle"; this.start = null; }
+            this.ids.clear();
+        }
         this.ids.add(p.id);
         if (this.ids.size > 1) {
             // 2 本目の指: なぞりを取り消す。全部の指が離れるまで何もしない

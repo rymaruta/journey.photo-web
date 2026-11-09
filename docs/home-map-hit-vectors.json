@@ -1174,6 +1174,15 @@
    "expect": "switch:nagano"
   },
   {
+   "id": "形の中は粘らない・茨城に触れたまま栃木の形の中（茨城の輪郭から 2.21px）",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 243.18,
+   "y": 221.54,
+   "prev": "pref:ibaraki",
+   "expect": "pref:tochigi"
+  },
+  {
    "id": "粘り・ibaraki に触れたまま tochigi が 3.2px 近い",
    "stage": "関東",
    "s": 6.140652,

@@ -32,8 +32,8 @@
 //   県の頁へ進んで戻ると同じ県が開いたまま（その県の地方へ自動で拡大）。履歴の書き方は `withNextHistoryState`。
 //   閉じるときは、**自分が積んだ履歴で、積んだときと `location.search` が同じときだけ** back() で消す。違うとき（タブを替えた後など）は差し替え
 //
-// 計測（`nav_click`・`area: home_entry`）: `dest: map_pref_select`（県を選んだ・選び直しも。閉じる操作は数えない）/ `map_sheet_open`（閉じた状態から開いた）/
-// `map_spot`（一覧のスポットを押した）/ `map_pref`（「すべて見る」・新しいタブなどで県の頁へ行った）。
+// 計測（`nav_click`・`area: home_entry`）: `dest: map_pref_select`（県を選んだ・選び直しも。閉じる操作は数えない）/
+// `map_pref`（「すべて見る」・新しいタブなどで県の頁へ行った）。仕様（提案書 v4）に無い「帯が開いた」「スポットを押した」は数えない（2026-11-09 レビュー）。
 // 地方の拡大・なぞり・濃淡は数えない（新しい計測は承認が要る）。県の名前・URL・スポットの slug は送らない。
 
 import React, { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
@@ -175,6 +175,8 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     const revealPending = useRef<string | null>(null);
     /** 開いたのがキーボード・一覧チップなら、一覧（帯）へ焦点を移す（Esc で県へ戻す） */
     const focusSheetPending = useRef(false);
+    /** 初回の手がかり（輪の動き）を止める。地方の拡大・県の選択の頭で呼ぶ（止める関数は下で定義するので ref 越し） */
+    const stopGhostRef = useRef<() => void>(() => {});
 
     const s = wpx / view.w; // 画面の px / 単位
 
@@ -212,6 +214,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
 
     /** 画面を替える。拡大が壊れても（例外）、即時に切り替えて県へは行ける */
     const gotoStage = useCallback((r: RegionName | null, instant = false) => {
+        stopGhostRef.current(); // 2026-11-09: 地方ボタン・一覧で操作したら、輪の動きが強調と札を書き続けない
         setStageBoth(r);
         guard("camTo", () => camTo(viewFor(r), instant), () => setView(viewFor(r)));
     }, [camTo, setStageBoth, setView]);
@@ -256,11 +259,11 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
 
     /** 県を選ぶ（地図・一覧チップ・近くの県・リンクの Enter）。同じ県をもう一度選んでも変化なし。閉じるのは ✕・Esc・海のタップ */
     const selectPref = useCallback((slug: string, byKey = false) => {
+        stopGhostRef.current();
         if (!among.has(slug)) return;
         const cur = selRef.current;
         if (cur === slug) { if (byKey) sheetRef.current?.focus({ preventScroll: true }); return; }
         track("nav_click", { area: "home_entry", dest: "map_pref_select" });
-        if (cur === null) track("nav_click", { area: "home_entry", dest: "map_sheet_open" });
         setSel(slug);
         setRove(slug);
         setAnnounce(`${NAME.get(slug)}を選びました。撮影スポット ${counts.get(slug) ?? 0}件。`);
@@ -272,8 +275,9 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     }, [among, counts, gotoStage, writeUrl]);
 
     /** 地方を拡大して開く（県は選ばない）。開いていた帯は閉じる */
-    const goRegion = useCallback((r: RegionName) => {
-        if (isDirectRegion(r)) { selectPref(r === "北海道" ? "hokkaido" : "okinawa"); return; }
+    const goRegion = useCallback((r: RegionName, byKey = false) => {
+        // キーボードの Enter（byKey）なら、県のリンクの Enter と同じく焦点を帯へ移す
+        if (isDirectRegion(r)) { selectPref(r === "北海道" ? "hokkaido" : "okinawa", byKey); return; }
         if (selRef.current) closeSheet(false);
         gotoStage(r);
         setAnnounce(`${r}を拡大。${membersOf(r).length}県。`);
@@ -431,6 +435,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         ghostRafRef.current = ghostTimerRef.current = null;
         if (ghostOnRef.current) { ghostOnRef.current = false; setGhost(false); setHov(null); fingerRef.current = null; }
     }, [setHov]);
+    stopGhostRef.current = stopGhost;
 
     const updateTrace = useCallback((x: number, y: number) => {
         fingerRef.current = { x, y };
@@ -510,7 +515,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         guard(what, fn, () => { brokenRef.current = true; gestureRef.current?.reset(); latest.current.endTrace(); });
     };
 
-    const pointerIn = (e: React.PointerEvent) => ({ id: e.pointerId, x: e.clientX, y: e.clientY, type: e.pointerType, button: e.button });
+    const pointerIn = (e: React.PointerEvent) => ({ id: e.pointerId, x: e.clientX, y: e.clientY, type: e.pointerType, button: e.button, primary: e.isPrimary });
 
     const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
         stopGhost();
@@ -631,7 +636,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
             } else if ((e.key === "Enter" || e.key === " ") && kb) {
                 e.preventDefault();
                 setKb(null); setHov(null);
-                goRegion(kb);
+                goRegion(kb, true);
             }
             return;
         }
@@ -922,13 +927,13 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                                 <ul className="jm-spots m-0 mt-2 p-0 list-none" data-testid="home-japan-map-spots">
                                     {selTops.map((t) => (
                                         <li key={t[0]}>
-                                            <TrackedLink href={`/spots/${t[0]}`} className="jm-spot" navArea="home_entry" navDest="map_spot" onClick={rememberMap}>
+                                            <Link href={`/spots/${t[0]}`} prefetch={false} className="jm-spot" onClick={rememberMap}>
                                                 <span className="min-w-0">
                                                     <span className="block truncate font-semibold text-white" style={{ fontSize: "15px", lineHeight: "20px" }}>{t[1]}</span>
                                                     {t[2] && <span className="block truncate text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>{t[2]}</span>}
                                                 </span>
                                                 <span aria-hidden="true" className="text-text-3">›</span>
-                                            </TrackedLink>
+                                            </Link>
                                         </li>
                                     ))}
                                 </ul>

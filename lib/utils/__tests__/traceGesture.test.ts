@@ -190,3 +190,30 @@ describe("なぞり判定: 取り消し・マウス・複数の指", () => {
         expect(g.mode).toBe("idle");
     });
 });
+
+describe("なぞり判定: 離した知らせ（pointerup / cancel）を取りこぼしたあと", () => {
+    it("🔴 idle に古い指の番号が残っていても、次に置いた 1 本の指は 2 本目扱いにならず、長押しでなぞれる", () => {
+        const { g, p, kinds } = rig();
+        (g as unknown as { ids: Set<number> }).ids.add(9); // 取りこぼした指（離した知らせが来なかった）
+        expect(g.mode).toBe("idle");
+        g.down(p(100, 200, 1));
+        expect(g.mode).toBe("pending");
+        vi.advanceTimersByTime(250);
+        expect(kinds()).toEqual(["begin dwell"]);
+    });
+
+    it("🔴 2 本指のあと片方の離しを取りこぼして multi のまま残っても、最初の指（isPrimary）を置けば普通に始まる", () => {
+        const { g, p, kinds } = rig();
+        g.down(p(100, 200, 1));
+        g.down(p(150, 250, 2));
+        g.up(p(150, 250, 2), false); // 指 1 の離しは来なかった
+        expect(g.mode).toBe("multi");
+        g.down({ ...p(100, 200, 3), primary: true });
+        expect(g.mode).toBe("pending");
+        vi.advanceTimersByTime(250);
+        expect(kinds()).toEqual(["begin dwell"]);
+        // isPrimary でない 2 本目は、これまでどおり 2 本目扱い
+        g.down({ ...p(160, 260, 4), primary: false });
+        expect(g.mode).toBe("multi");
+    });
+});
