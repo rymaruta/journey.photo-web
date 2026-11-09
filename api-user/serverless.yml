@@ -1174,7 +1174,7 @@ functions:
             name: cognitoAuthorizer
 
   # DM 第1段（2026-11-09・札 #505）。文字だけ・1対1・ストーリーへの返信から始まる会話。
-  # **9つの口を1つの関数に束ねる**（`dm.handler` が `event.routeKey` で分ける）。部品の数が
+  # **10の口を1つの関数に束ねる**（`dm.handler` が `event.routeKey` で分ける）。部品の数が
   # 上限 500 に近いので、関数ごとの部品（関数・ロググループ・統合・許可）を増やさない——`trunk` と同じ。
   # **全部認証必要**・`PublicReadRole` には載せない（書き込みがある）。
   # **プッシュの鍵は送る口（DM を送る）があるのでこの関数に配る**（provider には置かない・IAM-2。
@@ -1234,6 +1234,11 @@ functions:
       - httpApi:
           path: /dm/{id}/report
           method: POST
+          authorizer:
+            name: cognitoAuthorizer
+      - httpApi:
+          path: /dm/requests
+          method: DELETE
           authorizer:
             name: cognitoAuthorizer
 

@@ -232,7 +232,7 @@ export async function readApiError(res: Response, fallback: string): Promise<str
 
 ⚠️ 管理者の判定は `cognito:groups` に `admin` があるか（`api/src/auth.ts` の `isAdmin`）。
 
-### ユーザーAPI（`NEXT_PUBLIC_USER_API_BASE_URL`）— 90口
+### ユーザーAPI（`NEXT_PUBLIC_USER_API_BASE_URL`）— 91口
 
 **認証が要らないのは7口だけ**（`PublicReadRole`＝読み取り専用のロールで動く。`/feed` だけは索引を読むので専用の `PublicFeedRole`）:
 
@@ -276,14 +276,20 @@ export async function readApiError(res: Response, fallback: string): Promise<str
 `POST /stories/{id}/vote` / `POST /stories/{id}/keep` / `GET /stories/archive`
 
 **DM（メッセージ）** ※2026-11-09 追加・**本番未反映**（第1段・札 journey.photo-ios #505・`api-user/src/dm.ts` / `dmInbox.ts`。
-**9口を1関数 `dm.handler` に束ねている**（`event.routeKey` で分ける。部品の数が上限に近いため）。全部認証必要）
+**10口を1関数 `dm.handler` に束ねている**（`event.routeKey` で分ける。部品の数が上限に近いため）。全部認証必要）
 `POST /dm`（会話の開始・続き。本文 `{to, text, id?}`。`id` は再送で二重に入れないための鍵）/
 `POST /dm/{id}/messages`（続き。`{text, id?}`）/ `GET /dm`（受信箱。リクエストも同じ一覧で `state` で分ける）/
 `GET /dm/{id}?since=<ISO>`（会話。変化なしは `{unchanged:true, items:[]}`）/ `PUT /dm/{id}/read` /
 `DELETE /dm/{id}`（自分の側だけ消す・両側が消えたら本体を物理削除）/
 `POST /dm/{id}/accept`（リクエストを承認）/ `DELETE /dm/{id}/request`（リクエストを削除＝断る）/
+`DELETE /dm/requests`（受け取ったリクエストを全部断る。応答 `{ok, removed}`）/
 `POST /dm/{id}/report`（通報。理由は `REPORT_REASONS`＋`minor`＝未成年へのいやな接触・誘い出し。通報時点の直近20通を写す）
 
+- **枠**: ふつうの会話は1人200（`pending`＝自分が送った側を含む）・**受け取るリクエストは別枠で50**（溢れたら新しいリクエストを断る＝送り主に 409 `unavailable`。古いリクエストの自動削除はしない）。受信箱の行数は合計250が最後の歯止め
+- **同じ id の再送**: 受信箱の行に `lastId` を持たせ、「行の `t` がこの通以前・`lastId` がこの通の id ではない」ときだけ更新する（未読の二重加算・古い通での巻き戻しを防ぐ）。行が無いときは、相手（自分）が消した時刻がこの通より後なら作らない（復活させない）
+- **本体の追記の条件**: `size(#items) = :len AND updatedAt = :prev`（200通/40KB で古い方を落とす書き込みどうしの取り合いで、先の1通が消えない）
+- **送り主に見える状態**: リクエストでも直行でも、相手が話す（か承認する）まで `pending`。会話の最初の1通は、関係に依らず URL を断る（400 `requestUrl`）。残る差（`requestRemaining`・4通目の 429・2通目以降の URL 拒否）は報告に記載
+- **断った印 `dec_`** は100人まで（越えるときは通数の小さいものから外す）
 - **会話 ID** は `<小さい uid>_<大きい uid>`（2人から一意）。`POST /dm` の応答の `conversationId` と、受信箱の `items[].id`
 - **行の種類（単一テーブル・GSI/TTL は作らない）**: `dm#<小さい>#<大きい>`（メッセージの輪 最大200通・約40KB・会話の状態）/
   `dminbox#<uid>`（map `convs.<会話ID>` ＝ `{peer, t, excerpt, unread, state}`・1人200会話まで。溢れたら**新しい会話を断る**（409 `selfFull`／相手側は `unavailable`））/
@@ -718,7 +724,7 @@ const { success, photo } = await r3.json();
 | ストーリー | 24時間に20本 | `stories.ts` |
 | ストーリーの文字 | 5つ・1つ200文字 | `storyText.ts` |
 | ストーリーの返信 | 200件 | `storyReplies.ts` |
-| DM | 会話1つ 200通・約40KB／1人200会話／リクエスト 承認まで3通／1日 新規20人・送信300通／1通 500文字／通報の写し 直近20通 | `dm.ts`・`dmInbox.ts` |
+| DM | 会話1つ 200通・約40KB／1人200会話＋受け取るリクエスト50／リクエスト 承認まで3通／1日 新規20人・送信300通／1通 500文字／通報の写し 直近20通 | `dm.ts`・`dmInbox.ts` |
 | 通知 | 50件（古いものから押し出す） | `notify.ts` |
 | フォロー中の一覧 | 2000人 | `follow.ts` |
 | ブロック | 500人 | `block.ts` |

@@ -15,8 +15,9 @@ import { readLiveCaller } from "./liveCaller";
 import { isReportReason, REPORT_NOTE_MAX } from "./report";
 import { isDeletedProfile } from "./types";
 import {
-    DM_CONVS_MAX, DM_EXCERPT_MAX, dmInboxId, declinedAttr, readDmInbox, unreadConvCount,
-    type DmEntry, type DmEntryState,
+    DM_CONVS_MAX, DM_REQUESTS_MAX, DM_INBOX_HARD_MAX, DM_DECLINED_MAX, slotCounts,
+    DM_EXCERPT_MAX, dmInboxId, declinedAttr, readDmInbox, unreadConvCount,
+    type DmEntryState,
 } from "./dmInbox";
 
 /**
@@ -119,20 +120,36 @@ export function cleanDmText(v: unknown): string {
     const t = v
         .replace(/\r\n?/g, "\n")
         .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, "")
+        // ゼロ幅・方向制御・ソフトハイフン（URL 判定をすり抜ける・見た目の無い本文を作れる）
+        .replace(INVISIBLE, "")
         .replace(/\n{3,}/g, "\n\n")
         .trim();
     return t ? truncate(t, DM_TEXT_MAX) : "";
 }
 
+/** U+200B-200F・202A-202E・2060・2066-2069・FEFF・00AD */
+const INVISIBLE = /[\u200B-\u200F\u202A-\u202E\u2060\u2066-\u2069\uFEFF\u00AD]/g;
+
+const TLDS = "com|net|org|jp|io|co|me|ly|gl|link|app|dev|xyz|info|biz|cc|tv|to|us|uk|ru|cn|site|online|shop|top|club"
+    + "|gg|be|ee|asia|ink|page|live|store|tech";
+/** 前後に空白を挟んでも拾う末尾（普通の文の「…です. To be」を拾わないよう、誤爆しにくいものだけ） */
+const SPACED_TLDS = "com|net|org|jp|io|co|ly|gl|link|xyz|info|biz|cc|tv|gg|asia|shop|site|online";
+
 /**
  * URL（に見える文字列）を含むか。**リクエストの段階だけ**で使う（承認後はリンクを送ってよい）。
- * 全角・半角の揺れを NFKC でそろえてから見る。スキーム・`www.`・よくあるドメインの末尾を拾う
- * ——完全には防げない（承認前の3通までという上限が本体の歯止めで、これは安い一次の網）。
+ * 全角・半角の揺れを NFKC でそろえ、見えない文字を落とし、「example。com」「example . com」
+ * 「example[.]com」「example(dot)com」の言い換えも点に直してから見る。スキーム・`www.`・よくあるドメインの末尾
+ * （`discord.gg`・`youtu.be`・`lin.ee`・`amzn.asia`・`bit.ly`・`t.co` など）を拾う。
+ * **完全には防げない。本体の歯止めは「承認前は3通まで」で、これは安い一次の網。**
  */
 export function containsUrl(text: string): boolean {
-    const t = text.normalize("NFKC");
+    const t = text.normalize("NFKC").replace(INVISIBLE, "")
+        .replace(/[。｡]/g, ".")
+        .replace(/\s*[\[(<{【（]\s*(?:\.|dot|ドット)\s*[\])>}】）]\s*/gi, ".")
+        .replace(/\s+dot\s+/gi, ".");
     return /(?:https?|ftp):\/\/|www\./i.test(t)
-        || /\b[a-z0-9-]+(?:\.[a-z0-9-]+)*\.(?:com|net|org|jp|io|co|me|ly|gl|link|app|dev|xyz|info|biz|cc|tv|to|us|uk|ru|cn|site|online|shop|top|club)\b/i.test(t);
+        || new RegExp(`\\b[a-z0-9-]+(?:\\.[a-z0-9-]+)*\\.(?:${TLDS})\\b`, "i").test(t)
+        || new RegExp(`\\b[a-z0-9-]+(?:\\s*\\.\\s*[a-z0-9-]+)*\\s*\\.\\s*(?:${SPACED_TLDS})\\b`, "i").test(t);
 }
 
 // ---------------------------------------------------------------------------
@@ -198,13 +215,22 @@ export class InboxFullError extends Error {
 /**
  * 受信箱の1行を書く。**既にある行は原子的に更新する**（未読は `if_not_exists + :one`——読んでから
  * 書く形だと、同時に2通届いたとき1通ぶんが消える）。無ければ作る（`convs` の map が無い人は先に作る）。
- * 作るときだけ `size(convs) < DM_CONVS_MAX` を条件にして、**溢れたら `InboxFullError`**。
+ * 作るときだけ `size(convs) < DM_INBOX_HARD_MAX` を条件にして、**溢れたら `InboxFullError`**
+ * （枠ごとの数え方は呼ぶ前に済ませてある。これは競り合いで枠を越えたときの最後の歯止め）。
+ *
+ * **同じメッセージで二度更新しない**: 行に `lastId` を持たせ、更新の条件を
+ * 「行の `t` がこの通以前、かつ `lastId` がこの通の id ではない」にする。応答が落ちて同じ id が再送されても
+ * 未読は二重に加算されず、古い通の再送で抜粋・時刻が巻き戻ることも無い。
+ * **行が無いとき**（相手が消した・まだ作っていない）は `canCreate` のときだけ作る——重複の再送で、
+ * 消された会話の行を復活させない。
  */
 async function upsertEntry(
     uid: string,
     convId: string,
     e: { peer: string; t: string; excerpt: string; state: DmEntryState },
     bump: boolean,
+    msgId: string,
+    canCreate = true,
 ): Promise<void> {
     const key = { id: dmInboxId(uid) };
     for (let i = 0; i < WRITE_RETRIES; i++) {
@@ -213,26 +239,30 @@ async function upsertEntry(
                 TableName: PHOTOS_TABLE,
                 Key: key,
                 UpdateExpression:
-                    "SET convs.#c.#peer = :peer, convs.#c.#t = :t, convs.#c.#x = :x, convs.#c.#s = :s, "
+                    "SET convs.#c.#peer = :peer, convs.#c.#t = :t, convs.#c.#x = :x, convs.#c.#s = :s, convs.#c.#lid = :id, "
                     + `convs.#c.#u = ${bump ? "if_not_exists(convs.#c.#u, :z) + :one" : ":z"}, updatedAt = :t`,
-                ConditionExpression: "attribute_exists(convs.#c)",
-                ExpressionAttributeNames: { "#c": convId, "#peer": "peer", "#t": "t", "#x": "excerpt", "#s": "state", "#u": "unread" },
+                ConditionExpression:
+                    "attribute_exists(convs.#c) AND convs.#c.#t <= :t AND (attribute_not_exists(convs.#c.#lid) OR convs.#c.#lid <> :id)",
+                ExpressionAttributeNames: { "#c": convId, "#peer": "peer", "#t": "t", "#x": "excerpt", "#s": "state", "#u": "unread", "#lid": "lastId" },
                 ExpressionAttributeValues: {
-                    ":peer": e.peer, ":t": e.t, ":x": e.excerpt, ":s": e.state, ":z": 0, ...(bump ? { ":one": 1 } : {}),
+                    ":peer": e.peer, ":t": e.t, ":x": e.excerpt, ":s": e.state, ":z": 0, ":id": msgId, ...(bump ? { ":one": 1 } : {}),
                 },
             }));
             return;
         } catch (err) {
             if (!isCcf(err)) throw err;
         }
-        // 行が無い。`convs` の map を先に用意してから、上限つきで1行を足す
+        // 条件が外れた。行が在る＝この通は反映済み・もっと新しい通が入っている（何もしない）。無ければ作る
+        const present = await readDmInbox(uid, true);
+        if (present.convs[convId]) return;
+        if (!canCreate) return;
         await ddb.send(new UpdateCommand({
             TableName: PHOTOS_TABLE,
             Key: key,
             UpdateExpression: "SET convs = if_not_exists(convs, :empty), uid = :uid, updatedAt = :t",
             ExpressionAttributeValues: { ":empty": {}, ":uid": uid, ":t": e.t },
         }));
-        const entry: DmEntry = { peer: e.peer, t: e.t, excerpt: e.excerpt, unread: bump ? 1 : 0, state: e.state };
+        const entry = { peer: e.peer, t: e.t, excerpt: e.excerpt, unread: bump ? 1 : 0, state: e.state, lastId: msgId };
         try {
             await ddb.send(new UpdateCommand({
                 TableName: PHOTOS_TABLE,
@@ -240,7 +270,7 @@ async function upsertEntry(
                 UpdateExpression: "SET convs.#c = :entry",
                 ConditionExpression: "attribute_not_exists(convs.#c) AND size(convs) < :cap",
                 ExpressionAttributeNames: { "#c": convId },
-                ExpressionAttributeValues: { ":entry": entry, ":cap": DM_CONVS_MAX },
+                ExpressionAttributeValues: { ":entry": entry, ":cap": DM_INBOX_HARD_MAX },
             }));
             return;
         } catch (err) {
@@ -301,25 +331,27 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
 
     const [myBox, theirBox] = await Promise.all([readDmInbox(me, true), readDmInbox(to, true)]);
     // 上限は新しい会話（その人の受信箱に行が無い）だけ断る
-    if (!myBox.convs[convId] && Object.keys(myBox.convs).length >= DM_CONVS_MAX) {
+    // **自分の枠はふつうの会話の数**（リクエストを受けた数は別枠）。相手の枠は、振り分けが決まってから見る
+    if (!myBox.convs[convId] && slotCounts(myBox.convs).normal >= DM_CONVS_MAX) {
         return fail(409, `会話が${DM_CONVS_MAX}件に達しています。不要な会話を削除してください`, "selfFull");
     }
-    if (!theirBox.convs[convId] && Object.keys(theirBox.convs).length >= DM_CONVS_MAX) {
-        return fail(409, "いま送れません", "unavailable");
-    }
 
-    const now = new Date().toISOString();
-    let message: DmMessage = { id: msgId, from: me, text, t: now, ...(inp.via ? { via: inp.via } : {}) };
+    let message: DmMessage = { id: msgId, from: me, text, t: "", ...(inp.via ? { via: inp.via } : {}) };
 
     let followsRecipient: boolean | null = null;   // 自分が相手をフォローしているか（門）
     let autoInbox: boolean | null = null;          // 相手が自分をフォロー or 親しい友達か
     let reserved = false;
     let after: { state: ConvState; initiator: string } | null = null;
     let duplicate = false;
+    let peerSpoke = false;   // 相手がこの会話で話したことがあるか（送り主に見せる状態を決める）
 
     for (let attempt = 0; attempt <= WRITE_RETRIES; attempt++) {
         if (attempt === WRITE_RETRIES) return fail(409, "混み合っています。もう一度お試しください", "busy");
         const conv = await readConv(lo, hi);
+        // **時刻は試行ごとに取り直す**（やり直しで古い時刻のまま書くと、`since` で読む側が取りこぼす）
+        const now = new Date().toISOString();
+        message = { ...message, t: now };
+        peerSpoke = !!conv?.items.some((m) => m.from === to);
 
         // **前回の追記が通っていたら、もう足さない**（応答が失われて再送されたとき。`storyReplies.ts` と同じ）
         const stored = conv?.items.find((m) => m.id === msgId);
@@ -341,8 +373,10 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
             if (!followsRecipient) return fail(404, "相手が見つかりません", "notFound");
             autoInbox ??= (await isFollowing(me, to)) || await isCloseFriendOf(to, me);
             nextState = autoInbox ? "inbox" : "request";
+            // **会話の最初の1通は、相手との関係に依らず URL を断る**（断るかどうかで「相手がフォローしてくれているか」
+            // が分からないように。承認後・2通目以降の扱いは下）
+            if (containsUrl(text)) return fail(400, "最初のメッセージにはリンクを入れられません", "requestUrl");
             if (nextState === "request") {
-                if (containsUrl(text)) return fail(400, "承認されるまではリンクを送れません", "requestUrl");
                 // 断られたあとの再送でも、送った通数は戻らない（`dec_<送り主>`）
                 const prior = theirBox.declined[me] ?? 0;
                 if (prior >= DM_REQUEST_MAX) return fail(429, `承認されるまでは${DM_REQUEST_MAX}通までです`, "requestLimit");
@@ -361,6 +395,15 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
             }
         } else {
             nextState = "inbox";
+        }
+
+        // 相手の枠（リクエストは別枠）。**書く前に断る**（本体が入ってから 409 にしない）
+        const theirStateNow: DmEntryState = nextState === "request" ? "request" : "inbox";
+        if (!theirBox.convs[convId]) {
+            const used = slotCounts(theirBox.convs);
+            if ((theirStateNow === "request" ? used.requests >= DM_REQUESTS_MAX : used.normal >= DM_CONVS_MAX)) {
+                return fail(409, "いま送れません", "unavailable");
+            }
         }
 
         // --- 歯止め（最初の1回だけ加算する） ---
@@ -393,10 +436,12 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
                         `SET #items = ${trimmed ? ":kept" : "list_append(#items, :new)"}, updatedAt = :now`
                         + (setInbox ? ", #state = :inbox" : "")
                         + (bumpReq ? ", reqCount = if_not_exists(reqCount, :z) + :one" : ""),
-                    ConditionExpression: "size(#items) = :len",
+                    // 長さだけでは、200通/40KB で古い方を落とす書き込みどうしが同じ長さのまま通り、
+                    // 先の1通が消える。**最後に書かれた時刻（`updatedAt`）も条件にする**
+                    ConditionExpression: "size(#items) = :len AND updatedAt = :prev",
                     ExpressionAttributeNames: { "#items": "items", ...(setInbox ? { "#state": "state" } : {}) },
                     ExpressionAttributeValues: {
-                        ":now": now, ":len": conv.items.length,
+                        ":now": now, ":len": conv.items.length, ":prev": conv.updatedAt,
                         ...(trimmed ? { ":kept": kept } : { ":new": [message] }),
                         ...(setInbox ? { ":inbox": "inbox" } : {}),
                         ...(bumpReq ? { ":z": 0, ":one": 1 } : {}),
@@ -416,10 +461,20 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     const excerpt = truncate(text.replace(/\s+/g, " "), DM_EXCERPT_MAX);
     const requestOpen = after.state === "request";
     const theirState: DmEntryState = requestOpen ? "request" : "inbox";
-    const myState: DmEntryState = requestOpen ? "pending" : "inbox";
+    // **送り主に見せる状態は、リクエストでも受信箱直行でも同じ形**（`pending`＝相手が話すか承認するまで）。
+    // 相手が自分をフォローしているか・親しい友達にしているかを、状態の違いから読み取らせない
+    const myState: DmEntryState = requestOpen || (after.initiator === me && !peerSpoke) ? "pending" : "inbox";
+    // 重複の再送では、相手・自分の側が会話を消したあとに行を作り直さない（消した時刻が、この通より後なら作らない）
+    let canCreateTheirs = true;
+    let canCreateMine = true;
+    if (duplicate) {
+        const cur = await readConv(lo, hi);
+        canCreateTheirs = !cur || clearedAtOf(cur, to) < message.t;
+        canCreateMine = !cur || clearedAtOf(cur, me) < message.t;
+    }
     try {
-        await upsertEntry(to, convId, { peer: me, t: message.t, excerpt, state: theirState }, true);
-        await upsertEntry(me, convId, { peer: to, t: message.t, excerpt, state: myState }, false);
+        await upsertEntry(to, convId, { peer: me, t: message.t, excerpt, state: theirState }, true, message.id, canCreateTheirs);
+        await upsertEntry(me, convId, { peer: to, t: message.t, excerpt, state: myState }, false, message.id, canCreateMine);
     } catch (e) {
         if (e instanceof InboxFullError) {
             return fail(409, e.uid === me ? `会話が${DM_CONVS_MAX}件に達しています。不要な会話を削除してください` : "いま送れません",
@@ -697,17 +752,29 @@ export async function removeConversation(uid: string, convId: string | undefined
 
     if (!mode.account) {
         const declining = entry?.state === "request" && conv !== null && conv.initiator !== uid;
+        // 断った印は DM_DECLINED_MAX 人まで。越えるなら、通数の小さい（上限に届いていない）ものから外す
+        const evict: string[] = [];
+        if (declining && box.declined[peer] === undefined) {
+            const others = Object.entries(box.declined).sort((x, y) => x[1] - y[1]);
+            for (let i = 0; i < others.length - (DM_DECLINED_MAX - 1); i++) evict.push(others[i][0]);
+        }
         try {
             await ddb.send(new UpdateCommand({
                 TableName: PHOTOS_TABLE,
                 Key: { id: dmInboxId(uid) },
-                UpdateExpression: "REMOVE convs.#c" + (declining ? " SET #dec = :n" : ""),
-                ExpressionAttributeNames: { "#c": convId!, ...(declining ? { "#dec": declinedAttr(peer) } : {}) },
+                UpdateExpression: "REMOVE convs.#c" + evict.map((_, i) => `, #ev${i}`).join("") + (declining ? " SET #dec = :n" : ""),
+                ExpressionAttributeNames: {
+                    "#c": convId!, ...(declining ? { "#dec": declinedAttr(peer) } : {}),
+                    ...Object.fromEntries(evict.map((u, i) => [`#ev${i}`, declinedAttr(u)])),
+                },
                 ...(declining ? { ExpressionAttributeValues: { ":n": Math.max(conv!.reqCount, box.declined[peer] ?? 0) } } : {}),
             }));
         } catch (e) {
             // 受信箱の行（map）がまだ無い人。外すものが無い
-            if ((e as { name?: string })?.name !== "ValidationException") throw e;
+            // 式の誤りまで隠さないよう、「経路（map）が無い」という種類の失敗だけを通す
+            const isMissingPath = (e as { name?: string })?.name === "ValidationException"
+                && /document path/i.test((e as { message?: string })?.message ?? "");
+            if (!isMissingPath) throw e;
         }
     }
 
@@ -740,6 +807,22 @@ export async function removeConversation(uid: string, convId: string | undefined
         })).catch((e) => { if (!isCcf(e)) throw e; });
     }
     return { status: 200 };
+}
+
+/** 受け取ったリクエストを全部削除する（断る）。1件ずつ `removeConversation` と同じ扱い（断った印も残る） */
+async function removeAllRequests(uid: string) {
+    const box = await readDmInbox(uid, true);
+    const ids = Object.entries(box.convs).filter(([, e]) => e.state === "request").map(([id]) => id);
+    let removed = 0;
+    for (let i = 0; i < ids.length; i += 5) {
+        const rs = await Promise.all(ids.slice(i, i + 5).map((id) =>
+            removeConversation(uid, id, { requestOnly: true }).catch((e) => {
+                console.error("removeAllRequests: 外せませんでした:", errName(e));
+                return { status: 500 };
+            })));
+        removed += rs.filter((r) => r.status === 200).length;
+    }
+    return okJson({ ok: true, removed });
 }
 
 async function reportConversation(uid: string, convId: string | undefined, body: { reason?: unknown; note?: unknown }) {
@@ -781,10 +864,16 @@ async function reportConversation(uid: string, convId: string | undefined, body:
  * 1日の歯止めの行は今日と昨日だけ消す（日付ごとの行を列挙する索引が無い。中身は数だけ）。
  * **失敗しても退会は止めない**（呼ぶ側が握る）。
  */
-export async function purgeDmFor(uid: string): Promise<void> {
+export async function purgeDmFor(uid: string, budgetMs = 8000): Promise<void> {
+    const deadline = Date.now() + budgetMs;
     const box = await readDmInbox(uid, true);
     const ids = Object.keys(box.convs);
     for (let i = 0; i < ids.length; i += 10) {
+        // **時間の予算**: 残りが無ければ打ち切る。受信箱の行を残すので、再実行すれば続きから拾える
+        if (Date.now() > deadline) {
+            console.error(`purgeDmFor: 時間切れで打ち切りました（残り ${ids.length - i} 件）`);
+            return;
+        }
         await Promise.all(ids.slice(i, i + 10).map((id) =>
             removeConversation(uid, id, { account: true })
                 .catch((e) => console.error("purgeDmFor: 会話を外せませんでした:", errName(e)))));
@@ -824,6 +913,7 @@ const sendResult = (r: SendOk | SendFail) => r.ok
  *     DELETE /dm/{id}               自分の側だけ消す
  *     POST   /dm/{id}/accept        リクエストを承認
  *     DELETE /dm/{id}/request       リクエストを削除（断る）
+ *     DELETE /dm/requests           リクエストを全部削除（断る）
  *     POST   /dm/{id}/report        通報（直近20通の写しを残す）
  *
  * 書く口は退会した本人に 410（`liveCaller.ts`）。**DELETE は削除の系統として通す**
@@ -847,6 +937,7 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
         if (route === "GET /dm/{id}") return await getConversation(uid, id, event.queryStringParameters?.since);
         if (route === "PUT /dm/{id}/read") return await markRead(uid, id);
         if (route === "POST /dm/{id}/accept") return await acceptRequest(uid, id);
+        if (route === "DELETE /dm/requests") return await removeAllRequests(uid);
         if (route === "DELETE /dm/{id}" || route === "DELETE /dm/{id}/request") {
             const r = await removeConversation(uid, id, { requestOnly: route.endsWith("/request") });
             return r.status === 200 ? okJson({ ok: true }) : jsonError(r.status, r.error ?? "失敗しました");

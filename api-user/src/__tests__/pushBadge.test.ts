@@ -249,6 +249,15 @@ describe("DM のプッシュとバッジ", () => {
         expect(badgeSent(), "ベルの未読1 ＋ 未読のある会話2").toBe(3);
     });
 
+    it("🔴 バッジ用の受信箱は強い読み（送った直後に、いま足した未読を見落とさない）", async () => {
+        world({ c1: entry(OK) }, { unread: 0, items: [] });
+        await pushDmMessage(ME, { byName: "旅人A", byId: OK, convId: "c1" });
+        const gets = mockDdbSend.mock.calls.map((c) => c[0] as { constructor: { name: string }; input: { Key?: { id?: string }; ConsistentRead?: boolean } })
+            .filter((c) => c.constructor.name === "GetCommand" && c.input.Key?.id === `dminbox#${ME}`);
+        expect(gets.length).toBeGreaterThan(0);
+        for (const g of gets) expect(g.input.ConsistentRead, "結果整合の読みで数えている").toBe(true);
+    });
+
     it("受信箱が読めなくても送る（会話のぶんは 0）・設定が無ければ何も引かない", async () => {
         mockDdbSend.mockImplementation((cmd: { constructor: { name: string }; input: { Key?: { id?: string } } }) =>
             String(cmd.input.Key?.id ?? "").startsWith("dminbox#") ? Promise.reject(new Error("boom")) : Promise.resolve({}));
