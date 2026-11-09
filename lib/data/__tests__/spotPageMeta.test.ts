@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import rawLedger from "../../../content/spots.json";
 import type { Spot } from "../spots";
-import { spotPageTitle, spotPageDescription, spotCheckedClaim, spotWhere, titleWidth, SPOT_TITLE_MAX, isClosureSeasonText } from "../spotPageMeta";
+import { spotPageTitle, spotPageDescription, spotCheckedClaim, spotWhere, titleWidth, SPOT_TITLE_MAX, isClosureSeasonText, SPOT_DESCRIPTION_TARGET, SPOT_DESCRIPTION_MAX } from "../spotPageMeta";
 import { SEASON_JA } from "../spotTopics";
 import { isPublished } from "../../utils/spotGuide";
 
@@ -78,14 +78,18 @@ describe("description（押す理由を頭・Wikipedia 由来の紹介文は後�
 
     it("頭に「〇〇の写真・撮影地ガイド。」と作例の節の枚数・光の表、紹介文は最後", () => {
         const d = spotPageDescription(plain, { light: true, samples: 5, cover: true });
-        expect(d).toBe(`姫路城の写真・撮影地ガイド。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${base.summary}`);
-        expect(d.indexOf("作例5枚")).toBeLessThan(d.indexOf(base.summary!));
+        // 2026-11-09: 約120字に収める。紹介文は文ごとに入れ、収まらない文は入れない（途中で切らない）
+        const [s1, s2] = base.summary!.split("。");
+        expect(d).toBe(`姫路城の写真・撮影地ガイド。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${s1}。${s2}。`);
+        expect(d.indexOf("作例5枚")).toBeLessThan(d.indexOf(s1));
     });
 
     it("無いものは書かない（作例0枚なら作例を書かない・写真が無ければ「写真」と名乗らない）", () => {
-        expect(spotPageDescription(plain, { samples: 0, cover: true })).toBe(`姫路城の写真・撮影地ガイド。${base.summary}`);
+        const [s1, s2, s3] = base.summary!.split("。");
+        // 列挙が無いぶん紹介文が3文とも入る（それでも約120字以内）
+        expect(spotPageDescription(plain, { samples: 0, cover: true })).toBe(`姫路城の写真・撮影地ガイド。${s1}。${s2}。${s3}。`);
         const none = spotPageDescription(plain, { samples: 0, cover: false });
-        expect(none).toBe(`姫路城の撮影地ガイド。${base.summary}`);
+        expect(none).toBe(`姫路城の撮影地ガイド。${s1}。${s2}。${s3}。`);
         expect(none).not.toContain("作例");
     });
 
@@ -94,7 +98,8 @@ describe("description（押す理由を頭・Wikipedia 由来の紹介文は後�
             { ...base, seasonalGuide: [{ season: "winter", text: "氷柱" }, { season: "spring", text: "桜" }] as unknown as Spot["seasonalGuide"], timeOfDayGuide: [{ time: "morning", text: "順光" }] as unknown as Spot["timeOfDayGuide"] },
             { samples: 1, computed: "日の入りは6月が西北西寄り、12月が西南西寄り" },
         );
-        expect(d).toBe(`姫路城の写真・撮影地ガイド。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${base.summary}`);
+        const [s1, s2] = base.summary!.split("。");
+        expect(d).toBe(`姫路城の写真・撮影地ガイド。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${s1}。${s2}。`);
     });
 
     it("🔴 閉鎖・運休・見学できない季節は並べない（公開中の台帳の実例で）", () => {
@@ -121,6 +126,60 @@ describe("description（押す理由を頭・Wikipedia 由来の紹介文は後�
 
     it("下書きは頭でそう名乗る", () => {
         expect(spotPageDescription({ ...base, status: "review" }, {}).startsWith("【下書き・運営未確認】")).toBe(true);
+    });
+});
+
+describe("description の長さ（2026-11-09: 約120字・文の途中で切らない）", () => {
+    const len = (t: string) => [...t].length;
+    const plain = { ...base, seasonalGuide: undefined, timeOfDayGuide: undefined };
+    // 短い紹介文に差し替えた行は公開の条件を外れて下書きの印が付くので、本文だけを比べる
+    const body = (d: string) => d.replace(/^【下書き・運営未確認】/, "");
+    const full = { samples: 5, cover: true, light: true, computed: "日の入りは6月が西北西寄り、12月が西南西寄り。天の川の中心は2〜10月の夜。" };
+
+    it("公開中の全行で、上限（140字）を超えず、文の終わりで終わる", () => {
+        const rows = ledger.filter(isPublished);
+        expect(rows.length, "台帳が空（見張りが空回りしている）").toBeGreaterThan(100);
+        for (const s of rows) {
+            const d = spotPageDescription(s, full);
+            expect(len(d), s.slug).toBeLessThanOrEqual(SPOT_DESCRIPTION_MAX);
+            expect(d, s.slug).toMatch(/[。…]$/);
+        }
+    });
+
+    it("全行の約9割が約120字（目標）に収まる・160字超は0", () => {
+        const rows = ledger.filter(isPublished);
+        const lens = rows.map((s) => len(spotPageDescription(s, full)));
+        expect(lens.filter((n) => n > 160)).toHaveLength(0);
+        const within = lens.filter((n) => n <= SPOT_DESCRIPTION_TARGET).length / lens.length;
+        expect(within, "目標内の割合").toBeGreaterThan(0.9);
+    });
+
+    it("紹介文の最初の1文は必ず入る（長ければ列挙・計算の要約を先に落とす）", () => {
+        const long1 = `${"あ".repeat(100)}です。次の文です。`;
+        const d = spotPageDescription({ ...plain, summary: long1 }, full);
+        expect(d).toContain(`${"あ".repeat(100)}です。`);
+        expect(d).not.toContain("次の文です");
+        expect(d).not.toContain("日の入りは"); // 計算の要約は収まらないので落ちる
+        expect(len(d)).toBeLessThanOrEqual(SPOT_DESCRIPTION_MAX);
+    });
+
+    it("最初の1文だけで上限を超えるときは、読点で区切って「…」で終える（文の途中で切らない）", () => {
+        const huge = `${"い".repeat(60)}、${"う".repeat(60)}、${"え".repeat(60)}です。`;
+        const d = spotPageDescription({ ...plain, summary: huge }, {});
+        expect(len(d)).toBeLessThanOrEqual(SPOT_DESCRIPTION_MAX);
+        expect(d.endsWith("…")).toBe(true);
+        expect(d).not.toContain("え");
+    });
+
+    it("🔴 水増ししない: 紹介文も列挙も無ければ頭の1文だけ・紹介文が短ければ短いまま", () => {
+        expect(body(spotPageDescription({ ...plain, summary: undefined }, {}))).toBe("姫路城の撮影地ガイド。");
+        const d = body(spotPageDescription({ ...plain, summary: "城です。" }, { samples: 1, cover: true }));
+        expect(d).toBe("姫路城の写真・撮影地ガイド。作例1枚。城です。");
+    });
+
+    it("計算の要約は、収まるときだけ入る（紹介文の最初の1文より後）", () => {
+        const short = body(spotPageDescription({ ...plain, summary: "城です。" }, { computed: "日の入りは6月が西北西寄り" }));
+        expect(short).toBe("姫路城の撮影地ガイド。日の入りは6月が西北西寄り。城です。");
     });
 });
 

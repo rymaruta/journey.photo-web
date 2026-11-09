@@ -1236,20 +1236,20 @@ export function homeSeasonalSpots(now: Date, spots: readonly Spot[] = SPOTS, lim
 }
 
 // ─────────────────────────────────────────────────────────────
-// サイトマップ（`app/sitemap.ts` から1行で呼ぶ・別の枝と衝突を小さくするため関数を分ける）
+// サイトマップ（`lib/server/sitemap.ts` から1行で呼ぶ・別の枝と衝突を小さくするため関数を分ける）
 // ─────────────────────────────────────────────────────────────
 
-type SitemapEntry = { url: string; lastModified: string | Date; changeFrequency: "weekly"; priority: number };
+type SitemapEntry = { url: string; lastModified?: string | Date; changeFrequency: "weekly"; priority: number };
 
 /**
  * 切り口の頁のうち**検索に出すもの**（国は `MIN_INDEXABLE_COUNTRY` 件以上・テーマ・季節は全部）。
  * `lastModified` は**載せたスポットの更新日の最大**（ビルドの時刻にしない）
  */
 export function spotTopicSitemapEntries(baseUrl: string = siteConfig.url, spots: readonly Spot[] = SPOTS): SitemapEntry[] {
-    const now = new Date().toISOString();
+    // 日付が取れない行は lastModified を書かない（ビルドの時刻を「更新日」と申告しない・2026-11-09）
     const entry = (path: string, members: readonly Spot[], priority: number): SitemapEntry => ({
         url: `${baseUrl}${path}`,
-        lastModified: latest(members) ?? now,
+        ...(latest(members) ? { lastModified: latest(members) } : {}),
         changeFrequency: "weekly",
         priority,
     });

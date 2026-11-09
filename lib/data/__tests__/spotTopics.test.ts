@@ -343,8 +343,8 @@ describe("`/spots` の入口・サイトマップ", () => {
         expect(fr.lastModified).toBe(latest);
     });
 
-    it("`app/sitemap.ts` が切り口の頁を載せている", async () => {
-        const sitemap = (await import("../../../app/sitemap")).default;
+    it("`lib/server/sitemap.ts` が切り口の頁を載せている", async () => {
+        const sitemap = (await import("../../server/sitemap")).allSitemapEntries;
         const urls = (await sitemap()).map((e) => e.url);
         expect(urls).toContain(`${siteConfig.url}/spots/theme/temples-shrines/kyoto`);
         expect(urls).toContain(`${siteConfig.url}/spots/season/spring`);

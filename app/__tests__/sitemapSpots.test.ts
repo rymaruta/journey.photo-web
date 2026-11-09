@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import sitemap from "../sitemap";
+import { allSitemapEntries as sitemap } from "../../lib/server/sitemap";
 import { siteConfig } from "../../lib/utils/seo";
 import { prefectureByName } from "../../lib/data/prefectures";
 import type { Spot } from "../../lib/data/spots";
@@ -75,3 +75,48 @@ describe("サイトマップ: 撮影スポットは人が確かめた行だけ",
         expect(urls.filter(isSpots)).toEqual([]);
     });
 });
+
+describe("サイトマップ: 県の一覧と /spots の lastmod は中身の更新日（2026-11-09）", () => {
+    it("県の一覧は、その県の頁が並べる行の updatedAt の最大。/spots は全体の最大。ビルドの日時は入らない", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2031-01-02T03:04:05.000Z"));
+        try {
+            ledger.spots = [
+                spot("hokkaido-a", "北海道", { ...verified, updatedAt: "2026-10-01T00:00:00.000Z" }),
+                spot("hokkaido-b", "北海道", { ...verified, updatedAt: "2026-11-02T00:00:00.000Z" }),
+                spot("aomori-a", "青森県", { ...verified, updatedAt: "2026-09-30T00:00:00.000Z" }),
+                spot("aomori-b", "青森県", { ...verified, updatedAt: "2026-09-29T00:00:00.000Z" }),
+            ];
+            const entries = await sitemap();
+            const base = siteConfig.url;
+            const lm = (path: string) => entries.find((e) => e.url === `${base}${path}`)?.lastModified;
+            const area = (name: string) => `/spots/area/${prefectureByName(name)?.slug}`;
+            expect(lm(area("北海道"))).toBe("2026-11-02T00:00:00.000Z");
+            expect(lm(area("青森県"))).toBe("2026-09-30T00:00:00.000Z");
+            expect(lm("/spots")).toBe("2026-11-02T00:00:00.000Z");
+            // 個別ページはそのスポットの更新日
+            expect(new Date(lm("/spots/aomori-b") as string | Date).toISOString()).toBe("2026-09-29T00:00:00.000Z");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("更新日の無い行ばかりの県は、lastmod を書かない（ビルドの日時で埋めない）", async () => {
+        vi.useFakeTimers();
+        vi.setSystemTime(new Date("2031-01-02T03:04:05.000Z"));
+        try {
+            ledger.spots = [
+                spot("hokkaido-a", "北海道", { ...verified, updatedAt: undefined }),
+                spot("hokkaido-b", "北海道", { ...verified, updatedAt: undefined }),
+                spot("hokkaido-c", "北海道", { ...verified, updatedAt: undefined }),
+            ];
+            const entries = await sitemap();
+            const spotsRows = entries.filter((x) => x.url.includes("/spots"));
+            expect(spotsRows.length, "対象の行が無い（見張りが空回りしている）").toBeGreaterThan(3);
+            for (const e of spotsRows) expect(e.lastModified, e.url).toBeUndefined();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+});
+
