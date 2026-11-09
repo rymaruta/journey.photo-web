@@ -232,7 +232,7 @@ export async function readApiError(res: Response, fallback: string): Promise<str
 
 ⚠️ 管理者の判定は `cognito:groups` に `admin` があるか（`api/src/auth.ts` の `isAdmin`）。
 
-### ユーザーAPI（`NEXT_PUBLIC_USER_API_BASE_URL`）— 81口
+### ユーザーAPI（`NEXT_PUBLIC_USER_API_BASE_URL`）— 90口
 
 **認証が要らないのは7口だけ**（`PublicReadRole`＝読み取り専用のロールで動く。`/feed` だけは索引を読むので専用の `PublicFeedRole`）:
 
@@ -274,6 +274,32 @@ export async function readApiError(res: Response, fallback: string): Promise<str
 `GET,POST /stories` / `DELETE /stories/{id}` / `POST /stories/{id}/view` /
 `GET /stories/{id}/viewers` / `GET,POST /stories/{id}/replies` /
 `POST /stories/{id}/vote` / `POST /stories/{id}/keep` / `GET /stories/archive`
+
+**DM（メッセージ）** ※2026-11-09 追加・**本番未反映**（第1段・札 journey.photo-ios #505・`api-user/src/dm.ts` / `dmInbox.ts`。
+**9口を1関数 `dm.handler` に束ねている**（`event.routeKey` で分ける。部品の数が上限に近いため）。全部認証必要）
+`POST /dm`（会話の開始・続き。本文 `{to, text, id?}`。`id` は再送で二重に入れないための鍵）/
+`POST /dm/{id}/messages`（続き。`{text, id?}`）/ `GET /dm`（受信箱。リクエストも同じ一覧で `state` で分ける）/
+`GET /dm/{id}?since=<ISO>`（会話。変化なしは `{unchanged:true, items:[]}`）/ `PUT /dm/{id}/read` /
+`DELETE /dm/{id}`（自分の側だけ消す・両側が消えたら本体を物理削除）/
+`POST /dm/{id}/accept`（リクエストを承認）/ `DELETE /dm/{id}/request`（リクエストを削除＝断る）/
+`POST /dm/{id}/report`（通報。理由は `REPORT_REASONS`＋`minor`＝未成年へのいやな接触・誘い出し。通報時点の直近20通を写す）
+
+- **会話 ID** は `<小さい uid>_<大きい uid>`（2人から一意）。`POST /dm` の応答の `conversationId` と、受信箱の `items[].id`
+- **行の種類（単一テーブル・GSI/TTL は作らない）**: `dm#<小さい>#<大きい>`（メッセージの輪 最大200通・約40KB・会話の状態）/
+  `dminbox#<uid>`（map `convs.<会話ID>` ＝ `{peer, t, excerpt, unread, state}`・1人200会話まで。溢れたら**新しい会話を断る**（409 `selfFull`／相手側は `unavailable`））/
+  `dmday#<uid>#<JSTの日付>`（1日 新規会話20人・送信300通の歯止め。429 `dailyLimit`）/ `dmreport#<会話ID>#<通報者>`
+- **始められる人**: 相手をフォローしている人だけ（無ければ 404）。相手が送り主をフォロー済み or 親しい友達 → 受信箱（`state: inbox`）、
+  それ以外は**リクエスト**（相手の `state: request`・送り主の `state: pending`）。リクエストは**承認か返信まで文字3通まで・URL を含む文は断る（400 `requestUrl`）・プッシュなし**。
+  受け取った人が返信した時点で承認。**承認前の4通目は 429 `requestLimit`**
+- **削除したリクエストの再送（設計の点）**: 受け取った人がリクエストを消すと、その送り主が**承認されないまま送った通数**を自分の `dminbox#` の `dec_<送り主>` に残す。
+  再送しても通数は**戻らず、通算3通まで**（会話の本体が両側から消えて作り直されても同じ）。承認すると印を外す。理由: 消す→再送の繰り返しで、1人に何度でも3通ずつ送れてしまうため
+- **ブロック**: 送信前に `isBlocked`。ブロックされた側には**ブロックと分かる応答を返さない（404）**。自分がブロックした相手へは 403 `blockedByMe`。
+  一覧・会話は `hiddenUserIds` でふるう（**隠すだけで消さない**・解除で戻る・ブロック一覧が読めなければ 500）
+- **ストーリーとの接続**: `POST /stories/{id}/replies` が**文字の返信**に成功したあと、会話の最初の1通として写す（best-effort・失敗しても返信は成功・`via: "story"`・プッシュなし）。絵文字だけのリアクションは写さない
+- **通知**: 端末へのプッシュは `NOTIF_DM`・引数は送り主の名前だけ（**本文は載せない**）。ベルの通知の輪（`notifs#`）には書かない。
+  バッジは「ベルの未読 ＋ 受信箱の未読会話数」（リクエストとブロックの相手は含めない）。ベルの通知のプッシュも同じ数を出す
+- **退会**: `purgeDmFor` が会話ごとに自分の側を外し、受信箱を消す。相手の画面には会話が残り、名前は「退会したユーザー」（`deleted: true`）。`dmreport#` は消さない
+- ログに本文は出さない（失敗は `e.name` だけ）
 
 **ハイライト**
 `POST /highlights` / `PUT,DELETE /highlights/{id}` /
@@ -692,6 +718,7 @@ const { success, photo } = await r3.json();
 | ストーリー | 24時間に20本 | `stories.ts` |
 | ストーリーの文字 | 5つ・1つ200文字 | `storyText.ts` |
 | ストーリーの返信 | 200件 | `storyReplies.ts` |
+| DM | 会話1つ 200通・約40KB／1人200会話／リクエスト 承認まで3通／1日 新規20人・送信300通／1通 500文字／通報の写し 直近20通 | `dm.ts`・`dmInbox.ts` |
 | 通知 | 50件（古いものから押し出す） | `notify.ts` |
 | フォロー中の一覧 | 2000人 | `follow.ts` |
 | ブロック | 500人 | `block.ts` |

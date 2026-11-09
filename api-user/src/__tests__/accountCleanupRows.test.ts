@@ -77,6 +77,10 @@ const EXEMPT: Array<[prefix: string, reason: string, calledInAccount: string]> =
     ["highlights", "同上（ハイライト本体を辿ってから一覧も消す）", "highlightsOfUserKey"],
     ["blocks", "`block.ts` の `purgeBlocksFor` が消す（印・一覧の両方）", "purgeBlocksFor"],
     ["blockedby", "同上", "purgeBlocksFor"],
+    // 2026-11-09・DM（札 #505）。受信箱は会話ごとの自分の側を外してから消す。会話の本体（`dm#<小さい>#<大きい>`）と
+    // 1日の歯止め（`dmday#<uid>#<日付>`）は2段のキーで、この走査には見えない（`dm.test.ts` が掃除を直に見る）。
+    // 通報の写し（`dmreport#`）は運営の記録なので消さない
+    ["dminbox", "`dm.ts` の `purgeDmFor` が会話ごとの自分の側を外し、本体の受信箱も消す", "purgeDmFor"],
 ];
 
 /**

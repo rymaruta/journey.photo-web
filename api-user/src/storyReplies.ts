@@ -10,6 +10,7 @@ import { isFollowing } from "./followCheck";
 import { storyAllowsReplies } from "./storyVisibility";
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
+import { mirrorStoryReplyToDm } from "./dm";
 
 /**
  * ストーリーへの返信とリアクション。
@@ -389,6 +390,13 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
                     await new Promise((r) => setTimeout(r, COUNT_RETRY_BASE_MS * 2 ** attempt * (0.5 + Math.random())));
                 }
             }
+        }
+
+        // **文字の返信は、DM の会話の最初の1通として残す**（2026-11-09・札 #505）。絵文字だけの
+        // リアクションは写さず、今までどおり消える。**best-effort**——写せなくても返信は成功
+        // （`mirrorStoryReplyToDm` は投げない）。返信の通知が別に出るので、この写しではプッシュしない
+        if (ownerId && reply.text) {
+            await mirrorStoryReplyToDm({ from: uid, to: ownerId, text: reply.text, replyId: reply.id, name: reply.name });
         }
 
         return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ success: true, reply }) };

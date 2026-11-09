@@ -40,7 +40,7 @@ vi.mock("../devices", () => ({
 }));
 vi.stubEnv("USERS_TABLE", "users-test");
 
-const { pushNotification, visibleUnread, NOTIFS_MAX } = await import("../notify");
+const { pushNotification, pushDmMessage, visibleUnread, NOTIFS_MAX } = await import("../notify");
 
 const ME = "11111111-1111-4111-8111-111111111111";
 const BAD = "22222222-2222-4222-8222-222222222222";
@@ -205,5 +205,58 @@ describe("この写真を見て撮影の通知（type: inspired）", () => {
         expect(msg.locKey).toBe("NOTIF_INSPIRED");
         expect(msg.locArgs).toEqual(["ボブ"]);
         expect(msg.data).toEqual({ type: "inspired", photoId: "new-1", byId: "u-bob", sourcePhotoId: "src-1" });
+    });
+});
+
+// 🔴 **DM（2026-11-09・札 #505）。バッジは「ベルの未読 ＋ 受信箱の未読会話数」。**
+// リクエストと、ブロックした相手の会話は含めない。ベルの通知のプッシュも同じ数を出す
+// （片方だけが自分の数を送ると、もう片方のぶんを消してしまう）
+describe("DM のプッシュとバッジ", () => {
+    const entry = (peer: string, o: Record<string, unknown> = {}) => ({ peer, t: "t", excerpt: "x", unread: 1, state: "inbox", ...o });
+    /** 受信箱とベルを返す世界（`pushNotification` の UpdateItem の応答は別に返す） */
+    function world(convs: Record<string, unknown>, bell?: { unread: number; items: Array<{ byId: string }> }) {
+        mockDdbSend.mockImplementation((cmd: { constructor: { name: string }; input: { Key?: { id?: string } } }) => {
+            const id = String(cmd.input.Key?.id ?? "");
+            if (cmd.constructor.name === "UpdateCommand") return Promise.resolve({ Attributes: bell ?? { unread: 0, items: [] } });
+            if (id === `dminbox#${ME}`) return Promise.resolve({ Item: { id, convs } });
+            if (id === `notifs#${ME}`) return Promise.resolve(bell ? { Item: { id, ...bell } } : {});
+            return Promise.resolve({ Item: { displayName: "名前" } });
+        });
+    }
+    const lastMessage = () => mockSend.mock.calls.at(-1)?.[1] as { locKey: string; locArgs: string[]; badge?: number; data: Record<string, string> };
+
+    it("DM の知らせは送り主の名前だけ（固定文の鍵・本文を載せない）・バッジはベル＋受信箱の未読会話数", async () => {
+        world({ c1: entry(OK), c2: entry(BAD, { unread: 4 }), c3: entry(OK, { unread: 0 }) },
+            { unread: 2, items: [{ byId: OK }, { byId: OK }] });
+        await pushDmMessage(ME, { byName: "旅人A", byId: OK, convId: "c1" });
+        const m = lastMessage();
+        expect(m.locKey).toBe("NOTIF_DM");
+        expect(m.locArgs).toEqual(["旅人A"]);
+        expect(m.data).toEqual({ type: "dm", convId: "c1", byId: OK });
+        expect(m.badge, "ベルの未読2 ＋ 未読のある会話2").toBe(4);
+    });
+
+    it("リクエストの未読は数えない・ブロックした相手の会話も数えない", async () => {
+        mockHidden.mockResolvedValue(new Set([BAD]));
+        world({ c1: entry(OK, { state: "request" }), c2: entry(BAD), c3: entry(OK, { state: "pending" }) });
+        await pushDmMessage(ME, { byName: "旅人A", byId: OK, convId: "c3" });
+        expect(lastMessage().badge, "リクエスト・ブロックのぶんを含めている").toBe(1);
+    });
+
+    it("🔴 ベルの通知のプッシュにも、受信箱の未読会話数が入る（DM のぶんを消さない）", async () => {
+        world({ c1: entry(OK), c2: entry(OK) }, { unread: 1, items: [{ byId: OK }] });
+        await pushNotification(ME, notif);
+        expect(badgeSent(), "ベルの未読1 ＋ 未読のある会話2").toBe(3);
+    });
+
+    it("受信箱が読めなくても送る（会話のぶんは 0）・設定が無ければ何も引かない", async () => {
+        mockDdbSend.mockImplementation((cmd: { constructor: { name: string }; input: { Key?: { id?: string } } }) =>
+            String(cmd.input.Key?.id ?? "").startsWith("dminbox#") ? Promise.reject(new Error("boom")) : Promise.resolve({}));
+        await pushDmMessage(ME, { byName: "旅人A", byId: OK, convId: "c1" });
+        expect(lastMessage().badge).toBe(0);
+        mockSend.mockClear();
+        mockConfigured.mockReturnValue(false);
+        await pushDmMessage(ME, { byName: "旅人A", byId: OK, convId: "c1" });
+        expect(mockSend).not.toHaveBeenCalled();
     });
 });

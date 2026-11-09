@@ -31,6 +31,7 @@ export const REPORT_REASON_LABELS: ReadonlyArray<{ value: string; ja: string; en
     { value: "violence", ja: "暴力的・残虐な内容", en: "Violent content" },
     { value: "harassment", ja: "特定の人への攻撃・いやがらせ", en: "Harassment" },
     { value: "spam", ja: "広告・勧誘・スパム", en: "Spam" },
+    { value: "minor", ja: "未成年へのいやな接触・誘い出し", en: "Inappropriate contact with a minor" },
     { value: "other", ja: "その他", en: "Other" },
 ];
 
