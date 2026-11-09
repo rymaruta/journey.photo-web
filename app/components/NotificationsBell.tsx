@@ -31,7 +31,9 @@ type Notif = {
     // ここへ足さないと、下の分岐が「知らない種類」として何も出さない
     // ＝**届いているのに画面には何も出ない**通知になる。
     // `badge` はメダル（誰かが起こしたものではない。`byId` も写真も無い）
-    type: "like" | "comment" | "follow" | "storyreply" | "badge" | "inspired";
+    // `storymention`（札 #505）は「ストーリーであなたをメンションしました」。ストーリーは24時間で消え、
+    // 静的書き出しに `ROUTES.PHOTO(story-…)` も無いので、押すと**投稿者（`byId`）のプロフィール**へ。サムネは出さない
+    type: "like" | "comment" | "follow" | "storyreply" | "badge" | "inspired" | "storymention";
     photoId: string;
     photoSrc: string;
     byName: string;
@@ -147,7 +149,7 @@ const TAB_LABEL: Record<NotifTab, { ja: string; en: string }> = {
  */
 export function inTab(type: string, tab: NotifTab): boolean {
     if (tab === "all") return true;
-    if (tab === "comment") return type === "comment" || type === "storyreply";
+    if (tab === "comment") return type === "comment" || type === "storyreply" || type === "storymention";
     return type === tab;
 }
 
@@ -842,6 +844,7 @@ export default function NotificationsBell() {
                             // 季節の章で絵の無い年（`PRO_SEASON_ART`）は null → 無地のアイコンに落とす
                             const medalSrc = badgeKey ? badgeImage(badgeKey, badgeTier, false) : null;
                             const goesNowhere = (isDeleted && n.type === "follow") || n.type === "storyreply"
+                                || (n.type === "storymention" && (!byUser || isDeleted))
                                 || (n.type === "badge" && !myId);
                             // **フォローバック**（モック 05 の注釈③）。
                             //
@@ -882,6 +885,13 @@ export default function NotificationsBell() {
                                                         ? <><span className="font-semibold">{n.byName}</span> replied to your story</>
                                                         : <><span className="font-semibold">{n.byName}</span> さんがあなたのストーリーに返信しました</>}
                                                 </>
+                                            ) : n.type === "storymention" ? (
+                                                <>
+                                                    <ChatBubbleOvalLeftIcon className="w-3.5 h-3.5 text-accent inline -mt-0.5 mr-1" />
+                                                    {locale === "en"
+                                                        ? <><span className="font-semibold">{n.byName}</span> mentioned you in a story</>
+                                                        : <><span className="font-semibold">{n.byName}</span> さんがストーリーであなたをメンションしました</>}
+                                                </>
                                             ) : n.type === "badge" ? (
                                                 // 名前は画面の表から（言語に合わせる）。知らない鍵はサーバーが入れた名前
                                                 locale === "en"
@@ -912,7 +922,7 @@ export default function NotificationsBell() {
                                         `photoSrc` は24時間で消えるストーリーの画像で、
                                         通知の方は残る＝**古い返信通知はすべて灰色の四角**に
                                         なる。写真の通知は消えない限り出し続けてよい */}
-                                    {n.type !== "follow" && n.type !== "storyreply" && n.photoSrc && byUser && (
+                                    {n.type !== "follow" && n.type !== "storyreply" && n.type !== "storymention" && n.photoSrc && byUser && (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img src={publicImageUrl(n.photoSrc)} alt="" loading="lazy" className={`${M.thumb} rounded-lg object-cover bg-white/10 flex-shrink-0`} />
                                     )}
@@ -970,7 +980,8 @@ export default function NotificationsBell() {
                                     ) : (
                                         <Link
                                             href={n.type === "badge" && myId ? ROUTES.USER_PROFILE(myId)
-                                                : n.type === "follow" && n.targetUserId ? ROUTES.USER_PROFILE(n.targetUserId) : ROUTES.PHOTO(n.photoId)}
+                                                : n.type === "follow" && n.targetUserId ? ROUTES.USER_PROFILE(n.targetUserId)
+                                                : n.type === "storymention" && byUser ? ROUTES.USER_PROFILE(byUser) : ROUTES.PHOTO(n.photoId)}
                                             onClick={closePanel}
                                             className="flex items-start gap-3 min-w-0 flex-1 active:opacity-80 transition"
                                             style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
