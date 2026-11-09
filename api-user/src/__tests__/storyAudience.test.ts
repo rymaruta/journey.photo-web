@@ -32,11 +32,12 @@ vi.stubEnv("CLOUDFRONT_URL", "https://cdn.test");
 vi.stubEnv("UPLOAD_BUCKET", "bucket-test");
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
+const deletedIds = vi.hoisted(() => new Set<string>());
 const mockPush = vi.hoisted(() => vi.fn(async (..._a: unknown[]) => undefined));
 vi.mock("../notify", async (importActual) => ({
     ...(await importActual<typeof import("../notify")>()),
     lookupDisplayName: async (id: string) => `名前-${id.slice(0, 4)}`,
-    deletedAmong: async () => ({ deleted: new Set<string>(), unread: new Set<string>() }),
+    deletedAmong: async (ids: Iterable<string>) => ({ deleted: new Set([...ids].filter((i) => deletedIds.has(i))), unread: new Set<string>() }),
     pushNotification: (...a: unknown[]) => mockPush(...a),
 }));
 
@@ -45,6 +46,7 @@ const { postStoryReply } = await import("../storyReplies");
 const { voteStory } = await import("../storyVotes");
 const { answerStory, getStoryAnswers, reportStoryAnswer } = await import("../storyAnswers");
 const { getHighlight, getUserHighlights } = await import("../highlights");
+const { setCloseFriend } = await import("../closeFriends");
 const { keepStory } = await import("../storyKeep");
 const { getStoryArchive } = await import("../storyArchive");
 const { parseStoryAudience, storyAudienceOf } = await import("../storyAudience");
@@ -92,7 +94,7 @@ function addStory(id: string, over: Record<string, unknown> = {}) {
 }
 
 beforeEach(() => {
-    db.clear(); feed = []; sent = []; closeListFails = false;
+    db.clear(); feed = []; sent = []; closeListFails = false; deletedIds.clear();
     mockPush.mockReset();
     mockDdbSend.mockReset();
     mockDdbSend.mockImplementation(async (cmd: Cmd) => {
@@ -593,5 +595,96 @@ describe("答えを消す経路が取りこぼされない", () => {
         for (const f of ["stories.ts", "account.ts", "photoUpdate.ts"]) {
             expect(readFileSync(join(root, f), "utf8"), `${f} が票の文書を消さなくなった（答えが残る）`).toMatch(/storyvotes#|storyVotesId|sweepStoryVotes/);
         }
+    });
+});
+
+// ────────────────────────────────
+// レビュー対応（札 #505）
+// ────────────────────────────────
+describe("退会した人のメンションの名前は読むとき伏せる", () => {
+    const MENTION = { kind: "mention", userId: CF, name: "田中", x: 0.5, y: 0.5, size: 0.05 };
+    const nameIn = (res: Result) => bodyOf(res)[0].texts[0].name;
+
+    it("getStories: 生きていれば名前、退会していれば「退会したユーザー」（札は残る）", async () => {
+        addStory(SID_ALL, { texts: [MENTION] });
+        expect(nameIn(await invoke(getStories, ev(FOLLOWER)))).toBe("田中");
+        deletedIds.add(CF);
+        const res = await invoke(getStories, ev(FOLLOWER));
+        expect(nameIn(res)).toBe("退会したユーザー");
+        expect(bodyOf(res)[0].texts[0].userId).toBe(CF);
+    });
+
+    it("ハイライト（getHighlight）も同じ", async () => {
+        const HID = "99999999-9999-4999-8999-999999999999";
+        const OPEN = "story-44444444-4444-4444-8444-444444444444";
+        db.set(OPEN, { id: OPEN, story: true, userId: OWNER, src: "https://cdn.test/o.webp", archive: true, expiresAt: PAST, createdAt: PAST, texts: [MENTION] });
+        db.set(`highlight#${HID}`, { id: `highlight#${HID}`, ownerId: OWNER, title: "旅", storyIds: [OPEN], coverStoryId: OPEN });
+        const get = () => invoke(getHighlight, ev(FOLLOWER, { pathParameters: { userId: OWNER, id: HID } }));
+        expect(bodyOf(await get()).items[0].texts[0].name).toBe("田中");
+        deletedIds.add(CF);
+        expect(bodyOf(await get()).items[0].texts[0].name).toBe("退会したユーザー");
+    });
+});
+
+describe("親しい友達の名簿は上限なら追加を断る", () => {
+    const put = (sub: string, target: string, method = "PUT") =>
+        invoke(setCloseFriend, { requestContext: { authorizer: { jwt: { claims: { sub } } }, http: { method } }, pathParameters: { id: target } });
+    const full = () => Array.from({ length: 200 }, (_, i) => `f${String(i).padStart(8, "0")}`);
+
+    it("200人のとき追加は 400（code: close_friends_limit）で、何も書かず、誰も外れない", async () => {
+        db.set(`closefriends#${OWNER}`, { id: `closefriends#${OWNER}`, list: full() });
+        sent = [];
+        const r = await put(OWNER, STRANGER);
+        expect(r.statusCode).toBe(400);
+        expect(bodyOf(r).code).toBe("close_friends_limit");
+        expect(wrote()).toBe(false);
+        expect((db.get(`closefriends#${OWNER}`)!.list as string[])).toHaveLength(200);
+    });
+
+    it("200人でも、外す・すでに居る人の追加は通る。199人なら追加できる", async () => {
+        const list = full();
+        db.set(`closefriends#${OWNER}`, { id: `closefriends#${OWNER}`, list });
+        expect((await put(OWNER, list[5])).statusCode).toBe(200);        // 既に居る＝変わらない
+        expect((await put(OWNER, list[5], "DELETE")).statusCode).toBe(200);
+        expect((await put(OWNER, STRANGER)).statusCode).toBe(200);
+        expect((db.get(`closefriends#${OWNER}`)!.list as string[])[0]).toBe(STRANGER);
+        expect((db.get(`closefriends#${OWNER}`)!.list as string[])).toHaveLength(200);
+    });
+});
+
+describe("名簿の読み: 親しい友達向けの門だけ強整合", () => {
+    const closeReads = () => sent.filter((c) => c.constructor.name === "GetCommand" && String(c.input.Key?.id ?? "").startsWith("closefriends#"));
+
+    it("親しい友達向けの行の門（一覧・閲覧・返信）は ConsistentRead: true", async () => {
+        addStory(SID, { audience: "closeFriends" });
+        await invoke(getStories, ev(CF));
+        await invoke(viewStory, withId(CF, SID));
+        await invoke(postStoryReply, withId(CF, SID, { text: "a" }));
+        expect(closeReads().length).toBeGreaterThanOrEqual(3);
+        for (const c of closeReads()) expect(c.input.ConsistentRead, "結果整合で読んでいる").toBe(true);
+    });
+
+    it("全員向けの門では名簿を読まない（読み取りが増えない）", async () => {
+        addStory(SID_ALL);
+        await invoke(getStories, ev(FOLLOWER));
+        await invoke(viewStory, withId(FOLLOWER, SID_ALL));
+        await invoke(postStoryReply, withId(FOLLOWER, SID_ALL, { text: "a" }));
+        expect(closeReads()).toHaveLength(0);
+    });
+});
+
+describe("ハイライトの coverStoryId は見せない行なら返さない", () => {
+    it("名簿の外には undefined、名簿の中と本人には返す", async () => {
+        const HID = "99999999-9999-4999-8999-999999999999";
+        const CLOSE = "story-33333333-3333-4333-8333-333333333333";
+        const OPEN = "story-44444444-4444-4444-8444-444444444444";
+        for (const [id, extra] of [[CLOSE, { audience: "closeFriends" }], [OPEN, {}]] as const) {
+            db.set(id, { id, story: true, userId: OWNER, src: `https://cdn.test/${id}.webp`, archive: true, expiresAt: PAST, createdAt: PAST, ...extra });
+        }
+        db.set(`highlight#${HID}`, { id: `highlight#${HID}`, ownerId: OWNER, title: "旅", storyIds: [CLOSE, OPEN], closeIds: [CLOSE], coverStoryId: CLOSE });
+        const get = (sub: string) => invoke(getHighlight, ev(sub, { pathParameters: { userId: OWNER, id: HID } }));
+        expect(bodyOf(await get(FOLLOWER)).coverStoryId).toBeUndefined();
+        expect(bodyOf(await get(CF)).coverStoryId).toBe(CLOSE);
+        expect(bodyOf(await get(OWNER)).coverStoryId).toBe(CLOSE);
     });
 });
