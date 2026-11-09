@@ -162,12 +162,73 @@ describe("HeaderNav - ロール別のメニュー表示", () => {
         expect(screen.getByRole("button", { name: "ユーザーを探す" })).toBeInTheDocument();
     });
 
-    it("未ログインではヘッダーは メニュー の1つだけ（アバター・ベル・探すを出さない）", () => {
+    it("未ログインではヘッダーは「ログイン」の文字リンクと メニュー だけ（アバター・ベル・探すを出さない）", () => {
         setRole("anonymous");
         render(<HeaderNav />);
         const nav = screen.getByRole("navigation", { name: "ヘッダー" });
         const controls = Array.from(nav.querySelectorAll("a, button"));
-        expect(controls.map((b) => b.getAttribute("aria-label"))).toEqual(["メニューを開く"]);
+        expect(controls.map((b) => b.getAttribute("aria-label") ?? b.textContent)).toEqual(["ログイン", "メニューを開く"]);
+    });
+});
+
+// 未ログインだけヘッダーに「ログイン」（2026-11-09 入口の案A の最小）
+describe("HeaderNav - 未ログインの「ログイン」", () => {
+    const gtag = vi.fn();
+    beforeEach(() => {
+        gtag.mockReset();
+        sessionStorage.clear();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+        pathname.current = "/";
+    });
+
+    it("未ログインだけ出す: 最初の HTML の文字リンク（next/link）・行き先はログイン・高さ 44px", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        const link = screen.getByRole("link", { name: "ログイン" });
+        expect(link.getAttribute("href")).toBe("/login");
+        expect((link as HTMLElement).style.minHeight).toBe("44px");
+        expect(link.tagName).toBe("A");
+    });
+
+    it("ログイン済みには出さない（ログイン済みの見え方は今のまま）", () => {
+        for (const role of ["general", "admin"] as const) {
+            setRole(role);
+            const { unmount } = render(<HeaderNav />);
+            expect(screen.queryByRole("link", { name: "ログイン" })).toBeNull();
+            unmount();
+        }
+    });
+
+    it("認証の判定中は出さない（ログイン済みの人に一瞬見えない）", () => {
+        setRole("anonymous");
+        authState.current = { ...authState.current, loading: true };
+        render(<HeaderNav />);
+        expect(screen.queryByRole("link", { name: "ログイン" })).toBeNull();
+    });
+
+    it("ログイン・新規登録の画面そのものでは出さない", () => {
+        setRole("anonymous");
+        for (const p of ["/login", "/signup"]) {
+            pathname.current = p;
+            const { unmount } = render(<HeaderNav />);
+            expect(screen.queryByRole("link", { name: "ログイン" })).toBeNull();
+            unmount();
+        }
+    });
+
+    it("押すと nav_click（area=header・dest=login）。☰ の中の行は area=menu", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        const link = screen.getByRole("link", { name: "ログイン" });
+        link.addEventListener("click", (e) => e.preventDefault());
+        fireEvent.click(link);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        fireEvent.click(screen.getByRole("button", { name: "撮影スポット" }));
+        const navs = gtag.mock.calls.filter((c) => c[1] === "nav_click").map((c) => c[2]);
+        expect(navs).toEqual([
+            expect.objectContaining({ area: "header", dest: "login" }),
+            expect.objectContaining({ area: "menu", dest: "spots" }),
+        ]);
     });
 });
 

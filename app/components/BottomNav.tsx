@@ -15,6 +15,7 @@ import { useAuth } from "../auth/context";
 import { useLocale } from "../i18n/context";
 import { useBottomBarHeight } from "../../lib/hooks/useBottomBarHeight";
 import PostSheet from "./PostSheet";
+import { track, type NavDest } from "../../lib/utils/analytics";
 
 /**
  * 画面下の5つのタブ（ホーム／探す／投稿／マップ／マイページ）。
@@ -121,7 +122,7 @@ function safeDecode(s: string): string | null {
 export default function BottomNav() {
     const pathname = usePathname() || "/";
     const router = useRouter();
-    const { isAuthenticated, userId } = useAuth();
+    const { isAuthenticated, userId, loading } = useAuth();
     const { locale } = useLocale();
     const barRef = React.useRef<HTMLElement | null>(null);
     const postBtnRef = React.useRef<HTMLButtonElement | null>(null);
@@ -157,6 +158,7 @@ export default function BottomNav() {
         // **投稿できない人はログインへ。** タブは5つとも出したまま——
         // 中央が欠けるとバーの形が崩れる。権限が無い人の事情は
         // `useMemberGate` が投稿画面で出す（同じ文言を2か所に書かない）
+        track("nav_click", { area: "tab", dest: "post" });
         if (!isAuthenticated) {
             router.push(`${ROUTES.LOGIN}?next=${encodeURIComponent(ROUTES.UPLOAD)}`);
             return;
@@ -186,14 +188,18 @@ export default function BottomNav() {
     if (current !== lastTab) setLastTab(current);
     const me = isAuthenticated && userId ? ROUTES.USER_PROFILE(userId) : ROUTES.LOGIN;
 
+    // **未ログインの人には「ログイン」と書く**（2026-11-09 owner「任せる」・入口の案A）。以前は「マイページ」と書いて
+    // ログインへ行っていた。**判定中（`loading`）は「マイページ」のまま**——ログイン済みの人に毎回「ログイン」が
+    // 一瞬見えるのを避ける（`HeaderNav` の「判定中は出し分けない」と同じ考え）。行き先は変えない。
+    const meIsLogin = !isAuthenticated && !loading;
     const items: Array<{
-        key: TabKey; href: string; label: string;
+        key: TabKey; href: string; label: string; dest: NavDest;
         Outline: typeof HomeIcon; Solid: typeof HomeSolid;
     }> = [
-        { key: "home", href: ROUTES.HOME, label: locale === "en" ? "Home" : "ホーム", Outline: HomeIcon, Solid: HomeSolid },
-        { key: "search", href: ROUTES.SEARCH, label: locale === "en" ? "Search" : "探す", Outline: MagnifyingGlassIcon, Solid: SearchSolid },
-        { key: "map", href: ROUTES.MAP, label: locale === "en" ? "Map" : "マップ", Outline: MapIcon, Solid: MapSolid },
-        { key: "me", href: me, label: locale === "en" ? "My Page" : "マイページ", Outline: UserIcon, Solid: UserSolid },
+        { key: "home", href: ROUTES.HOME, label: locale === "en" ? "Home" : "ホーム", dest: "home", Outline: HomeIcon, Solid: HomeSolid },
+        { key: "search", href: ROUTES.SEARCH, label: locale === "en" ? "Search" : "探す", dest: "search", Outline: MagnifyingGlassIcon, Solid: SearchSolid },
+        { key: "map", href: ROUTES.MAP, label: locale === "en" ? "Map" : "マップ", dest: "map", Outline: MapIcon, Solid: MapSolid },
+        { key: "me", href: me, label: meIsLogin ? (locale === "en" ? "Log in" : "ログイン") : (locale === "en" ? "My Page" : "マイページ"), dest: me === ROUTES.LOGIN ? "login" : "me", Outline: UserIcon, Solid: UserSolid },
     ];
 
     // カプセルの中の1マス。選んでいるマスは真鍮＋黒55%の丸い面（`Tab`）
@@ -258,7 +264,7 @@ export default function BottomNav() {
 export const TAB_CELL_ON = "bg-black/55 text-accent";
 
 function Tab({ item, active, here, cell, labelStyle, iconStyle }: {
-    item: { key: TabKey; href: string; label: string; Outline: typeof HomeIcon; Solid: typeof HomeSolid };
+    item: { key: TabKey; href: string; label: string; dest: NavDest; Outline: typeof HomeIcon; Solid: typeof HomeSolid };
     active: boolean;
     /** このタブの行き先そのものに居る。来た元のタブとして光っているだけのときは false（`aria-current` を付けない） */
     here: boolean;
@@ -275,6 +281,7 @@ function Tab({ item, active, here, cell, labelStyle, iconStyle }: {
             // どちらも `no-store` で配る＝画面に出入りするたび落とし直す
             prefetch={false}
             aria-current={here ? "page" : undefined}
+            onClick={() => track("nav_click", { area: "tab", dest: item.dest })}
             // **選んでいないタブは白72%**（デザインシステムの非選択 `#B8B8B8`）。
             // カプセルは写真が透けるので、白60%だと明るい写真の上で 2.6:1 まで
             // 落ちる（`.tabbar-capsule` の brightness と合わせて 4.5:1 を保つ）。
