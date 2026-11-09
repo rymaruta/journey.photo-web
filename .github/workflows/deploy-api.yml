@@ -23,6 +23,8 @@ on:
     branches:
       - main
       - develop
+      # 作業用の枝を staging だけで確かめる（2026-11-09 owner 承認）。本番は main からだけ
+      - "staging/**"
     paths:
       - "api/**"
       - "api-user/**"
@@ -45,7 +47,9 @@ env:
 # Lambda デプロイを同時に走らせない（serverless deploy の競合を防ぐ）。
 # 環境ごとに分ける（本番の反映を staging の反映が待たされないように）。
 concurrency:
-  group: deploy-api-${{ github.ref_name }}
+  # staging/* は develop と同じ staging のスタックに出すので、同じ組で順番待ちにする
+  # （別の組だと CloudFormation の更新が同じスタックに重なる）
+  group: deploy-api-${{ startsWith(github.ref_name, 'staging/') && 'develop' || github.ref_name }}
   cancel-in-progress: false
 
 jobs:
@@ -144,7 +148,7 @@ jobs:
               # 総枠を上げたら、実測値をもとに戻すこと（`diagnose` が出す）。
               musicSearchReserved=""
               ;;
-            develop)
+            develop|staging/*)
               envName=staging
               photosTable=staging-photo-gallery-photos
               usersTable=staging-photo-gallery-users
@@ -172,7 +176,7 @@ jobs:
               musicSearchReserved=""
               ;;
             *)
-              echo "::error::${{ github.ref_name }} は環境に紐づいていません（main=本番 / develop=staging）"
+              echo "::error::${{ github.ref_name }} は環境に紐づいていません（main=本番 / develop・staging/*=staging）"
               exit 1
               ;;
           esac
