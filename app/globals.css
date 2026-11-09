@@ -791,56 +791,97 @@ body {
   .spot-map-pin { transition: none; }
 }
 
-/* **ホームの日本地図**（`HomeJapanMap.tsx`・2026-11-09・デザイナーの提案書 案D）。
-   県の形は 47 枚の `<use>`。色は板のトークン: 陸 #17171a（黒に近い面）・縁は白 42%・触っている県は surface-8・
-   選んだ県は真鍮の深い色（accent-deep）に真鍮の縁。件数の濃淡は初期オフ（`jm-dens` のときだけ b0〜b3 が効く）。
-   **線の太さは画面の px で一定**（`vector-effect`）: 拡大しても縁が太らない・当たり（halo）が 10px のまま。
-   県の `<a>` の枠線は消し、真鍮の内側 2px の輪は部品が描く（形に沿った輪） */
-.jm { display: block; width: 100%; height: auto; outline: none; user-select: none; -webkit-user-select: none; }
+/* **ホームの日本地図**（`HomeJapanMap.tsx`・2026-11-09・案C「地方 → 県・長押し/横寄りでなぞる・離して選択」。仕様の正本は提案書 v4）。
+   県の形は 47 枚の `<use>`。色は板のトークン: 全国は地方ごとに 3 色の繰り返し（隣り合う地方が同じ色にならない）・拡大した地方は陸 #25252b・
+   地方の外は沈める（#0c0c0d）・触れた県は #5d5d68 に白 2px・選んだ県は真鍮の深い色（accent-deep）に真鍮の縁。件数の濃淡は初期オフ（`jm-dens` のときだけ b0〜b3 が効く）。
+   **線の太さは画面の px で一定**（`vector-effect`）: 拡大しても縁が太らない。
+   **当たりは自前**（`japanMapHit.ts`）なので、県の `<a>` は見た目も当たりも持たない（`pointer-events: none`）。真鍮の内側 2px の輪（焦点）は部品が描く（形に沿った輪） */
+.jm { display: block; width: 100%; height: auto; outline: none; user-select: none; -webkit-user-select: none; touch-action: pan-y pinch-zoom; }
 .jm defs path { vector-effect: non-scaling-stroke; }
-.jm-sh { fill: #17171a; stroke: rgb(255 255 255 / 0.42); stroke-width: 0.6px; stroke-linejoin: round; transition: fill 0.15s; }
-.jm-dens .jm-b0 { fill: #1e1a12; }
-.jm-dens .jm-b1 { fill: #3b301d; }
-.jm-dens .jm-b2 { fill: #6b5937; }
-.jm-dens .jm-b3 { fill: #a8864f; }
-.jm-sh.jm-hov { fill: var(--color-surface-8); }
-.jm-dens .jm-sh.jm-hov { filter: brightness(1.35); }
-.jm-sh.jm-sel { fill: var(--color-accent-deep); stroke: var(--color-accent); stroke-width: 1.4px; }
-.jm-halo { fill: none; stroke: transparent; stroke-width: 10px; stroke-linejoin: round; pointer-events: stroke; cursor: pointer; }
-/* 当たりは**塗りだけ**（`all` だと既定の線 1px 分が隣の県の中へはみ出し、細い東京都の内側の 28% を隣が奪った・Chromium で実測）。枠の長方形だけ all */
-.jm-hit { fill: transparent; stroke: none; pointer-events: fill; }
-rect.jm-hit { pointer-events: all; }
-.jm a { outline: none; cursor: pointer; }
-.jm-frame { fill: none; stroke: rgb(255 255 255 / 0.22); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
-.jm-frame-label { fill: var(--color-text-3); font-size: 12px; pointer-events: none; }
-.jm-name { fill: #fff; pointer-events: none; paint-order: stroke; stroke: #000; stroke-width: var(--jm-sw, 3px); stroke-linejoin: round; font-size: var(--jm-fs, 12px); font-weight: 600; font-family: var(--font-sans, system-ui), sans-serif; text-anchor: middle; dominant-baseline: central; }
+.jm-sh { fill: #25252b; stroke: rgb(255 255 255 / 0.42); stroke-width: 1px; stroke-linejoin: round; transition: fill 0.1s; }
+.jm-all .jm-ta { fill: #1c1c20; }
+.jm-all .jm-tb { fill: #2d2d35; }
+.jm-all .jm-tc { fill: #2c2616; }
+.jm .jm-sh.jm-dim { fill: #0c0c0d; stroke: rgb(255 255 255 / 0.16); }
+.jm-dens .jm-b0 { fill: #1e1a12 !important; }
+.jm-dens .jm-b1 { fill: #3b301d !important; }
+.jm-dens .jm-b2 { fill: #6b5937 !important; }
+.jm-dens .jm-b3 { fill: #a8864f !important; }
+.jm .jm-sh.jm-hovr { fill: #50505e; stroke: rgb(255 255 255 / 0.85); }
+.jm .jm-sh.jm-hov { fill: #5d5d68; stroke: #fff; stroke-width: 2px; }
+.jm-dens .jm-sh.jm-hov, .jm-dens .jm-sh.jm-hovr { filter: brightness(1.35); }
+.jm .jm-sh.jm-sel { fill: var(--color-accent-deep); stroke: var(--color-accent); stroke-width: 2px; }
+.jm .jm-sh.jm-sel.jm-hov { fill: #7d6a45; }
+.jm a, .jm a * { outline: none; pointer-events: none; }
+.jm-hit { fill: transparent; stroke: none; }
+.jm-frame { fill: none; stroke: rgb(255 255 255 / 0.28); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; transition: opacity 0.18s; pointer-events: none; }
+.jm-frame.jm-frame-hov { stroke: #fff; stroke-dasharray: none; }
 .jm-names { pointer-events: none; }
-.jm-lead { stroke: var(--color-accent); stroke-width: 1px; vector-effect: non-scaling-stroke; opacity: 0.85; }
-.jm-lead-dot { fill: var(--color-accent); }
+.jm-name { fill: #fff; pointer-events: none; paint-order: stroke; stroke: #000; stroke-width: var(--jm-sw, 3.5px); stroke-linejoin: round; font-size: var(--jm-fs, 14px); font-weight: 600; font-family: var(--font-sans, system-ui), sans-serif; text-anchor: middle; dominant-baseline: central; }
+.jm-rname { fill: #fff; pointer-events: none; paint-order: stroke; stroke: #000; stroke-width: var(--jm-sw, 3.5px); stroke-linejoin: round; font-size: var(--jm-rfs, 16px); font-weight: 700; font-family: var(--font-serif), serif; text-anchor: middle; dominant-baseline: central; }
+.jm-rname.jm-on { fill: var(--color-accent); }
 .jm-lab-sel .jm-name { stroke: var(--color-accent-deep); font-weight: 700; }
 .jm-ring { fill: none; stroke: var(--color-accent); pointer-events: none; }
-.jm-wrap { position: relative; border-radius: 16px; background: var(--color-bg); overflow: hidden; width: min(100%, 420px, calc(72vh * var(--jm-ar))); width: min(100%, 420px, calc(72svh * var(--jm-ar))); margin-inline: auto; touch-action: pan-y; }
-@media (min-width: 640px) { .jm-wrap { margin-inline: 0; } }
-.jm-wrap.jm-zoomed { touch-action: none; }
-.jm-zc { position: absolute; left: 8px; top: 8px; display: flex; flex-direction: column; gap: 8px; }
-.jm-zb { width: 44px; height: 44px; border-radius: 22px; border: 1px solid var(--color-line-strong); background: rgb(0 0 0 / 0.6); color: #fff; font-size: 20px; line-height: 1; display: flex; align-items: center; justify-content: center; padding: 0; cursor: pointer; }
-.jm-zb:hover { background: rgb(255 255 255 / 0.12); }
-.jm-zb:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
-.jm-zb:disabled { opacity: 0.35; cursor: default; }
-.jm-tip { position: absolute; pointer-events: none; background: var(--color-surface-2); border: 1px solid var(--color-line-strong); border-radius: 10px; padding: 6px 10px; font-size: 13px; line-height: 18px; white-space: nowrap; z-index: 3; transform: translate(-50%, -130%); }
+
+/* 地図の入れ物。幅は画面の 7 割の高さまで（スマホで縦長が画面を埋めない）。**縦のスクロールを奪わない**（`touch-action: pan-y`・横寄りの動きだけ JS が受ける）。
+   長押しで選択・メニュー・拡大鏡が出ない（`user-select` / `-webkit-touch-callout`）。左右の余白 16px は地図の外（iOS の左端の戻るスワイプと、縦に逃げたい指のため） */
+.jm-col { width: min(100%, 420px, calc(72vh * var(--jm-ar))); width: min(100%, 420px, calc(72svh * var(--jm-ar))); margin-inline: auto; }
+@media (min-width: 768px) { .jm-col { margin-inline: 0; } }
+.jm-wrap { position: relative; border-radius: 16px; background: var(--color-bg); overflow: hidden; width: 100%; touch-action: pan-y pinch-zoom; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; outline: none; }
+.jm-wrap:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.jm-wrap.jm-tracing { cursor: crosshair; }
+.jm-chips { display: flex; gap: 8px; height: 52px; padding-top: 8px; overflow-x: auto; flex-wrap: nowrap; scrollbar-width: none; }
+.jm-chips::-webkit-scrollbar { display: none; }
+.jm-rchip { flex: none; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 44px; padding: 0 14px; border-radius: 99px; background: rgb(255 255 255 / 0.07); box-shadow: inset 0 0 0 1px var(--color-line); color: #d4d4d4; font-size: 13px; border: 0; cursor: pointer; white-space: nowrap; }
+.jm-rchip:hover { background: rgb(255 255 255 / 0.15); color: #fff; }
+.jm-rchip.jm-on { background: var(--color-accent-deep); color: #fff; font-weight: 600; box-shadow: inset 0 0 0 2px var(--color-accent); }
+.jm-rchip:focus-visible, .jm-tlink:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+/* 地図の上の固定欄（36px）: 触れている名前。字を 12px 以上に保つ */
+.jm-bar { height: 36px; display: flex; align-items: center; font-size: 13px; line-height: 18px; color: var(--color-text-2); white-space: nowrap; overflow: hidden; }
+.jm-bar b { color: #fff; font-weight: 600; }
+.jm-hint { position: absolute; left: 16px; right: 16px; top: 8px; z-index: 2; text-align: center; font-size: 12px; line-height: 16px; color: var(--color-text-2); pointer-events: none; }
+.jm-hint i { font-style: normal; display: inline-block; background: rgb(0 0 0 / 0.7); box-shadow: inset 0 0 0 1px var(--color-line); border-radius: 99px; padding: 4px 12px; }
+
+/* 指の輪・進み具合・名前の札（画面に固定・`document.body` の下）。**触れる・離すを邪魔しない**（`pointer-events: none`） */
+.jm-finger, .jm-prog { position: fixed; z-index: 60; width: 54px; height: 54px; margin: -27px 0 0 -27px; pointer-events: none; }
+.jm-finger { border-radius: 27px; background: rgb(255 255 255 / 0.18); box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.75); }
+.jm-finger.jm-ghost { background: rgb(201 166 107 / 0.18); box-shadow: inset 0 0 0 2px rgb(201 166 107 / 0.9); }
+.jm-prog circle { fill: none; stroke: var(--color-accent); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 158; stroke-dashoffset: 158; transform: rotate(-90deg); transform-origin: center; }
+.jm-prog.go circle { animation: jm-sweep 160ms linear 90ms forwards; }
+@keyframes jm-sweep { to { stroke-dashoffset: 0; } }
+.jm-tip { position: fixed; z-index: 61; pointer-events: none; min-width: 112px; height: 56px; box-sizing: border-box; padding: 6px 12px; border-radius: 14px; background: rgb(14 14 15 / 0.96); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.3), 0 8px 24px rgb(0 0 0 / 0.6); display: flex; flex-direction: column; align-items: center; justify-content: center; white-space: nowrap; }
 .jm-tip[hidden] { display: none; }
+.jm-tip b { font-family: var(--font-serif), serif; font-size: 22px; line-height: 28px; font-weight: 700; color: #fff; }
+.jm-tip span { font-size: 12px; line-height: 16px; color: var(--color-text-2); }
+.jm-tip.jm-cancel { box-shadow: inset 0 0 0 1px rgb(240 86 90 / 0.7), 0 8px 24px rgb(0 0 0 / 0.6); }
+.jm-tip.jm-cancel b { font-size: 16px; line-height: 22px; }
+.jm-tip.jm-cancel span { color: var(--color-danger); }
+.jm-tip.jm-ghost { box-shadow: inset 0 0 0 1px rgb(201 166 107 / 0.8), 0 8px 24px rgb(0 0 0 / 0.6); }
+
 .jm-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; color: var(--color-text-2); text-decoration: underline; text-underline-offset: 3px; }
 .jm-link:hover { color: #fff; }
 .jm-link:focus-visible, .jm-open:focus-visible, .jm-chip:focus-visible, .jm-dens-label:focus-within { outline: 2px solid var(--color-accent); outline-offset: -2px; }
-.jm-open { display: flex; align-items: center; justify-content: space-between; min-height: 52px; margin-top: 10px; padding: 0 16px; border-radius: 14px; background: var(--color-accent-soft); box-shadow: inset 0 0 0 1px rgb(201 166 107 / 0.4); color: #fff; font-size: 15px; font-weight: 600; }
+/* 文字ボタン（県の一覧から選ぶ）: 真鍮の文字リンク・44px */
+.jm-tlink { display: inline-flex; align-items: center; min-height: 44px; padding: 0; background: none; border: 0; color: var(--color-accent); font-size: 14px; font-weight: 600; cursor: pointer; }
+.jm-tlink-b { display: flex; }
+.jm-open { display: flex; align-items: center; justify-content: space-between; min-height: 48px; margin-top: 8px; padding: 0 16px; border-radius: 14px; background: var(--color-accent-soft); box-shadow: inset 0 0 0 1px rgb(201 166 107 / 0.4); color: #fff; font-size: 15px; font-weight: 600; }
 .jm-open:hover { background: #241d10; }
 .jm-chip { min-height: 44px; padding: 0 14px; border-radius: 99px; background: rgb(255 255 255 / 0.07); color: #d4d4d4; box-shadow: inset 0 0 0 1px var(--color-line); border: 0; font-size: 13px; cursor: pointer; }
 .jm-chip:hover { background: rgb(255 255 255 / 0.15); color: #fff; }
+.jm-chip.jm-on { background: var(--color-accent-deep); color: #fff; font-weight: 600; box-shadow: inset 0 0 0 2px var(--color-accent); }
+.jm-pick { display: inline-flex; align-items: center; gap: 6px; }
+.jm-pick-n { font-size: 12px; color: var(--color-text-3); }
+.jm-pick.jm-on .jm-pick-n { color: #fff; }
 .jm-legend i { width: 16px; height: 16px; border-radius: 4px; display: inline-block; border: 1px solid rgb(255 255 255 / 0.42); }
+/* 県の一覧チップ（地図の外・地方ごと・押すと地図の県が強調される） */
+.jm-list { margin: 4px 0 8px; padding: 12px 12px 4px; border-radius: 14px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-line); }
+.jm-list[hidden] { display: none; }
+.jm-list-g { margin-bottom: 10px; }
+.jm-list-h { margin-bottom: 4px; font-size: 12px; letter-spacing: 0.1em; color: var(--color-accent); font-weight: 600; }
 
-/* **県を押すと出る一覧**（2026-11-09）。スマホは地図の下に貼り付くシート（`position: sticky`・下のタブの上）で、
-   地図の入れ物が終わる所まで追ってくる＝地図の頁を離れると自然に消える。広い画面は右の札（`sm:sticky sm:top-20`） */
-.jm-sheet { border-radius: 16px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-line); padding: 14px 16px 14px; min-height: 132px; }
+/* **県を選ぶ帯**（2026-11-09）。スマホは地図の下に貼り付く**常設の枠 164px**（`position: sticky`・下のタブ・再生バーの上）。
+   選んでも地図を押し出さない・高さは変えない（当たりの計算が動かない）。中身だけ入れ替わる。広い画面（768px〜）は右の札（`md:sticky md:top-20`・高さは中身なり） */
+.jm-sheet { border-radius: 16px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-line); padding: 12px 16px; min-height: 164px; }
 .jm-sheet:focus { outline: none; }
 .jm-sheet:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
 .jm-close { flex: none; width: 44px; height: 44px; margin: -6px -8px 0 0; border: 0; border-radius: 22px; background: rgb(255 255 255 / 0.07); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
@@ -849,11 +890,11 @@ rect.jm-hit { pointer-events: all; }
 .jm-spot { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; padding: 4px 0; border-top: 1px solid var(--color-line); }
 .jm-spots li:first-child .jm-spot { border-top: 0; }
 .jm-spot:hover { background: rgb(255 255 255 / 0.04); }
-@media (max-width: 639.98px) {
-  .jm-sheet { position: sticky; bottom: calc(var(--bottom-bar-h, 84px) + 8px); z-index: 20; margin-top: 10px; min-height: 0; max-height: 50svh; overflow-y: auto; overscroll-behavior: contain; background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-line-strong), 0 -10px 28px rgb(0 0 0 / 0.55); animation: jm-sheet-in 0.18s ease-out; }
-  .jm-sheet[data-open="false"] { display: none; }
-  .jm-spots li:nth-child(n+4) { display: none; }
-  .jm-near { display: none; }
+@media (max-width: 767.98px) {
+  .jm-sheet { position: sticky; bottom: calc(var(--bottom-bar-h, 84px) + var(--mini-player-h, 0px) + 8px); z-index: 20; margin-top: 10px; height: 164px; overflow: hidden; background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-line-strong), 0 -10px 28px rgb(0 0 0 / 0.55); }
+  /* 枠が固定なので、スポットの行は出さず、名前を 1 行に（行は広い画面の札で） */
+  .jm-spots { display: none; }
+  .jm-near:not(.jm-near-keep) { display: none; }
 }
-@keyframes jm-sheet-in { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .jm-sheet { animation: none !important; } }
+@media (min-width: 768px) { .jm-names-line { display: none; } }
+@media (prefers-reduced-motion: reduce) { .jm-sh, .jm-frame { transition: none; } .jm-prog.go circle { animation-duration: 1ms; } }

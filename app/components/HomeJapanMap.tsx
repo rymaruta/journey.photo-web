@@ -2,7 +2,7 @@
 
 // app/components/HomeJapanMap.tsx
 //
-// **ホームの「撮影スポットを地図から探す」**（2026-11-09・owner「任せる」・デザイナーの提案書 案D+A）。
+// **ホームの「撮影スポットを地図から探す」**（2026-11-09・owner「任せる」→ 同日「案C（実形・地方→県・長押し/横寄りでなぞる・離して選択）で作り直し」）。
 // 実形の日本地図で県を選ぶ入口。**ホームの写真のタブの面より上**（札・アプリの案内の下）に置く
 // （owner の懸念: 写真の並びが長くて地図に辿り着けず離脱するのがいちばん悲しい）。
 // 文字リンクの一覧（`HomeSpotEntry`・国内と海外）はホームの下に今のまま残す——SEO と、小さな県の保険。
@@ -11,47 +11,51 @@
 // RSC ペイロードに要素の木がもう1本入り、HTML が二重に太る。形のデータは部品の JS が持ち、
 // サーバーで描いた HTML には 47 本の本物の `<a href>` がそのまま出る。渡すのは県のスラッグと件数だけ。
 //
-// 作り（提案書のとおり。2026-11-09 の2回目で操作を作り直した——下の「操作」）:
-//   - 各県は本物のリンク（行き先は県の頁・`ROUTES.SPOT_AREA`）。JS が効く前・新しいタブ・読み上げの「リンク」はそのまま県の頁へ行く
-//   - **県名は地図に常に載せる**（owner「地図に県の名前をつけ忘れている」）。字は画面で 12px・白に黒の縁取り。
-//     県の中に収まる県はその中、収まらない小さな県（関東・近畿・瀬戸内）は海に出して**引き出し線**でつなぐ。
-//     置き場は `lib/data/prefectureLabels.ts`（`scripts/generate-prefecture-labels.ts` が作る生成物）。
-//     引き出した字は県の当たりにもなる（小さな県を字で押せる）
-//   - 拡大: ＋ − 全体（**左上**・沖縄の枠を覆わない）・ダブルクリック・Ctrl+ホイール・ドラッグ・ピンチ
-//   - キーボード: Tab で地図に入ると止まり先は1か所（北海道）・矢印キーで隣の県・Enter で一覧を開く・Esc で閉じる。
-//     先頭に「地図を飛ばして文字の一覧へ」。県ごとに名前付きのリンク（読み上げは「神奈川県の撮影スポット、63件」）。
-//     フォーカスの輪は真鍮の内側 2px（形に沿う）
-//   - 色だけに頼らない: 選んだ県は縁も太くなる。件数の濃淡は**初期オフ**（チェックで切り替え・凡例つき）
-//   - 沖縄は枠に入れて右下へ・縮尺は本土と同じ（枠の字は「沖縄県」だけ。長いと島に重なる）。海外は今の国の一覧のまま（世界地図は別案）
+// 作り（仕様の正本: デザイナーの提案書「日本地図の県の選び方」v4）:
+//   - **2 段**: 全国の画面は「地方」を当て、離すと地方が拡大して開く（県は選ばない）。拡大した地方の中で「県」を当てる。
+//     北海道・沖縄は地方を拡大せず、直接県を選ぶ。地方の拡大は履歴を積まない（`japanMapView.ts`）
+//   - **なぞって選ぶ**（`traceGesture.ts`）: 長押し 250ms（動き 8pt 以内）か、横寄り（8pt 超・水平から 45° 以下）でなぞり開始。
+//     それ以外は縦スクロール・タップ（`touch-action: pan-y`）。なぞり中だけ自前の非 passive `touchmove` で preventDefault。
+//     指の真上に名前の札（地方・県）。**離したときは、画面に見えていた県・地方を選ぶ**（再計算しない）。地図の外で離すと取り消し
+//   - **タップの確定は `click`**（pointerup は使わない。慣性スクロール中に指で止めただけで地方が開くため）
+//   - **当たり判定は自前**（`japanMapHit.ts`）: 形の中は必ずその県・形の外は輪郭から 16px 以内で最も近い県・触れている県を優先する粘り
+//   - 各県は本物のリンク（行き先は県の頁・`ROUTES.SPOT_AREA`）。JS が効く前・新しいタブ・読み上げの「リンク」はそのまま県の頁へ行く。
+//     JS が効いたあと、押す・Enter は頁を移動せず、その場に一覧（下の帯）を出す
+//   - 帯は**常設の枠**（スマホで 164px・押し出さない・地図の高さは変えない）。選んでいないときは「県を選ぶ」と一覧への近道
+//   - 県名: 全国は地方名（16px 明朝）・拡大した地方は県の中に 14px（`prefectureRegionLabels.ts`・引き出し線は廃止）
+//   - **全機能がタップ・キーボード・一覧で可能**（WCAG 2.5.1・2.5.7）: なぞりは上乗せ。地方チップ（実ボタン）・県の一覧チップ（地図の強調と連動）・
+//     矢印キー（全国は地方、拡大した地方は県）・Enter・Esc。なぞり中の名前は読み上げず、確定したときだけ aria-live で読む
+//   - 初見の手がかり: 常設の一言「長押ししてなぞる」＋初回だけ輪が地方をなぞる動き（`japanMapHint.ts`）
+//   - 安全策: なぞり判定・拡大の途中で例外が出ても、タップ（click）と一覧チップで県に必ず行ける
 //
-// 操作（2026-11-09 owner「地図は操作感を大事に。押して、撮影スポットが出て、戻るのも楽に」）:
-//   - **県を押しても頁を移動しない。** 同じ頁で、その県の撮影スポットの上位の数件と「すべて見る」を出す
-//     （スマホは地図の下に貼り付くシート・広い画面は地図の右の札）。選んだ県は地図で強調。
-//     別の県を押せばその場で切り替わり、同じ県をもう一度押す・✕・Esc で閉じる
-//     （以前は 44px 以上の県は押すと直接移動・小さい県は札だった。移動を前提にした「大きさで分ける」は要らなくなった——
-//      間違えて押しても、別の県を押すだけで直る）
-//   - **URL に選択県（`#pref=kanagawa`）を持たせる。** 開くとき履歴を1件積む（戻る＝閉じる）・切り替えは差し替え・
-//     一覧の頁へ進んで戻ると同じ県の一覧が開いたまま。履歴の書き方は `withNextHistoryState`（Next の popstate が再読込に落ちない作法）
-//   - 一覧は静的データ（`homeMapTopSpots`・ビルドで焼く）。新しい API・費用は無い
-//   - シートがスマホの画面の下を覆うので、開いた県が覆われる位置なら頁を少し動かして見える所へ寄せる
-// 高さ: スマホで画面の 7 割まで（`globals.css` の `jm-wrap`・県名が読める大きさを確保するため 6 割から広げた）。
-// **縦のスクロールを奪わない**ため、拡大していないあいだは `touch-action: pan-y`。拡大中だけ `none`。
+// URL・戻る（`#pref=kanagawa`）: 県を選んで帯を開くとき履歴を1件積む（戻る＝閉じる）・切り替えは差し替え・
+//   県の頁へ進んで戻ると同じ県が開いたまま（その県の地方へ自動で拡大）。履歴の書き方は `withNextHistoryState`。
+//   閉じるときは、**自分が積んだ履歴で、積んだときと `location.search` が同じときだけ** back() で消す。違うとき（タブを替えた後など）は差し替え
 //
-// 計測（`nav_click`・`area: home_entry`）: `dest: map_pref_select`（県を押した・選び直しも）/ `map_sheet_open`（閉じた状態から開いた）/
+// 計測（`nav_click`・`area: home_entry`）: `dest: map_pref_select`（県を選んだ・選び直しも。閉じる操作は数えない）/ `map_sheet_open`（閉じた状態から開いた）/
 // `map_spot`（一覧のスポットを押した）/ `map_pref`（「すべて見る」・新しいタブなどで県の頁へ行った）。
-// 札を出すだけの操作・拡大・濃淡は数えない。県の名前・URL・スポットの slug は送らない。
+// 地方の拡大・なぞり・濃淡は数えない（新しい計測は承認が要る）。県の名前・URL・スポットの slug は送らない。
 
-import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import type { HomeAreaRow } from "@/lib/data/homeSpotEntry";
 import { PREFECTURES } from "@/lib/data/prefectures";
 import { MAP_H, MAP_W, OKINAWA_FRAME, PREFECTURE_SHAPES } from "@/lib/data/prefectureShapes";
-import { PREFECTURE_LABELS } from "@/lib/data/prefectureLabels";
+import { REGION_LABELS, REGION_LABEL_PX } from "@/lib/data/prefectureRegionLabels";
 import type { AreaTopSpot } from "@/lib/data/spotLink";
+import { densityBin, densityCuts, nearestSlugs, neighborInDirection, prefFromHash, prefHash, shapeOf } from "@/lib/utils/japanMap";
 import {
-    NEAR_TAP_PX, ZOOM_MAX, ZOOM_MIN, clampView, densityBin, densityCuts, nearestByBox,
-    nearestSlugs, neighborInDirection, prefFromHash, prefHash, shapeOf, type MapView,
-} from "@/lib/utils/japanMap";
+    ALL_VIEW, NOMINAL_W, OKINAWA_CENTER, REGION_ORDER, REGION_POS, easeOut, isDirectRegion, lerpView, membersOf, regionForSelection, regionOf, viewFor,
+    type MapView, type RegionName,
+} from "@/lib/utils/japanMapView";
+import { hitAt, pickHit, regionHit, sameHit, type Hit, type HitContext } from "@/lib/utils/japanMapHit";
+import { TraceGesture, type TraceAbort, type TraceWhy } from "@/lib/utils/traceGesture";
+import { TIP_H, placeTip, type TipMode } from "@/lib/utils/japanMapTip";
+import {
+    HINT_IDLE_MS, HINT_PATH, HINT_VISIBLE_RATIO, ghostAt, ghostPlayed, countVisit, readHint, shouldPlayGhost, shouldShowCaption, tracedOnce, writeHint,
+    type HintState,
+} from "@/lib/utils/japanMapHint";
 import { withNextHistoryState } from "@/lib/utils/historyState";
 import { clearMapReturn, readMapReturn, saveMapReturn } from "@/lib/utils/mapReturn";
 import { ROUTES } from "@/lib/routes";
@@ -61,11 +65,13 @@ import { track } from "@/lib/utils/analytics";
 
 const HEADING_ID = "home-japan-map-h";
 const SHEET_ID = "home-japan-map-sheet";
-/** ページ内リンクの行き先（`HomeSpotEntry` の `<nav>`）。2026-11-09 判断: 行き元の `#` リンクは素の `<a>` にしない（`next/link`）。素だと履歴の state が null になり、県の頁から戻っても画面が戻らない（`hashLinks.test.ts`） */
+const LIST_ID = "home-japan-map-list";
+/** ページ内リンクの行き先（`HomeSpotEntry` の `<nav>`） */
 export const SPOT_LIST_ID = "home-spot-entry-list";
 
 const NAME = new Map(PREFECTURES.map((p) => [p.slug, p.name]));
-const STEP = 1.6;
+const SHORT = (slug: string) => (slug === "hokkaido" ? "北海道" : (NAME.get(slug) ?? slug).replace(/[県府都]$/, ""));
+const LABEL_BY_SLUG = new Map(REGION_LABELS.map((l) => [l[0], l]));
 
 /** 重なったとき小さな県が上に来る並び（大きい県が先・DOM の後ろが上） */
 const LINK_ORDER = [...PREFECTURE_SHAPES].sort((a, b) => b[2][2] * b[2][3] - a[2][2] * a[2][3]);
@@ -74,66 +80,35 @@ const ARROWS: Record<string, readonly [number, number]> = {
     ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
 };
 
+/** 地方の色（全国の画面で、隣り合う地方が同じ色にならない 3 色の繰り返し） */
+const TINT_OF = new Map<RegionName, "a" | "b" | "c">(REGION_ORDER.map((r, i) => [r, (["a", "b", "c"] as const)[i % 3]]));
+
+/** 地方チップ */
+const CHIPS = ["全国", ...REGION_ORDER] as const;
+type ChipName = (typeof CHIPS)[number];
+
 function slugOf(target: EventTarget | null): string | null {
     const a = target instanceof Element ? target.closest("a[data-s]") : null;
     return a ? a.getAttribute("data-s") : null;
 }
 
-/** リンク、または縁の当たり（halo）の県。マウスの札に使う */
-function slugOrHaloOf(target: EventTarget | null): string | null {
-    const s = slugOf(target);
-    if (s) return s;
-    return target instanceof Element && target.classList.contains("jm-halo") ? target.getAttribute("data-s") : null;
-}
-
-const LABEL_BY_SLUG = new Map(PREFECTURE_LABELS.map((l) => [l[0], l]));
-/** 県名の字の大きさ（画面の px）と、引き出した字の当たりの余白 */
-const LABEL_PX = 12;
-const LABEL_HIT_PAD_PX = 4;
-
-/** 字の枠（viewBox の単位）。`perUnit` = 画面の px ÷ 単位。縦書きは1字ずつ縦に積む */
-function labelBox(l: (typeof PREFECTURE_LABELS)[number], perUnit: number, padPx = 0) {
-    const fs = LABEL_PX / perUnit, line = fs * 1.12, n = [...l[1]].length, pad = padPx / perUnit;
-    const w = (l[2] === "h" ? n * fs : line) / 2 + pad, h = (l[2] === "h" ? line : n * fs) / 2 + pad;
-    return { x: l[3] - w, y: l[4] - h, w: w * 2, h: h * 2, fs };
-}
-
-/**
- * 県名の1つ分（引き出し線＋点＋字）。見た目だけ（読み上げは県のリンクの名前・当たりはリンクの側）。
- * 字の大きさ・縁取りの太さは親の `--jm-fs` / `--jm-sw`（画面で 12px / 3px になる単位）から読む
- * （1字ごとに style を書くと HTML が約 5KB 太る）。位置揃えは CSS（`.jm-name`）
- */
-function LabelMark({ l, perUnit, on }: { l: (typeof PREFECTURE_LABELS)[number]; perUnit: number; on: boolean }) {
-    const fs = LABEL_PX / perUnit;
-    const chars = [...l[1]];
-    const r = (n: number) => Math.round(n * 100) / 100;
-    return (
-        <g className={on ? "jm-lab-sel" : undefined} data-label={l[0]}>
-            {l[5] !== null && l[6] !== null && (
-                <>
-                    <line className="jm-lead" x1={l[3]} y1={l[4]} x2={l[5]} y2={l[6]} />
-                    <circle className="jm-lead-dot" cx={l[5]} cy={l[6]} r={r(1.8 / perUnit)} />
-                </>
-            )}
-            {l[2] === "h" ? (
-                <text className="jm-name" x={l[3]} y={l[4]}>{l[1]}</text>
-            ) : (
-                chars.map((c, i) => <text key={i} className="jm-name" x={l[3]} y={r(l[4] + (i - (chars.length - 1) / 2) * fs)}>{c}</text>)
-            )}
-        </g>
-    );
-}
-
-/** 海へ引き出した県名のまわりの当たり（県のリンクの中に置く）。県の中に置いた字は県の形が当たりなので要らない */
-function LabelHit({ slug, perUnit }: { slug: string; perUnit: number }) {
-    const l = LABEL_BY_SLUG.get(slug);
-    if (!l || l[5] === null) return null;
-    const b = labelBox(l, perUnit, LABEL_HIT_PAD_PX);
-    return <rect className="jm-hit" x={b.x} y={b.y} width={b.w} height={b.h} />;
-}
-
-/** 一覧を開いたときの履歴の印（戻る＝閉じる）。`history.state` に載せる */
+/** 一覧を開いたときの履歴の印（戻る＝閉じる）と、積んだときの search。`history.state` に載せる */
 const PUSHED_KEY = "jmPref";
+const SEARCH_KEY = "jmSearch";
+
+/** サーバーでは useLayoutEffect を呼ばない（React 19 でも何もしないが、意図をはっきりさせる） */
+const useIsoLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
+const prefersReducedMotion = () => typeof window !== "undefined" && typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/** 例外を握りつぶさず、地図の操作だけを止めて（県への道は残して）コンソールへ出す */
+function guard<T>(what: string, fn: () => T, fallback?: () => void): T | undefined {
+    try { return fn(); } catch (e) {
+        try { console.error(`[HomeJapanMap] ${what}`, e); } catch { /* 無視 */ }
+        try { fallback?.(); } catch { /* 無視 */ }
+        return undefined;
+    }
+}
 
 export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly HomeAreaRow[]; tops?: Readonly<Record<string, readonly AreaTopSpot[]>> }) {
     const uid = useId().replace(/:/g, "");
@@ -142,44 +117,76 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     const cuts = useMemo(() => densityCuts([...counts.values()]), [counts]);
     const ids = useMemo(() => new Map(PREFECTURE_SHAPES.map((s, i) => [s[0], `${uid}p${i}`])), [uid]);
 
+    // ---- 状態 ----
+    /** 画面: null＝全国・地方名＝その地方を拡大 */
+    const [stage, setStage] = useState<RegionName | null>(null);
     const [sel, setSel] = useState<string | null>(null);
-    const [hov, setHov] = useState<string | null>(null);
+    /** 触れている（なぞり・マウス・キーボード・一覧チップ）地方・県 */
+    const [hov, setHovState] = useState<Hit | null>(null);
+    const [tracing, setTracing] = useState(false);
+    const [outside, setOutside] = useState(false);
+    const [ghost, setGhost] = useState(false);
+    const [caption, setCaption] = useState(true);
     const [foc, setFoc] = useState<string | null>(null);
     /** 止まり先の県（roving tabindex）。JS が効くまで null＝47本とも普通のリンク */
     const [rove, setRove] = useState<string | null>(null);
-    const [view, setView] = useState<MapView>({ z: 1, x: 0, y: 0 });
+    const [view, setViewState] = useState<MapView>(ALL_VIEW);
+    const [wpx, setWpx] = useState(NOMINAL_W);
     const [dens, setDens] = useState(false);
-    /** 拡大していないときの 1 単位あたりの px（ResizeObserver） */
-    const [px, setPx] = useState(1);
+    const [listOpen, setListOpen] = useState(false);
+    const [announce, setAnnounce] = useState("");
+    const [mounted, setMounted] = useState(false);
+    /** マウスが地図の上にあって名前の札を出している */
+    const [mouseOn, setMouseOn] = useState(false);
 
+    // ---- 参照（イベントの中で最新の値を読む） ----
     const svgRef = useRef<SVGSVGElement>(null);
     const wrapRef = useRef<HTMLDivElement>(null);
-    const tipRef = useRef<HTMLDivElement>(null);
-    const viewRef = useRef(view);
-    viewRef.current = view;
-    const pxRef = useRef(px);
-    pxRef.current = px;
-    const moved = useRef(false);
     const sheetRef = useRef<HTMLDivElement>(null);
+    const listBtnRef = useRef<HTMLButtonElement>(null);
+    const ringRef = useRef<HTMLDivElement>(null);
+    const progRef = useRef<HTMLDivElement>(null);
+    const tipRef = useRef<HTMLDivElement>(null);
+    const stageRef = useRef(stage);
+    stageRef.current = stage;
     const selRef = useRef(sel);
     selRef.current = sel;
+    const hovRef = useRef<Hit | null>(null);
+    const viewRef = useRef(view);
+    viewRef.current = view;
+    const wpxRef = useRef(wpx);
+    wpxRef.current = wpx;
+    const outsideRef = useRef(false);
+    const tracingRef = useRef(false);
+    const fingerRef = useRef<{ x: number; y: number } | null>(null);
+    const tipModeRef = useRef<TipMode>("above");
+    const tapRef = useRef<{ t: number } | null>(null);
+    const lastCommitRef = useRef(0);
+    const brokenRef = useRef(false);
+    const animRef = useRef<number | null>(null);
+    const hintRef = useRef<HintState | null>(null);
+    const ghostRafRef = useRef<number | null>(null);
+    const ghostTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const ghostOnRef = useRef(false);
+    const idleRef = useRef(true);
     /** 押して開いた直後に、県が覆われないよう頁を寄せる対象（URL から戻したときは動かさない） */
     const revealPending = useRef<string | null>(null);
-    /** 開いたのがキーボードなら、一覧へ焦点を移す（Esc で県へ戻す） */
+    /** 開いたのがキーボード・一覧チップなら、一覧（帯）へ焦点を移す（Esc で県へ戻す） */
     const focusSheetPending = useRef(false);
 
-    const zoomed = view.z > 1;
-    const perUnit = px * view.z;
+    const s = wpx / view.w; // 画面の px / 単位
 
-    const applyView = useCallback((v: MapView) => setView(clampView(v, MAP_H)), []);
+    const setHov = useCallback((h: Hit | null) => { hovRef.current = h; setHovState(h); }, []);
+    const setView = useCallback((v: MapView) => { viewRef.current = v; setViewState(v); }, []);
+    const setStageBoth = useCallback((r: RegionName | null) => { stageRef.current = r; setStage(r); }, []);
 
-    useEffect(() => { setRove("hokkaido"); }, []);
+    useEffect(() => { setMounted(true); setRove("hokkaido"); }, []);
 
-    // 幅の変化を追う（拡大前の px / 単位）
+    // 幅の変化を追う
     useEffect(() => {
         const el = svgRef.current;
         if (!el) return;
-        const read = () => { const w = el.getBoundingClientRect().width; if (w > 0) setPx(w / MAP_W); };
+        const read = () => { const w = el.getBoundingClientRect().width; if (w > 0) setWpx(w); };
         read();
         if (typeof ResizeObserver === "undefined") return;
         const ro = new ResizeObserver(read);
@@ -187,90 +194,118 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         return () => ro.disconnect();
     }, []);
 
-    /** 画面の座標 → 地図の座標 */
-    const toMap = useCallback((cx: number, cy: number): [number, number] => {
-        const r = svgRef.current?.getBoundingClientRect();
-        const v = viewRef.current;
-        if (!r || r.width === 0) return [0, 0];
-        return [v.x + ((cx - r.left) / r.width) * (MAP_W / v.z), v.y + ((cy - r.top) / r.height) * (MAP_H / v.z)];
-    }, []);
+    // ---- 拡大（260ms・ease-out cubic。動きを減らす設定・復元は即時） ----
+    const camTo = useCallback((target: MapView, instant = false) => {
+        if (animRef.current !== null) { cancelAnimationFrame(animRef.current); animRef.current = null; }
+        if (instant || prefersReducedMotion() || typeof requestAnimationFrame !== "function") { setView(target); return; }
+        const from = viewRef.current, t0 = performance.now();
+        const step = (now: number) => {
+            const u = Math.min(1, (now - t0) / 260);
+            setView(u >= 1 ? target : lerpView(from, target, easeOut(u)));
+            animRef.current = u < 1 ? requestAnimationFrame(step) : null;
+        };
+        animRef.current = requestAnimationFrame(step);
+    }, [setView]);
+    useEffect(() => () => { if (animRef.current !== null) cancelAnimationFrame(animRef.current); }, []);
 
-    /** 画面の (cx, cy) を動かさずに拡大・縮小する */
-    const zoomAt = useCallback((nz: number, cx: number, cy: number) => {
-        const v = viewRef.current;
-        const z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, nz));
-        const r = svgRef.current?.getBoundingClientRect();
-        if (!r || r.width === 0) { applyView({ ...v, z }); return; }
-        const fx = (cx - r.left) / r.width;
-        const fy = (cy - r.top) / r.height;
-        const mx = v.x + fx * (MAP_W / v.z);
-        const my = v.y + fy * (MAP_H / v.z);
-        applyView({ z, x: mx - fx * (MAP_W / z), y: my - fy * (MAP_H / z) });
-    }, [applyView]);
+    /** 画面を替える。拡大が壊れても（例外）、即時に切り替えて県へは行ける */
+    const gotoStage = useCallback((r: RegionName | null, instant = false) => {
+        setStageBoth(r);
+        guard("camTo", () => camTo(viewFor(r), instant), () => setView(viewFor(r)));
+    }, [camTo, setStageBoth, setView]);
 
-    /** 県が見える窓の外・縁に寄っていたら、その県が真ん中に来るよう動かす */
-    const reveal = useCallback((slug: string) => {
-        const v = viewRef.current;
-        const s = shapeOf(slug);
-        if (!s || v.z <= 1) return;
-        const w = MAP_W / v.z, h = MAP_H / v.z;
-        const sx = (s[3][0] - v.x) / w, sy = (s[3][1] - v.y) / h;
-        if (sx < 0.08 || sx > 0.92 || sy < 0.08 || sy > 0.92) applyView({ z: v.z, x: s[3][0] - w / 2, y: s[3][1] - h / 2 });
-    }, [applyView]);
-
+    // ---- URL（履歴） ----
     /** 履歴の state に印を付けて書く。Next の popstate が再読込に落ちない作法（`withNextHistoryState`） */
     const writeUrl = useCallback((slug: string | null, mode: "push" | "replace") => {
         try {
             const base = window.location.pathname + window.location.search;
             const url = slug ? base + prefHash(slug) : base;
-            const state = withNextHistoryState(slug ? { [PUSHED_KEY]: mode === "push" ? 1 : (window.history.state?.[PUSHED_KEY] ?? 0) } : {});
-            if (!slug) delete state[PUSHED_KEY]; // 閉じた状態の履歴に印は残さない（`withNextHistoryState` は印を持ち越す）
+            const st = window.history.state as Record<string, unknown> | null;
+            const state = withNextHistoryState(slug ? {
+                [PUSHED_KEY]: mode === "push" ? 1 : (st?.[PUSHED_KEY] ?? 0),
+                [SEARCH_KEY]: mode === "push" ? window.location.search : (st?.[SEARCH_KEY] ?? window.location.search),
+            } : {});
+            if (!slug) { delete state[PUSHED_KEY]; delete state[SEARCH_KEY]; } // 閉じた状態の履歴に印は残さない（`withNextHistoryState` は印を持ち越す）
             if (mode === "push") window.history.pushState(state, "", url);
             else window.history.replaceState(state, "", url);
         } catch { /* 履歴が書けない環境でも一覧は開く */ }
     }, []);
 
-    /** 閉じる。自分が積んだ履歴なら戻して消す（閉じたあとの「戻る」が空振りしない）。`refocus` は県のリンクへ焦点を戻す */
+    /**
+     * 帯を閉じる。**自分が積んだ履歴で、積んだときと `location.search` が同じ**なら back() で消す（閉じたあとの「戻る」が空振りしない）。
+     * 違うとき（開いたまま別のタブへ替えたあとなど）は back() せず、差し替えでハッシュだけ外す
+     * （back() すると、積む前＝別のタブの履歴へ戻って、替えたタブが元に戻ってしまう）。`refocus` は県のリンクへ焦点を戻す
+     */
     const closeSheet = useCallback((refocus = false) => {
         const cur = selRef.current;
         if (cur === null) return;
         setSel(null);
         revealPending.current = null;
         clearMapReturn();
+        setAnnounce("撮影スポットの一覧を閉じました。");
         if (refocus) svgRef.current?.querySelector<SVGAElement>(`a[data-s="${cur}"]`)?.focus({ preventScroll: true });
         try {
-            if (window.history.state?.[PUSHED_KEY] === 1 && window.location.hash === prefHash(cur)) window.history.back();
+            const st = window.history.state as Record<string, unknown> | null;
+            const mine = st?.[PUSHED_KEY] === 1 && (st?.[SEARCH_KEY] ?? "") === window.location.search && window.location.hash === prefHash(cur);
+            if (mine) window.history.back();
             else if (window.location.hash) writeUrl(null, "replace");
         } catch { /* 同上 */ }
     }, [writeUrl]);
 
-    /**
-     * 県を押した（地図・字・近くの県の札）。閉じているなら開く（履歴を1件積む）・別の県なら切り替える（差し替え）・
-     * 同じ県なら閉じる。`byKey` はキーボード（Enter）で開いたとき＝一覧へ焦点を移す
-     */
-    const press = useCallback((slug: string, byKey = false) => {
+    /** 県を選ぶ（地図・一覧チップ・近くの県・リンクの Enter）。同じ県をもう一度選んでも変化なし。閉じるのは ✕・Esc・海のタップ */
+    const selectPref = useCallback((slug: string, byKey = false) => {
+        if (!among.has(slug)) return;
         const cur = selRef.current;
+        if (cur === slug) { if (byKey) sheetRef.current?.focus({ preventScroll: true }); return; }
         track("nav_click", { area: "home_entry", dest: "map_pref_select" });
-        if (cur === slug) { closeSheet(true); return; }
         if (cur === null) track("nav_click", { area: "home_entry", dest: "map_sheet_open" });
         setSel(slug);
+        setRove(slug);
+        setAnnounce(`${NAME.get(slug)}を選びました。撮影スポット ${counts.get(slug) ?? 0}件。`);
+        const target = regionForSelection(slug);
+        if (target !== stageRef.current) gotoStage(target);
         revealPending.current = slug;
         focusSheetPending.current = byKey;
-        reveal(slug);
         writeUrl(slug, cur === null ? "push" : "replace");
-    }, [reveal, writeUrl, closeSheet]);
+    }, [among, counts, gotoStage, writeUrl]);
+
+    /** 地方を拡大して開く（県は選ばない）。開いていた帯は閉じる */
+    const goRegion = useCallback((r: RegionName) => {
+        if (isDirectRegion(r)) { selectPref(r === "北海道" ? "hokkaido" : "okinawa"); return; }
+        if (selRef.current) closeSheet(false);
+        gotoStage(r);
+        setAnnounce(`${r}を拡大。${membersOf(r).length}県。`);
+    }, [closeSheet, gotoStage, selectPref]);
+
+    /** 全国へ戻る */
+    const goAll = useCallback(() => {
+        if (selRef.current) closeSheet(false);
+        gotoStage(null);
+        setAnnounce("全国の地図に戻りました。");
+    }, [closeSheet, gotoStage]);
 
     // URL（`#pref=…`）から選択県を戻す: 最初の描画のあと・戻る/進む・ハッシュの変更。一覧の頁から戻ったときもここ
     useEffect(() => {
-        const sync = () => setSel(prefFromHash(window.location.hash, among));
+        let first = true;
+        const sync = () => {
+            const p = prefFromHash(window.location.hash, among);
+            setSel(p);
+            if (p) {
+                setRove(p);
+                const target = regionForSelection(p);
+                if (target !== stageRef.current) gotoStage(target, true); // 戻る・共有リンクは動きなしで開く
+            }
+            first = false;
+        };
         sync();
+        void first;
         // iOS Safari の戻る（bfcache）は頁ごと元の状態で戻る（`pageshow` の persisted）。ハッシュと食い違っていたら合わせる
         const onShow = (e: PageTransitionEvent) => { if (e.persisted) sync(); };
         window.addEventListener("popstate", sync);
         window.addEventListener("hashchange", sync);
         window.addEventListener("pageshow", onShow);
         return () => { window.removeEventListener("popstate", sync); window.removeEventListener("hashchange", sync); window.removeEventListener("pageshow", onShow); };
-    }, [among]);
+    }, [among, gotoStage]);
 
     /**
      * **地図から県の頁へ進んで戻ったとき、地図の位置へ帰る**（2026-11-09 owner「地図で県に行って戻ったら、また地図に戻る」）。
@@ -313,7 +348,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         if (cur) saveMapReturn(cur, window.scrollY);
     }, []);
 
-    // 押して開いた直後: キーボードなら一覧へ焦点・スマホなら、貼り付いたシートに県が隠れないよう頁を寄せる
+    // 押して開いた直後: キーボード・一覧チップなら帯へ焦点・スマホなら、貼り付いた帯に県が隠れないよう頁を寄せる
     useEffect(() => {
         const slug = revealPending.current;
         if (!sel || sel !== slug) return;
@@ -321,278 +356,532 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         if (focusSheetPending.current) { focusSheetPending.current = false; sheetRef.current?.focus({ preventScroll: true }); }
         const sheet = sheetRef.current, svg = svgRef.current, sh = shapeOf(sel);
         if (!sheet || !svg || !sh || typeof window.matchMedia !== "function") return;
-        if (!window.matchMedia("(max-width: 639.98px)").matches) return; // 広い画面は札が右にあり、地図を覆わない
-        const r = svg.getBoundingClientRect(), v = viewRef.current;
-        // 県の中心＋外接箱の高さの半分（上限 40px）の位置を、シートの上に出す（県の下側がシートに潜らないように）
-        const k = r.height / (MAP_H / v.z);
+        if (!window.matchMedia("(max-width: 767.98px)").matches) return; // 広い画面は札が右にあり、地図を覆わない
+        const r = svg.getBoundingClientRect();
+        // 県の中心＋外接箱の高さの半分（上限 40px）の位置を、帯の上に出す（県の下側が帯に潜らないように）。
+        // 拡大中の地図は、地方の画面に向けて動いている途中なので、行き先の viewBox で数える
+        const v = viewFor(regionForSelection(sel));
+        const k = r.height / v.h;
         const cy = r.top + (sh[3][1] - v.y) * k + Math.min((sh[2][3] * k) / 2, 40);
-        const bar = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--bottom-bar-h")) || 84;
-        const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 56;
-        const covered = sheet.getBoundingClientRect().height + bar + 8;
+        const root = getComputedStyle(document.documentElement);
+        const bar = parseFloat(root.getPropertyValue("--bottom-bar-h")) || 84;
+        const mini = parseFloat(root.getPropertyValue("--mini-player-h")) || 0; // 再生バーが出ている間は、そのぶん帯も上がる
+        const header = parseFloat(root.getPropertyValue("--header-h")) || 56;
+        const covered = sheet.getBoundingClientRect().height + bar + mini + 8;
         const lo = header + 24, hi = window.innerHeight - covered - 40;
         if (hi <= lo) return;
         const delta = cy > hi ? cy - hi : cy < lo ? cy - lo : 0;
-        if (delta !== 0) {
-            const calm = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-            window.scrollBy({ top: delta, behavior: calm ? "auto" : "smooth" });
-        }
+        if (delta !== 0) window.scrollBy({ top: delta, behavior: prefersReducedMotion() ? "auto" : "smooth" });
     }, [sel]);
 
-    // Ctrl/⌘+ホイールで拡大（passive でないリスナーが要る。ふつうのホイールはページのスクロールに任せる）
-    useEffect(() => {
-        const el = svgRef.current;
-        if (!el) return;
-        const onWheel = (e: WheelEvent) => {
-            if (!(e.ctrlKey || e.metaKey)) return;
-            e.preventDefault();
-            zoomAt(viewRef.current.z * (e.deltaY < 0 ? 1.2 : 1 / 1.2), e.clientX, e.clientY);
-        };
-        el.addEventListener("wheel", onWheel, { passive: false });
-        return () => el.removeEventListener("wheel", onWheel);
-    }, [zoomAt]);
+    // ---- 札・輪の位置（指の位置は画面の px・`position: fixed`） ----
+    const safeRect = useCallback(() => {
+        const root = getComputedStyle(document.documentElement);
+        const header = parseFloat(root.getPropertyValue("--header-h")) || 56;
+        const bar = parseFloat(root.getPropertyValue("--bottom-bar-h")) || 0;
+        return { left: 0, right: window.innerWidth, top: header + 8, bottom: window.innerHeight - bar };
+    }, []);
 
-    // ---- リンク ----
-    const onLinkClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
-        const slug = e.currentTarget.getAttribute("data-s");
-        if (!slug) return;
-        // 新しいタブへ・中ボタン・修飾キーつきは、本物のリンクとして県の頁へ（これだけ「移動」として数える）
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) {
-            track("nav_click", { area: "home_entry", dest: "map_pref" });
+    const layoutFinger = useCallback(() => {
+        const f = fingerRef.current, ring = ringRef.current, tip = tipRef.current;
+        if (!f) return;
+        if (ring) { ring.style.left = `${f.x}px`; ring.style.top = `${f.y}px`; }
+        if (tip && !tip.hidden) {
+            const p = placeTip({ fx: f.x, fy: f.y, tw: tip.offsetWidth || 112, th: TIP_H, safe: safeRect(), prev: tipModeRef.current });
+            tipModeRef.current = p.mode;
+            tip.style.left = `${p.x}px`;
+            tip.style.top = `${p.y}px`;
+            tip.style.visibility = p.mode === "fixed" ? "hidden" : "visible"; // 入らないときは地図の上の固定欄の名前だけ
+        }
+    }, [safeRect]);
+    // 札の中身（名前）が変わったら、幅が変わるので置き直す
+    useIsoLayoutEffect(() => { layoutFinger(); });
+
+    // ---- 当たり ----
+    const ctxFor = useCallback((): HitContext => {
+        const v = viewRef.current;
+        return { region: stageRef.current, s: wpxRef.current / v.w, among };
+    }, [among]);
+
+    /** 画面の座標 → 地図の座標（地図の外は inside=false） */
+    const toMap = useCallback((cx: number, cy: number) => {
+        const r = svgRef.current?.getBoundingClientRect();
+        const v = viewRef.current;
+        if (!r || r.width === 0) return { x: 0, y: 0, inside: false };
+        return { x: v.x + ((cx - r.left) / r.width) * v.w, y: v.y + ((cy - r.top) / r.height) * v.h, inside: cx >= r.left && cx <= r.right && cy >= r.top && cy <= r.bottom };
+    }, []);
+
+    // ---- なぞり ----
+    const setProg = (x: number | null, y = 0) => {
+        const p = progRef.current;
+        if (!p) return;
+        if (x === null) { p.hidden = true; p.classList.remove("go"); return; }
+        p.hidden = false;
+        p.style.left = `${x}px`; p.style.top = `${y}px`;
+        p.classList.remove("go");
+        void p.getBoundingClientRect(); // アニメを頭から（reflow）
+        if (!prefersReducedMotion()) p.classList.add("go");
+    };
+
+    const stopGhost = useCallback(() => {
+        if (ghostRafRef.current !== null) cancelAnimationFrame(ghostRafRef.current);
+        if (ghostTimerRef.current !== null) clearTimeout(ghostTimerRef.current);
+        ghostRafRef.current = ghostTimerRef.current = null;
+        if (ghostOnRef.current) { ghostOnRef.current = false; setGhost(false); setHov(null); fingerRef.current = null; }
+    }, [setHov]);
+
+    const updateTrace = useCallback((x: number, y: number) => {
+        fingerRef.current = { x, y };
+        const m = toMap(x, y);
+        if (!m.inside) {
+            if (!outsideRef.current) { outsideRef.current = true; setOutside(true); setHov(null); }
+        } else {
+            if (outsideRef.current) { outsideRef.current = false; setOutside(false); }
+            const h = pickHit(m.x, m.y, ctxFor(), hovRef.current);
+            if (!sameHit(h, hovRef.current)) setHov(h);
+        }
+        layoutFinger();
+    }, [ctxFor, layoutFinger, setHov, toMap]);
+
+    const endTrace = useCallback(() => {
+        tracingRef.current = false;
+        outsideRef.current = false;
+        setTracing(false);
+        setOutside(false);
+        setHov(null);
+        fingerRef.current = null;
+        setProg(null);
+    }, [setHov]);
+
+    /** 離した・タップした: 画面に見えていたもの（`h`）を選ぶ。無ければ何もしない（タップで帯が開いていれば閉じる） */
+    const commit = useCallback((h: Hit | null, how: "trace" | "tap") => {
+        lastCommitRef.current = Date.now();
+        if (!h) { if (how === "tap" && selRef.current) closeSheet(false); return; }
+        if (h.k === "region") goRegion(h.region);
+        else selectPref(h.slug);
+    }, [closeSheet, goRegion, selectPref]);
+
+    /** なぞりの機械は最初の 1 回だけ作る。中から読む関数は毎回の描画の最新（`latest`）を呼ぶ */
+    const latest = useRef({ updateTrace, endTrace, commit, ctxFor, toMap, layoutFinger, stopGhost });
+    latest.current = { updateTrace, endTrace, commit, ctxFor, toMap, layoutFinger, stopGhost };
+    const gestureRef = useRef<TraceGesture | null>(null);
+    if (gestureRef.current === null) {
+        gestureRef.current = new TraceGesture({
+            pending: (x, y) => setProg(x, y),
+            pendingEnd: () => setProg(null),
+            begin: (x, y, why: TraceWhy, id) => {
+                const L = latest.current;
+                L.stopGhost();
+                tracingRef.current = true;
+                setTracing(true);
+                try { wrapRef.current?.setPointerCapture(id); } catch { /* 取れなくても、地図の外は座標で判定する */ }
+                if (why === "dwell") { try { navigator.vibrate?.(10); } catch { /* 触覚: iOS の Web は不可 */ } } // 長押し成立の合図（対応する端末だけ）
+                if (hintRef.current) { hintRef.current = tracedOnce(hintRef.current); writeHint(hintRef.current); }
+                setCaption(false);
+                const m = L.toMap(x, y);
+                outsideRef.current = !m.inside;
+                setOutside(!m.inside);
+                setHov(m.inside ? pickHit(m.x, m.y, L.ctxFor(), null) : null);
+                fingerRef.current = { x, y };
+                L.layoutFinger();
+            },
+            move: (x, y) => { guardedRef.current("move", () => latest.current.updateTrace(x, y)); },
+            release: (x, y) => {
+                const L = latest.current;
+                const out = outsideRef.current || !L.toMap(x, y).inside;
+                const h = hovRef.current;
+                L.endTrace();
+                if (out) return; // 地図の外で離す: 取り消し（選択は変えない）
+                guardedRef.current("release", () => L.commit(h, "trace"));
+            },
+            abort: (_why: TraceAbort) => { latest.current.endTrace(); },
+            tapCandidate: () => { tapRef.current = { t: Date.now() }; },
+        });
+    }
+    /** なぞり・拡大の途中の例外: コンソールへ出し、なぞりの状態を戻す。タップ・一覧チップへは影響しない（fallback） */
+    const guardedRef = useRef<(what: string, fn: () => void) => void>(() => {});
+    guardedRef.current = (what, fn) => {
+        guard(what, fn, () => { brokenRef.current = true; gestureRef.current?.reset(); latest.current.endTrace(); });
+    };
+
+    const pointerIn = (e: React.PointerEvent) => ({ id: e.pointerId, x: e.clientX, y: e.clientY, type: e.pointerType, button: e.button });
+
+    const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        stopGhost();
+        setCaption(false);
+        tapRef.current = null;
+        if (e.pointerType === "mouse" && (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return; // 修飾キーつきは click で新しいタブへ
+        guardedRef.current("down", () => gestureRef.current!.down(pointerIn(e)));
+    };
+    const onPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        const g = gestureRef.current!;
+        if (e.pointerType === "mouse" && g.mode !== "tracing") {
+            // マウスは押さなくても名前が出る（輪は出さない）
+            guardedRef.current("hover", () => {
+                const m = toMap(e.clientX, e.clientY);
+                fingerRef.current = { x: e.clientX, y: e.clientY };
+                const h = m.inside ? pickHit(m.x, m.y, ctxFor(), hovRef.current) : null;
+                if (!sameHit(h, hovRef.current)) setHov(h);
+                setMouseOn(h !== null);
+                layoutFinger();
+            });
             return;
         }
-        // ふつうの押下・Enter（detail 0）・読み上げの操作は、頁を移動せず一覧を出す
-        e.preventDefault();
-        press(slug, e.detail === 0);
-    }, [press]);
-
-    // ---- 指・マウス ----
-    const pts = useRef(new Map<number, [number, number]>());
-    const drag = useRef<{ x: number; y: number; vx: number; vy: number } | null>(null);
-    const pinch = useRef<{ d: number; z: number } | null>(null);
-
-    const onPointerDown = (e: React.PointerEvent<SVGSVGElement>) => {
-        pts.current.set(e.pointerId, [e.clientX, e.clientY]);
-        moved.current = false;
-        if (pts.current.size === 2) {
-            const [a, b] = [...pts.current.values()];
-            pinch.current = { d: Math.hypot(a[0] - b[0], a[1] - b[1]), z: viewRef.current.z };
-            drag.current = null;
-        } else if (viewRef.current.z > 1) {
-            drag.current = { x: e.clientX, y: e.clientY, vx: viewRef.current.x, vy: viewRef.current.y };
-        }
+        guardedRef.current("move", () => g.move(pointerIn(e)));
     };
-    const onPointerMove = (e: React.PointerEvent<SVGSVGElement>) => {
-        // マウスの札（名前と件数）。位置は直接書き換える（動くたびに描き直さない）
-        if (e.pointerType === "mouse") {
-            setHov(slugOrHaloOf(e.target));
-            const wr = wrapRef.current?.getBoundingClientRect();
-            if (wr && tipRef.current) {
-                tipRef.current.style.left = `${e.clientX - wr.left}px`;
-                tipRef.current.style.top = `${e.clientY - wr.top}px`;
-            }
-        }
-        if (!pts.current.has(e.pointerId)) return;
-        pts.current.set(e.pointerId, [e.clientX, e.clientY]);
-        if (pts.current.size === 2 && pinch.current) {
-            const [a, b] = [...pts.current.values()];
-            zoomAt(pinch.current.z * Math.hypot(a[0] - b[0], a[1] - b[1]) / pinch.current.d, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
-            moved.current = true;
-        } else if (drag.current) {
-            const r = svgRef.current?.getBoundingClientRect();
-            if (!r || r.width === 0) return;
-            const k = (MAP_W / viewRef.current.z) / r.width;
-            const dx = e.clientX - drag.current.x, dy = e.clientY - drag.current.y;
-            if (Math.abs(dx) + Math.abs(dy) > 6) {
-                if (!moved.current) svgRef.current?.setPointerCapture?.(e.pointerId);
-                moved.current = true;
-            }
-            if (moved.current) applyView({ z: viewRef.current.z, x: drag.current.vx - dx * k, y: drag.current.vy - dy * k });
-        }
-    };
-    const onPointerUp = (e: React.PointerEvent<SVGSVGElement>) => {
-        pts.current.delete(e.pointerId);
-        if (pts.current.size < 2) pinch.current = null;
-        if (pts.current.size === 0) drag.current = null;
+    const onPointerUp = (e: React.PointerEvent<HTMLDivElement>) => { guardedRef.current("up", () => gestureRef.current!.up(pointerIn(e), false)); };
+    const onPointerCancel = (e: React.PointerEvent<HTMLDivElement>) => { guardedRef.current("cancel", () => gestureRef.current!.up(pointerIn(e), true)); };
+    const onPointerLeave = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (e.pointerType === "mouse" && gestureRef.current!.mode !== "tracing") { setHov(null); setMouseOn(false); fingerRef.current = null; }
     };
 
-    /** ドラッグのあとに来るクリックは、移動にも札にも使わない */
-    const onClickCapture = (e: React.MouseEvent<SVGSVGElement>) => {
-        if (moved.current) { e.preventDefault(); e.stopPropagation(); moved.current = false; }
-    };
-    /** リンクの外（海・県の縁）のタップ: 縁の当たり（halo）か、14px 以内でいちばん近い県の札 */
-    const onSvgClick = (e: React.MouseEvent<SVGSVGElement>) => {
-        if (slugOf(e.target)) return; // リンクは `onLinkClick`
-        const t = e.target as Element;
-        const h = slugOrHaloOf(t);
-        if (h) { press(h); return; }
-        const [x, y] = toMap(e.clientX, e.clientY);
-        const near = nearestByBox(x, y, NEAR_TAP_PX / (pxRef.current * viewRef.current.z), among);
-        if (near) press(near);
-    };
-    const onDoubleClick = (e: React.MouseEvent<SVGSVGElement>) => {
-        e.preventDefault();
-        zoomAt(viewRef.current.z >= 3 ? 1 : viewRef.current.z * 2, e.clientX, e.clientY);
+    // なぞりモード中だけ、自前の非 passive touchmove で preventDefault（React の onTouchMove は passive で止められない）
+    useEffect(() => {
+        const el = wrapRef.current;
+        if (!el) return;
+        const onTouchMove = (e: TouchEvent) => { if (tracingRef.current && e.cancelable) e.preventDefault(); };
+        el.addEventListener("touchmove", onTouchMove, { passive: false });
+        return () => el.removeEventListener("touchmove", onTouchMove);
+    }, []);
+
+    /** 画面の切り替え・アンマウントで、なぞりの途中状態を残さない */
+    useEffect(() => { const g = gestureRef.current; return () => { g?.reset(); }; }, []);
+
+    // ---- クリック ----
+    const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const modifier = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+        const slug = slugOf(e.target);
+        if (slug) {
+            // キーボード（Enter）・読み上げの操作: 修飾キーつきは本物のリンクとして県の頁へ（これだけ「移動」として数える）
+            if (modifier || e.button !== 0) { track("nav_click", { area: "home_entry", dest: "map_pref" }); return; }
+            e.preventDefault();
+            selectPref(slug, e.detail === 0);
+            return;
+        }
+        const m = toMap(e.clientX, e.clientY);
+        if (modifier && m.inside) {
+            // 修飾キーつきのクリック（新しいタブ）: 県の上なら、その県の頁を新しいタブで開く
+            const h = guard("tap-open", () => hitAt(m.x, m.y, { ...ctxFor(), region: null }).best) ?? null;
+            const target = h?.k === "pref" ? h.slug : null;
+            if (target) { track("nav_click", { area: "home_entry", dest: "map_pref" }); window.open(ROUTES.SPOT_AREA(target), "_blank", "noopener"); }
+            return;
+        }
+        // タップ（指を 8pt 以内で離したあとの click）。なぞって離したあとの click・マウスの押し上げのあとの click は使わない
+        const cand = tapRef.current;
+        tapRef.current = null;
+        // 例外で壊れたあと・pointer イベントが無い環境では、click をそのままタップとして受ける（県へ必ず行ける）
+        const noPointer = typeof window.PointerEvent === "undefined";
+        const accepted = (cand !== null && Date.now() - cand.t <= 500) || ((brokenRef.current || noPointer) && Date.now() - lastCommitRef.current > 400);
+        if (!accepted) return;
+        if (!m.inside) { commit(null, "tap"); return; }
+        try {
+            commit(hitAt(m.x, m.y, ctxFor()).best, "tap");
+        } catch (err) {
+            // 当たりの計算が壊れても、一覧チップで県へ行けるように開く
+            try { console.error("[HomeJapanMap] tap", err); } catch { /* 無視 */ }
+            brokenRef.current = true;
+            setListOpen(true);
+            setAnnounce("地図を使えませんでした。県の一覧から選べます。");
+        }
     };
 
     // ---- キーボード ----
-    const onFocus = (e: React.FocusEvent<SVGSVGElement>) => {
+    const [kb, setKb] = useState<RegionName | null>(null);
+    const kbHit = (r: RegionName): Hit => regionHit(r);
+    const regionCenter = (r: RegionName): readonly [number, number] => (r === "沖縄" ? OKINAWA_CENTER : REGION_POS[r]);
+    const nextRegionIn = (from: RegionName, dx: number, dy: number): RegionName | null => {
+        const c0 = regionCenter(from);
+        let best: RegionName | null = null, bs = Infinity;
+        for (const r of REGION_ORDER) {
+            if (r === from) continue;
+            const c = regionCenter(r);
+            const vx = c[0] - c0[0], vy = c[1] - c0[1], d = Math.hypot(vx, vy);
+            if (!d) continue;
+            const cos = (vx * dx + vy * dy) / d;
+            if (cos < 0.5) continue;
+            if (d / cos < bs) { bs = d / cos; best = r; }
+        }
+        return best;
+    };
+
+    const focusLink = (slug: string) => svgRef.current?.querySelector<SVGAElement>(`a[data-s="${slug}"]`)?.focus();
+    const members = useMemo(() => (stage ? membersOf(stage).filter((x) => among.has(x)) : []), [stage, among]);
+    const tabStop = stage && members.length ? (rove && members.includes(rove) ? rove : members[0]) : null;
+
+    const onWrapKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+        const dir = ARROWS[e.key];
+        const onLink = slugOf(e.target);
+        if (stageRef.current === null) {
+            // 全国: 地方どうしを向きで移る（枠が焦点を持つ）。Enter・Space で開く
+            if (onLink) return;
+            if (dir) {
+                e.preventDefault();
+                const cur = kb ?? "関東";
+                const nxt = kb ? nextRegionIn(cur, dir[0], dir[1]) ?? cur : "関東";
+                setKb(nxt);
+                setHov(kbHit(nxt));
+                const n = isDirectRegion(nxt) ? `${nxt}。Enter で選びます。` : `${nxt}、${membersOf(nxt).length}県。Enter で拡大します。`;
+                setAnnounce(n);
+            } else if ((e.key === "Enter" || e.key === " ") && kb) {
+                e.preventDefault();
+                setKb(null); setHov(null);
+                goRegion(kb);
+            }
+            return;
+        }
+        // 拡大した地方: 県のリンクが焦点を持つ。矢印で隣の県へ（開かない）。枠が焦点を持っているときは最初の矢印でリンクへ
+        if (dir) {
+            e.preventDefault();
+            if (!onLink) { if (tabStop) focusLink(tabStop); return; }
+            const to = neighborInDirection(onLink, dir[0], dir[1], new Set(members));
+            if (to) focusLink(to);
+        }
+    };
+    useEffect(() => { if (stage !== null) { setKb(null); } }, [stage]);
+
+    const onWrapBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+        if (slugOf(e.target)) { setFoc(null); return; }
+        if (kb && !wrapRef.current?.contains(e.relatedTarget as Node | null)) { setKb(null); if (hovRef.current) setHov(null); }
+    };
+    const onFocus = (e: React.FocusEvent<HTMLDivElement>) => {
         const slug = slugOf(e.target);
         if (!slug) return;
         setRove(slug);
         let visible = true;
         try { visible = (e.target as Element).matches(":focus-visible"); } catch { /* 古いブラウザは輪を出す */ }
-        if (!visible) return; // マウスで押したときの焦点には輪も札も出さない（押した結果は `onLinkClick`）
+        if (!visible) return; // マウスで押したときの焦点には輪を出さない（押した結果は `onClick`）
         setFoc(slug);
-        reveal(slug);
-    };
-    const onBlur = (e: React.FocusEvent<SVGSVGElement>) => {
-        if (slugOf(e.target)) setFoc(null);
-    };
-    const onKeyDown = (e: React.KeyboardEvent<SVGSVGElement>) => {
-        const slug = slugOf(e.target);
-        if (!slug) return;
-        const dir = ARROWS[e.key];
-        if (dir) {
-            e.preventDefault();
-            const to = neighborInDirection(slug, dir[0], dir[1], among);
-            if (to) svgRef.current?.querySelector<SVGAElement>(`a[data-s="${to}"]`)?.focus();
-        }
     };
 
-    // ---- 拡大のボタン ----
-    const zoomButton = (kind: "in" | "out" | "reset") => {
-        if (kind === "reset") { applyView({ z: 1, x: 0, y: 0 }); return; }
-        const r = svgRef.current?.getBoundingClientRect();
-        if (!r) return;
-        // 選んでいる県があればその県を、無ければ見えている窓の真ん中を中心に
-        const s = sel ? shapeOf(sel) : undefined;
-        const v = viewRef.current;
-        const cx = s ? r.left + ((s[3][0] - v.x) / (MAP_W / v.z)) * r.width : r.left + r.width / 2;
-        const cy = s ? r.top + ((s[3][1] - v.y) / (MAP_H / v.z)) * r.height : r.top + r.height / 2;
-        zoomAt(v.z * (kind === "in" ? STEP : 1 / STEP), cx, cy);
+    // 区切り: Esc は 帯を閉じる → 地方を閉じて全国へ
+    const onSectionKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
+        if (e.key !== "Escape") return;
+        if (selRef.current) { e.preventDefault(); closeSheet(true); }
+        else if (stageRef.current !== null) { e.preventDefault(); goAll(); wrapRef.current?.focus({ preventScroll: true }); }
     };
 
-    const vbW = MAP_W / view.z, vbH = MAP_H / view.z;
+    // ---- 初見の手がかり ----
+    useEffect(() => {
+        const st = countVisit(readHint());
+        hintRef.current = st;
+        writeHint(st);
+        setCaption(shouldShowCaption(st));
+        const el = wrapRef.current;
+        if (!el || !shouldPlayGhost(st) || prefersReducedMotion() || typeof IntersectionObserver === "undefined") return;
+        let visible = false;
+        const arm = () => {
+            if (ghostTimerRef.current !== null) clearTimeout(ghostTimerRef.current);
+            ghostTimerRef.current = null;
+            if (!visible || !idleRef.current || !hintRef.current || !shouldPlayGhost(hintRef.current)) return;
+            ghostTimerRef.current = setTimeout(() => {
+                if (visible && idleRef.current && stageRef.current === null && !selRef.current && hintRef.current && shouldPlayGhost(hintRef.current)) playGhost();
+            }, HINT_IDLE_MS);
+        };
+        const io = new IntersectionObserver((es) => { visible = (es[0]?.intersectionRatio ?? 0) >= HINT_VISIBLE_RATIO; arm(); }, { threshold: [0, HINT_VISIBLE_RATIO, 1] });
+        io.observe(el);
+        return () => { io.disconnect(); stopGhost(); };
+        // マウントのときだけ
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+    idleRef.current = !tracing && !ghost;
+
+    /** 輪が 東北 → 関東 → 中部 → 近畿 をなぞる（1 回・2.8 秒）。触れたら消える */
+    const playGhost = () => {
+        if (hintRef.current) { hintRef.current = ghostPlayed(hintRef.current); writeHint(hintRef.current); }
+        ghostOnRef.current = true;
+        setGhost(true);
+        const t0 = performance.now();
+        const frame = (now: number) => {
+            const g = ghostAt(now - t0);
+            const svg = svgRef.current;
+            if (!g || !svg) { stopGhost(); return; }
+            const r = svg.getBoundingClientRect();
+            const pa = REGION_POS[HINT_PATH[g.from] as Exclude<RegionName, "沖縄">], pb = REGION_POS[HINT_PATH[g.to] as Exclude<RegionName, "沖縄">];
+            const ux = pa[0] + (pb[0] - pa[0]) * g.u, uy = pa[1] + (pb[1] - pa[1]) * g.u;
+            fingerRef.current = { x: r.left + (ux / MAP_W) * r.width, y: r.top + (uy / MAP_H) * r.height };
+            const h = hitAt(ux, uy, { region: null, s: r.width / MAP_W, among }).best;
+            if (!sameHit(h, hovRef.current)) setHov(h);
+            layoutFinger();
+            ghostRafRef.current = requestAnimationFrame(frame);
+        };
+        ghostRafRef.current = requestAnimationFrame(frame);
+    };
+
+    // ---- 描画に使う値 ----
     const [fx, fy, fw, fh] = OKINAWA_FRAME;
-    const hovName = hov ? NAME.get(hov) : null;
     const selName = sel ? NAME.get(sel) : null;
     const selNear = sel ? nearestSlugs(sel, 3, among) : [];
     const selTops = (sel && tops[sel]) || [];
+    const selCount = sel ? (counts.get(sel) ?? 0) : 0;
+    const inRegion = useMemo(() => (stage ? new Set(membersOf(stage)) : null), [stage]);
+    const hovSlug = hov && hov.k !== "region" ? hov.slug : null;
+    const hovRegion = hov && hov.k === "region" ? hov.region : null;
+    const chipOn: ChipName = stage ?? (sel ? regionOf(sel) : "全国");
     const legend = [
         `〜${cuts[0]}件`, `${cuts[0] + 1}〜${cuts[1]}件`, `${cuts[1] + 1}〜${cuts[2]}件`, `${cuts[2] + 1}件〜`,
     ];
     const LEGEND_FILL = ["#1e1a12", "#3b301d", "#6b5937", "#a8864f"];
+
+    /** 札の文字（名前・小さい字）。なぞり中・マウス・ゴースト・キーボード */
+    const tip = (() => {
+        if (outside) return { n: "離すと取り消し", sub: "地図の中に戻すと続けられます", cancel: true };
+        if (!hov) return null;
+        if (hov.k === "region") return { n: hov.region, sub: `${membersOf(hov.region).length}県`, cancel: false };
+        const full = NAME.get(hov.slug) ?? hov.slug;
+        if (hov.k === "switch") return { n: full, sub: `${regionOf(hov.slug)}へ移る`, cancel: false };
+        const r = regionOf(hov.slug);
+        const pre = stage !== null && !isDirectRegion(r) ? `${r} · ` : "";
+        return { n: full, sub: `${pre}${counts.get(hov.slug) ?? 0}件`, cancel: false };
+    })();
+
+    /** 地図の上の固定欄（36px）の文 */
+    const bar = (() => {
+        if (outside) return <span>触れている　<span className="text-text-3">（地図の外です）</span></span>;
+        if (hov?.k === "region") return <span>触れている　<b>{hov.region}</b></span>;
+        if (hov) return <span>触れている　<b>{stage !== null ? `${regionOf(hov.slug)}　›　` : ""}{NAME.get(hov.slug)}</b></span>;
+        if (tracing) return <span>触れている　<span className="text-text-3">（どの県にも当たっていません）</span></span>;
+        if (stage !== null) return <span><b>{stage}</b> を表示中　県を選びます</span>;
+        return <span>全国　長押ししてなぞる・ひと押しでも選べます</span>;
+    })();
+
+    const tabIdx = (slug: string): number | undefined => (rove === null ? undefined : tabStop === slug ? 0 : -1);
 
     return (
         <section
             aria-labelledby={HEADING_ID}
             className="pt-2 pb-6 text-white"
             data-testid="home-japan-map"
-            onKeyDown={(e) => { if (e.key === "Escape" && selRef.current) { e.preventDefault(); closeSheet(true); } }}
+            onKeyDown={onSectionKeyDown}
         >
             <SectionHead id={HEADING_ID} eyebrow="PHOTO SPOTS" title="撮影スポットを地図から探す" className="mb-0" testId="home-japan-map-head" />
             <p className="m-0 mt-2 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
-                県を押すと、その県の撮影スポットの一覧が出ます。数字は掲載している件数です。
+                地方を選んで拡大し、県を選ぶと、その県の撮影スポットの一覧が出ます。数字は掲載している件数です。
             </p>
             <Link href={`#${SPOT_LIST_ID}`} className="sr-only focus:not-sr-only focus:inline-flex focus:items-center focus:min-h-[44px] focus:text-text-2 focus:underline focus:underline-offset-4 jm-skip" data-testid="home-japan-map-skip">
                 地図を飛ばして文字の一覧へ
             </Link>
-            {/* スマホは普通の縦並び（シートが地図の下に貼り付く `position: sticky` の入れ物をここにする）。広い画面だけ2列 */}
-            <div className="mt-3 sm:grid sm:grid-cols-[minmax(0,420px)_minmax(0,1fr)] sm:gap-x-7 sm:items-start">
-                <div
-                    ref={wrapRef}
-                    className={`jm-wrap${zoomed ? " jm-zoomed" : ""}${dens ? " jm-dens" : ""}`}
-                    style={{ "--jm-ar": MAP_W / MAP_H } as React.CSSProperties}
-                    data-testid="home-japan-map-wrap"
-                >
-                    <svg
-                        ref={svgRef}
-                        className="jm"
-                        viewBox={`${view.x.toFixed(1)} ${view.y.toFixed(1)} ${vbW.toFixed(1)} ${vbH.toFixed(1)}`}
+            {/* スマホは普通の縦並び（帯が地図の下に貼り付く `position: sticky` の入れ物をここにする）。広い画面（768px〜）だけ2列 */}
+            <div className="mt-3 md:grid md:grid-cols-[minmax(0,420px)_minmax(0,1fr)] md:gap-x-7 md:items-start">
+                <div className="jm-col" style={{ "--jm-ar": MAP_W / MAP_H } as React.CSSProperties}>
+                    {/* 地方チップ（実ボタン）。なぞれない人・キーボード・音声操作の主な道 */}
+                    <div className="jm-chips" role="group" aria-label="地方" data-testid="home-japan-map-chips">
+                        {CHIPS.map((c) => (
+                            <button
+                                key={c}
+                                type="button"
+                                className={`jm-rchip${chipOn === c ? " jm-on" : ""}`}
+                                aria-pressed={chipOn === c}
+                                data-chip={c}
+                                onClick={() => { if (c === "全国") goAll(); else goRegion(c); }}
+                            >
+                                {c}
+                            </button>
+                        ))}
+                    </div>
+                    {/* 固定欄: 触れている名前（札が指の下・画面の端で出せないときの保険・小さい県の確認）。読み上げは別（aria-live の文） */}
+                    <div className="jm-bar" aria-hidden="true" data-testid="home-japan-map-bar">{bar}</div>
+                    <div
+                        ref={wrapRef}
+                        className={`jm-wrap${dens ? " jm-dens" : ""}${tracing ? " jm-tracing" : ""}`}
                         role="group"
-                        aria-label="日本の地図。県を押すと、その県の撮影スポットの一覧が出ます。同じ内容の文字の一覧はページの下にあります。"
+                        aria-label="日本地図。長押ししてなぞると名前が出ます。矢印キーで地方や県を移り、Enter で選びます。地方のボタンと、下の県の一覧からも選べます。"
+                        tabIndex={rove === null ? undefined : stage === null ? 0 : -1}
+                        data-testid="home-japan-map-wrap"
+                        data-stage={stage ?? "all"}
                         onPointerDown={onPointerDown}
                         onPointerMove={onPointerMove}
                         onPointerUp={onPointerUp}
-                        onPointerCancel={onPointerUp}
-                        onPointerLeave={(e) => { if (e.pointerType === "mouse") setHov(null); }}
-                        onClickCapture={onClickCapture}
-                        onClick={onSvgClick}
-                        onDoubleClick={onDoubleClick}
+                        onPointerCancel={onPointerCancel}
+                        onPointerLeave={onPointerLeave}
+                        onClick={onClick}
+                        onContextMenu={(e) => { if (gestureRef.current!.mode !== "idle" || (e.nativeEvent as PointerEvent).pointerType === "touch") e.preventDefault(); }}
                         onFocus={onFocus}
-                        onBlur={onBlur}
-                        onKeyDown={onKeyDown}
+                        onBlur={onWrapBlur}
+                        onKeyDown={onWrapKeyDown}
                     >
-                        <defs>
-                            {PREFECTURE_SHAPES.map((s) => <path key={s[0]} id={ids.get(s[0])} d={s[1]} />)}
-                        </defs>
-                        <g aria-hidden="true">
-                            {PREFECTURE_SHAPES.map((s) => {
-                                const n = counts.get(s[0]);
-                                const cls = ["jm-sh"];
-                                if (dens && n !== undefined) cls.push(`jm-b${densityBin(n, cuts)}`);
-                                if (hov === s[0]) cls.push("jm-hov");
-                                if (sel === s[0]) cls.push("jm-sel");
-                                return <use key={s[0]} href={`#${ids.get(s[0])}`} className={cls.join(" ")} />;
-                            })}
-                        </g>
-                        {/* 縁の当たり: 見えない太い線（10px）。県の縁の外 5px までが、その県の札になる */}
-                        <g aria-hidden="true">
-                            {LINK_ORDER.filter((s) => among.has(s[0])).map((s) => (
-                                <use key={s[0]} href={`#${ids.get(s[0])}`} className="jm-halo" data-s={s[0]} />
-                            ))}
-                        </g>
-                        <rect className="jm-frame" x={fx} y={fy} width={fw} height={fh} rx={10} aria-hidden="true" />
-                        <text className="jm-frame-label" x={fx + 10} y={fy + 20} aria-hidden="true" style={{ fontSize: 12 / perUnit }}>
-                            沖縄県
-                        </text>
-                        {/* 県ごとの本物のリンク。読み上げは「神奈川県の撮影スポット、63件」。小さい県が上 */}
-                        <g>
-                            {LINK_ORDER.filter((s) => among.has(s[0])).map((s) => (
-                                <Link
-                                    key={s[0]}
-                                    href={ROUTES.SPOT_AREA(s[0])}
-                                    prefetch={false}
-                                    aria-label={`${NAME.get(s[0])}の撮影スポット、${counts.get(s[0])}件`}
-                                    data-s={s[0]}
-                                    aria-expanded={rove === null ? undefined : sel === s[0]}
-                                    aria-controls={sel === s[0] ? SHEET_ID : undefined}
-                                    tabIndex={rove === null ? undefined : rove === s[0] ? 0 : -1}
-                                    onClick={onLinkClick}
-                                >
-                                    {s[0] === "okinawa" && <rect className="jm-hit" x={fx} y={fy} width={fw} height={fh} />}
-                                    <use href={`#${ids.get(s[0])}`} className="jm-hit" />
-                                    {/* 海へ引き出した県名は、字のまわりも当たりにする（小さな県を字で押せる）。JS が効いてから（JS なしの頁は行き先が県の頁なので当たりの広げは要らない・HTML を太らせない） */}
-                                    {rove !== null && <LabelHit slug={s[0]} perUnit={perUnit} />}
-                                </Link>
-                            ))}
-                        </g>
-                        {/* 県名（常に・字は画面で 12px）。県の中に収まらない県は海へ出して引き出し線でつなぐ（置き場は生成物） */}
-                        <g aria-hidden="true" className="jm-names" style={{ "--jm-fs": `${LABEL_PX / perUnit}px`, "--jm-sw": `${3 / perUnit}px` } as React.CSSProperties}>
-                            {PREFECTURE_LABELS.filter((l) => among.has(l[0])).map((l) => (
-                                <LabelMark key={l[0]} l={l} perUnit={perUnit} on={sel === l[0]} />
-                            ))}
-                        </g>
-                        {/* 真鍮の内側 2px の輪（形に沿わせる: 県の形で切り抜いた 4px の線の内側半分） */}
-                        {foc && ids.has(foc) && (
+                        <svg
+                            ref={svgRef}
+                            className={`jm${stage === null ? " jm-all" : ""}`}
+                            viewBox={`${view.x.toFixed(1)} ${view.y.toFixed(1)} ${view.w.toFixed(1)} ${view.h.toFixed(1)}`}
+                        >
+                            <defs>
+                                {PREFECTURE_SHAPES.map((sh) => <path key={sh[0]} id={ids.get(sh[0])} d={sh[1]} />)}
+                            </defs>
                             <g aria-hidden="true">
-                                <clipPath id={`${uid}clip`}><use href={`#${ids.get(foc)}`} /></clipPath>
-                                <use href={`#${ids.get(foc)}`} className="jm-ring" clipPath={`url(#${uid}clip)`} style={{ strokeWidth: 4 }} />
+                                {PREFECTURE_SHAPES.map((sh) => {
+                                    const slug = sh[0];
+                                    const n = counts.get(slug);
+                                    const cls = ["jm-sh", `jm-t${TINT_OF.get(regionOf(slug))}`];
+                                    if (dens && n !== undefined) cls.push(`jm-b${densityBin(n, cuts)}`);
+                                    if (inRegion && !inRegion.has(slug)) cls.push("jm-dim");
+                                    if (hovSlug === slug) cls.push("jm-hov");
+                                    else if (hovRegion && stage === null && regionOf(slug) === hovRegion) cls.push("jm-hovr");
+                                    if (sel === slug) cls.push("jm-sel");
+                                    return <use key={slug} href={`#${ids.get(slug)}`} className={cls.join(" ")} />;
+                                })}
                             </g>
+                            <rect className={`jm-frame${hovSlug === "okinawa" ? " jm-frame-hov" : ""}`} x={fx} y={fy} width={fw} height={fh} rx={10} aria-hidden="true" style={{ opacity: stage === null ? 1 : 0 }} />
+                            {/* 県ごとの本物のリンク（行き先は県の頁）。見た目と当たりは持たない（当たりは自前・`japanMapHit.ts`）。焦点の輪だけ描く。小さい県が上 */}
+                            <g>
+                                {LINK_ORDER.filter((sh) => among.has(sh[0])).map((sh) => (
+                                    <Link
+                                        key={sh[0]}
+                                        href={ROUTES.SPOT_AREA(sh[0])}
+                                        prefetch={false}
+                                        aria-label={`${NAME.get(sh[0])}の撮影スポット、${counts.get(sh[0])}件`}
+                                        data-s={sh[0]}
+                                        aria-expanded={rove === null ? undefined : sel === sh[0]}
+                                        aria-controls={sel === sh[0] ? SHEET_ID : undefined}
+                                        tabIndex={tabIdx(sh[0])}
+                                    >
+                                        <use href={`#${ids.get(sh[0])}`} className="jm-hit" />
+                                    </Link>
+                                ))}
+                            </g>
+                            {/* 名前: 全国は地方名（16px 明朝）と「沖縄県」・拡大した地方は県の中に 14px */}
+                            <g
+                                aria-hidden="true"
+                                className="jm-names"
+                                style={{ "--jm-fs": `${REGION_LABEL_PX / s}px`, "--jm-rfs": `${16 / s}px`, "--jm-sw": `${3.5 / s}px` } as React.CSSProperties}
+                            >
+                                {stage === null ? (
+                                    <>
+                                        {(Object.keys(REGION_POS) as (keyof typeof REGION_POS)[]).map((r) => (
+                                            <text key={r} className={`jm-rname${hovRegion === r || (hovSlug && regionOf(hovSlug) === r) ? " jm-on" : ""}`} x={REGION_POS[r][0]} y={REGION_POS[r][1]} data-r={r}>{r}</text>
+                                        ))}
+                                        <text className={`jm-rname${hovSlug === "okinawa" ? " jm-on" : ""}`} x={OKINAWA_CENTER[0]} y={OKINAWA_CENTER[1]} data-r="沖縄">沖縄県</text>
+                                    </>
+                                ) : (
+                                    members.map((slug) => {
+                                        const l = LABEL_BY_SLUG.get(slug);
+                                        if (!l) return null;
+                                        const chars = [...l[1]];
+                                        const step = REGION_LABEL_PX / s;
+                                        return (
+                                            <g key={slug} data-label={slug} className={sel === slug ? "jm-lab-sel" : undefined}>
+                                                {l[2] === "h"
+                                                    ? <text className="jm-name" x={l[3]} y={l[4]}>{l[1]}</text>
+                                                    : chars.map((c, i) => <text key={i} className="jm-name" x={l[3]} y={Math.round((l[4] + (i - (chars.length - 1) / 2) * step) * 100) / 100}>{c}</text>)}
+                                            </g>
+                                        );
+                                    })
+                                )}
+                            </g>
+                            {/* 真鍮の内側 2px の輪（形に沿わせる: 県の形で切り抜いた 4px の線の内側半分） */}
+                            {foc && ids.has(foc) && (
+                                <g aria-hidden="true">
+                                    <clipPath id={`${uid}clip`}><use href={`#${ids.get(foc)}`} /></clipPath>
+                                    <use href={`#${ids.get(foc)}`} className="jm-ring" clipPath={`url(#${uid}clip)`} style={{ strokeWidth: 4 }} />
+                                </g>
+                            )}
+                        </svg>
+                        {caption && stage === null && !sel && !tracing && (
+                            <div className="jm-hint" aria-hidden="true" data-testid="home-japan-map-hint"><i>長押ししてなぞる</i></div>
                         )}
-                    </svg>
-                    {/* 拡大のボタンは左上（沖縄の枠は右下） */}
-                    <div className="jm-zc" role="group" aria-label="地図の拡大">
-                        <button type="button" className="jm-zb" aria-label="拡大" disabled={view.z >= ZOOM_MAX} onClick={() => zoomButton("in")}>＋</button>
-                        <button type="button" className="jm-zb" aria-label="縮小" disabled={view.z <= ZOOM_MIN} onClick={() => zoomButton("out")}>－</button>
-                        <button type="button" className="jm-zb" style={{ fontSize: 12 }} aria-label="全体に戻す" disabled={view.z <= ZOOM_MIN} onClick={() => zoomButton("reset")}>全体</button>
-                    </div>
-                    <div ref={tipRef} className="jm-tip" role="presentation" hidden={!hovName}>
-                        {hovName && <><b className="font-semibold">{hovName}</b><span className="ml-1.5 text-text-2 tabular-nums">{counts.get(hov ?? "")}件</span></>}
                     </div>
                 </div>
 
-                {/* 一覧（スマホは地図の下に貼り付くシート・広い画面は右の札）。閉じているあいだ、スマホでは何も出さない */}
+                {/* 帯（スマホは地図の下に貼り付く常設の枠 164px・広い画面は右の札）。押し出さない・地図の高さは変えない */}
                 <div
                     id={SHEET_ID}
                     ref={sheetRef}
@@ -600,7 +889,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                     role="region"
                     aria-label={selName ? `${selName}の撮影スポット` : "撮影スポットの一覧"}
                     data-open={sel ? "true" : "false"}
-                    className="jm-sheet sm:mt-0 sm:sticky sm:top-20"
+                    className="jm-sheet md:mt-0 md:sticky md:top-20"
                     data-testid="home-japan-map-panel"
                 >
                     {sel && selName ? (
@@ -608,12 +897,16 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <h3 className="m-0 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "28px" }}>{selName}</h3>
-                                    <p className="m-0 mt-0.5 text-text-2 tabular-nums" style={{ fontSize: "13px", lineHeight: "18px" }}>撮影スポット {counts.get(sel)}件</p>
+                                    <p className="m-0 mt-0.5 text-text-2 tabular-nums" style={{ fontSize: "13px", lineHeight: "18px" }}>撮影スポット {selCount}件</p>
                                 </div>
                                 <button type="button" className="jm-close" aria-label="撮影スポットの一覧を閉じる" data-testid="home-japan-map-close" onClick={() => closeSheet(true)}>
                                     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
                                 </button>
                             </div>
+                            {selCount === 0 && <p className="m-0 mt-1 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>この県の撮影スポットは、まだ登録がありません。近くの県を見る</p>}
+                            {selTops.length > 0 && (
+                                <p className="jm-names-line m-0 mt-1 truncate text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>{selTops.map((t) => t[1]).join("・")} ほか</p>
+                            )}
                             {selTops.length > 0 && (
                                 <ul className="jm-spots m-0 mt-2 p-0 list-none" data-testid="home-japan-map-spots">
                                     {selTops.map((t) => (
@@ -629,30 +922,81 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                                     ))}
                                 </ul>
                             )}
-                            <TrackedLink href={ROUTES.SPOT_AREA(sel)} className="jm-open" data-testid="home-japan-map-open" navArea="home_entry" navDest="map_pref" onClick={rememberMap}>
-                                <span>{selName}の撮影スポットをすべて見る</span><span aria-hidden="true">›</span>
-                            </TrackedLink>
-                            <div className="jm-near">
+                            {selCount > 0 && (
+                                <TrackedLink href={ROUTES.SPOT_AREA(sel)} className="jm-open" data-testid="home-japan-map-open" navArea="home_entry" navDest="map_pref" onClick={rememberMap}>
+                                    <span>{selName}の撮影スポットをすべて見る</span><span aria-hidden="true">›</span>
+                                </TrackedLink>
+                            )}
+                            <div className={`jm-near${selCount === 0 ? " jm-near-keep" : ""}`}>
                                 <p className="m-0 mt-2.5 text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>近くの県</p>
                                 <div className="mt-1 flex flex-wrap gap-1.5">
-                                    {selNear.map((s) => (
-                                        <button key={s} type="button" className="jm-chip" onClick={() => press(s)}>{NAME.get(s)}</button>
+                                    {selNear.map((n) => (
+                                        <button key={n} type="button" className="jm-chip" onClick={() => { focusSheetPending.current = true; selectPref(n, true); }}>{NAME.get(n)}</button>
                                     ))}
                                 </div>
                             </div>
                         </>
                     ) : (
-                        <p className="m-0 text-text-3" style={{ fontSize: "13px", lineHeight: "18px" }}>県を押すと、名前と撮影スポットがここに出ます。</p>
+                        <>
+                            <h3 className="m-0 font-serif font-bold text-white" style={{ fontSize: "20px", lineHeight: "26px" }}>{stage ? `${stage}の県` : "県を選ぶ"}</h3>
+                            <p className="m-0 mt-0.5 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
+                                {stage ? "地図をなぞるか、ひと押しで選びます" : "地図に指を置き、そのままなぞると名前が出ます"}
+                            </p>
+                            <button
+                                ref={listBtnRef}
+                                type="button"
+                                className="jm-tlink"
+                                aria-expanded={listOpen}
+                                aria-controls={LIST_ID}
+                                data-testid="home-japan-map-list-toggle"
+                                onClick={() => setListOpen((o) => !o)}
+                            >
+                                県の一覧から選ぶ <span aria-hidden="true">{listOpen ? "‹" : "›"}</span>
+                            </button>
+                        </>
                     )}
                 </div>
-                {/* 開閉を読み上げる（焦点は動かさない） */}
-                <p className="sr-only" role="status" aria-live="polite" data-testid="home-japan-map-status">
-                    {selName ? `${selName}の撮影スポット、上位${selTops.length}件を表示しました。` : ""}
-                </p>
+                {/* 開閉・拡大の確定を読み上げる（焦点は動かさない）。なぞり中の名前は読まない */}
+                <p className="sr-only" role="status" aria-live="polite" data-testid="home-japan-map-status">{announce}</p>
 
-                <div className="sm:col-start-1">
+                <div className="md:col-start-1">
+                    {/* 県の一覧チップ（地図の外・全県・地方ごと）。触れる・焦点を当てると地図の県が強調される */}
+                    <button
+                        type="button"
+                        className="jm-tlink jm-tlink-b"
+                        aria-expanded={listOpen}
+                        aria-controls={LIST_ID}
+                        onClick={() => setListOpen((o) => !o)}
+                    >
+                        県の一覧から選ぶ <span aria-hidden="true">{listOpen ? "‹" : "›"}</span>
+                    </button>
+                    <div id={LIST_ID} className="jm-list" hidden={!listOpen} data-testid="home-japan-map-list" onMouseLeave={() => { if (hovRef.current && !tracingRef.current) setHov(null); }}>
+                        {REGION_ORDER.map((r) => (
+                            <div key={r} role="group" aria-label={r} className="jm-list-g">
+                                <p className="m-0 jm-list-h" aria-hidden="true">{r}</p>
+                                <div className="flex flex-wrap gap-1.5">
+                                    {membersOf(r).filter((x) => among.has(x)).map((slug) => (
+                                        <button
+                                            key={slug}
+                                            type="button"
+                                            className={`jm-chip jm-pick${sel === slug ? " jm-on" : ""}`}
+                                            data-pick={slug}
+                                            aria-pressed={sel === slug}
+                                            aria-label={`${NAME.get(slug)}、${counts.get(slug) ?? 0}件`}
+                                            onClick={() => { setHov(null); selectPref(slug, true); }}
+                                            onMouseEnter={() => setHov({ k: "pref", slug })}
+                                            onFocus={() => setHov({ k: "pref", slug })}
+                                            onBlur={() => setHov(null)}
+                                        >
+                                            {SHORT(slug)}<span className="jm-pick-n tabular-nums" aria-hidden="true">{counts.get(slug) ?? 0}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
                     <p className="m-0 mt-1 text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>
-                        小さな県は、地図の名前（線でつないだ字）を押してもえらべます。＋で拡大もできます。
+                        長押ししてなぞらなくても、ひと押しや地方のボタン、県の一覧から選べます。
                     </p>
                     <Link href={`#${SPOT_LIST_ID}`} className="jm-link" data-testid="home-japan-map-textlink">すべての県を文字で見る ›</Link>
                     <label className="jm-dens-label flex items-center gap-2 min-h-[44px] text-text-2" style={{ fontSize: "13px" }}>
@@ -668,6 +1012,25 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                     )}
                 </div>
             </div>
+            {/* 指の輪・進み具合の輪・名前の札（画面に固定・`document.body` へ。祖先の transform に影響されない） */}
+            {mounted && createPortal(
+                <>
+                    <div ref={progRef} className="jm-prog" hidden aria-hidden="true">
+                        <svg width="54" height="54" viewBox="0 0 54 54"><circle cx="27" cy="27" r="25" /></svg>
+                    </div>
+                    <div ref={ringRef} className={`jm-finger${ghost ? " jm-ghost" : ""}`} hidden={!(tracing || ghost)} aria-hidden="true" />
+                    <div
+                        ref={tipRef}
+                        className={`jm-tip${tip?.cancel ? " jm-cancel" : ""}${ghost ? " jm-ghost" : ""}`}
+                        hidden={!tip || !(tracing || ghost || mouseOn)}
+                        aria-hidden="true"
+                        data-testid="home-japan-map-tip"
+                    >
+                        {tip && <><b>{tip.n}</b><span>{tip.sub}</span></>}
+                    </div>
+                </>,
+                document.body,
+            )}
         </section>
     );
 }

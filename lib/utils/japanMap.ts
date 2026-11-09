@@ -4,18 +4,14 @@
 // 形のデータは `lib/data/prefectureShapes.ts`（生成物）。ここは「近くの県」「矢印キーの隣」「海のタップ」
 // 「濃淡の段」「URL に持たせる選択県」。部品とテストが同じ関数を見る。
 //
+// 2026-11-09（2回目）: 当たり判定は `japanMapHit.ts`（輪郭までの距離・自前）・地方と見え方は `japanMapView.ts` へ移した。
+//   外接箱までの距離で寄せる `nearestByBox` と、ピンチ・ボタンの拡大（`clampView`）は、案C（地方 → 県）で要らなくなり消した。
+//
 // 2026-11-09 判断（デザイナーの提案書・案D。owner「任せる」）:
 //   - （2026-11-09 の2回目で撤回）「44px 以上の県は直接移動・小さい県は札」の分けは、県を押しても頁を移動せず
 //     同じ頁に一覧を出す作りにしたので要らなくなった（`isDirectTap` を消した）。押し間違えても別の県を押せば直る
-//   - 海のタップは、県の外接箱までの距離が 14px 以内でいちばん近い県を選ぶ（指のずれの保険）
 
-import { MAP_W, OKINAWA_FRAME, PREFECTURE_SHAPES, type PrefectureShape } from "../data/prefectureShapes";
-
-/** 海のタップを近くの県に寄せる距離（画面の px） */
-export const NEAR_TAP_PX = 14;
-/** 拡大の範囲 */
-export const ZOOM_MIN = 1;
-export const ZOOM_MAX = 4;
+import { PREFECTURE_SHAPES, type PrefectureShape } from "../data/prefectureShapes";
 
 const BY_SLUG = new Map<string, PrefectureShape>(PREFECTURE_SHAPES.map((s) => [s[0], s]));
 
@@ -65,21 +61,6 @@ export function neighborInDirection(slug: string, dx: number, dy: number, among:
     return best;
 }
 
-/** 点 (x, y)（viewBox の単位）に、外接箱までの距離が `limit` 以内でいちばん近い県。無ければ null */
-export function nearestByBox(x: number, y: number, limit: number, among: ReadonlySet<string>): string | null {
-    let best: string | null = null;
-    let bd = limit;
-    for (const s of PREFECTURE_SHAPES) {
-        if (!among.has(s[0])) continue;
-        const [bx, by, bw, bh] = s[2];
-        const dx = Math.max(bx - x, 0, x - (bx + bw));
-        const dy = Math.max(by - y, 0, y - (by + bh));
-        const d = Math.hypot(dx, dy);
-        if (d < bd) { bd = d; best = s[0]; }
-    }
-    return best;
-}
-
 /** 件数の濃淡の段の切れ目（四分位）。`counts` は県ごとの件数 */
 export function densityCuts(counts: readonly number[]): [number, number, number] {
     const sorted = [...counts].sort((a, b) => a - b);
@@ -103,15 +84,3 @@ export function prefFromHash(hash: string, among: ReadonlySet<string>): string |
     const v = new URLSearchParams(hash.replace(/^#/, "")).get(PREF_HASH_KEY);
     return v && /^[a-z]+$/.test(v) && among.has(v) ? v : null;
 }
-
-export type MapView = { z: number; x: number; y: number };
-
-/** 見える窓を地図の中に収める */
-export function clampView(v: MapView, h: number): MapView {
-    const z = Math.max(ZOOM_MIN, Math.min(ZOOM_MAX, v.z));
-    const w = MAP_W / z;
-    const vh = h / z;
-    return { z, x: Math.max(0, Math.min(MAP_W - w, v.x)), y: Math.max(0, Math.min(h - vh, v.y)) };
-}
-
-export { OKINAWA_FRAME };
