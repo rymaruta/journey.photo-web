@@ -1182,9 +1182,11 @@ async function runHomeMapChecks(browser, eng) {
         fs.mkdirSync(shots, { recursive: true });
         await page.screenshot({ path: path.join(shots, `${eng}-${name}.png`), ...(clip ? { clip } : {}) });
     };
-    console.log(`\n[${eng}][1m] ホームの日本地図（スマホ・タッチ）`);
+    console.log(`\n[${eng}][1m] ホームの日本地図（スマホ・タッチ・案C: 地方 → 県）`);
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2, serviceWorkers: "block" });
     await sealContext(ctx);
+    // 初見の手がかり（輪が動く）を出さない端末にする（localStorage の旗）。出る側は別に確かめる
+    await ctx.addInitScript(() => { try { localStorage.setItem("jm-hint", JSON.stringify({ shown: 2, traced: true, visits: 5 })); } catch { /* 無視 */ } });
     const page = await ctx.newPage();
     const bag = attachDiagnostics(page);
     const home = `http://localhost:${PORT}/`;
@@ -1193,116 +1195,219 @@ async function runHomeMapChecks(browser, eng) {
     check(`[${eng}] 地図: Reactがハイドレーションを完了する`, hydrated);
     const map = page.locator('[data-testid="home-japan-map"]');
     await map.scrollIntoViewIfNeeded();
-    await page.waitForFunction(() => document.querySelector('a[data-s][tabindex="0"]'), null, { timeout: 10000 }).catch(() => {});
+    await page.waitForFunction(() => document.querySelector("a[data-s][tabindex]"), null, { timeout: 10000 }).catch(() => {});
 
-    // ── 県名 ──
-    const labels = await page.evaluate(() => {
-        const out = [];
-        for (const g of document.querySelectorAll("g[data-label]")) {
-            const texts = [...g.querySelectorAll("text.jm-name")];
-            const rects = texts.map((t) => t.getBoundingClientRect());
-            const x0 = Math.min(...rects.map((r) => r.left)), y0 = Math.min(...rects.map((r) => r.top));
-            const x1 = Math.max(...rects.map((r) => r.right)), y1 = Math.max(...rects.map((r) => r.bottom));
-            const t0 = texts[0];
-            const px = parseFloat(getComputedStyle(t0).fontSize) * (t0.getScreenCTM()?.a ?? 1);
-            out.push({ slug: g.getAttribute("data-label"), text: texts.map((t) => t.textContent).join(""), x0, y0, x1, y1, px });
-        }
-        return out;
-    });
-    check(`[${eng}] 地図: 県名が46県ぶん出る`, labels.length === 46, `n=${labels.length}`);
-    const small = labels.filter((l) => l.px < 11.9);
-    check(`[${eng}] 地図: 県名の字が画面で 12px 以上`, small.length === 0, small.slice(0, 3).map((l) => `${l.slug}=${l.px.toFixed(1)}`).join(" "));
-    const clash = [];
-    for (let i = 0; i < labels.length; i++) for (let j = i + 1; j < labels.length; j++) {
-        const a = labels[i], b = labels[j];
-        const w = Math.min(a.x1, b.x1) - Math.max(a.x0, b.x0), h = Math.min(a.y1, b.y1) - Math.max(a.y0, b.y0);
-        if (w > 1 && h > 1) clash.push(`${a.slug}×${b.slug}`);
-    }
-    check(`[${eng}] 地図: 県名の字どうしが重ならない（実描画）`, clash.length === 0, clash.slice(0, 4).join(" "));
-    await shot(page, "map-closed", await map.boundingBox());
+    const wrap = page.locator('[data-testid="home-japan-map-wrap"]');
+    const stage = () => wrap.getAttribute("data-stage");
+    const panel = page.locator('[data-testid="home-japan-map-panel"]');
+    /** 地図の座標（viewBox の単位）→ 画面の px */
+    const at = (ux, uy) => page.evaluate(([x, y]) => {
+        const svg = document.querySelector("svg.jm"), r = svg.getBoundingClientRect(), vb = svg.getAttribute("viewBox").split(" ").map(Number);
+        return { x: r.left + ((x - vb[0]) / vb[2]) * r.width, y: r.top + ((y - vb[1]) / vb[3]) * r.height };
+    }, [ux, uy]);
+    const toMapTop = () => page.evaluate(() => { const s = document.querySelector('[data-testid="home-japan-map-wrap"]'); window.scrollTo(0, s.getBoundingClientRect().top + scrollY - 80); });
+    const state = () => page.evaluate(() => ({
+        stage: document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage"),
+        tracing: document.querySelector('[data-testid="home-japan-map-wrap"]').classList.contains("jm-tracing"),
+        tip: (() => { const t = document.querySelector('[data-testid="home-japan-map-tip"]'); return t && !t.hidden ? t.textContent : null; })(),
+        open: document.querySelector('[data-testid="home-japan-map-panel"]').getAttribute("data-open"),
+        hash: location.hash, y: Math.round(scrollY),
+    }));
 
-    // ── 字を押す → 頁を移動せずシートが出る ──
-    const sheet = page.locator('[data-testid="home-japan-map-panel"]');
-    const centerOf = (slug) => page.evaluate((s) => {
-        const r = document.querySelector(`g[data-label="${s}"] text`).getBoundingClientRect();
-        return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
-    }, slug);
-    check(`[${eng}] 地図: 閉じているあいだシートは出ない（スマホ）`, !(await sheet.isVisible()));
-    let p = await centerOf("kanagawa");
+    // ── 作り ──
+    const base = await page.evaluate(() => ({
+        links: document.querySelectorAll("a[data-s][href^='/spots/area/']").length,
+        chips: [...document.querySelectorAll('[data-testid="home-japan-map-chips"] button')].map((b) => b.textContent).join(","),
+        ta: getComputedStyle(document.querySelector(".jm-wrap")).touchAction,
+        callout: getComputedStyle(document.querySelector(".jm-wrap")).webkitTouchCallout,
+        sel: getComputedStyle(document.querySelector(".jm-wrap")).userSelect,
+        over: document.documentElement.scrollWidth - innerWidth,
+        eyebrow: document.querySelector('[data-testid="home-japan-map-head"]').textContent,
+    }));
+    check(`[${eng}] 地図: 県の本物のリンクが 47 本・地方チップは 全国＋9`, base.links === 47 && base.chips === "全国,北海道,東北,関東,中部,近畿,中国,四国,九州,沖縄", JSON.stringify(base));
+    check(`[${eng}] 地図: 縦スクロールを奪わない（touch-action: pan-y）・長押しで選択が出ない・横に溢れない`, /pan-y/.test(base.ta) && base.sel === "none" && base.over <= 1, JSON.stringify(base));
+    check(`[${eng}] 地図: 眉が日本語（日本地図）`, base.eyebrow.includes("日本地図") && !base.eyebrow.includes("PHOTO SPOTS"), base.eyebrow);
+    const sizes = await page.evaluate(() => [...document.querySelectorAll('.jm-rchip, [data-testid="home-japan-map-close"]')].map((e) => { const r = e.getBoundingClientRect(); return Math.min(r.width, r.height); }));
+    check(`[${eng}] 地図: 地方チップが 44px 以上`, sizes.length >= 10 && sizes.every((s) => s >= 43.9), JSON.stringify(sizes));
+    await shot(page, "all", await map.boundingBox());
+
+    // ── ひと押し（タップ）: 全国で地方 → 拡大 → 県 ──
+    await toMapTop();
+    await page.waitForTimeout(200);
+    let p = await at(240, 252); // 関東
     await page.touchscreen.tap(p.x, p.y);
-    const opened = await sheet.waitFor({ state: "visible", timeout: 5000 }).then(() => true).catch(() => false);
-    check(`[${eng}] 地図: 海へ出した県名（神奈川）を押すとその場に一覧が出る`, opened);
-    check(`[${eng}] 地図: 頁は移動しない（URL は / に #pref=kanagawa）`, page.url() === `${home}#pref=kanagawa`, page.url());
-    const txt = (await sheet.textContent()) ?? "";
-    check(`[${eng}] 地図: シートに県名・「すべて見る」・スポットが出る`, txt.includes("神奈川県") && txt.includes("撮影スポットをすべて見る") && (await sheet.locator("ul a").count()) >= 1, txt.slice(0, 60));
-    await page.waitForTimeout(400); // 寄せのスクロールとシートの動きが終わるまで
+    await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") === "関東", null, { timeout: 5000 }).catch(() => {});
+    let s = await state();
+    check(`[${eng}] 地図: 全国で関東をひと押し → 関東が拡大して開く（県は選ばない・URL は変わらない）`, s.stage === "関東" && s.open === "false" && s.hash === "", JSON.stringify(s));
+    await page.waitForTimeout(450); // 拡大の 260ms
+    const kanto = await page.evaluate(() => { const r = document.querySelector("svg.jm").getBoundingClientRect(); return { vb: document.querySelector("svg.jm").getAttribute("viewBox"), w: r.width }; });
+    check(`[${eng}] 地図: 関東の拡大（viewBox が全国より狭い）`, Number(kanto.vb.split(" ")[2]) < 100, kanto.vb);
+    await shot(page, "region-kanto", await map.boundingBox());
+    p = await at(228.5, 255); // 東京
+    await page.touchscreen.tap(p.x, p.y);
+    const opened = await panel.waitFor({ state: "visible", timeout: 5000 }).then(() => true).catch(() => false);
+    await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-panel"]').getAttribute("data-open") === "true", null, { timeout: 5000 }).catch(() => {});
+    s = await state();
+    check(`[${eng}] 地図: 拡大した地方で東京をひと押し → その場に帯が開く（URL は #pref=tokyo・頁は移動しない）`, opened && s.open === "true" && s.hash === "#pref=tokyo" && page.url() === `${home}#pref=tokyo`, JSON.stringify(s));
+    const txt = (await panel.textContent()) ?? "";
+    check(`[${eng}] 地図: 帯に県名・件数・「すべて見る」が出る`, txt.includes("東京都") && /撮影スポット \d+件/.test(txt) && txt.includes("撮影スポットをすべて見る"), txt.slice(0, 80));
+    await page.waitForTimeout(400);
     const fit = await page.evaluate(() => {
         const r = document.querySelector('[data-testid="home-japan-map-panel"]').getBoundingClientRect();
-        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, vh: innerHeight, vw: innerWidth };
+        return { top: r.top, bottom: r.bottom, left: r.left, right: r.right, h: r.height, vh: innerHeight, vw: innerWidth };
     });
-    check(`[${eng}] 地図: シートが画面からはみ出さない`, fit.top >= 0 && fit.bottom <= fit.vh && fit.left >= 0 && fit.right <= fit.vw, JSON.stringify(fit));
+    check(`[${eng}] 地図: 帯が画面からはみ出さず、常設の枠 164px（押し出さない）`, fit.top >= 0 && fit.bottom <= fit.vh && fit.left >= 0 && fit.right <= fit.vw && Math.abs(fit.h - 164) <= 1, JSON.stringify(fit));
     const closeBox = await page.locator('[data-testid="home-japan-map-close"]').boundingBox();
     check(`[${eng}] 地図: 閉じるが 44×44 以上`, !!closeBox && closeBox.width >= 43.9 && closeBox.height >= 43.9, JSON.stringify(closeBox));
-    const selVisible = await page.evaluate(() => {
-        const a = document.querySelector('a[data-s="kanagawa"] use.jm-hit').getBoundingClientRect();
-        const s = document.querySelector('[data-testid="home-japan-map-panel"]').getBoundingClientRect();
-        return a.bottom < s.top + 1 && a.top > 0;
-    });
-    check(`[${eng}] 地図: 選んだ県がシートに隠れない`, selVisible);
-    await shot(page, "sheet-kanagawa");
+    await shot(page, "sheet-tokyo");
 
-    // ── 「すべて見る」→ 戻る で同じ県のシートが開いたまま ──
+    // ── 「すべて見る」→ 戻る で、同じ県の帯が開いたまま・位置も戻る ──
     const yBefore = await settleScroll(page);
     await page.locator('[data-testid="home-japan-map-open"]').tap();
-    const went = await page.waitForURL(/\/spots\/area\/kanagawa/, { timeout: 15000 }).then(() => true).catch(() => false);
+    const went = await page.waitForURL(/\/spots\/area\/tokyo/, { timeout: 15000 }).then(() => true).catch(() => false);
     check(`[${eng}] 地図: 「すべて見る」で県の頁へ移動する`, went, page.url());
     await page.goBack();
-    await page.waitForURL(/#pref=kanagawa$/, { timeout: 10000 }).catch(() => {});
-    await page.locator('[data-testid="home-japan-map-panel"]').waitFor({ state: "visible", timeout: 10000 }).catch(() => {});
+    await page.waitForURL(/#pref=tokyo$/, { timeout: 10000 }).catch(() => {});
+    await panel.waitFor({ state: "visible", timeout: 10000 }).catch(() => {});
     const yBack = await settleScroll(page);
     const back = await page.evaluate(() => ({
-        hash: location.hash,
+        hash: location.hash, stage: document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage"),
         open: document.querySelector('[data-testid="home-japan-map-panel"]')?.getAttribute("data-open"),
         title: document.querySelector('[data-testid="home-japan-map-panel"] h3')?.textContent,
-        expanded: document.querySelector('a[data-s="kanagawa"]')?.getAttribute("aria-expanded"),
     }));
-    check(`[${eng}] 地図: 一覧の頁から戻ると地図の位置（進む前のスクロール位置）に戻る`, Math.abs(yBack - yBefore) <= 24, `進む前 y=${yBefore} 戻った後 y=${yBack}`);
-    check(`[${eng}] 地図: 一覧の頁から戻ると同じ県の一覧が開いている`, back.hash === "#pref=kanagawa" && back.open === "true" && back.title === "神奈川県" && back.expanded === "true", JSON.stringify(back));
+    check(`[${eng}] 地図: 県の頁から戻ると、地図の位置・関東の拡大・東京の帯がそのまま復元される`, Math.abs(yBack - yBefore) <= 24 && back.hash === "#pref=tokyo" && back.stage === "関東" && back.open === "true" && back.title === "東京都", `y ${yBefore}→${yBack} ${JSON.stringify(back)}`);
 
-    // ── 別の県へ切り替え → 戻るで閉じる ──
+    // ── 別の県へ切り替え → 戻るで閉じる（頁は離れない）──
     await settleScroll(page);
-    p = await centerOf("tochigi");
+    p = await at(213, 245); // 山梨・埼玉の近く（関東の画面のなか）
+    const sw0 = await state();
+    p = await at(215, 232); // 栃木〜群馬の南（関東の画面）
     await page.touchscreen.tap(p.x, p.y);
-    await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-panel"] h3')?.textContent === "栃木県", null, { timeout: 5000 }).catch(() => {});
-    const sw = await page.evaluate(() => ({ hash: location.hash, title: document.querySelector('[data-testid="home-japan-map-panel"] h3')?.textContent }));
-    check(`[${eng}] 地図: 別の県を押すとその場で切り替わる`, sw.title === "栃木県" && sw.hash === "#pref=tochigi", JSON.stringify(sw));
+    await page.waitForTimeout(500);
+    const sw = await state();
+    check(`[${eng}] 地図: 別の県をひと押しするとその場で切り替わる（履歴は差し替え）`, sw.open === "true" && sw.hash !== sw0.hash && /^#pref=/.test(sw.hash), JSON.stringify({ sw0, sw }));
     await page.goBack();
     await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-panel"]')?.getAttribute("data-open") === "false", null, { timeout: 5000 }).catch(() => {});
     const closedByBack = await page.evaluate(() => ({ hash: location.hash, open: document.querySelector('[data-testid="home-japan-map-panel"]')?.getAttribute("data-open"), path: location.pathname }));
-    check(`[${eng}] 地図: ブラウザの戻るで閉じる（頁は離れない）`, closedByBack.open === "false" && closedByBack.hash === "" && closedByBack.path === "/", JSON.stringify(closedByBack));
+    check(`[${eng}] 地図: ブラウザの戻るで帯が閉じる（頁は離れない）`, closedByBack.open === "false" && closedByBack.hash === "" && closedByBack.path === "/", JSON.stringify(closedByBack));
 
-    // ── 南の県（シートに隠れやすい）──
+    // ── 地方チップ・一覧チップ（なぞれなくても全県へ行ける）──
+    await page.locator('[data-chip="九州"]').tap();
+    await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") === "九州", null, { timeout: 5000 }).catch(() => {});
+    check(`[${eng}] 地図: 地方チップ「九州」で拡大する`, (await stage()) === "九州");
+    await page.locator('button[aria-controls="home-japan-map-list"]').first().tap();
+    await page.locator('button[data-pick="kagoshima"]').tap();
+    await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-panel"] h3')?.textContent === "鹿児島県", null, { timeout: 5000 }).catch(() => {});
+    await page.waitForTimeout(400);
     await settleScroll(page);
-    p = await centerOf("kagoshima");
-    await page.touchscreen.tap(p.x, p.y);
-    await page.waitForTimeout(300);
-    await settleScroll(page); // 寄せのスクロール（smooth）が終わるまで
     const south = await page.evaluate(() => {
         const a = document.querySelector('a[data-s="kagoshima"] use.jm-hit').getBoundingClientRect();
-        const s = document.querySelector('[data-testid="home-japan-map-panel"]').getBoundingClientRect();
-        return { aBottom: a.top + a.height * 0.75, aTop: a.top, sTop: s.top, sBottom: s.bottom, vh: innerHeight, open: document.querySelector('[data-testid="home-japan-map-panel"]').getAttribute("data-open") };
+        const sh = document.querySelector('[data-testid="home-japan-map-panel"]').getBoundingClientRect();
+        return { aTop: a.top, aMid: a.top + a.height / 2, sTop: sh.top, sBottom: sh.bottom, vh: innerHeight, open: document.querySelector('[data-testid="home-japan-map-panel"]').getAttribute("data-open") };
     });
-    // （県の外接箱は離島を含み縦に長い。上から 3/4 までがシートに潜らなければ、本体は見えている）
-    check(`[${eng}] 地図: 南の県（鹿児島）を押しても、県もシートも画面に収まる`, south.open === "true" && south.aBottom <= south.sTop + 1 && south.sBottom <= south.vh && south.aTop >= 0, JSON.stringify(south));
+    check(`[${eng}] 地図: 一覧チップで鹿児島を選ぶ（九州へ拡大・帯が開く）。県の中心が帯に隠れず、帯は画面に収まる`, south.open === "true" && south.aMid <= south.sTop + 1 && south.sBottom <= south.vh + 1, JSON.stringify(south));
     await shot(page, "sheet-kagoshima");
-    // 閉じるボタン
     await page.locator('[data-testid="home-japan-map-close"]').tap();
     await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-panel"]')?.getAttribute("data-open") === "false", null, { timeout: 5000 }).catch(() => {});
-    check(`[${eng}] 地図: 閉じるボタンで閉じる`, !(await sheet.isVisible()));
+    await page.locator('[data-chip="沖縄"]').tap();
+    await page.waitForTimeout(300);
+    check(`[${eng}] 地図: 地方チップ「沖縄」は拡大せず、沖縄県の帯を開く`, (await stage()) === "all" && ((await panel.textContent()) ?? "").includes("沖縄県"));
+    await shot(page, "sheet-okinawa");
+    await page.locator('[data-chip="全国"]').tap();
 
-    // ── タッチの競合: 拡大前は縦スクロールに任せる（touch-action）・横にはみ出さない ──
-    const ta = await page.evaluate(() => ({ ta: getComputedStyle(document.querySelector(".jm-wrap")).touchAction, over: document.documentElement.scrollWidth - innerWidth }));
-    check(`[${eng}] 地図: 拡大前は縦スクロールを奪わない（touch-action: pan-y）・横に溢れない`, /pan-y/.test(ta.ta) && ta.over <= 1, JSON.stringify(ta));
+    // ── chromium だけ: 本物のタッチ入力（CDP）で なぞり・縦スクロール・取り消し ──
+    if (eng === "chromium") {
+        const cdp = await ctx.newCDPSession(page);
+        const touch = (type, pts) => cdp.send("Input.dispatchTouchEvent", { type, touchPoints: pts.map((q, i) => ({ x: q[0], y: q[1], id: i })) });
+        const sleep = (ms) => page.waitForTimeout(ms);
+        await sleep(500);
+        // 縦スクロール: 地図の上から縦にドラッグ → ページが動く・なぞりは始まらない
+        await toMapTop(); await sleep(300);
+        const y0 = (await state()).y;
+        let q = await at(240, 252);
+        await touch("touchStart", [[q.x, q.y]]);
+        for (let i = 1; i <= 10; i++) { await touch("touchMove", [[q.x, q.y - i * 12]]); await sleep(16); }
+        await touch("touchEnd", []);
+        await sleep(300);
+        s = await state();
+        check(`[${eng}] 実タッチ: 地図の上からの縦ドラッグはページをスクロールし、なぞりは始まらない`, s.y > y0 + 40 && !s.tracing && s.stage === "all", JSON.stringify({ y0, s }));
+        // 長押し → なぞり（札は地方名）→ 離す → 地方が開く
+        await toMapTop(); await sleep(300);
+        q = await at(240, 252);
+        await touch("touchStart", [[q.x, q.y]]);
+        await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').classList.contains("jm-tracing"), null, { timeout: 2000 }).catch(() => {});
+        await sleep(100);
+        s = await state();
+        check(`[${eng}] 実タッチ: 長押しでなぞりが始まり、札に地方名（関東）が出る`, s.tracing && s.tip && s.tip.includes("関東"), JSON.stringify(s));
+        await shot(page, "trace-all");
+        await touch("touchEnd", []);
+        await sleep(500);
+        s = await state();
+        check(`[${eng}] 実タッチ: 長押しで見えていた関東で離す → 関東が拡大（県は選ばない）`, s.stage === "関東" && s.open === "false" && !s.tracing, JSON.stringify(s));
+        // 横寄り: 拡大した地方の中で、待たずになぞり開始 → 離すと県を選ぶ
+        await toMapTop(); await sleep(300);
+        q = await at(222, 262);
+        await touch("touchStart", [[q.x, q.y]]);
+        for (let i = 1; i <= 14; i++) { await touch("touchMove", [[q.x + i * 8, q.y]]); await sleep(16); }
+        s = await state();
+        const shown = s.tip;
+        check(`[${eng}] 実タッチ: 横寄りに動かすと、長押しを待たずになぞりが始まり、県名の札が出る`, s.tracing && !!shown, JSON.stringify(s));
+        await shot(page, "trace-region");
+        await touch("touchEnd", []);
+        await sleep(500);
+        s = await state();
+        const sel = (await page.locator('[data-testid="home-japan-map-panel"] h3').textContent()) ?? "";
+        check(`[${eng}] 実タッチ: 離すと、画面に見えていた県が選ばれる（札の県＝選ばれた県）`, s.open === "true" && /^#pref=/.test(s.hash) && shown.startsWith(sel), JSON.stringify({ s, shown, sel }));
+        // 地図の外で離す → 取り消し
+        const hash0 = (await state()).hash;
+        await toMapTop(); await sleep(300);
+        q = await at(232, 250);
+        await touch("touchStart", [[q.x, q.y]]);
+        await sleep(400);
+        const out = await page.evaluate(() => { const r = document.querySelector('[data-testid="home-japan-map-wrap"]').getBoundingClientRect(); return [r.left + 20, r.top - 30]; });
+        await touch("touchMove", [[out[0], out[1]]]);
+        await sleep(150);
+        s = await state();
+        const cancelTip = s.tip;
+        await touch("touchEnd", []);
+        await sleep(300);
+        const s2 = await state();
+        check(`[${eng}] 実タッチ: 地図の外で離すと「離すと取り消し」→ 選択は変わらない`, !!cancelTip && cancelTip.includes("取り消し") && s2.hash === hash0, JSON.stringify({ cancelTip, hash0, after: s2.hash }));
+        // 2 本指: なぞり中に 2 本目 → 取り消し
+        await toMapTop(); await sleep(300);
+        q = await at(232, 250);
+        await touch("touchStart", [[q.x, q.y]]);
+        await sleep(450);
+        const tr = (await state()).tracing;
+        await touch("touchStart", [[q.x, q.y], [q.x + 80, q.y + 80]]);
+        await sleep(150);
+        s = await state();
+        await touch("touchEnd", []);
+        await sleep(300);
+        check(`[${eng}] 実タッチ: なぞり中の 2 本目の指で取り消し（札が消える）`, tr && !s.tracing && s.tip === null, JSON.stringify({ tr, s }));
+        // 慣性スクロール中の止めタップ: 地方が開かない（click が来ない）
+        await page.locator('[data-chip="全国"]').tap();
+        await sleep(500);
+        let stopped = 0, total = 0;
+        for (let trial = 0; trial < 3; trial++) {
+            await page.evaluate(() => window.scrollTo(0, 0)); await sleep(300);
+            const mapY = await page.evaluate(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getBoundingClientRect().top + scrollY);
+            await page.evaluate((v) => window.scrollTo(0, v), Math.max(0, mapY - 900)); await sleep(300);
+            await touch("touchStart", [[195, 720]]);
+            for (let k = 1; k <= 12; k++) { await touch("touchMove", [[195, 720 - k * 28]]); await sleep(8); }
+            await touch("touchEnd", []);
+            await sleep(60 + trial * 40);
+            const mp = await page.evaluate(() => { const r = document.querySelector('[data-testid="home-japan-map-wrap"]').getBoundingClientRect(); return [r.top, r.bottom]; });
+            const ty = Math.min(Math.max(mp[0] + 200, 120), 700);
+            if (!(ty > mp[0] && ty < mp[1])) continue;
+            total++;
+            await touch("touchStart", [[240, ty]]); await sleep(50); await touch("touchEnd", []);
+            await sleep(500);
+            if ((await stage()) === "all") stopped++;
+        }
+        check(`[${eng}] 実タッチ: 慣性スクロール中に指で止めただけでは、地方が開かない（${stopped}/${total} 回）`, total >= 1 && stopped === total, `${stopped}/${total}`);
+    }
+
     const real = bag.pageErrors.filter((m) => !isExpectedNetworkNoise(m));
     check(`[${eng}] 地図: 実行時のJSエラーが無い`, real.length === 0, real.slice(0, 2).join(" / "));
     await ctx.close();
@@ -1311,38 +1416,59 @@ async function runHomeMapChecks(browser, eng) {
     console.log(`\n[${eng}][1m] ホームの日本地図（PC・キーボード）`);
     const dctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block" });
     await sealContext(dctx);
+    await dctx.addInitScript(() => { try { localStorage.setItem("jm-hint", JSON.stringify({ shown: 2, traced: true, visits: 5 })); } catch { /* 無視 */ } });
     const dpage = await dctx.newPage();
     const dbag = attachDiagnostics(dpage);
     await gotoSettled(dpage, home);
     await waitForHydration(dpage);
     await dpage.locator('[data-testid="home-japan-map"]').scrollIntoViewIfNeeded();
-    await dpage.waitForFunction(() => document.querySelector('a[data-s][tabindex="0"]'), null, { timeout: 10000 }).catch(() => {});
+    await dpage.waitForFunction(() => document.querySelector("a[data-s][tabindex]"), null, { timeout: 10000 }).catch(() => {});
     const dsheet = dpage.locator('[data-testid="home-japan-map-panel"]');
-    check(`[${eng}] 地図(PC): 閉じていても札の枠が出ている（案内の文）`, await dsheet.isVisible());
-    await dpage.focus('a[data-s="hokkaido"]');
+    check(`[${eng}] 地図(PC): 閉じていても帯の枠が出ている（案内の文）`, await dsheet.isVisible());
+    // 全国: 枠に Tab で入り、矢印で地方を移り、Enter で拡大
+    await dpage.focus('[data-testid="home-japan-map-wrap"]');
+    await dpage.keyboard.press("ArrowRight");
+    const live = (await dpage.locator('[data-testid="home-japan-map-status"]').textContent()) ?? "";
+    check(`[${eng}] 地図(PC): 全国で矢印キーを押すと地方が読み上げられる`, /県/.test(live), live);
+    await dpage.keyboard.press("Enter");
+    await dpage.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") !== "all", null, { timeout: 5000 }).catch(() => {});
+    const stg = await dpage.locator('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage");
+    check(`[${eng}] 地図(PC): Enter で地方が拡大する`, stg !== "all", String(stg));
+    // 拡大した地方: 県のリンクへ焦点・矢印で隣の県・Enter で帯・Esc で閉じる
+    await dpage.locator('[data-chip="関東"]').click();
+    await dpage.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") === "関東", null, { timeout: 5000 }).catch(() => {});
+    const stop = await dpage.evaluate(() => document.querySelectorAll("a[data-s][tabindex='0']").length);
+    check(`[${eng}] 地図(PC): 拡大した地方では県のリンクの止まり先は 1 か所`, stop === 1, String(stop));
+    await dpage.focus('a[data-s="tochigi"]');
     await dpage.keyboard.press("ArrowDown");
     const moved = await dpage.evaluate(() => document.activeElement?.getAttribute("data-s"));
-    check(`[${eng}] 地図(PC): 矢印キーで隣の県へ焦点が動く（開かない）`, moved === "aomori" && (await dsheet.getAttribute("data-open")) === "false", String(moved));
+    check(`[${eng}] 地図(PC): 矢印キーで隣の県へ焦点が動く（開かない）`, !!moved && moved !== "tochigi" && (await dsheet.getAttribute("data-open")) === "false", String(moved));
     await dpage.keyboard.press("Enter");
     await dpage.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-panel"]')?.getAttribute("data-open") === "true", null, { timeout: 5000 }).catch(() => {});
     const en = await dpage.evaluate(() => ({ path: location.pathname, hash: location.hash, focus: document.activeElement?.getAttribute("data-testid"), title: document.querySelector('[data-testid="home-japan-map-panel"] h3')?.textContent }));
-    check(`[${eng}] 地図(PC): Enter で頁を移動せず一覧が開き、焦点が一覧へ移る`, en.path === "/" && en.hash === "#pref=aomori" && en.focus === "home-japan-map-panel" && en.title === "青森県", JSON.stringify(en));
-    await dpage.keyboard.press("Tab");
-    const tab = await dpage.evaluate(() => document.activeElement?.closest('[data-testid="home-japan-map-panel"]') ? "in" : "out");
-    check(`[${eng}] 地図(PC): Tab で一覧の中（閉じる・スポット）へ進める`, tab === "in", tab);
+    check(`[${eng}] 地図(PC): Enter で頁を移動せず帯が開き、焦点が帯へ移る`, en.path === "/" && /^#pref=/.test(en.hash) && en.focus === "home-japan-map-panel", JSON.stringify(en));
     await dpage.keyboard.press("Escape");
     await dpage.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-panel"]')?.getAttribute("data-open") === "false", null, { timeout: 5000 }).catch(() => {});
-    const esc = await dpage.evaluate(() => ({ open: document.querySelector('[data-testid="home-japan-map-panel"]')?.getAttribute("data-open"), focus: document.activeElement?.getAttribute("data-s"), hash: location.hash }));
-    check(`[${eng}] 地図(PC): Esc で閉じて、焦点が県のリンクへ戻る`, esc.open === "false" && esc.focus === "aomori" && esc.hash === "", JSON.stringify(esc));
-    // ホイール: 地図の上でも頁がスクロールする（Ctrl なしは拡大に使わない）
+    const esc = await dpage.evaluate(() => ({ open: document.querySelector('[data-testid="home-japan-map-panel"]')?.getAttribute("data-open"), focus: document.activeElement?.getAttribute("data-s"), hash: location.hash, stage: document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") }));
+    check(`[${eng}] 地図(PC): Esc で帯が閉じて焦点が県のリンクへ戻る（地方は拡大のまま）`, esc.open === "false" && esc.focus === moved && esc.hash === "" && esc.stage === "関東", JSON.stringify(esc));
+    await dpage.keyboard.press("Escape");
+    const esc2 = await dpage.locator('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage");
+    check(`[${eng}] 地図(PC): もう一度 Esc で全国へ戻る`, esc2 === "all", String(esc2));
+    // ホイール: 地図の上でも頁がスクロールする（拡大に使わない）
     const box = await dpage.locator("svg.jm").boundingBox();
-    const y0 = await dpage.evaluate(() => scrollY);
+    const w0 = await dpage.evaluate(() => scrollY);
     await dpage.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await dpage.mouse.wheel(0, 300);
     await dpage.waitForTimeout(400);
-    const y1 = await dpage.evaluate(() => scrollY);
+    const w1 = await dpage.evaluate(() => scrollY);
     const vb = await dpage.evaluate(() => document.querySelector("svg.jm").getAttribute("viewBox"));
-    check(`[${eng}] 地図(PC): 地図の上のホイールは頁をスクロールし、拡大しない`, y1 > y0 && /^0\.0 0\.0 360\.0 /.test(vb), `scrollY ${y0}→${y1} viewBox=${vb}`);
+    check(`[${eng}] 地図(PC): 地図の上のホイールは頁をスクロールし、拡大しない`, w1 > w0 && /^0\.0 0\.0 360\.0 /.test(vb), `scrollY ${w0}→${w1} viewBox=${vb}`);
+    // マウス: 動かすだけで名前の札
+    const m2 = await dpage.locator("svg.jm").boundingBox();
+    await dpage.mouse.move(m2.x + (240 / 360) * m2.width, m2.y + (252 / 461.8) * m2.height);
+    await dpage.waitForTimeout(150);
+    const mtip = await dpage.evaluate(() => { const t = document.querySelector('[data-testid="home-japan-map-tip"]'); return t && !t.hidden ? t.textContent : null; });
+    check(`[${eng}] 地図(PC): マウスを動かすだけで名前の札が出る`, !!mtip && mtip.includes("関東"), String(mtip));
     await shot(dpage, "pc-closed");
     const dreal = dbag.pageErrors.filter((m) => !isExpectedNetworkNoise(m));
     check(`[${eng}] 地図(PC): 実行時のJSエラーが無い`, dreal.length === 0, dreal.slice(0, 2).join(" / "));
