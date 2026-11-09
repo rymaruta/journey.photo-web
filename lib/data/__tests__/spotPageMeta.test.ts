@@ -76,20 +76,20 @@ describe("title（2026-10-22: 検索される型「〈名所〉 写真／撮影�
 describe("description（押す理由を頭・Wikipedia 由来の紹介文は後ろ）", () => {
     const plain = { ...base, seasonalGuide: undefined, timeOfDayGuide: undefined };
 
-    it("頭に「〇〇の写真・撮影地ガイド。」と作例の節の枚数・光の表、紹介文は最後", () => {
+    it("頭に「〇〇の写真・撮影スポット。」と作例の節の枚数・光の表、紹介文は最後", () => {
         const d = spotPageDescription(plain, { light: true, samples: 5, cover: true });
         // 2026-11-09: 約120字に収める。紹介文は文ごとに入れ、収まらない文は入れない（途中で切らない）
         const [s1, s2] = base.summary!.split("。");
-        expect(d).toBe(`姫路城の写真・撮影地ガイド。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${s1}。${s2}。`);
+        expect(d).toBe(`姫路城の写真・撮影スポット。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${s1}。${s2}。`);
         expect(d.indexOf("作例5枚")).toBeLessThan(d.indexOf(s1));
     });
 
     it("無いものは書かない（作例0枚なら作例を書かない・写真が無ければ「写真」と名乗らない）", () => {
         const [s1, s2, s3] = base.summary!.split("。");
         // 列挙が無いぶん紹介文が3文とも入る（それでも約120字以内）
-        expect(spotPageDescription(plain, { samples: 0, cover: true })).toBe(`姫路城の写真・撮影地ガイド。${s1}。${s2}。${s3}。`);
+        expect(spotPageDescription(plain, { samples: 0, cover: true })).toBe(`姫路城の写真・撮影スポット。${s1}。${s2}。${s3}。`);
         const none = spotPageDescription(plain, { samples: 0, cover: false });
-        expect(none).toBe(`姫路城の撮影地ガイド。${s1}。${s2}。${s3}。`);
+        expect(none).toBe(`姫路城の撮影スポット。${s1}。${s2}。${s3}。`);
         expect(none).not.toContain("作例");
     });
 
@@ -99,7 +99,7 @@ describe("description（押す理由を頭・Wikipedia 由来の紹介文は後�
             { samples: 1, computed: "日の入りは6月が西北西寄り、12月が西南西寄り" },
         );
         const [s1, s2] = base.summary!.split("。");
-        expect(d).toBe(`姫路城の写真・撮影地ガイド。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${s1}。${s2}。`);
+        expect(d).toBe(`姫路城の写真・撮影スポット。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${s1}。${s2}。`);
     });
 
     it("🔴 閉鎖・運休・見学できない季節は並べない（公開中の台帳の実例で）", () => {
@@ -172,14 +172,14 @@ describe("description の長さ（2026-11-09: 約120字・文の途中で切ら�
     });
 
     it("🔴 水増ししない: 紹介文も列挙も無ければ頭の1文だけ・紹介文が短ければ短いまま", () => {
-        expect(body(spotPageDescription({ ...plain, summary: undefined }, {}))).toBe("姫路城の撮影地ガイド。");
+        expect(body(spotPageDescription({ ...plain, summary: undefined }, {}))).toBe("姫路城の撮影スポット。");
         const d = body(spotPageDescription({ ...plain, summary: "城です。" }, { samples: 1, cover: true }));
-        expect(d).toBe("姫路城の写真・撮影地ガイド。作例1枚。城です。");
+        expect(d).toBe("姫路城の写真・撮影スポット。作例1枚。城です。");
     });
 
     it("計算の要約は、収まるときだけ入る（紹介文の最初の1文より後）", () => {
         const short = body(spotPageDescription({ ...plain, summary: "城です。" }, { computed: "日の入りは6月が西北西寄り" }));
-        expect(short).toBe("姫路城の撮影地ガイド。日の入りは6月が西北西寄り。城です。");
+        expect(short).toBe("姫路城の撮影スポット。日の入りは6月が西北西寄り。城です。");
     });
 });
 

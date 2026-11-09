@@ -5,7 +5,7 @@ import Link from "next/link";
 import type { SpotIndexItem } from "@/lib/data/spotLink";
 import { useLocale } from "@/app/i18n/context";
 import { ROUTES } from "@/lib/routes";
-import { CHIP_ON, CHIP_OFF, CHIP_SIZE, CHIP_HIT, CHIP_ROW } from "./chipStyles";
+import { CHIP_ON, CHIP_OFF, CHIP_SIZE, CHIP_HIT } from "./chipStyles";
 import { TopicCreditLine } from "./SpotTopicLists";
 
 /**
@@ -84,13 +84,18 @@ export default function SpotIndexClient({ spots, area }: Props) {
             </p>
             )}
 
-            {/* 旅のテーマ＝**台帳に在るカテゴリだけ**。0件のテーマは作らない */}
+            {/* 旅のテーマ＝**台帳に在るカテゴリだけ**。0件のテーマは作らない。
+                **2026-11-09（Web 入口ページ監査の案A）: スマホは横に流す1行**。青森県は21個の札が
+                390px の画面で6行を占め、最初の写真が画面の下端だった。`lg` 以上は広いので従来どおり折り返す。
+                当たり 44 のために行に上下 5px の余白（`FilterBar` の `WRAPPING_ROW` と同じ作り）。
+                行の端は画面の端まで流す（`-mx-4 px-4`・`sm` 以上の余白に合わせて広げる） */}
             {themes.length > 0 && (
                 <div role="group" aria-label={isJa ? "テーマでしぼる" : "Filter by theme"}
-                     className={`${CHIP_ROW} mb-6`}>
+                     data-testid="spots-theme-row"
+                     className="flex flex-nowrap gap-x-1.5 m-0 -mt-[5px] mb-[19px] py-[5px] -mx-4 px-4 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 overflow-x-auto no-scrollbar lg:mx-0 lg:px-0 lg:overflow-visible lg:flex-wrap lg:gap-y-2.5">
                     <button type="button" role="switch" aria-checked={theme === null}
                             onClick={() => setTheme(null)}
-                            className={`${CHIP_HIT} inline-flex items-center rounded-full transition-colors ${
+                            className={`${CHIP_HIT} shrink-0 inline-flex items-center rounded-full transition-colors ${
                                 theme === null ? CHIP_ON : CHIP_OFF
                             }`}
                             style={CHIP_SIZE}>
@@ -99,7 +104,7 @@ export default function SpotIndexClient({ spots, area }: Props) {
                     {themes.map(([c, n]) => (
                         <button key={c} type="button" role="switch" aria-checked={theme === c}
                                 onClick={() => setTheme(theme === c ? null : c)}
-                                className={`${CHIP_HIT} inline-flex items-center gap-1.5 rounded-full transition-colors ${
+                                className={`${CHIP_HIT} shrink-0 inline-flex items-center gap-1.5 rounded-full transition-colors ${
                                     theme === c ? CHIP_ON : CHIP_OFF
                                 }`}
                                 style={CHIP_SIZE}>

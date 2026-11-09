@@ -107,6 +107,55 @@ describe("説明に機材を添える", () => {
 });
 
 /**
+ * **住所の羅列を題・説明に出さない**（2026-11-09・Web 入口ページ監査の案A）。
+ * 本番の写真ページの実値（検索の反応がいちばん良い型なので、題が読める形であることが効く）:
+ *   題   ひろめ市場, 追手筋, 追手筋一丁目, 廿代町, 高知市, 高知県, 780-8571, 日本 | Journey Photo…
+ *   説明 ひろめ市場に来た。…（ひろめ市場, 追手筋, …, 日本 / Apple iPhone 14 Pro）
+ */
+describe("住所の羅列を題・説明に出さない", () => {
+    const HIROME = "ひろめ市場, 追手筋, 追手筋一丁目, 廿代町, 高知市, 高知県, 780-8571, 日本";
+    const ADDRESS_PARTS = /780-8571|追手筋|廿代町|日本/;
+    const own = { ja: ["ひろめ市場に来た。炎に包まれ、豪快に炙られるカツオの味を楽しんだ。"] };
+
+    it("題がスポット名だけなら「題｜市区町村」", async () => {
+        const m = await meta({ ...base, title: { ja: "ひろめ市場" }, location: HIROME, description: own, exif: { camera: "Apple iPhone 14 Pro" } });
+        expect(m.title).toBe("ひろめ市場｜高知市");
+    });
+
+    it("題が撮影地と関係なければ「題｜名前（市区町村）」", async () => {
+        const m = await meta({ ...base, title: { ja: "炙りカツオ" }, location: HIROME });
+        expect(m.title).toBe("炙りカツオ｜ひろめ市場（高知市）");
+    });
+
+    it("説明は書かれた文のあとに「県市」と機材名。郵便番号・町名は出さない", async () => {
+        const m = await meta({ ...base, title: { ja: "ひろめ市場" }, location: HIROME, description: own, exif: { camera: "Apple iPhone 14 Pro" } });
+        // 機材名は残す（別判断・案D の前提）。住所だけ切る
+        expect(m.description).toBe("ひろめ市場に来た。炎に包まれ、豪快に炙られるカツオの味を楽しんだ。（高知県高知市 / Apple iPhone 14 Pro）");
+    });
+
+    it("説明が無い写真は「名前（市区町村）で撮影した…」", async () => {
+        const m = await meta({ ...base, location: HIROME, category: "landscape", exif: { camera: "Apple iPhone 14 Pro" } });
+        expect(m.description).toBe("ひろめ市場（高知市）で撮影した風景の写真。（Apple iPhone 14 Pro）");
+    });
+
+    it("渋谷区, 東京都, 日本（自動入力の撮影地）は県を添える", async () => {
+        const m = await meta({ ...base, title: { ja: "夜景" }, location: "渋谷区, 東京都, 日本" });
+        expect(m.title).toBe("夜景｜渋谷区（東京都）");
+    });
+
+    it("名前が番地だけ・丁目だけのときは次の名前を使う（「3（千代田区）」にしない）", async () => {
+        const m = await meta({ ...base, title: { ja: "朝" }, location: "3, 丸の内一丁目, 千代田区, 東京都, 100-0005, 日本" });
+        expect(m.title).not.toMatch(/｜3/);
+        expect(m.title).toBe("朝｜千代田区（東京都）");
+    });
+
+    it("題・説明のどこにも住所の断片が出ない", async () => {
+        const m = await meta({ ...base, title: { ja: "ひろめ市場" }, location: HIROME, description: own, exif: { camera: "Apple iPhone 14 Pro" } });
+        expect(`${m.title} ${m.description}`).not.toMatch(ADDRESS_PARTS);
+    });
+});
+
+/**
  * **撮影地の方が題を含む回**に、題と撮影地を重ねていた。
  * 実ビルド:「オペラ・ガルニエ｜オペラ・ガルニエ（パリ）」＝サイトで一番長い題。
  * 判定が「題が撮影地を含むか」の片方向だけだった。
@@ -114,7 +163,8 @@ describe("説明に機材を添える", () => {
 describe("題と撮影地が重なるとき", () => {
     it("撮影地の方が題を含むなら、撮影地を出す（重ねない）", async () => {
         const m = await meta({ ...base, title: { ja: "オペラ・ガルニエ" }, location: "オペラ・ガルニエ（パリ）" });
-        expect(m.title).toBe("オペラ・ガルニエ（パリ）");
+        // 2026-11-09: 括弧の中の地域は市区町村として足す（題＋「｜パリ」）
+        expect(m.title).toBe("オペラ・ガルニエ｜パリ");
     });
 
     // **短い題がたまたま撮影地の一部と一致する回を巻き込まない。**
@@ -122,7 +172,8 @@ describe("題と撮影地が重なるとき", () => {
     // 始まっていないので足す側のまま（実データで確認）
     it("題が撮影地の途中に現れるだけなら、今までどおり足す", async () => {
         const m = await meta({ ...base, title: { ja: "海" }, location: "茨城県 ひたちなか市 国営ひたち海浜公園" });
-        expect(m.title).toBe("海｜茨城県 ひたちなか市 国営ひたち海浜公園");
+        // 2026-11-09: 撮影地の全文でなく「名前（市区町村）」
+        expect(m.title).toBe("海｜国営ひたち海浜公園（ひたちなか市）");
     });
 
     it("題と撮影地が同じなら、題を残す", async () => {

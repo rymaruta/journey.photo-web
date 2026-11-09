@@ -55,18 +55,28 @@ describe("画像の alt", () => {
 
     it("普通の回は今までどおり（）でつなぐ", () => {
         expect(photoAltText(P({ title: { ja: "海" }, location: "茨城県 ひたちなか市 国営ひたち海浜公園" }), "ja"))
-            .toBe("海（茨城県 ひたちなか市 国営ひたち海浜公園）");
+            .toBe("海（国営ひたち海浜公園、ひたちなか市）");
+    });
+
+    // 2026-11-09: alt（og:image の alt も）に住所の全文を出さない
+    it("住所の全文（郵便番号・町名・国）を alt に出さない", () => {
+        const loc = "ひろめ市場, 追手筋, 追手筋一丁目, 廿代町, 高知市, 高知県, 780-8571, 日本";
+        expect(photoAltText(P({ title: { ja: "ひろめ市場" }, location: loc }), "ja")).toBe("ひろめ市場（高知市）");
+        expect(photoAltText(P({ title: { ja: "炙りカツオ" }, location: loc }), "ja")).toBe("炙りカツオ（ひろめ市場、高知市）");
+        expect(photoAltText(P({ location: loc }), "ja")).toBe("ひろめ市場");
     });
 
     it("本人が書いた alt が最優先（並べ方に触らない）", () => {
         expect(photoAltText(P({ alt: { ja: "本人の説明" }, title: { ja: "題" }, location: "場所" }), "ja")).toBe("本人の説明");
     });
 
-    // **決め方は1か所に置く。** ここが自前の分岐に戻ると、また片方だけずれる
-    it("alt も写真ページの題も、同じ関数を通している", () => {
+    // **決め方は1か所に置く。** ここが自前の分岐に戻ると、また片方だけずれる。
+    // 2026-11-09: 決め方は `metaPlace.ts` の `titlePlaceTail`（住所の全文でなく名前と市区町村）。
+    // 写真ページの `<title>` と画像の alt（og:image の alt も）が同じ関数を通る
+    it("alt も写真ページの題も、同じ関数（titlePlaceTail）を通している", () => {
         for (const rel of ["lib/utils/photoAlt.ts", "app/photo/[id]/page.tsx"]) {
             const src = readFileSync(join(process.cwd(), rel), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-            expect(src.includes("titleWithPlace"), `${rel} が titleWithPlace を通っていない`).toBe(true);
+            expect(src.includes("titlePlaceTail"), `${rel} が titlePlaceTail を通っていない`).toBe(true);
         }
     });
 });

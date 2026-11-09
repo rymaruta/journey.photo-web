@@ -4,7 +4,10 @@
 //
 // **撮影スポットの一覧の行の、左の丸い印**（iOS の `PhotoMapView.spotRow`・2026-11-04）。
 //
-//     写真あり  写真の丸 40・真鍮の地・真鍮の縁 2（iOS: `SpotThumbImage` を円で切り、`JPStroke.emphasis`＝2 の縁）
+//     写真あり  写真の丸 40・真鍮の縁 2（iOS: `SpotThumbImage` を円で切り、`JPStroke.emphasis`＝2 の縁）。
+//               **地は暗い面（`bg-surface-2`）**——以前は真鍮の塗りで、遅延読み込みの写真がまだ来ていない間
+//               （画面の外・全画面の写真）は「写真の代わりの金色の丸」に見えた（2026-11-09・Web 入口ページ監査。
+//               本番の「近くの撮影スポット」の実画面で確認）。読み込めば写真が丸ごと覆うので、読み込んだ後の見た目は同じ
 //     写真なし  呼ぶ側が渡す印（地図の一覧は真鍮の丸にカメラ・近くの撮影スポットはピンの印）
 //
 // 写真は同梱の小さい版（短い辺 240px・`spotRowThumbPath`）。**遅延読み込み**（`loading="lazy"`・`decoding="async"`）で、
@@ -21,7 +24,7 @@ export default function SpotThumbMark({ src, fallback }: { src?: string; fallbac
     const [failedSrc, setFailedSrc] = useState<string | null>(null);
     if (!src || failedSrc === src) return <>{fallback}</>;
     return (
-        <span className="flex-shrink-0 block overflow-hidden rounded-full bg-accent ring-2 ring-inset ring-accent"
+        <span className="flex-shrink-0 block overflow-hidden rounded-full bg-surface-2 ring-2 ring-inset ring-accent"
               style={{ width: SPOT_MARK_PX, height: SPOT_MARK_PX }} data-testid="spot-thumb-mark">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img

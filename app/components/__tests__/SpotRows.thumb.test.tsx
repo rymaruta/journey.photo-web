@@ -23,6 +23,9 @@ describe("SpotRows の丸い印", () => {
         const mark = screen.getByTestId("spot-thumb-mark");
         expect(mark.className).toContain("rounded-full");
         expect(mark.className).toContain("ring-2");
+        // 2026-11-09: 写真が来る前の地は暗い面。真鍮の塗りだと「写真の代わりの金色の丸」に見えた
+        expect(mark.className).toContain("bg-surface-2");
+        expect(mark.className).not.toContain("bg-accent");
         expect(mark.style.width).toBe("40px");
         // 印の中にピンは出ない
         expect(container.querySelector("svg.w-\\[18px\\]")).toBeNull();

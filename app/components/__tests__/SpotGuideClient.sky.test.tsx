@@ -81,6 +81,28 @@ describe("座標から計算した撮影の事実", () => {
         expect(sec.textContent).toContain("月明かり・天気・光害・山の影は含みません");
     });
 
+    // 2026-11-09（Web 入口ページ監査の案A）: 全ページ共通の計算表・注記は畳む。消さない（閉じていても HTML に残る＝検索に読まれる）。
+    // ページ固有の要約（方角の振れ幅・天の川の見頃）は畳まず、開く行の外に出す
+    it("計算表と注記は <details>（閉じた状態）の中。ページ固有の要約は外に出ている", () => {
+        view(SPOT);
+        for (const [calc, inner] of [["spot-light-calc", "spot-light"], ["spot-night-sky-calc", "spot-night-sky"]] as const) {
+            const d = screen.getByTestId(calc) as HTMLDetailsElement;
+            expect(d.tagName).toBe("DETAILS");
+            expect(d.open, `${calc} が最初から開いている`).toBe(false);
+            expect(screen.getByTestId(inner).contains(d)).toBe(true);
+            expect(d.querySelector("summary")!.className).toContain("min-h-[44px]");
+        }
+        const light = screen.getByTestId("spot-light-calc");
+        expect(light.querySelectorAll("tbody tr")).toHaveLength(12);
+        expect(light.textContent).toContain("天気や山・建物の影は含みません");
+        expect(screen.getByTestId("spot-light-swing").closest("details")).toBeNull();
+        const sky = screen.getByTestId("spot-night-sky-calc");
+        expect(sky.contains(screen.getByTestId("spot-milky-way"))).toBe(true);
+        expect(sky.contains(screen.getByTestId("spot-new-moons"))).toBe(true);
+        expect(sky.textContent).toContain("月明かり・天気・光害・山の影は含みません");
+        expect(screen.getByTestId("spot-milky-way-summary").closest("details")).toBeNull();
+    });
+
     it("見える月が無い緯度は表を出さず、上がる高さを言う", () => {
         const north = { ...SPOT, coords: { lat: 60.17, lng: 24.94 } };
         view(north, { sky: spotSky(north.coords, "日本", null, NOW) });
