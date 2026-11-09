@@ -21,9 +21,14 @@
 
 - `from`: `wish`（「行きたい」から来た）/ `other`。行きたいのリンクだけが `/login?…&via=wish` を付け、
   ログイン画面の「新規登録」が `/signup?…&via=wish` に運ぶ（`signupFromVia`）
-- `via`（2026-11-09 から `wish` 以外も付く）: `wish` / `like` / `save` / `follow` / `comment` / `upload` / `theme`
-  （許可リスト `lib/auth/loginVia.ts`）。ログイン画面が `via` ごとに「なぜログインが要るか・得られること」を1〜2行出し、
-  `via` は新規登録へも引き継ぐ。`from` の定義（`wish` / `other`）は変えない（`wish` 以外の `via` は `other`）
+- `via`（2026-11-09 から `wish` 以外も付く）: `wish` / `like` / `save` / `follow` / `comment` / `upload`
+  （許可リスト `lib/auth/loginVia.ts`）。ログイン画面が `via` ごとに「なぜログインが要るか・得られること」を40字前後で出し、
+  `via` は新規登録へも引き継ぐ。投稿の画面（`/user/upload`）だけ `upload` を付け、編集・下書き・アルバムは付けない（汎用の1行）。
+  **`from` の定義（`wish` / `other`）は変えない**（`wish` 以外の `via` は `signupFromVia` が `other` にする）。
+  - **限界（2026-11-09）**: `login_prompt` の `trigger`（いいね・保存・フォロー・コメント・フォロー中）と、その後の
+    `view_signup` / `sign_up` は **`from` では結べない**（`like` から来た人も `other`）。「いいねの案内からの登録」は
+    今の計測では取れず、`login_prompt` の回数と、全体の登録数を並べて見るところまで。結ぶには `from` の値を増やす
+    （`SIGNUP_FROM` に `like` などを足す）必要があるが、**owner の判断待ち**なので足していない。
 - `reason`（決まった語だけ。**エラーの文言や入力値は送らない**。Cognito の例外名から `signupErrorReason` が分ける）:
   `password_mismatch` / `password_short`（画面側の検査）、`password_rule`、`invalid_input`、`already_registered`、
   `code_mismatch`、`code_expired`、`alias_exists`（そのメールを別のアカウントが使っている）、`rate_limit`、`network`、`other`
@@ -58,7 +63,7 @@
 | `search` | サイト内検索で、打ち終えて約1.5秒たった（同じ語は続けて数えない・2文字以上） | `search_term_length`、`result_count`（写真の件数）。**語そのものは送らない**（2026-11-06 owner「どちらでも」→ 推奨で送らない。入力した文字を外部へ出さない）。ユーザー検索は対象外 |
 | `spots_search` | 撮影スポット一覧（`/spots`）の検索窓で、打ち終えて約1.5秒たった（`search` と同じ数え方・2文字以上。2026-11-09） | `search_term_length`、`result_count`（スポットの件数。0件は 0）。**語そのものは送らない** |
 | `share` | 共有できた（共有シート・リンクのコピー・X・LINE。閉じた回は数えない） | `method`: `native` / `copy` / `x` / `line`、`content_type`: `photo` / `spot` / `quiz` / `trip` |
-| `login_prompt` | **未ログインの案内を出した**（2026-11-09 owner 承認「未ログインの反応を登録の入口にする」）。いいね・保存・フォロー・コメントを押して「ログインしてください」＋「ログイン」リンクのトーストが出た回、未ログインで「フォロー中」のタブを開いて「ログインすると〜見られます」が出た回。押したあとにログインへ進んだかは `view_signup`（`from`）・`login` で見る | `trigger`: `like` / `save` / `follow` / `comment` / `following_tab`（URL・写真の id は送らない） |
+| `login_prompt` | **未ログインの案内を出した**（2026-11-09 owner 承認「未ログインの反応を登録の入口にする」）。いいね・保存・フォロー・コメントを押して「ログインしてください」＋「ログイン」リンクのトーストが出た回、未ログインで「フォロー中」のタブを開いて「ログインすると〜見られます」が出た回。案内の回数を見るもの。`trigger` と登録は結べない（上の `via` の「限界」）。同じ文言は区切り（6秒）の間は1回、「フォロー中」はページを開いている間に1回 | `trigger`: `like` / `save` / `follow` / `comment` / `following_tab`（URL・写真の id は送らない） |
 | `like_photo` | 写真にいいねを付けた（サーバーに届いた回。外した回・未ログインは数えない） | なし |
 | `follow_user` | フォローした（外した回は数えない） | なし |
 

@@ -12,6 +12,10 @@ import { EmptyState, ErrorState, LoadingState } from "./StateViews";
 
 type Props = { locale: string };
 
+/** 「フォロー中」の未ログイン案内を数えたか（ページを開いている間に1回）。試験が戻すための口だけ公開 */
+let guestPromptCounted = false;
+export function resetGuestPromptCounted() { guestPromptCounted = false; }
+
 /**
  * フォローしている人の写真が**投稿の新しい順に流れる**面（Instagram のホームに
  * 当たる）。トップの「フォロー中」タブが描く。
@@ -54,11 +58,12 @@ export default function TimelineFeed({ locale }: Props) {
         return () => { aborted = true; };
     }, [authLoading, isAuthenticated, reloadKey]);
 
-    // 未ログインで「フォロー中」を開いた＝ログインの案内を出した（2026-11-09・登録の入口の数え方）。開いた1回だけ
-    const guestShownRef = React.useRef(false);
+    // 未ログインで「フォロー中」の案内（下の `following-guest`）が**実際に出た回**を数える（2026-11-09・登録の入口の数え方）。
+    // 判定中・ログイン済みでは出さない。再描画・タブを替えて戻る（再マウント）でも**ページを開いている間に1回**
+    // （モジュールの印。再読み込みで戻る）
     React.useEffect(() => {
-        if (authLoading || isAuthenticated || guestShownRef.current) return;
-        guestShownRef.current = true;
+        if (authLoading || isAuthenticated || guestPromptCounted) return;
+        guestPromptCounted = true;
         track("login_prompt", { trigger: "following_tab" });
     }, [authLoading, isAuthenticated]);
 

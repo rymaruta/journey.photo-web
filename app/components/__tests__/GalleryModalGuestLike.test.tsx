@@ -24,11 +24,13 @@ vi.mock("../../../lib/hooks/useToast", () => ({ useToast: () => ({ showToast: mo
 
 import { resetFavoritesCache } from "../../../lib/hooks/useFavorites";
 import GalleryModal from "../GalleryModal";
+import { resetGuestPromptThrottle } from "../../../lib/hooks/useGuestPrompt";
 import type { Photo } from "@/lib/data/photos";
 
 const photos: Photo[] = [{ id: "p1", src: "https://cdn/p1.jpg", title: { ja: "1枚目", en: "1" }, tags: [], likes: 3 }];
 
 beforeEach(() => {
+    resetGuestPromptThrottle();
     localStorage.clear();
     resetFavoritesCache();
     mockShowToast.mockReset();

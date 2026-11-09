@@ -15,8 +15,10 @@ vi.mock("@/lib/utils/log", () => ({ log: { warn: vi.fn(), error: vi.fn(), info: 
 vi.mock("../../../lib/hooks/useToast", () => ({ useToast: () => ({ showToast }) }));
 
 const { FollowAction } = await import("../FollowButton");
+const { resetGuestPromptThrottle } = await import("../../../lib/hooks/useGuestPrompt");
 
 beforeEach(() => {
+    resetGuestPromptThrottle();
     showToast.mockReset();
     window.history.replaceState({}, "", "/users/22222222-2222-4222-8222-222222222222");
 });

@@ -13,14 +13,12 @@ import { track, type NavDest } from "../../lib/utils/analytics";
 import { ROUTES } from "../../lib/routes";
 import NotificationsBell from "./NotificationsBell";
 import { HEADER_ICON_BTN, HEADER_ICON_BTN_STYLE, HEADER_ICON_STYLE } from "./headerIcon";
-import { useFavorites } from "../../lib/hooks/useFavorites";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
 
 export default function HeaderNav({ className = "" }: { className?: string }) {
     const router = useRouter();
     const { isAuthenticated, isAdminUser, isGeneralUser, userId, logout, loading } = useAuth();
     const { locale, labels } = useLocale();
-    const { favorites } = useFavorites();
 
     useEffect(() => {
         log.info("HeaderNav: 認証状態", { isAuthenticated, isAdminUser, loading });
@@ -252,9 +250,9 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                                         {locale === "en" ? "Photography guides" : "写真とカメラの教科書"}
                                     </button>
                                 </li>
-                                {/* いいねした写真: 未ログインの初回訪問者には出さない（空ページになるため）。
-                                    ログイン中、または実際にお気に入りがある人にだけ表示する。 */}
-                                {(isAuthenticated || favorites.length > 0) && (
+                                {/* いいねした写真: **ログイン中だけ**（2026-11-09 から。未ログインのいいねは端末に溜めない・
+                                    以前に端末へ残ったお気に入りも出さない＝空の頁にしかならない） */}
+                                {isAuthenticated && (
                                     <li style={{ margin: 0, padding: 0 }}>
                                         <button onClick={() => handleNavigation(ROUTES.FAVORITES)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
                                             {navLabels.favorites || "Favorites"}

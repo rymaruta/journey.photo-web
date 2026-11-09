@@ -4,6 +4,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import type { Photo } from "@/lib/data/photos";
+import { resetGuestPromptThrottle } from "../../../../lib/hooks/useGuestPrompt";
 
 /**
  * 最終版モックの並び（owner「全て完全一致するまで」）。
@@ -67,6 +68,7 @@ const page = (p: Partial<Photo> = {}) => render(<PhotoPageClient photoId="p1" in
 const before = (a: Element, b: Element) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
 
 beforeEach(() => {
+    resetGuestPromptThrottle();
     mockShowToast.mockReset();
     likeState.result = { ok: true };
     authState.current = { isAuthenticated: false, userId: null, loading: false };

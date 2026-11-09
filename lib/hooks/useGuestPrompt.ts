@@ -26,6 +26,14 @@ export const GUEST_PROMPT_ACTION = { ja: "ログイン", en: "Log in" } as const
 /** 切れ目なく読めるように、既定の3秒より長く出す（リンクを押す間） */
 export const GUEST_PROMPT_MS = 6000;
 
+/**
+ * 連打・ダブルタップで同じ案内を積まない。**同じ文言のトーストが出ている間（`GUEST_PROMPT_MS`）は新しく出さず、
+ * `login_prompt` も数えない**（出していない案内は数えない）。フォローボタンは一覧に何個も並ぶので、
+ * 記録はフックの中ではなくモジュールに置く。早く閉じられた場合も、同じ文言は区切りが過ぎるまで出ない（小さい取りこぼし）
+ */
+const lastShownAt = new Map<string, number>();
+export function resetGuestPromptThrottle() { lastShownAt.clear(); }
+
 const VIA_OF: Record<keyof typeof GUEST_PROMPT_COPY, LoginVia> = {
     like: "like", save: "save", follow: "follow", comment: "comment",
 };
@@ -34,9 +42,14 @@ export function useGuestPrompt(locale: "ja" | "en" | string) {
     const { showToast } = useToast();
     const en = locale === "en";
     return useCallback((trigger: keyof typeof GUEST_PROMPT_COPY, message?: string) => {
+        const text = message ?? (en ? GUEST_PROMPT_COPY[trigger].en : GUEST_PROMPT_COPY[trigger].ja);
+        const now = Date.now();
+        const last = lastShownAt.get(text);
+        if (last !== undefined && now - last >= 0 && now - last < GUEST_PROMPT_MS) return;
+        lastShownAt.set(text, now);
         const next = typeof window === "undefined" ? null : window.location.pathname + window.location.search;
         showToast(
-            message ?? (en ? GUEST_PROMPT_COPY[trigger].en : GUEST_PROMPT_COPY[trigger].ja),
+            text,
             "info",
             GUEST_PROMPT_MS,
             { label: en ? GUEST_PROMPT_ACTION.en : GUEST_PROMPT_ACTION.ja, href: loginWithNext(next, VIA_OF[trigger]) },

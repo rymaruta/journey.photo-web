@@ -50,11 +50,18 @@ export function usePhotoLikes(
     const touchedRef = useRef(false);
     // 今どの写真を扱っているか。await の後に「まだ同じ写真か」を確かめるのに使う。
     const photoIdRef = useRef(photoId);
-    // **未ログインはいつも「未いいね」。** 以前は端末のお気に入りだけでハートを塗っていた。
+    // **未ログイン・判定中はいつも「未いいね」。** 以前は端末のお気に入りだけでハートを塗っていた。
     // 2026-11-09 owner 承認: 未ログインのいいねは端末の中に溜めない（サーバーに届かず、件数も通知も動かないのに
-    // 「押せた」と思わせていたため）。判定中（`authLoading`）は塗りを動かさない。
-    // 以前に端末へ残ったお気に入りがあっても、未ログインでは塗らない（ログインすれば `serverLiked` が正）
-    const guest = !authLoading && !isAuthenticated;
+    // 「押せた」と思わせていたため）。以前に端末へ残ったお気に入りがあっても未ログインでは塗らない。
+    // 判定中（`authLoading`）も塗らない——古いお気に入りで塗ったハートが、判定後に空になる一瞬を作らない
+    // （ログイン済みの人は判定後に `serverLiked` / 端末の控えで塗る）。
+    //
+    // **残るもの（正確に）**: 新しい未ログインのいいねが端末に溜まらなくなったので、
+    // 「未ログインで押した → ログイン → 最初の一押しが取り消し（DELETE）」の**新規の発生は止まる**。
+    // ただし**すでに端末にある古いお気に入り**と、`/user/likes/` の応答が遅い・失敗したときの
+    // `serverLiked ?? isFavorite`（サーバーの答えが無いときは端末の控えで決める）は残る
+    // （実害は小さい見込み・未確認）。
+    const guest = authLoading || !isAuthenticated;
     const liked = guest ? false : (serverLiked ?? isFavorite(photoId));
     const [count, setCount] = useState(initialLikes);
     // 写真が変わったときに戻す先。props をそのまま effect の依存に入れると
@@ -140,9 +147,8 @@ export function usePhotoLikes(
         if (authLoading) return { ok: true };
         // **未ログインは何も変えない**（ハートを塗らない・端末に保存しない・件数も動かさない）。
         // 2026-11-09 owner 承認: 押した人に「ログインするといいねできる」と伝えて入口にする（呼び出し側が案内を出す）。
-        // 端末のお気に入りに入れていた頃は、ログインした直後の最初の一押しが
-        // 「付いているはず」のハートの取り消し（DELETE）になる罠もあった（冒頭のコメント）。入れなくなったので、
-        // この罠は新しくは生まれない
+        // 端末のお気に入りに入れていた頃の「ログイン直後の最初の一押しが取り消し（DELETE）になる」罠は、
+        // 新しい未ログインのいいねが溜まらなくなったので新規には生まれない（古い控えが残る分は上のコメント）
         if (!isAuthenticated) return { ok: false, requiresAuth: true };
         let failed = false;
         /** そのまま画面に出してよい理由（サーバーの文言・セッション切れ・通信できない） */

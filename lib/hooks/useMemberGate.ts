@@ -2,6 +2,7 @@
 
 import { useAuth } from "../../app/auth/context";
 import { useLoginRedirect } from "./useLoginRedirect";
+import type { LoginVia } from "../auth/loginVia";
 
 /**
  * 投稿系のページ（アップロード・編集・下書き）の入口。
@@ -32,7 +33,7 @@ export type MemberGate = "loading" | "anonymous" | "no-group" | "ok";
  *   どのみち保存できないが、**書いたものを消してよい理由にはならない**。
  *   呼び出し側は「保存できない」ことを画面で伝えること。
  */
-export function useMemberGate(hasUnsavedWork = false): MemberGate {
+export function useMemberGate(hasUnsavedWork = false, via?: LoginVia): MemberGate {
     const { isAuthenticated, isAdminUser, isGeneralUser, loading } = useAuth();
 
     const state: MemberGate = loading
@@ -47,7 +48,8 @@ export function useMemberGate(hasUnsavedWork = false): MemberGate {
     // **打ちかけがあるときは送らない**（上のコメントを見よ）。
     // 送り方（`replace` と戻り先）は `useLoginRedirect` に集めた
     // ——`/user/profile` と `/user/settings` が同じことを書いていた
-    useLoginRedirect(state === "anonymous" && !hasUnsavedWork, "upload");
+    // `via` は呼ぶ画面が決める（投稿の画面だけ `upload`。編集・下書き・アルバムは付けず、汎用の1行）
+    useLoginRedirect(state === "anonymous" && !hasUnsavedWork, via);
 
     return state;
 }

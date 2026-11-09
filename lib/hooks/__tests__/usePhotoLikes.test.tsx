@@ -135,10 +135,10 @@ describe("usePhotoLikes", () => {
         expect(result.current.liked).toBe(false);
     });
 
-    it("判定中（authLoading）は端末のお気に入りのまま（ログイン済みの人のハートを一瞬消さない）", () => {
+    it("判定中（authLoading）も塗らない（古いお気に入りで塗ったハートが判定後に空になる一瞬を作らない）", () => {
         store["photo-gallery-favorites"] = JSON.stringify(["p1"]);
         const { result } = renderHook(() => usePhotoLikes("p1", 5, false, true));
-        expect(result.current.liked).toBe(true);
+        expect(result.current.liked).toBe(false);
     });
 
     it("未ログインで押したあとログインしても、最初の一押しは POST（取り消しの DELETE にならない）", async () => {

@@ -20,7 +20,10 @@ describe("loginVia（許可リスト）", () => {
             seen.add(t);
         }
         expect(seen.size, "文が重なっている").toBe(LOGIN_VIAS.length);
-        expect(loginReason("wish")).toBe("行きたい場所を保存するにはログインが必要です。ログインすると、保存した場所をあとで見返せます。");
+        expect(loginReason("wish")).toBe("行きたい場所の保存にはログインが必要です。ログインすると、あとで見返せます。");
+        // 長いと320pxで3行を超え、下の「アカウントを作る」が画面の外へ押し出される
+        for (const v of LOGIN_VIAS) expect(loginReason(v).length, v).toBeLessThanOrEqual(42);
+        expect(LOGIN_VIAS, "使い手の無い via を許可していない").not.toContain("theme");
     });
 
     it("無い・許可外の via は汎用の1行（URL の文字列を画面に流さない）", () => {

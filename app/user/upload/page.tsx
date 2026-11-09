@@ -303,7 +303,7 @@ function UploadPageInner() {
     // 件数で見ると「もう上がっている写真」について「まだ上げられません」と
     // 嘘をつくことになる
     const pendingWork = items.some((i) => i.status !== "done");
-    const gate = useMemberGate(pendingWork);
+    const gate = useMemberGate(pendingWork, "upload");
     /** 送り返さずに留めている状態（未ログインだが、まだ上げていない写真がある） */
     const holdingWork = gate === "anonymous" && pendingWork;
     const [category, setCategory] = useState("");

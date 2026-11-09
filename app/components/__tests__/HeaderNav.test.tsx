@@ -521,3 +521,22 @@ describe("HeaderNav - キーボードの輪", () => {
         expect(item.className).not.toContain("focus-visible:ring-line");
     });
 });
+
+// 2026-11-09: 未ログインのいいねは端末に溜めない。以前に端末へ残ったお気に入りがあっても、
+// 未ログインのメニューに「いいねした写真」を出さない（開くと空か、ログインの案内にしかならない）
+describe("HeaderNav - いいねした写真の入口", () => {
+    it("未ログインは、端末に古いお気に入りが残っていても出さない", () => {
+        try { localStorage.setItem("photo-gallery-favorites", JSON.stringify(["p1"])); } catch { /* 無ければ出ないだけ */ }
+        setRole("anonymous");
+        render(<HeaderNav />);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        expect(menuItems().some((t) => /Favorites|いいね/.test(t)), "未ログインに出している").toBe(false);
+    });
+
+    it("ログイン済みには出す", () => {
+        setRole("general");
+        render(<HeaderNav />);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        expect(menuItems().some((t) => /Favorites|いいね/.test(t))).toBe(true);
+    });
+});

@@ -50,9 +50,11 @@ vi.mock("../../../lib/hooks/useToast", () => ({
 vi.mock("../UserAvatar", () => ({ default: () => <div /> }));
 
 import CommentSection from "../CommentSection";
+import { resetGuestPromptThrottle } from "../../../lib/hooks/useGuestPrompt";
 import { AUTH_REQUIRED_MESSAGE } from "../../../lib/utils/api";
 
 beforeEach(() => {
+    resetGuestPromptThrottle();
     mockUserFetch.mockReset();
     mockUserPublicFetch.mockReset().mockResolvedValue({ ok: true, json: async () => ({ items: [], count: 0 }) });
     mockShowToast.mockReset();

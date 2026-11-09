@@ -597,13 +597,13 @@ describe("LoginPage - via に応じた理由の文", () => {
     it("via=like: いいねの理由と得られるもの", () => {
         mockSearchParams = new URLSearchParams("next=%2Fphoto%2Fp1&via=like");
         render(<LoginPage />);
-        expect(reason()).toContain("いいねするにはログインが必要です");
+        expect(reason()).toContain("いいねにはログインが必要です");
     });
 
     it("via=wish: 行きたい場所の理由", () => {
         mockSearchParams = new URLSearchParams("via=wish");
         render(<LoginPage />);
-        expect(reason()).toBe("行きたい場所を保存するにはログインが必要です。ログインすると、保存した場所をあとで見返せます。");
+        expect(reason()).toBe("行きたい場所の保存にはログインが必要です。ログインすると、あとで見返せます。");
     });
 
     it("via が無い・許可外は汎用の1行。URL の文字列は画面に出さない", () => {
