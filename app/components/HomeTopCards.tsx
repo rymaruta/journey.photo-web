@@ -97,7 +97,7 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                     <TopCard
                         href={ROUTES.QUIZ}
                         testId="home-quiz-entry"
-                        eyebrow="DAILY QUIZ"
+                        eyebrow={en ? "DAILY QUIZ" : "今日の一問"}
                         spoken={en ? "Daily quiz" : "今日の一問"}
                         title={en ? "Where is this?" : "この写真はどこ？"}
                         line={quiz?.answered
@@ -111,7 +111,7 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                     <TopCard
                         href={ROUTES.SPOTS}
                         testId="home-spots-entry"
-                        eyebrow="PHOTO SPOTS"
+                        eyebrow={en ? "PHOTO SPOTS" : "撮影スポット"}
                         spoken={en ? "Photo spots" : "撮影スポット"}
                         title={en ? "Places worth shooting" : "撮りに行ける場所"}
                         line={en ? "Guides to photo spots" : "撮影スポットの案内"}
@@ -125,7 +125,7 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                     <TopCard
                         href={ROUTES.LEARN}
                         testId="home-learn-entry"
-                        eyebrow="PHOTO GUIDES"
+                        eyebrow={en ? "PHOTO GUIDES" : "カメラ講座"}
                         spoken={en ? "Photography guides" : "写真とカメラの教科書"}
                         title={en ? "Photography guides" : "写真とカメラの教科書"}
                         line={en ? "Camera basics, brands, composition" : "カメラの使い方・メーカー比較・構図"}
@@ -148,7 +148,11 @@ type Credit = { head: string; tail: string };
 
 const CARD_FACE = "flex w-full h-[116px] rounded-2xl bg-surface ring-1 ring-inset ring-line overflow-hidden text-white hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent";
 
-/** 眉（真鍮・消える線）。英字の飾りは読み上げに出さず、日本語の名前を読ませる（iOS の `JPEyebrowLine(spoken:)`） */
+/**
+ * 眉（真鍮・消える線）。英字の飾りは読み上げに出さず、日本語の名前を読ませる（iOS の `JPEyebrowLine(spoken:)`）。
+ * **日本語の画面では日本語で出す**（2026-11-09 owner 承認・9人のレビュー: 最初の画面の英語の眉 11px が多かった。
+ * 英語の画面だけ英字のまま）。字は同じ眉の形（SF 600・11・字間 0.14em）
+ */
 function Eyebrow({ text, spoken, trailing }: { text: string; spoken: string; trailing?: string }) {
     return (
         <span className="flex items-center gap-2 min-w-0">
@@ -206,7 +210,7 @@ function ThemeCard({ theme, photo, en, joined }: { theme: DailyThemeEntry | null
                 </span>
             )}
             <span className="relative flex flex-col gap-1 min-w-0">
-                <Eyebrow text="TODAY'S THEME" spoken={en ? "Today's theme" : "今日のテーマ"} trailing={theme ? `#${theme.tag}` : undefined} />
+                <Eyebrow text={en ? "TODAY'S THEME" : "今日のテーマ"} spoken={en ? "Today's theme" : "今日のテーマ"} trailing={theme ? `#${theme.tag}` : undefined} />
                 <span className="flex items-center gap-2 min-w-0">
                     <span className="flex-1 min-w-0 font-serif font-bold truncate" style={{ fontSize: "18px", lineHeight: "24px" }}>
                         {theme ? (en ? theme.title.en : theme.title.ja) : "\u00a0"}

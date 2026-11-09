@@ -146,11 +146,15 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                 「ユーザーを探す」の行き先は消さず、メニューの1行に移した（下） */}
             {/* 通知ベル: 「あなたの写真が誰かを旅立たせました」が届く */}
             {isAuthenticated && <NotificationsBell />}
-            {/* **未ログインの人にだけ「ログイン」の文字リンク**（2026-11-09 owner「任せる」・入口の案A の最小）。
-                ☰ の奥（2タップ）にしか無かった。`next/link` の文字リンクなので最初の HTML に出る。
-                **判定中は出さない**（ログイン済みの人に一瞬出ないように・☰ の中の行と同じ判断）。
-                ログイン・新規登録の画面そのものでは出さない。押せる面は高さ 44px・字は 14px・キーボードの輪は他のヘッダーの押し面と同じ白60% */}
+            {/* **未ログインの人にだけ「ログイン」の文字リンクと「登録」**（ログインは 2026-11-09 owner「任せる」・入口の案A の最小。
+                登録は同日 owner 承認「はい」・9人のレビュー: 登録の入口が ☰ の6項目目だけだった）。
+                どちらも `next/link` の文字リンクなので最初の HTML に出る。**判定中は出さない**（ログイン済みの人に一瞬出ないように・
+                ☰ の中の行と同じ判断）。ログイン・新規登録の画面そのものでは出さない。
+                ログインは地の無い文字（高さ 44px・字 14px・輪は他のヘッダーの押し面と同じ白60%）。
+                登録は**白の塗りに墨の字**（板 05・写真を持つ画面の主ボタン＝白。ホームの「参加する」と同じ。見た目 36・当たり 44・字 13）。
+                2つ目の真鍮の塗りは置かない */}
             {!loading && !isAuthenticated && !(pathname ?? "").startsWith(ROUTES.LOGIN) && !(pathname ?? "").startsWith(ROUTES.SIGNUP) && (
+                <>
                 <Link
                     href={ROUTES.LOGIN}
                     prefetch={false}
@@ -161,6 +165,18 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                 >
                     {locale === "en" ? "Log in" : "ログイン"}
                 </Link>
+                <Link
+                    href={ROUTES.SIGNUP}
+                    prefetch={false}
+                    data-testid="header-signup"
+                    onClick={() => track("nav_click", { area: "header", dest: "signup" })}
+                    // 見た目 36・当たりは上下 4 ずつ広げて 44（ホームの「参加する」と同じ形）
+                    className="relative inline-flex items-center justify-center rounded-full bg-primary text-ink font-semibold whitespace-nowrap px-[14px] hover:brightness-110 transition before:absolute before:inset-x-0 before:-inset-y-[4px] before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    style={{ minHeight: "36px", minWidth: "44px", fontSize: "13px", lineHeight: "18px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                >
+                    {locale === "en" ? "Sign up" : "登録"}
+                </Link>
+                </>
             )}
             {/* **自分のアバターは出さない**（iOS のヘッダーは 探す・お知らせ・メニュー の3つ）。
                 マイページへは下部タブ（全ページ・全幅に常駐）とメニューから1タップで行ける */}
