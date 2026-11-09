@@ -39,7 +39,7 @@ const ALL_VARS = ["APNS_PRIVATE_KEY", "APNS_KEY_ID", "APNS_TEAM_ID", "APNS_TOPIC
  * 見る。5本目が現れたら必ずここが落ちるので、そのとき env を配ったかを
  * 下のテストが続けて見る。
  */
-const PUSHING_FILES = ["badgeStore.ts", "comments.ts", "follow.ts", "inspired.ts", "likes.ts", "storyReplies.ts", "supporterStore.ts"];
+const PUSHING_FILES = ["badgeStore.ts", "comments.ts", "follow.ts", "inspired.ts", "likes.ts", "stories.ts", "storyAnswers.ts", "storyReplies.ts", "supporterStore.ts"];
 
 /** `api-user/src/*.ts` のうち、`pushNotification(...)` を呼んでいるもの */
 function filesThatPush(): string[] {
@@ -144,7 +144,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
     it("通知を積む関数を1つ以上見つけている", () => {
         const sending = [...fns].filter(([, v]) => sendsPush(v.handler)).map(([n]) => n).sort();
         expect(sending).toEqual([
-            "appStoreNotification", "followUser", "getMyBadges", "likePhoto", "postComment", "postStoryReply",
+            "answerStory", "appStoreNotification", "createStory", "followUser", "getMyBadges", "likePhoto", "postComment", "postStoryReply",
             "recordPurchase", "savePhoto", "sendLightAlerts", "updatePhotoVisibility",
         ]);
     });
