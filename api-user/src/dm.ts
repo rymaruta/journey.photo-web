@@ -30,9 +30,10 @@ import {
  * ## 規則（読む前に）
  *
  *   - **会話を始められるのは、相手をフォローしている人だけ**（ストーリーの返信と同じ門）。門に落ちたら 404
- *   - 相手が送り主を**フォローしている・親しい友達にしている**なら受信箱へ直行。それ以外は
- *     **リクエスト**——承認か返信まで**文字3通まで**・**URL を含む文は断る**・**プッシュなし**。
- *     受け取った人が返信した時点で承認（`state` が `inbox` になる）
+ *   - **承認前の規則は全員に同じ**（owner 判断 2026-11-09）: 受け取った人が返信か承認をするまで、送り主は
+ *     **文字3通まで・URL 不可**。送り主に返す応答・上限・エラーは相手との関係で変えない。相手が送り主を
+ *     フォロー・親しい友達にしているなら受信箱へ直行（プッシュあり）、そうでなければリクエストの棚（プッシュなし）
+ *     ——**違うのは受け取る側の置き場所と通知だけ**。受け取った人が返信した時点で承認
  *   - **ブロック**: 送信前に `isBlocked`。一覧・会話は `hiddenUserIds` でふるう。**隠すだけで消さない**
  *     （解除で戻る）。ブロックされた側には**ブロックと分かる応答を返さない**（404）
  *   - **歯止め**: 1日の新規会話 `DM_DAILY_NEW_CONVS` 人・送信 `DM_DAILY_SENT` 通（`dmday#<uid>#<日付>` の原子的な加算）。
@@ -73,8 +74,10 @@ type DmConv = {
     state: ConvState;
     /** 会話を始めた人 */
     initiator: string;
-    /** リクエストの段階で、始めた人が送った通数 */
+    /** 受け取った人が返信か承認をするまでの間に、始めた人が送った通数（**全員に同じ規則**） */
     reqCount: number;
+    /** 受け取った人の受信箱へ直行した会話（フォロー返し・親しい友達）か。**置き場所と通知だけの違い**で、送り主の規則には効かない */
+    direct?: boolean;
     /** この時刻より前のメッセージは、その人には見せない（自分の側を消した時刻） */
     loClearedAt?: string;
     hiClearedAt?: string;
@@ -172,6 +175,7 @@ function parseConv(item: Record<string, unknown> | undefined): DmConv | null {
         state: item.state === "request" ? "request" : "inbox",
         initiator: typeof item.initiator === "string" ? item.initiator : item.lo,
         reqCount: typeof item.reqCount === "number" ? item.reqCount : 0,
+        ...(item.direct === true ? { direct: true } : {}),
         ...(typeof item.loClearedAt === "string" ? { loClearedAt: item.loClearedAt } : {}),
         ...(typeof item.hiClearedAt === "string" ? { hiClearedAt: item.hiClearedAt } : {}),
         updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : "",
@@ -301,6 +305,10 @@ export type SendInput = {
 export type SendFail = { ok: false; status: number; message: string; code?: string };
 export type SendOk = { ok: true; convId: string; message: DmMessage; state: DmEntryState };
 
+/** **理由コードも文面も、相手との関係で変えない**（1種類）。UI の文言は iOS 側で決める */
+const URL_REFUSED = "承認されるまではリンクを送れません";
+const REQUEST_LIMITED = `承認されるまでは${DM_REQUEST_MAX}通までです`;
+
 const fail = (status: number, message: string, code?: string): SendFail => ({ ok: false, status, message, code });
 
 /**
@@ -341,7 +349,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     let followsRecipient: boolean | null = null;   // 自分が相手をフォローしているか（門）
     let autoInbox: boolean | null = null;          // 相手が自分をフォロー or 親しい友達か
     let reserved = false;
-    let after: { state: ConvState; initiator: string } | null = null;
+    let after: { state: ConvState; initiator: string; direct: boolean } | null = null;
     let duplicate = false;
     let peerSpoke = false;   // 相手がこの会話で話したことがあるか（送り主に見せる状態を決める）
 
@@ -358,7 +366,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
         if (conv && stored) {
             message = stored;
             duplicate = true;
-            after = { state: conv.state, initiator: conv.initiator };
+            after = { state: conv.state, initiator: conv.initiator, direct: conv.direct === true };
             break;
         }
 
@@ -367,25 +375,27 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
         let bumpReq = false;
         let setInbox = false;
         let initialReq = 0;
+        let direct = conv?.direct === true;
         if (!conv) {
             // 会話の始まり。**相手をフォローしている人だけ**
             followsRecipient ??= await isFollowing(to, me);
             if (!followsRecipient) return fail(404, "相手が見つかりません", "notFound");
             autoInbox ??= (await isFollowing(me, to)) || await isCloseFriendOf(to, me);
-            nextState = autoInbox ? "inbox" : "request";
-            // **会話の最初の1通は、相手との関係に依らず URL を断る**（断るかどうかで「相手がフォローしてくれているか」
-            // が分からないように。承認後・2通目以降の扱いは下）
-            if (containsUrl(text)) return fail(400, "最初のメッセージにはリンクを入れられません", "requestUrl");
-            if (nextState === "request") {
-                // 断られたあとの再送でも、送った通数は戻らない（`dec_<送り主>`）
-                const prior = theirBox.declined[me] ?? 0;
-                if (prior >= DM_REQUEST_MAX) return fail(429, `承認されるまでは${DM_REQUEST_MAX}通までです`, "requestLimit");
-                initialReq = prior + 1;
-            }
+            // **全員に同じ規則**: 受け取った人が返信か承認をするまで、文字3通まで・URL 不可。相手との関係
+            // （フォロー返し・親しい友達の直行）で、送り主に返す応答・上限・エラーを変えない。
+            // 違うのは受け取る側の置き場所（受信箱かリクエストの棚か）と、端末への知らせの有無だけ
+            nextState = "request";
+            direct = autoInbox;
+            if (containsUrl(text)) return fail(400, URL_REFUSED, "requestUrl");
+            // 断られたあとの再送でも、送った通数は戻らない（`dec_<送り主>`・直行の相手が消した場合も同じ）
+            const prior = theirBox.declined[me] ?? 0;
+            if (prior >= DM_REQUEST_MAX) return fail(429, REQUEST_LIMITED, "requestLimit");
+            initialReq = prior + 1;
         } else if (conv.state === "request") {
+            direct = conv.direct === true;
             if (conv.initiator === me) {
-                if (containsUrl(text)) return fail(400, "承認されるまではリンクを送れません", "requestUrl");
-                if (conv.reqCount >= DM_REQUEST_MAX) return fail(429, `承認されるまでは${DM_REQUEST_MAX}通までです`, "requestLimit");
+                if (containsUrl(text)) return fail(400, URL_REFUSED, "requestUrl");
+                if (conv.reqCount >= DM_REQUEST_MAX) return fail(429, REQUEST_LIMITED, "requestLimit");
                 nextState = "request";
                 bumpReq = true;
             } else {
@@ -398,7 +408,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
         }
 
         // 相手の枠（リクエストは別枠）。**書く前に断る**（本体が入ってから 409 にしない）
-        const theirStateNow: DmEntryState = nextState === "request" ? "request" : "inbox";
+        const theirStateNow: DmEntryState = nextState === "request" && !direct ? "request" : "inbox";
         if (!theirBox.convs[convId]) {
             const used = slotCounts(theirBox.convs);
             if ((theirStateNow === "request" ? used.requests >= DM_REQUESTS_MAX : used.normal >= DM_CONVS_MAX)) {
@@ -420,7 +430,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
                 await ddb.send(new PutCommand({
                     TableName: PHOTOS_TABLE,
                     Item: {
-                        id: dmConvKey(lo, hi), lo, hi, items: [message], state: nextState, initiator: me,
+                        id: dmConvKey(lo, hi), lo, hi, items: [message], state: nextState, initiator: me, direct,
                         reqCount: initialReq, createdAt: now, updatedAt: now,
                     },
                     ConditionExpression: "attribute_not_exists(id)",
@@ -452,7 +462,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
             if (isCcf(e)) continue;   // 誰かが先に書いた。読み直してやり直す
             throw e;
         }
-        after = { state: nextState, initiator: conv?.initiator ?? me };
+        after = { state: nextState, initiator: conv?.initiator ?? me, direct };
         break;
     }
     if (!after) return fail(409, "混み合っています。もう一度お試しください", "busy");
@@ -460,7 +470,8 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     // --- 受信箱（相手 → 自分）。**本体は入っているので、落ちたら 500 を返し、同じ id の再送で続きをやり直す** ---
     const excerpt = truncate(text.replace(/\s+/g, " "), DM_EXCERPT_MAX);
     const requestOpen = after.state === "request";
-    const theirState: DmEntryState = requestOpen ? "request" : "inbox";
+    // 受け取る側の置き場所だけが違う（直行ならリクエストの棚に置かず、プッシュも出す）
+    const theirState: DmEntryState = requestOpen && !after.direct ? "request" : "inbox";
     // **送り主に見せる状態は、リクエストでも受信箱直行でも同じ形**（`pending`＝相手が話すか承認するまで）。
     // 相手が自分をフォローしているか・親しい友達にしているかを、状態の違いから読み取らせない
     const myState: DmEntryState = requestOpen || (after.initiator === me && !peerSpoke) ? "pending" : "inbox";
@@ -644,8 +655,9 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
     const peers = await peerInfos([peer]);
     const p = peers.get(peer) ?? fallbackPeer();
     const initiatorIsMe = conv.initiator === uid;
-    const requestOpen = conv.state === "request";
-    const remaining = requestOpen && initiatorIsMe ? Math.max(0, DM_REQUEST_MAX - conv.reqCount) : undefined;
+    // **始めた人には、相手が話すまで残り数を見せる**（リクエストでも直行でも同じ。承認だけでは見せ方を変えない）
+    const peerSpoke = conv.items.some((m) => m.from === peer);
+    const remaining = initiatorIsMe && !peerSpoke ? Math.max(0, DM_REQUEST_MAX - conv.reqCount) : undefined;
     return okJson({
         id: convId, peerId: peer, name: p.name, ...(p.username ? { username: p.username } : {}),
         ...(p.deleted ? { deleted: true } : {}),
@@ -689,7 +701,7 @@ async function acceptRequest(uid: string, convId: string | undefined) {
     const [box, conv] = await Promise.all([readDmInbox(uid, true), readConv(pair.lo, pair.hi)]);
     const entry = box.convs[convId!];
     if (!conv || !entry) return jsonError(404, "会話が見つかりません", "notFound");
-    if (entry.state !== "request") return okJson({ ok: true });   // 承認済み（押し直し）
+    if (conv.state !== "request") return okJson({ ok: true });   // 承認済み（押し直し）
     if (conv.initiator === uid) return jsonError(400, "不正なリクエスト", "badRequest");
     const now = new Date().toISOString();
     // 本体が正。条件が外れた（既に承認された）なら続きへ進んでよい
@@ -714,15 +726,8 @@ async function acceptRequest(uid: string, convId: string | undefined) {
         ExpressionAttributeNames: { "#c": convId!, "#s": "state", "#dec": declinedAttr(peer) },
         ExpressionAttributeValues: { ":inbox": "inbox" },
     })).catch((e) => { if (!isCcf(e)) throw e; });
-    // 相手の行（`pending` → `inbox`）。落ちても承認は成立している（相手の画面は次の送受信で直る）
-    await ddb.send(new UpdateCommand({
-        TableName: PHOTOS_TABLE,
-        Key: { id: dmInboxId(peer) },
-        UpdateExpression: "SET convs.#c.#s = :inbox",
-        ConditionExpression: "convs.#c.#s = :pending",
-        ExpressionAttributeNames: { "#c": convId!, "#s": "state" },
-        ExpressionAttributeValues: { ":inbox": "inbox", ":pending": "pending" },
-    })).catch((e) => { if (!isCcf(e)) console.error("acceptRequest: 相手の行を直せませんでした:", errName(e)); });
+    // **相手（始めた人）の行には触れない**: 承認ボタンだけでは、送り主に見える状態を変えない
+    // （直行の相手と区別がつかなくなる。送り主の行が変わるのは、受け取った人が返信したときだけ）
     return okJson({ ok: true });
 }
 
@@ -751,7 +756,8 @@ export async function removeConversation(uid: string, convId: string | undefined
     if (mode.requestOnly && entry?.state !== "request") return { status: 400, error: "リクエストではありません" };
 
     if (!mode.account) {
-        const declining = entry?.state === "request" && conv !== null && conv.initiator !== uid;
+        // **承認前の会話を受け取った人が消したら、直行の相手でも断った印を残す**（全員に同じ規則）
+        const declining = conv !== null && conv.state === "request" && conv.initiator !== uid;
         // 断った印は DM_DECLINED_MAX 人まで。越えるなら、通数の小さい（上限に届いていない）ものから外す
         const evict: string[] = [];
         if (declining && box.declined[peer] === undefined) {
