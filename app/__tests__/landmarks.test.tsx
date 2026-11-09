@@ -90,8 +90,11 @@ describe("ホームに見出しがある", () => {
             expect(hasClass(el, "sr-only"), `見出しの包みが画面の外: ${el.className}`).toBe(false);
         }
         expect(hasClass(h1, "font-serif"), "見出しは明朝（板 02）").toBe(true);
-        // 見出しの階層: h1 の次の見出しは h2 以下（h1 → h3 と飛ばない）
+        // 見出しの階層。**この環境では写真が0枚・地図などを差し替えているので描かれる見出しは h1 だけで、
+        // 「h1→h2→h3 と飛ばない」は空振りする**（実際のホームは 1,2,2,…,3 で飛ばないことを Playwright で実測した・2026-11-09）。
+        // ここで縛れるのは「h1 より前に別の見出しが無い」ことだけ
         const levels = Array.from(container.querySelectorAll("h1,h2,h3,h4")).map((e) => Number(e.tagName[1]));
+        expect(levels[0], `最初の見出しが h1 でない: ${levels.join(",")}`).toBe(1);
         for (let i = 1; i < levels.length; i++) expect(levels[i] - levels[i - 1], `見出しの階層が飛ぶ: ${levels.join(",")}`).toBeLessThanOrEqual(1);
     });
 

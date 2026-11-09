@@ -195,7 +195,7 @@ export const ja: Labels = {
         admin: "管理",
         login: "ログイン",
         logout: "ログアウト",
-        signup: "新規登録",
+        signup: "登録", // ヘッダーの「登録」と同じ呼び方（2026-11-09・同じ行き先の呼び名をそろえた）
     },
 };
 
