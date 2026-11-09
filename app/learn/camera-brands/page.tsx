@@ -75,7 +75,7 @@ export default async function CameraBrandsPage() {
                     {BRANDS.map((b) => (
                         <Link
                             key={b.id}
-                            href={`#${b.id}`}
+                            href={`#${b.id}`} prefetch={false}
                             className="inline-flex items-center min-h-[44px] px-4 rounded-full bg-chip ring-1 ring-line text-chip-text hover:text-white"
                             style={{ fontSize: "13px", touchAction: "manipulation" }}
                         >
