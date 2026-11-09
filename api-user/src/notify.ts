@@ -5,6 +5,7 @@ import { isDeletedProfile } from "./types";
 import { isBlocked, hiddenUserIds } from "./blockCheck";
 import { apnsConfigured, sendPush } from "./apns";
 import { deviceTokens, forgetTokens } from "./devices";
+import { dmUnreadConvCount } from "./dmInbox";
 
 // 通知の共通ヘルパー。
 // 通知は "notifs#<uid>" 文書に list_append + ADD unread でアトミックに追記する
@@ -375,8 +376,11 @@ export async function pushNotification(ownerId: string, notif: Notif): Promise<v
  * **種類を足したら、アプリの `Localizable.strings` にも足すこと。**
  * 足さないと iOS は鍵の文字列（`NOTIF_LIKE`）をそのまま通知に出す。
  */
-const LOC_KEYS: Record<Notif["type"], string> = {
+const LOC_KEYS: Record<Notif["type"] | "dm", string> = {
     like: "NOTIF_LIKE",
+    // DM（`dm.ts`）。**`Notif.type` には足さない**（2026-11-09 owner 承認・ベルの通知の輪には書かない）。
+    // 引数は送り主の名前だけ。**本文は載せない**（固定文。アプリの文面は「%@ からメッセージが届きました」）
+    dm: "NOTIF_DM",
     comment: "NOTIF_COMMENT",
     follow: "NOTIF_FOLLOW",
     storyreply: "NOTIF_STORY_REPLY",
@@ -421,6 +425,52 @@ export function visibleUnread(storedUnread: unknown, items: unknown, hidden: Rea
 
 async function deliverPush(ownerId: string, notif: Notif, storedUnread?: unknown, items?: unknown): Promise<void> {
     if (!apnsConfigured()) return;
+    await sendToDevices(ownerId, { unread: storedUnread, items }, {
+        locKey: LOC_KEYS[notif.type],
+        locArgs: [notif.byName],
+        // 押したときの行き先。**写真が無い通知（follow）もある**
+        data: {
+            type: notif.type,
+            ...(notif.photoId ? { photoId: notif.photoId } : {}),
+            ...(notif.byId ? { byId: notif.byId } : {}),
+            ...(notif.targetUserId ? { targetUserId: notif.targetUserId } : {}),
+            // メダル: 押したら棚のそのメダルへ。APNs の data は文字列だけ
+            ...(notif.key ? { key: notif.key } : {}),
+            ...(typeof notif.tier === "number" ? { tier: String(notif.tier) } : {}),
+            // 「この写真を見て撮影」: 押した先は新しい写真（`photoId`）。元の写真も添える
+            ...(notif.sourcePhotoId ? { sourcePhotoId: notif.sourcePhotoId } : {}),
+        },
+    });
+}
+
+/**
+ * DM が届いたことを端末へ送る（`dm.ts` が呼ぶ）。**ベルの通知（`notifs#`）には積まない**——
+ * 受信箱が別の入口で、ベルの輪（50件）を会話で押し流さない（2026-11-09 owner 承認）。
+ *
+ * **本文は載せない。** 渡すのは送り主の名前と会話の ID だけ（ロック画面に本文を出さない・
+ * 端末の文面は `NOTIF_DM` の固定文）。**リクエストでは呼ばない**（呼ぶ側が決める）。
+ * best-effort——落ちても送信は成功のまま。
+ */
+export async function pushDmMessage(ownerId: string, p: { byName: string; byId: string; convId: string }): Promise<void> {
+    if (!apnsConfigured()) return;
+    await sendToDevices(ownerId, undefined, {
+        locKey: LOC_KEYS.dm,
+        locArgs: [p.byName],
+        data: { type: "dm", convId: p.convId, byId: p.byId },
+    });
+}
+
+/**
+ * 端末への送信の共通部分。**バッジは「ベルの未読 ＋ 受信箱の未読会話数」**（リクエストは含めない）で、
+ * ベルの通知もDMも同じ数を出す——片方だけが自分の数を送ると、もう片方のぶんを消してしまう。
+ *
+ * `bell` を渡せばそれを使う（ベルの通知は追記の応答に持っている）。無ければ `notifs#` を1回読む。
+ */
+async function sendToDevices(
+    ownerId: string,
+    bell: { unread?: unknown; items?: unknown } | undefined,
+    message: { locKey: string; locArgs: string[]; data: Record<string, string> },
+): Promise<void> {
     try {
         const tokens = await deviceTokens(ownerId);
         if (tokens.length === 0) return;
@@ -434,23 +484,20 @@ async function deliverPush(ownerId: string, notif: Notif, storedUnread?: unknown
             console.error(`deliverPush: ブロック一覧を読めませんでした（${ownerId}）:`, e);
             return new Set<string>();
         });
-        const badge = visibleUnread(storedUnread, items, hidden);
+        let bellUnread = bell?.unread;
+        let bellItems = bell?.items;
+        if (!bell) {
+            const row = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: notifsId(ownerId) } }))
+                .catch((e) => { console.error(`deliverPush: ベルを読めませんでした（${ownerId}）:`, e); return undefined; });
+            bellUnread = row?.Item?.unread;
+            bellItems = row?.Item?.items;
+        }
+        const badge = visibleUnread(bellUnread, bellItems, hidden) + await dmUnreadConvCount(ownerId, hidden);
         const result = await sendPush(tokens, {
-            locKey: LOC_KEYS[notif.type],
-            locArgs: [notif.byName],
+            locKey: message.locKey,
+            locArgs: message.locArgs,
             badge,
-            // 押したときの行き先。**写真が無い通知（follow）もある**
-            data: {
-                type: notif.type,
-                ...(notif.photoId ? { photoId: notif.photoId } : {}),
-                ...(notif.byId ? { byId: notif.byId } : {}),
-                ...(notif.targetUserId ? { targetUserId: notif.targetUserId } : {}),
-                // メダル: 押したら棚のそのメダルへ。APNs の data は文字列だけ
-                ...(notif.key ? { key: notif.key } : {}),
-                ...(typeof notif.tier === "number" ? { tier: String(notif.tier) } : {}),
-                // 「この写真を見て撮影」: 押した先は新しい写真（`photoId`）。元の写真も添える
-                ...(notif.sourcePhotoId ? { sourcePhotoId: notif.sourcePhotoId } : {}),
-            },
+            data: message.data,
         });
         // **無効だった宛先だけ外す**（送信の失敗では外さない）
         if (result.invalid.length > 0) await forgetTokens(ownerId, result.invalid);
