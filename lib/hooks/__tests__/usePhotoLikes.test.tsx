@@ -115,15 +115,47 @@ describe("usePhotoLikes", () => {
         expect(mockUserFetch).toHaveBeenCalledWith("/photos/p1/like", { method: "DELETE" });
     });
 
-    it("未ログイン時はローカルのみ変更し、公開の件数は動かさない", async () => {
-        // 動かしていた頃は、42いいねの写真でハートを押すと「43」に見え、
-        // もう一度押すと「42」に戻った——サーバーには何も送っていないので、
-        // 公開の数字を勝手に上下させているだけだった。
+    // 2026-11-09 owner 承認「未ログインの反応を登録の入口にする」: 以前は押すとハートが塗られ、端末の
+    // localStorage に溜まるだけでサーバーへは届かなかった（件数も通知も動かない）。今は何も変えず、
+    // 呼び出し側が「ログインしてください」＋リンクを出せるよう `requiresAuth` を返す
+    it("未ログインで押してもハートを塗らず、端末にも保存せず、件数も動かさない", async () => {
         const { result } = renderHook(() => usePhotoLikes("p1", 5, false));
-        await act(async () => { await result.current.toggle(); });
-        expect(result.current.liked).toBe(true);   // お気に入りには入る
-        expect(result.current.count).toBe(5);      // 公開の件数は動かさない
+        let r: { ok: boolean; requiresAuth?: boolean } | undefined;
+        await act(async () => { r = await result.current.toggle(); });
+        expect(result.current.liked, "未ログインでハートが塗られている").toBe(false);
+        expect(result.current.count).toBe(5);
+        expect(store["photo-gallery-favorites"], "端末に溜めている").toBeUndefined();
         expect(mockUserFetch).not.toHaveBeenCalled();
+        expect(r).toEqual({ ok: false, requiresAuth: true });
+    });
+
+    it("未ログインは、以前に端末へ残ったお気に入りがあってもハートを塗らない", () => {
+        store["photo-gallery-favorites"] = JSON.stringify(["p1"]);
+        const { result } = renderHook(() => usePhotoLikes("p1", 5, false));
+        expect(result.current.liked).toBe(false);
+    });
+
+    it("判定中（authLoading）は端末のお気に入りのまま（ログイン済みの人のハートを一瞬消さない）", () => {
+        store["photo-gallery-favorites"] = JSON.stringify(["p1"]);
+        const { result } = renderHook(() => usePhotoLikes("p1", 5, false, true));
+        expect(result.current.liked).toBe(true);
+    });
+
+    it("未ログインで押したあとログインしても、最初の一押しは POST（取り消しの DELETE にならない）", async () => {
+        const { result, rerender } = renderHook(
+            ({ auth }: { auth: boolean }) => usePhotoLikes("p1", 5, auth),
+            { initialProps: { auth: false } },
+        );
+        await act(async () => { await result.current.toggle(); });   // 未ログインで押す
+        mockUserFetch.mockImplementation((path: string) => Promise.resolve(
+            path.startsWith("/user/likes/") ? { ok: true, json: async () => ({ liked: false }) }
+                : { ok: true, json: async () => ({ likes: 6 }) }));
+        rerender({ auth: true });
+        await waitFor(() => expect(mockUserFetch).toHaveBeenCalledWith("/user/likes/p1", expect.anything()));
+        await act(async () => { await result.current.toggle(); });
+        expect(mockUserFetch).toHaveBeenCalledWith("/photos/p1/like", { method: "POST" });
+        expect(mockUserFetch).not.toHaveBeenCalledWith("/photos/p1/like", { method: "DELETE" });
+        expect(result.current.liked).toBe(true);
     });
 
     // 未ログインで押した状態のままログインすると、次の一押しが DELETE に
@@ -516,14 +548,14 @@ describe("usePhotoLikes: 断られた理由を運ぶ", () => {
         expect(r?.message, "空文字を運ぶと空のトーストが出る").toBeUndefined();
     });
 
-    // **押していない3経路は「失敗」ではない。** まとめて書き換えたので、
-    // 1つ反転しても誰も気づかない状態だった。とくに未ログインが反転すると、
-    // 訪問者がハートを押すたびに赤いトーストが出る
-    it("未ログインで押しても失敗にしない（サーバーへ送っていない）", async () => {
+    // **押していない経路（判定中・二度押し）は「失敗」ではない（ok: true）。** 未ログインは 2026-11-09 から
+    // `ok: false` + `requiresAuth`（失敗ではなく案内）。呼び出し側は `requiresAuth` を先に見て、赤い失敗の文言を出さない
+    it("未ログインで押したら「ログインが要る」と伝える（赤い失敗ではなく案内・サーバーへは送らない）", async () => {
         const { result } = renderHook(() => usePhotoLikes("p1", 3, false));
-        let r: { ok: boolean } | undefined;
+        let r: { ok: boolean; requiresAuth?: boolean; message?: string } | undefined;
         await act(async () => { r = await result.current.toggle(); });
-        expect(r?.ok, "未ログインを失敗として伝えている").toBe(true);
+        expect(r?.requiresAuth, "未ログインを案内として伝えていない").toBe(true);
+        expect(r?.message, "赤いトースト用の文言を運んでいる").toBeUndefined();
         expect(mockUserFetch).not.toHaveBeenCalled();
     });
 

@@ -11,7 +11,8 @@ import { LoadingState } from "../components/StateViews";
 import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
 import { ROUTES, safeNextPath } from "../../lib/routes";
 import { pendingNameKey } from "../../lib/utils/pendingName";
-import { WISH_VIA, track } from "../../lib/utils/analytics";
+import { track } from "../../lib/utils/analytics";
+import { parseLoginVia, loginReason } from "../../lib/auth/loginVia";
 import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
 
 type Step = "login" | "forgot-send" | "forgot-confirm";
@@ -27,12 +28,13 @@ function LoginForm() {
     // 受け取るのはサイト内の絶対パスだけ（safeNextPath がオープン
     // リダイレクトを塞ぐ）。無ければ従来どおり自分のプロフィールへ。
     const nextPath = safeNextPath(searchParams?.get("next"));
-    // 「行きたい」から来た印（`via=wish`）を新規登録へ運ぶ（登録までの数え方・#432）。
-    // 決まった値だけ通す
-    const viaWish = searchParams?.get("via") === WISH_VIA;
+    // 「何を押して来たか」の印（`via`）。**許可リストの値だけ通す**（`parseLoginVia`）——
+    // 新規登録へ運ぶ（`wish` は登録までの数え方・#432）のと、下の「理由と得られるもの」の1〜2行を決めるのに使う。
+    // 2026-11-09: 以前は `wish` だけ。URL の文字列は画面にそのまま出さない（文は `loginReason` が固定で持つ）
+    const via = parseLoginVia(searchParams?.get("via"));
     const signupQuery = [
         nextPath ? `next=${encodeURIComponent(nextPath)}` : "",
-        viaWish ? `via=${WISH_VIA}` : "",
+        via ? `via=${via}` : "",
     ].filter(Boolean).join("&");
     const signupHref = signupQuery ? `/signup?${signupQuery}` : "/signup";
     const { login, isAuthenticated, loading, userId } = useAuth();
@@ -232,6 +234,11 @@ function LoginForm() {
                     {step === "login" ? "ログイン" : step === "forgot-send" ? "パスワードを忘れた" : "確認コードを入力"}
                 </h1>
                 <AuthBrand />
+
+                {/* なぜログインが要るか・ログインすると何ができるか（1〜2行・2026-11-09）。`via` が無い・許可外は汎用の1行 */}
+                {step === "login" && (
+                    <p data-testid="login-reason" className="m-0 text-[14px] leading-[20px] text-white/80">{loginReason(via)}</p>
+                )}
 
                 {/* ログイン */}
                 {step === "login" && (

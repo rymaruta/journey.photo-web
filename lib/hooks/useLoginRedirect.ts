@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { loginWithNext } from "../routes";
+import type { LoginVia } from "../auth/loginVia";
 
 /**
  * 未ログインの人を、戻り先を添えてログイン画面へ送る。
@@ -19,6 +20,8 @@ import { loginWithNext } from "../routes";
  * 違う）ので、**条件まで1つにまとめてはいけない**。まとめると
  * 「権限が付かなかった人が退会できない」に戻る。
  *
+ * `via` は何をしに来たか（2026-11-09: 投稿の画面は `upload`。ログイン画面が「投稿するにはログインが必要です…」と言う）。
+ *
  * 🔴 **`push` ではなく `replace`。** push にすると、見られなかったページが
  * 履歴に残る:
  *
@@ -29,10 +32,10 @@ import { loginWithNext } from "../routes";
  * 2画面を往復するだけで前の画面に戻れない**。通せなかったページを履歴に
  * 残す意味は無い。
  */
-export function useLoginRedirect(shouldSend: boolean): void {
+export function useLoginRedirect(shouldSend: boolean, via?: LoginVia): void {
     const router = useRouter();
     useEffect(() => {
         if (!shouldSend) return;
-        router.replace(loginWithNext(window.location.pathname + window.location.search));
-    }, [shouldSend, router]);
+        router.replace(loginWithNext(window.location.pathname + window.location.search, via));
+    }, [shouldSend, router, via]);
 }

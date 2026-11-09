@@ -42,3 +42,32 @@ describe("ToastContainer - ヘッダーと重ならない配置の回帰ガー�
         expect(root.className).toContain("pointer-events-none");
     });
 });
+
+// 2026-11-09: 案内の次の一手（未ログインの「ログイン」）。文言だけが数秒で消えて、行き先が無かった
+describe("ToastContainer - action（リンク）", () => {
+    it("action があればリンクを出し、押すと閉じる。当たりは 44pt", async () => {
+        vi.resetModules();
+        const removeToast = vi.fn();
+        vi.doMock("../../../lib/hooks/useToast", () => ({
+            useToast: () => ({
+                toasts: [{ id: "1", message: "いいねするにはログインしてください", type: "info",
+                    action: { label: "ログイン", href: "/login?next=%2F&via=like" } }],
+                removeToast,
+            }),
+        }));
+        const { default: Container } = await import("../Toast");
+        const { fireEvent, screen } = await import("@testing-library/react");
+        render(<Container />);
+        const a = screen.getByRole("link", { name: "ログイン" });
+        expect(a.getAttribute("href")).toBe("/login?next=%2F&via=like");
+        expect(a.className).toContain("min-h-[44px]");
+        fireEvent.click(a);
+        expect(removeToast).toHaveBeenCalledWith("1");
+        vi.doUnmock("../../../lib/hooks/useToast");
+    });
+
+    it("action が無いトーストにはリンクを出さない", () => {
+        const { container } = render(<ToastContainer />);
+        expect(container.querySelector("a")).toBeNull();
+    });
+});

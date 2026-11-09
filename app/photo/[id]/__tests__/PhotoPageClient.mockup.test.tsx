@@ -23,9 +23,9 @@ vi.mock("../../../../lib/utils/api", async (importOriginal) => ({
     publicFetch: vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })),
     userPublicFetch: vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })),
 }));
-const likeState = vi.hoisted(() => ({ liked: false }));
+const likeState = vi.hoisted(() => ({ liked: false, result: { ok: true } as { ok: boolean; requiresAuth?: boolean } }));
 vi.mock("../../../../lib/hooks/usePhotoLikes", () => ({
-    usePhotoLikes: () => ({ liked: likeState.liked, count: 342, pending: false, toggle: async () => ({ ok: true }) }),
+    usePhotoLikes: () => ({ liked: likeState.liked, count: 342, pending: false, toggle: async () => likeState.result }),
 }));
 const saveState = { current: { saved: false, pending: false, toggle: vi.fn(async () => ({ ok: true })) } };
 vi.mock("../../../../lib/hooks/usePhotoSave", () => ({ usePhotoSave: () => saveState.current }));
@@ -68,6 +68,7 @@ const before = (a: Element, b: Element) => !!(a.compareDocumentPosition(b) & Nod
 
 beforeEach(() => {
     mockShowToast.mockReset();
+    likeState.result = { ok: true };
     authState.current = { isAuthenticated: false, userId: null, loading: false };
     saveState.current = { saved: false, pending: false, toggle: vi.fn(async () => ({ ok: true })) };
 });
@@ -157,7 +158,21 @@ describe("写真ページ: 最終版モックの並び", () => {
         page();
         await screen.findByText("夕陽に染まる白い街");
         fireEvent.click(screen.getByRole("button", { name: "保存" }));
-        await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith("写真を保存するにはログインしてください", "error"));
+        await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith(
+            "写真を保存するにはログインしてください", "info", 6000,
+            { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=save/) }));
+    });
+
+    // 2026-11-09: 未ログインのいいねも、赤い失敗ではなく「ログイン」リンク付きの案内（保存・フォロー・コメントと同じ見せ方）
+    it("いいね: 未ログインは「ログイン」リンク付きの案内（info・via=like）", async () => {
+        likeState.result = { ok: false, requiresAuth: true };
+        page();
+        await screen.findByText("夕陽に染まる白い街");
+        fireEvent.click(screen.getByRole("button", { name: "いいね 342件" }));
+        await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith(
+            "いいねするにはログインしてください", "info", 6000,
+            { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=like/) }));
+        expect(mockShowToast).not.toHaveBeenCalledWith(expect.stringContaining("保存できませんでした"), "error");
     });
 
     it("🔴 撮影情報は初期は畳まれているが、機材のリンクは DOM に残る（静的HTMLに焼く）", async () => {

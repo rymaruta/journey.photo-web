@@ -8,6 +8,7 @@ import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { INLINE_BTN, INLINE_BTN_STYLE, FOLLOW_ON, FOLLOW_OFF, FOLLOW_LIST_MIN_W, PROFILE_FOLLOW_BTN, PROFILE_FOLLOW_STYLE, PROFILE_FOLLOW_OFF, PROFILE_FOLLOW_ON } from "./buttonStyles";
 import { useFollow } from "../../lib/hooks/useFollow";
 import { useToast } from "../../lib/hooks/useToast";
+import { useGuestPrompt } from "../../lib/hooks/useGuestPrompt";
 import { STAT_NUMBER_PX, STAT_LABEL_PX, STAT_NUMBER_CLASS, STAT_LABEL_CLASS, STAT_CELL_CLASS } from "./statCellStyle";
 import FollowingSheet, { type FollowListKind } from "./FollowingSheet";
 
@@ -194,6 +195,7 @@ export function FollowAction({ targetUserId, isOwner, isAuthenticated, locale, v
     // たびに数十本の GET が飛ぶ形になっていた。
     const { isFollowing, pending, resolved, toggle } = useFollow(targetUserId, isAuthenticated, false);
     const { showToast } = useToast();
+    const promptLogin = useGuestPrompt(locale);
     const compact = variant === "followBack";
 
     if (isOwner) return null;
@@ -204,7 +206,8 @@ export function FollowAction({ targetUserId, isOwner, isAuthenticated, locale, v
     const onClick = async () => {
         const { result, message } = await toggle();
         if (result === "auth-required") {
-            showToast(message ?? (locale === "en" ? "Log in to follow" : "フォローするにはログインしてください"), "info");
+            // 2026-11-09: 「ログイン」のリンク付きの案内（`useGuestPrompt`。サーバーが理由を言っている回はその文）
+            promptLogin("follow", message);
         } else if (result === "followed") {
             // `already`（取り直したら既にフォロー中）はここを通らない。送っていないので言わない
             showToast(locale === "en" ? "Following" : "フォローしました", "success");

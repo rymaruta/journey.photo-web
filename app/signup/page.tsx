@@ -10,6 +10,7 @@ import { pendingNameKey, pendingVerifyKey } from "../../lib/utils/pendingName";
 import { safeNextPath } from "../../lib/routes";
 import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
 import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
+import { SIGNUP_BENEFIT_JA } from "../../lib/auth/loginVia";
 import { LoadingState } from "../components/StateViews";
 import { track, signupFromVia, signupErrorReason, type SignupFrom } from "../../lib/utils/analytics";
 
@@ -294,6 +295,11 @@ function SignupForm() {
                     {step === "done" && "登録完了"}
                 </h1>
                 <AuthBrand />
+
+                {/* 登録すると何ができるか（1行・2026-11-09）。ログインの画面の「理由」と対にする */}
+                {step === "register" && (
+                    <p data-testid="signup-benefit" className="m-0 text-[14px] leading-[20px] text-white/80">{SIGNUP_BENEFIT_JA}</p>
+                )}
 
                 {/* ステップ1: 登録 */}
                 {step === "register" && (

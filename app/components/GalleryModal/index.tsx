@@ -8,6 +8,7 @@ import { usePhotoLikes, type LikeResult } from "../../../lib/hooks/usePhotoLikes
 import { usePhotoSave } from "../../../lib/hooks/usePhotoSave";
 import { useAuth } from "../../auth/context";
 import { useToast } from "../../../lib/hooks/useToast";
+import { useGuestPrompt } from "../../../lib/hooks/useGuestPrompt";
 import { useImagePreloader } from "../../../lib/hooks/useImagePreloader";
 import { track } from "../../../lib/utils/analytics";
 import { copyToClipboard, shareUrl } from "../../../lib/utils/share";
@@ -79,15 +80,19 @@ export default function GalleryModal({
     const toggleLikeRef = useRef(toggleLike);
     useEffect(() => { toggleLikeRef.current = toggleLike; }, [toggleLike]);
     const { showToast } = useToast();
+    const promptLogin = useGuestPrompt(locale);
     // いいねの失敗を伝える（SW-b4）。ダブルタップ・キーボード（h）からも
     // 呼ぶので、参照を ref に持って購読の張り直しを避ける
     const notifyIfLikeFailed = useCallback((r: LikeResult) => {
+        // **未ログインは失敗ではなく入口**（2026-11-09）。ハートは塗らず、ログインへのリンク付きで案内する。
+        // ダブルタップ・h キー・ハートのボタンが全部この口を通る
+        if (r.requiresAuth) { promptLogin("like"); return; }
         // **押し直しても直らない失敗はそう言う。** セッションが切れている／
         // 通信できない回に「もう一度お試しください」と言うのは案内にならない
         if (!r.ok) showToast(r.message ?? (locale === "en"
             ? "Couldn't save your like. Please try again."
             : "いいねを保存できませんでした。もう一度お試しください"), "error");
-    }, [showToast, locale]);
+    }, [showToast, locale, promptLogin]);
     const notifyIfLikeFailedRef = useRef(notifyIfLikeFailed);
     useEffect(() => { notifyIfLikeFailedRef.current = notifyIfLikeFailed; }, [notifyIfLikeFailed]);
 
@@ -106,17 +111,16 @@ export default function GalleryModal({
             if (r.ok) return;
             // **未ログインは「失敗」ではなく案内。** 「保存できませんでした。
             // もう一度お試しください」と言われても、押し直して直る話ではない
+            // 2026-11-09: 「ログイン」のリンク付き（写真ページ・いいね・フォロー・コメントと同じ見せ方）
             if (r.requiresAuth) {
-                showToast(locale === "en"
-                    ? "Log in to save photos."
-                    : "写真を保存するにはログインしてください", "error");
+                promptLogin("save");
                 return;
             }
             showToast(r.message ?? (locale === "en"
                 ? "Couldn't save this photo. Please try again."
                 : "保存できませんでした。もう一度お試しください"), "error");
         });
-    }, [toggleSave, showToast, locale]);
+    }, [toggleSave, showToast, locale, promptLogin]);
 
     const { preload } = useImagePreloader();
 

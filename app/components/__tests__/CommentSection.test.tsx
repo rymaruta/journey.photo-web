@@ -405,7 +405,9 @@ describe("CommentSection: セッションが切れていたとき", () => {
         mockUserFetch.mockRejectedValue(new Error(AUTH_REQUIRED_MESSAGE));
         await typeAndSend("いいね");
         await waitFor(() => expect(mockShowToast).toHaveBeenCalled());
-        expect(mockShowToast).toHaveBeenLastCalledWith("コメントするにはログインしてください", "info");
+        // 2026-11-09: 「ログイン」のリンク付き（戻り先は今の頁・via=comment）
+        expect(mockShowToast).toHaveBeenLastCalledWith("コメントするにはログインしてください", "info", 6000,
+            { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=comment/) });
     });
 
     it("打った文字は消さない（送り直せる）", async () => {

@@ -119,7 +119,9 @@ describe("TimelineFeed", () => {
         follow.fetch.mockResolvedValue(new Set(["A"]));
         render(<Feed />);
         const login = screen.getByRole("link", { name: "ログイン" });
-        expect(login.getAttribute("href")).toMatch(/^\/login\?next=/);
+        expect(login.getAttribute("href")).toMatch(/^\/login\?next=.*&via=follow$/);
+        // 2026-11-09: 何も起きないように見えないよう、タブの中で「見られる」条件を言う
+        expect(screen.getByText("ログインすると、フォロー中の人の写真が見られます")).toBeTruthy();
         expect(follow.fetch, "未ログインなのに一覧を取りに行っている").not.toHaveBeenCalled();
         expect(cardIds()).toEqual([]);
     });

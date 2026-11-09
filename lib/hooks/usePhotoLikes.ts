@@ -20,7 +20,15 @@ import { track } from "../utils/analytics";
  * （セッション切れ・通信できない）を「もう一度お試しください」と言い続ける
  * ことになる。`useFollow` / `useComments` は前から文言を運んでいる。
  */
-export type LikeResult = { ok: boolean; message?: string };
+export type LikeResult = {
+    ok: boolean;
+    message?: string;
+    /**
+     * 未ログインで押した（**失敗ではなく案内**）。呼び出し側が「いいねするにはログインしてください」＋
+     * ログインへのリンクを出す（`useGuestPrompt`）。`usePhotoSave` の `requiresAuth` と同じ形
+     */
+    requiresAuth?: boolean;
+};
 
 export function usePhotoLikes(
     photoId: string,
@@ -42,7 +50,12 @@ export function usePhotoLikes(
     const touchedRef = useRef(false);
     // 今どの写真を扱っているか。await の後に「まだ同じ写真か」を確かめるのに使う。
     const photoIdRef = useRef(photoId);
-    const liked = serverLiked ?? isFavorite(photoId);
+    // **未ログインはいつも「未いいね」。** 以前は端末のお気に入りだけでハートを塗っていた。
+    // 2026-11-09 owner 承認: 未ログインのいいねは端末の中に溜めない（サーバーに届かず、件数も通知も動かないのに
+    // 「押せた」と思わせていたため）。判定中（`authLoading`）は塗りを動かさない。
+    // 以前に端末へ残ったお気に入りがあっても、未ログインでは塗らない（ログインすれば `serverLiked` が正）
+    const guest = !authLoading && !isAuthenticated;
+    const liked = guest ? false : (serverLiked ?? isFavorite(photoId));
     const [count, setCount] = useState(initialLikes);
     // 写真が変わったときに戻す先。props をそのまま effect の依存に入れると
     // 親の再レンダーごとに件数が巻き戻るので、ref で持つ。
@@ -125,6 +138,12 @@ export function usePhotoLikes(
         // ログイン状態が確定するまで待つ。確定前に処理すると、ログイン済みでも
         // 「未ログイン」扱いになってサーバーへ届かない。
         if (authLoading) return { ok: true };
+        // **未ログインは何も変えない**（ハートを塗らない・端末に保存しない・件数も動かさない）。
+        // 2026-11-09 owner 承認: 押した人に「ログインするといいねできる」と伝えて入口にする（呼び出し側が案内を出す）。
+        // 端末のお気に入りに入れていた頃は、ログインした直後の最初の一押しが
+        // 「付いているはず」のハートの取り消し（DELETE）になる罠もあった（冒頭のコメント）。入れなくなったので、
+        // この罠は新しくは生まれない
+        if (!isAuthenticated) return { ok: false, requiresAuth: true };
         let failed = false;
         /** そのまま画面に出してよい理由（サーバーの文言・セッション切れ・通信できない） */
         let message: string | undefined;
@@ -143,15 +162,6 @@ export function usePhotoLikes(
         if (didToggleFavorite) toggleFavorite(photoId);
         setServerLiked(!wasLiked);
 
-        if (!isAuthenticated) {
-            // 未ログインはローカルのお気に入りだけ。**表示中の件数も動かさない**。
-            // 動かしていた頃は、42いいねの写真でハートを押すと「43」に見え、
-            // もう一度押すと「42」に戻った——サーバーには何も送っていないので、
-            // 公開の数字を勝手に上下させているだけだった。
-            busyRef.current = false;
-            setPending(false);
-            return { ok: true };   // 未ログインはローカル保存だけ＝失敗ではない
-        }
         // **番人はサーバーに書きに行くと決まってから立てる。**
         //
         // 入口で立てていたので、**未ログインで押しただけ**でも立っていた

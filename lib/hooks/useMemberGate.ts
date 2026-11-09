@@ -47,7 +47,7 @@ export function useMemberGate(hasUnsavedWork = false): MemberGate {
     // **打ちかけがあるときは送らない**（上のコメントを見よ）。
     // 送り方（`replace` と戻り先）は `useLoginRedirect` に集めた
     // ——`/user/profile` と `/user/settings` が同じことを書いていた
-    useLoginRedirect(state === "anonymous" && !hasUnsavedWork);
+    useLoginRedirect(state === "anonymous" && !hasUnsavedWork, "upload");
 
     return state;
 }
