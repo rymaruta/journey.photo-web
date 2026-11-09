@@ -218,9 +218,14 @@ const NO_CACHE_KEYS = new Set([
     "feed.xml",
 ]);
 
+// 2026-11-09: サイトマップは種類別に分けた（`sitemap.xml` は索引、中身は `sitemap-<種類>.xml`・`lib/server/sitemap.ts`）。
+// 種類を足しても配るキャッシュの扱いを忘れないよう、名前の形で見る（固定の一覧にすると、足したファイルだけ
+// `max-age=3600` で配られ、さらに毎デプロイ CloudFront の無効化の対象になる）
+const SITEMAP_KEY = /^sitemap(-[a-z]+)?\.xml$/;
+
 /** `no-cache, no-store` で配るか（アップロードの Cache-Control と、無効化の要否が同じ判定を使う） */
 function isNoStore(key) {
-    return isHtmlOrTxt(key) || NO_CACHE_KEYS.has(key);
+    return isHtmlOrTxt(key) || NO_CACHE_KEYS.has(key) || SITEMAP_KEY.test(key);
 }
 
 /**

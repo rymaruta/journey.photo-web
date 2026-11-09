@@ -125,7 +125,7 @@ describe("最終更新日", () => {
         const m = page.match(/const LAST_UPDATED = "(\d{4})年(\d{1,2})月(\d{1,2})日";/);
         expect(m, "LAST_UPDATED が読めない").not.toBeNull();
         const iso = `${m![1]}-${m![2].padStart(2, "0")}-${m![3].padStart(2, "0")}`;
-        const s = read("app/sitemap.ts").match(/const PRIVACY_LAST_MODIFIED = "(\d{4}-\d{2}-\d{2})";/);
+        const s = read("lib/server/sitemap.ts").match(/const PRIVACY_LAST_MODIFIED = "(\d{4}-\d{2}-\d{2})";/);
         expect(s, "PRIVACY_LAST_MODIFIED が読めない").not.toBeNull();
         expect(s![1], "サイトマップの更新日がポリシーの最終更新日と違う").toBe(iso);
     });

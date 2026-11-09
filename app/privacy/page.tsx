@@ -4,7 +4,7 @@ import { siteConfig, shareOgImage } from "@/lib/utils/seo";
 
 // プライバシーポリシー。実際にこのサイトが行っている処理だけを書く（雛形の丸写しをしない）。
 // 内容を変えたときは「最終更新日」も必ず更新すること。
-// **`app/sitemap.ts` の `PRIVACY_LAST_MODIFIED` も同じ日にする**（`page.facts.test.ts` が見る）。
+// **`lib/server/sitemap.ts` の `PRIVACY_LAST_MODIFIED` も同じ日にする**（`page.facts.test.ts` が見る）。
 //
 // iPhone アプリ（App Store のプライバシーポリシー URL）もこのページを指している。
 // アプリの機能の記述は iOS リポジトリの main と、`api-user/src` の実装に合わせてある

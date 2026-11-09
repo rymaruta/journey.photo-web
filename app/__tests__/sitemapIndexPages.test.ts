@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import sitemap from "../sitemap";
+import { allSitemapEntries as sitemap } from "../../lib/server/sitemap";
 import { siteConfig } from "../../lib/utils/seo";
 import {
     collectEntries,

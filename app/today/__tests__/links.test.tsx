@@ -1,7 +1,7 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
-import sitemap from "../../sitemap";
+import { allSitemapEntries as sitemap } from "../../../lib/server/sitemap";
 import { siteConfig } from "@/lib/utils/seo";
 import { PREFECTURES } from "@/lib/data/prefectures";
 import { ROUTES } from "@/lib/routes";

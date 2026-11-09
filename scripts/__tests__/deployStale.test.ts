@@ -156,7 +156,10 @@ describe("invalidationPathsFor", () => {
 
     it("消す・消さないの分類: no-store で配るものは消さず、max-age で配るものは消す", () => {
         for (const k of ["index.html", "photo/a.html", "robots.txt", "__next._full.txt", "sw.js", "manifest.webmanifest",
-            "app/data/photos.json", "sitemap.xml", "sitemap-images.xml", "feed.xml"]) {
+            "app/data/photos.json", "sitemap.xml", "sitemap-images.xml", "feed.xml",
+            // 2026-11-09: 種類別のサイトマップ（索引の `sitemap.xml` が束ねる）
+            "sitemap-spots.xml", "sitemap-areas.xml", "sitemap-hubs.xml", "sitemap-today.xml",
+            "sitemap-learn.xml", "sitemap-collections.xml", "sitemap-photos.xml", "sitemap-pages.xml"]) {
             expect(isNoStore(k), `${k} は no-store`).toBe(true);
             expect(isInvalidatable(k), `${k} は消さない`).toBe(false);
         }

@@ -24,7 +24,7 @@ export const dynamicParams = false;
  *
  * 🔴 **運営未確認の下書き（`review`）は、建てる設定のときも検索には出さない。**
  * いまは建てない（`BUILD_DRAFT_SPOTS = false`・2026-09-25）。下の分岐はその設定に戻したときの描き方。
- * `noindex` ＋ サイトマップ外（`app/sitemap.ts` は `publishableSpots`）。
+ * `noindex` ＋ サイトマップ外（`lib/server/sitemap.ts` は `publishableSpots`）。
  * 人が確かめて `published` に上げた行だけが検索に載る。
  */
 export function generateStaticParams() {

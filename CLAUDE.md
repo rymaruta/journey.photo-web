@@ -642,6 +642,11 @@ Repository permissions は **Contents: Read and write** だけ /
       sitemap.xml         成功しました   検出されたページ数 50
       sitemap-images.xml  成功しました   検出されたページ数 32
 
+- **2026-11-09 から `sitemap.xml` は索引**（`<sitemapindex>`）で、中身は種類別の
+  `sitemap-spots.xml`（スポット詳細）・`-areas`（県・市・国の一覧）・`-hubs`（テーマ・季節・紅葉/桜/雪景色）・
+  `-today`・`-learn`・`-collections`・`-photos`・`-pages`。Search Console は種類ごとに登録数を出す。
+  実装は `lib/server/sitemap.ts`（`app/sitemap.ts` は無くなった）。画像サイトマップは別のまま。
+  **lastmod にビルドの時刻を入れない**（日付が取れない行は書かない・`sitemapSplit.test.ts`）
 - **「約140ページ」は誤り。正しくは 50。** ビルドが作る HTML は約140だが、
   サイトマップに載せるのは**薄い集約ページを除いたぶんだけ**
   （`isIndexableCollection` に届かないページは `noindex`＋サイトマップから除外）。
