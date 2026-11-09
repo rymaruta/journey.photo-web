@@ -73,4 +73,20 @@ describe("AppInstallCard", () => {
         expect(ps[1].className).toContain("font-serif");
         for (const p of ps.slice(1)) expect(parseInt(p.style.fontSize, 10), p.textContent!).toBeGreaterThanOrEqual(12);
     });
+
+    it("compact（ホーム）: スマホは1行の小さい札・読み上げは「App Storeで入手」のまま・md 以上は今までの大きさ", () => {
+        render(<AppInstallCard placement="home" compact />);
+        const card = screen.getByTestId("app-install-card");
+        expect(card.className.split(/\s+/)).toEqual(expect.arrayContaining(["p-3", "md:p-6"]));
+        const link = screen.getByRole("link", { name: "App Storeで入手" });
+        expect(link.textContent).toContain("入手");
+        expect(link.className).not.toMatch(/(^|\s)w-full(\s|$)/);
+        expect(link.className).toContain("min-h-[44px]");
+    });
+
+    it("compact でない札（記事・フッター）は今までの形", () => {
+        render(<AppInstallCard placement="article" />);
+        expect(screen.getByTestId("app-install-card").className.split(/\s+/)).toContain("p-5");
+        expect(screen.getByRole("link", { name: "App Storeで入手" }).className.split(/\s+/)).toContain("w-full");
+    });
 });
