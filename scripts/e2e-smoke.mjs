@@ -1301,7 +1301,7 @@ async function runHomeMapChecks(browser, eng) {
     await page.waitForTimeout(400);
     await settleScroll(page);
     const south = await page.evaluate(() => {
-        const a = document.querySelector('a[data-s="kagoshima"] use.jm-hit').getBoundingClientRect();
+        const a = document.querySelector('a[data-s="kagoshima"] rect.jm-hit').getBoundingClientRect();
         const sh = document.querySelector('[data-testid="home-japan-map-panel"]').getBoundingClientRect();
         return { aTop: a.top, aMid: a.top + a.height / 2, sTop: sh.top, sBottom: sh.bottom, vh: innerHeight, open: document.querySelector('[data-testid="home-japan-map-panel"]').getAttribute("data-open") };
     });

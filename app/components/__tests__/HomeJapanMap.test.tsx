@@ -135,7 +135,9 @@ describe("日本地図: CSS（なぞり・当たり・縦スクロール）", ()
     it("🔴 縁の太さは画面の px で一定: 県の形は <path> を直に置き（<use> の写しには vector-effect が効かず、関東の拡大で触れた県の白 2px が約 10px になった・2026-11-09 実測）、CSS で non-scaling-stroke", () => {
         expect(css).toMatch(/\.jm-sh, \.jm-ring \{ vector-effect: non-scaling-stroke; \}/);
         expect(html.match(/<path [^>]*class="jm-sh /g)).toHaveLength(47);
-        expect(html).not.toMatch(/<use [^>]*jm-sh/);
+        // 県のリンクの当たりの箱は <rect>（<use> で形を写すと、写しが jm-sh の塗りを持って上から描き直し、触れた・選んだ県の色を隠した・2026-11-09 実測）
+        expect(html).not.toContain("<use ");
+        expect(html.match(/<rect class="jm-hit"/g)).toHaveLength(47);
     });
     it("指の輪 54px・札は高さ 56px・幅 112px 以上・固定欄 36px・地方チップは 44px", () => {
         expect(rule(".jm-finger, .jm-prog")).toMatch(/width:\s*54px;\s*height:\s*54px/);

@@ -76,6 +76,9 @@ const LABEL_BY_SLUG = new Map(REGION_LABELS.map((l) => [l[0], l]));
 /** 重なったとき小さな県が上に来る並び（大きい県が先・DOM の後ろが上） */
 const LINK_ORDER = [...PREFECTURE_SHAPES].sort((a, b) => b[2][2] * b[2][3] - a[2][2] * a[2][3]);
 
+/** 県のリンクの当たりの箱（読み上げ・焦点の枠のための形）。沖縄は枠ぜんたい */
+const hitBox = (sh: (typeof PREFECTURE_SHAPES)[number]) => (sh[0] === "okinawa" ? OKINAWA_FRAME : sh[2]);
+
 const ARROWS: Record<string, readonly [number, number]> = {
     ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
 };
@@ -115,7 +118,6 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     const counts = useMemo(() => new Map(areas), [areas]);
     const among = useMemo(() => new Set(counts.keys()), [counts]);
     const cuts = useMemo(() => densityCuts([...counts.values()]), [counts]);
-    const ids = useMemo(() => new Map(PREFECTURE_SHAPES.map((s, i) => [s[0], `${uid}p${i}`])), [uid]);
 
     // ---- 状態 ----
     /** 画面: null＝全国・地方名＝その地方を拡大 */
@@ -826,7 +828,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                               * 触れた・選んだ県は最後に描く（隣の県の塗りに縁の半分を隠されない）
                               */}
                             <g aria-hidden="true">
-                                {drawOrder.map(({ sh, cls }) => <path key={sh[0]} id={ids.get(sh[0])} d={sh[1]} className={cls} />)}
+                                {drawOrder.map(({ sh, cls }) => <path key={sh[0]} d={sh[1]} className={cls} />)}
                             </g>
                             <rect className={`jm-frame${hovSlug === "okinawa" ? " jm-frame-hov" : ""}`} x={fx} y={fy} width={fw} height={fh} rx={10} aria-hidden="true" style={{ opacity: stage === null ? 1 : 0 }} />
                             {/* 県ごとの本物のリンク（行き先は県の頁）。見た目と当たりは持たない（当たりは自前・`japanMapHit.ts`）。焦点の輪だけ描く。小さい県が上 */}
@@ -842,7 +844,8 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                                         aria-controls={sel === sh[0] ? SHEET_ID : undefined}
                                         tabIndex={tabIdx(sh[0])}
                                     >
-                                        <use href={`#${ids.get(sh[0])}`} className="jm-hit" />
+                                        {/* 当たりの箱（読み上げ・焦点の枠のための形）。`<use>` で形を写すと、写しが `jm-sh` の塗りを持って上から描き直してしまう（触れた・選んだ県の色が隠れた・2026-11-09 実測） */}
+                                        <rect className="jm-hit" x={hitBox(sh)[0]} y={hitBox(sh)[1]} width={hitBox(sh)[2]} height={hitBox(sh)[3]} />
                                     </Link>
                                 ))}
                             </g>
@@ -876,9 +879,9 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                                 )}
                             </g>
                             {/* 真鍮の内側 2px の輪（形に沿わせる: 県の形で切り抜いた 4px の線の内側半分） */}
-                            {foc && ids.has(foc) && (
+                            {foc && (
                                 <g aria-hidden="true">
-                                    <clipPath id={`${uid}clip`}><use href={`#${ids.get(foc)}`} /></clipPath>
+                                    <clipPath id={`${uid}clip`}><path d={PREFECTURE_SHAPES.find((x) => x[0] === foc)![1]} /></clipPath>
                                     <path d={PREFECTURE_SHAPES.find((x) => x[0] === foc)![1]} className="jm-ring" clipPath={`url(#${uid}clip)`} style={{ strokeWidth: 4 }} />
                                 </g>
                             )}
