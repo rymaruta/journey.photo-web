@@ -98,7 +98,7 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
                                 {region === null
                                     ? (isJa ? "海外" : "Outside Japan")
                                     : (isJa ? region : REGION_EN[region])}
-                                {/* 地方の件数（2026-11-09・見出しだけだと中身の多さが分からない）。12 以上・text-2（黒の上 10.6:1） */}
+                                {/* 地方の件数（2026-11-09・見出しだけだと中身の多さが分からない）。12 以上・text-2（黒の上 10.6:1 の定義値） */}
                                 <span aria-hidden="true" className="ml-2 align-baseline font-sans font-normal tabular-nums text-text-2" style={{ fontSize: "13px" }}>
                                     {isJa ? `${items.reduce((n, a) => n + a.count, 0)}件` : `${items.reduce((n, a) => n + a.count, 0)}`}
                                 </span>

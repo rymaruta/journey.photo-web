@@ -234,7 +234,7 @@ describe("県の札とページ内の近道", () => {
         expect(name.style.fontSize).toBe("15px");
         expect(count.style.fontSize).toBe("13px");
         expect(count.textContent).toBe("3");
-        // 件数は text-2（黒の上 10.6:1）。白の透過（text-white/60）には戻さない
+        // 件数は text-2（札の地の上で 8.76:1・実測）。白の透過（text-white/60）には戻さない
         expect(count.className).toContain("text-text-2");
         expect(tile.className).toContain("ring-line-strong");
     });
@@ -271,4 +271,65 @@ describe("県の札とページ内の近道", () => {
         const tile = within(screen.getByTestId("spots-search-areas")).getByRole("link", { name: /山形県/ });
         expect(tile.style.minHeight).toBe("48px");
     });
+});
+
+
+/** **レビューで直した配線**（2026-11-09） */
+describe("読み上げ欄・IME・フォーカス・ちらつき・計測", () => {
+    it("🔴 件数の読み上げ欄（role=status）は語が入る前から在り、同じ要素の中身だけが入れ替わる", async () => {
+        render(<Page />);
+        const before = screen.getByRole("status");
+        expect(before.textContent).toBe("");
+        type("ぎんざん");
+        await waitFor(() => expect(before.textContent).toBe("公開中の撮影スポットのうち 2件が当たりました。".replace("2件", "1件")));
+        expect(screen.getByRole("status")).toBe(before);   // 作り直していない
+        type("");
+        await waitFor(() => expect(before.textContent).toBe(""));
+        expect(screen.getByRole("status")).toBe(before);
+    });
+
+    it("IME: compositionend が来ずに ref が固まっても、isComposing=false の入力で絞り込みが動く", async () => {
+        render(<Page />);
+        fireEvent.compositionStart(input());            // 終わりが来ない
+        fireEvent.input(input(), { target: { value: "山寺" }, isComposing: false });
+        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toContain("1件"));
+    });
+
+    it("IME: 変換の途中で入力欄を離れたら、字に追いついて絞り込む", async () => {
+        render(<Page />);
+        fireEvent.compositionStart(input());
+        type("山寺");
+        expect(screen.queryByTestId("spots-search-results")).toBeNull();
+        fireEvent.blur(input());
+        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toContain("1件"));
+    });
+
+    it("「さらに表示」を押したら、新しく出た最初の行にフォーカスが移る", async () => {
+        const many: SpotSearchRow[] = Array.from({ length: 45 }, (_, i) => ({ s: `t${i}`, n: `テスト景色${i}`, g: "山形県 山形市" }));
+        vi.stubGlobal("fetch", vi.fn(async () => new Response(JSON.stringify(many), { status: 200 })));
+        render(<Page />);
+        type("テスト景色");
+        await waitFor(() => screen.getByTestId("spots-search-more"));
+        fireEvent.click(screen.getByTestId("spots-search-more"));
+        await waitFor(() => expect(document.activeElement?.getAttribute("href")).toBe("/spots/t30"));
+    });
+
+    it("🔴 ?q= の復元中（索引の取得中）は静的な一覧を隠したまま。届いて0件になったときだけ戻す", async () => {
+        let release: (r: Response) => void = () => {};
+        vi.stubGlobal("fetch", vi.fn(() => new Promise<Response>((res) => { release = res; })));
+        window.history.replaceState(null, "", "/spots?q=%E5%B1%B1%E5%AF%BA");
+        render(<Page />);
+        await waitFor(() => expect(input().value).toBe("山寺"));
+        expect(screen.getByTestId("spots-default-list").hasAttribute("hidden")).toBe(true);
+        release(new Response(JSON.stringify([]), { status: 200 }));
+        await waitFor(() => expect(screen.getByTestId("spots-default-list").hasAttribute("hidden")).toBe(false));
+    });
+
+    it("復元された ?q= では spots_search を送らない（打ったときだけ）", async () => {
+        window.history.replaceState(null, "", "/spots?q=%E5%B1%B1%E5%AF%BA");
+        render(<Page />);
+        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toContain("1件"));
+        await new Promise((r) => setTimeout(r, 1800));
+        expect(trackMock).not.toHaveBeenCalled();
+    }, 8000);
 });

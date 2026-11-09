@@ -70,6 +70,11 @@ export default function SpotListSearch({ areas, isJa, children }: {
     /** 絞り込みに使う語（変換中は動かさない） */
     const [applied, setApplied] = React.useState("");
     const composingRef = React.useRef(false);
+    /** 人が打った（または消した）ことがあるか。**復元された `?q=` では計測しない**（打っていない人を数えない） */
+    const [typed, setTyped] = React.useState(false);
+    /** 「さらに表示」のあとに、フォーカスを移したい行の番号（新しく出た最初の行） */
+    const focusRowRef = React.useRef<number | null>(null);
+    const rowsBoxRef = React.useRef<HTMLDivElement>(null);
     /** 最後に URL へ書いた（または URL から受けた）値。これと違う `?q=` は外から変わったもの */
     const syncedRef = React.useRef("");
     const inputRef = React.useRef<HTMLInputElement>(null);
@@ -101,17 +106,34 @@ export default function SpotListSearch({ areas, isJa, children }: {
     const hits = React.useMemo(() => (q && rows ? searchSpotList(rows, q) : []), [rows, q]);
     const areaHits = React.useMemo(() => (q ? matchSpotAreas(areas, q) : []), [areas, q]);
     // 索引が届く前の 0 を「0件」として数えない
-    useSearchTracking(rows ? q : "", hits.length, "spots_search");
+    useSearchTracking(rows && typed ? q : "", hits.length, "spots_search");
 
     /** 開いた件数。**語が変わったら自然に戻る**（effect で戻さない） */
     const [more, setMore] = React.useState<{ q: string; n: number }>({ q: "", n: SPOT_LIST_PAGE });
     const shownCount = more.q === q ? more.n : SPOT_LIST_PAGE;
     const shown = hits.slice(0, shownCount);
+    // 「さらに表示」を押したら、新しく出た最初の行へフォーカスを移す（押したボタンは消えることがある。キーボード・読み上げで迷子にしない）
+    React.useEffect(() => {
+        const i = focusRowRef.current;
+        if (i === null) return;
+        focusRowRef.current = null;
+        rowsBoxRef.current?.querySelectorAll<HTMLElement>("a")[i]?.focus();
+    }, [shownCount]);
 
     const failed = !!q && !rows && !pending;
     const searching = !!q;
     const hasHits = hits.length > 0;
     const empty = searching && !!rows && !hasHits;
+    /** 索引を待っているあいだ（語はある・まだ0件とも言えない）。一覧を戻すと、届いた瞬間にまた隠れて画面が跳ねる */
+    const waiting = searching && !rows && !failed;
+    const statusText = !searching ? ""
+        : failed
+            ? (isJa ? "検索の準備ができませんでした。通信を確かめて、もう一度入力してください。" : "Couldn't load the search data. Check your connection and try typing again.")
+            : !rows
+                ? (isJa ? "さがしています…" : "Searching…")
+                : empty
+                    ? (isJa ? `「${q}」の撮影スポットは見つかりません。` : `No photo spots found for "${q}".`)
+                    : (isJa ? `公開中の撮影スポットのうち ${hits.length}件が当たりました。` : `${hits.length} of the published photo spots matched.`);
     const label = isJa ? "撮影スポットを検索" : "Search photo spots";
 
     return (
@@ -130,11 +152,23 @@ export default function SpotListSearch({ areas, isJa, children }: {
                         data-testid="spots-search-input"
                         onChange={(e) => {
                             setDraft(e.target.value);
-                            if (!composingRef.current) setApplied(e.target.value);
+                            setTyped(true);
+                            // 変換中かは**イベント自身**（`isComposing`）を優先する。`compositionend` が来ずに ref が `true` のまま
+                            // 固まっても（端末・キーボードによる）、次の入力で絞り込みが動く。値が無い環境だけ ref を見る
+                            const native = e.nativeEvent as { isComposing?: boolean };
+                            const composing = typeof native.isComposing === "boolean" ? native.isComposing : composingRef.current;
+                            composingRef.current = composing;
+                            if (!composing) setApplied(e.target.value);
+                        }}
+                        onBlur={(e) => {
+                            // 変換の途中で離れても、絞り込みは入力欄の字に追いつく
+                            composingRef.current = false;
+                            setApplied(e.currentTarget.value);
                         }}
                         onCompositionStart={() => { composingRef.current = true; }}
                         onCompositionEnd={(e) => {
                             composingRef.current = false;
+                            setTyped(true);
                             setApplied(e.currentTarget.value);
                         }}
                         onKeyDown={(e) => {
@@ -155,7 +189,7 @@ export default function SpotListSearch({ areas, isJa, children }: {
                                 aria-label={isJa ? "検索をクリア" : "Clear search"}
                                 onClick={() => {
                                     composingRef.current = false;
-                                    setDraft(""); setApplied("");
+                                    setDraft(""); setApplied(""); setTyped(true);
                                     inputRef.current?.focus();
                                 }}
                                 className="absolute right-0 top-1/2 -translate-y-1/2 inline-flex items-center justify-center rounded-full text-text-3 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
@@ -166,20 +200,17 @@ export default function SpotListSearch({ areas, isJa, children }: {
                 </div>
             </form>
 
+            {/* 🔴 件数の読み上げ欄は**常に描き、中身だけ入れ替える**（語が入ったときに初めて描くと、読み上げが最初の知らせを拾わない）。
+                語が無いあいだは目に見えない（sr-only） */}
+            <p role="status" aria-live="polite" data-testid="spots-search-status"
+               className={searching ? "m-0 mb-3 text-text-2" : "sr-only"}
+               style={searching ? { fontSize: "13px", lineHeight: "20px" } : undefined}>
+                {statusText}
+            </p>
+
             {searching && (
                 // 結果のリンクを押す直前に、いまの語を URL へ流す（押したあとの `pushState` に上書きされない・戻ると復元される）
                 <div data-testid="spots-search-results" className="mb-7" onClickCapture={flushUrl}>
-                    <p role="status" aria-live="polite" className="m-0 mb-3 text-text-2" style={{ fontSize: "13px", lineHeight: "20px" }}
-                       data-testid="spots-search-status">
-                        {failed
-                            ? (isJa ? "検索の準備ができませんでした。通信を確かめて、もう一度入力してください。" : "Couldn't load the search data. Check your connection and try typing again.")
-                            : !rows
-                                ? (isJa ? "さがしています…" : "Searching…")
-                                : empty
-                                    ? (isJa ? `「${q}」の撮影スポットは見つかりません。` : `No photo spots found for "${q}".`)
-                                    : (isJa ? `公開中の撮影スポットのうち ${hits.length}件が当たりました。` : `${hits.length} of the published photo spots matched.`)}
-                    </p>
-
                     {areaHits.length > 0 && (
                         <div className="mb-4" data-testid="spots-search-areas">
                             <p className="m-0 mb-2 text-text-2" style={{ fontSize: "12px", lineHeight: "16px" }}>
@@ -193,10 +224,10 @@ export default function SpotListSearch({ areas, isJa, children }: {
                         </div>
                     )}
 
-                    {hasHits && <SpotRows rows={shown.map(toRow)} isJa={isJa} />}
+                    {hasHits && <div ref={rowsBoxRef}><SpotRows rows={shown.map(toRow)} isJa={isJa} /></div>}
                     {hits.length > shownCount && (
                         <button type="button" data-testid="spots-search-more"
-                                onClick={() => setMore({ q, n: shownCount + SPOT_LIST_PAGE })}
+                                onClick={() => { focusRowRef.current = shownCount; setMore({ q, n: shownCount + SPOT_LIST_PAGE }); }}
                                 className="mt-3 rounded-full px-4 text-white/80 ring-1 ring-line hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                                 style={{ minHeight: "44px", fontSize: "13px" }}>
                             {isJa ? `さらに表示（残り${hits.length - shownCount}件）` : `Show more (${hits.length - shownCount} left)`}
@@ -211,7 +242,7 @@ export default function SpotListSearch({ areas, isJa, children }: {
             )}
 
             {/* 静的HTMLの一覧。**消さずに隠す**（クローラー向けのリンクを HTML に残す）。結果があるあいだだけ隠す */}
-            <div hidden={searching && hasHits} data-testid="spots-default-list" className="[&_h2]:scroll-mt-20">
+            <div hidden={searching && (hasHits || waiting)} data-testid="spots-default-list" className="[&_h2]:scroll-mt-20">
                 {children}
             </div>
         </>

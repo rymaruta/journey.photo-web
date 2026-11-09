@@ -20,13 +20,13 @@
 //   （「嵐山 渡月橋」は名前「嵐山渡月橋」の連続一致を優先）。外れたときだけ語ごとに当てる（下の 3）。
 //   折りたたみは行ごとに最初に1回だけ（毎キーで全件を折りたたまない）。
 //
-// ### 3. 1語が1行に当たる条件（部分一致）
-//   名前の欄 = スポット名・英語名・読み・別名（どれか1つ）に語が**含まれる**。
-//   - 完全一致 → 順位 0／前方一致 → 順位 1／部分一致 → 順位 2
-//   地域の欄 = 地域の文字（「山形県 尾花沢市」・海外は「フランス パリ」）に語が含まれる → 順位 3
-//   - 語が**県の読み・英語名の前方**（「やまがた」「yamagata」・2文字以上）なら、その県の名前が
-//     地域の文字に含まれていても当たり（地域の文字は漢字なので、ひらがなで県を探せるように）
+// ### 3. 1語が1行に当たる条件
+//   名前の欄 = スポット名・英語名・読み・別名（どれか1つ）に語が**含まれる**: 完全一致 0／前方一致 1／部分一致 2
+//   地域の欄（順位 3）= **字の部分一致にしない**（「京都」で東京都を拾っていた・2026-11-09 レビュー。iOS は 2026-10-07 に直し済み）。
+//   - 欄は 国（日本以外）・県・市区町村・つないだ字 を別々に持つ。語が欄で**始まる**、または欄の中に**名前として**入っている（`nameIn`）
+//   - 語が**県の読み（ひらがな・2文字以上）・英語名（3文字以上）の前方**なら、その県の名前を地域の欄に当てる（「やまがた」「yamagata」「とう」）
 //   当たらない語が1つでもあれば、その行は結果に出さない。
+//   詳しい規則と「入力→期待」の表は `docs/spot-list-search.md`（iOS はこの表を通す）
 //
 // ### 4. 並び順
 //   行の順位 = 語ごとに当てたときは各語の順位のうち**いちばん弱い（大きい）もの**（iOS と同じ）。
@@ -35,8 +35,8 @@
 //   枚数・人気・評価では並べない。
 //
 // ### 5. 県の一覧への導線（`matchSpotAreas`）
-//   地域（県・「海外」）の名前・英語名・読み・綴り（slug）に**全部の語**が含まれる地域を、
-//   県の一覧（`/spots/area/<slug>`）への近道として出す。名前の前方一致が先。最大 8。
+//   地域（県・「海外」）の名前（前方一致か名前として）・英語名・綴り・読み（前方一致）に**全部の語**が当たる地域を、
+//   県の一覧（`/spots/area/<slug>`）への近道として出す。最大 8。
 //
 // ### 6. 入力の扱い
 //   - 打つたびに絞り込む（Enter で確定しない）。ただし**変換中（IME の確定前）は絞り込まない**。確定したら絞る
@@ -99,23 +99,48 @@ export function prefectureReading(slug: string): string {
     return foldSpotText(PREFECTURE_READING[slug]);
 }
 
-/** 語（2文字以上）が県の読み・英語名の前方なら、その県の正規化済みの名前（地域の文字を引くため） */
+/** 県の折りたたみ済みの値。**モジュールで1回だけ作る**（毎キー・全件で折りたたまない） */
+const PREFS_FOLDED = PREFECTURES.map((p) => ({
+    name: foldSpotText(p.name),
+    en: foldSpotText(p.nameEn),
+    reading: foldSpotText(PREFECTURE_READING[p.slug]),
+}));
+
+/** 読み（かな）の前方一致に使う最小の字数 */
+export const PREFECTURE_READING_MIN = 2;
+/** 英語名（ローマ字）の前方一致に使う最小の字数。「to」で Tokyo・Tottori・Toyama…を全部引かない */
+export const PREFECTURE_LATIN_MIN = 3;
+
+const isLatin = (t: string) => /^[\x00-\x7f]+$/.test(t);
+
+/** 語が県の読み・英語名の前方なら、その県の折りたたみ済みの名前（地域の欄を引くため）。**語ごとに1回** */
 function prefectureNamesByReading(term: string): string[] {
-    if (term.length < 2) return [];
-    return PREFECTURES
-        .filter((p) => prefectureReading(p.slug).startsWith(term) || foldSpotText(p.nameEn).startsWith(term))
-        .map((p) => foldSpotText(p.name));
+    const latin = isLatin(term);
+    if (latin ? term.length < PREFECTURE_LATIN_MIN : term.length < PREFECTURE_READING_MIN) return [];
+    return PREFS_FOLDED
+        .filter((p) => (latin ? p.en.startsWith(term) : p.reading.startsWith(term)))
+        .map((p) => p.name);
 }
 
 /** 行ごとに1回だけ折りたたんだ欄（毎キーで全件を折りたたまない） */
-type Folded = { names: string[]; region: string };
+type Folded = { names: string[]; region: string[] };
 const foldedCache = new WeakMap<SpotSearchRow, Folded>();
+
+/**
+ * 地域の欄（折りたたみ済み・空は除く）。`g` は「県 市」（海外は「国 市」）を空白でつないだ字なので、
+ * **折りたたむ前に**空白で割る。欄 = 各部分＋つないだ字（iOS の `regionFields` と同じ）
+ */
+function regionFieldsOf(g?: string): string[] {
+    const parts = (g ?? "").normalize("NFKC").split(/\s+/).map(foldSpotText).filter(Boolean);
+    return parts.length > 1 ? [...parts, parts.join("")] : parts;
+}
+
 function foldedOf(row: SpotSearchRow): Folded {
     let f = foldedCache.get(row);
     if (!f) {
         f = {
             names: [row.n, row.e, row.r, ...(row.a ?? [])].map(foldSpotText).filter(Boolean),
-            region: foldSpotText(row.g),
+            region: regionFieldsOf(row.g),
         };
         foldedCache.set(row, f);
     }
@@ -133,23 +158,49 @@ function foldedNameRank(names: readonly string[], term: string): number {
     return rank;
 }
 
-/** 県の近道用（折りたたみは毎回）。完全 0・前方 1・部分 2・外れ -1 */
-function nameRank(fields: readonly (string | undefined)[], term: string): number {
-    return foldedNameRank(fields.map(foldSpotText).filter(Boolean), term);
+/** 名前の切れ目になる字: 行政区分（iOS の `adminSuffix`） */
+const ADMIN_SUFFIX = new Set(["都", "道", "府", "県", "市", "区", "町", "村", "郡"]);
+/** 海外の地域名の切れ目（iOS の `regionMarks`） */
+const REGION_MARKS = ["州", "地方"];
+
+/**
+ * 字 `text` の中に `name` が**名前として**入っているか（iOS `LocationMatch.nameIn` と同じ）。
+ * 前が端・行政区分の字・（海外の）「州」「地方」で、後ろが端・行政区分の字・「州」「地方」（または name 自身が行政区分の字で終わる）。
+ * 「東京都」の中の「京都」は外れ（前が「東」）、「京都府」の中の「京都」・「足柄下郡箱根町」の中の「箱根」は当たり
+ */
+export function nameIn(text: string, name: string): boolean {
+    if (!name || name.length > text.length) return false;
+    const endsWithMark = (upTo: number) => REGION_MARKS.some((m) => m.length <= upTo && text.slice(upTo - m.length, upTo) === m);
+    const startsWithMark = (from: number) => REGION_MARKS.some((m) => text.startsWith(m, from));
+    for (let k = text.indexOf(name); k >= 0; k = text.indexOf(name, k + 1)) {
+        const end = k + name.length;
+        const before = k === 0 || ADMIN_SUFFIX.has(text[k - 1]) || endsWithMark(k);
+        const after = end === text.length || ADMIN_SUFFIX.has(text[end]) || ADMIN_SUFFIX.has(name[name.length - 1]) || startsWithMark(end);
+        if (before && after) return true;
+    }
+    return false;
 }
 
+/** 1語（折りたたみ済み）が地域の欄のどれかに当たるか: 欄が語で始まる、または語が欄の中に名前として入っている */
+function regionHit(fields: readonly string[], word: string): boolean {
+    return !!word && fields.some((f) => f.startsWith(word) || nameIn(f, word));
+}
+
+/** 1回の検索で語ごとに1度だけ作るもの（毎行・毎キーで作り直さない） */
+type TermInfo = { term: string; prefNames: string[] };
+
 /** 行の順位。外れなら -1（規則 3・4）。**先に、続けた1語として名前に当てる**（「嵐山 渡月橋」は名前の連続一致を優先） */
-function rowRank(row: SpotSearchRow, terms: readonly string[]): number {
+function rowRank(row: SpotSearchRow, infos: readonly TermInfo[], joined: string): number {
     const { names, region } = foldedOf(row);
-    if (terms.length > 1) {
-        const whole = foldedNameRank(names, terms.join(""));
+    if (infos.length > 1) {
+        const whole = foldedNameRank(names, joined);
         if (whole >= 0) return whole;
     }
     // 語ごと。**いちばん弱い語の順位**（全部の語が当たる必要がある）
     let worst = 0;
-    for (const t of terms) {
-        let r = foldedNameRank(names, t);
-        if (r < 0 && (region.includes(t) || prefectureNamesByReading(t).some((n) => region.includes(n)))) r = 3;
+    for (const { term, prefNames } of infos) {
+        let r = foldedNameRank(names, term);
+        if (r < 0 && (regionHit(region, term) || prefNames.some((n) => regionHit(region, n)))) r = 3;
         if (r < 0) return -1;
         worst = Math.max(worst, r);
     }
@@ -160,9 +211,11 @@ function rowRank(row: SpotSearchRow, terms: readonly string[]): number {
 export function searchSpotList(rows: readonly SpotSearchRow[], query: string): SpotSearchRow[] {
     const terms = splitSpotTerms(query);
     if (terms.length === 0) return [];
+    const infos: TermInfo[] = terms.map((term) => ({ term, prefNames: prefectureNamesByReading(term) }));
+    const joined = terms.join("");
     const hits: Array<{ row: SpotSearchRow; rank: number; i: number }> = [];
     rows.forEach((row, i) => {
-        const rank = rowRank(row, terms);
+        const rank = rowRank(row, infos, joined);
         if (rank >= 0) hits.push({ row, rank, i });
     });
     return hits.sort((a, b) => a.rank - b.rank || a.i - b.i).map((h) => h.row);
@@ -171,16 +224,28 @@ export function searchSpotList(rows: readonly SpotSearchRow[], query: string): S
 /** 県の一覧への近道に必要な項目（`SpotArea` の部分型） */
 export type SpotAreaLike = { slug: string; name: string; nameEn: string; count: number };
 
-/** 地域の名前で当たる県・「海外」（規則 5）。最大 8 */
+/**
+ * 地域の名前で当たる県・「海外」（規則 5）。最大 8。
+ * 🔴 **字の部分一致にしない**（「京都」で東京都を拾っていた）。名前は 前方一致・または名前として入っている（`nameIn`）、
+ * 英語名・綴り・読みは 前方一致（英語は 3 文字以上・読みは 2 文字以上。完全一致は何字でも）
+ */
 export function matchSpotAreas<T extends SpotAreaLike>(areas: readonly T[], query: string): T[] {
     const terms = splitSpotTerms(query);
     if (terms.length === 0) return [];
     const hits: Array<{ area: T; rank: number; i: number }> = [];
     areas.forEach((area, i) => {
-        const fields = [area.name, area.nameEn, area.slug, PREFECTURE_READING[area.slug]];
+        const name = foldSpotText(area.name);
+        const en = [foldSpotText(area.nameEn), foldSpotText(area.slug)];
+        const reading = foldSpotText(PREFECTURE_READING[area.slug]);
         let worst = 0;
         for (const t of terms) {
-            const r = nameRank(fields, t);
+            let r = -1;
+            if (name === t) r = 0;
+            else if (name.startsWith(t)) r = 1;
+            else if (nameIn(name, t)) r = 2;
+            else if (en.includes(t)) r = 0;
+            else if (isLatin(t) ? t.length >= PREFECTURE_LATIN_MIN && en.some((e) => e.startsWith(t))
+                : t.length >= PREFECTURE_READING_MIN && reading.startsWith(t)) r = 1;
             if (r < 0) return;
             worst = Math.max(worst, r);
         }
