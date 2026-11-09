@@ -712,12 +712,24 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     };
 
     // ---- 描画に使う値 ----
+    /** 県の形を描く順（触れた・選んだ県は最後）と、その class */
+    const drawOrder = PREFECTURE_SHAPES.map((sh) => {
+        const slug = sh[0];
+        const n = counts.get(slug);
+        const cls = ["jm-sh", `jm-t${TINT_OF.get(regionOf(slug))}`];
+        if (dens && n !== undefined) cls.push(`jm-b${densityBin(n, cuts)}`);
+        if (stage !== null && !membersOf(stage).includes(slug)) cls.push("jm-dim");
+        let hi = 0;
+        if (hov && hov.k !== "region" && hov.slug === slug) { cls.push("jm-hov"); hi = 2; }
+        else if (hov && hov.k === "region" && stage === null && regionOf(slug) === hov.region) { cls.push("jm-hovr"); hi = 1; }
+        if (sel === slug) { cls.push("jm-sel"); hi = Math.max(hi, 1); }
+        return { sh, cls: cls.join(" "), hi };
+    }).sort((x, y) => x.hi - y.hi);
     const [fx, fy, fw, fh] = OKINAWA_FRAME;
     const selName = sel ? NAME.get(sel) : null;
     const selNear = sel ? nearestSlugs(sel, 3, among) : [];
     const selTops = (sel && tops[sel]) || [];
     const selCount = sel ? (counts.get(sel) ?? 0) : 0;
-    const inRegion = useMemo(() => (stage ? new Set(membersOf(stage)) : null), [stage]);
     const hovSlug = hov && hov.k !== "region" ? hov.slug : null;
     const hovRegion = hov && hov.k === "region" ? hov.region : null;
     const chipOn: ChipName = stage ?? (sel ? regionOf(sel) : "全国");
@@ -808,21 +820,13 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                             className={`jm${stage === null ? " jm-all" : ""}`}
                             viewBox={`${view.x.toFixed(1)} ${view.y.toFixed(1)} ${view.w.toFixed(1)} ${view.h.toFixed(1)}`}
                         >
-                            <defs>
-                                {PREFECTURE_SHAPES.map((sh) => <path key={sh[0]} id={ids.get(sh[0])} d={sh[1]} />)}
-                            </defs>
+                            {/*
+                              * 県の形は <path> を直に置く（`<use>` にしない）。`vector-effect: non-scaling-stroke` は `<use>` の写しには効かず、
+                              * 地方を拡大すると縁が拡大率（関東は約 6 倍）のぶん太くなった（2026-11-09 実測: 触れた県の白 2px が約 10px）。
+                              * 触れた・選んだ県は最後に描く（隣の県の塗りに縁の半分を隠されない）
+                              */}
                             <g aria-hidden="true">
-                                {PREFECTURE_SHAPES.map((sh) => {
-                                    const slug = sh[0];
-                                    const n = counts.get(slug);
-                                    const cls = ["jm-sh", `jm-t${TINT_OF.get(regionOf(slug))}`];
-                                    if (dens && n !== undefined) cls.push(`jm-b${densityBin(n, cuts)}`);
-                                    if (inRegion && !inRegion.has(slug)) cls.push("jm-dim");
-                                    if (hovSlug === slug) cls.push("jm-hov");
-                                    else if (hovRegion && stage === null && regionOf(slug) === hovRegion) cls.push("jm-hovr");
-                                    if (sel === slug) cls.push("jm-sel");
-                                    return <use key={slug} href={`#${ids.get(slug)}`} className={cls.join(" ")} />;
-                                })}
+                                {drawOrder.map(({ sh, cls }) => <path key={sh[0]} id={ids.get(sh[0])} d={sh[1]} className={cls} />)}
                             </g>
                             <rect className={`jm-frame${hovSlug === "okinawa" ? " jm-frame-hov" : ""}`} x={fx} y={fy} width={fw} height={fh} rx={10} aria-hidden="true" style={{ opacity: stage === null ? 1 : 0 }} />
                             {/* 県ごとの本物のリンク（行き先は県の頁）。見た目と当たりは持たない（当たりは自前・`japanMapHit.ts`）。焦点の輪だけ描く。小さい県が上 */}
@@ -875,7 +879,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                             {foc && ids.has(foc) && (
                                 <g aria-hidden="true">
                                     <clipPath id={`${uid}clip`}><use href={`#${ids.get(foc)}`} /></clipPath>
-                                    <use href={`#${ids.get(foc)}`} className="jm-ring" clipPath={`url(#${uid}clip)`} style={{ strokeWidth: 4 }} />
+                                    <path d={PREFECTURE_SHAPES.find((x) => x[0] === foc)![1]} className="jm-ring" clipPath={`url(#${uid}clip)`} style={{ strokeWidth: 4 }} />
                                 </g>
                             )}
                         </svg>

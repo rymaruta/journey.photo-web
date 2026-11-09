@@ -797,7 +797,7 @@ body {
    **線の太さは画面の px で一定**（`vector-effect`）: 拡大しても縁が太らない。
    **当たりは自前**（`japanMapHit.ts`）なので、県の `<a>` は見た目も当たりも持たない（`pointer-events: none`）。真鍮の内側 2px の輪（焦点）は部品が描く（形に沿った輪） */
 .jm { display: block; width: 100%; height: auto; outline: none; user-select: none; -webkit-user-select: none; touch-action: pan-y pinch-zoom; }
-.jm defs path { vector-effect: non-scaling-stroke; }
+.jm-sh, .jm-ring { vector-effect: non-scaling-stroke; }
 .jm-sh { fill: #25252b; stroke: rgb(255 255 255 / 0.42); stroke-width: 1px; stroke-linejoin: round; transition: fill 0.1s; }
 .jm-all .jm-ta { fill: #1c1c20; }
 .jm-all .jm-tb { fill: #2d2d35; }

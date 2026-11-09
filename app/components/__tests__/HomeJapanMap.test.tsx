@@ -132,6 +132,11 @@ describe("日本地図: CSS（なぞり・当たり・縦スクロール）", ()
         expect(css).toMatch(/\.jm a, \.jm a \* \{[^}]*pointer-events:\s*none/);
         expect(css).not.toMatch(/\.jm-halo/);
     });
+    it("🔴 縁の太さは画面の px で一定: 県の形は <path> を直に置き（<use> の写しには vector-effect が効かず、関東の拡大で触れた県の白 2px が約 10px になった・2026-11-09 実測）、CSS で non-scaling-stroke", () => {
+        expect(css).toMatch(/\.jm-sh, \.jm-ring \{ vector-effect: non-scaling-stroke; \}/);
+        expect(html.match(/<path [^>]*class="jm-sh /g)).toHaveLength(47);
+        expect(html).not.toMatch(/<use [^>]*jm-sh/);
+    });
     it("指の輪 54px・札は高さ 56px・幅 112px 以上・固定欄 36px・地方チップは 44px", () => {
         expect(rule(".jm-finger, .jm-prog")).toMatch(/width:\s*54px;\s*height:\s*54px/);
         expect(rule(".jm-tip")).toMatch(/min-width:\s*112px;\s*height:\s*56px/);
@@ -295,10 +300,10 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
         expect(screen.getByRole("button", { name: "関東" }).getAttribute("aria-pressed")).toBe("true");
         expect(panelEl().textContent).toContain("関東の県");
         // 拡大した地方の外の県は沈む
-        expect(document.querySelectorAll("use.jm-dim").length).toBe(40);
+        expect(document.querySelectorAll("path.jm-dim").length).toBe(40);
         fireEvent.click(screen.getByRole("button", { name: "全国" }));
         expect(stageOf()).toBe("all");
-        expect(document.querySelectorAll("use.jm-dim").length).toBe(0);
+        expect(document.querySelectorAll("path.jm-dim").length).toBe(0);
     });
 
     it("北海道・沖縄のチップは拡大せず、直接その県を選ぶ（帯が開く）", () => {
@@ -554,12 +559,12 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
             fireEvent.click(screen.getAllByRole("button", { name: /県の一覧から選ぶ/ })[0]);
             const b = document.querySelector<HTMLButtonElement>('button[data-pick="osaka"]')!;
             fireEvent.mouseEnter(b);
-            expect(document.querySelectorAll("use.jm-hov")).toHaveLength(1);
+            expect(document.querySelectorAll("path.jm-hov")).toHaveLength(1);
             fireEvent.blur(b);
             fireEvent.focus(b);
-            expect(document.querySelectorAll("use.jm-hov")).toHaveLength(1);
+            expect(document.querySelectorAll("path.jm-hov")).toHaveLength(1);
             fireEvent.blur(b);
-            expect(document.querySelectorAll("use.jm-hov")).toHaveLength(0);
+            expect(document.querySelectorAll("path.jm-hov")).toHaveLength(0);
         });
     });
 
@@ -574,7 +579,7 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
             expect(screen.getByTestId("home-japan-map-status").textContent).toMatch(/関東|東北|中部/);
             for (let i = 0; i < 4; i++) fireEvent.keyDown(wrap, { key: "ArrowLeft" });
             fireEvent.keyDown(wrap, { key: "ArrowUp" });
-            expect(document.querySelectorAll("use.jm-hovr, use.jm-hov").length).toBeGreaterThan(0);
+            expect(document.querySelectorAll("path.jm-hovr, path.jm-hov").length).toBeGreaterThan(0);
             // 関東へ移して Enter
             fireEvent.click(screen.getByRole("button", { name: "関東" })); // 近道（キー操作の確定と同じ goRegion）
             fireEvent.click(screen.getByRole("button", { name: "全国" }));
@@ -836,7 +841,7 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
         fireEvent.click(screen.getByRole("checkbox", { name: /件数の濃淡/ }));
         expect(document.querySelector(".jm-dens")).not.toBeNull();
         expect(screen.getByTestId("home-japan-map-legend")).toBeInTheDocument();
-        expect(document.querySelectorAll("use.jm-b0, use.jm-b1, use.jm-b2, use.jm-b3").length).toBe(47);
+        expect(document.querySelectorAll("path.jm-b0, path.jm-b1, path.jm-b2, path.jm-b3").length).toBe(47);
     });
 
     it("帯: 0 件の県は「まだ登録がありません」と近くの県を出し、「すべて見る」を出さない", () => {
