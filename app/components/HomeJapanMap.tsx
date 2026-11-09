@@ -135,6 +135,8 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     const [view, setViewState] = useState<MapView>(ALL_VIEW);
     const [wpx, setWpx] = useState(NOMINAL_W);
     const [dens, setDens] = useState(false);
+    /** 地方の拡大・縮小の動き（260ms）の途中か。`data-zoom` に出す（動きが終わった印。スモークが固定時間ではなくこれを待つ・2026-11-09） */
+    const [moving, setMoving] = useState(false);
     const [listOpen, setListOpen] = useState(false);
     const [announce, setAnnounce] = useState("");
     const [mounted, setMounted] = useState(false);
@@ -201,12 +203,14 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     // ---- 拡大（260ms・ease-out cubic。動きを減らす設定・復元は即時） ----
     const camTo = useCallback((target: MapView, instant = false) => {
         if (animRef.current !== null) { cancelAnimationFrame(animRef.current); animRef.current = null; }
-        if (instant || prefersReducedMotion() || typeof requestAnimationFrame !== "function") { setView(target); return; }
+        if (instant || prefersReducedMotion() || typeof requestAnimationFrame !== "function") { setView(target); setMoving(false); return; }
         const from = viewRef.current, t0 = performance.now();
+        setMoving(true);
         const step = (now: number) => {
             const u = Math.min(1, (now - t0) / 260);
             setView(u >= 1 ? target : lerpView(from, target, easeOut(u)));
             animRef.current = u < 1 ? requestAnimationFrame(step) : null;
+            if (u >= 1) setMoving(false);
         };
         animRef.current = requestAnimationFrame(step);
     }, [setView]);
@@ -811,6 +815,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                         tabIndex={rove === null ? undefined : stage === null ? 0 : -1}
                         data-testid="home-japan-map-wrap"
                         data-stage={stage ?? "all"}
+                        data-zoom={moving ? "moving" : "still"}
                         onPointerDown={onPointerDown}
                         onPointerMove={onPointerMove}
                         onPointerUp={onPointerUp}

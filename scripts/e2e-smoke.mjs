@@ -1175,6 +1175,11 @@ async function settleScroll(page, maxMs = 6000) {
     return last;
 }
 
+/** 地図の拡大・縮小の動きが終わるのを待つ（`data-zoom="still"`）。終われば true */
+async function waitZoomStill(page, timeout = 5000) {
+    return page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]')?.getAttribute("data-zoom") === "still", null, { timeout }).then(() => true).catch(() => false);
+}
+
 async function runHomeMapChecks(browser, eng) {
     const shots = process.env.SMOKE_HOME_MAP_SHOTS || "";
     const shot = async (page, name, clip) => {
@@ -1238,11 +1243,14 @@ async function runHomeMapChecks(browser, eng) {
     let p = await at(240, 252); // 関東
     await page.touchscreen.tap(p.x, p.y);
     await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") === "関東", null, { timeout: 5000 }).catch(() => {});
+    await waitZoomStill(page);
     let s = await state();
     check(`[${eng}] 地図: 全国で関東をひと押し → 関東が拡大して開く（県は選ばない・URL は変わらない）`, s.stage === "関東" && s.open === "false" && s.hash === "", JSON.stringify(s));
-    await page.waitForTimeout(450); // 拡大の 260ms
+    // 拡大の動き（260ms）が終わった印（`data-zoom="still"`）を待つ。固定時間（以前は 450ms）は、遅い環境（webkit・run 42647489725）で
+    // 動きの途中の viewBox（"152.6 157.7 131.3 168.4"＝全国→関東の道の途中・ease-out の 76%）を読んで落ちた（2026-11-09）
+    const zoomStill = await waitZoomStill(page);
     const kanto = await page.evaluate(() => { const r = document.querySelector("svg.jm").getBoundingClientRect(); return { vb: document.querySelector("svg.jm").getAttribute("viewBox"), w: r.width }; });
-    check(`[${eng}] 地図: 関東の拡大（viewBox が全国より狭い）`, Number(kanto.vb.split(" ")[2]) < 100, kanto.vb);
+    check(`[${eng}] 地図: 関東の拡大（動きが終わったあとの viewBox が全国より狭い）`, zoomStill && Number(kanto.vb.split(" ")[2]) < 100, `${kanto.vb} still=${zoomStill}`);
     await shot(page, "region-kanto", await map.boundingBox());
     p = await at(228.5, 255); // 東京
     await page.touchscreen.tap(p.x, p.y);
@@ -1295,6 +1303,7 @@ async function runHomeMapChecks(browser, eng) {
     // ── 地方チップ・一覧チップ（なぞれなくても全県へ行ける）──
     await page.locator('[data-chip="九州"]').tap();
     await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") === "九州", null, { timeout: 5000 }).catch(() => {});
+    await waitZoomStill(page);
     check(`[${eng}] 地図: 地方チップ「九州」で拡大する`, (await stage()) === "九州");
     await page.locator('button[aria-controls="home-japan-map-list"]').first().tap();
     await page.locator('button[data-pick="kagoshima"]').tap();
@@ -1343,6 +1352,7 @@ async function runHomeMapChecks(browser, eng) {
         await shot(page, "trace-all");
         await touch("touchEnd", []);
         await sleep(500);
+        await waitZoomStill(page);
         s = await state();
         check(`[${eng}] 実タッチ: 長押しで見えていた関東で離す → 関東が拡大（県は選ばない）`, s.stage === "関東" && s.open === "false" && !s.tracing, JSON.stringify(s));
         // 横寄り: 拡大した地方の中で、待たずになぞり開始 → 離すと県を選ぶ
@@ -1433,11 +1443,13 @@ async function runHomeMapChecks(browser, eng) {
     check(`[${eng}] 地図(PC): 全国で矢印キーを押すと地方が読み上げられる`, /県/.test(live), live);
     await dpage.keyboard.press("Enter");
     await dpage.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") !== "all", null, { timeout: 5000 }).catch(() => {});
+    await waitZoomStill(dpage);
     const stg = await dpage.locator('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage");
     check(`[${eng}] 地図(PC): Enter で地方が拡大する`, stg !== "all", String(stg));
     // 拡大した地方: 県のリンクへ焦点・矢印で隣の県・Enter で帯・Esc で閉じる
     await dpage.locator('[data-chip="関東"]').click();
     await dpage.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") === "関東", null, { timeout: 5000 }).catch(() => {});
+    await waitZoomStill(dpage);
     const stop = await dpage.evaluate(() => document.querySelectorAll("a[data-s][tabindex='0']").length);
     check(`[${eng}] 地図(PC): 拡大した地方では県のリンクの止まり先は 1 か所`, stop === 1, String(stop));
     await dpage.focus('a[data-s="tochigi"]');
