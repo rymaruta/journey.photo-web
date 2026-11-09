@@ -7,6 +7,7 @@ import { mediaKeys } from "./mediaKeys";
 import { s3DeleteMany } from "./s3Delete";
 import { invalidateUploads } from "./cdnInvalidate";
 import { purgeBlocksFor } from "./block";
+import { purgeDmFor } from "./dm";
 import { updateFollowersQuietly } from "./follow";
 import { requireEnv } from "./env";
 import { requestSiteRebuild } from "./rebuild";
@@ -843,6 +844,11 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
             // **止めない**（アルバムの掃除と同じ理由）
             console.error(`deleteAccount: ハイライトの掃除に失敗（${uid}）:`, e);
         }
+        // DM の受信箱と、会話ごとの自分の側（`dm.ts` の `purgeDmFor`）。相手の画面には会話が残り、
+        // 名前は「退会したユーザー」。通報の写し（`dmreport#`）は運営の記録なので消さない。
+        // **失敗しても退会は止めない**（ブロックの掃除と同じ扱い）。時間のかかりうる掃除なので最後に置く（前の掃除を押し出さない）
+        await purgeDmFor(uid)
+            .catch((e) => console.error(`deleteAccount: DM の掃除に失敗（${uid}）:`, (e as { name?: string })?.name));
         if (followCleanupComplete) {
             await ddbDelete(PHOTOS_TABLE, { id: `following#${uid}` });
         } else {

@@ -47,7 +47,7 @@ const toAbsolute = (src: string): string => publicImageUrl(src);
 const PRIVACY_LAST_MODIFIED = "2026-11-09";
 
 /** 利用規約の本文を最後に変えた日。**`app/terms/page.tsx` の `LAST_UPDATED` と揃える** */
-const TERMS_LAST_MODIFIED = "2026-09-17";
+const TERMS_LAST_MODIFIED = "2026-11-09";
 
 /** 種類（ファイル名は `sitemap-<種類>.xml`）。並びは索引に出す順 */
 export const SITEMAP_KINDS = ["spots", "areas", "hubs", "today", "learn", "collections", "photos", "pages"] as const;

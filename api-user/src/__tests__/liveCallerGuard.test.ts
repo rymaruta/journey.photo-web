@@ -99,6 +99,8 @@ const EXCLUDED: Array<{ route: string; reason: string; stillChecks?: [file: stri
     { route: "DELETE /users/{id}/block", reason: "削除の系統（ブロックを外す）" },
     { route: "DELETE /user/devices", reason: "端末の登録の解除（退会した端末から通知の宛先を外せるように）" },
     { route: "DELETE /highlights/{id}", reason: "削除の系統" },
+    { route: "DELETE /dm/{id}", reason: "削除の系統（自分の側の会話を消す）。`dm.handler` は POST・PUT だけ確かめる" },
+    { route: "DELETE /dm/{id}/request", reason: "削除の系統（リクエストを断る）。同上" },
     {
         route: "PUT /user/profile", reason: "前から自分の読み（getProfile）で墓石を見て 410（読みを増やさない）",
         stillChecks: ["userProfile.ts", "updateMyProfile", /isDeletedProfile\(prev\)[\s\S]{0,200}statusCode: 410/],
