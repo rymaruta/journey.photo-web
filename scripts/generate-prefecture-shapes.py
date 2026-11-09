@@ -10,7 +10,7 @@ Usage: python3 scripts/generate-prefecture-shapes.py <japan-prefectures.json> > 
 
 2026-11-09 判断（デザイナーの提案書・案D の試作と同じ変換。owner「任せる」）:
 - 経度に cos36° を掛けた平面 → 幅 360 の viewBox（本土の外接箱が 360 幅）
-- 0.3（viewBox の単位）の RDP で間引く・相対座標・小数 1 桁（パスだけで約 21KB）
+- 0.1（viewBox の単位）の RDP（2026-11-09: 拡大した地方でカクつかないよう 0.3 から 0.1 へ・約 +3.4KB） で間引く・相対座標・小数 1 桁（パスだけで約 21KB）
 - 沖縄は枠に入れて右下の太平洋へ動かす。**縮尺は本土と同じ 1.0 倍**（1.7 倍にすると枠が 300px 近くなり本土を押しのける）
 - 小笠原（東京都の緯度 30 未満）は除く（遠すぎて地図が縦に伸びる）
 - 2.2 未満の小さな島は落とす（その県のいちばん大きい輪は必ず残す）
@@ -26,7 +26,7 @@ assert len(G) == 47 and len(SLUG) == 47, (len(G), len(SLUG))
 
 COS = math.cos(math.radians(36))
 W = 360.0
-EPS = 0.3
+EPS = 0.1
 MIN_ISLAND = 2.2
 
 rings = []

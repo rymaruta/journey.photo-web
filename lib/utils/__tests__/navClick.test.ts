@@ -34,6 +34,17 @@ describe("nav_click の仕様", () => {
         expect(sanitizeParams("nav_click", { area: "home_entry", dest: "kanagawa" })).toBeNull();
     });
 
+    it("dest に地図の操作（map_pref_select）を許す。仕様に無い map_sheet_open・map_spot は通さない。県名・スポットの slug は通さない", () => {
+        expect(NAV_DESTS).toContain("map_pref_select");
+        expect(sanitizeParams("nav_click", { area: "home_entry", dest: "map_pref_select" })).toEqual({ area: "home_entry", dest: "map_pref_select" });
+        for (const dest of ["map_sheet_open", "map_spot"]) {
+            expect(NAV_DESTS).not.toContain(dest);
+            expect(sanitizeParams("nav_click", { area: "home_entry", dest })).toBeNull();
+        }
+        expect(sanitizeParams("nav_click", { area: "home_entry", dest: "map_pref_kanagawa" })).toBeNull();
+        expect(sanitizeParams("nav_click", { area: "home_entry", dest: "map_spot_tokyo-tower" })).toBeNull();
+    });
+
     it("track は gtag に nav_click を送り、範囲外なら送らない", () => {
         const gtag = vi.fn();
         (window as unknown as { gtag?: unknown }).gtag = gtag;

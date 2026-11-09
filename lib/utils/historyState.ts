@@ -23,5 +23,11 @@ export function withNextHistoryState(extra: Record<string, unknown>): Record<str
     const out: Record<string, unknown> = { ...extra };
     if (cur?.__NA) out.__NA = cur.__NA;
     if (cur?.__PRIVATE_NEXTJS_INTERNALS_TREE) out.__PRIVATE_NEXTJS_INTERNALS_TREE = cur.__PRIVATE_NEXTJS_INTERNALS_TREE;
+    // ホームの地図が積んだ履歴の印（`HomeJapanMap` の `PUSHED_KEY`）。ほかの書き戻しで潰すと、閉じるときの
+    // 「自分が積んだ分を戻して消す」が効かず、閉じたあとの「戻る」が空振りする
+    if (cur?.jmPref !== undefined && extra.jmPref === undefined) out.jmPref = cur.jmPref;
+    // 積んだときの `location.search`（`jmSearch`）も一緒に持ち越す。タブを替えて search が変わったあとに閉じるときは、
+    // 戻さず差し替えで消す（戻すと、積んだ前の search＝別のタブへ戻ってしまう）
+    if (cur?.jmSearch !== undefined && extra.jmSearch === undefined) out.jmSearch = cur.jmSearch;
     return out;
 }

@@ -67,11 +67,11 @@ describe("県の形（生成物）", () => {
         expect(OKINAWA_FRAME[3]).toBeLessThan(130);
     });
 
-    it("データが太らない: ファイル 28KB 以下・パスの合計 24KB 以下（提案書の目標 約21KB）", () => {
+    it("データが太らない: ファイル 30KB 以下・パスの合計 27.5KB 以下（案C で RDP を 0.3 → 0.1 にして約 +3.4KB・2026-11-09）", () => {
         const file = readFileSync(join(__dirname, "../prefectureShapes.ts"), "utf8");
-        expect(Buffer.byteLength(file)).toBeLessThanOrEqual(28_000);
-        expect(PREFECTURE_SHAPES.reduce((n, s) => n + s[1].length, 0)).toBeLessThanOrEqual(24_000);
-        expect(gzipSync(file).length).toBeLessThanOrEqual(10_500);
+        expect(Buffer.byteLength(file)).toBeLessThanOrEqual(30_000);
+        expect(PREFECTURE_SHAPES.reduce((n, s) => n + s[1].length, 0)).toBeLessThanOrEqual(27_500);
+        expect(gzipSync(file).length).toBeLessThanOrEqual(11_500);
     });
 
     it("小笠原は含めない（東京都の形は本土側・地図が縦に伸びない）", () => {

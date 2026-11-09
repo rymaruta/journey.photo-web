@@ -69,6 +69,10 @@ export const NAV_DESTS = [
     "home", "search", "map", "me", "login", "signup", "post", "spots", "area", "topic", "nearby", "learn", "people", "saved",
     // `map_pref` … ホームの日本地図で県を選んで県の頁へ（2026-11-09・文字の一覧の `area` と分けて、地図が使われたかを見る）
     "map_pref",
+    // 地図での操作（2026-11-09）: `map_pref_select`=県を選んだ（選び直しも）。承認済みの案C の仕様（提案書 v4「4 · DISCOVERY」の計測: ヒント表示・なぞり開始・選択）の
+    // 「選択」に当たる。仕様に無い `map_sheet_open`・`map_spot` は 2026-11-09 のレビューで外した（新しい計測は承認が要る）。
+    // 「すべて見る」は `map_pref`（県の頁へ）のまま。県の名前・スポットの slug は送らない
+    "map_pref_select",
 ] as const;
 
 /**
