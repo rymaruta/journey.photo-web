@@ -392,7 +392,7 @@ export default function useGallery(
         if (!params.has("photo")) return;
         params.delete("photo");
         const search = params.toString();
-        window.history.replaceState(withNextHistoryState({}), "", search ? `?${search}` : window.location.pathname);
+        window.history.replaceState(withNextHistoryState({}), "", (search ? `?${search}` : window.location.pathname) + window.location.hash);
     }, []);
 
     /**
@@ -464,7 +464,10 @@ export default function useGallery(
             if (incoming) params.set("photo", incoming);
         }
         const search = params.toString();
-        const url = search ? `?${search}` : window.location.pathname;
+        // 🔴 **ハッシュは持ち越す**（2026-11-09）。ホームの地図は `#pref=<県>` に選択県を持つ。以前はここで
+        // `?…` か パス だけに書き換えていたので、**県の頁から戻ってマウントした直後にハッシュが消え**、
+        // 開いていた一覧が閉じた（実測: 戻った 100ms 後は `/#pref=kanagawa`・600ms 後は `/`）
+        const url = (search ? `?${search}` : window.location.pathname) + window.location.hash;
 
         if (openPhotoId) {
             // **「モーダルの履歴エントリ」は開いている間ずっと1つ。**

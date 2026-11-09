@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { MAP_H, MAP_W, OKINAWA_FRAME, PREFECTURE_SHAPES } from "../../data/prefectureShapes";
-import { DIRECT_TAP_MIN_PX, clampView, densityBin, densityCuts, isDirectTap, nearestSlugs, neighborInDirection, shapeOf } from "../japanMap";
+import { clampView, densityBin, densityCuts, nearestSlugs, neighborInDirection, prefFromHash, prefHash } from "../japanMap";
 import { RINGS, edgeDistance, inShape, resolveTap, rng, type Pt } from "./shapeGeometry";
 
 const ALL = new Set(PREFECTURE_SHAPES.map((s) => s[0]));
@@ -68,19 +68,17 @@ describe("日本地図: 当たり判定（幾何モデル・幅360=0.911 / 390=0
 });
 
 describe("日本地図: 直接移動か札か・近くの県・矢印・濃淡", () => {
-    it("44px 以上の県は直接移動・小さな県は札（拡大すると直接になる）", () => {
-        expect(isDirectTap("hokkaido", 0.911)).toBe(true);
-        expect(isDirectTap("okinawa", 0.5)).toBe(true);
-        expect(isDirectTap("osaka", 0.911)).toBe(false);
-        expect(isDirectTap("kagawa", 0.994)).toBe(false);
-        const [, , box] = shapeOf("osaka")!;
-        const need = DIRECT_TAP_MIN_PX / Math.min(box[2], box[3]);
-        expect(isDirectTap("osaka", need * 1.01)).toBe(true);
-        expect(isDirectTap("osaka", need * 0.99)).toBe(false);
-        // 幅360 で 44px 以上の県は 47 県中わずか（提案書の実測 2〜3）
-        const direct = PREFECTURE_SHAPES.filter((s) => isDirectTap(s[0], 0.911)).length;
-        expect(direct).toBeGreaterThanOrEqual(2);
-        expect(direct).toBeLessThanOrEqual(6);
+    it("URL に持たせる選択県: `#pref=<slug>` を書き・読む。知らない県・形の違う値・空は null", () => {
+        expect(prefHash("kanagawa")).toBe("#pref=kanagawa");
+        expect(prefFromHash("#pref=kanagawa", ALL)).toBe("kanagawa");
+        expect(prefFromHash("pref=osaka&x=1", ALL)).toBe("osaka");
+        expect(prefFromHash("#pref=atlantis", ALL)).toBeNull();
+        expect(prefFromHash("#pref=../etc", ALL)).toBeNull();
+        expect(prefFromHash("#home-spot-entry-list", ALL)).toBeNull();
+        expect(prefFromHash("", ALL)).toBeNull();
+        // 件数の無い（リンクの無い）県は読まない
+        expect(prefFromHash("#pref=osaka", new Set(["kyoto"]))).toBeNull();
+        for (const slug of ALL) expect(prefFromHash(prefHash(slug), ALL)).toBe(slug);
     });
 
     it("近くの県は3つ・自分は入らない・沖縄は九州の3県・本州の県の近くに沖縄は入らない", () => {
