@@ -19,6 +19,23 @@ import { ddb, PHOTOS_TABLE } from "./dynamodb";
 
 /** 1人の受信箱に置ける会話の数。溢れたら**新しい会話を断る**（古い会話を黙って押し出さない） */
 export const DM_CONVS_MAX = 200;
+/**
+ * 受け取るリクエストの数の上限。**ふつうの会話の枠（`DM_CONVS_MAX`）とは別に数える**——荒らしが
+ * 大量のリクエストで標的の受信箱を埋めて、友達からの新しい会話を断らせることができないように。
+ * 溢れたら**新しいリクエストを断る**（送り主には `unavailable`。古いリクエストの自動削除はしない）
+ */
+export const DM_REQUESTS_MAX = 50;
+/** 受信箱の行の数の最後の歯止め（同時の競り合いで枠を越えても、この数で止まる） */
+export const DM_INBOX_HARD_MAX = DM_CONVS_MAX + DM_REQUESTS_MAX;
+/** 断った印（`dec_<送り主>`）を持つ人数の上限。越えたら通数の小さいものから外す */
+export const DM_DECLINED_MAX = 100;
+
+/** リクエストの枠・ふつうの会話の枠の、それぞれの使用数（`pending`＝自分が送った側はふつうの枠） */
+export function slotCounts(convs: Record<string, DmEntry>): { requests: number; normal: number } {
+    let requests = 0;
+    for (const e of Object.values(convs)) if (e.state === "request") requests++;
+    return { requests, normal: Object.keys(convs).length - requests };
+}
 
 export const dmInboxId = (uid: string) => `dminbox#${uid}`;
 
@@ -111,7 +128,8 @@ export function unreadConvCount(convs: Record<string, DmEntry>, hidden: Readonly
 /** プッシュのバッジに足す数。読めなければ 0（バッジが減る側＝送らないより送る側に倒す） */
 export async function dmUnreadConvCount(uid: string, hidden: ReadonlySet<string>): Promise<number> {
     try {
-        return unreadConvCount((await readDmInbox(uid)).convs, hidden);
+        // 強い読み（送った直後のバッジが、いま足した未読を見落とさないように）
+        return unreadConvCount((await readDmInbox(uid, true)).convs, hidden);
     } catch (e) {
         console.error("dmUnreadConvCount: 受信箱を読めませんでした:", (e as { name?: string })?.name);
         return 0;
