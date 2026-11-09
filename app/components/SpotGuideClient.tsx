@@ -611,9 +611,9 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
     /* ── この場所の写真 ─────────────────────────
        **ここだけがユーザー投稿に触れる節。** 0枚でも上は完成している。
        iOS と同じく**写真がある場所は本文より先**（写真が主役）。
-       **0枚の場所も同じ位置（光の時刻より前）に、短い誘いを1か所だけ**置く（2026-11-09・Web 入口ページ監査の案A）。
+       **0枚の場所は、短い誘いを「魅力」の節の直後に1か所だけ**置く（2026-11-09・Web 入口ページ監査の案A）。
        以前は本文・計算表・夜空の暦の後ろ（ページの終盤）に「（0）」「まだ投稿されていません」を出していて、
-       入口で最初に見えるのが「無い」ことと、「載せる」への道が計算表の向こうにあることが弱かった。
+       「載せる」への道が計算表の向こうにあった。最初の h2 が誘いにならないよう、本文（魅力）より前には置かない。
        0枚のときは数字を出さず、「あなたの1枚が最初になる」と前向きに言う */
     const photosSection = (
         <section className="pt-6" aria-labelledby="spot-photos">
@@ -846,7 +846,7 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                 {/* PC は2段組。スマホは1列（スマホを横に引き伸ばさない） */}
                 <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:gap-10 lg:items-start">
                     <div className="min-w-0">
-                        {photosSection}
+                        {photos.length > 0 && photosSection}
 
                         {/* ── 光の時刻（その日・計算値）──────────
                             iOS の OfficialSpotView と同じ並び: 写真（あれば）→ 光の時刻 → 魅力 → 撮影ガイド */}
@@ -874,6 +874,9 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                                 )}
                             </section>
                         )}
+
+                        {/* 0枚の場所の誘い（2026-11-09）: **魅力の節の直後**。計算表より前で、h2 が本文より先に出ない */}
+                        {photos.length === 0 && photosSection}
 
                         {/* ── 作例（Wikimedia Commons）──────────
                             投稿が0枚の場所でも、どんな写真が撮れるかが分かるように。撮影ガイドの前 */}

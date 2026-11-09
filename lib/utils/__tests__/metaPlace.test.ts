@@ -37,6 +37,23 @@ describe("metaPlace（名前と市区町村だけを取り出す）", () => {
     });
 });
 
+describe("名前が切れ端のとき・県を添えるとき", () => {
+    it("番地だけ・郵便番号・丁目の名前は飛ばして次のトークン。全部だめなら空", () => {
+        expect(metaPlace("3, 丸の内一丁目, 千代田区, 東京都, 100-0005, 日本").head).toBe("千代田区");
+        expect(metaPlace("100-0005, 1-2-3, 日本").head).toBe("");
+    });
+    it("名前が市区町村そのもの（自動入力の「渋谷区, 東京都, 日本」）は県を添える", () => {
+        const p = metaPlace("渋谷区, 東京都, 日本");
+        expect(titlePlaceTail("夜景", p)).toBe("渋谷区（東京都）");
+        expect(titlePlaceTail("渋谷区の夜", p)).toBe("東京都");
+        expect(placeForSentence(p)).toBe("渋谷区（東京都）");
+    });
+    it("名前に「・」が入っていても、区切りの「、」と取り違えない", () => {
+        const p = metaPlace("オペラ・ガルニエ, パリ, フランス");
+        expect(descriptionPlaceTail("朝。", p)).toBe("オペラ・ガルニエ、パリ");
+    });
+});
+
 describe("題の後ろに足す撮影地", () => {
     const p = metaPlace(HIROME);
     it("題が名前を含めば市区町村だけ（本番の「ひろめ市場」の回）", () => {
@@ -61,10 +78,10 @@ describe("説明の後ろに足す撮影地", () => {
         expect(descriptionPlaceTail("ひろめ市場に来た。", p)).toBe("高知県高知市");
     });
     it("入っていなければ「名前・県市」", () => {
-        expect(descriptionPlaceTail("炙りカツオを食べた。", p)).toBe("ひろめ市場・高知県高知市");
+        expect(descriptionPlaceTail("炙りカツオを食べた。", p)).toBe("ひろめ市場、高知県高知市");
     });
     it("県しか分からないときは県", () => {
-        expect(descriptionPlaceTail("朝。", metaPlace("山中湖, 山梨県, 日本"))).toBe("山中湖・山梨県");
+        expect(descriptionPlaceTail("朝。", metaPlace("山中湖, 山梨県, 日本"))).toBe("山中湖、山梨県");
     });
     it("組み立てる文の撮影地は「名前（市区町村）」", () => {
         expect(placeForSentence(p)).toBe("ひろめ市場（高知市）");

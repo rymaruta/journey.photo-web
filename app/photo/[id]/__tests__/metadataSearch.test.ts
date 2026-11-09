@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from "vitest";
 //
 // ここで固定するのは:
 //   - 撮影地を題に添えること（**既に入っていれば足さない**）
-//   - 撮影地を説明に添えること（**書かれた説明は消さない**・機材名は出さない・2026-11-09）
+//   - 機材を説明に添えること（**書かれた説明は消さない**）
 //   - 長い説明には足さないこと（切られて括弧が開いたまま終わる）
 
 const photos = vi.hoisted(() => ({ current: [] as Record<string, unknown>[] }));
@@ -47,17 +47,26 @@ describe("題に撮影地を添える", () => {
     });
 });
 
-describe("説明に撮影地を添える（機材名は出さない）", () => {
-    it("撮影地を括弧で足す。書かれた説明は消さない。機材名は出さない", async () => {
+describe("説明に機材を添える", () => {
+    it("撮影地と機材を括弧で足す", async () => {
         const m = await meta({
             ...base, location: "パリ", description: { ja: ["静かな朝でした。"] },
             exif: { camera: "SONY ILCE-7M3" },
         });
         // **書かれた説明は消さない**
         expect(m.description).toContain("静かな朝でした。");
+        expect(m.description).toContain("SONY ILCE-7M3");
         expect(m.description).toContain("パリ");
-        // 2026-11-09: 機材名は検索結果の説明に出さない（スペック表に読める）
-        expect(m.description, "機材名が説明に出ている").not.toContain("SONY");
+    });
+
+    // 二重のメーカー名は畳んでから出す（保存済みの値には残っている）
+    it("二重のメーカー名は畳む", async () => {
+        const m = await meta({
+            ...base, description: { ja: ["朝。"] },
+            exif: { camera: "Hasselblad Hasselblad X2D II 100C" },
+        });
+        expect(m.description).toContain("Hasselblad X2D II 100C");
+        expect(m.description).not.toContain("Hasselblad Hasselblad");
     });
 
     // **書かれた説明に既に撮影地が入っていたら足さない。**
@@ -70,7 +79,8 @@ describe("説明に撮影地を添える（機材名は出さない）", () => {
             exif: { camera: "SONY ILCE-7M3" },
         });
         expect(m.description, "撮影地が二重に出ている").not.toContain("（北海道");
-        expect(m.description).toBe("北海道にも春が訪れ、桜が咲き誇る季節となった。");
+        // 機材は足す（説明に入っていない）
+        expect(m.description).toContain("SONY ILCE-7M3");
     });
 
     // **長い説明には足さない。** 検索結果で切られて、括弧が開いたまま終わる
@@ -85,10 +95,11 @@ describe("説明に撮影地を添える（機材名は出さない）", () => {
         expect(m.description).toBe("朝。");
     });
 
-    // 説明が無い写真は、既存の組み立て（場所・年・カテゴリ）。機材は乗せない
-    it("説明が無くても、事実だけで組み立てる（機材は乗せない）", async () => {
+    // 説明が無い写真は、既存の組み立て（場所・年・カテゴリ）に機材が乗る
+    it("説明が無くても、事実だけで組み立てる", async () => {
         const m = await meta({ ...base, location: "パリ", category: "landscape", exif: { camera: "SONY ILCE-7M3" } });
-        expect(m.description).toBe("パリで撮影した風景の写真。");
+        expect(m.description).toContain("パリ");
+        expect(m.description).toContain("SONY ILCE-7M3");
         // **サイトのキャッチコピーを名乗らない**（説明を空にした写真が全部
         // 同じ meta description を持つ形にしない）
         expect(m.description).not.toContain("旅フォトギャラリー");
@@ -103,7 +114,7 @@ describe("説明に撮影地を添える（機材名は出さない）", () => {
  */
 describe("住所の羅列を題・説明に出さない", () => {
     const HIROME = "ひろめ市場, 追手筋, 追手筋一丁目, 廿代町, 高知市, 高知県, 780-8571, 日本";
-    const ADDRESS_PARTS = /780-8571|追手筋|廿代町|日本|Apple|iPhone/;
+    const ADDRESS_PARTS = /780-8571|追手筋|廿代町|日本/;
     const own = { ja: ["ひろめ市場に来た。炎に包まれ、豪快に炙られるカツオの味を楽しんだ。"] };
 
     it("題がスポット名だけなら「題｜市区町村」", async () => {
@@ -116,17 +127,29 @@ describe("住所の羅列を題・説明に出さない", () => {
         expect(m.title).toBe("炙りカツオ｜ひろめ市場（高知市）");
     });
 
-    it("説明は書かれた文のあとに「県市」だけ。郵便番号・町名・機材名を出さない", async () => {
+    it("説明は書かれた文のあとに「県市」と機材名。郵便番号・町名は出さない", async () => {
         const m = await meta({ ...base, title: { ja: "ひろめ市場" }, location: HIROME, description: own, exif: { camera: "Apple iPhone 14 Pro" } });
-        expect(m.description).toBe("ひろめ市場に来た。炎に包まれ、豪快に炙られるカツオの味を楽しんだ。（高知県高知市）");
+        // 機材名は残す（別判断・案D の前提）。住所だけ切る
+        expect(m.description).toBe("ひろめ市場に来た。炎に包まれ、豪快に炙られるカツオの味を楽しんだ。（高知県高知市 / Apple iPhone 14 Pro）");
     });
 
     it("説明が無い写真は「名前（市区町村）で撮影した…」", async () => {
         const m = await meta({ ...base, location: HIROME, category: "landscape", exif: { camera: "Apple iPhone 14 Pro" } });
-        expect(m.description).toBe("ひろめ市場（高知市）で撮影した風景の写真。");
+        expect(m.description).toBe("ひろめ市場（高知市）で撮影した風景の写真。（Apple iPhone 14 Pro）");
     });
 
-    it("題・説明のどこにも住所の断片と機材名が出ない", async () => {
+    it("渋谷区, 東京都, 日本（自動入力の撮影地）は県を添える", async () => {
+        const m = await meta({ ...base, title: { ja: "夜景" }, location: "渋谷区, 東京都, 日本" });
+        expect(m.title).toBe("夜景｜渋谷区（東京都）");
+    });
+
+    it("名前が番地だけ・丁目だけのときは次の名前を使う（「3（千代田区）」にしない）", async () => {
+        const m = await meta({ ...base, title: { ja: "朝" }, location: "3, 丸の内一丁目, 千代田区, 東京都, 100-0005, 日本" });
+        expect(m.title).not.toMatch(/｜3/);
+        expect(m.title).toBe("朝｜千代田区（東京都）");
+    });
+
+    it("題・説明のどこにも住所の断片が出ない", async () => {
         const m = await meta({ ...base, title: { ja: "ひろめ市場" }, location: HIROME, description: own, exif: { camera: "Apple iPhone 14 Pro" } });
         expect(`${m.title} ${m.description}`).not.toMatch(ADDRESS_PARTS);
     });

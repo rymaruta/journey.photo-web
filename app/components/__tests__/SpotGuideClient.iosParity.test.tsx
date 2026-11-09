@@ -203,11 +203,13 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
     });
 
     // 2026-11-09（Web 入口ページ監査の案A）: 0枚の場所は「（0）」「まだ投稿されていません」を出さず、
-    // 前向きな誘いを写真の節の位置（本文・計算表より前）に1か所だけ置く
-    it("写真が0枚の場所は、最初の1枚の誘いが本文・光の時刻より前に1か所だけ（「0」「まだ投稿されていません」を出さない）", () => {
+    // 前向きな誘いを「魅力」の節の直後（計算表より前・本文より後）に1か所だけ置く。最初の h2 は誘いにならない
+    it("写真が0枚の場所は、最初の1枚の誘いが「魅力」の直後・光の計算表より前に1か所だけ（「0」「まだ投稿されていません」を出さない）", () => {
         view();
         const invite = screen.getByRole("heading", { name: "最初の1枚を投稿しませんか" });
-        expect(before(invite, screen.getByRole("heading", { name: "この撮影スポットの魅力" }))).toBe(true);
+        const charm = screen.getByRole("heading", { name: "この撮影スポットの魅力" });
+        expect(before(charm, invite)).toBe(true);
+        expect(screen.getAllByRole("heading", { level: 2 })[0]).not.toBe(invite);
         expect(screen.getAllByRole("link", { name: "ここで撮った写真を投稿する" })).toHaveLength(1);
         expect(document.body.textContent).not.toMatch(/まだ投稿されていません|写真（0）|0枚/);
         expect(screen.getByTestId("spot-photos-invite").textContent).toContain("あなたの1枚が、この撮影スポットの最初の写真になります。");

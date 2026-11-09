@@ -1,4 +1,5 @@
 import type { Photo } from "@/lib/data/photos";
+import { dedupeCameraName } from "../../../lib/utils/cameraName";
 import PhotoPageClient from "./PhotoPageClient";
 import type { Metadata } from "next";
 import { splitStoredDate } from "@/lib/utils/photoDate";
@@ -112,11 +113,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     // 最初「includes を先に見ないと題＝撮影地で題が消える」と書いたが誤り。
     // 「海」が「…海浜公園」に含まれるような回は、撮影地が題で始まって
     // いないので `startsWith` に掛からない（実データで確認）。
-    // **並べ方の決め方は `titleWithPlace` 1つに置く**（画像の `alt` と同じ判断。
+    // **並べ方の決め方は `titlePlaceTail`（`metaPlace.ts`）1つに置く**（画像の `alt` と同じ判断。
     // ここが決めるのは「｜でつなぐ」ことだけ）
     // **題を撮影地から作ったときは「｜撮影地」を足さない**（「板橋区の写真｜板橋区, 日本」を
     // 作らない）。代わりの題は撮影地の先頭だけ（`fallbackPhotoTitle`）なので、撮影地の
-    // 全文は題に含まれず、`titleWithPlace` に任せると足されてしまう。縛るのは
+    // 全文は題に含まれず、撮影地を足す側に任せると足されてしまう。縛るのは
     // `metadataNoTitle.test.ts`
     //
     // **2026-11-09（Web 入口ページ監査の案A）: 撮影地は「名前＋市区町村」だけを足す。**
@@ -128,22 +129,26 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const tail = pageTitle.fromTitle ? titlePlaceTail(pageTitle.text, mp) : "";
     const title = tail ? `${pageTitle.text}｜${tail}` : pageTitle.text;
 
-    // **説明に撮影地を添える（機材名は出さない）。**
+    // **説明に事実（撮影地・機材）を添える。**
     //
-    // 2026-11-09: 以前は括弧で機材名（「Apple iPhone 14 Pro」）も足していたが、検索結果の
-    // 説明に出ると「写真の紹介」より「スペック表」に読める。機材名で探す人向けの足しは外した
-    // （機材は写真ページの本文には出ている）。撮影地も住所の全文ではなく「名前・県市」まで。
+    // 機材名で作例を探す人が実在する（案D の前提）。説明の中央値は59文字で、
+    // 検索結果に出る長さ（およそ120文字）に対して余裕がある。機材名は残す
+    // （2026-11-09 の監査の案A では、数字の根拠が無いので覆さない）。
+    // **住所は切る**（2026-11-09）: 撮影地は住所の全文でなく「名前、県市」まで（`metaPlace.ts`）。
     // **書かれた説明は消さず、事実を括弧で足すだけ**——長い説明には足さない
     // （切られて括弧が開いたまま終わる）。
     // **同じ言葉を二度書かない**（説明に名前・市区町村が入っていれば足さない）。
-    // 組み立てた説明（「ひろめ市場（高知市）で撮影した風景の写真。」）は撮影地を含むので何も足さない
-    const withFacts = (base: string, extra: string) =>
-        extra && base.length <= 80 ? `${base}（${extra}）` : base;
+    // 組み立てた説明（「ひろめ市場（高知市）で撮影した風景の写真。」）は撮影地を含むので、機材だけを足す。
+    const camera = dedupeCameraName(photo.exif?.camera);
+    const withFacts = (base: string, extra: (string | undefined)[]) => {
+        const facts = extra.filter(Boolean).join(" / ");
+        return facts && base.length <= 80 ? `${base}（${facts}）` : base;
+    };
 
     const description = (ownDescription
-        && withFacts(ownDescription, descriptionPlaceTail(ownDescription, mp)))
-        || (place || year ? `${where}${when}撮影した${what}` : "")
-        || (categoryText ? `${categoryText}の写真。` : "")
+        && withFacts(ownDescription, [descriptionPlaceTail(ownDescription, mp) || undefined, camera]))
+        || (place || year ? withFacts(`${where}${when}撮影した${what}`, [camera]) : "")
+        || (categoryText ? withFacts(`${categoryText}の写真。`, [camera]) : "")
         || siteConfig.description;
     
     // 出すURLはサイトのドメインに揃える（`publicImageUrl`）。同じ配信の

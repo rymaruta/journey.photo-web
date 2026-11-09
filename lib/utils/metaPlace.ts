@@ -31,6 +31,10 @@ const PREF_SET: ReadonlySet<string> = new Set(PREFECTURES);
 
 const EMPTY: MetaPlace = { head: "", area: "", pref: "" };
 
+/** 名前にならない切れ端（番地・郵便番号・数字だけ。「3」「100-0005」「1-2-3」「丸の内二丁目」） */
+const NOT_A_NAME = /^(〒?\s*[0-9０-９][0-9０-９\-－‐ー\s]*|.*[0-9０-９一二三四五六七八九十]+丁目|[0-9０-９]+(番地?|号))$/;
+const isMuni = (t: string) => CITY.test(t) || WARD.test(t) || TOWN.test(t);
+
 /** 括弧の中（「オペラ・ガルニエ（パリ）」）は外へ出す */
 function stripParen(raw: string): { text: string; inner: string } {
     const m = raw.match(/^(.+?)\s*[（(]([^（）()]+)[）)]$/);
@@ -64,10 +68,11 @@ export function metaPlace(location: unknown): MetaPlace {
     let tokens: string[];
     if (commaStyle) {
         tokens = text.split(/[,、，]+/).map((t) => t.trim()).filter(Boolean);
-        head = tokens[0] ?? "";
+        // 数字だけ・郵便番号・丁目の切れ端は名前にしない。次のトークンを使う（全部だめなら空）
+        head = tokens.find((t) => !NOT_A_NAME.test(t) && areaKind(t) !== "country") ?? "";
     } else {
         const p = placeParts(text);
-        head = p.title;
+        head = NOT_A_NAME.test(p.title) ? "" : p.title;
         tokens = [...p.context.split(/[\s　]+/).filter(Boolean), head];
     }
     if (inner) tokens.push(...inner.split(/[\s　,、，]+/).filter(Boolean));
@@ -84,11 +89,14 @@ export function metaPlace(location: unknown): MetaPlace {
  */
 export function titlePlaceTail(title: string, place: MetaPlace): string {
     const t = title ?? "";
-    const { head, area } = place;
+    const { head, area, pref } = place;
     if (!head) return "";
     const areaNew = area && !t.includes(area) ? area : "";
-    if (t.includes(head)) return areaNew;
-    return areaNew ? `${head}（${areaNew}）` : head;
+    // 自動入力の撮影地「渋谷区, 東京都, 日本」（名前が市区町村そのもの）は県を添える
+    const prefNew = !area && pref && isMuni(head) && !t.includes(pref) ? pref : "";
+    const extra = areaNew || prefNew;
+    if (t.includes(head)) return extra;
+    return extra ? `${head}（${extra}）` : head;
 }
 
 /**
@@ -105,12 +113,13 @@ export function descriptionPlaceTail(description: string, place: MetaPlace): str
     if (regionKey && !d.includes(regionKey)) {
         parts.push(area ? `${pref}${area}` : pref);
     }
-    return parts.join("・");
+    return parts.join("、");
 }
 
 /** 説明を組み立てるときの「<ここ>で撮影した」の撮影地（名前と市区町村） */
 export function placeForSentence(place: MetaPlace): string {
-    const { head, area } = place;
+    const { head, area, pref } = place;
     if (!head) return "";
-    return area ? `${head}（${area}）` : head;
+    const extra = area || (isMuni(head) ? pref : "");
+    return extra ? `${head}（${extra}）` : head;
 }
