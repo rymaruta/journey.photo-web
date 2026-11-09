@@ -3,11 +3,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import { lockBodyScroll, unlockBodyScroll } from "@/lib/utils/scrollLock";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { XMarkIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { useAuth } from "../auth/context";
 import { useLocale } from "../i18n/context";
 import { log } from "../../lib/utils/log";
+import { track, type NavDest } from "../../lib/utils/analytics";
 import { ROUTES } from "../../lib/routes";
 import NotificationsBell from "./NotificationsBell";
 import { HEADER_ICON_BTN, HEADER_ICON_BTN_STYLE, HEADER_ICON_STYLE } from "./headerIcon";
@@ -74,7 +76,14 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
         return () => window.removeEventListener("popstate", close);
     }, [open]);
 
+    // ☰ の中の公開の入口だけ数える（`nav_click`・2026-11-09）。ログイン中の項目（保存・設定・管理）は数えない
+    const MENU_DEST: Record<string, NavDest> = {
+        [ROUTES.MAP]: "map", [ROUTES.SPOTS]: "spots", [ROUTES.USER_SEARCH]: "people",
+        [ROUTES.LEARN]: "learn", [ROUTES.LOGIN]: "login", [ROUTES.SIGNUP]: "signup",
+    };
     const handleNavigation = (href: string) => {
+        const dest = MENU_DEST[href];
+        if (dest) track("nav_click", { area: "menu", dest });
         setOpen(false);
         router.push(href);
     };
@@ -137,6 +146,22 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                 「ユーザーを探す」の行き先は消さず、メニューの1行に移した（下） */}
             {/* 通知ベル: 「あなたの写真が誰かを旅立たせました」が届く */}
             {isAuthenticated && <NotificationsBell />}
+            {/* **未ログインの人にだけ「ログイン」の文字リンク**（2026-11-09 owner「任せる」・入口の案A の最小）。
+                ☰ の奥（2タップ）にしか無かった。`next/link` の文字リンクなので最初の HTML に出る。
+                **判定中は出さない**（ログイン済みの人に一瞬出ないように・☰ の中の行と同じ判断）。
+                ログイン・新規登録の画面そのものでは出さない。押せる面は高さ 44px・字は 14px・キーボードの輪は他のヘッダーの押し面と同じ白60% */}
+            {!loading && !isAuthenticated && !(pathname ?? "").startsWith(ROUTES.LOGIN) && !(pathname ?? "").startsWith(ROUTES.SIGNUP) && (
+                <Link
+                    href={ROUTES.LOGIN}
+                    prefetch={false}
+                    data-testid="header-login"
+                    onClick={() => track("nav_click", { area: "header", dest: "login" })}
+                    className="inline-flex items-center justify-center rounded-full px-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                    style={{ minHeight: "44px", minWidth: "44px", fontSize: "14px", lineHeight: "20px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                >
+                    {locale === "en" ? "Log in" : "ログイン"}
+                </Link>
+            )}
             {/* **自分のアバターは出さない**（iOS のヘッダーは 探す・お知らせ・メニュー の3つ）。
                 マイページへは下部タブ（全ページ・全幅に常駐）とメニューから1タップで行ける */}
             <button

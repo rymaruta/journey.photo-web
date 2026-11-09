@@ -15,12 +15,11 @@ import { useToast } from "@/lib/hooks/useToast";
 import { shareUrl } from "@/lib/utils/share";
 import GalleryGrid from "./GalleryGrid";
 import SpotRows, { type SpotRow } from "./SpotRows";
-import SectionHead, { MoreLink } from "./SectionHead";
+import SectionHead from "./SectionHead";
 import { CARD, ROW_TALL, ROW_ICON_BOX, ROW_ICON, ROW_TITLE, ROW_SUB, ROW_CHEVRON } from "./rowStyles";
 import SaveSpotButton, { TILE, TILE_OFF, TILE_TEXT, TILE_ICON, TILE_MIN_H } from "./SaveSpotButton";
 import { spotUploadHref } from "@/lib/utils/spotUpload";
-import { CHIP_OFF, CHIP_SIZE } from "./chipStyles";
-import { CHIP_HIT, CHIP_ROW } from "./SpotTopicLists";
+import SpotNext, { NEARBY_SECTION_ID } from "./SpotNext";
 import { lightCellText, lightLegend, type LightCalendar } from "../../lib/utils/lightCalendar";
 import { LIGHT_MAX_OFFSET, direction, guideTimes, lightDateLabel, lightNote, lightSheet, lightZone, splitGuides, type LightBlock } from "../../lib/utils/spotLight";
 import { MILKY_WAY_MIN_ALTITUDE, directionSummary, milkyWaySummary, newMoonLabels, skyLead, type SpotSky } from "../../lib/utils/spotSky";
@@ -499,6 +498,9 @@ function Sources({ spot, field }: { spot: Spot; field: string }) {
     );
 }
 
+/** パンくずのリンク。**高さ 44px の押せる面**（以前は字の高さ約15px・2026-11-09 入口の案C） */
+const CRUMB = "inline-flex min-h-[44px] items-center hover:text-white/90";
+
 export default function SpotGuideClient({ spot, photos, autoNote = false, nearby, locationPath, area = null, sameArea = null, pageUrl, light = null, sky = null, samples = [], topics = [], country = null }: Props) {
     const { locale } = useLocale();
     const { showToast } = useToast();
@@ -693,18 +695,18 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
 
             <div className="mx-auto w-full max-w-5xl lg:max-w-6xl px-4 sm:px-6 md:px-8 pb-10">
                 {/* ── 2. 基本情報 ─────────────────────────────── */}
-                <header className="pt-5 pb-4">
+                <header className="pt-2 pb-4">
                     {/* パンくず（構造化データの `BreadcrumbList` と同じ段）。
                         県の段は区画のページが在るときだけ */}
-                    <nav aria-label={isJa ? "パンくずリスト" : "Breadcrumb"} className="mb-2 text-white/60"
+                    <nav aria-label={isJa ? "パンくずリスト" : "Breadcrumb"} className="mb-0 flex flex-wrap items-center text-white/60"
                          style={{ fontSize: "12px", lineHeight: "18px" }}>
-                        <Link href="/" prefetch={false} className="hover:text-white/90">{isJa ? "ホーム" : "Home"}</Link>
+                        <Link href="/" prefetch={false} className={CRUMB}>{isJa ? "ホーム" : "Home"}</Link>
                         <span className="mx-1.5" aria-hidden>/</span>
-                        <Link href={ROUTES.SPOTS} prefetch={false} className="hover:text-white/90">{isJa ? "撮影スポット" : "Photo spots"}</Link>
+                        <Link href={ROUTES.SPOTS} prefetch={false} className={CRUMB}>{isJa ? "撮影スポット" : "Photo spots"}</Link>
                         {area && (
                             <>
                                 <span className="mx-1.5" aria-hidden>/</span>
-                                <Link href={ROUTES.SPOT_AREA(area.slug)} prefetch={false} className="hover:text-white/90">
+                                <Link href={ROUTES.SPOT_AREA(area.slug)} prefetch={false} className={CRUMB}>
                                     {isJa ? area.name : area.nameEn}
                                 </Link>
                             </>
@@ -712,7 +714,7 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                         {country && (
                             <>
                                 <span className="mx-1.5" aria-hidden>/</span>
-                                <Link href={country.href} prefetch={false} className="hover:text-white/90">
+                                <Link href={country.href} prefetch={false} className={CRUMB}>
                                     {isJa ? country.name : country.nameEn}
                                 </Link>
                             </>
@@ -789,6 +791,16 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                     </button>
                 </div>
                 </div>
+
+                {/* ── 3b. 次へ（2026-11-09・入口の案C）──────
+                    説明文のすぐ下に、県・近く・季節の一覧への文字リンクとアプリの札を引き上げる。
+                    元の置き場（右の柱）からは移した＝リンクは増えない（`SpotNext.tsx`） */}
+                <SpotNext
+                    isJa={isJa}
+                    list={country ? { href: country.href, name: country.name, nameEn: country.nameEn } : area ? { href: ROUTES.SPOT_AREA(area.slug), name: area.name, nameEn: area.nameEn } : null}
+                    hasNearby={nearby.length > 0}
+                    topics={topics}
+                />
 
                 {/* PC は2段組。スマホは1列（スマホを横に引き伸ばさない） */}
                 <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:gap-10 lg:items-start">
@@ -998,7 +1010,7 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                         {/* ── 9. 近くの撮影スポット（登録済みのみ）── */}
                         {nearby.length > 0 && (
                             <section className="mb-7" aria-labelledby="spot-nearby">
-                                <Head id="spot-nearby">{isJa ? "近くの撮影スポット" : "Nearby spots"}</Head>
+                                <Head id={NEARBY_SECTION_ID}>{isJa ? "近くの撮影スポット" : "Nearby spots"}</Head>
                                 <SpotRows rows={nearby} isJa={isJa} />
                             </section>
                         )}
@@ -1011,36 +1023,10 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                                     // 英語の国名は台帳に無い（海外の区画名 Outside Japan では中身と合わない）
                                     : spot.region?.country === "日本" && area ? `More spots in ${area.nameEn}` : "More photo spots"}</Head>
                                 <SpotRows rows={sameArea.spots} isJa={isJa} />
-                                {/* 海外は国の頁へ（区画の頁は国の一覧で、スポットは並ばない） */}
-                                {/* 「すべて見る ›」は共通の `MoreLink`（13・text-2・当たり 44・2026-10-31 束 2）。以前は 12 の字だけ */}
-                                {country ? (
-                                    <div className="flex justify-end"><MoreLink href={country.href}
-                                        label={isJa ? `${country.name}の撮影スポットをすべて見る` : `See all spots in ${country.nameEn}`} /></div>
-                                ) : area && (
-                                    <div className="flex justify-end"><MoreLink href={ROUTES.SPOT_AREA(area.slug)}
-                                        label={isJa ? `${area.name}の撮影スポットをすべて見る` : `See all spots in ${area.nameEn}`} /></div>
-                                )}
                             </section>
                         )}
 
-                        {/* ── 11. このスポットが載っている一覧（国・テーマ・季節）── */}
-                        {topics.length > 0 && (
-                            <section className="mb-7" aria-labelledby="spot-topics" data-testid="spot-topics">
-                                <Head id="spot-topics">{isJa ? "この撮影スポットが載っている一覧" : "Lists with this spot"}</Head>
-                                <ul className={CHIP_ROW} style={{ listStyle: "none" }}>
-                                    {topics.map((t) => (
-                                        <li key={t.href}>
-                                            <Link href={t.href} prefetch={false}
-                                                  className={`${CHIP_HIT} inline-flex items-center gap-1.5 rounded-full ${CHIP_OFF} transition-colors`}
-                                                  style={CHIP_SIZE}>
-                                                {!isJa && t.labelEn ? t.labelEn : t.label}
-                                                <span className="text-white/60" style={{ fontSize: "12px" }}>{t.count}</span>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </section>
-                        )}
+                        {/* ── 11. このスポットが載っている一覧（国・テーマ・季節）は「次へ」（`SpotNext`）へ移した（2026-11-09）── */}
 
                         {/* 集約ページへの導線（**`/location/*` は維持**。役割が違う） */}
                         {locationPath && (

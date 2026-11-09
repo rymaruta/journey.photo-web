@@ -24,8 +24,8 @@
 // 高さ: スマホで画面の 6 割まで（`globals.css` の `jm-wrap`）。**縦のスクロールを奪わない**ため、拡大していないあいだは
 // `touch-action: pan-y`。拡大中だけ `none`（そうしないと拡大した地図を縦に動かせない）。
 //
-// 計測の `nav_click`（`area: home_entry` / `dest: map_pref`）は、`TrackedLink` と `EVENT_SPEC` が main に入ってから足す
-// （この部品の `onLinkClick` の中・直接移動する分岐）。いまは足さない。
+// 計測: 県の頁へ**移動する押し方**（直接移動・キーボード・新しいタブ・札の「見る」）だけ `nav_click`
+// （`area: home_entry` / `dest: map_pref`）。札を出すだけの押下・拡大・濃淡は数えない。県の名前・URL は送らない。
 
 import React, { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -38,6 +38,8 @@ import {
 } from "@/lib/utils/japanMap";
 import { ROUTES } from "@/lib/routes";
 import SectionHead from "./SectionHead";
+import TrackedLink from "./TrackedLink";
+import { track } from "@/lib/utils/analytics";
 
 const HEADING_ID = "home-japan-map-h";
 /** ページ内リンクの行き先（`HomeSpotEntry` の `<nav>`） */
@@ -162,10 +164,15 @@ export default function HomeJapanMap({ areas }: { areas: readonly HomeAreaRow[] 
     // ---- リンク ----
     const onLinkClick = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
         // 新しいタブへ・キーボード（Enter は detail 0・指のずれの心配が無い）・読み上げの操作は、いつも直接移動
-        if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0 || e.detail === 0) return;
         const slug = e.currentTarget.getAttribute("data-s");
         if (!slug) return;
-        if (isDirectTap(slug, pxRef.current * viewRef.current.z)) return;
+        const goes = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0 || e.detail === 0
+            || isDirectTap(slug, pxRef.current * viewRef.current.z);
+        if (goes) {
+            // 移動する押し方だけ数える（札を出すだけの押下は数えない）。県の名前・URL は送らない
+            track("nav_click", { area: "home_entry", dest: "map_pref" });
+            return;
+        }
         e.preventDefault();
         select(slug);
     }, [select]);
@@ -401,9 +408,9 @@ export default function HomeJapanMap({ areas }: { areas: readonly HomeAreaRow[] 
                         <>
                             <h3 className="m-0 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "28px" }}>{selName}</h3>
                             <p className="m-0 mt-0.5 text-text-2 tabular-nums" style={{ fontSize: "13px", lineHeight: "18px" }}>撮影スポット {counts.get(sel)}件</p>
-                            <Link href={ROUTES.SPOT_AREA(sel)} prefetch={false} className="jm-open" data-testid="home-japan-map-open">
+                            <TrackedLink href={ROUTES.SPOT_AREA(sel)} className="jm-open" data-testid="home-japan-map-open" navArea="home_entry" navDest="map_pref">
                                 <span>{selName}の撮影スポットを見る</span><span aria-hidden="true">›</span>
-                            </Link>
+                            </TrackedLink>
                             <p className="m-0 mt-2.5 text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>近くの県</p>
                             <div className="mt-1 flex flex-wrap gap-1.5">
                                 {selNear.map((s) => (

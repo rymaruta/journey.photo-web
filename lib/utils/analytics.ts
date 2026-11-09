@@ -56,7 +56,20 @@ export const UPLOAD_ERROR_REASONS = ["unsupported_file", "network", "server", "o
 export const SHARE_METHODS = ["native", "copy", "x", "line"] as const;
 export const SHARE_CONTENT_TYPES = ["photo", "spot", "quiz", "trip"] as const;
 export const SELECT_CONTENT_TYPES = ["spot", "photo", "article"] as const;
-export const APP_STORE_PLACEMENTS = ["footer", "banner", "article", "home"] as const;
+// `spot_detail` … 撮影スポット詳細の説明文の下の札（2026-11-09・入口の案C）
+export const APP_STORE_PLACEMENTS = ["footer", "banner", "article", "home", "spot_detail"] as const;
+/**
+ * `nav_click`（どの入口が使われたか・2026-11-09 owner「任せる」・デザイナーの提案書の節5）。
+ * `area` … 入口の置き場所。`dest` … 行き先の種類（URL・slug・検索語は送らない）。
+ * header=ヘッダーの文字リンク / menu=☰の中 / tab=下のタブ / footer=フッターの撮影スポットの組 /
+ * spot_next=撮影スポット詳細の説明文の下 / home_entry=ホームの入口の帯と「県から探す」の節
+ */
+export const NAV_AREAS = ["header", "menu", "tab", "footer", "spot_next", "home_entry"] as const;
+export const NAV_DESTS = [
+    "home", "search", "map", "me", "login", "signup", "post", "spots", "area", "topic", "nearby", "learn", "people", "saved",
+    // `map_pref` … ホームの日本地図で県を選んで県の頁へ（2026-11-09・文字の一覧の `area` と分けて、地図が使われたかを見る）
+    "map_pref",
+] as const;
 
 export const EVENT_SPEC = {
     // 既存（名前と欄は変えない）
@@ -73,6 +86,8 @@ export const EVENT_SPEC = {
     upload_start: { photo_count: COUNT },
     upload_complete: { photo_count: COUNT },
     upload_error: { reason: UPLOAD_ERROR_REASONS },
+    // 入口の計測（どの入口が次の1ページに使われたか）
+    nav_click: { area: NAV_AREAS, dest: NAV_DESTS },
     // 推奨イベント（欄は GA4 の推奨名に合わせ、値は絞る。`item_id` は送る・`search_term`（検索語）は送らない）
     select_content: { content_type: SELECT_CONTENT_TYPES, item_id: ITEM_ID },
     search: { search_term_length: COUNT, result_count: COUNT },
@@ -92,6 +107,8 @@ export type UploadErrorReason = (typeof UPLOAD_ERROR_REASONS)[number];
 export type ShareMethod = (typeof SHARE_METHODS)[number];
 export type ShareContentType = (typeof SHARE_CONTENT_TYPES)[number];
 export type SelectContentType = (typeof SELECT_CONTENT_TYPES)[number];
+export type NavArea = (typeof NAV_AREAS)[number];
+export type NavDest = (typeof NAV_DESTS)[number];
 export type AppStorePlacement = (typeof APP_STORE_PLACEMENTS)[number];
 export type WishTapParams = EventMap["wish_tap"];
 export type SignUpParams = EventMap["sign_up"];

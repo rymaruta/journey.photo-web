@@ -22,7 +22,8 @@ describe("チップは高さ 34・字 13（v2 の .chip）", () => {
         ["app/components/SpotIndexClient.tsx", 2],
         ["app/components/DiscoverRail.tsx", 2],
         // app/search/DiscoverSections.tsx は 2026-10-31 束 1 S7 で機種名のチップを外した（機材は札 3 枚）
-        ["app/components/SpotGuideClient.tsx", 1],
+        // SpotGuideClient の「この撮影スポットが載っている一覧」のチップは 2026-11-09 に SpotNext へ移った
+        ["app/components/SpotNext.tsx", 1],
         ["app/components/SpotTopicLists.tsx", 1],
         ["app/components/SpotAreaIndexClient.tsx", 1],
     ] as const)("%s は CHIP_SIZE で寸法を取る（%i か所）", (file, n) => {

@@ -1,5 +1,5 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { render, fireEvent, screen, cleanup } from "@testing-library/react";
 import { readFileSync } from "node:fs";
@@ -207,5 +207,43 @@ describe("日本地図: 操作（DOM）", () => {
         expect(document.querySelector(".jm-dens")).not.toBeNull();
         expect(document.querySelectorAll('use[class*="jm-b"]').length).toBe(47);
         expect(screen.getByTestId("home-japan-map-legend").querySelectorAll("span")).toHaveLength(4);
+    });
+
+    describe("計測 nav_click（area=home_entry・dest=map_pref）", () => {
+        const sent = () => (window as unknown as { gtag: ReturnType<typeof vi.fn> }).gtag.mock.calls.filter((c) => c[1] === "nav_click");
+        beforeEach(() => {
+            (window as unknown as { gtag: unknown }).gtag = vi.fn();
+            sessionStorage.clear();
+        });
+
+        it("移動する押し方（大きな県・Enter・Ctrl+クリック）だけ数え、札を出すだけの押下は数えない。県名・URL は送らない", () => {
+            mount();
+            fireEvent.click(link("osaka"), { detail: 1 });
+            expect(sent()).toHaveLength(0);
+            fireEvent.click(link("hokkaido"), { detail: 1 });
+            fireEvent.click(link("osaka"), { detail: 0 });
+            fireEvent.click(link("osaka"), { detail: 1, ctrlKey: true });
+            expect(sent()).toHaveLength(3);
+            for (const c of sent()) {
+                expect(c[2]).toEqual(expect.objectContaining({ area: "home_entry", dest: "map_pref" }));
+                expect(JSON.stringify(c[2])).not.toMatch(/osaka|hokkaido|spots/);
+            }
+        });
+
+        it("札の「見る」も数える", () => {
+            mount();
+            fireEvent.click(link("osaka"), { detail: 1 });
+            fireEvent.click(screen.getByTestId("home-japan-map-open"), { detail: 1 });
+            expect(sent()).toHaveLength(1);
+        });
+
+        it("拡大・濃淡・近くの県は数えない", () => {
+            mount();
+            fireEvent.click(screen.getByLabelText("拡大"));
+            fireEvent.click(screen.getByLabelText("件数の濃淡を付ける"));
+            fireEvent.click(link("osaka"), { detail: 1 });
+            fireEvent.click(panel().querySelectorAll("button")[0]);
+            expect(sent()).toHaveLength(0);
+        });
     });
 });
