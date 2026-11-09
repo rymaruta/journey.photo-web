@@ -59,6 +59,7 @@ describe("プライバシーポリシーの数が実装と合っている", () =
         // 会話数の上限は本文では言わない（言うなら実装と同じ数）。実装の定数が読めること自体は見る
         expect(constOf("api-user/src/dmInbox.ts", "DM_CONVS_MAX")).toBeGreaterThan(0);
         expect(s5, "リクエストの受信上限が実装（DM_REQUESTS_MAX）と違う").toContain(`リクエストは${constOf("api-user/src/dmInbox.ts", "DM_REQUESTS_MAX")}件まで`);
+        expect(s5, "全員に同じ規則であることを書いていない").toContain("どの相手に対しても同じ規則で、相手が承認するか返信するまでは、文字3通まで・リンクを含む文は送れません");
         const s11 = sectionOf(11);
         expect(s11, "断った印が残ることを書いていない").toContain("リクエストを相手が断ったときの印");
         expect(s11, "日ごとの回数の行が残ることを書いていない").toContain("1日ごとの送信回数の行（前々日以前のもの");

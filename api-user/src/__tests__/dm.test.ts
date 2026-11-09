@@ -218,7 +218,7 @@ describe("送信: 受信箱へ直行する人・リクエストになる人", ()
         const r = await send("はじめまして");
         expect(bodyOf(r).state, "送り主には、リクエストと同じ形（pending）で返す").toBe("pending");
         expect(entryWrites(ME)[0].input.ExpressionAttributeValues[":s"]).toBe("pending");
-        expect(convWrites().find((c) => c.cmd === "PutCommand")!.input.Item).toMatchObject({ state: "inbox", reqCount: 0 });
+        expect(convWrites().find((c) => c.cmd === "PutCommand")!.input.Item).toMatchObject({ state: "request", reqCount: 1, direct: true });
         expect(entryWrites(PEER)[0].input.ExpressionAttributeValues[":s"]).toBe("inbox");
         expect(mockPushDm).toHaveBeenCalledTimes(1);
         const [to, arg] = mockPushDm.mock.calls[0];
@@ -647,8 +647,8 @@ describe("既読・承認", () => {
         expect(w[1].input.Key.id).toBe(`dminbox#${ME}`);
         expect(w[1].input.UpdateExpression).toContain("REMOVE #dec");
         expect(w[1].input.ExpressionAttributeNames["#dec"]).toBe(`dec_${PEER}`);
-        expect(w[2].input.Key.id).toBe(`dminbox#${PEER}`);
-        expect(w[2].input.ConditionExpression).toBe("convs.#c.#s = :pending");
+        expect(w.some((c) => c.input.Key?.id === `dminbox#${PEER}`), "🔴 承認だけでは、送り主の行（見える状態）を変えない").toBe(false);
+        expect(w).toHaveLength(2);
         expect(mockPushDm).not.toHaveBeenCalled();
     });
 
@@ -658,6 +658,7 @@ describe("既読・承認", () => {
         expect((await invoke(handler, ev("POST /dm/{id}/accept", ME, { id: CONV, body: {} }))).statusCode).toBe(400);
 
         rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { state: "inbox" }) });
+        rows[KEY] = convRow([], { state: "inbox", initiator: PEER });
         calls = [];
         expect((await invoke(handler, ev("POST /dm/{id}/accept", ME, { id: CONV, body: {} }))).statusCode).toBe(200);
         expect(writes()).toHaveLength(0);
@@ -924,8 +925,8 @@ describe("レビュー指摘の直し（2026-11-09）", () => {
             [`${ME}_${THIRD}`]: entry(THIRD, { state: "request" }),
             [`${ME}_${A}`]: entry(A, { state: "inbox" }),
         });
-        rows[`dm#${ME}#${PEER}`] = convRow([], { initiator: PEER, reqCount: 2 });
-        rows[`dm#${ME}#${THIRD}`] = { ...convRow([], { initiator: THIRD, reqCount: 1 }), id: `dm#${ME}#${THIRD}`, hi: THIRD };
+        rows[`dm#${ME}#${PEER}`] = convRow([], { state: "request", initiator: PEER, reqCount: 2 });
+        rows[`dm#${ME}#${THIRD}`] = { ...convRow([], { state: "request", initiator: THIRD, reqCount: 1 }), id: `dm#${ME}#${THIRD}`, hi: THIRD };
         const r = await invoke(handler, ev("DELETE /dm/requests", ME));
         expect(r.statusCode).toBe(200);
         expect(bodyOf(r)).toEqual({ ok: true, removed: 2 });
@@ -1038,6 +1039,118 @@ describe("レビュー指摘の直し（2026-11-09）", () => {
         boom("Invalid UpdateExpression: Syntax error");
         expect((await invoke(handler, ev("DELETE /dm/{id}", ME, { id: CONV }))).statusCode).toBe(500);
         vi.restoreAllMocks();
+    });
+});
+
+describe("全員に同じ規則（owner 判断 2026-11-09）", () => {
+    /** 同じ操作を、リクエストになる相手と直行の相手の2つの世界で流して、送り主に返る応答を並べる */
+    async function both(run: () => Promise<Result>, prep: (direct: boolean) => void) {
+        const out: Result[] = [];
+        for (const direct of [false, true]) {
+            rows = {}; calls = [];
+            follows(PEER, ME);
+            if (direct) follows(ME, PEER);
+            prep(direct);
+            out.push(await run());
+        }
+        return out;
+    }
+
+    it("🔴 直行の相手にも、承認前は3通まで（4通目は同じ 429・同じ文面）", async () => {
+        const [req, dir] = await both(() => send("4通目"), (direct) => {
+            rows[KEY] = convRow([msg(ME, "a", "2026-11-09T00:00:01.000Z")], { state: "request", initiator: ME, reqCount: DM_REQUEST_MAX, direct });
+        });
+        expect(req.statusCode).toBe(429);
+        expect(dir.statusCode).toBe(429);
+        expect(dir.body).toBe(req.body);
+        expect(bodyOf(dir).code).toBe("requestLimit");
+    });
+
+    it("🔴 直行の相手の会話でも、承認前は2通目以降も URL を断る（同じ 400・同じ文面）", async () => {
+        const [req, dir] = await both(() => send("見て https://example.com"), (direct) => {
+            rows[KEY] = convRow([msg(ME, "a", "2026-11-09T00:00:01.000Z")], { state: "request", initiator: ME, reqCount: 1, direct });
+        });
+        expect(req.statusCode).toBe(400);
+        expect(dir.body).toBe(req.body);
+        expect(bodyOf(dir).code).toBe("requestUrl");
+    });
+
+    it("🔴 新しい会話の応答の形は、関係で変わらない（state・文面・ステータス）", async () => {
+        const [req, dir] = await both(() => send("こんにちは"), () => undefined);
+        expect(Object.keys(bodyOf(dir)).sort()).toEqual(Object.keys(bodyOf(req)).sort());
+        expect(bodyOf(dir).state).toBe(bodyOf(req).state);
+        expect(dir.statusCode).toBe(req.statusCode);
+    });
+
+    it("🔴 違うのは受け取る側の置き場所と通知だけ（直行: 受信箱の行・プッシュあり／それ以外: リクエストの棚・プッシュなし）", async () => {
+        follows(PEER, ME);
+        await send("こんにちは");
+        expect(entryWrites(PEER)[0].input.ExpressionAttributeValues[":s"]).toBe("request");
+        expect(mockPushDm).not.toHaveBeenCalled();
+        rows = {}; calls = []; follows(PEER, ME); follows(ME, PEER);
+        await send("こんにちは");
+        expect(entryWrites(PEER)[0].input.ExpressionAttributeValues[":s"]).toBe("inbox");
+        expect(mockPushDm).toHaveBeenCalledTimes(1);
+        // 続きのメッセージでも、直行の相手の置き場所は受信箱のまま
+        calls = [];
+        rows[KEY] = convRow([msg(ME, "a", "2026-11-09T00:00:01.000Z")], { state: "request", initiator: ME, reqCount: 1, direct: true });
+        await send("2通目");
+        expect(entryWrites(PEER)[0].input.ExpressionAttributeValues[":s"]).toBe("inbox");
+    });
+
+    it("🔴 会話の読みでも、始めた人には相手が話すまで残り数を見せる（直行でも同じ）・話したら外れる", async () => {
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { state: "pending" }) });
+        rows[KEY] = convRow([msg(ME, "a", "2026-11-09T00:00:01.000Z")], { state: "request", initiator: ME, reqCount: 1, direct: true });
+        const g = bodyOf(await invoke(handler, ev("GET /dm/{id}", ME, { id: CONV })));
+        expect(g).toMatchObject({ requestRemaining: 2, canSend: true, state: "pending" });
+        rows[KEY] = convRow([msg(ME, "a", "2026-11-09T00:00:01.000Z"), msg(PEER, "b", "2026-11-09T00:00:02.000Z")], { state: "inbox", initiator: ME, reqCount: 1, direct: true });
+        const h = bodyOf(await invoke(handler, ev("GET /dm/{id}", ME, { id: CONV })));
+        expect(h.requestRemaining).toBeUndefined();
+        expect(h.canSend).toBe(true);
+    });
+
+    it("🔴 承認だけでは送り主に見える状態を変えず、上限だけが外れる／受け取った人の返信で状態が変わる", async () => {
+        // 承認（accept）: 本体が inbox になるが、送り主の行は触らない
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")], { state: "request", initiator: PEER, reqCount: DM_REQUEST_MAX, direct: true });
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { state: "inbox" }) });
+        await invoke(handler, ev("POST /dm/{id}/accept", ME, { id: CONV, body: {} }));
+        expect(writes().some((c) => c.input.Key?.id === `dminbox#${PEER}`)).toBe(false);
+        expect(writes()[0].input.Key.id, "直行の相手（受信箱の行は inbox）でも、本体の承認は書く").toBe(KEY);
+        expect(writes()[0].input.UpdateExpression).toContain("#state = :inbox");
+        // 承認後は、送り主（PEER）の4通目が通る（上限が外れる）。状態は pending のまま（相手が話していない）
+        calls = [];
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")], { state: "inbox", initiator: PEER, reqCount: DM_REQUEST_MAX, direct: true });
+        const r = await send("4通目", PEER, ME);
+        expect(r.statusCode).toBe(200);
+        expect(bodyOf(r).state).toBe("pending");
+        // 受け取った人（ME）の返信: 始めた人（PEER）の行が inbox になる
+        calls = [];
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")], { state: "request", initiator: PEER, reqCount: 1, direct: true });
+        await send("返事");
+        expect(entryWrites(PEER)[0].input.ExpressionAttributeValues[":s"]).toBe("inbox");
+    });
+
+    it("🔴 直行の相手が承認前の会話を消しても、送った通数を断った印に残す（再送で戻らない）", async () => {
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")], { state: "request", initiator: PEER, reqCount: 2, direct: true });
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { state: "inbox" }) });
+        await invoke(handler, ev("DELETE /dm/{id}", ME, { id: CONV }));
+        const u = writes()[0].input;
+        expect(u.UpdateExpression).toContain("SET #dec = :n");
+        expect(u.ExpressionAttributeValues[":n"]).toBe(2);
+        // 承認後（inbox）の会話を消しても、印は付けない
+        calls = [];
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")], { state: "inbox", initiator: PEER, reqCount: 2 });
+        await invoke(handler, ev("DELETE /dm/{id}", ME, { id: CONV }));
+        expect(writes()[0].input.UpdateExpression).toBe("REMOVE convs.#c");
+    });
+
+    it("🔴 断られた印は、直行の相手への新しい会話にも効く", async () => {
+        follows(PEER, ME);
+        follows(ME, PEER);
+        rows[`dminbox#${PEER}`] = boxRow(PEER, {}, { [`dec_${ME}`]: DM_REQUEST_MAX });
+        const r = await send("もう一度");
+        expect(r.statusCode).toBe(429);
+        expect(bodyOf(r).code).toBe("requestLimit");
     });
 });
 
