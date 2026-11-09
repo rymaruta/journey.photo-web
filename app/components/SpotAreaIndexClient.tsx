@@ -75,7 +75,7 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
                     <ul className={CHIP_ROW} style={{ listStyle: "none" }}>
                         {jumpItems.map((j) => (
                             <li key={j.id}>
-                                <Link href={`#${j.id}`}
+                                <Link href={`#${j.id}`} prefetch={false}
                                    className={`${CHIP_HIT} inline-flex items-center rounded-full ${CHIP_OFF} transition-colors`}
                                    style={CHIP_SIZE}>
                                     {j.label}

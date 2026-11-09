@@ -698,7 +698,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         setGhost(true);
         const t0 = performance.now();
         const frame = (now: number) => {
-            const g = ghostAt(now - t0);
+            const g = ghostAt(Math.max(0, now - t0)); // rAF の時刻が t0 より僅かに前になっても落とさない
             const svg = svgRef.current;
             if (!g || !svg) { stopGhost(); return; }
             const r = svg.getBoundingClientRect();
@@ -773,9 +773,9 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         >
             <SectionHead id={HEADING_ID} eyebrow="日本地図" title="撮影スポットを地図から探す" className="mb-0" testId="home-japan-map-head" />
             <p className="m-0 mt-2 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
-                地方を選んで拡大し、県を選ぶと、撮影スポットが下の枠に出ます。「すべて見る」でその県の一覧へ進みます。数字は掲載している件数です。
+                地方を選んで拡大し、県を選ぶと、撮影スポットが枠に出ます。「すべて見る」でその県の一覧へ進みます。数字は掲載している件数です。
             </p>
-            <Link href={`#${SPOT_LIST_ID}`} className="sr-only focus:not-sr-only focus:inline-flex focus:items-center focus:min-h-[44px] focus:text-text-2 focus:underline focus:underline-offset-4 jm-skip" data-testid="home-japan-map-skip">
+            <Link href={`#${SPOT_LIST_ID}`} prefetch={false} className="sr-only focus:not-sr-only focus:inline-flex focus:items-center focus:min-h-[44px] focus:text-text-2 focus:underline focus:underline-offset-4 jm-skip" data-testid="home-japan-map-skip">
                 地図を飛ばして文字の一覧へ
             </Link>
             {/* スマホは普通の縦並び（帯が地図の下に貼り付く `position: sticky` の入れ物をここにする）。広い画面（768px〜）だけ2列 */}
@@ -1009,7 +1009,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                     <p className="m-0 mt-1 text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>
                         長押ししてなぞらなくても、ひと押しや地方のボタン、県の一覧から選べます。
                     </p>
-                    <Link href={`#${SPOT_LIST_ID}`} className="jm-link" data-testid="home-japan-map-textlink">すべての県を文字で見る ›</Link>
+                    <Link href={`#${SPOT_LIST_ID}`} prefetch={false} className="jm-link" data-testid="home-japan-map-textlink">すべての県を文字で見る ›</Link>
                     <label className="jm-dens-label flex items-center gap-2 min-h-[44px] text-text-2" style={{ fontSize: "13px" }}>
                         <input type="checkbox" className="w-5 h-5 m-0" style={{ accentColor: "#b8955a" }} checked={dens} onChange={(e) => setDens(e.target.checked)} />
                         件数の濃淡を付ける

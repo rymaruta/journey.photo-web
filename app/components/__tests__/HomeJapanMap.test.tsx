@@ -510,6 +510,64 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
         });
     });
 
+    describe("初見の手がかり（輪が地方をなぞる動き）", () => {
+        const withObserver = (ratio: number) => {
+            class IO {
+                constructor(private cb: (es: { intersectionRatio: number }[]) => void) {}
+                observe() { this.cb([{ intersectionRatio: ratio }]); }
+                disconnect() {}
+                unobserve() {}
+            }
+            vi.stubGlobal("IntersectionObserver", IO);
+        };
+        const reduced = (on: boolean) => {
+            window.matchMedia = ((q: string) => ({ matches: on && /reduce/.test(q), media: q, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false })) as typeof window.matchMedia;
+        };
+        const ghostOn = () => { const f = document.querySelector(".jm-finger.jm-ghost"); return !!f && !(f as HTMLElement).hidden; };
+        afterEach(() => { vi.unstubAllGlobals(); });
+
+        it("初回: 地図が 60% 以上見えて 1.2 秒動かさないと輪が出る（真鍮の輪＝本物の操作と見分ける）。端末の旗は 1 回ぶん進む。触れた瞬間に消える", async () => {
+            localStorage.removeItem("jm-hint");
+            withObserver(1);
+            reduced(false);
+            mountFresh();
+            await settle(1100);
+            expect(ghostOn()).toBe(false);
+            await settle(200);
+            expect(ghostOn()).toBe(true);
+            expect(JSON.parse(localStorage.getItem("jm-hint")!).shown).toBe(1);
+            ptr("pointerDown", ...px(240, 252));
+            expect(ghostOn()).toBe(false);
+        });
+
+        it("見えている割合が 60% に満たないと出さない・2 回出したあと（旗 shown=2）は出さない", async () => {
+            localStorage.removeItem("jm-hint");
+            withObserver(0.4);
+            reduced(false);
+            mountFresh();
+            await settle(2000);
+            expect(ghostOn()).toBe(false);
+            cleanup();
+            localStorage.setItem("jm-hint", JSON.stringify({ shown: 2, traced: false, visits: 9 }));
+            withObserver(1);
+            reduced(false);
+            mountFresh();
+            await settle(2000);
+            expect(ghostOn()).toBe(false);
+        });
+
+        it("動きを減らす設定（prefers-reduced-motion）では輪を動かさない（常設の一言だけ）", async () => {
+            localStorage.removeItem("jm-hint");
+            withObserver(1);
+            reduced(false);
+            reduced(true);
+            mountFresh();
+            await settle(3000);
+            expect(ghostOn()).toBe(false);
+            expect(screen.getByTestId("home-japan-map-hint").textContent).toBe("長押ししてなぞる");
+        });
+    });
+
     describe("安全策: なぞり・当たりの計算で例外が出ても、タップと一覧チップで県へ行ける", () => {
         it("当たりの計算が壊れたまま画面をタップ → 県の一覧を開き、案内を読み上げる。一覧チップで県を選べる", async () => {
             const err = vi.spyOn(console, "error").mockImplementation(() => {});
