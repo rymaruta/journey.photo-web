@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { siteConfig, generateHomeStructuredData, generateOrganizationStructuredData, FEED_ALTERNATE, shareOgImage, shareImageUrl } from "../lib/utils/seo";
 import { loadAllPhotos } from "../lib/server/photos";
 import GalleryPageClient from "./GalleryPageClient";
+import HomeSpotEntry from "./components/HomeSpotEntry";
 import { homeSeasonalSpots } from "../lib/data/spotTopics";
+import { homeSpotEntryData } from "../lib/data/homeSpotEntry";
 
 // OGP 画像は**固定の代表画像**（`SHARE_IMAGE`・2026-10-31 #432）。利用者の最新の投稿
 // （2026-10-31 はスーパーのぶどう）が共有カードと Google の検索結果に出ていた
@@ -64,6 +66,10 @@ export default async function Page() {
             {/* いまの季節の撮影スポット（数件）は**ビルド時に選んで焼く**（`homeSeasonalSpots`）。
                 台帳はクライアントへ渡さない——渡すのは名前・場所・写真の場所だけ */}
             <GalleryPageClient seasonalSpots={homeSeasonalSpots(new Date())} />
+            {/* 撮影スポットを県から探す（2026-11-09・SEO の入口）。写真の並びの下・フッターの上。県・国の頁への文字リンクを
+                最初から HTML に出す（ホーム → 県・国 → スポットの2クリック）。ホームの上部は変えない。
+                渡すのは県のスラッグ・件数と国の2文字・名前・件数だけ（台帳はクライアントへ渡さない） */}
+            <HomeSpotEntry data={homeSpotEntryData()} />
         </>
     );
 }

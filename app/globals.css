@@ -190,6 +190,73 @@
   stroke-width: 1.6;
 }
 
+/* **ホームの「撮影スポットを県から探す」の1本のリンク**（`HomeSpotEntry.tsx`・2026-11-09・提案書の寸法）。
+   108 本のリンクに同じクラス列を書くと書き出しの HTML が約 50KB 太る（HTML は no-store で毎回落ちる）ので、
+   1つの名前にまとめた。電話は「名前の」／「撮影スポット 件数」の2行・sm（640）以上は1行で件数が右端。
+   高さ 44 以上（行全体が当たり）・字は 12 以上・真鍮の内側 2px の輪・白8%の下線・触ると白＋白5%の地 */
+@utility home-spot-link {
+  display: block;
+  min-height: 44px;
+  padding-block: 5px;
+  font-size: 13px;
+  line-height: 18px; /* 行の箱（strut）を 18 に固定。継承の 24 だと2行の札が 53px まで膨らむ */
+  color: var(--color-text-2);
+  border-bottom: 1px solid var(--color-line);
+  overflow-wrap: anywhere;
+  touch-action: manipulation;
+  transition: color 0.15s, background-color 0.15s;
+  &:hover {
+    color: #fff;
+    background-color: rgb(255 255 255 / 0.05);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+  @media (min-width: 640px) {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding-block: 4px;
+  }
+}
+/* 名前と「撮影スポット」を包む。電話は `contents`（2行に割る）・sm 以上は1つの塊 */
+@utility home-spot-text {
+  display: contents;
+  @media (min-width: 640px) {
+    display: block;
+    min-width: 0;
+  }
+}
+/* 「<名前>の」13／18。電話は行を割る */
+@utility home-spot-name {
+  display: block;
+  font-size: 13px;
+  line-height: 18px;
+  @media (min-width: 640px) {
+    display: inline;
+  }
+}
+/* 「撮影スポット」12（電話）→ 13（sm 以上） */
+@utility home-spot-noun {
+  font-size: 12px;
+  line-height: 18px;
+  @media (min-width: 640px) {
+    font-size: 13px;
+  }
+}
+/* 件数 12・text-3・等幅数字 */
+@utility home-spot-count {
+  font-size: 12px;
+  line-height: 16px;
+  color: var(--color-text-3);
+  font-variant-numeric: tabular-nums;
+  @media (min-width: 640px) {
+    flex-shrink: 0;
+  }
+}
+
 /* `font-mono` は等幅の字ではなく**等幅数字**（上の `--font-mono`）。桁がそろう */
 .font-mono {
   font-variant-numeric: tabular-nums;
