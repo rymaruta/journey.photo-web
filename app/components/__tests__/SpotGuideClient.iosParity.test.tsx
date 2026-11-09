@@ -9,9 +9,9 @@ import type { Photo } from "@/lib/data/photos";
  * 撮影スポットのページを iOS の `OfficialSpotView`（板 13）に揃えたところ（2026-09-29）。
  *
  *  - 小見出し（公開は「撮影スポット」・下書きは「下書き・未確認」）
- *  - 「[地域] · N枚の写真」
+ *  - 「[地域] · N枚の写真」（0枚のときは枚数を出さない・2026-11-09）
  *  - 行動3つ（行きたい・地図で見る・シェア）が横に等分
- *  - 写真がある場所は写真の節が本文より先・0枚は本文の後ろ
+ *  - 写真の節（0枚の場所は「最初の1枚」の誘い）が本文より先（2026-11-09 から 0枚も前）
  *  - 公式サイトは行動の列ではなく本文の後ろ
  */
 const auth = vi.hoisted(() => ({ isAuthenticated: true, loading: false }));
@@ -86,12 +86,26 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
         expect(document.querySelector("header p.eyebrow")!.hasAttribute("aria-hidden")).toBe(false);
     });
 
-    it("見出しの下は「地域 · N枚の写真」（数えた枚数）", () => {
+    // 2026-11-09（Web 入口ページ監査の案A）: 0枚のときは「0枚の写真」と言わない
+    it("見出しの下は「地域 · N枚の写真」（数えた枚数）。0枚のときは枚数を出さない", () => {
         const { unmount } = view();
-        expect(screen.getByText("香川県 観音寺市 · 0枚の写真")).toBeTruthy();
+        // 副題の行（見出しの下の最初の行）は地域だけ
+        expect(document.querySelector("header h1")!.parentElement!.querySelector("p.flex")!.textContent).toBe("香川県 観音寺市");
+        expect(document.body.textContent, "0枚の写真が出ている").not.toContain("0枚の写真");
         unmount();
         view(SPOT, [PHOTO]);
         expect(screen.getByText("香川県 観音寺市 · 1枚の写真")).toBeTruthy();
+    });
+
+    it("0枚でも作例があれば「地域 · 作例N枚」（あるものを言う）", () => {
+        const sample = { src: "https://upload.wikimedia.org/a.jpg", width: 1280, height: 853, author: "A", license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0", sourceUrl: "https://commons.wikimedia.org/wiki/File:A.jpg", title: "A" };
+        render(
+            <ToastProvider>
+                <SpotGuideClient spot={SPOT} photos={[]} nearby={[]} locationPath={null} pageUrl={PAGE} samples={[sample, { ...sample, title: "B" }]} />
+            </ToastProvider>,
+        );
+        expect(screen.getByText("香川県 観音寺市 · 作例2枚")).toBeTruthy();
+        expect(document.body.textContent).not.toContain("0枚の写真");
     });
 
     // **格子で3等分**（`flex-1` だと外箱で包んだ「行きたい」だけ 14px 狭くなった・実測 82/96/96）
@@ -177,9 +191,9 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
         expect(toast.showToast).not.toHaveBeenCalled();
     });
 
-    it("地域が無ければ枚数だけ", () => {
-        view({ ...SPOT, region: undefined } as Spot);
-        expect(screen.getByText("0枚の写真")).toBeTruthy();
+    it("地域が無ければ枚数だけ（0枚で作例も無ければ副題の行ごと出さない）", () => {
+        view({ ...SPOT, region: undefined } as Spot, [PHOTO]);
+        expect(screen.getByText("1枚の写真")).toBeTruthy();
     });
 
     it("写真がある場所は写真の節が本文より先（写真が主役）", () => {
@@ -188,11 +202,15 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
         expect(before(photos, screen.getByRole("heading", { name: "この撮影スポットの魅力" }))).toBe(true);
     });
 
-    it("写真が0枚の場所は本文の後ろ（1画面目を空の節にしない）", () => {
+    // 2026-11-09（Web 入口ページ監査の案A）: 0枚の場所は「（0）」「まだ投稿されていません」を出さず、
+    // 前向きな誘いを写真の節の位置（本文・計算表より前）に1か所だけ置く
+    it("写真が0枚の場所は、最初の1枚の誘いが本文・光の時刻より前に1か所だけ（「0」「まだ投稿されていません」を出さない）", () => {
         view();
-        const photos = screen.getByRole("heading", { name: "この撮影スポットの写真（0）" });
-        expect(before(screen.getByRole("heading", { name: "この撮影スポットの魅力" }), photos)).toBe(true);
-        expect(screen.getByRole("link", { name: "ここで撮った写真を投稿する" })).toBeTruthy();
+        const invite = screen.getByRole("heading", { name: "最初の1枚を投稿しませんか" });
+        expect(before(invite, screen.getByRole("heading", { name: "この撮影スポットの魅力" }))).toBe(true);
+        expect(screen.getAllByRole("link", { name: "ここで撮った写真を投稿する" })).toHaveLength(1);
+        expect(document.body.textContent).not.toMatch(/まだ投稿されていません|写真（0）|0枚/);
+        expect(screen.getByTestId("spot-photos-invite").textContent).toContain("あなたの1枚が、この撮影スポットの最初の写真になります。");
     });
 
     // iOS の `heroPhoto`: スマホは 4:3、出典は写真の下（写真に重ねて暗くしない）

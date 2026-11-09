@@ -1,5 +1,4 @@
 import type { Photo } from "@/lib/data/photos";
-import { dedupeCameraName } from "../../../lib/utils/cameraName";
 import PhotoPageClient from "./PhotoPageClient";
 import type { Metadata } from "next";
 import { splitStoredDate } from "@/lib/utils/photoDate";
@@ -11,7 +10,7 @@ import { initialRelatedFor } from "@/lib/utils/related";
 import { withPlaceholderParam } from "../../../lib/server/staticParams";
 import { photoAltText } from "../../../lib/utils/photoAlt";
 import { metaText } from "@/lib/utils/metaText";
-import { titleWithPlace } from "@/lib/utils/titlePlace";
+import { metaPlace, titlePlaceTail, descriptionPlaceTail, placeForSentence } from "@/lib/utils/metaPlace";
 import { photoTitleFor } from "@/lib/utils/photoTitle";
 import { categoryLabel } from "../../../lib/utils/collections";
 import { spotLinkForPhoto, spotTimeZoneForPhoto } from "@/lib/data/spotLink";
@@ -85,7 +84,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const categoryText = categoryLabel(photo.category?.toString(), ja.category.names as Record<string, string>);
     const place = (photo.location ?? "").toString().trim();
     const when = year ? `${year}年に` : "";
-    const where = place ? `${place}で` : "";
+    // 撮影地は名前と市区町村まで（住所の全文を題・説明に出さない・`metaPlace.ts`）
+    const mp = metaPlace(place);
+    const where = mp.head ? `${placeForSentence(mp)}で` : "";
     const what = categoryText ? `${categoryText}の写真。` : "写真。";
     // 場所も日付も無ければ「撮影した」を付けない（`撮影した風景の写真。`
     // は日本語として落ち着かない）
@@ -117,36 +118,32 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     // 作らない）。代わりの題は撮影地の先頭だけ（`fallbackPhotoTitle`）なので、撮影地の
     // 全文は題に含まれず、`titleWithPlace` に任せると足されてしまう。縛るのは
     // `metadataNoTitle.test.ts`
-    const tp = pageTitle.fromTitle
-        ? titleWithPlace(pageTitle.text, place)
-        : { kind: "single" as const, text: pageTitle.text };
-    const title = tp.kind === "single" ? tp.text : `${tp.title}｜${tp.place}`;
-
-    // **説明に機材を添える。**
     //
-    // 機材名で作例を探す人が実在する（案D の前提）。説明の中央値は59文字で、
-    // 検索結果に出る長さ（およそ120文字）に対して余裕がある。
+    // **2026-11-09（Web 入口ページ監査の案A）: 撮影地は「名前＋市区町村」だけを足す。**
+    // 撮影地の全文（地図の住所）を足すと、本番で
+    // 「ひろめ市場, 追手筋, 追手筋一丁目, 廿代町, 高知市, 高知県, 780-8571, 日本」が題になっていた
+    // （題が撮影地の頭と同じ → 撮影地だけを出す枝が、住所をそのまま出した）。
+    // 切り方と「題に入っていれば足さない」は `metaPlace.ts` に1つ置く。縛るのは
+    // `metadataSearch.test.ts`・`metaPlace.test.ts`
+    const tail = pageTitle.fromTitle ? titlePlaceTail(pageTitle.text, mp) : "";
+    const title = tail ? `${pageTitle.text}｜${tail}` : pageTitle.text;
+
+    // **説明に撮影地を添える（機材名は出さない）。**
+    //
+    // 2026-11-09: 以前は括弧で機材名（「Apple iPhone 14 Pro」）も足していたが、検索結果の
+    // 説明に出ると「写真の紹介」より「スペック表」に読める。機材名で探す人向けの足しは外した
+    // （機材は写真ページの本文には出ている）。撮影地も住所の全文ではなく「名前・県市」まで。
     // **書かれた説明は消さず、事実を括弧で足すだけ**——長い説明には足さない
     // （切られて括弧が開いたまま終わる）。
-    // **同じ言葉を二度書かない。** 組み立てた説明（「東京で撮影した風景の
-    // 写真。」）は既に撮影地を含むので、そこに撮影地を足すと
-    // 「東京で撮影した風景の写真。（東京）」になる。**書かれた説明**には
-    // 撮影地も足すが、組み立てた説明には機材だけを足す
-    // （既存のテストがこの重複を見つけた）。
-    const camera = dedupeCameraName(photo.exif?.camera);
-    const withFacts = (base: string, extra: (string | undefined)[]) => {
-        const facts = extra.filter(Boolean).join(" / ");
-        return facts && base.length <= 80 ? `${base}（${facts}）` : base;
-    };
+    // **同じ言葉を二度書かない**（説明に名前・市区町村が入っていれば足さない）。
+    // 組み立てた説明（「ひろめ市場（高知市）で撮影した風景の写真。」）は撮影地を含むので何も足さない
+    const withFacts = (base: string, extra: string) =>
+        extra && base.length <= 80 ? `${base}（${extra}）` : base;
 
-    // **書かれた説明に既に撮影地が入っていたら足さない。**
-    // 実データ2枚で「北海道にも春が訪れ…（**北海道** / SONY ILCE-7M3）」
-    // 「**大阪**府万博にて…（**大阪** / …）」になっていた。
-    // 組み立て文の重複だけ塞いで、こちら側は素通りしていた
     const description = (ownDescription
-        && withFacts(ownDescription, [ownDescription.includes(place) ? undefined : place, camera]))
-        || (place || year ? withFacts(`${where}${when}撮影した${what}`, [camera]) : "")
-        || (categoryText ? withFacts(`${categoryText}の写真。`, [camera]) : "")
+        && withFacts(ownDescription, descriptionPlaceTail(ownDescription, mp)))
+        || (place || year ? `${where}${when}撮影した${what}` : "")
+        || (categoryText ? `${categoryText}の写真。` : "")
         || siteConfig.description;
     
     // 出すURLはサイトのドメインに揃える（`publicImageUrl`）。同じ配信の

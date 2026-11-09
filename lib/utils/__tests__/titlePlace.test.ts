@@ -62,11 +62,12 @@ describe("画像の alt", () => {
         expect(photoAltText(P({ alt: { ja: "本人の説明" }, title: { ja: "題" }, location: "場所" }), "ja")).toBe("本人の説明");
     });
 
-    // **決め方は1か所に置く。** ここが自前の分岐に戻ると、また片方だけずれる
-    it("alt も写真ページの題も、同じ関数を通している", () => {
-        for (const rel of ["lib/utils/photoAlt.ts", "app/photo/[id]/page.tsx"]) {
-            const src = readFileSync(join(process.cwd(), rel), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
-            expect(src.includes("titleWithPlace"), `${rel} が titleWithPlace を通っていない`).toBe(true);
-        }
+    // **決め方は1か所に置く。** ここが自前の分岐に戻ると、また片方だけずれる。
+    // 2026-11-09: 写真ページの `<title>` は住所の全文を出さない形（`metaPlace.ts` の `titlePlaceTail`）に替えた。
+    // 画像の alt は今までどおり `titleWithPlace`（alt は検索結果の題ではないので、この回は触らない）
+    it("alt は titleWithPlace、写真ページの題は metaPlace の決め方を通している", () => {
+        const strip = (rel: string) => readFileSync(join(process.cwd(), rel), "utf8").replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+        expect(strip("lib/utils/photoAlt.ts").includes("titleWithPlace"), "photoAlt.ts が titleWithPlace を通っていない").toBe(true);
+        expect(strip("app/photo/[id]/page.tsx").includes("titlePlaceTail"), "写真ページが titlePlaceTail を通っていない").toBe(true);
     });
 });

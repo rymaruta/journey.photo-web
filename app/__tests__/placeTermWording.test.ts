@@ -12,12 +12,14 @@ import { join, relative } from "node:path";
  * 「撮影地ガイド」「注目スポット」「この場所」「ガイドを見る」「このスポット」は画面の言葉に使わない。
  * 2026-10-30（束 0a）: マップの PC の一覧に「公式撮影地ガイド」と出ていた。
  *
- * 注記（コメント）は見ない。免除は検索の説明文（`spotPageMeta.ts`）だけ——
- * 画面ではなく検索結果に出る文で、「撮影地ガイド」は検索語として残す（「撮りどき」と同じ扱い・2026-10-22 owner）
+ * 注記（コメント）は見ない。
+ * **免除は無くした**（2026-11-09・Web 入口ページ監査の案A）。以前は検索の説明文（`spotPageMeta.ts`）だけを
+ * 「検索語として残す」と免除していたが、説明文の頭を「撮影スポット」に替えた（title は元から「の写真・撮影スポット」）。
+ * 以後は説明文にも「撮影地ガイド」を書かない
  */
 const ROOT = process.cwd();
 const REMOVED = ["撮影地ガイド", "撮影地のガイド", "注目スポット", "この場所", "ガイドを見る", "このスポット", "スポットのガイド"];
-const EXEMPT_FILES = new Set(["lib/data/spotPageMeta.ts"]);
+const EXEMPT_FILES = new Set<string>();
 
 function walk(dir: string, out: string[] = []): string[] {
     for (const name of readdirSync(dir)) {
@@ -66,7 +68,8 @@ describe("場所の呼び名（画面の言葉）", () => {
         expect(readFileSync(join(ROOT, "app/map/MapPhotoSheet.tsx"), "utf8")).toContain('"撮影地を見る"');
     });
 
-    it("免除の文書が実在する（古くなった免除を残さない）", () => {
-        for (const f of EXEMPT_FILES) expect(readFileSync(join(ROOT, f), "utf8")).toContain("撮影地ガイド");
+    it("免除は無い（検索の説明文も「撮影地ガイド」を使わない）", () => {
+        expect([...EXEMPT_FILES]).toEqual([]);
+        expect(readFileSync(join(ROOT, "lib/data/spotPageMeta.ts"), "utf8")).not.toMatch(/`[^`\n]*撮影地ガイド/);
     });
 });

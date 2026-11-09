@@ -104,7 +104,7 @@ describe("スポットのページの OGP 画像", () => {
         // 台帳の座標（北緯34°・東経134°・香川県）。2026-10-22: 押す理由（ページに在るもの・計算の要約）を頭に、
         // 紹介文（Wikipedia 由来）は最後（`spotPageDescription`）
         // 写真が1枚も無いスポットなので「写真」と名乗らない
-        expect(m.description).toBe("skyの撮影地ガイド。月ごとの日の出・日の入り・ゴールデンアワー。"
+        expect(m.description).toBe("skyの撮影スポット。月ごとの日の出・日の入り・ゴールデンアワー。"
             + `日の入りは6月が西北西寄り、12月が西南西寄り。天の川の中心は2〜10月の夜。${summary}`);
         expect((m.openGraph as { description?: string }).description).toBe(m.description);
     });
