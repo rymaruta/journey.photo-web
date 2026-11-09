@@ -543,6 +543,17 @@ functions:
 
   createStory:
     handler: src/stories.createStory
+    # メンションの通知（`storymention`）を積む。**端末への送信は `notify.ts` の
+    # `PUSH_READY_TYPES` に入れるまで止めてある**（古いアプリが鍵の文字をそのまま出すため）。
+    # 鍵は入れる日に配り忘れないよう、今から配る（`apnsKeyScope.test.ts` が見張る）
+    environment:
+      # **プッシュの鍵は「送る関数」にだけ配る**（provider に置かない・IAM-2。`postStoryReply` と同じ）。
+      # **未設定でも本筋は通る**（通知は積まれ、端末に飛ばないだけ）
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
+      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
+      APNS_TOPIC: ${param:apnsTopic, ''}
+      APNS_HOST: ${param:apnsHost, ''}
     events:
       - httpApi:
           path: /stories
@@ -1259,6 +1270,48 @@ functions:
     events:
       - httpApi:
           path: /stories/{id}/vote
+          method: POST
+          authorizer:
+            name: cognitoAuthorizer
+
+  # 質問スタンプへの答え（札 #505）。答えは**投稿者だけ**が読める
+  # （`GET` は投稿者以外に 403）。書き込みの口は `PublicReadRole` には載せない。
+  # 答えは票の文書（`storyvotes#<id>`）の `answers` 列に置くので、
+  # 新しいテーブルも GSI も要らない（`storyAnswers.ts` の節）。
+  # `TransactWrite`（行の ConditionCheck）は `voteStory` と同じ共有ロールが持つ
+  answerStory:
+    handler: src/storyAnswers.answerStory
+    timeout: 15
+    environment:
+      # **プッシュの鍵は「送る関数」にだけ配る**（provider に置かない・IAM-2。`postStoryReply` と同じ）。
+      # **未設定でも本筋は通る**（通知は積まれ、端末に飛ばないだけ）
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
+      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
+      APNS_TOPIC: ${param:apnsTopic, ''}
+      APNS_HOST: ${param:apnsHost, ''}
+    events:
+      - httpApi:
+          path: /stories/{id}/answers
+          method: POST
+          authorizer:
+            name: cognitoAuthorizer
+
+  getStoryAnswers:
+    handler: src/storyAnswers.getStoryAnswers
+    events:
+      - httpApi:
+          path: /stories/{id}/answers
+          method: GET
+          authorizer:
+            name: cognitoAuthorizer
+
+  # 答え1件の通報（投稿者だけ）。答えの全文を通報の行に写して残す
+  reportStoryAnswer:
+    handler: src/storyAnswers.reportStoryAnswer
+    events:
+      - httpApi:
+          path: /stories/{id}/answers/{answerId}/report
           method: POST
           authorizer:
             name: cognitoAuthorizer
