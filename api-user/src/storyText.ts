@@ -250,6 +250,49 @@ export type StoryVoteItem = StoryItemBase & {
 };
 
 /**
+ * メンション（@ユーザー）。**持つのは相手の `userId` だけ**——名前は
+ * 投稿のときにサーバーが引いて `name` に控える（クライアントの申告を
+ * 信用すると、他人の名前を騙った札を写真の上に置ける）。
+ *
+ * `sanitizeStoryTexts` は形だけ見る（同期・純粋）。**ブロックの関係・実在・
+ * 退会は `createStory` が非同期で見て**、落とすか名前を付ける。
+ */
+export type StoryMentionItem = StoryItemBase & {
+    kind: "mention";
+    userId: string;
+    /** サーバーが引いた表示名の控え（受け取っても捨てる） */
+    name?: string;
+};
+
+/**
+ * 質問スタンプ（「質問してね」）。**問いの文言だけを持つ。** 答えは
+ * ストーリーの行にも `texts` にも入れず、**ストーリーごとに1つの文書**
+ * （`storyanswers#<storyId>`・`api-user/src/storyAnswers.ts`）に置く
+ * ——答えは**投稿者だけが読める**もので、`getStories` の応答に混ざる
+ * 形（投票の `counts` のように見る人で出し分ける）にしない。
+ * **1投稿に1つだけ。**
+ */
+export type StoryQuestionItem = StoryItemBase & {
+    kind: "question";
+    prompt: string;
+};
+
+/**
+ * 撮影スポットへのリンク。**内部リンクのみ**（外部 URL は受けない）。
+ *
+ * 持つのは撮影スポットの**スラッグ**（`/location/<スラッグ>` の末尾）で、
+ * URL は持たない——開く先を決めるのは**見る側のアプリ**（自分のサイトの
+ * 経路だけを組み立てる）。URL の形の文字列が入る道を作らないので、
+ * 「ストーリーに外部サイトのリンクを仕込む」ことができない。
+ * `label` は札に出す名前（URL のように見えるものは落とす）。**1投稿に1つだけ。**
+ */
+export type StorySpotLinkItem = StoryItemBase & {
+    kind: "spotLink";
+    slug: string;
+    label: string;
+};
+
+/**
  * 写真の上に置いたもの。**文字・スタンプ・投票を1つの並びで持つ。**
  *
  * 別の配列に分けると、**重なり順が決まらない**——「文字の上にスタンプ」
@@ -259,7 +302,7 @@ export type StoryVoteItem = StoryItemBase & {
  * 名前は `StoryText` のまま（保存されている属性名が `texts` で、
  * 画面もサーバーもこの名前で呼んでいる。改名は別の作業）。
  */
-export type StoryText = StoryTextItem | StoryStampItem | StoryVoteItem;
+export type StoryText = StoryTextItem | StoryStampItem | StoryVoteItem | StoryMentionItem | StoryQuestionItem | StorySpotLinkItem;
 
 /** その要素はスタンプか（**無い＝文字**で読む） */
 export function isStoryStamp(t: StoryText): t is StoryStampItem {
@@ -269,6 +312,21 @@ export function isStoryStamp(t: StoryText): t is StoryStampItem {
 /** その要素は投票か */
 export function isStoryVote(t: StoryText): t is StoryVoteItem {
     return t.kind === "vote";
+}
+
+/** その要素はメンションか */
+export function isStoryMention(t: StoryText): t is StoryMentionItem {
+    return t.kind === "mention";
+}
+
+/** その要素は質問スタンプか */
+export function isStoryQuestion(t: StoryText): t is StoryQuestionItem {
+    return t.kind === "question";
+}
+
+/** その要素は撮影スポットのリンクか */
+export function isStorySpotLink(t: StoryText): t is StorySpotLinkItem {
+    return t.kind === "spotLink";
 }
 
 /**
@@ -381,6 +439,47 @@ export const STORY_VOTE_QUESTION_MAX = 40;
 export const STORY_VOTE_OPTION_MAX = 12;
 
 /**
+ * 第2弾の種類の上限（2026-11-09 判断）。**全体の上限（`STORY_TEXTS_MAX`＝5）は
+ * 変えない**——画面が破綻しない数は種類が増えても同じで、上限が動くと
+ * 複製（`lib/utils/storyText.ts`）を使う作成画面との食い違いが増える。
+ *
+ *   - メンション: **3人まで**（同じ人は1回）。通知を撃てる数がそのまま
+ *     1投稿の上限になるので小さく切る（1日20投稿 × 3 = 60通まで）
+ *   - 質問: 1つ（投票と同じ理由。答えの行き先がストーリー単位）
+ *   - 撮影スポットのリンク: 1つ
+ *   - 質問の問い: 60字（投票の問い 40字より長いのは、「おすすめの撮影地は？」
+ *     のような文を入れるため）。答えは 200字（返信と同じ）
+ *   - リンクの札: 30字。スラッグは 200バイト（`savedSpots.ts` と同じ単位）
+ */
+export const STORY_MENTIONS_MAX = 3;
+export const STORY_QUESTION_PROMPT_MAX = 60;
+export const STORY_ANSWER_LEN_MAX = 200;
+export const STORY_SPOT_LABEL_MAX = 30;
+export const STORY_SPOT_SLUG_BYTES_MAX = 200;
+
+/** Cognito の sub の形（`closeFriends.ts` の `isUserId` と同じ線。写し） */
+const USER_ID_RE = /^[A-Za-z0-9-_:]{8,128}$/;
+
+/**
+ * 撮影スポットのスラッグとして受けてよい形。**URL にならない形だけ**通す:
+ * 区切り（`/ \ ? # & % @ :`）・空白・引用符・括弧類を含むものは落とす
+ * （`https://…` も `//host` も `javascript:` も、この線のどれかに掛かる）。
+ * 日本語のスラッグ（`slugify` が作る）は通る。
+ */
+export function isSafeSpotSlug(v: unknown): v is string {
+    if (typeof v !== "string" || v === "" || v === "." || v === "..") return false;
+    if (new TextEncoder().encode(v).length > STORY_SPOT_SLUG_BYTES_MAX) return false;
+    return !/[\s/\\?#&%@:<>"'`()\[\]{}]/.test(v);
+}
+
+/** 札の文字が URL に見えるか（外部リンクの偽装を落とす） */
+function looksLikeUrl(v: string): boolean {
+    return /(?:^|\s)(?:https?|ftp|javascript|data):/i.test(v)
+        || /www\./i.test(v)
+        || /[a-z0-9-]+\.(?:com|net|org|jp|io|co|me|app|dev|xyz|info|biz)(?:\/|\b)/i.test(v);
+}
+
+/**
  * 新しく置く投票の既定。**問いは台帳の文言そのもの**
  * （「この景色、好き？」）。2択の既定は台帳に無いので判断——
  * 違う想定なら差し替える（PR 本文に明記）。
@@ -438,6 +537,11 @@ export type StoryVoteState = {
  * **投票は1つだけ・欠けたら落とす。** 問いか選択肢が空の投票は成立しない
  * （既定で埋めない——サーバーが文言を作ることになる）。2つ目以降は
  * 落とす（票はストーリー単位で数えるので、行き先が決まらない）。
+ *
+ * **第2弾の3種（2026-11-09）**: メンション・質問・撮影スポットのリンクも
+ * 同じ作法（知らない鍵・欠けは落とす。種類ごとの上限は `STORY_MENTIONS_MAX` ほか）。
+ * **古いアプリは知らない `kind` を落とす**ので、足しても古い画面は壊れない
+ * （落ちるだけ。サーバーも画面も「知らない kind は文字に化けさせない」で揃っている）。
  */
 export function sanitizeStoryTexts(input: unknown): StoryText[] | undefined {
     if (!Array.isArray(input)) return undefined;
@@ -445,6 +549,9 @@ export function sanitizeStoryTexts(input: unknown): StoryText[] | undefined {
         typeof v === "string" && (keys as readonly string[]).includes(v) ? (v as T) : fallback;
     const out: StoryText[] = [];
     let seenVote = false;
+    let seenQuestion = false;
+    let seenSpotLink = false;
+    const mentioned = new Set<string>();
     for (const raw of input) {
         if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue;
         const o = raw as Record<string, unknown>;
@@ -480,6 +587,29 @@ export function sanitizeStoryTexts(input: unknown): StoryText[] | undefined {
             if (!isCompleteStoryVote({ question, options: [a, b] })) continue;
             seenVote = true;
             out.push({ kind: "vote", question, options: [a, b], ...common });
+        } else if (o.kind === "mention") {
+            // **形だけ見る。** 実在・ブロック・名前は `createStory` が引く。
+            // 同じ人は1回・上限は `STORY_MENTIONS_MAX`
+            if (typeof o.userId !== "string" || !USER_ID_RE.test(o.userId)) continue;
+            if (mentioned.has(o.userId) || mentioned.size >= STORY_MENTIONS_MAX) continue;
+            mentioned.add(o.userId);
+            out.push({ kind: "mention", userId: o.userId, ...common });
+        } else if (o.kind === "question") {
+            if (seenQuestion) continue;
+            const prompt = (typeof o.prompt === "string" ? o.prompt : "").slice(0, STORY_QUESTION_PROMPT_MAX).trim();
+            if (!prompt) continue;
+            seenQuestion = true;
+            out.push({ kind: "question", prompt, ...common });
+        } else if (o.kind === "spotLink") {
+            // **外部 URL は落とす。** スラッグが URL にならない形で、札の文字も
+            // URL に見えないものだけ。落とすだけで直さない（`https://x` を
+            // 切り出して通すと、意図しないスポットに化ける）
+            if (seenSpotLink) continue;
+            if (!isSafeSpotSlug(o.slug)) continue;
+            const label = (typeof o.label === "string" ? o.label : "").slice(0, STORY_SPOT_LABEL_MAX).trim();
+            if (!label || looksLikeUrl(label)) continue;
+            seenSpotLink = true;
+            out.push({ kind: "spotLink", slug: o.slug, label, ...common });
         } else if (o.kind === undefined || o.kind === "text") {
             const text = (typeof o.text === "string" ? o.text : "").slice(0, STORY_TEXT_LEN_MAX).trim();
             if (!text) continue;

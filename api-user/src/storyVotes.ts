@@ -4,6 +4,7 @@ import { ddb, PHOTOS_TABLE } from "./dynamodb";
 import { JSON_HEADERS, getUserId, jsonError } from "./http";
 import { isBlocked } from "./blockCheck";
 import { isFollowing } from "./followCheck";
+import { canViewStoryAudience } from "./storyAudience";
 import { isStoryVote, type StoryText, type StoryVoteChoice, type StoryVoteState } from "./storyText";
 import { assertLiveCaller } from "./liveCaller";
 
@@ -128,6 +129,8 @@ export async function storyVoteState(storyId: string, uid: string, isOwner: bool
 type StoryItem = {
     story?: boolean; userId?: string; uploadedBy?: string;
     expiresAt?: string; texts?: unknown;
+    /** 見せる範囲。無い＝全員（`storyAudience.ts`） */
+    audience?: unknown;
 };
 
 async function loadStory(storyId: string): Promise<StoryItem | null> {
@@ -181,6 +184,8 @@ export const voteStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
             && !await isFollowing(ownerId, uid)) {
             return jsonError(404, "ストーリーが見つかりません");
         }
+        // 🔴 「親しい友達だけ」は名簿に居ない人には 404（`postStoryReply` と同じ門）
+        if (!await canViewStoryAudience(story, uid)) return jsonError(404, "ストーリーが見つかりません");
         // 投票スタンプの無いストーリーには入れられない（票の行き先が無い）。
         // 400 で理由を言う——投稿の中身の話で、相手の設定ではない
         if (!storyHasVote(story.texts)) return jsonError(400, "この投稿に投票はありません");
