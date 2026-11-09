@@ -753,9 +753,9 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
             data-testid="home-japan-map"
             onKeyDown={onSectionKeyDown}
         >
-            <SectionHead id={HEADING_ID} eyebrow="PHOTO SPOTS" title="撮影スポットを地図から探す" className="mb-0" testId="home-japan-map-head" />
+            <SectionHead id={HEADING_ID} eyebrow="日本地図" title="撮影スポットを地図から探す" className="mb-0" testId="home-japan-map-head" />
             <p className="m-0 mt-2 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
-                地方を選んで拡大し、県を選ぶと、その県の撮影スポットの一覧が出ます。数字は掲載している件数です。
+                地方を選んで拡大し、県を選ぶと、撮影スポットが下の枠に出ます。「すべて見る」でその県の一覧へ進みます。数字は掲載している件数です。
             </p>
             <Link href={`#${SPOT_LIST_ID}`} className="sr-only focus:not-sr-only focus:inline-flex focus:items-center focus:min-h-[44px] focus:text-text-2 focus:underline focus:underline-offset-4 jm-skip" data-testid="home-japan-map-skip">
                 地図を飛ばして文字の一覧へ

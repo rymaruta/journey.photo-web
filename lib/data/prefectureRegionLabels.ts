@@ -4,6 +4,7 @@
 //
 // 出どころ: デザイナーの提案書「日本地図の県の選び方」v4（2026-11-09）の試作データ。各県のいちばん大きい輪の中の、字が収まる点を
 // 手計算で決めたもの（東京・香川など小さい県は 14px の字が県の中に収まる地方の拡大でだけ出す）。
+// 青森・山梨・大阪・長崎の 4 点は、試作の点が実形（EPS 0.1）の輪郭の 0.5〜1.2 単位外だったので、形の中でいちばん輪郭から遠い所へ置き直した（2026-11-09）。
 // 県の形（`prefectureShapes.ts`）を作り直したら `lib/utils/__tests__/japanMapRegions.test.ts` が「点が県の中にある」ことを確かめる。
 // 沖縄は枠の中の独立した面なので置かない（全国の画面の「沖縄県」は `OKINAWA_CENTER`）。
 //
@@ -15,7 +16,7 @@ export type RegionLabel = readonly [slug: string, text: string, dir: "h" | "v", 
 
 export const REGION_LABELS: readonly RegionLabel[] = [
     ["hokkaido", "北海道", "h", 290.5, 62.0],
-    ["aomori", "青森", "h", 253.8, 119.7],
+    ["aomori", "青森", "h", 262.3, 126.2],
     ["iwate", "岩手", "h", 270.5, 156.6],
     ["miyagi", "宮城", "h", 262.4, 182.4],
     ["akita", "秋田", "h", 245.6, 147.3],
@@ -32,7 +33,7 @@ export const REGION_LABELS: readonly RegionLabel[] = [
     ["toyama", "富山", "v", 180.2, 234.3],
     ["ishikawa", "石川", "v", 173.1, 220.6],
     ["fukui", "福井", "h", 155.0, 252.2],
-    ["yamanashi", "山梨", "v", 208.0, 262.2],
+    ["yamanashi", "山梨", "v", 211.5, 255.7],
     ["nagano", "長野", "h", 198.4, 241.3],
     ["gifu", "岐阜", "h", 176.1, 251.1],
     ["shizuoka", "静岡", "h", 206.2, 271.5],
@@ -40,7 +41,7 @@ export const REGION_LABELS: readonly RegionLabel[] = [
     ["mie", "三重", "h", 165.2, 283.4],
     ["shiga", "滋賀", "v", 154.9, 262.2],
     ["kyoto", "京都", "h", 142.2, 264.6],
-    ["osaka", "大阪", "v", 142.3, 281.3],
+    ["osaka", "大阪", "v", 144.6, 285.6],
     ["hyogo", "兵庫", "h", 131.1, 270.4],
     ["nara", "奈良", "h", 152.5, 289.9],
     ["wakayama", "和歌山", "v", 143.6, 302.2],
@@ -55,7 +56,7 @@ export const REGION_LABELS: readonly RegionLabel[] = [
     ["kochi", "高知", "h", 97.6, 314.1],
     ["fukuoka", "福岡", "h", 41.3, 308.9],
     ["saga", "佐賀", "h", 31.1, 316.5],
-    ["nagasaki", "長崎", "h", 26.7, 324.6],
+    ["nagasaki", "長崎", "h", 30.2, 325.6],
     ["kumamoto", "熊本", "h", 44.5, 332.4],
     ["oita", "大分", "h", 61.8, 318.8],
     ["miyazaki", "宮崎", "h", 56.0, 343.2],

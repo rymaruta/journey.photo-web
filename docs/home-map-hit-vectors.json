@@ -1,0 +1,1204 @@
+{
+ "note": "ホームの日本地図の当たり判定の固定ベクトル（docs/home-map-hit-vectors.md）。x,y は viewBox の単位（幅 360）、s は画面の px / 単位。",
+ "cap": 16,
+ "stick": 6,
+ "vectors": [
+  {
+   "id": "中心・hokkaido・地方の画面",
+   "stage": "北海道",
+   "s": 0.994444,
+   "x": 290.5,
+   "y": 62,
+   "prev": null,
+   "expect": "pref:hokkaido"
+  },
+  {
+   "id": "中心・hokkaido・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 290.5,
+   "y": 62,
+   "prev": null,
+   "expect": "pref:hokkaido"
+  },
+  {
+   "id": "中心・aomori・地方の画面",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 262.3,
+   "y": 126.2,
+   "prev": null,
+   "expect": "pref:aomori"
+  },
+  {
+   "id": "中心・aomori・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 262.3,
+   "y": 126.2,
+   "prev": null,
+   "expect": "region:東北"
+  },
+  {
+   "id": "中心・iwate・地方の画面",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 270.5,
+   "y": 156.6,
+   "prev": null,
+   "expect": "pref:iwate"
+  },
+  {
+   "id": "中心・iwate・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 270.5,
+   "y": 156.6,
+   "prev": null,
+   "expect": "region:東北"
+  },
+  {
+   "id": "中心・miyagi・地方の画面",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 262.4,
+   "y": 182.4,
+   "prev": null,
+   "expect": "pref:miyagi"
+  },
+  {
+   "id": "中心・miyagi・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 262.4,
+   "y": 182.4,
+   "prev": null,
+   "expect": "region:東北"
+  },
+  {
+   "id": "中心・akita・地方の画面",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 245.6,
+   "y": 147.3,
+   "prev": null,
+   "expect": "pref:akita"
+  },
+  {
+   "id": "中心・akita・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 245.6,
+   "y": 147.3,
+   "prev": null,
+   "expect": "region:東北"
+  },
+  {
+   "id": "中心・yamagata・地方の画面",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 239.3,
+   "y": 184.7,
+   "prev": null,
+   "expect": "pref:yamagata"
+  },
+  {
+   "id": "中心・yamagata・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 239.3,
+   "y": 184.7,
+   "prev": null,
+   "expect": "region:東北"
+  },
+  {
+   "id": "中心・fukushima・地方の画面",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 242.3,
+   "y": 208.8,
+   "prev": null,
+   "expect": "pref:fukushima"
+  },
+  {
+   "id": "中心・fukushima・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 242.3,
+   "y": 208.8,
+   "prev": null,
+   "expect": "region:東北"
+  },
+  {
+   "id": "中心・ibaraki・地方の画面",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 244.7,
+   "y": 236.4,
+   "prev": null,
+   "expect": "pref:ibaraki"
+  },
+  {
+   "id": "中心・ibaraki・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 244.7,
+   "y": 236.4,
+   "prev": null,
+   "expect": "region:関東"
+  },
+  {
+   "id": "中心・tochigi・地方の画面",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 232.6,
+   "y": 229.3,
+   "prev": null,
+   "expect": "pref:tochigi"
+  },
+  {
+   "id": "中心・tochigi・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 232.6,
+   "y": 229.3,
+   "prev": null,
+   "expect": "region:関東"
+  },
+  {
+   "id": "中心・gunma・地方の画面",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 217.2,
+   "y": 232.7,
+   "prev": null,
+   "expect": "pref:gunma"
+  },
+  {
+   "id": "中心・gunma・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 217.2,
+   "y": 232.7,
+   "prev": null,
+   "expect": "region:関東"
+  },
+  {
+   "id": "中心・saitama・地方の画面",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 224.2,
+   "y": 246.2,
+   "prev": null,
+   "expect": "pref:saitama"
+  },
+  {
+   "id": "中心・saitama・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 224.2,
+   "y": 246.2,
+   "prev": null,
+   "expect": "region:関東"
+  },
+  {
+   "id": "中心・chiba・地方の画面",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 240.3,
+   "y": 260.7,
+   "prev": null,
+   "expect": "pref:chiba"
+  },
+  {
+   "id": "中心・chiba・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 240.3,
+   "y": 260.7,
+   "prev": null,
+   "expect": "region:関東"
+  },
+  {
+   "id": "中心・tokyo・地方の画面",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 228.5,
+   "y": 255,
+   "prev": null,
+   "expect": "pref:tokyo"
+  },
+  {
+   "id": "中心・tokyo・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 228.5,
+   "y": 255,
+   "prev": null,
+   "expect": "region:関東"
+  },
+  {
+   "id": "中心・kanagawa・地方の画面",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 226.5,
+   "y": 262.8,
+   "prev": null,
+   "expect": "pref:kanagawa"
+  },
+  {
+   "id": "中心・kanagawa・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 226.5,
+   "y": 262.8,
+   "prev": null,
+   "expect": "region:関東"
+  },
+  {
+   "id": "中心・niigata・地方の画面",
+   "stage": "中部",
+   "s": 3.630832,
+   "x": 215.8,
+   "y": 209.9,
+   "prev": null,
+   "expect": "pref:niigata"
+  },
+  {
+   "id": "中心・niigata・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 215.8,
+   "y": 209.9,
+   "prev": null,
+   "expect": "region:中部"
+  },
+  {
+   "id": "中心・toyama・地方の画面",
+   "stage": "中部",
+   "s": 3.630832,
+   "x": 180.2,
+   "y": 234.3,
+   "prev": null,
+   "expect": "pref:toyama"
+  },
+  {
+   "id": "中心・toyama・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 180.2,
+   "y": 234.3,
+   "prev": null,
+   "expect": "region:中部"
+  },
+  {
+   "id": "中心・ishikawa・地方の画面",
+   "stage": "中部",
+   "s": 3.630832,
+   "x": 173.1,
+   "y": 220.6,
+   "prev": null,
+   "expect": "pref:ishikawa"
+  },
+  {
+   "id": "中心・ishikawa・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 173.1,
+   "y": 220.6,
+   "prev": null,
+   "expect": "region:中部"
+  },
+  {
+   "id": "中心・fukui・地方の画面",
+   "stage": "中部",
+   "s": 3.630832,
+   "x": 155,
+   "y": 252.2,
+   "prev": null,
+   "expect": "pref:fukui"
+  },
+  {
+   "id": "中心・fukui・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 155,
+   "y": 252.2,
+   "prev": null,
+   "expect": "region:中部"
+  },
+  {
+   "id": "中心・yamanashi・地方の画面",
+   "stage": "中部",
+   "s": 3.630832,
+   "x": 211.5,
+   "y": 255.7,
+   "prev": null,
+   "expect": "pref:yamanashi"
+  },
+  {
+   "id": "中心・yamanashi・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 211.5,
+   "y": 255.7,
+   "prev": null,
+   "expect": "region:中部"
+  },
+  {
+   "id": "中心・nagano・地方の画面",
+   "stage": "中部",
+   "s": 3.630832,
+   "x": 198.4,
+   "y": 241.3,
+   "prev": null,
+   "expect": "pref:nagano"
+  },
+  {
+   "id": "中心・nagano・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 198.4,
+   "y": 241.3,
+   "prev": null,
+   "expect": "region:中部"
+  },
+  {
+   "id": "中心・gifu・地方の画面",
+   "stage": "中部",
+   "s": 3.630832,
+   "x": 176.1,
+   "y": 251.1,
+   "prev": null,
+   "expect": "pref:gifu"
+  },
+  {
+   "id": "中心・gifu・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 176.1,
+   "y": 251.1,
+   "prev": null,
+   "expect": "region:中部"
+  },
+  {
+   "id": "中心・shizuoka・地方の画面",
+   "stage": "中部",
+   "s": 3.630832,
+   "x": 206.2,
+   "y": 271.5,
+   "prev": null,
+   "expect": "pref:shizuoka"
+  },
+  {
+   "id": "中心・shizuoka・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 206.2,
+   "y": 271.5,
+   "prev": null,
+   "expect": "region:中部"
+  },
+  {
+   "id": "中心・aichi・地方の画面",
+   "stage": "中部",
+   "s": 3.630832,
+   "x": 178.4,
+   "y": 273.8,
+   "prev": null,
+   "expect": "pref:aichi"
+  },
+  {
+   "id": "中心・aichi・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 178.4,
+   "y": 273.8,
+   "prev": null,
+   "expect": "region:中部"
+  },
+  {
+   "id": "中心・mie・地方の画面",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 165.2,
+   "y": 283.4,
+   "prev": null,
+   "expect": "pref:mie"
+  },
+  {
+   "id": "中心・mie・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 165.2,
+   "y": 283.4,
+   "prev": null,
+   "expect": "region:近畿"
+  },
+  {
+   "id": "中心・shiga・地方の画面",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 154.9,
+   "y": 262.2,
+   "prev": null,
+   "expect": "pref:shiga"
+  },
+  {
+   "id": "中心・shiga・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 154.9,
+   "y": 262.2,
+   "prev": null,
+   "expect": "region:近畿"
+  },
+  {
+   "id": "中心・kyoto・地方の画面",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 142.2,
+   "y": 264.6,
+   "prev": null,
+   "expect": "pref:kyoto"
+  },
+  {
+   "id": "中心・kyoto・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 142.2,
+   "y": 264.6,
+   "prev": null,
+   "expect": "region:近畿"
+  },
+  {
+   "id": "中心・osaka・地方の画面",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 144.6,
+   "y": 285.6,
+   "prev": null,
+   "expect": "pref:osaka"
+  },
+  {
+   "id": "中心・osaka・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 144.6,
+   "y": 285.6,
+   "prev": null,
+   "expect": "region:近畿"
+  },
+  {
+   "id": "中心・hyogo・地方の画面",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 131.1,
+   "y": 270.4,
+   "prev": null,
+   "expect": "pref:hyogo"
+  },
+  {
+   "id": "中心・hyogo・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 131.1,
+   "y": 270.4,
+   "prev": null,
+   "expect": "region:近畿"
+  },
+  {
+   "id": "中心・nara・地方の画面",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 152.5,
+   "y": 289.9,
+   "prev": null,
+   "expect": "pref:nara"
+  },
+  {
+   "id": "中心・nara・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 152.5,
+   "y": 289.9,
+   "prev": null,
+   "expect": "region:近畿"
+  },
+  {
+   "id": "中心・wakayama・地方の画面",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 143.6,
+   "y": 302.2,
+   "prev": null,
+   "expect": "pref:wakayama"
+  },
+  {
+   "id": "中心・wakayama・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 143.6,
+   "y": 302.2,
+   "prev": null,
+   "expect": "region:近畿"
+  },
+  {
+   "id": "中心・tottori・地方の画面",
+   "stage": "中国",
+   "s": 4.355231,
+   "x": 107.2,
+   "y": 263.1,
+   "prev": null,
+   "expect": "pref:tottori"
+  },
+  {
+   "id": "中心・tottori・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 107.2,
+   "y": 263.1,
+   "prev": null,
+   "expect": "region:中国"
+  },
+  {
+   "id": "中心・shimane・地方の画面",
+   "stage": "中国",
+   "s": 4.355231,
+   "x": 81.8,
+   "y": 269.8,
+   "prev": null,
+   "expect": "pref:shimane"
+  },
+  {
+   "id": "中心・shimane・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 81.8,
+   "y": 269.8,
+   "prev": null,
+   "expect": "region:中国"
+  },
+  {
+   "id": "中心・okayama・地方の画面",
+   "stage": "中国",
+   "s": 4.355231,
+   "x": 110.4,
+   "y": 277,
+   "prev": null,
+   "expect": "pref:okayama"
+  },
+  {
+   "id": "中心・okayama・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 110.4,
+   "y": 277,
+   "prev": null,
+   "expect": "region:中国"
+  },
+  {
+   "id": "中心・hiroshima・地方の画面",
+   "stage": "中国",
+   "s": 4.355231,
+   "x": 88.8,
+   "y": 284.9,
+   "prev": null,
+   "expect": "pref:hiroshima"
+  },
+  {
+   "id": "中心・hiroshima・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 88.8,
+   "y": 284.9,
+   "prev": null,
+   "expect": "region:中国"
+  },
+  {
+   "id": "中心・yamaguchi・地方の画面",
+   "stage": "中国",
+   "s": 4.355231,
+   "x": 61,
+   "y": 291.6,
+   "prev": null,
+   "expect": "pref:yamaguchi"
+  },
+  {
+   "id": "中心・yamaguchi・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 61,
+   "y": 291.6,
+   "prev": null,
+   "expect": "region:中国"
+  },
+  {
+   "id": "中心・tokushima・地方の画面",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 119.8,
+   "y": 299.6,
+   "prev": null,
+   "expect": "pref:tokushima"
+  },
+  {
+   "id": "中心・tokushima・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 119.8,
+   "y": 299.6,
+   "prev": null,
+   "expect": "region:四国"
+  },
+  {
+   "id": "中心・kagawa・地方の画面",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 112.8,
+   "y": 291.8,
+   "prev": null,
+   "expect": "pref:kagawa"
+  },
+  {
+   "id": "中心・kagawa・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 112.8,
+   "y": 291.8,
+   "prev": null,
+   "expect": "region:四国"
+  },
+  {
+   "id": "中心・ehime・地方の画面",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 89,
+   "y": 308.4,
+   "prev": null,
+   "expect": "pref:ehime"
+  },
+  {
+   "id": "中心・ehime・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 89,
+   "y": 308.4,
+   "prev": null,
+   "expect": "region:四国"
+  },
+  {
+   "id": "中心・kochi・地方の画面",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 97.6,
+   "y": 314.1,
+   "prev": null,
+   "expect": "pref:kochi"
+  },
+  {
+   "id": "中心・kochi・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 97.6,
+   "y": 314.1,
+   "prev": null,
+   "expect": "region:四国"
+  },
+  {
+   "id": "中心・fukuoka・地方の画面",
+   "stage": "九州",
+   "s": 5.566478,
+   "x": 41.3,
+   "y": 308.9,
+   "prev": null,
+   "expect": "pref:fukuoka"
+  },
+  {
+   "id": "中心・fukuoka・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 41.3,
+   "y": 308.9,
+   "prev": null,
+   "expect": "region:九州"
+  },
+  {
+   "id": "中心・saga・地方の画面",
+   "stage": "九州",
+   "s": 5.566478,
+   "x": 31.1,
+   "y": 316.5,
+   "prev": null,
+   "expect": "pref:saga"
+  },
+  {
+   "id": "中心・saga・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 31.1,
+   "y": 316.5,
+   "prev": null,
+   "expect": "region:九州"
+  },
+  {
+   "id": "中心・nagasaki・地方の画面",
+   "stage": "九州",
+   "s": 5.566478,
+   "x": 30.2,
+   "y": 325.6,
+   "prev": null,
+   "expect": "pref:nagasaki"
+  },
+  {
+   "id": "中心・nagasaki・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 30.2,
+   "y": 325.6,
+   "prev": null,
+   "expect": "region:九州"
+  },
+  {
+   "id": "中心・kumamoto・地方の画面",
+   "stage": "九州",
+   "s": 5.566478,
+   "x": 44.5,
+   "y": 332.4,
+   "prev": null,
+   "expect": "pref:kumamoto"
+  },
+  {
+   "id": "中心・kumamoto・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 44.5,
+   "y": 332.4,
+   "prev": null,
+   "expect": "region:九州"
+  },
+  {
+   "id": "中心・oita・地方の画面",
+   "stage": "九州",
+   "s": 5.566478,
+   "x": 61.8,
+   "y": 318.8,
+   "prev": null,
+   "expect": "pref:oita"
+  },
+  {
+   "id": "中心・oita・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 61.8,
+   "y": 318.8,
+   "prev": null,
+   "expect": "region:九州"
+  },
+  {
+   "id": "中心・miyazaki・地方の画面",
+   "stage": "九州",
+   "s": 5.566478,
+   "x": 56,
+   "y": 343.2,
+   "prev": null,
+   "expect": "pref:miyazaki"
+  },
+  {
+   "id": "中心・miyazaki・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 56,
+   "y": 343.2,
+   "prev": null,
+   "expect": "region:九州"
+  },
+  {
+   "id": "中心・kagoshima・地方の画面",
+   "stage": "九州",
+   "s": 5.566478,
+   "x": 41.4,
+   "y": 367.5,
+   "prev": null,
+   "expect": "pref:kagoshima"
+  },
+  {
+   "id": "中心・kagoshima・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 41.4,
+   "y": 367.5,
+   "prev": null,
+   "expect": "region:九州"
+  },
+  {
+   "id": "中心・okinawa・全国（枠の中心）",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 268.35,
+   "y": 400.9,
+   "prev": null,
+   "expect": "pref:okinawa"
+  },
+  {
+   "id": "東の端から 0px・hokkaido",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 360,
+   "y": 55.3,
+   "prev": null,
+   "expect": "pref:hokkaido"
+  },
+  {
+   "id": "東の端から 8px・hokkaido",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 368.04,
+   "y": 55.3,
+   "prev": null,
+   "expect": "pref:hokkaido"
+  },
+  {
+   "id": "東の端から 15.5px・hokkaido",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 375.59,
+   "y": 55.3,
+   "prev": null,
+   "expect": "pref:hokkaido"
+  },
+  {
+   "id": "東の端から 16.5px・hokkaido",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 376.59,
+   "y": 55.3,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "東の端から 30px・hokkaido",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 390.17,
+   "y": 55.3,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "北の端から 0px・aomori",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 257.4,
+   "y": 102.5,
+   "prev": null,
+   "expect": "pref:aomori"
+  },
+  {
+   "id": "北の端から 8px・aomori",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 257.4,
+   "y": 100.26,
+   "prev": null,
+   "expect": "pref:aomori"
+  },
+  {
+   "id": "北の端から 15.5px・aomori",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 257.4,
+   "y": 98.15,
+   "prev": null,
+   "expect": "pref:aomori"
+  },
+  {
+   "id": "北の端から 16.5px・aomori",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 257.4,
+   "y": 97.87,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "北の端から 30px・aomori",
+   "stage": "東北",
+   "s": 3.565485,
+   "x": 257.4,
+   "y": 94.09,
+   "prev": null,
+   "expect": "switch:hokkaido"
+  },
+  {
+   "id": "北の端から 0px・kagawa",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 120.5,
+   "y": 283.2,
+   "prev": null,
+   "expect": "pref:kagawa"
+  },
+  {
+   "id": "北の端から 8px・kagawa",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 120.5,
+   "y": 281.79,
+   "prev": null,
+   "expect": "pref:kagawa"
+  },
+  {
+   "id": "北の端から 15.5px・kagawa",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 120.5,
+   "y": 280.46,
+   "prev": null,
+   "expect": "pref:kagawa"
+  },
+  {
+   "id": "北の端から 16.5px・kagawa",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 120.5,
+   "y": 280.28,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "北の端から 30px・kagawa",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 120.5,
+   "y": 277.9,
+   "prev": null,
+   "expect": "switch:hyogo"
+  },
+  {
+   "id": "南の端から 0px・wakayama",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 149.6,
+   "y": 312.1,
+   "prev": null,
+   "expect": "pref:wakayama"
+  },
+  {
+   "id": "南の端から 8px・wakayama",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 149.6,
+   "y": 313.48,
+   "prev": null,
+   "expect": "pref:wakayama"
+  },
+  {
+   "id": "南の端から 15.5px・wakayama",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 149.6,
+   "y": 314.77,
+   "prev": null,
+   "expect": "pref:wakayama"
+  },
+  {
+   "id": "南の端から 16.5px・wakayama",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 149.6,
+   "y": 314.94,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "南の端から 30px・wakayama",
+   "stage": "近畿",
+   "s": 5.811688,
+   "x": 149.6,
+   "y": 317.26,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "南の端から 0px・kochi",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 92.5,
+   "y": 330.6,
+   "prev": null,
+   "expect": "pref:kochi"
+  },
+  {
+   "id": "南の端から 8px・kochi",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 92.5,
+   "y": 332.01,
+   "prev": null,
+   "expect": "pref:kochi"
+  },
+  {
+   "id": "南の端から 15.5px・kochi",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 92.5,
+   "y": 333.34,
+   "prev": null,
+   "expect": "pref:kochi"
+  },
+  {
+   "id": "南の端から 16.5px・kochi",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 92.5,
+   "y": 333.52,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "南の端から 30px・kochi",
+   "stage": "四国",
+   "s": 5.655608,
+   "x": 92.5,
+   "y": 335.9,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "東の端から 0px・chiba",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 256.6,
+   "y": 253.1,
+   "prev": null,
+   "expect": "pref:chiba"
+  },
+  {
+   "id": "東の端から 8px・chiba",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 257.9,
+   "y": 253.1,
+   "prev": null,
+   "expect": "pref:chiba"
+  },
+  {
+   "id": "東の端から 15.5px・chiba",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 259.12,
+   "y": 253.1,
+   "prev": null,
+   "expect": "pref:chiba"
+  },
+  {
+   "id": "東の端から 16.5px・chiba",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 259.29,
+   "y": 253.1,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "東の端から 30px・chiba",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 261.49,
+   "y": 253.1,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "沖縄の枠の右から 0px",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 356,
+   "y": 400.9,
+   "prev": null,
+   "expect": "pref:okinawa"
+  },
+  {
+   "id": "沖縄の枠の右から 15.5px",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 371.59,
+   "y": 400.9,
+   "prev": null,
+   "expect": "pref:okinawa"
+  },
+  {
+   "id": "沖縄の枠の右から 16.5px",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 372.59,
+   "y": 400.9,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "海・日本海の沖・全国",
+   "stage": "全国",
+   "s": 0.994444,
+   "x": 40,
+   "y": 100,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "海・太平洋の沖・関東",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 345,
+   "y": 250,
+   "prev": null,
+   "expect": null
+  },
+  {
+   "id": "離島・鹿児島の離島の頂点・九州",
+   "stage": "九州",
+   "s": 5.566478,
+   "x": 43.4,
+   "y": 391.2,
+   "prev": null,
+   "expect": "pref:kagoshima"
+  },
+  {
+   "id": "切り替え・関東の画面の長野の中",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 198.4,
+   "y": 241.3,
+   "prev": null,
+   "expect": "switch:nagano"
+  },
+  {
+   "id": "粘り・ibaraki に触れたまま tochigi が 3.2px 近い",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 243.39,
+   "y": 221.28,
+   "prev": "pref:ibaraki",
+   "expect": "pref:ibaraki"
+  },
+  {
+   "id": "粘り・ibaraki に触れたまま tochigi が 0.8px 近い",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 243.39,
+   "y": 221.75,
+   "prev": "pref:ibaraki",
+   "expect": "pref:ibaraki"
+  },
+  {
+   "id": "粘り・tochigi に触れたまま ibaraki が 0.1px 近い",
+   "stage": "関東",
+   "s": 6.140652,
+   "x": 243.39,
+   "y": 223.62,
+   "prev": "pref:tochigi",
+   "expect": "pref:tochigi"
+  }
+ ]
+}
