@@ -56,7 +56,10 @@ export const isCloseFriendsStory = (row: { audience?: unknown } | undefined): bo
 /** 投稿者の名簿に `viewerId` が居るか。**読めなければ false**（見せない側に倒す） */
 async function isCloseFriendOf(ownerId: string, viewerId: string): Promise<boolean> {
     try {
-        const list = await readUserList(closeFriendsId(ownerId), isUserId, `closefriends#${ownerId}`);
+        // **強整合で読む。** 名簿から外した直後に、結果整合の古い読みで
+        // 外した人に見せない（閲覧の門なので）。親しい友達向けの行の門でしか
+        // 呼ばない（全員向けの読みは増えない）
+        const list = await readUserList(closeFriendsId(ownerId), isUserId, `closefriends#${ownerId}`, true);
         return list.includes(viewerId);
     } catch (e) {
         console.error(`isCloseFriendOf: 親しい友達を確かめられませんでした（${ownerId}）:`, e);

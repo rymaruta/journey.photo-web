@@ -267,7 +267,7 @@ export type StoryMentionItem = StoryItemBase & {
 /**
  * 質問スタンプ（「質問してね」）。**問いの文言だけを持つ。** 答えは
  * ストーリーの行にも `texts` にも入れず、**ストーリーごとに1つの文書**
- * （`storyanswers#<storyId>`・`api-user/src/storyAnswers.ts`）に置く
+ * （票の文書 `storyvotes#<storyId>` の `answers` 列・`api-user/src/storyAnswers.ts`）に置く
  * ——答えは**投稿者だけが読める**もので、`getStories` の応答に混ざる
  * 形（投票の `counts` のように見る人で出し分ける）にしない。
  * **1投稿に1つだけ。**

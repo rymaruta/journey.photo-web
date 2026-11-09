@@ -1,6 +1,6 @@
 import { isBlocked } from "./blockCheck";
 import { isFollowing } from "./followCheck";
-import { deletedAmong, lookupDisplayName, withUnreadAsDeleted } from "./notify";
+import { deletedAmong, lookupDisplayName, withUnreadAsDeleted, DELETED_USER_NAME } from "./notify";
 import { canViewStoryAudience, type StoryAudience } from "./storyAudience";
 import { isStoryMention, type StoryText } from "./storyText";
 
@@ -66,4 +66,28 @@ export async function resolveStoryMentions(
         return [{ ...t, name: names.get(t.userId) ?? "" }];
     });
     return { texts: kept.length > 0 ? kept : undefined, recipients: [...ok] };
+}
+
+/**
+ * **読むとき、退会した人のメンションの名前を伏せる**（札 #505 レビュー）。
+ * 名前は投稿のときに写して持つので、退会（`account.ts`）では消えない。ストーリーは
+ * 24時間（アーカイブ・ハイライトは期限なし）残るため、読む側で墓石を見て
+ * 「退会したユーザー」に置き換える（コメントの `deletedAmong` と同じ向き。
+ * **読めなかった人も伏せる**）。`userId` は残す（札は残り、名前だけ消える）。
+ * 行を引数の中で書き換える（Dynamo から読んだ複製を渡すこと）。
+ */
+export async function maskDeletedMentions(rows: Record<string, unknown>[]): Promise<void> {
+    const ids = new Set<string>();
+    for (const r of rows) {
+        if (!Array.isArray(r.texts)) continue;
+        for (const t of r.texts as StoryText[]) if (t && typeof t === "object" && isStoryMention(t)) ids.add(t.userId);
+    }
+    if (ids.size === 0) return;
+    const gone = withUnreadAsDeleted(await deletedAmong(ids));
+    if (gone.size === 0) return;
+    for (const r of rows) {
+        if (!Array.isArray(r.texts)) continue;
+        r.texts = (r.texts as StoryText[]).map((t) =>
+            t && typeof t === "object" && isStoryMention(t) && gone.has(t.userId) ? { ...t, name: DELETED_USER_NAME } : t);
+    }
 }
