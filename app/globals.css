@@ -813,9 +813,13 @@ rect.jm-hit { pointer-events: all; }
 .jm a { outline: none; cursor: pointer; }
 .jm-frame { fill: none; stroke: rgb(255 255 255 / 0.22); stroke-dasharray: 3 3; vector-effect: non-scaling-stroke; }
 .jm-frame-label { fill: var(--color-text-3); font-size: 12px; pointer-events: none; }
-.jm-name { fill: #fff; pointer-events: none; paint-order: stroke; stroke: #000; font-weight: 600; }
+.jm-name { fill: #fff; pointer-events: none; paint-order: stroke; stroke: #000; stroke-width: var(--jm-sw, 3px); stroke-linejoin: round; font-size: var(--jm-fs, 12px); font-weight: 600; font-family: var(--font-sans, system-ui), sans-serif; text-anchor: middle; dominant-baseline: central; }
+.jm-names { pointer-events: none; }
+.jm-lead { stroke: var(--color-accent); stroke-width: 1px; vector-effect: non-scaling-stroke; opacity: 0.85; }
+.jm-lead-dot { fill: var(--color-accent); }
+.jm-lab-sel .jm-name { stroke: var(--color-accent-deep); font-weight: 700; }
 .jm-ring { fill: none; stroke: var(--color-accent); pointer-events: none; }
-.jm-wrap { position: relative; border-radius: 16px; background: var(--color-bg); overflow: hidden; width: min(100%, 420px, calc(60vh * var(--jm-ar))); width: min(100%, 420px, calc(60svh * var(--jm-ar))); margin-inline: auto; touch-action: pan-y; }
+.jm-wrap { position: relative; border-radius: 16px; background: var(--color-bg); overflow: hidden; width: min(100%, 420px, calc(72vh * var(--jm-ar))); width: min(100%, 420px, calc(72svh * var(--jm-ar))); margin-inline: auto; touch-action: pan-y; }
 @media (min-width: 640px) { .jm-wrap { margin-inline: 0; } }
 .jm-wrap.jm-zoomed { touch-action: none; }
 .jm-zc { position: absolute; left: 8px; top: 8px; display: flex; flex-direction: column; gap: 8px; }
@@ -833,3 +837,23 @@ rect.jm-hit { pointer-events: all; }
 .jm-chip { min-height: 44px; padding: 0 14px; border-radius: 99px; background: rgb(255 255 255 / 0.07); color: #d4d4d4; box-shadow: inset 0 0 0 1px var(--color-line); border: 0; font-size: 13px; cursor: pointer; }
 .jm-chip:hover { background: rgb(255 255 255 / 0.15); color: #fff; }
 .jm-legend i { width: 16px; height: 16px; border-radius: 4px; display: inline-block; border: 1px solid rgb(255 255 255 / 0.42); }
+
+/* **県を押すと出る一覧**（2026-11-09）。スマホは地図の下に貼り付くシート（`position: sticky`・下のタブの上）で、
+   地図の入れ物が終わる所まで追ってくる＝地図の頁を離れると自然に消える。広い画面は右の札（`sm:sticky sm:top-20`） */
+.jm-sheet { border-radius: 16px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-line); padding: 14px 16px 14px; min-height: 132px; }
+.jm-sheet:focus { outline: none; }
+.jm-sheet:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.jm-close { flex: none; width: 44px; height: 44px; margin: -6px -8px 0 0; border: 0; border-radius: 22px; background: rgb(255 255 255 / 0.07); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.jm-close:hover { background: rgb(255 255 255 / 0.15); }
+.jm-close:focus-visible, .jm-spot:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.jm-spot { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; padding: 4px 0; border-top: 1px solid var(--color-line); }
+.jm-spots li:first-child .jm-spot { border-top: 0; }
+.jm-spot:hover { background: rgb(255 255 255 / 0.04); }
+@media (max-width: 639.98px) {
+  .jm-sheet { position: sticky; bottom: calc(var(--bottom-bar-h, 84px) + 8px); z-index: 20; margin-top: 10px; min-height: 0; max-height: 50svh; overflow-y: auto; overscroll-behavior: contain; background: var(--color-surface-2); box-shadow: inset 0 0 0 1px var(--color-line-strong), 0 -10px 28px rgb(0 0 0 / 0.55); animation: jm-sheet-in 0.18s ease-out; }
+  .jm-sheet[data-open="false"] { display: none; }
+  .jm-spots li:nth-child(n+4) { display: none; }
+  .jm-near { display: none; }
+}
+@keyframes jm-sheet-in { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .jm-sheet { animation: none !important; } }

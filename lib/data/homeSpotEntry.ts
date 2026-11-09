@@ -16,7 +16,7 @@
 //   どのハブ（県・国・テーマ・季節）からもリンクされておらず、ここが唯一の入口になるため。
 //   `noindex, follow` の頁へのリンクは評価の面では弱いが、利用者の入口としては要る（3本・全体の約3%）
 
-import { spotAreas } from "./spotLink";
+import { spotAreas, topSpotsByArea, type AreaTopSpot } from "./spotLink";
 import { countryTopics } from "./spotTopics";
 
 /** 大陸の分け。並びはこの順（国は件数の多い順のまま）。表に無い国は最後の「その他の国・地域」に落とす */
@@ -64,4 +64,12 @@ export function homeSpotEntryData(): HomeSpotEntryData {
         .map((c): HomeCountryRow => [c.code, c.name, c.spots.length]);
     if (rest.length > 0) continents.push({ name: OTHER_CONTINENT_NAME, countries: rest });
     return { areas, continents };
+}
+
+/** 地図のシートに出す、県ごとの上位の件数（2026-11-09・owner「押して、撮影スポットが出て」） */
+export const HOME_MAP_TOP_N = 4;
+
+/** 県のスラッグ → 上位の数件（名前と市区町村だけ）。静的データから作る（新しい API・費用は無し） */
+export function homeMapTopSpots(): Record<string, AreaTopSpot[]> {
+    return topSpotsByArea(HOME_MAP_TOP_N);
 }

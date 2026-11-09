@@ -69,6 +69,9 @@ export const NAV_DESTS = [
     "home", "search", "map", "me", "login", "signup", "post", "spots", "area", "topic", "nearby", "learn", "people", "saved",
     // `map_pref` … ホームの日本地図で県を選んで県の頁へ（2026-11-09・文字の一覧の `area` と分けて、地図が使われたかを見る）
     "map_pref",
+    // 地図での操作（2026-11-09）: `map_pref_select`=県を押した（選び直しも）/ `map_sheet_open`=一覧が閉じた状態から開いた / `map_spot`=一覧のスポットを押した。
+    // 「すべて見る」は `map_pref`（県の頁へ）のまま。県の名前・スポットの slug は送らない
+    "map_pref_select", "map_sheet_open", "map_spot",
 ] as const;
 
 export const EVENT_SPEC = {

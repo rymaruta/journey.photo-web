@@ -2,17 +2,15 @@
 //
 // ホームの日本地図（`app/components/HomeJapanMap.tsx`）の**計算だけ**を切り出したもの（DOM を持たない）。
 // 形のデータは `lib/data/prefectureShapes.ts`（生成物）。ここは「近くの県」「矢印キーの隣」「海のタップ」
-// 「濃淡の段」「直接移動するかどうか」。部品とテストが同じ関数を見る。
+// 「濃淡の段」「URL に持たせる選択県」。部品とテストが同じ関数を見る。
 //
 // 2026-11-09 判断（デザイナーの提案書・案D。owner「任せる」）:
-//   - 44px 以上の県は押したら直接移動、それより小さい県は札（名前・件数・近くの県3つ）を出す。
-//     **大きさは「いま画面に出ている大きさ」**（拡大すると小さな県も 44 を超えて直接移動になる）
+//   - （2026-11-09 の2回目で撤回）「44px 以上の県は直接移動・小さい県は札」の分けは、県を押しても頁を移動せず
+//     同じ頁に一覧を出す作りにしたので要らなくなった（`isDirectTap` を消した）。押し間違えても別の県を押せば直る
 //   - 海のタップは、県の外接箱までの距離が 14px 以内でいちばん近い県を選ぶ（指のずれの保険）
 
 import { MAP_W, OKINAWA_FRAME, PREFECTURE_SHAPES, type PrefectureShape } from "../data/prefectureShapes";
 
-/** 直接移動する県の最小の大きさ（外接箱の短い辺・画面の px）。押せる大きさの基準 44 */
-export const DIRECT_TAP_MIN_PX = 44;
 /** 海のタップを近くの県に寄せる距離（画面の px） */
 export const NEAR_TAP_PX = 14;
 /** 拡大の範囲 */
@@ -82,17 +80,6 @@ export function nearestByBox(x: number, y: number, limit: number, among: Readonl
     return best;
 }
 
-/**
- * 押したら直接移動するか。`pxPerUnit` = 画面の px ÷ viewBox の単位（拡大した後の値）。
- * 沖縄は枠ぜんたい（175×110）が当たりなので、いつも直接
- */
-export function isDirectTap(slug: string, pxPerUnit: number): boolean {
-    if (slug === "okinawa") return true;
-    const s = BY_SLUG.get(slug);
-    if (!s) return false;
-    return Math.min(s[2][2], s[2][3]) * pxPerUnit >= DIRECT_TAP_MIN_PX;
-}
-
 /** 件数の濃淡の段の切れ目（四分位）。`counts` は県ごとの件数 */
 export function densityCuts(counts: readonly number[]): [number, number, number] {
     const sorted = [...counts].sort((a, b) => a - b);
@@ -102,6 +89,19 @@ export function densityCuts(counts: readonly number[]): [number, number, number]
 
 export function densityBin(n: number, cuts: readonly [number, number, number]): 0 | 1 | 2 | 3 {
     return n <= cuts[0] ? 0 : n <= cuts[1] ? 1 : n <= cuts[2] ? 2 : 3;
+}
+
+/** URL に持たせる選択県（`#pref=kanagawa`）。戻る・共有・一覧の頁から戻ったときに同じ県の一覧へ戻すための鍵 */
+export const PREF_HASH_KEY = "pref";
+
+export function prefHash(slug: string): string {
+    return `#${PREF_HASH_KEY}=${slug}`;
+}
+
+/** ハッシュから選択県を読む。地図に在る県（`among`）のスラッグだけ通す（形の違う値・知らない県は null） */
+export function prefFromHash(hash: string, among: ReadonlySet<string>): string | null {
+    const v = new URLSearchParams(hash.replace(/^#/, "")).get(PREF_HASH_KEY);
+    return v && /^[a-z]+$/.test(v) && among.has(v) ? v : null;
 }
 
 export type MapView = { z: number; x: number; y: number };

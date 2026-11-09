@@ -5,7 +5,7 @@ import GalleryPageClient from "./GalleryPageClient";
 import HomeSpotEntry from "./components/HomeSpotEntry";
 import HomeJapanMap from "./components/HomeJapanMap";
 import { homeSeasonalSpots } from "../lib/data/spotTopics";
-import { homeSpotEntryData } from "../lib/data/homeSpotEntry";
+import { homeSpotEntryData, homeMapTopSpots } from "../lib/data/homeSpotEntry";
 
 // OGP 画像は**固定の代表画像**（`SHARE_IMAGE`・2026-10-31 #432）。利用者の最新の投稿
 // （2026-10-31 はスーパーのぶどう）が共有カードと Google の検索結果に出ていた
@@ -70,7 +70,7 @@ export default async function Page() {
                 seasonalSpots={homeSeasonalSpots(new Date())}
                 // 撮影スポットを地図から探す（2026-11-09）。**写真のタブより上**（札・アプリの案内の下）に出る。
                 // 県のスラッグと件数だけを渡す（下の文字リンクの一覧と同じ値）
-                entryMap={<HomeJapanMap areas={homeSpotEntryData().areas} />}
+                entryMap={<HomeJapanMap areas={homeSpotEntryData().areas} tops={homeMapTopSpots()} />}
             />
             {/* 撮影スポットを県から探す（2026-11-09・SEO の入口）。写真の並びの下・フッターの上。県・国の頁への文字リンクを
                 最初から HTML に出す（ホーム → 県・国 → スポットの2クリック）。ホームの上部は変えない。

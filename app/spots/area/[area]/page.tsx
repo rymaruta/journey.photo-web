@@ -1,3 +1,4 @@
+import AreaBackToMap from "@/app/components/AreaBackToMap";
 import type { Metadata } from "next";
 import SpotIndexClient from "@/app/components/SpotIndexClient";
 import { spotAreas, spotIndexItemsForArea, visibleSpotsInArea } from "@/lib/data/spotLink";
@@ -107,6 +108,8 @@ export default async function SpotAreaPage({ params }: { params: Promise<{ area:
         <>
             {ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld.breadcrumb) }} />}
             {ld?.itemList && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld.itemList) }} />}
+            {/* 地図から来たときだけ（マウント後・サーバーの HTML には出さない） */}
+            {found && <AreaBackToMap slug={found.slug} name={found.name} />}
             <SpotIndexClient
                 spots={spotIndexItemsForArea(area)}
                 area={found ? { name: found.name, nameEn: found.nameEn } : undefined}

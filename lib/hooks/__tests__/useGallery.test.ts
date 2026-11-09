@@ -1034,3 +1034,28 @@ describe("外から届いた ?photo= を消さない", () => {
         expect(result.current.currentIndex).toBeNull();
     });
 });
+
+describe("useGallery: URL のハッシュ（#pref=…）を消さない", () => {
+    it("マウント直後の URL 同期が `#pref=<県>` を落とさない（ホームの地図: 県の頁から戻ると一覧が閉じていた・実測）", async () => {
+        window.history.replaceState({}, "", "/#pref=kanagawa");
+        renderHook(() => useGallery(mockPhotos));
+        await new Promise((r) => setTimeout(r, 30));
+        expect(window.location.pathname + window.location.hash).toBe("/#pref=kanagawa");
+    });
+
+    it("絞り込みを変えてもハッシュは残る", async () => {
+        window.history.replaceState({}, "", "/#pref=osaka");
+        const { result } = renderHook(() => useGallery(mockPhotos));
+        act(() => result.current.setFilters({ ...result.current.filters, category: "street" }));
+        await new Promise((r) => setTimeout(r, 30));
+        expect(window.location.hash).toBe("#pref=osaka");
+    });
+
+    it("地図が積んだ履歴の印（jmPref）を、この同期の書き戻しで潰さない", async () => {
+        window.history.replaceState({ jmPref: 1 }, "", "/#pref=osaka");
+        renderHook(() => useGallery(mockPhotos));
+        await new Promise((r) => setTimeout(r, 30));
+        expect((window.history.state as { jmPref?: number } | null)?.jmPref).toBe(1);
+    });
+});
+
