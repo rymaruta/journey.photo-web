@@ -13,8 +13,9 @@ export const SEARCH_MIN_LENGTH = 2;
  * - **語そのものは送らない**（`search_term_length` と `result_count` だけ。owner の判断待ち）
  * - 結果の件数は、打ち終えた時点の最新の値（直前の値で数えない）
  * - ユーザー検索（`/users/search`）は対象外（この hook を使っていない）
+ * - `event` を `spots_search` にすると、撮影スポット一覧（`/spots`）の検索窓の数え方になる（同じ規則・別のイベント名・2026-11-09）
  */
-export function useSearchTracking(query: string, resultCount: number): void {
+export function useSearchTracking(query: string, resultCount: number, event: "search" | "spots_search" = "search"): void {
     const countRef = useRef(resultCount);
     const lastSent = useRef("");
     useEffect(() => { countRef.current = resultCount; }, [resultCount]);
@@ -23,8 +24,8 @@ export function useSearchTracking(query: string, resultCount: number): void {
         if (term.length < SEARCH_MIN_LENGTH || term === lastSent.current) return;
         const t = setTimeout(() => {
             lastSent.current = term;
-            track("search", { search_term_length: term.length, result_count: countRef.current });
+            track(event, { search_term_length: term.length, result_count: countRef.current });
         }, SEARCH_SETTLE_MS);
         return () => clearTimeout(t);
-    }, [query]);
+    }, [query, event]);
 }

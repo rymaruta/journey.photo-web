@@ -91,6 +91,8 @@ export const EVENT_SPEC = {
     // 推奨イベント（欄は GA4 の推奨名に合わせ、値は絞る。`item_id` は送る・`search_term`（検索語）は送らない）
     select_content: { content_type: SELECT_CONTENT_TYPES, item_id: ITEM_ID },
     search: { search_term_length: COUNT, result_count: COUNT },
+    // 撮影スポット一覧（`/spots`）の検索窓（2026-11-09）。`search` と同じ形。**語は送らない**（長さと件数だけ。0件かどうかは result_count で見る）
+    spots_search: { search_term_length: COUNT, result_count: COUNT },
     share: { method: SHARE_METHODS, content_type: SHARE_CONTENT_TYPES },
     like_photo: {},
     follow_user: {},
