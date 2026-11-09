@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import type { SpotArea } from "@/lib/data/spotLink";
 import { REGIONS, REGION_EN, type RegionName } from "@/lib/data/prefectures";
 import { useLocale } from "@/app/i18n/context";
@@ -74,11 +75,11 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
                     <ul className={CHIP_ROW} style={{ listStyle: "none" }}>
                         {jumpItems.map((j) => (
                             <li key={j.id}>
-                                <a href={`#${j.id}`}
+                                <Link href={`#${j.id}`}
                                    className={`${CHIP_HIT} inline-flex items-center rounded-full ${CHIP_OFF} transition-colors`}
                                    style={CHIP_SIZE}>
                                     {j.label}
-                                </a>
+                                </Link>
                             </li>
                         ))}
                     </ul>

@@ -61,7 +61,8 @@ import { track } from "@/lib/utils/analytics";
 
 const HEADING_ID = "home-japan-map-h";
 const SHEET_ID = "home-japan-map-sheet";
-/** ページ内リンクの行き先（`HomeSpotEntry` の `<nav>`） */
+/** ページ内リンクの行き先（`HomeSpotEntry` の `<nav>`）。2026-11-09 判断: 行き元の `#` リンクは素の `<a>` にしない（`next/link`）。素だと履歴の state が null になり、県の頁から戻っても画面が戻らない（`hashLinks.test.ts`） */
+>>>>>>> origin/claude/fix-hash-back
 export const SPOT_LIST_ID = "home-spot-entry-list";
 
 const NAME = new Map(PREFECTURES.map((p) => [p.slug, p.name]));
@@ -494,9 +495,9 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
             <p className="m-0 mt-2 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
                 県を押すと、その県の撮影スポットの一覧が出ます。数字は掲載している件数です。
             </p>
-            <a href={`#${SPOT_LIST_ID}`} className="sr-only focus:not-sr-only focus:inline-flex focus:items-center focus:min-h-[44px] focus:text-text-2 focus:underline focus:underline-offset-4 jm-skip" data-testid="home-japan-map-skip">
+            <Link href={`#${SPOT_LIST_ID}`} className="sr-only focus:not-sr-only focus:inline-flex focus:items-center focus:min-h-[44px] focus:text-text-2 focus:underline focus:underline-offset-4 jm-skip" data-testid="home-japan-map-skip">
                 地図を飛ばして文字の一覧へ
-            </a>
+            </Link>
             {/* スマホは普通の縦並び（シートが地図の下に貼り付く `position: sticky` の入れ物をここにする）。広い画面だけ2列 */}
             <div className="mt-3 sm:grid sm:grid-cols-[minmax(0,420px)_minmax(0,1fr)] sm:gap-x-7 sm:items-start">
                 <div
@@ -654,7 +655,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                     <p className="m-0 mt-1 text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>
                         小さな県は、地図の名前（線でつないだ字）を押してもえらべます。＋で拡大もできます。
                     </p>
-                    <a href={`#${SPOT_LIST_ID}`} className="jm-link" data-testid="home-japan-map-textlink">すべての県を文字で見る ›</a>
+                    <Link href={`#${SPOT_LIST_ID}`} className="jm-link" data-testid="home-japan-map-textlink">すべての県を文字で見る ›</Link>
                     <label className="jm-dens-label flex items-center gap-2 min-h-[44px] text-text-2" style={{ fontSize: "13px" }}>
                         <input type="checkbox" className="w-5 h-5 m-0" style={{ accentColor: "#b8955a" }} checked={dens} onChange={(e) => setDens(e.target.checked)} />
                         件数の濃淡を付ける

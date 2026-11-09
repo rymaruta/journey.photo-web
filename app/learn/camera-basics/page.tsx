@@ -5,6 +5,7 @@
 // 実例の写真はビルド時に `photos.json` の EXIF から選ぶ（`pickExamples`）。合う写真が無い塊は出さない。
 
 import React from "react";
+import Link from "next/link";
 import TrackedLink from "@/app/components/TrackedLink";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { ROUTES } from "@/lib/routes";
@@ -58,10 +59,10 @@ export default async function CameraBasicsPage() {
                     <ol className="m-0 mt-2 p-0 list-none grid grid-cols-1 sm:grid-cols-2 gap-x-6">
                         {LESSONS.map((l, i) => (
                             <li key={l.id}>
-                                <a href={`#${l.id}`} className="flex items-center gap-2 min-h-[44px] text-text-2 hover:text-white" style={{ fontSize: "14px", lineHeight: "20px" }}>
+                                <Link href={`#${l.id}`} className="flex items-center gap-2 min-h-[44px] text-text-2 hover:text-white" style={{ fontSize: "14px", lineHeight: "20px" }}>
                                     <span className="text-text-3 tabular-nums" style={{ fontSize: "12px" }}>{String(i + 1).padStart(2, "0")}</span>
                                     {l.title}
-                                </a>
+                                </Link>
                             </li>
                         ))}
                     </ol>
