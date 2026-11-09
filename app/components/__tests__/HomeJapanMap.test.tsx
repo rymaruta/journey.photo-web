@@ -89,8 +89,8 @@ describe("日本地図: 置き場（写真のタブより上）と文字の一�
 
     it("page.tsx: 地図は1か所だけ組み込み、文字リンクの一覧（HomeSpotEntry）は今の位置（GalleryPageClient の後）に残る", () => {
         expect(page.match(/<HomeJapanMap /g)).toHaveLength(1);
-        expect(page).toContain("entryMap={<HomeJapanMap areas={spotEntry.areas} />}");
-        expect(page.indexOf("<HomeSpotEntry data={spotEntry} />")).toBeGreaterThan(page.indexOf("<GalleryPageClient"));
+        expect(page).toContain("entryMap={<HomeJapanMap areas={homeSpotEntryData().areas} />}");
+        expect(page.indexOf("<HomeSpotEntry data={homeSpotEntryData()} />")).toBeGreaterThan(page.indexOf("<GalleryPageClient"));
     });
 
     it("検索には search 面（surface=search）に地図を出さない: 出すのは home だけ", () => {

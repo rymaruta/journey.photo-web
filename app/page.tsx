@@ -53,7 +53,6 @@ export default async function Page() {
     // 代表の1枚（`primaryImageOfPage`・`image` の先頭）は固定の代表画像。ギャラリーの並びはそのあと
     const structuredData = generateHomeStructuredData(photos.filter((p) => p.published !== false));
     const organizationData = generateOrganizationStructuredData();
-    const spotEntry = homeSpotEntryData();
 
     return (
         <>
@@ -71,12 +70,12 @@ export default async function Page() {
                 seasonalSpots={homeSeasonalSpots(new Date())}
                 // 撮影スポットを地図から探す（2026-11-09）。**写真のタブより上**（札・アプリの案内の下）に出る。
                 // 県のスラッグと件数だけを渡す（下の文字リンクの一覧と同じ値）
-                entryMap={<HomeJapanMap areas={spotEntry.areas} />}
+                entryMap={<HomeJapanMap areas={homeSpotEntryData().areas} />}
             />
             {/* 撮影スポットを県から探す（2026-11-09・SEO の入口）。写真の並びの下・フッターの上。県・国の頁への文字リンクを
                 最初から HTML に出す（ホーム → 県・国 → スポットの2クリック）。ホームの上部は変えない。
                 渡すのは県のスラッグ・件数と国の2文字・名前・件数だけ（台帳はクライアントへ渡さない） */}
-            <HomeSpotEntry data={spotEntry} />
+            <HomeSpotEntry data={homeSpotEntryData()} />
         </>
     );
 }
