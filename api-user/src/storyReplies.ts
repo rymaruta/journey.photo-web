@@ -8,6 +8,7 @@ import { truncate } from "./sanitize";
 import { isBlocked, hiddenUserIds } from "./blockCheck";
 import { isFollowing } from "./followCheck";
 import { storyAllowsReplies } from "./storyVisibility";
+import { canViewStoryAudience } from "./storyAudience";
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
 
@@ -140,6 +141,8 @@ type StoryItem = {
     src?: string; expiresAt?: string;
     /** 返信を受けるか。無い＝受ける（同上） */
     allowReplies?: unknown;
+    /** 見せる範囲。無い＝全員（`storyAudience.ts`） */
+    audience?: unknown;
 };
 
 /** ストーリーを引いて、返信を受け付けてよいかまで見る */
@@ -197,6 +200,11 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
         // 一覧ではなくマーカー1件で確かめる（`isBlocked` と同じ形）
         if (ownerId && ownerId !== uid
             && !await isFollowing(ownerId, uid)) {
+            return jsonError(404, "ストーリーが見つかりません");
+        }
+        // 🔴 **「親しい友達だけ」は名簿に居ない人には 404**（フォローの門と同じ向き。
+        // 見えないはずのものに反応が届くと、通知に相手の名前が出る）。読めなければ 404
+        if (!await canViewStoryAudience(story, uid)) {
             return jsonError(404, "ストーリーが見つかりません");
         }
         // **「返信を許可」を切っていたら受けない。**

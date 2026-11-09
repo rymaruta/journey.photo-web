@@ -25,7 +25,13 @@ export type Notif = {
     // `badge` はメダル（`badgeStore.ts`）。誰かが起こしたものではないので `byId` を持たず、
     // `byName` にメダルの名前（「朝の光（銀）」）、`key` / `tier` に鍵と段が入る。
     // 写真も持たない（`photoId` / `photoSrc` は空）。
-    type: "like" | "comment" | "follow" | "storyreply" | "badge" | "inspired";
+    //
+    // `storymention`（2026-11-09・札 #505）は「ストーリーであなたをメンションしました」。
+    // `photoId` はそのストーリーの id、`byId` / `byName` は投稿者。**見られる人にしか
+    // 作らない**（`storyMentions.ts`）。古いアプリは知らない `type` を `kind: nil` で
+    // 読む（一覧は壊れない）。**端末への通知は `PUSH_READY_TYPES` に入れるまで送らない**
+    // （下。鍵が無い古いアプリが `NOTIF_STORY_MENTION` の文字をそのまま出すため）。
+    type: "like" | "comment" | "follow" | "storyreply" | "badge" | "inspired" | "storymention";
     photoId: string;
     photoSrc: string;
     byName: string;
@@ -384,7 +390,21 @@ const LOC_KEYS: Record<Notif["type"], string> = {
     badge: "NOTIF_BADGE",
     // 引数は付けた人の名前。アプリの文面は「%@ があなたの写真を見て撮影しました」
     inspired: "NOTIF_INSPIRED",
+    // 引数は投稿者の名前。アプリの文面は「%@ がストーリーであなたをメンションしました」
+    storymention: "NOTIF_STORY_MENTION",
 };
+
+/**
+ * 端末へ送ってよい種類。**`storymention` は入れていない**（2026-11-09 判断）。
+ *
+ * 文面は端末の `Localizable.strings` の鍵で出す（上）。**鍵を持たない古い
+ * アプリは、鍵の文字列そのもの（`NOTIF_STORY_MENTION`）を通知に出す**。
+ * アプリが鍵を持つ版（iOS 側の対応）を配ってから、ここに足す。それまでは
+ * 通知の一覧（`notifs#`）には積むので、開けば見える。
+ */
+const PUSH_READY_TYPES: ReadonlySet<Notif["type"]> = new Set<Notif["type"]>([
+    "like", "comment", "follow", "storyreply", "badge", "inspired",
+]);
 
 /**
  * 通知を端末へ送る。**best-effort**（落ちても本体は成功）。
@@ -421,6 +441,7 @@ export function visibleUnread(storedUnread: unknown, items: unknown, hidden: Rea
 
 async function deliverPush(ownerId: string, notif: Notif, storedUnread?: unknown, items?: unknown): Promise<void> {
     if (!apnsConfigured()) return;
+    if (!PUSH_READY_TYPES.has(notif.type)) return;
     try {
         const tokens = await deviceTokens(ownerId);
         if (tokens.length === 0) return;
