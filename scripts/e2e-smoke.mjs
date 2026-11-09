@@ -1220,7 +1220,8 @@ async function runHomeMapChecks(browser, eng) {
         chips: [...document.querySelectorAll('[data-testid="home-japan-map-chips"] button')].map((b) => b.textContent).join(","),
         ta: getComputedStyle(document.querySelector(".jm-wrap")).touchAction,
         callout: getComputedStyle(document.querySelector(".jm-wrap")).webkitTouchCallout,
-        sel: getComputedStyle(document.querySelector(".jm-wrap")).userSelect,
+        // WebKit は標準の userSelect を返さず webkitUserSelect だけを返す（2026-11-09 Deploy Site run 42641617529 で sel が undefined になり落ちた）
+        sel: (() => { const cs = getComputedStyle(document.querySelector(".jm-wrap")); return cs.userSelect || cs.webkitUserSelect; })(),
         over: document.documentElement.scrollWidth - innerWidth,
         eyebrow: document.querySelector('[data-testid="home-japan-map-head"]').textContent,
     }));
