@@ -35,7 +35,7 @@ vi.mock("../blockCheck", async (importActual) => ({
     hiddenUserIds: (uid: string) => mockHidden(uid),
 }));
 
-const [dm, { DM_CONVS_MAX }, { postStoryReply }] = await Promise.all([import("../dm"), import("../dmInbox"), import("../storyReplies")]);
+const [dm, { DM_CONVS_MAX, DM_REQUESTS_MAX, DM_INBOX_HARD_MAX, DM_DECLINED_MAX }, { postStoryReply }] = await Promise.all([import("../dm"), import("../dmInbox"), import("../storyReplies")]);
 const { handler, sendDm, purgeDmFor, convIdOf, parseConvId, containsUrl, cleanDmText, overBudgetCount,
     DM_REQUEST_MAX, DM_DAILY_NEW_CONVS, DM_DAILY_SENT, DM_MESSAGES_MAX, DM_REPORT_LAST } = dm;
 
@@ -216,7 +216,8 @@ describe("送信: 受信箱へ直行する人・リクエストになる人", ()
         follows(PEER, ME);
         follows(ME, PEER);
         const r = await send("はじめまして");
-        expect(bodyOf(r).state).toBe("inbox");
+        expect(bodyOf(r).state, "送り主には、リクエストと同じ形（pending）で返す").toBe("pending");
+        expect(entryWrites(ME)[0].input.ExpressionAttributeValues[":s"]).toBe("pending");
         expect(convWrites().find((c) => c.cmd === "PutCommand")!.input.Item).toMatchObject({ state: "inbox", reqCount: 0 });
         expect(entryWrites(PEER)[0].input.ExpressionAttributeValues[":s"]).toBe("inbox");
         expect(mockPushDm).toHaveBeenCalledTimes(1);
@@ -229,7 +230,7 @@ describe("送信: 受信箱へ直行する人・リクエストになる人", ()
     it("相手の親しい友達に入っていれば受信箱へ直行", async () => {
         follows(PEER, ME);
         rows[`closefriends#${PEER}`] = { id: "c", list: [ME] };
-        expect(bodyOf(await send("やあ")).state).toBe("inbox");
+        expect(bodyOf(await send("やあ")).state).toBe("pending");
         expect(mockPushDm).toHaveBeenCalledTimes(1);
     });
 
@@ -252,8 +253,15 @@ describe("リクエストの規則", () => {
         expect(r.statusCode).toBe(400);
         expect(bodyOf(r).code).toBe("requestUrl");
         expect(writes()).toHaveLength(0);
-        // 相手が自分をフォローしている（受信箱へ直行）なら通す
+        // 🔴 会話の最初の1通は、受信箱へ直行する相手でも同じ理由で断る（断るかどうかで関係を読み取らせない）
         follows(ME, PEER);
+        const direct = await send("見てね https://example.com/x");
+        expect(direct.statusCode).toBe(400);
+        expect(bodyOf(direct).code).toBe("requestUrl");
+        expect(direct.body).toBe(r.body);
+        expect(writes()).toHaveLength(0);
+        // 承認後（本体が inbox）の会話では通す
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")]);
         expect((await send("見てね https://example.com/x")).statusCode).toBe(200);
     });
 
@@ -340,17 +348,44 @@ describe("歯止め・上限", () => {
         expect(mockPushDm).not.toHaveBeenCalled();
     });
 
-    it("同じ id の再送では歯止めを進めず、追記もしない（応答が失われた再送）", async () => {
+    it("🔴 同じ id の再送: 歯止めを進めず・追記せず・受信箱の未読を二重に足さない（行は復活させない）", async () => {
         const id = "client-id-0001";
-        rows[KEY] = convRow([{ id, from: ME, text: "もう入っている", t: "2026-11-09T00:00:00.000Z" }]);
-        rows[`dminbox#${PEER}`] = boxRow(PEER, {});
+        const T = "2026-11-09T00:00:00.000Z";
+        rows[KEY] = convRow([{ id, from: ME, text: "もう入っている", t: T }]);
+        // 受信箱の更新は「この通は反映済み」で条件が外れる（lastId が同じ）。行は在る
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME, { t: T }) });
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { t: T }) });
+        ccf = (cmd, input) => cmd === "UpdateCommand" && String(input.ConditionExpression ?? "").includes("#lid");
         const r = await send("もう入っている", ME, PEER, { id });
         expect(r.statusCode).toBe(200);
         expect(bodyOf(r).message.id).toBe(id);
         expect(dayWrites()).toHaveLength(0);
         expect(convWrites()).toHaveLength(0);
-        expect(entryWrites(PEER), "受信箱は続きをやり直す").toHaveLength(1);
         expect(mockPushDm, "二重にプッシュしない").not.toHaveBeenCalled();
+        const creates = calls.filter((c) => c.cmd === "UpdateCommand" && (String(c.input.UpdateExpression).includes("convs = if_not_exists") || c.input.UpdateExpression === "SET convs.#c = :entry"));
+        expect(creates, "行が在るのに作り直している").toHaveLength(0);
+        // 再送を繰り返しても、未読を増やす書き込みは1度も通らない（条件で外れ続ける）
+        await send("もう入っている", ME, PEER, { id });
+        await send("もう入っている", ME, PEER, { id });
+        expect(calls.filter((c) => c.cmd === "UpdateCommand" && !String(c.input.ConditionExpression ?? "").includes("#lid") && String(c.input.Key?.id).startsWith("dminbox#"))).toHaveLength(0);
+    });
+
+    it("🔴 同じ id の再送で、相手が消した会話の行を復活させない（消したのがこの通より後なら作らない・まだ作っていなければ作る）", async () => {
+        const id = "client-id-0002";
+        const T = "2026-11-09T00:00:00.000Z";
+        ccf = (cmd, input) => cmd === "UpdateCommand" && String(input.ConditionExpression ?? "").includes("#lid");
+        // 相手（PEER=hi）が、この通より後に自分の側を消した
+        rows[KEY] = { ...convRow([{ id, from: ME, text: "x", t: T }]), hiClearedAt: "2026-11-09T00:10:00.000Z" };
+        rows[`dminbox#${PEER}`] = boxRow(PEER, {});
+        await send("x", ME, PEER, { id });
+        expect(calls.filter((c) => c.input.Key?.id === `dminbox#${PEER}` && String(c.input.UpdateExpression).includes("SET convs.#c = :entry")), "消した会話が復活した").toHaveLength(0);
+        // 相手はまだ消していない（応答が落ちて行を作れなかった正当なケース）→ 作る
+        calls = [];
+        rows[KEY] = convRow([{ id, from: ME, text: "x", t: T }]);
+        await send("x", ME, PEER, { id });
+        const made = calls.filter((c) => c.input.Key?.id === `dminbox#${PEER}` && c.input.UpdateExpression === "SET convs.#c = :entry");
+        expect(made).toHaveLength(1);
+        expect(made[0].input.ExpressionAttributeValues[":entry"]).toMatchObject({ unread: 1, lastId: id });
     });
 
     it("🔴 会話数の上限: 相手の受信箱が満杯なら新しい会話を断る（既存の会話の続きは通す）", async () => {
@@ -394,7 +429,7 @@ describe("歯止め・上限", () => {
         expect(r.statusCode).toBe(409);
         expect(bodyOf(r).code).toBe("unavailable");
         const create = calls.find((c) => String(c.input.ConditionExpression ?? "").includes("size(convs) < :cap"))!;
-        expect(create.input.ExpressionAttributeValues[":cap"]).toBe(DM_CONVS_MAX);
+        expect(create.input.ExpressionAttributeValues[":cap"]).toBe(DM_INBOX_HARD_MAX);
         expect(create.input.ConditionExpression).toContain("attribute_not_exists(convs.#c)");
     });
 });
@@ -406,7 +441,9 @@ describe("受信箱への書き込み", () => {
         await send("こんにちは");
         const theirs = entryWrites(PEER)[0].input;
         expect(theirs.UpdateExpression).toContain("convs.#c.#u = if_not_exists(convs.#c.#u, :z) + :one");
-        expect(theirs.ConditionExpression).toBe("attribute_exists(convs.#c)");
+        expect(theirs.ConditionExpression).toContain("attribute_exists(convs.#c)");
+        expect(theirs.ConditionExpression, "同じ通で二度加算しない").toContain("convs.#c.#lid <> :id");
+        expect(theirs.ConditionExpression, "古い通の再送で時刻を巻き戻さない").toContain("convs.#c.#t <= :t");
         expect(theirs.ExpressionAttributeNames["#c"]).toBe(CONV);
         const mine = entryWrites(ME)[0].input;
         expect(mine.UpdateExpression).toContain("convs.#c.#u = :z");
@@ -446,7 +483,8 @@ describe("本体の追記", () => {
         expect((await send("続き")).statusCode).toBe(200);
         const ups = convWrites().filter((c) => c.cmd === "UpdateCommand");
         expect(ups).toHaveLength(2);
-        expect(ups[1].input.ConditionExpression).toBe("size(#items) = :len");
+        expect(ups[1].input.ConditionExpression).toBe("size(#items) = :len AND updatedAt = :prev");
+        expect(ups[1].input.ExpressionAttributeValues[":prev"], "読んだときの更新時刻").toBe("2026-11-09T01:00:00.000Z");
         expect(ups[1].input.UpdateExpression).toContain("list_append(#items, :new)");
     });
 
@@ -853,6 +891,153 @@ describe("ストーリーの返信からの写し", () => {
         const plain = await reply({ text: "いいですね" });
         expect(plain.statusCode).toBe(200);
         expect(convWrites().find((c) => c.cmd === "PutCommand")!.input.Item.state).toBe("request");
+    });
+});
+
+describe("レビュー指摘の直し（2026-11-09）", () => {
+    it("🔴 リクエストの枠はふつうの会話の枠と別（50件）: 溢れたら新しいリクエストだけ断り、直行の相手は通す", async () => {
+        follows(PEER, ME);
+        const reqs = Object.fromEntries(Array.from({ length: DM_REQUESTS_MAX }, (_, i) => [`r${i}`, entry(THIRD, { state: "request" })]));
+        const some = Object.fromEntries(Array.from({ length: 10 }, (_, i) => [`c${i}`, entry(THIRD)]));
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { ...reqs, ...some });
+        const r = await send("こんにちは");
+        expect(r.statusCode).toBe(409);
+        expect(bodyOf(r).code).toBe("unavailable");
+        expect(writes(), "書く前に断る").toHaveLength(0);
+        expect(dayWrites()).toHaveLength(0);
+        // 相手が自分をフォローしている（ふつうの会話の枠）なら、リクエストで埋まっていても通る
+        follows(ME, PEER);
+        expect((await send("こんにちは")).statusCode).toBe(200);
+    });
+
+    it("リクエストを受け取っているだけでは、自分の新しい会話は断られない（枠は別）・ふつうの枠が満杯なら断る", async () => {
+        follows(PEER, ME);
+        rows[`dminbox#${ME}`] = boxRow(ME, Object.fromEntries(Array.from({ length: DM_REQUESTS_MAX }, (_, i) => [`r${i}`, entry(THIRD, { state: "request" })])));
+        expect((await send("こんにちは")).statusCode).toBe(200);
+        expect(DM_INBOX_HARD_MAX).toBe(DM_CONVS_MAX + DM_REQUESTS_MAX);
+    });
+
+    it("🔴 リクエストを全部削除: 受け取ったリクエストだけ外し、断った印を残す・ふつうの会話は残す", async () => {
+        const A = "44444444-4444-4444-8444-444444444444";
+        rows[`dminbox#${ME}`] = boxRow(ME, {
+            [`${ME}_${PEER}`]: entry(PEER, { state: "request" }),
+            [`${ME}_${THIRD}`]: entry(THIRD, { state: "request" }),
+            [`${ME}_${A}`]: entry(A, { state: "inbox" }),
+        });
+        rows[`dm#${ME}#${PEER}`] = convRow([], { initiator: PEER, reqCount: 2 });
+        rows[`dm#${ME}#${THIRD}`] = { ...convRow([], { initiator: THIRD, reqCount: 1 }), id: `dm#${ME}#${THIRD}`, hi: THIRD };
+        const r = await invoke(handler, ev("DELETE /dm/requests", ME));
+        expect(r.statusCode).toBe(200);
+        expect(bodyOf(r)).toEqual({ ok: true, removed: 2 });
+        const removes = writes().filter((c) => c.input.Key?.id === `dminbox#${ME}`);
+        expect(removes).toHaveLength(2);
+        for (const c of removes) expect(c.input.UpdateExpression).toContain("SET #dec = :n");
+        expect(removes.some((c) => Object.values(c.input.ExpressionAttributeNames).includes(`${ME}_${A}`))).toBe(false);
+    });
+
+    it("🔴 断った印は100人まで: 越えるときは通数の小さいものから外す", async () => {
+        const declined = Object.fromEntries(Array.from({ length: DM_DECLINED_MAX }, (_, i) => [`dec_${String(i).padStart(8, "0")}-0000-4000-8000-000000000000`, i === 0 ? 1 : 3]));
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")], { state: "request", initiator: PEER, reqCount: 1 });
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { state: "request" }) }, declined);
+        await invoke(handler, ev("DELETE /dm/{id}/request", ME, { id: CONV }));
+        const u = writes()[0].input;
+        expect(u.UpdateExpression).toContain(", #ev0");
+        expect(u.ExpressionAttributeNames["#ev0"], "通数の最も小さい（1通）印を外す").toBe("dec_00000000-0000-4000-8000-000000000000");
+        expect(u.UpdateExpression).not.toContain("#ev1");
+    });
+
+    it("🔴 競合のやり直しで時刻を取り直す（古い時刻のまま書かない）", async () => {
+        vi.useFakeTimers({ toFake: ["Date"] });
+        try {
+            vi.setSystemTime(new Date("2026-11-09T02:00:00.000Z"));
+            rows[KEY] = convRow([msg(ME, "a", "2026-11-09T00:00:00.000Z")]);
+            let first = true;
+            ccf = (cmd, input) => {
+                if (cmd === "UpdateCommand" && (input.Key as { id: string }).id === KEY && first) {
+                    first = false;
+                    vi.setSystemTime(new Date("2026-11-09T02:00:05.000Z"));
+                    return true;
+                }
+                return false;
+            };
+            await send("続き");
+            const ups = convWrites().filter((c) => c.cmd === "UpdateCommand");
+            expect(ups[0].input.ExpressionAttributeValues[":now"]).toBe("2026-11-09T02:00:00.000Z");
+            expect(ups[1].input.ExpressionAttributeValues[":now"]).toBe("2026-11-09T02:00:05.000Z");
+            expect((ups[1].input.ExpressionAttributeValues[":new"] as { t: string }[])[0].t).toBe("2026-11-09T02:00:05.000Z");
+        } finally { vi.useRealTimers(); }
+    });
+
+    it("🔴 満杯の会話の同時送信: 条件は更新時刻つき（長さが同じでも、先に書かれたら外れる）", async () => {
+        const items = Array.from({ length: DM_MESSAGES_MAX }, (_, i) => msg(PEER, `m${i}`, `2026-11-09T00:00:${String(i % 60).padStart(2, "0")}.${String(i).padStart(3, "0")}Z`, `old-${String(i).padStart(4, "0")}`));
+        rows[KEY] = convRow(items, { initiator: PEER, updatedAt: "2026-11-09T01:00:00.000Z" });
+        await send("最新");
+        const up = convWrites().find((c) => c.cmd === "UpdateCommand")!.input;
+        expect(up.ConditionExpression).toContain("updatedAt = :prev");
+        expect(up.ExpressionAttributeValues[":prev"]).toBe("2026-11-09T01:00:00.000Z");
+    });
+
+    it("🔴 URL の言い換え・短縮ドメイン・見えない文字", () => {
+        for (const t of ["discord.gg/abc", "youtu.be/xyz", "lin.ee/abc", "amzn.asia/x", "bit.ly/a", "t.co/abc", "goo.gl/x",
+            "example。com", "example . com", "example[.]com", "example(dot)com", "example (dot) com", "exa\u200Bmple.com", "ex\u00ADample.com", "ｅｘａｍｐｌｅ［．］ｃｏｍ"]) {
+            expect(containsUrl(t), t).toBe(true);
+        }
+        for (const t of ["こんにちは。元気ですか", "Thanks. To be honest", "3.5mm", "写真きれいでした"]) expect(containsUrl(t), t).toBe(false);
+    });
+
+    it("見えない文字だけの本文は空として 400・文字の間の見えない文字は落とす", async () => {
+        follows(PEER, ME);
+        expect(cleanDmText("\u200B\u200E\u202E\u2060\uFEFF\u00AD")).toBe("");
+        expect(cleanDmText("こ\u200Bん\u202Eにちは")).toBe("こんにちは");
+        const r = await send("\u200B\u200B");
+        expect(r.statusCode).toBe(400);
+        expect(bodyOf(r).code).toBe("empty");
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("🔴 送り主に見える状態は、リクエストでも直行でも同じ（pending）・相手が話したら inbox", async () => {
+        follows(PEER, ME);
+        const req = await send("こんにちは");
+        calls = []; rows = {}; follows(PEER, ME); follows(ME, PEER);
+        const direct = await send("こんにちは");
+        expect(bodyOf(req).state).toBe("pending");
+        expect(bodyOf(direct).state).toBe("pending");
+        // 相手（PEER）が話したあとの自分の送信は inbox
+        calls = [];
+        rows[KEY] = convRow([msg(ME, "a", "2026-11-09T00:00:01.000Z"), msg(PEER, "b", "2026-11-09T00:00:02.000Z")]);
+        expect(bodyOf(await send("c")).state).toBe("inbox");
+    });
+
+    it("退会の掃除は時間の予算を持つ（切れたら受信箱の行を残して打ち切る）", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER) });
+        await purgeDmFor(ME, -1);
+        expect(writes(), "予算が無いのに掃除している").toHaveLength(0);
+        vi.restoreAllMocks();
+    });
+
+    it("退会の掃除は、フォローの掃除より後ろで呼ぶ", async () => {
+        const { readFileSync } = await import("fs");
+        const src = readFileSync(`${process.cwd()}/api-user/src/account.ts`, "utf8").length ? readFileSync(`${process.cwd()}/api-user/src/account.ts`, "utf8") : "";
+        expect(src.indexOf("await purgeDmFor"), "purgeDmFor が見つからない").toBeGreaterThan(0);
+        expect(src.indexOf("await purgeDmFor")).toBeGreaterThan(src.indexOf("keeping following#"));
+    });
+
+    it("🔴 削除の失敗: 経路（map）が無い種類だけ通し、式の誤りは隠さない", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")]);
+        const boom = (message: string) => {
+            const real = mockSend.getMockImplementation()!;
+            mockSend.mockImplementation(async (c: { constructor: { name: string }; input: Record<string, any> }) => {   // eslint-disable-line @typescript-eslint/no-explicit-any
+                if (c.constructor.name === "UpdateCommand" && c.input.Key.id === `dminbox#${ME}`) throw Object.assign(new Error(message), { name: "ValidationException" });
+                return real(c);
+            });
+        };
+        boom("The document path provided in the update expression is invalid for update");
+        expect((await invoke(handler, ev("DELETE /dm/{id}", ME, { id: CONV }))).statusCode).toBe(200);
+        boom("Invalid UpdateExpression: Syntax error");
+        expect((await invoke(handler, ev("DELETE /dm/{id}", ME, { id: CONV }))).statusCode).toBe(500);
+        vi.restoreAllMocks();
     });
 });
 

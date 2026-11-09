@@ -53,11 +53,15 @@ describe("プライバシーポリシーの数が実装と合っている", () =
     // DM（2026-11-09・札 #505）。本文に書いた数は dm.ts / dmInbox.ts の定数と同じ
     it("DM: 会話の保存は新しい200通まで・会話は1人200まで・通報の写しは直近20通・リクエストは3通まで", () => {
         const s5 = sectionOf(5);
-        expect(s5, "会話の保存数が実装（DM_MESSAGES_MAX）と違う").toContain(`新しい${constOf("api-user/src/dm.ts", "DM_MESSAGES_MAX")}通まで保存`);
+        expect(s5, "会話の保存数が実装（DM_MESSAGES_MAX）と違う").toContain(`新しい${constOf("api-user/src/dm.ts", "DM_MESSAGES_MAX")}通まで、または1会話あたりの保存容量の上限まで`);
         expect(s5, "通報の写しの通数が実装（DM_REPORT_LAST）と違う").toContain(`直近${constOf("api-user/src/dm.ts", "DM_REPORT_LAST")}通の写し`);
         expect(s5, "リクエストの通数が実装（DM_REQUEST_MAX）と違う").toContain(`文字${constOf("api-user/src/dm.ts", "DM_REQUEST_MAX")}通まで`);
         // 会話数の上限は本文では言わない（言うなら実装と同じ数）。実装の定数が読めること自体は見る
         expect(constOf("api-user/src/dmInbox.ts", "DM_CONVS_MAX")).toBeGreaterThan(0);
+        expect(s5, "リクエストの受信上限が実装（DM_REQUESTS_MAX）と違う").toContain(`リクエストは${constOf("api-user/src/dmInbox.ts", "DM_REQUESTS_MAX")}件まで`);
+        const s11 = sectionOf(11);
+        expect(s11, "断った印が残ることを書いていない").toContain("リクエストを相手が断ったときの印");
+        expect(s11, "日ごとの回数の行が残ることを書いていない").toContain("1日ごとの送信回数の行（前々日以前のもの");
     });
 
     it("DM: 保存項目・ストーリー返信が会話として残ること・通報時の写し・暗号化していないこと・プッシュに本文を載せないことを書いてある", () => {
