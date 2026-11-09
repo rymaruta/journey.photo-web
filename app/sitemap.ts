@@ -34,7 +34,7 @@ const toAbsolute = (src: string): string => publicImageUrl(src);
 const PRIVACY_LAST_MODIFIED = "2026-10-18";
 
 /** 利用規約の本文を最後に変えた日。**`app/terms/page.tsx` の `LAST_UPDATED` と揃える** */
-const TERMS_LAST_MODIFIED = "2026-09-17";
+const TERMS_LAST_MODIFIED = "2026-11-09";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = siteConfig.url;

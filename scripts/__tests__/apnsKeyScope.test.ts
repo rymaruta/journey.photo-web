@@ -39,7 +39,7 @@ const ALL_VARS = ["APNS_PRIVATE_KEY", "APNS_KEY_ID", "APNS_TEAM_ID", "APNS_TOPIC
  * 見る。5本目が現れたら必ずここが落ちるので、そのとき env を配ったかを
  * 下のテストが続けて見る。
  */
-const PUSHING_FILES = ["badgeStore.ts", "comments.ts", "follow.ts", "inspired.ts", "likes.ts", "storyReplies.ts", "supporterStore.ts"];
+const PUSHING_FILES = ["badgeStore.ts", "comments.ts", "dm.ts", "follow.ts", "inspired.ts", "likes.ts", "storyReplies.ts", "supporterStore.ts"];
 
 /** `api-user/src/*.ts` のうち、`pushNotification(...)` を呼んでいるもの */
 function filesThatPush(): string[] {
@@ -51,7 +51,8 @@ function filesThatPush(): string[] {
             const src = readFileSync(join(dir, f), "utf8")
                 .replace(/\/\*[\s\S]*?\*\//g, " ").replace(/^\s*\/\/.*$/gm, " ");
             if (f === "notify.ts") return false;   // 定義の場所
-            return /\bpushNotification\s*\(/.test(src);
+            // `pushDmMessage` は DM の知らせ（`dm.ts`）。ベルの通知（`pushNotification`）には積まず、端末へだけ送る
+            return /\b(?:pushNotification|pushDmMessage)\s*\(/.test(src);
         })
         .sort();
 }
@@ -85,8 +86,9 @@ function handlerBody(serviceDir: string, handler: string): string {
  * `applyToProfile` が付いたメダルの通知を積むので、それも数える
  */
 const sendsPush = (handler: string) =>
-    /\b(?:pushNotification|refreshBadges|refreshBadgesQuietly|applyToProfile|alertOne|notifyInspiredOnce)\s*\(/.test(handlerBody("api-user", handler));
+    /\b(?:pushNotification|refreshBadges|refreshBadgesQuietly|applyToProfile|alertOne|notifyInspiredOnce|sendDm)\s*\(/.test(handlerBody("api-user", handler));
 // `notifyInspiredOnce` は「この写真を見て撮影」の知らせ（`inspired.ts`）。写真の保存・更新が呼ぶ
+// `sendDm` は DM の送信（`dm.ts`。受け取った人の端末へ送る。リクエストには送らない）。
 // `alertOne` は光と天気の知らせ（`lightForecast.ts` の `sendLightAlerts`）。お知らせの一覧には
 // 積まず、`sendPush` で直に送る（文面そのもの・理由は `lightForecast.ts` の注記）
 
@@ -144,7 +146,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
     it("通知を積む関数を1つ以上見つけている", () => {
         const sending = [...fns].filter(([, v]) => sendsPush(v.handler)).map(([n]) => n).sort();
         expect(sending).toEqual([
-            "appStoreNotification", "followUser", "getMyBadges", "likePhoto", "postComment", "postStoryReply",
+            "appStoreNotification", "dm", "followUser", "getMyBadges", "likePhoto", "postComment", "postStoryReply",
             "recordPurchase", "savePhoto", "sendLightAlerts", "updatePhotoVisibility",
         ]);
     });

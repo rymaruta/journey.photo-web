@@ -27,6 +27,7 @@ export const REPORT_REASONS = [
     "violence",    // 暴力的・残虐な内容
     "harassment",  // 特定の人への攻撃・いやがらせ
     "spam",        // 広告・勧誘・スパム
+    "minor",       // 未成年へのいやな接触・誘い出し（2026-11-09・DM の通報から。画面と同じ並び）
     "other",       // その他
 ] as const;
 export type ReportReason = (typeof REPORT_REASONS)[number];
