@@ -8,6 +8,7 @@ import { isUserId } from "./userId";
 import { readUserList, updateUserList } from "./userList";
 import { isFollowing } from "./followCheck";
 import { isCloseFriendsStory, closeFriendOwnersAmong } from "./storyAudience";
+import { maskDeletedMentions } from "./storyMentions";
 import { isBlocked } from "./blockCheck";
 import { isStoryExpired } from "./storyExpiry";
 import { isDeletedProfile } from "./types";
@@ -564,6 +565,8 @@ export const getHighlight: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (ev
         const shown = seesClose ? live : live.filter((row) => !isCloseFriendsStory(row));
         if (hasClose && !seesClose && shown.length === 0) return jsonError(404, "ハイライトが見つかりません");
         const items = shown.map((row) => publicStoryShape(row!));
+        // 退会した人のメンションの名前は伏せる（`maskDeletedMentions`）
+        await maskDeletedMentions(items);
         return {
             statusCode: 200,
             // 見る人によって 200 と 404 が割れるので共有キャッシュに載せない（上と同じ）
@@ -571,7 +574,8 @@ export const getHighlight: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (ev
             body: JSON.stringify({
                 id: hid,
                 title: typeof h.title === "string" ? h.title : "",
-                coverStoryId: typeof h.coverStoryId === "string" ? h.coverStoryId : undefined,
+                // 見せない行（名簿の外の人にとっての親しい友達向け）の id は返さない
+                coverStoryId: typeof h.coverStoryId === "string" && shown.some((r) => r!.id === h.coverStoryId) ? h.coverStoryId : undefined,
                 items,
             }),
         };

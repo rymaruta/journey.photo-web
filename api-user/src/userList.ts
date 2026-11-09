@@ -135,8 +135,9 @@ export async function readUserRows<T>(
     rowId: string,
     valid: (x: unknown) => x is T,
     label: string,
+    consistent = false,
 ): Promise<T[]> {
-    const res = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: rowId } }));
+    const res = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: rowId }, ...(consistent ? { ConsistentRead: true } : {}) }));
     const list = res.Item?.list;
     if (!Array.isArray(list)) return [];
     const out = (list as unknown[]).filter(valid);
@@ -147,6 +148,6 @@ export async function readUserRows<T>(
 }
 
 /** `rowId` の `list` を**文字列の一覧として**読む（形の違う要素は落とす） */
-export async function readUserList(rowId: string, valid: (x: string) => boolean, label: string): Promise<string[]> {
-    return readUserRows(rowId, (x): x is string => typeof x === "string" && valid(x), label);
+export async function readUserList(rowId: string, valid: (x: string) => boolean, label: string, consistent = false): Promise<string[]> {
+    return readUserRows(rowId, (x): x is string => typeof x === "string" && valid(x), label, consistent);
 }

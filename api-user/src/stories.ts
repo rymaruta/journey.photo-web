@@ -18,7 +18,7 @@ import { isFollowing } from "./followCheck";
 import { hasStoryTextItem, sanitizeStoryTexts, storyTextsCaption } from "./storyText";
 import { storyAllowsReplies } from "./storyVisibility";
 import { parseStoryAudience, isCloseFriendsStory, canViewStoryAudience, closeFriendOwnersAmong } from "./storyAudience";
-import { resolveStoryMentions } from "./storyMentions";
+import { resolveStoryMentions, maskDeletedMentions } from "./storyMentions";
 
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
@@ -311,6 +311,9 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
             const n = await storyAnswerCount(String(item.id ?? ""), hidden);
             if (n !== null) item.answerCount = n;
         }));
+        // 退会した人のメンションの名前は伏せる（投稿のときに写した名前が残るため）。
+        // 読めなければ（`deletedAmong` は投げない）伏せる側
+        await maskDeletedMentions(visible);
         visible.sort((a, b) => String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? "")));
         return {
             // 認証済みユーザー個別のレスポンスなので共有キャッシュには載せない
