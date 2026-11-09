@@ -16,7 +16,7 @@
 
 import { OKINAWA_FRAME, PREFECTURE_SHAPES } from "../data/prefectureShapes";
 import { geoOf, type Ring } from "./japanMapGeo";
-import { REGION_ORDER, isDirectRegion, membersOf, regionOf, type RegionName } from "./japanMapView";
+import { REGION_ORDER, membersOf, regionOf, type RegionName } from "./japanMapView";
 
 /** 形の外の当たりの広さ（画面の px） */
 export const HIT_CAP_PX = 16;

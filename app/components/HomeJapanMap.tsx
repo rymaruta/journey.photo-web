@@ -50,7 +50,7 @@ import {
     type MapView, type RegionName,
 } from "@/lib/utils/japanMapView";
 import { hitAt, pickHit, regionHit, sameHit, type Hit, type HitContext } from "@/lib/utils/japanMapHit";
-import { TraceGesture, type TraceAbort, type TraceWhy } from "@/lib/utils/traceGesture";
+import { TraceGesture, type TraceWhy } from "@/lib/utils/traceGesture";
 import { TIP_H, placeTip, type TipMode } from "@/lib/utils/japanMapTip";
 import {
     HINT_IDLE_MS, HINT_PATH, HINT_VISIBLE_RATIO, ghostAt, ghostPlayed, countVisit, readHint, shouldPlayGhost, shouldShowCaption, tracedOnce, writeHint,
@@ -470,6 +470,8 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
             pending: (x, y) => setProg(x, y),
             pendingEnd: () => setProg(null),
             begin: (x, y, why: TraceWhy, id) => {
+                // 長押しのタイマーから呼ばれるので、ここで例外が出ても握る（なぞりだけ止めて、タップ・一覧チップは生かす）
+                guardedRef.current("begin", () => {
                 const L = latest.current;
                 L.stopGhost();
                 tracingRef.current = true;
@@ -484,6 +486,8 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                 setHov(m.inside ? pickHit(m.x, m.y, L.ctxFor(), null) : null);
                 fingerRef.current = { x, y };
                 L.layoutFinger();
+            
+                });
             },
             move: (x, y) => { guardedRef.current("move", () => latest.current.updateTrace(x, y)); },
             release: (x, y) => {
@@ -494,7 +498,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                 if (out) return; // 地図の外で離す: 取り消し（選択は変えない）
                 guardedRef.current("release", () => L.commit(h, "trace"));
             },
-            abort: (_why: TraceAbort) => { latest.current.endTrace(); },
+            abort: () => { latest.current.endTrace(); },
             tapCandidate: () => { tapRef.current = { t: Date.now() }; },
         });
     }

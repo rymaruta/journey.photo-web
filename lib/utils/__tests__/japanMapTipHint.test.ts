@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { placeTip, TIP_GAP, TIP_H, type Rect } from "../japanMapTip";
 import {
     HINT_DURATION_MS, HINT_KEY, HINT_MAX_SHOWN, HINT_PATH, countVisit, ghostAt, ghostPlayed, readHint, shouldPlayGhost, shouldShowCaption, tracedOnce, writeHint,
@@ -71,12 +71,15 @@ describe("初見の手がかり（仕様 v4「4 · DISCOVERY」）", () => {
         expect(readHint()).toEqual({ shown: 1, traced: true, visits: 4 });
         window.localStorage.setItem(HINT_KEY, "{{{");
         expect(readHint()).toEqual({ shown: 0, traced: false, visits: 0 });
-        const orig = Storage.prototype.setItem;
-        Storage.prototype.setItem = () => { throw new Error("denied"); };
-        try { expect(() => writeHint({ shown: 1, traced: false, visits: 1 })).not.toThrow(); } finally { Storage.prototype.setItem = orig; }
-        const origGet = Storage.prototype.getItem;
-        Storage.prototype.getItem = () => { throw new Error("denied"); };
-        try { expect(readHint()).toEqual({ shown: 0, traced: false, visits: 0 }); } finally { Storage.prototype.getItem = origGet; }
+        window.localStorage.removeItem(HINT_KEY);
+        const set = vi.spyOn(window.localStorage, "setItem").mockImplementation(() => { throw new Error("denied"); });
+        expect(() => writeHint({ shown: 1, traced: false, visits: 1 })).not.toThrow();
+        expect(set).toHaveBeenCalled();
+        set.mockRestore();
+        window.localStorage.setItem(HINT_KEY, JSON.stringify({ shown: 1, traced: false, visits: 1 }));
+        const get = vi.spyOn(window.localStorage, "getItem").mockImplementation(() => { throw new Error("denied"); });
+        expect(readHint()).toEqual({ shown: 0, traced: false, visits: 0 });
+        get.mockRestore();
     });
 
     it("ゴーストの動き: 2.8 秒で 東北 → 関東 → 中部 → 近畿 を 3 区間なぞる・終わったら null", () => {
