@@ -14,6 +14,7 @@
 // - 数える: `nav_click`（area=spot_next・dest=area/nearby/topic）。アプリの札は `app_store_click`（placement=spot_detail）。
 
 import React from "react";
+import Link from "next/link";
 import { ChevronRightIcon } from "@heroicons/react/24/outline";
 import { CHIP_OFF, CHIP_SIZE, CHIP_HIT, CHIP_ROW } from "./chipStyles";
 import { SectionTitle } from "./SectionHead";
@@ -55,11 +56,11 @@ export default function SpotNext({ isJa, list, hasNearby, topics }: SpotNextProp
                             {hasNearby && (
                                 <li>
                                     {/* 頁内の移動（同じ頁の「近くの撮影スポット」へ）。新しい URL は増えない */}
-                                    <a href={`#${NEARBY_SECTION_ID}`} className={ROW} style={ROW_STYLE} data-testid="spot-next-nearby"
+                                    <Link href={`#${NEARBY_SECTION_ID}`} prefetch={false} className={ROW} style={ROW_STYLE} data-testid="spot-next-nearby"
                                        onClick={() => track("nav_click", { area: "spot_next", dest: "nearby" })}>
                                         <span>{isJa ? "近くの撮影スポット" : "Nearby spots"}</span>
                                         <ChevronRightIcon aria-hidden="true" className="shrink-0 text-text-2" style={{ width: 14, height: 14, strokeWidth: 2 }} />
-                                    </a>
+                                    </Link>
                                 </li>
                             )}
                         </ul>
