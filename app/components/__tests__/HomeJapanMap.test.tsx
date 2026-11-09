@@ -308,6 +308,29 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
         expect(document.querySelectorAll("path.jm-dim").length).toBe(0);
     });
 
+    it("🔴 拡大の動き（260ms）の途中は data-zoom=\"moving\"、終わると \"still\" で viewBox は関東の最終値（スモークが固定時間ではなくこの印を待つ・webkit で途中の値を読んで落ちた 2026-11-09）", async () => {
+        window.matchMedia = ((q: string) => ({ matches: false, media: q, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false })) as typeof window.matchMedia;
+        mountFresh();
+        expect(wrapEl().getAttribute("data-zoom")).toBe("still");
+        fireEvent.click(screen.getByRole("button", { name: "関東" }));
+        expect(stageOf()).toBe("関東");
+        expect(wrapEl().getAttribute("data-zoom")).toBe("moving");
+        const v = viewFor("関東");
+        const want = `${v.x.toFixed(1)} ${v.y.toFixed(1)} ${v.w.toFixed(1)} ${v.h.toFixed(1)}`;
+        expect(want).toBe("201.3 208.0 58.3 74.8");
+        expect(document.querySelector("svg.jm")!.getAttribute("viewBox")).not.toBe(want); // 押した直後はまだ全国の側
+        await settle(500);
+        expect(wrapEl().getAttribute("data-zoom")).toBe("still");
+        expect(document.querySelector("svg.jm")!.getAttribute("viewBox")).toBe(want);
+        // 動きを減らす設定は即時に切り替わり、印も最初から still
+        cleanup();
+        window.matchMedia = ((q: string) => ({ matches: /reduce/.test(q), media: q, onchange: null, addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false })) as typeof window.matchMedia;
+        mountFresh();
+        fireEvent.click(screen.getByRole("button", { name: "関東" }));
+        expect(wrapEl().getAttribute("data-zoom")).toBe("still");
+        expect(document.querySelector("svg.jm")!.getAttribute("viewBox")).toBe(want);
+    });
+
     it("北海道・沖縄のチップは拡大せず、直接その県を選ぶ（帯が開く）", () => {
         mountFresh();
         fireEvent.click(screen.getByRole("button", { name: "北海道" }));
