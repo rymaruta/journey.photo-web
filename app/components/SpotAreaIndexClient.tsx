@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
 import type { SpotArea } from "@/lib/data/spotLink";
 import { REGIONS, REGION_EN, type RegionName } from "@/lib/data/prefectures";
 import { useLocale } from "@/app/i18n/context";
-import { ROUTES } from "@/lib/routes";
 import { CHIP_OFF, CHIP_SIZE, CHIP_HIT, CHIP_ROW } from "./chipStyles";
+import SpotAreaChip, { AREA_TILE_GRID } from "./SpotAreaChip";
+import SpotListSearch from "./SpotListSearch";
 import SectionHead from "./SectionHead";
 
 /**
@@ -29,9 +29,14 @@ type Props = {
      * （切り口の一覧を props のデータで渡さない——`app/spots/page.tsx`）
      */
     children?: React.ReactNode;
+    /**
+     * 地方の下の節（季節・市区町村・テーマ）へ飛ぶ近道の行き先（2026-11-09）。`id` は見出しの `id`（`app/spots/page.tsx` が、
+     * 実際に描く節だけを渡す）。無い節への死んだリンクを出さないため、ここでは決めない
+     */
+    jumps?: Array<{ id: string; label: string; labelEn: string }>;
 };
 
-export default function SpotAreaIndexClient({ areas, total, draftCount, children }: Props) {
+export default function SpotAreaIndexClient({ areas, total, draftCount, children, jumps = [] }: Props) {
     const { locale } = useLocale();
     const isJa = locale !== "en";
 
@@ -46,6 +51,71 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
         if (overseas.length > 0) out.push({ region: null, items: overseas });
         return out;
     }, [areas]);
+
+    /**
+     * ページ内の近道（2026-11-09 判断）。本番 390px の実測で、地方の一覧は先頭の約 1,500px だが、そのあとに季節・市区町村・
+     * テーマの節が続いてページ全体は 13,000px を超える。**地図は採らず、地方・節の見出しへ飛ぶ帯にした**
+     * （理由は報告。軽く・静的HTMLのリンクのまま・押す先が同じページの見出しなので迷わない）。
+     * 描いている地方と節だけを並べる（死んだリンクを出さない）
+     */
+    const jumpItems = [
+        ...groups.map(({ region }) => ({
+            id: `spots-region-${region ?? "overseas"}`,
+            label: region === null ? (isJa ? "海外" : "Outside Japan") : (isJa ? region : REGION_EN[region]),
+        })),
+        ...jumps.map((j) => ({ id: j.id, label: isJa ? j.label : j.labelEn })),
+    ];
+
+    /** 県の一覧と切り口の節（静的HTML。検索の結果があるあいだだけ隠れる） */
+    const list = (
+        <>
+            {jumpItems.length > 1 && (
+                <nav aria-label={isJa ? "このページ内の移動" : "Jump to a section"} className="mb-6" data-testid="spots-jump-band">
+                    <ul className={CHIP_ROW} style={{ listStyle: "none" }}>
+                        {jumpItems.map((j) => (
+                            <li key={j.id}>
+                                <a href={`#${j.id}`}
+                                   className={`${CHIP_HIT} inline-flex items-center rounded-full ${CHIP_OFF} transition-colors`}
+                                   style={CHIP_SIZE}>
+                                    {j.label}
+                                </a>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+            )}
+            {groups.length === 0 ? (
+                /* **架空の県で埋めない。** 0件なら0件と言う */
+                <p className="m-0 text-white/70" style={{ fontSize: "14px" }}>
+                    {isJa ? "公開中の撮影スポットはまだありません。" : "No published spots yet."}
+                </p>
+            ) : (
+                groups.map(({ region, items }) => (
+                    <section key={region ?? "overseas"} className="mb-7">
+                        {/* 地方の見出しは節の見出し（明朝 22・`SectionHead`・2026-10-31 束 2 P3）。以前は明朝 17 */}
+                        <SectionHead id={`spots-region-${region ?? "overseas"}`}
+                            title={<>
+                                {region === null
+                                    ? (isJa ? "海外" : "Outside Japan")
+                                    : (isJa ? region : REGION_EN[region])}
+                                {/* 地方の件数（2026-11-09・見出しだけだと中身の多さが分からない）。12 以上・text-2（黒の上 10.6:1） */}
+                                <span aria-hidden="true" className="ml-2 align-baseline font-sans font-normal tabular-nums text-text-2" style={{ fontSize: "13px" }}>
+                                    {isJa ? `${items.reduce((n, a) => n + a.count, 0)}件` : `${items.reduce((n, a) => n + a.count, 0)}`}
+                                </span>
+                            </>} />
+                        <ul className={AREA_TILE_GRID} style={{ listStyle: "none" }}>
+                            {items.map((a) => (
+                                <li key={a.slug}>
+                                    <SpotAreaChip slug={a.slug} label={isJa ? a.name : a.nameEn} count={a.count} />
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
+                ))
+            )}
+            {children}
+        </>
+    );
 
     return (
         <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg mx-auto w-full max-w-5xl lg:max-w-6xl">
@@ -69,35 +139,9 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
             </p>
             )}
 
-            {groups.length === 0 ? (
-                /* **架空の県で埋めない。** 0件なら0件と言う */
-                <p className="m-0 text-white/70" style={{ fontSize: "14px" }}>
-                    {isJa ? "公開中の撮影スポットはまだありません。" : "No published spots yet."}
-                </p>
-            ) : (
-                groups.map(({ region, items }) => (
-                    <section key={region ?? "overseas"} className="mb-7">
-                        {/* 地方の見出しは節の見出し（明朝 22・`SectionHead`・2026-10-31 束 2 P3）。以前は明朝 17 */}
-                        <SectionHead id={`spots-region-${region ?? "overseas"}`}
-                            title={region === null
-                                ? (isJa ? "海外" : "Outside Japan")
-                                : (isJa ? region : REGION_EN[region])} />
-                        <ul className={CHIP_ROW} style={{ listStyle: "none" }}>
-                            {items.map((a) => (
-                                <li key={a.slug}>
-                                    <Link href={ROUTES.SPOT_AREA(a.slug)} prefetch={false}
-                                          className={`${CHIP_HIT} inline-flex items-center gap-1.5 rounded-full ${CHIP_OFF} transition-colors`}
-                                          style={CHIP_SIZE}>
-                                        {isJa ? a.name : a.nameEn}
-                                        <span className="text-white/60" style={{ fontSize: "12px" }}>{a.count}</span>
-                                    </Link>
-                                </li>
-                            ))}
-                        </ul>
-                    </section>
-                ))
-            )}
-            {children}
+            {/* 検索窓（2026-11-09）。県の一覧と切り口の節は**消さずに**その子にする——結果があるあいだだけ隠れる（静的HTMLには残る）。
+                スポットが0件のときは検索窓を出さない */}
+            {total > 0 ? <SpotListSearch areas={areas} isJa={isJa}>{list}</SpotListSearch> : list}
         </main>
     );
 }

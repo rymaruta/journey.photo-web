@@ -53,6 +53,7 @@
 | `upload_error` | 投稿に失敗した写真があった（1回の操作で1度） | `reason`: `unsupported_file` / `network` / `server` / `other` |
 | `select_content` | 記事から、スポット・作例の写真・次の記事のリンクを押した | `content_type`: `spot` / `photo` / `article`、`item_id`（リンク先の最後の区切り＝記事・スポットの slug・写真の id。英数字・`-`・`_`・80字以内の形だけ。**2026-11-06 owner「どちらでも」→ 推奨で送る**） |
 | `search` | サイト内検索で、打ち終えて約1.5秒たった（同じ語は続けて数えない・2文字以上） | `search_term_length`、`result_count`（写真の件数）。**語そのものは送らない**（2026-11-06 owner「どちらでも」→ 推奨で送らない。入力した文字を外部へ出さない）。ユーザー検索は対象外 |
+| `spots_search` | 撮影スポット一覧（`/spots`）の検索窓で、打ち終えて約1.5秒たった（`search` と同じ数え方・2文字以上。2026-11-09） | `search_term_length`、`result_count`（スポットの件数。0件は 0）。**語そのものは送らない** |
 | `share` | 共有できた（共有シート・リンクのコピー・X・LINE。閉じた回は数えない） | `method`: `native` / `copy` / `x` / `line`、`content_type`: `photo` / `spot` / `quiz` / `trip` |
 | `like_photo` | 写真にいいねを付けた（サーバーに届いた回。外した回・未ログインは数えない） | なし |
 | `follow_user` | フォローした（外した回は数えない） | なし |

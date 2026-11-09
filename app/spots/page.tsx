@@ -60,6 +60,14 @@ export default function SpotIndexPage() {
     // （実測は `lib/data/spotLink.ts` の `SpotArea` の注記）
     const total = visibleSpots(SPOTS).length;
     const areas = spotAreas();
+    // 地方の下の節へ飛ぶ近道は、実際に描く節だけ（`SpotIndexTopicSections` と同じ条件・2026-11-09）
+    const topics = spotIndexTopics();
+    const topicsShown = topics.seasons.length > 0 || topics.themes.length > 0;
+    const jumps = !topicsShown ? [] : [
+        ...(topics.seasons.length > 0 ? [{ id: "spots-by-season", label: "季節", labelEn: "Season" }] : []),
+        ...(topics.cities.length > 0 ? [{ id: "spots-by-city", label: "市区町村", labelEn: "City" }] : []),
+        ...(topics.themes.length > 0 ? [{ id: "spots-by-theme", label: "テーマ", labelEn: "Theme" }] : []),
+    ];
     return (
         <>
             {/* **一覧の構造化データ（ItemList）。** 画面に並べている地域のリンク
@@ -68,7 +76,7 @@ export default function SpotIndexPage() {
             {areas.length > 0 && (
                 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(spotAreaItemList(areas)) }} />
             )}
-            <SpotAreaIndexClient areas={areas} total={total} draftCount={total - publishableSpots(SPOTS).length}>
+            <SpotAreaIndexClient areas={areas} total={total} draftCount={total - publishableSpots(SPOTS).length} jumps={jumps}>
                 <SpotIndexTopicSections />
                 <SpotIndexTodayEntry />
             </SpotAreaIndexClient>
