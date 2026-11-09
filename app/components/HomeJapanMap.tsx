@@ -62,7 +62,6 @@ import { track } from "@/lib/utils/analytics";
 const HEADING_ID = "home-japan-map-h";
 const SHEET_ID = "home-japan-map-sheet";
 /** ページ内リンクの行き先（`HomeSpotEntry` の `<nav>`）。2026-11-09 判断: 行き元の `#` リンクは素の `<a>` にしない（`next/link`）。素だと履歴の state が null になり、県の頁から戻っても画面が戻らない（`hashLinks.test.ts`） */
->>>>>>> origin/claude/fix-hash-back
 export const SPOT_LIST_ID = "home-spot-entry-list";
 
 const NAME = new Map(PREFECTURES.map((p) => [p.slug, p.name]));
