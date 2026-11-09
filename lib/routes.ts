@@ -1,4 +1,5 @@
 import PHOTO_INDEX from "@/app/data/photo-index.json";
+import { parseLoginVia, type LoginVia } from "./auth/loginVia";
 
 // **`photos.json` を丸ごと読まない。** ここで要るのは id が2組だけなのに、
 // 以前は写真データを全部 import していた——JSON のモジュールは項目単位で
@@ -228,10 +229,10 @@ export function safeNextPath(raw: unknown): string | null {
 }
 
 /** ログイン画面へ。戻り先を添える（省略時は既定＝自分のプロフィール） */
-export function loginWithNext(next?: string | null, via?: "wish"): string {
+export function loginWithNext(next?: string | null, via?: LoginVia): string {
     const safe = safeNextPath(next);
     const base = safe ? `${ROUTES.LOGIN}?next=${encodeURIComponent(safe)}` : ROUTES.LOGIN;
     // `via` は登録までの数え方（`lib/utils/analytics.ts` の `signupFromVia`）。
-    // 決まった値しか受けない（URL に好きな文字列を載せない）
-    return via ? `${base}${safe ? "&" : "?"}via=${via}` : base;
+    // 決まった値しか受けない（URL に好きな文字列を載せない。型は `LOGIN_VIAS`・実行時も許可リストで見る）
+    return via && parseLoginVia(via) ? `${base}${safe ? "&" : "?"}via=${via}` : base;
 }

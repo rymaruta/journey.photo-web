@@ -257,14 +257,11 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
   const scopeDecidedRef = React.useRef(false);
   React.useEffect(() => {
     if (authLoading) return;
-    if (!isAuthenticated) {
-      // **「フォロー中」だけ戻す。** 本人の id が無いと意味を持たないタブは
-      // これだけで、**「おすすめ」は未ログインでも見られる**（運営が選んだ
-      // 写真で、誰が見ても同じ）。ここを `!== "all"` にしていたので、
-      // 未ログインの人は「おすすめ」を押しても弾かれていた
-      if (filters.scope === "following") setFilters({ scope: "all" });
-      return;
-    }
+    // **未ログインでは何も決めない・「フォロー中」を戻さない**（2026-11-09 owner 承認「未ログインの反応を登録の入口にする」）。
+    // 以前は「フォロー中」だけ「新着」へ戻していた——押しても無反応に見え、共有リンク `/?scope=following` も
+    // 黙って別のタブになった。今は `TimelineFeed` が未ログインに「ログインすると、フォロー中の人の写真が見られます」＋
+    // [ログイン] を出す。自分の写真などの既定のタブへ倒すのはログイン済みだけ（下）
+    if (!isAuthenticated) return;
     // 決めるのは確定した1回だけ（利用者が別のタブを押したあとに戻さない）
     if (scopeDecidedRef.current) return;
     scopeDecidedRef.current = true;

@@ -50,6 +50,7 @@ import { MusicalNoteIcon, XMarkIcon, MapPinIcon } from "@heroicons/react/24/outl
 import { useAuth } from "../../auth/context";
 import ReportDialog from "../../components/ReportDialog";
 import { useToast } from "../../../lib/hooks/useToast";
+import { useGuestPrompt } from "../../../lib/hooks/useGuestPrompt";
 import { track } from "../../../lib/utils/analytics";
 import { shareUrl, copyToClipboard, shareToTwitter, shareToLine } from "../../../lib/utils/share";
 import { renderShareCard, type ShareCardRatio } from "../../../lib/utils/signatureShareCard";
@@ -623,30 +624,34 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     const [commentCount, setCommentCount] = useState<number>(typeof photo?.commentCount === "number" ? photo.commentCount : 0);
     // 吹き出しを押したら送る先（コメントの節）。2026-10-31 束 1 P11: コメントと関連写真のタブをやめ、縦に節で並べた
     const commentsRef = React.useRef<HTMLElement>(null);
+    const promptLogin = useGuestPrompt(locale);
     const { saved, pending: savePending, toggle: toggleSave } = usePhotoSave(photo?.id ?? "", isAuthenticated, authLoading);
     const handleSave = useCallback(() => {
         hapticTap();
         void toggleSave().then((r) => {
             if (r.ok) return;
             // **未ログインは「失敗」ではなく案内**（モーダル・ホームのカードと同じ文言）
+            // 2026-11-09: 「ログイン」のリンク付きの案内（いいね・フォロー・コメントと同じ見せ方）
             if (r.requiresAuth) {
-                showToast(locale === "en" ? "Log in to save photos." : "写真を保存するにはログインしてください", "error");
+                promptLogin("save");
                 return;
             }
             showToast(r.message ?? (locale === "en" ? "Couldn't save this photo. Please try again." : "保存できませんでした。もう一度お試しください"), "error");
         });
-    }, [toggleSave, showToast, locale]);
+    }, [toggleSave, showToast, locale, promptLogin]);
     // いいねを切り替える（下の ♡ と全画面の ♡・2回叩きが同じ口を通る）
     const handleLike = useCallback(() => {
         hapticTap();
         void toggleLike().then((r) => {
+            // **未ログインは失敗ではなく入口。** ハートは塗らず、ログインへのリンク付きで案内する
+            if (r.requiresAuth) { promptLogin("like"); return; }
             // 押し直しても直らない失敗（セッション切れ・通信できない）は
             // その文言をそのまま出す
             if (!r.ok) showToast(r.message ?? (locale === "en"
                 ? "Couldn't save your like. Please try again."
                 : "いいねを保存できませんでした。もう一度お試しください"), "error");
         });
-    }, [toggleLike, showToast, locale]);
+    }, [toggleLike, showToast, locale, promptLogin]);
     const { handlers: swipeHandlers } = useSwipe({
         onSwipeLeft: () => setShown((i) => (i + 1) % Math.max(1, images.length)),
         onSwipeRight: () => setShown((i) => (i - 1 + images.length) % Math.max(1, images.length)),

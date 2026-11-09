@@ -188,3 +188,18 @@ describe("uploadErrorReason", () => {
         expect(uploadErrorReason("string")).toBe("other");
     });
 });
+
+// 2026-11-09: 未ログインの案内を出した回（いいね・保存・フォロー・コメント・フォロー中のタブ）
+describe("login_prompt", () => {
+    it("決まった trigger だけ送る。範囲外はイベントごと送らない", () => {
+        const calls = capture();
+        for (const t of ["like", "save", "follow", "comment", "following_tab"] as const) track("login_prompt", { trigger: t });
+        expect(calls.map((c) => (c[2] as { trigger: string }).trigger)).toEqual(["like", "save", "follow", "comment", "following_tab"]);
+        track("login_prompt", { trigger: "https://evil.example/x" } as never);
+        track("login_prompt", { trigger: "photo-id-123" } as never);
+        track("login_prompt", {} as never);
+        expect(calls).toHaveLength(5);
+        expect(sanitizeParams("login_prompt", { trigger: "like", url: "/photo/secret" })).toEqual({ trigger: "like" });
+        expect(Object.keys(EVENT_SPEC.login_prompt)).toEqual(["trigger"]);
+    });
+});

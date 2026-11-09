@@ -90,12 +90,29 @@ describe("いいねした写真（サーバー側の一覧）", () => {
         expect(mockUserFetch, "ログイン状態が決まる前に聞きに行っている").not.toHaveBeenCalled();
     });
 
-    it("未ログインなら聞きに行かず、端末の控えだけを出す", async () => {
+    // 2026-11-09: 未ログインのいいねは端末に溜めない。以前に端末へ残った控えも「いいねした写真」と出さない
+    it("未ログインなら聞きに行かず、端末の古い控えも出さない（ログインへの導線を出す）", async () => {
         auth.isAuthenticated = false;
         localFavorites.ids = ["a"];
         render(<FavoritesPage />);
-        await waitFor(() => expect(titles()).toEqual(["写真A"]));
+        expect(await screen.findByTestId("favorites-guest")).toBeInTheDocument();
+        expect(titles(), "未ログインに古い控えを出している").toEqual([]);
+        expect(screen.getByRole("link", { name: "ログイン" }).getAttribute("href")).toBe("/login?next=%2Ffavorites&via=like");
         expect(mockUserFetch).not.toHaveBeenCalled();
+    });
+
+    it("ログイン済みは端末の控えも出す（ログイン中に押して一覧に入らなかった分）", async () => {
+        localFavorites.ids = ["a"];
+        mockUserFetch.mockResolvedValue(ok(["b"]));
+        render(<FavoritesPage />);
+        await waitFor(() => expect(titles()).toEqual(["写真A", "写真B"]));
+    });
+
+    it("判定中は古い控えを出さない", () => {
+        auth.loading = true;
+        localFavorites.ids = ["a"];
+        render(<FavoritesPage />);
+        expect(titles()).toEqual([]);
     });
 
     it("本当に0件なら「ありません」を出す", async () => {

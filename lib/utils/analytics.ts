@@ -71,6 +71,13 @@ export const NAV_DESTS = [
     "map_pref",
 ] as const;
 
+/**
+ * `login_prompt`（未ログインの反応を登録の入口に変える・2026-11-09 owner 承認）。
+ * 未ログインでいいね・保存・フォロー・コメントを押して「ログインしてください」の案内が出た回、
+ * 未ログインで「フォロー中」のタブを開いて案内が出た回。`trigger` は何を押したか（URL・写真の id は送らない）
+ */
+export const LOGIN_PROMPT_TRIGGERS = ["like", "save", "follow", "comment", "following_tab"] as const;
+
 export const EVENT_SPEC = {
     // 既存（名前と欄は変えない）
     wish_tap: { signed_in: [0, 1], kind: ["spot", "location"] },
@@ -96,6 +103,8 @@ export const EVENT_SPEC = {
     share: { method: SHARE_METHODS, content_type: SHARE_CONTENT_TYPES },
     like_photo: {},
     follow_user: {},
+    // 未ログインへ「ログインしてください」を出した（2026-11-09）。押したあとにログインへ進んだかは `login` / `view_signup` で見る
+    login_prompt: { trigger: LOGIN_PROMPT_TRIGGERS },
 } as const;
 
 type Spec = typeof EVENT_SPEC;
@@ -109,6 +118,7 @@ export type UploadErrorReason = (typeof UPLOAD_ERROR_REASONS)[number];
 export type ShareMethod = (typeof SHARE_METHODS)[number];
 export type ShareContentType = (typeof SHARE_CONTENT_TYPES)[number];
 export type SelectContentType = (typeof SELECT_CONTENT_TYPES)[number];
+export type LoginPromptTrigger = (typeof LOGIN_PROMPT_TRIGGERS)[number];
 export type NavArea = (typeof NAV_AREAS)[number];
 export type NavDest = (typeof NAV_DESTS)[number];
 export type AppStorePlacement = (typeof APP_STORE_PLACEMENTS)[number];

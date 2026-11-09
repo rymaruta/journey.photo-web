@@ -244,13 +244,26 @@ describe("トップの おすすめ / フォロー中 / 新着", () => {
         expect(screen.getByRole("heading", { name: "おすすめ" })).toBeInTheDocument();
     });
 
-    it("未ログインが ?scope=following で来ても、そこには留めない", async () => {
+    // 2026-11-09: 以前は未ログインの following を新着へ戻していた（押しても無反応に見えた・共有リンクも黙って別のタブ）。
+    // 今は「フォロー中」に留め、中に「ログインすると〜見られます」＋ログインを出す
+    it("未ログインが ?scope=following で来ても、そこに留め、ログインの案内を出す", async () => {
         authState.current = { isAuthenticated: false, userId: null, loading: false };
         window.history.replaceState({}, "", "/?scope=following");
         render(<GalleryPageClient />);
-        await waitFor(() => expect(pressed("新着")).toBe(true));
+        await waitFor(() => expect(pressed("フォロー中")).toBe(true));
+        // 中身（案内）は `TimelineFeed`（この試験では差し替え。表示は TimelineFeed.test.tsx が持つ）
+        expect(await screen.findByTestId("timeline-feed")).toBeInTheDocument();
         expect(new URLSearchParams(window.location.search).get("scope"),
-            "未ログインに following が残っている").toBeNull();
+            "未ログインの following を戻している").toBe("following");
+    });
+
+    it("未ログインが「フォロー中」を押したら、タブの中に案内が出る（無反応にしない）", async () => {
+        authState.current = { isAuthenticated: false, userId: null, loading: false };
+        render(<GalleryPageClient />);
+        await new Promise((r) => setTimeout(r, 30));
+        fireEvent.click(tab("フォロー中"));
+        await waitFor(() => expect(pressed("フォロー中")).toBe(true));
+        expect(await screen.findByTestId("timeline-feed")).toBeInTheDocument();
     });
 
     it("知らないタブの値は無視する", async () => {

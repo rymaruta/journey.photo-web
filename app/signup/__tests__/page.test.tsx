@@ -620,3 +620,12 @@ describe("SignupPage - 登録の漏斗", () => {
         expect(sent("view_signup")[0]).toEqual(expect.objectContaining({ landing_type: "learn" }));
     });
 });
+
+// 2026-11-09: 登録すると何ができるか（1行）。登録の入力のステップにだけ出す
+describe("SignupPage - 便益の1行", () => {
+    it("登録の画面に出る", () => {
+        render(<SignupPage />);
+        expect(screen.getByTestId("signup-benefit").textContent)
+            .toBe("登録すると、いいね・フォロー・コメント・保存・投稿ができるようになります。");
+    });
+});

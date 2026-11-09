@@ -50,9 +50,11 @@ vi.mock("../../../lib/hooks/useToast", () => ({
 vi.mock("../UserAvatar", () => ({ default: () => <div /> }));
 
 import CommentSection from "../CommentSection";
+import { resetGuestPromptThrottle } from "../../../lib/hooks/useGuestPrompt";
 import { AUTH_REQUIRED_MESSAGE } from "../../../lib/utils/api";
 
 beforeEach(() => {
+    resetGuestPromptThrottle();
     mockUserFetch.mockReset();
     mockUserPublicFetch.mockReset().mockResolvedValue({ ok: true, json: async () => ({ items: [], count: 0 }) });
     mockShowToast.mockReset();
@@ -405,7 +407,9 @@ describe("CommentSection: セッションが切れていたとき", () => {
         mockUserFetch.mockRejectedValue(new Error(AUTH_REQUIRED_MESSAGE));
         await typeAndSend("いいね");
         await waitFor(() => expect(mockShowToast).toHaveBeenCalled());
-        expect(mockShowToast).toHaveBeenLastCalledWith("コメントするにはログインしてください", "info");
+        // 2026-11-09: 「ログイン」のリンク付き（戻り先は今の頁・via=comment）
+        expect(mockShowToast).toHaveBeenLastCalledWith("コメントするにはログインしてください", "info", 6000,
+            { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=comment/) });
     });
 
     it("打った文字は消さない（送り直せる）", async () => {
