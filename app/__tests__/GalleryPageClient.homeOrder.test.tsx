@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, within } from "@testing-library/react";
 import { ja } from "../i18n/labels";
 
 /**
@@ -71,6 +71,25 @@ describe("ホームの並び（iOS と同じ）", () => {
         expect(follows(stories, cards), "輪の列が上の札より上に無い").toBe(true);
         expect(follows(cards, tabs), "上の札が切り替えより上に無い").toBe(true);
         expect(follows(tabs, panel), "切り替えが中身より上に無い").toBe(true);
+    });
+
+    it("価値の一文（見出し）が最上部: 輪・上の札・アプリの札より上（2026-11-09・9人のレビュー）", async () => {
+        render(<GalleryPageClient seasonalSpots={SEASONAL} />);
+        const h1 = screen.getByRole("heading", { level: 1 });
+        const stories = await screen.findByTestId("stories-bar");
+        const cards = screen.getByTestId("home-top-cards");
+        const app = screen.getByTestId("app-install-card");
+        expect(follows(h1, stories), "見出しが輪の列より下").toBe(true);
+        expect(follows(h1, cards), "見出しが上の札より下").toBe(true);
+        expect(follows(cards, app), "アプリの札が上の札より上").toBe(true);
+    });
+
+    it("ホームのアプリの札は小さい形（compact）・最初の画面のチップに地図・探す・ログインが無い", () => {
+        render(<GalleryPageClient seasonalSpots={SEASONAL} />);
+        const app = screen.getByTestId("app-install-card");
+        expect(app.className.split(/\s+/), "ホームのアプリの札が大きい形").toContain("p-3");
+        const band = within(screen.getByTestId("home-entry-band")).getAllByRole("link").map((a) => a.textContent);
+        for (const w of ["地図", "探す", "ログイン"]) expect(band, w).not.toContain(w);
     });
 
     it("「さがす」の面には輪の列を出さない", async () => {

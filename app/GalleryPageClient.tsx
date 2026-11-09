@@ -613,7 +613,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
     return (
       <p
         id="site-subtitle"
-        className="text-sm text-white/60 mt-0.5 sm:mt-1 leading-tight sm:leading-normal"
+        className="text-sm text-text-2 sm:text-white/60 mt-1 leading-normal"
       >
         <span className="inline-block align-baseline sm:inline">{first}</span>
         {rest ? <br className="block sm:hidden" /> : null}
@@ -670,24 +670,21 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
    */
   return (
     <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg mx-auto w-full max-w-5xl lg:max-w-6xl">
-      {/* **見出しは1つだけ。** 狭い画面では画面に出さず（`sr-only`）、広い画面で
-          ふつうに見せる（`sm:not-sr-only`）。
-          以前は狭い画面用の `sr-only sm:hidden` の h1 と、`hidden sm:flex` の中の h1 の
-          **2つが HTML に在った**（どちらの幅でも描かれるのは1つだが、HTML を読む
-          検索には h1 が2つ見える）。**見た目は変えない**——狭い画面では包みが高さ0
-          （中身は読み上げ専用の見出しと、隠した一言だけ）、広い画面は今までどおり。
-          スマホで見出しが1つも無かった件（390px 幅で h1 が0件）もこの形で満たす */}
-      {/* タイトル: モバイルでは見せない（ヘッダーナビにサイト名がある） */}
-      <div className="sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:mb-4">
+      {/* **見出しは1つだけ。スマホでも見せる**（2026-11-09 owner 承認「はい」・9人のレビュー）。
+          以前は狭い画面で見出し（`sr-only`・画面の外）と一言（`hidden`）を見せず、最初の画面に
+          「ここで何ができるか」の文が無かった（お題の札・アプリの札・チップが先で、写真は約1,365px 下）。
+          いまは **スマホもパソコンも同じ文**（見出し＋一言）を最上部に出す。明朝（板 02 の screenTitle 26・
+          Web の h1 は Shippori）・一言は副文の text-2。見出しは HTML に1つだけ（検索から見える数は変えない）。
+          文言は現行のまま（SNS でもあるので旅だけに狭めない一言。変更案は報告に出した） */}
+      <div className={`${isSearch ? "" : "mb-4"} sm:mb-4 sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4`}>
         <div className="sm:flex-1">
-          {/* 探すは**狭い画面でも見せる**明朝 30（アプリ v2 の探すの題・板 Search の h1）。
-              トップはこれまでどおり（ヘッダーにサイト名がある） */}
+          {/* 探すは明朝 32（アプリ v2 の探すの題・板 Search の h1）。トップは 26（画面の題・Title 1）、パソコンは 30 のまま */}
           <h1 id="site-title" className={isSearch
               ? "font-serif font-bold m-0 mb-3 sm:mb-0 text-[32px] leading-[1.25]" /* 束 1: iOS の探すの題（`JPFont.photoTitle` 32） */
-              : "sr-only sm:not-sr-only text-2xl sm:text-3xl font-bold mb-0"}>
+              : "font-serif font-bold m-0 text-[26px] leading-[1.25] sm:text-3xl"}>
             {heading}
           </h1>
-          {!isSearch && <div className="hidden sm:block">{renderSubtitle(labels.site?.subtitle)}</div>}
+          {!isSearch && renderSubtitle(labels.site?.subtitle)}
         </div>
       </div>
 
@@ -720,7 +717,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
           輪の列の下・切り替えの上（iOS と同じ）＝どのタブでも同じ位置。以前は文字だけの帯 3 本（`QuizEntry`・`SpotsEntry`・`ThemeEntry`） */}
       {surface === "home" && <HomeTopCards locale={locale === "en" ? "en" : "ja"} photos={PHOTOS} seasonal={seasonalSpots} />}
       {/* アプリのご案内（2026-11-06 owner「目立つところに」）。上段の札のすぐ下＝最初の画面の続きで目に入る位置 */}
-      {surface === "home" && <AppInstallCard placement="home" className="mb-4" />}
+      {surface === "home" && <AppInstallCard placement="home" compact className="mb-4" />}
       {/* **入口の帯**（2026-11-09 owner「任せる」・提案書 4b の(a)）。アプリの札の下・切り替えの上に文字リンクを1行。写真の並びは動かさない */}
       {surface === "home" && <HomeEntryBand className="mb-4" />}
       {/* 撮影スポットを地図から探す（2026-11-09）。写真のタブより上＝タブと写真の並びはこの下にそのまま残る */}

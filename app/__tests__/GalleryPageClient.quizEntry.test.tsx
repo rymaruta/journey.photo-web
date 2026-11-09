@@ -56,6 +56,15 @@ const cards = () => screen.getByTestId("home-top-cards");
 const order = () => [...cards().querySelectorAll("li")].map((li) =>
     (li.querySelector("[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry],[data-testid=home-learn-entry]") as HTMLElement).dataset.testid);
 
+describe("ホームの上段の札の眉（2026-11-09・9人のレビュー）", () => {
+    it("日本語の画面は日本語の眉（TODAY'S THEME 等の英字を出さない）", () => {
+        render(<ToastProvider><GalleryPageClient /></ToastProvider>);
+        const text = cards().textContent ?? "";
+        for (const w of ["今日のテーマ", "今日の一問", "撮影スポット", "カメラ講座"]) expect(text, w).toContain(w);
+        for (const w of ["TODAY'S THEME", "DAILY QUIZ", "PHOTO SPOTS", "PHOTO GUIDES"]) expect(text, w).not.toContain(w);
+    });
+});
+
 describe("ホームの上段の札", () => {
     // 2026-11-04: iOS と同じく「輪 → 上の札 → 切り替え」（`GalleryView.feed`）。以前はタブの直下だった
     it("切り替えのすぐ上に札の並び（今日のテーマ → 今日の一問 → 撮影スポット）", async () => {
