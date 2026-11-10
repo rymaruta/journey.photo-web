@@ -30,6 +30,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import HeaderNav from "../HeaderNav";
+import { ROUTES } from "@/lib/routes";
 
 function setRole(role: "anonymous" | "general" | "admin") {
     authState.current = {
@@ -586,3 +587,27 @@ describe("HeaderNav - いいねした写真の入口", () => {
         expect(menuItems().some((t) => /Favorites|いいね/.test(t))).toBe(true);
     });
 });
+
+// 2026-11-10 札 #515: フッターから「行きたい場所」を外した代わりに、☰ のログイン中の組（いいね・保存の下）に足す
+describe("HeaderNav - 行きたい場所の入口", () => {
+    it("ログイン中は、保存した写真のすぐ下に出て、押すと /saved-spots へ", () => {
+        setRole("general");
+        render(<HeaderNav />);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        const items = menuItems();
+        const i = items.indexOf("行きたい場所");
+        expect(i, "出していない").toBeGreaterThanOrEqual(0);
+        expect(items[i - 1]).toBe("Saved");
+        expect(items[i - 2]).toBe("Favorites");
+        fireEvent.click(screen.getByRole("button", { name: "行きたい場所" }));
+        expect(mockPush).toHaveBeenCalledWith(ROUTES.SAVED_SPOTS);
+    });
+
+    it("未ログインには出さない（本人だけの頁で、開いても空になる）", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        expect(menuItems()).not.toContain("行きたい場所");
+    });
+});
+

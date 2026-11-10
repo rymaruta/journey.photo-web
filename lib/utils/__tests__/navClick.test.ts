@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { readdirSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { EVENT_SPEC, NAV_AREAS, NAV_DESTS, APP_STORE_PLACEMENTS, sanitizeParams, track } from "../analytics";
-import { isSpotDetailPath, SPOTS_RESERVED_SEGMENTS } from "../spotDetailPath";
+import { isSpotDetailPath, pageHasOwnAppCard, SPOTS_RESERVED_SEGMENTS } from "../spotDetailPath";
 
 /** 入口の計測 `nav_click`（2026-11-09・提案書の節5）。area と dest だけ・自由な文字列は通さない */
 describe("nav_click の仕様", () => {
@@ -83,3 +83,14 @@ describe("入口の文言の禁止語", () => {
         }
     });
 });
+
+// 2026-11-10 札 #515: 本文に自分のアプリの札がある頁（フッターの札を出さない頁）
+describe("pageHasOwnAppCard", () => {
+    it("ホーム・撮影スポット詳細・教科書の章だけ（一覧との一致は ownAppCardPages.test.ts）", () => {
+        for (const p of ["/", "/spots/goryokaku", "/spots/goryokaku/", "/learn/autumn-leaves"]) expect(pageHasOwnAppCard(p), p).toBe(true);
+        for (const p of ["/spots", "/spots/sakura", "/spots/area/hokkaido", "/search", "/learn", "/learn/camera-basics", "/terms", "", null, undefined]) {
+            expect(pageHasOwnAppCard(p), String(p)).toBe(false);
+        }
+    });
+});
+
