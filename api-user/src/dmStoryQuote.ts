@@ -1,7 +1,7 @@
 import { GetCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, PHOTOS_TABLE } from "./dynamodb";
 import { isFollowing } from "./followCheck";
-import { canViewStoryAudience } from "./storyAudience";
+import { closeFriendOwnersAmong, isCloseFriendsStory } from "./storyAudience";
 import { isStoryExpired } from "./storyExpiry";
 
 /**
@@ -58,13 +58,20 @@ export async function storyQuotesFor(
     storyIds: readonly string[],
 ): Promise<Map<string, StoryQuote>> {
     const out = new Map<string, StoryQuote>();
-    const uniq = [...new Set(storyIds.filter((s) => typeof s === "string" && s.length > 0))];
+    // **最後に出てきた順**に並べる（古いストーリーでも最近返信があれば新しい側に来る。上限で落とすのは古い側）
+    const order = new Map<string, true>();
+    for (const s of storyIds) {
+        if (typeof s !== "string" || s.length === 0) continue;
+        order.delete(s);
+        order.set(s, true);
+    }
+    const uniq = [...order.keys()];
     if (uniq.length === 0) return out;
     for (const id of uniq) out.set(id, ended(id));
 
     // **1件ずつの GetItem**（並べて投げる）。photos の表に `BatchGetItem` の権限は無い
     // （serverless.yml の provider の役割。権限は足さない・2026-11-10 判断）。
-    // 1回に引くのは新しい方から `QUOTE_LOOKUP_MAX` 件まで。越えた古い通は札を付けない（欄なし＝分からない）
+    // 1回に引くのは、最後に出てきたのが新しい方から `QUOTE_LOOKUP_MAX` 件まで。越えたものは札を付けない（欄なし＝分からない）
     const targets = uniq.slice(-QUOTE_LOOKUP_MAX);
     for (const id of uniq.slice(0, uniq.length - targets.length)) out.delete(id);
     const rows = new Map<string, StoryRow>();
@@ -99,6 +106,17 @@ export async function storyQuotesFor(
         }
         return p;
     };
+    // 親しい友達の名簿（強い読み）も投稿者ごとに1回。**親しい友達だけの行があるときだけ**読む
+    const closeCache = new Map<string, Promise<boolean>>();
+    const inCloseFriends = (owner: string) => {
+        let p = closeCache.get(owner);
+        if (!p) {
+            // 読めなければ入っていない扱い（`closeFriendOwnersAmong` が見せない側に倒す）
+            p = closeFriendOwnersAmong(viewer, [owner]).then((s) => s.has(owner));
+            closeCache.set(owner, p);
+        }
+        return p;
+    };
 
     await Promise.all(targets.map(async (id) => {
         const row = rows.get(id);
@@ -108,7 +126,8 @@ export async function storyQuotesFor(
         if (!owner || !participants.includes(owner)) return;
         if (owner !== viewer) {
             if (!await follows(owner)) return;
-            if (!await canViewStoryAudience(row, viewer)) return;
+            // 見せる範囲の判定は `canViewStoryAudience` と同じ（本人は上で通した・全員向けは名簿を読まない）
+            if (isCloseFriendsStory(row) && !await inCloseFriends(owner)) return;
         }
         const mediaType = row.mediaType === "video" ? "video" : "image";
         const src = mediaType === "image" && typeof row.src === "string" && row.src ? row.src : undefined;
