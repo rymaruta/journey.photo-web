@@ -3,7 +3,7 @@ import { ScanCommand, QueryCommand, PutCommand, GetCommand, UpdateCommand, Delet
 import { randomUUID } from "crypto";
 import { ddb, PHOTOS_TABLE, USER_INDEX, STORY_INDEX, STORY_FEED_KEY } from "./dynamodb";
 import { JSON_HEADERS, getUserId, jsonError, isAdmin } from "./http";
-import { displayNameOf, DEFAULT_NAME, deletedAmong, withUnreadAsDeleted, DELETED_USER_NAME } from "./notify";
+import { displayNameOf, DEFAULT_NAME, deletedAmong, withUnreadAsDeleted, DELETED_USER_NAME, pushNotification } from "./notify";
 import { mediaKeys, deriveUploadKey } from "./mediaKeys";
 import { isOwnUploadUrlFromEnv as isOwnUploadUrl, keyFromUploadUrl, canonicalUploadUrl } from "./uploadPolicy";
 import { s3DeleteMany } from "./s3Delete";
@@ -12,10 +12,14 @@ import { safeSongPreviewUrl, safeSongArtworkUrl, safeSongTrackUrl } from "./medi
 import { truncate, sanitizeText, sanitizeCoords } from "./sanitize";
 import { storyRepliesId, visibleReplyCount } from "./storyReplies";
 import { storyVotesId, storyHasVote, storyVoteState, sweepStoryVotes } from "./storyVotes";
+import { storyHasQuestion, storyAnswerCount } from "./storyAnswers";
 import { hiddenUserIds, isBlocked } from "./blockCheck";
 import { isFollowing } from "./followCheck";
 import { hasStoryTextItem, sanitizeStoryTexts, storyTextsCaption } from "./storyText";
 import { storyAllowsReplies } from "./storyVisibility";
+import { parseStoryAudience, isCloseFriendsStory, canViewStoryAudience, closeFriendOwnersAmong } from "./storyAudience";
+import { resolveStoryMentions, maskDeletedMentions } from "./storyMentions";
+
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
 
@@ -168,6 +172,16 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
                 .catch((e) => { console.error("getStories: ブロック一覧を読めませんでした:", e); return new Set<string>(); }),
         ]);
         for (const item of items) {
+            // **「見た」印（`seen`）は、見た本人にだけ返す。** 札 #505 の C 案——
+            // 端末をまたぐ「見た」は、`viewStory` が既に `viewers` に書いている
+            // **自分の足あと**から引ける（新しい GSI・テーブルは要らない。行は
+            // この一覧の Query で既に読んでいる）。返すのは「自分が見たか」の
+            // 真偽だけで、**他人の名前も数も出さない**（`viewers` は次の行で消す）。
+            // 自分のストーリーには付けない（自分の閲覧は記録しない）
+            if (item.userId !== userId) {
+                const v = item.viewers;
+                if (v && typeof v === "object" && !Array.isArray(v) && Object.hasOwn(v, userId)) item.seen = true;
+            }
             delete item.viewers;
             // **返信の数は投稿者にだけ返す。** 見た人には「このストーリーに
             // 何件届いたか」を知らせない（誰が反応したかは `viewers` と同じく
@@ -237,7 +251,20 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
             if (!ok) notFollowed.add(owner);
         }));
         // 追っていない人の行は全部落とす（本人のぶんは `gatedOwners` で外してある）
-        const visible = shown.filter((i) => !notFollowed.has(String(i.userId ?? "")));
+        const followed = shown.filter((i) => !notFollowed.has(String(i.userId ?? "")));
+
+        // 🔴 **「親しい友達だけ」の行は、投稿者の名簿に居る人にだけ出す**
+        // （`storyAudience.ts` の節。フォローの門に**重ねて**狭める）。
+        // 名簿は投稿者ごとに1回だけ読む（親しい友達向けの行を持つ投稿者だけ）。
+        // **読めなければ出さない**——`closeFriendOwnersAmong` が名簿を読めない人を
+        // 集合に入れない。本人の行は `userId === userId` で通す（自分に見えない
+        // 形にしない）。
+        const closeOnly = followed.filter((i) => String(i.userId ?? "") !== userId && isCloseFriendsStory(i));
+        const closeOf = closeOnly.length === 0
+            ? new Set<string>()
+            : await closeFriendOwnersAmong(userId, closeOnly.map((i) => String(i.userId ?? "")));
+        const visible = followed.filter((i) =>
+            String(i.userId ?? "") === userId || !isCloseFriendsStory(i) || closeOf.has(String(i.userId ?? "")));
 
         // **バッジの数も、返信一覧と同じふるいを通した数にする。**
         //
@@ -276,6 +303,17 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
             const s = await storyVoteState(String(item.id ?? ""), userId, String(item.userId ?? "") === userId);
             if (s) item.vote = s;
         }));
+        // **質問スタンプの答えの件数は、投稿者の行にだけ付ける**（`answerCount`）。
+        // 答えそのものは `GET /stories/{id}/answers`（投稿者だけ）でしか返らない。
+        // 持たない行・他人の行は読みに行かない。読めなければ付けない
+        const withQuestion = visible.filter((i) => String(i.userId ?? "") === userId && storyHasQuestion(i.texts));
+        await Promise.all(withQuestion.map(async (item) => {
+            const n = await storyAnswerCount(String(item.id ?? ""), hidden);
+            if (n !== null) item.answerCount = n;
+        }));
+        // 退会した人のメンションの名前は伏せる（投稿のときに写した名前が残るため）。
+        // 読めなければ（`deletedAmong` は投げない）伏せる側
+        await maskDeletedMentions(visible);
         visible.sort((a, b) => String(a.createdAt ?? "").localeCompare(String(b.createdAt ?? "")));
         return {
             // 認証済みユーザー個別のレスポンスなので共有キャッシュには載せない
@@ -304,6 +342,7 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         songOnPhoto?: unknown; locationOnPhoto?: unknown;
         location?: unknown; coords?: unknown; texts?: unknown;
         visibility?: unknown; allowReplies?: unknown; archive?: unknown;
+        audience?: unknown;
     };
     try {
         body = JSON.parse(event.body ?? "{}") as typeof body;
@@ -329,13 +368,22 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     // 保存する src も、検証したときに見ていた形に揃える
     const safeSrc = canonicalUploadUrl(publicUrl, process.env.CLOUDFRONT_URL ?? "");
 
+    // **見せる範囲。** 知らない値は断る（黙って「全員」に化けさせない——
+    // 親しい友達のつもりで出して全員に見える、の逆向きを作らない）。
+    // 既定（無い・`"everyone"`）は**行に書かない**＝これまでの投稿と1バイトも変わらない
+    const audienceIn = parseStoryAudience(body.audience);
+    if (!audienceIn.ok) {
+        return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "不正なリクエスト" }) };
+    }
+    const audience = audienceIn.audience === "closeFriends" ? "closeFriends" as const : undefined;
+
     const mediaType = body.mediaType === "video" ? "video" : "image";
     // 写真の上に置いた文字（何枚でも・それぞれ位置と見せ方を持つ）。
     //
     // 受けるのは**一覧に在る鍵だけ**（`storyText.ts`）。任意の CSS を通さない
     // ので、読めない組み合わせも他人の画面で動く値も作れない。位置は必ず挟み、
     // 文言の空のものと上限を超えたぶんは落とす。
-    const texts = sanitizeStoryTexts(body.texts);
+    const sanitizedTexts = sanitizeStoryTexts(body.texts);
 
     // **文字の項目が在れば、`caption` は文字たちから作る。** 文言を2か所で
     // 持つと静かにずれる——残したときの題（`storyKeep.ts`）も、検索に出る
@@ -347,6 +395,10 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     // 投票付きの投稿はひとことを文字の項目として写真の上に置くしかなく、
     // 撮影地・曲の行や投票の札に重なっていた。判定は閲覧画面と同じ1本
     // （`hasStoryTextItem`）——ずれると、ひとことが消えるか二重に出る。
+    // **メンションは、見られる人だけ・ブロックの無い人だけ残す**（名前もここで引く）。
+    // 読むだけ（まだ何も書いていない）ので、ここで解いてよい
+    const { texts, recipients: mentionRecipients } = await resolveStoryMentions(userId, audience ?? "everyone", sanitizedTexts);
+
     const caption = texts && hasStoryTextItem(texts)
         ? truncate(storyTextsCaption(texts), 200) || undefined
         // 文字列でない caption（数・オブジェクト）は捨てる——`.trim` が落ちて 500 になっていた
@@ -478,6 +530,9 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         // 書く**ので、`...(allowReplies ? ...)` では消える——値で分岐しない
         ...(allowReplies === false ? { allowReplies } : {}),
         ...(archive ? { archive } : {}),
+        // **親しい友達だけのときだけ書く**（既定は書かない。読む側は
+        // `storyAudienceOf` が「無い＝全員」に均す）
+        ...(audience ? { audience } : {}),
         userId,
         ...(displayName ? { displayName } : {}),
         createdAt: new Date(now).toISOString(),
@@ -496,6 +551,19 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
             // （1か所だけ緩いと、次に書く人がそちらを手本にする）。
             ConditionExpression: "attribute_not_exists(id)",
         }));
+        // **メンションの通知は、保存に成功したあとで。** 相手は見られる人だけ
+        // （`resolveStoryMentions` が絞った）。通知は失敗しても投稿を失敗にしない
+        // （`pushNotification` が握る）。ブロックの再確認は `pushNotification` が持つ
+        for (const to of mentionRecipients) {
+            await pushNotification(to, {
+                type: "storymention",
+                photoId: story.id,
+                photoSrc: safeSrc,
+                byName: displayName,
+                byId: userId,
+                t: story.createdAt,
+            });
+        }
         return { statusCode: 201, headers: JSON_HEADERS, body: JSON.stringify({ success: true, story }) };
     } catch (e) {
         console.error("createStory error:", e);
@@ -552,6 +620,12 @@ export const viewStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
         // **読めなければ例外が下の catch に落ちて 500**＝記録しない側に倒れる。
         if (String(item.userId ?? "") !== viewerId
             && !await isFollowing(String(item.userId ?? ""), viewerId)) {
+            return { statusCode: 404, headers: JSON_HEADERS, body: JSON.stringify({ error: "ストーリーが見つかりません" }) };
+        }
+        // 🔴 **「親しい友達だけ」は名簿に居ない人の足あとを残さない**
+        // （`storyAudience.ts`。足あと＝所有者の閲覧者一覧に名前が並ぶ。
+        // **読めなければ 404**＝記録しない側に倒れる）
+        if (!await canViewStoryAudience(item, viewerId)) {
             return { statusCode: 404, headers: JSON_HEADERS, body: JSON.stringify({ error: "ストーリーが見つかりません" }) };
         }
         // 表示名はサーバーで引く。クライアント申告を保存すると、改造したクライアントから

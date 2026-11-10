@@ -10,6 +10,7 @@ import { lookupDisplayNameIfSet } from "./notify";
 import type { Photo } from "./types";
 import { isStoryExpired } from "./storyExpiry";
 import { assertLiveCaller } from "./liveCaller";
+import { isCloseFriendsStory } from "./storyAudience";
 
 /**
  * ストーリーの1枚を、ギャラリーの写真として残す。
@@ -66,6 +67,15 @@ export const keepStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
         // **`userId ?? uploadedBy`**——`createStory` は必ず `userId` を書くが、
         // 所有権の判定はリポジトリ全体でこの形に揃っている
         if ((story.userId ?? story.uploadedBy) !== userId) return jsonError(404, "ストーリーが見つかりません");
+
+        // 🔴 **「親しい友達だけ」のストーリーは、ギャラリーに残せない**（2026-11-09 判断・札 #505）。
+        // 残すと**普通の写真の行**になり、公開すれば検索にも地図にも出る——親しい友達
+        // だけに見せるつもりの1枚が、本人の1回の操作で全員に届く。写真側の公開範囲
+        // （`audience`）へ引き継ぐ道もあるが、あちらは公開用の索引の属性まで絡むので、
+        // 入れるなら別の仕事にする。入れるまでは断る（残す前に気づける）
+        if (isCloseFriendsStory(story)) {
+            return jsonError(400, "親しい友達だけのストーリーはギャラリーに残せません");
+        }
 
         // **期限切れは断る**（`postStoryReply` に揃える）。
         // 意図の話ではなく**掃除の作り**の問題——`cleanupExpiredStories` は

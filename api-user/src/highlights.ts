@@ -7,6 +7,8 @@ import { sanitizeText } from "./sanitize";
 import { isUserId } from "./userId";
 import { readUserList, updateUserList } from "./userList";
 import { isFollowing } from "./followCheck";
+import { isCloseFriendsStory, closeFriendOwnersAmong } from "./storyAudience";
+import { maskDeletedMentions } from "./storyMentions";
 import { isBlocked } from "./blockCheck";
 import { isStoryExpired } from "./storyExpiry";
 import { isDeletedProfile } from "./types";
@@ -90,6 +92,13 @@ type HighlightItem = {
     ownerId?: string;
     title?: string;
     storyIds?: unknown;
+    /**
+     * `storyIds` のうち**親しい友達だけ**のストーリーの id（`audience` は投稿後に
+     * 変わらないので、作る・直すときの検査で控えれば足りる）。輪の一覧
+     * （件数・表紙）が**ストーリーの行を読まずに**名簿に居ない人から外せる。
+     * 無い＝1つも無い（第2弾より前の行は親しい友達向けを持てなかった）
+     */
+    closeIds?: unknown;
     coverStoryId?: string;
     createdAt?: string;
     updatedAt?: string;
@@ -97,6 +106,9 @@ type HighlightItem = {
 
 /** 上限を超えたときに一覧の書き込みから抜けるための印（`updateUserList` は CCF 以外を素通しする） */
 class HighlightLimitError extends Error {}
+
+const closeIdsOf = (h: HighlightItem | null): string[] =>
+    Array.isArray(h?.closeIds) ? (h!.closeIds as unknown[]).filter((v): v is string => typeof v === "string") : [];
 
 const storyIdsOf = (h: HighlightItem | null): string[] =>
     Array.isArray(h?.storyIds) ? (h!.storyIds as unknown[]).filter((v): v is string => typeof v === "string") : [];
@@ -219,6 +231,9 @@ function publicStoryShape(row: Record<string, unknown>) {
         ...pick("locationOnPhoto"),
         ...pick("durationSec"),
         ...pick("texts"),
+        // 札の見せ方が変わる（親しい友達のしるし）ので返す。**見られる人にしか
+        // この形は返らない**（`getHighlight` が名簿の外を落とす）
+        ...pick("audience"),
     };
 }
 
@@ -229,7 +244,7 @@ type Rejection = { statusCode: number; error: string };
  * 本人が選んだ ID を検査する。順序は保ち、重複は落とす。
  * 1件でも入れられなければ理由を返す——黙って落として「入れたつもり」を作らない
  */
-async function checkStories(userId: string, raw: unknown): Promise<{ ids: string[] } | Rejection> {
+async function checkStories(userId: string, raw: unknown): Promise<{ ids: string[]; closeIds: string[] } | Rejection> {
     if (!Array.isArray(raw)) return { statusCode: 400, error: "不正なリクエスト" };
     // 形を見てから引く（形の違うものは引きにいかない）
     if (!raw.every(isStoryId)) return { statusCode: 400, error: "不正なリクエスト" };
@@ -254,7 +269,9 @@ async function checkStories(userId: string, raw: unknown): Promise<{ ids: string
             return { statusCode: 400, error: "24時間が過ぎてアーカイブに入ったストーリーだけをハイライトに入れられます" };
         }
     }
-    return { ids };
+    // 親しい友達だけの行の id を控える（`HighlightItem.closeIds`）
+    const closeIds = ids.filter((_, i) => isCloseFriendsStory(rows[i]));
+    return { ids, closeIds };
 }
 
 /** 本文（作る・直すで同じ形） */
@@ -307,7 +324,11 @@ export const createHighlight: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
 
     const hid = randomUUID();
     const now = new Date().toISOString();
-    const row: HighlightItem = { id: highlightKey(hid), ownerId: userId, title, storyIds: checked.ids, coverStoryId: cover, createdAt: now, updatedAt: now };
+    const row: HighlightItem = {
+        id: highlightKey(hid), ownerId: userId, title, storyIds: checked.ids,
+        ...(checked.closeIds.length > 0 ? { closeIds: checked.closeIds } : {}),
+        coverStoryId: cover, createdAt: now, updatedAt: now,
+    };
     await ddb.send(new PutCommand({ TableName: PHOTOS_TABLE, Item: row, ConditionExpression: "attribute_not_exists(id)" }));
 
     // 本体を作ってから一覧に足す。**足せなければ本体を片付ける**
@@ -359,10 +380,17 @@ export const updateHighlight: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
         await ddb.send(new UpdateCommand({
             TableName: PHOTOS_TABLE,
             Key: { id: highlightKey(hid) },
-            UpdateExpression: "SET title = :title, storyIds = :ids, coverStoryId = :cover, updatedAt = :now",
+            // `closeIds` は**入れ替えのたびに置き直す**（空なら外す）——古い印が
+            // 残ると、外したストーリーの id が輪の件数から引かれ続ける
+            UpdateExpression: checked.closeIds.length > 0
+                ? "SET title = :title, storyIds = :ids, coverStoryId = :cover, updatedAt = :now, closeIds = :close"
+                : "SET title = :title, storyIds = :ids, coverStoryId = :cover, updatedAt = :now REMOVE closeIds",
             // 読んだあとに消された・持ち主が違う、で書かない（読みと書きの間の穴）
             ConditionExpression: "attribute_exists(id) AND ownerId = :me",
-            ExpressionAttributeValues: { ":title": title, ":ids": checked.ids, ":cover": cover, ":now": now, ":me": userId },
+            ExpressionAttributeValues: {
+                ":title": title, ":ids": checked.ids, ":cover": cover, ":now": now, ":me": userId,
+                ...(checked.closeIds.length > 0 ? { ":close": checked.closeIds } : {}),
+            },
         }));
     } catch (e) {
         if ((e as { name?: string }).name === "ConditionalCheckFailedException") return jsonError(404, "ハイライトが見つかりません");
@@ -425,10 +453,11 @@ async function getStoryRow(id: string): Promise<Record<string, unknown> | undefi
  * 表紙。指定の1枚が消えていたら、並びの先頭から数枚だけ代わりを探す
  * （全部は見ない——未認証の口なので読み取りに上限を置く）
  */
-async function resolveCover(h: HighlightItem, ownerId: string): Promise<{ src: string; mediaType?: string } | null> {
-    const ids = storyIdsOf(h);
+async function resolveCover(h: HighlightItem, ownerId: string, hideIds: ReadonlySet<string> = new Set()): Promise<{ src: string; mediaType?: string } | null> {
+    // **見せない行（名簿に居ない人にとっての親しい友達向け）は表紙の候補にも入れない**
+    const ids = storyIdsOf(h).filter((id) => !hideIds.has(id));
     const candidates = [
-        ...(typeof h.coverStoryId === "string" ? [h.coverStoryId] : []),
+        ...(typeof h.coverStoryId === "string" && !hideIds.has(h.coverStoryId) ? [h.coverStoryId] : []),
         ...ids.filter((id) => id !== h.coverStoryId),
     ].slice(0, COVER_LOOKUP_BUDGET);
     const now = new Date().toISOString();
@@ -468,15 +497,25 @@ export const getUserHighlights: APIGatewayProxyHandlerV2WithJWTAuthorizer = asyn
         }
         const ids = (await readUserList(highlightsOfUserKey(userId), isHighlightId, "getUserHighlights")).slice(0, HIGHLIGHTS_PER_USER);
         const rows = await Promise.all(ids.map((hid) => getHighlightRow(hid)));
+        // 🔴 **親しい友達だけのストーリーは、名簿に居ない人には件数にも表紙にも出さない。**
+        // 名簿は輪に控えが1つでも在るときだけ読む（ほとんどの人は0回）。
+        // 読めなければ名簿の外として扱う（出さない側）
+        const hasClose = rows.some((h) => closeIdsOf(h).length > 0);
+        const seesClose = userId === me
+            || (hasClose && (await closeFriendOwnersAmong(me, [userId])).has(userId));
         const highlights = [];
         for (let i = 0; i < ids.length; i++) {
             const h = rows[i];
             if (!h || h.ownerId !== userId) continue;
-            const cover = await resolveCover(h, userId);
+            const hide = seesClose ? new Set<string>() : new Set(closeIdsOf(h));
+            const count = storyIdsOf(h).filter((id) => !hide.has(id)).length;
+            // 中身が全部「親しい友達だけ」なら、輪ごと出さない（空の輪の存在も教えない）
+            if (count === 0 && hide.size > 0) continue;
+            const cover = await resolveCover(h, userId, hide);
             highlights.push({
                 id: ids[i],
                 title: typeof h.title === "string" ? h.title : "",
-                count: storyIdsOf(h).length,
+                count,
                 cover,
             });
         }
@@ -517,7 +556,18 @@ export const getHighlight: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (ev
         const ids = storyIdsOf(h).filter(isStoryId).slice(0, STORIES_PER_HIGHLIGHT);
         const rows = await Promise.all(ids.map((id) => getStoryRow(id)));
         const now = new Date().toISOString();
-        const items = rows.filter((row) => isHighlightableStory(row, userId, now)).map((row) => publicStoryShape(row!));
+        // 🔴 **親しい友達だけの行は、名簿に居ない人には返さない**（本人は全部）。
+        // 判定は**行そのものの `audience`**（ここは行を読んでいる）。名簿は
+        // 親しい友達向けの行が1つでも混じるときだけ読む。読めなければ出さない。
+        // 全部落ちて空になった輪は 404（空の輪の存在も教えない）
+        const live = rows.filter((row) => isHighlightableStory(row, userId, now));
+        const hasClose = userId !== me && live.some((row) => isCloseFriendsStory(row));
+        const seesClose = !hasClose || (await closeFriendOwnersAmong(me, [userId])).has(userId);
+        const shown = seesClose ? live : live.filter((row) => !isCloseFriendsStory(row));
+        if (hasClose && !seesClose && shown.length === 0) return jsonError(404, "ハイライトが見つかりません");
+        const items = shown.map((row) => publicStoryShape(row!));
+        // 退会した人のメンションの名前は伏せる（`maskDeletedMentions`）
+        await maskDeletedMentions(items);
         return {
             statusCode: 200,
             // 見る人によって 200 と 404 が割れるので共有キャッシュに載せない（上と同じ）
@@ -525,7 +575,8 @@ export const getHighlight: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (ev
             body: JSON.stringify({
                 id: hid,
                 title: typeof h.title === "string" ? h.title : "",
-                coverStoryId: typeof h.coverStoryId === "string" ? h.coverStoryId : undefined,
+                // 見せない行（名簿の外の人にとっての親しい友達向け）の id は返さない
+                coverStoryId: typeof h.coverStoryId === "string" && shown.some((r) => r!.id === h.coverStoryId) ? h.coverStoryId : undefined,
                 items,
             }),
         };

@@ -232,7 +232,7 @@ export async function readApiError(res: Response, fallback: string): Promise<str
 
 ⚠️ 管理者の判定は `cognito:groups` に `admin` があるか（`api/src/auth.ts` の `isAdmin`）。
 
-### ユーザーAPI（`NEXT_PUBLIC_USER_API_BASE_URL`）— 81口
+### ユーザーAPI（`NEXT_PUBLIC_USER_API_BASE_URL`）— 91口
 
 **認証が要らないのは7口だけ**（`PublicReadRole`＝読み取り専用のロールで動く。`/feed` だけは索引を読むので専用の `PublicFeedRole`）:
 
@@ -274,6 +274,40 @@ export async function readApiError(res: Response, fallback: string): Promise<str
 `GET,POST /stories` / `DELETE /stories/{id}` / `POST /stories/{id}/view` /
 `GET /stories/{id}/viewers` / `GET,POST /stories/{id}/replies` /
 `POST /stories/{id}/vote` / `POST /stories/{id}/keep` / `GET /stories/archive`
+
+**DM（メッセージ）** ※2026-11-09 追加・**本番未反映**（第1段・札 journey.photo-ios #505・`api-user/src/dm.ts` / `dmInbox.ts`。
+**10口を1関数 `dm.handler` に束ねている**（`event.routeKey` で分ける。部品の数が上限に近いため）。全部認証必要）
+`POST /dm`（会話の開始・続き。本文 `{to, text, id?}`。`id` は再送で二重に入れないための鍵）/
+`POST /dm/{id}/messages`（続き。`{text, id?}`）/ `GET /dm`（受信箱。リクエストも同じ一覧で `state` で分ける）/
+`GET /dm/{id}?since=<ISO>`（会話。変化なしは `{unchanged:true, items:[]}`）/ `PUT /dm/{id}/read` /
+`DELETE /dm/{id}`（自分の側だけ消す・両側が消えたら本体を物理削除）/
+`POST /dm/{id}/accept`（リクエストを承認）/ `DELETE /dm/{id}/request`（リクエストを削除＝断る）/
+`DELETE /dm/requests`（受け取ったリクエストを全部断る。応答 `{ok, removed}`）/
+`POST /dm/{id}/report`（通報。理由は `REPORT_REASONS`＋`minor`＝未成年へのいやな接触・誘い出し。通報時点の直近20通を写す）
+
+- **枠**: ふつうの会話は1人200（`pending`＝自分が送った側を含む）・**受け取るリクエストは別枠で50**（溢れたら新しいリクエストを断る＝送り主に 409 `unavailable`。古いリクエストの自動削除はしない）。受信箱の行数は合計250が最後の歯止め
+- **同じ id の再送**: 受信箱の行に `lastId` を持たせ、「行の `t` がこの通以前・`lastId` がこの通の id ではない」ときだけ更新する（未読の二重加算・古い通での巻き戻しを防ぐ）。行が無いときは、相手（自分）が消した時刻がこの通より後なら作らない（復活させない）
+- **本体の追記の条件**: `size(#items) = :len AND updatedAt = :prev`（200通/40KB で古い方を落とす書き込みどうしの取り合いで、先の1通が消えない）
+- **断った印 `dec_`** は100人まで（越えるときは通数の小さいものから外す）
+- **会話 ID** は `<小さい uid>_<大きい uid>`（2人から一意）。`POST /dm` の応答の `conversationId` と、受信箱の `items[].id`
+- **行の種類（単一テーブル・GSI/TTL は作らない）**: `dm#<小さい>#<大きい>`（メッセージの輪 最大200通・約40KB・会話の状態）/
+  `dminbox#<uid>`（map `convs.<会話ID>` ＝ `{peer, t, excerpt, unread, state}`・1人200会話まで。溢れたら**新しい会話を断る**（409 `selfFull`／相手側は `unavailable`））/
+  `dmday#<uid>#<JSTの日付>`（1日 新規会話20人・送信300通の歯止め。429 `dailyLimit`）/ `dmreport#<会話ID>#<通報者>`
+- **始められる人**: 相手をフォローしている人だけ（無ければ 404）。**承認前の規則は全員に同じ（owner 判断 2026-11-09）**: 受け取った人が**返信か承認をするまで、送り主は文字3通まで・URL 不可**
+  （4通目は 429 `requestLimit`・URL は 400 `requestUrl`。**理由コードも文面も、相手との関係で変えない**）。
+  相手が送り主をフォロー済み or 親しい友達なら**置き場所が受信箱（`state: inbox`）でプッシュあり**（会話本体に `direct: true`）、
+  それ以外は**リクエストの棚（`state: request`）でプッシュなし**。違いは受け取る側の置き場所と通知だけ。
+  送り主の行の `state` は、どちらも `pending`（受け取った人が話すまで）。**承認（`POST /dm/{id}/accept`）は本体を `inbox` にして上限を外すが、送り主の行には触れない**
+  （送り主の見える状態が変わるのは、受け取った人が返信したときだけ）。`GET /dm/{id}` の `requestRemaining`・`canSend` は、始めた人に相手が話すまで同じ形で出す
+- **削除したリクエストの再送（設計の点）**: 受け取った人が承認前の会話を消すと（直行の相手も同じ）、その送り主が**承認されないまま送った通数**を自分の `dminbox#` の `dec_<送り主>` に残す。
+  再送しても通数は**戻らず、通算3通まで**（会話の本体が両側から消えて作り直されても同じ）。承認すると印を外す。理由: 消す→再送の繰り返しで、1人に何度でも3通ずつ送れてしまうため
+- **ブロック**: 送信前に `isBlocked`。ブロックされた側には**ブロックと分かる応答を返さない（404）**。自分がブロックした相手へは 403 `blockedByMe`。
+  一覧・会話は `hiddenUserIds` でふるう（**隠すだけで消さない**・解除で戻る・ブロック一覧が読めなければ 500）
+- **ストーリーとの接続**: `POST /stories/{id}/replies` が**文字の返信**に成功したあと、会話の最初の1通として写す（best-effort・失敗しても返信は成功・`via: "story"`・プッシュなし）。絵文字だけのリアクションは写さない
+- **通知**: 端末へのプッシュは `NOTIF_DM`・引数は送り主の名前だけ（**本文は載せない**）。ベルの通知の輪（`notifs#`）には書かない。
+  バッジは「ベルの未読 ＋ 受信箱の未読会話数」（リクエストとブロックの相手は含めない）。ベルの通知のプッシュも同じ数を出す
+- **退会**: `purgeDmFor` が会話ごとに自分の側を外し、受信箱を消す。相手の画面には会話が残り、名前は「退会したユーザー」（`deleted: true`）。`dmreport#` は消さない
+- ログに本文は出さない（失敗は `e.name` だけ）
 
 **ハイライト**
 `POST /highlights` / `PUT,DELETE /highlights/{id}` /
@@ -692,6 +726,7 @@ const { success, photo } = await r3.json();
 | ストーリー | 24時間に20本 | `stories.ts` |
 | ストーリーの文字 | 5つ・1つ200文字 | `storyText.ts` |
 | ストーリーの返信 | 200件 | `storyReplies.ts` |
+| DM | 会話1つ 200通・約40KB／1人200会話＋受け取るリクエスト50／リクエスト 承認まで3通／1日 新規20人・送信300通／1通 500文字／通報の写し 直近20通 | `dm.ts`・`dmInbox.ts` |
 | 通知 | 50件（古いものから押し出す） | `notify.ts` |
 | フォロー中の一覧 | 2000人 | `follow.ts` |
 | ブロック | 500人 | `block.ts` |

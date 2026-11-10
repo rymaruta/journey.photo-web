@@ -631,6 +631,32 @@ describe("ストーリーへの返信の通知", () => {
 });
 
 
+describe("ストーリーのメンションの通知（札 #505）", () => {
+    const mention = {
+        type: "storymention", photoId: "story-9", photoSrc: "https://c/s9.jpg",
+        byName: "投稿者", byId: "u9", t: "2026-07-10T00:00:00Z",
+    };
+    const open = async () => {
+        mockUserFetch.mockResolvedValue(fetchOk({ items: [mention], unread: 1 }));
+        render(<NotificationsBell />);
+        await waitFor(() => expect(mockUserFetch).toHaveBeenCalled());
+        fireEvent.click(screen.getByRole("button", { name: "通知" }));
+    };
+
+    it("文面を出す（空の行にしない）", async () => {
+        await open();
+        expect(screen.getByText(/さんがストーリーであなたをメンションしました/)).toBeInTheDocument();
+    });
+
+    it("存在しない story ページへ送らず、投稿者のプロフィールへ。消えたストーリーのサムネ（灰色の四角）は出さない", async () => {
+        await open();
+        const hrefs = Array.from(document.querySelectorAll("a")).map((a) => String(a.getAttribute("href")));
+        expect(hrefs.some((h) => h.includes("story-9"))).toBe(false);
+        expect(hrefs.some((h) => h.includes("u9"))).toBe(true);
+        expect(document.querySelector('img[src*="s9.jpg"]')).toBeNull();
+    });
+});
+
 // ⑩ 通知にタブ（owner の新デザイン・2026-09-21）。
 //
 // **別画面（`/notifications`）にしない判断**もここで固定する——一覧は

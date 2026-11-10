@@ -16,6 +16,14 @@ import { assertLiveCaller } from "./liveCaller";
  */
 export const CLOSE_FRIENDS_MAX = 200;
 
+/**
+ * 上限に達しているときの印。**名簿は「親しい友達だけ」のストーリーの閲覧の門**
+ * （`storyAudience.ts`）になったので、201人目で古い1人が黙って外れる
+ * （`updateUserList` は溢れた古い方を落とす）のは、**見せるつもりの人から
+ * ストーリーが消える**ことになる。上限なら断る（札 #505 レビュー）。
+ */
+class CloseFriendsFull extends Error {}
+
 export const closeFriendsId = (userId: string) => `closefriends#${userId}`;
 
 /** Cognito の sub の形（`follow.ts` と同じ線） */
@@ -76,6 +84,7 @@ export const setCloseFriend: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
                 const has = list.includes(targetId);
                 if (wanted === has) return null;   // 変わらないなら書かない
                 if (!wanted) return list.filter((id) => id !== targetId);
+                if (list.length >= CLOSE_FRIENDS_MAX) throw new CloseFriendsFull("full");
                 // **新しい順に積む**（`userList` の上限は古い方から溢れる）
                 return [targetId, ...list];
             },
@@ -86,6 +95,10 @@ export const setCloseFriend: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
             body: JSON.stringify({ userId: targetId, closeFriend: wanted }),
         };
     } catch (e) {
+        // 400（既存の画面が分かる `{ error, code }` の形）。何も書いていない
+        if (e instanceof CloseFriendsFull) {
+            return jsonError(400, `親しい友達は${CLOSE_FRIENDS_MAX}人までです。誰かを外してから追加してください`, "close_friends_limit");
+        }
         if (e instanceof UserListError) {
             console.error("setCloseFriend: 一覧を書けませんでした:", e);
             return jsonError(503, "保存に失敗しました。時間をおいて試してください");
