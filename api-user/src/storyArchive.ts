@@ -2,6 +2,7 @@ import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, PHOTOS_TABLE, USER_INDEX } from "./dynamodb";
 import { JSON_HEADERS, getUserId, jsonError } from "./http";
+import { maskDeletedMentions } from "./storyMentions";
 
 /**
  * ストーリーのアーカイブ（24時間で消えたあとも、本人だけが見られる）。
@@ -78,6 +79,7 @@ export const getStoryArchive: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
             if (typeof item.archivedAt !== "string") item.archivedAt = item.expiresAt;
         }
 
+        await maskDeletedMentions(items);
         return {
             // 本人向けの内容。共有キャッシュに載せない
             statusCode: 200,
