@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, within } from "@testing-library/react";
 
 /**
- * 撮影スポット詳細には説明文の下に（`SpotNext`）、ホームには上段の札の下に自分のアプリの札があるので、
- * フッターの札は出さない（同じ札が1頁に2枚並ばない・2026-11-09・ホームは 2026-11-10 札 #515）。
+ * 撮影スポット詳細には説明文の下に（`SpotNext`）、ホームには上段の札の下に、
+ * 教科書の章には読み終えた所に自分のアプリの札があるので、フッターの札は出さない（同じ札が1頁に2枚並ばない・2026-11-09・ホームと章は 2026-11-10 札 #515）。
  * ほかの頁は 11-09 承認の小さい形（`compact`）。
  * フッターの撮影スポットの組は nav_click（area=footer）を数える。
  */
@@ -38,8 +38,18 @@ describe("フッターのアプリの札", () => {
         expect(screen.queryByTestId("app-install-card")).toBeNull();
     });
 
+    // 2026-11-10 秘書室の判断: 教科書の章は読み終えた所に自分の札（placement=article）がある
+    it("教科書の章（/learn/<slug>）では出さない", () => {
+        for (const p of ["/learn/autumn-leaves", "/learn/focus-and-blur/"]) {
+            path.current = p;
+            const { unmount } = render(<Footer />);
+            expect(screen.queryByTestId("app-install-card"), p).toBeNull();
+            unmount();
+        }
+    });
+
     it("それ以外の頁では出す（一覧・県・季節・予約語の頁・教科書・規約）。形は 11-09 承認の小さい形", () => {
-        for (const p of ["/spots", "/spots/area/hokkaido", "/spots/season/spring", "/spots/momiji", "/spots/sakura", "/learn", "/terms", "/search", null]) {
+        for (const p of ["/spots", "/spots/area/hokkaido", "/spots/season/spring", "/spots/momiji", "/spots/sakura", "/learn", "/learn/camera-basics", "/learn/camera-brands", "/terms", "/search", null]) {
             path.current = p;
             const { unmount } = render(<Footer />);
             const card = screen.queryByTestId("app-install-card");

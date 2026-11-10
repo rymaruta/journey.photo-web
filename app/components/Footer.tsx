@@ -24,7 +24,7 @@ export default function Footer() {
     const { locale, labels } = useLocale();
     const navLabels = labels.navigation || {};
     const en = locale === "en";
-    // 本文に自分のアプリの札がある頁（ホーム・撮影スポット詳細）では、フッターの札は出さない（`spotDetailPath.ts`）
+    // 本文に自分のアプリの札がある頁（ホーム・撮影スポット詳細・教科書の章）では、フッターの札は出さない（`spotDetailPath.ts`）
     const showBanner = !pageHasOwnAppCard(usePathname());
 
     // さがす。2列で読むと対になる並び: 地図・一覧 → 桜・紅葉 → 雪景色・海外 → 春・夏 → 秋・冬
