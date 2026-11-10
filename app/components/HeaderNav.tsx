@@ -288,6 +288,15 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                                         </button>
                                     </li>
                                 )}
+                                {/* 行きたい場所: **ログイン中だけ**（2026-11-10 札 #515）。フッターから外した代わりの入口。
+                                    いいね・保存の下（どれも「自分が取っておいたもの」）。押下は数えない（上の `MENU_DEST` の決まり） */}
+                                {isAuthenticated && (
+                                    <li style={{ margin: 0, padding: 0 }}>
+                                        <button onClick={() => handleNavigation(ROUTES.SAVED_SPOTS)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
+                                            {locale === "en" ? "Want to go" : "行きたい場所"}
+                                        </button>
+                                    </li>
+                                )}
                                 {isAuthenticated && (
                                     <li style={{ margin: 0, padding: "10px 12px 4px" }}>
                                         <span className="text-[12px] tracking-widest uppercase text-white/50">

@@ -15,3 +15,12 @@ export function isSpotDetailPath(pathname: string | null | undefined): boolean {
     const m = /^\/spots\/([^/]+)\/?$/.exec(pathname);
     return !!m && !(SPOTS_RESERVED_SEGMENTS as readonly string[]).includes(m[1]);
 }
+
+/**
+ * 本文に自分のアプリの札を持つ頁か（2026-11-10 札 #515・owner 承認の第2版の推奨）。
+ * ホーム（`/`・上段の札の下に `placement=home`）と撮影スポット詳細（`spot_detail`）。
+ * この頁ではフッターの札（`banner`）を出さない（同じ札が1頁に2枚並ばない）。
+ */
+export function pageHasOwnAppCard(pathname: string | null | undefined): boolean {
+    return pathname === "/" || isSpotDetailPath(pathname);
+}
