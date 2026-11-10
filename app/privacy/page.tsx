@@ -23,7 +23,7 @@ import { siteConfig, shareOgImage } from "@/lib/utils/seo";
 // 11節のログの保存期間（90日）は `api/serverless.yml`・`api-user/serverless.yml` の
 // `logRetentionInDays`（photo-gallery #397）。Lambda@Edge（OGP）のログは CloudFormation の外で
 // 期限が付いていないので、「全部が90日」とは書かない（`scripts/__tests__/logRetention.test.ts` の注記）。
-const LAST_UPDATED = "2026年10月18日";
+const LAST_UPDATED = "2026年11月9日";
 
 export const metadata: Metadata = {
     // サイト名は `app/layout.tsx` の `template` が付ける。ここでも足すと
