@@ -90,6 +90,19 @@ const ITEM_BUDGET_BYTES = 350 * 1024;
 
 export const storyRepliesId = (storyId: string) => `storyreplies#${storyId}`;
 
+/** DM への写しを待つ時間の上限（テストで縮められるよう、書き換えられる入れ物にしてある） */
+export const storyReplyTimeouts = { mirrorMs: 3000 };
+
+/** `p` が `ms` 以内に終わらなければ `fallback`。**`p` は止めない**（裏で続く）。タイマーは必ず片付ける */
+async function withTimeout<T, F>(p: Promise<T>, ms: number, fallback: F): Promise<T | F> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+        return await Promise.race([p, new Promise<F>((resolve) => { timer = setTimeout(() => resolve(fallback), ms); })]);
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+}
+
 /** `next` を足しても収まるように、**古い方から**落とす件数を返す */
 export function overBudgetCount(existing: readonly StoryReply[], next: StoryReply): number {
     const size = (arr: readonly StoryReply[]) => Buffer.byteLength(JSON.stringify(arr), "utf8");
@@ -322,7 +335,7 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
         // （きれいに直すなら `TransactWriteItems`（行の ConditionCheck ＋
         //   文書の Update）だが、`comments.ts` から写した構造ごと変わる。
         //   `viewStory` が同じ事故を長いコメント付きで塞いでいる）
-        // **通知は件数より先に出す。** この関数は既定の6秒で動くので、
+        // **通知は件数より先に出す。** この関数の上限は 15 秒（serverless.yml）だが、
         // 件数のやり直しで枠を使い切ると `pushNotification` に届かない
         // ——所有者は「返信が来たこと」すら知れなくなる（ベルの1行が
         // 唯一の手がかり）。通知は件数と独立で、`notify.ts` 側が自前で
@@ -335,8 +348,15 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
         // **通知より先に写す**（2026-11-10 判断）。通知に「DM の受信箱に入ったか」（`dmConvId`）を
         // 書くため、写した結果が要る（アプリが受信箱とベルの二重を出さないための印・`notify.ts` の `Notif`）。
         // 写しは読み書き十数回で、件数のやり直し（下）と違い待ち時間を足さない
+        // **待つのは `storyReplyTimeouts.mirrorMs` まで**（2026-11-10 判断）。過ぎたら `dmConvId` を付けずに通知を積む
+        // （ベルと受信箱の二重は出うるが、知らせが遅れる・消えるよりよい）。打ち切っても写しは裏で続き、
+        // 終わったときに二重にはならない——返信の id を冪等の鍵にしている（`sendDm` が同じ id の通を足さない）
         const mirror: StoryMirror | null = ownerId && reply.text
-            ? await mirrorStoryReplyToDm({ from: uid, to: ownerId, text: reply.text, replyId: reply.id, name: reply.name, storyId })
+            ? await withTimeout(
+                mirrorStoryReplyToDm({ from: uid, to: ownerId, text: reply.text, replyId: reply.id, name: reply.name, storyId }),
+                storyReplyTimeouts.mirrorMs,
+                { mirrored: false, code: "timeout" } as const,
+            )
             : null;
         if (ownerId) {
             await pushNotification(ownerId, {

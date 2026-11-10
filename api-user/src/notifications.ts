@@ -76,6 +76,9 @@ export const getNotifications: APIGatewayProxyHandlerV2WithJWTAuthorizer = async
         // 「アプリのバッジ 53 → 開くと50件」「ブロック直後にバッジが戻る」に
         // なっていた。**読み手が2人になったら計算は1か所に置く**
         const unread = visibleUnread(stored, all, hidden);
+        // 足すだけの欄（2026-11-10）: `unread` のうち、DM の受信箱に入ったストーリーの返信（`dmConvId`）を
+        // 除いた数。DM の画面を持つアプリがベルのバッジに使う（その行は受信箱の未読で数える）。`unread` の意味は変えない
+        const unreadExcludingDm = visibleUnread(stored, all, hidden, { skipDmMirrored: true });
 
         // **退会した人の名前は出さない。**
         //
@@ -93,7 +96,7 @@ export const getNotifications: APIGatewayProxyHandlerV2WithJWTAuthorizer = async
                     ? { ...(n as Record<string, unknown>), byName: DELETED_USER_NAME, deleted: true }
                     : n;
             });
-        return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ items: safeItems, unread }) };
+        return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ items: safeItems, unread, unreadExcludingDm }) };
     } catch (e) {
         console.error("getNotifications error:", e);
         return jsonError(500, "取得に失敗しました");

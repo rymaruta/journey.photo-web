@@ -304,9 +304,10 @@ export async function readApiError(res: Response, fallback: string): Promise<str
   - 受信箱 `GET /dm` の `items[].lastMine: boolean`（最後の1通が自分のものか）。行に `from` を書き始める前の行は**欄なし**
   - 会話 `GET /dm/{id}` の `items[].storyId`（ストーリーへの返信から写した通）と `items[].story`（読む人から見た引用札・`dmStoryQuote.ts`）:
     `{id, state:"live", mediaType:"image", src, expiresAt}` / `{id, state:"live", mediaType:"video", expiresAt}`（動画は絵を返さない）/ `{id, state:"ended"}`。
-    `src` は `getStories` がその人に返すものと同じ URL で、**同じ門（期限・棚・投稿者を今もフォロー・親しい友達だけ）を通るときだけ**返す。外れたら `ended`（理由は区別しない）。photos の表は1件ずつ GetItem（`BatchGetItem` の権限は無い）で、1回に引くのは新しい方から20件のストーリーまで（越えた古い通は `story` なし＝分からない）
-  - `POST /stories/{id}/replies` の応答に `dm: {conversationId}`（DM に写った）/ `dm: null` ＋ `dmSkipped`（写らなかった理由。`sendDm` の `code`・`reaction`・`error`）。**相手の受信箱かリクエストの棚かは出さない**
-  - ベルの `storyreply` に `replyKind: "text"|"reaction"` と `dmConvId`（**受け取った人のふつうの受信箱に入ったときだけ**）。ベルには今までどおり積み、DM 画面を持つアプリが `dmConvId` の行を隠す。端末のバッジはこの行をベルの側で数えない（DM の未読で1回）。プッシュの中身に `convId`
+    `src` は `getStories` がその人に返すものと同じ URL で、**同じ門（期限・棚・投稿者を今もフォロー・親しい友達だけ）を通るときだけ**返す。外れたら `ended`（理由は区別しない）。photos の表は1件ずつ GetItem（`BatchGetItem` の権限は無い）で、1回に引くのは**最後に出てきたのが新しい方から**20件のストーリーまで（越えた分の通は `story` なし＝分からない）。親しい友達の名簿は投稿者ごとに1回だけ読む
+  - `POST /stories/{id}/replies` の応答に `dm: {conversationId}`（DM に写った）/ `dm: null` ＋ `dmSkipped`（写らなかった理由。`sendDm` の `code`・`reaction`・`error`・`timeout`＝写しが3秒を過ぎた。裏で続いた写しが後で入ることはあるが、返信の id が冪等の鍵なので二重にはならない）。**相手の受信箱かリクエストの棚かは出さない**
+  - ベルの `storyreply` に `replyKind: "text"|"reaction"` と `dmConvId`（**受け取った人のふつうの受信箱に入ったときだけ**）。ベルには今までどおり積み、DM 画面を持つアプリが `dmConvId` の行を隠す。端末のバッジはこの行をベルの側で数えない（DM の未読で1回）。プッシュの中身に `convId`。写しが3秒を過ぎた回は `dmConvId` を付けない
+  - `GET /user/notifications` に `unreadExcludingDm`（`unread` のうち `dmConvId` を持つ行を除いた数。DM 画面を持つアプリのベルのバッジ用）。**`unread` の意味は変えない**
 - **通知**: 端末へのプッシュは `NOTIF_DM`・引数は送り主の名前だけ（**本文は載せない**）。ベルの通知の輪（`notifs#`）には書かない。
   バッジは「ベルの未読 ＋ 受信箱の未読会話数」（リクエストとブロックの相手は含めない）。ベルの通知のプッシュも同じ数を出す
 - **退会**: `purgeDmFor` が会話ごとに自分の側を外し、受信箱を消す。相手の画面には会話が残り、名前は「退会したユーザー」（`deleted: true`）。`dmreport#` は消さない

@@ -36,7 +36,7 @@ vi.mock("../blockCheck", async (importActual) => ({
 }));
 
 const { QUOTE_LOOKUP_MAX } = await import("../dmStoryQuote");
-const [dm, { DM_CONVS_MAX, DM_REQUESTS_MAX, DM_INBOX_HARD_MAX, DM_DECLINED_MAX }, { postStoryReply }] = await Promise.all([import("../dm"), import("../dmInbox"), import("../storyReplies")]);
+const [dm, { DM_CONVS_MAX, DM_REQUESTS_MAX, DM_INBOX_HARD_MAX, DM_DECLINED_MAX }, { postStoryReply, storyReplyTimeouts }] = await Promise.all([import("../dm"), import("../dmInbox"), import("../storyReplies")]);
 const { handler, sendDm, purgeDmFor, convIdOf, parseConvId, containsUrl, cleanDmText, overBudgetCount,
     DM_REQUEST_MAX, DM_DAILY_NEW_CONVS, DM_DAILY_SENT, DM_MESSAGES_MAX, DM_REPORT_LAST } = dm;
 
@@ -1297,6 +1297,52 @@ describe("会話の引用札（ストーリーへの返信から写した通・s
         expect(calls.some((c) => String(c.input.Key?.id ?? "").startsWith("story-"))).toBe(false);
     });
 
+    it("🔴 ストーリーでない行（ふつうの写真）は ended（絵を返さない）", async () => {
+        rows["story-1"] = { id: "story-1", userId: PEER, src: "https://cdn/photo.jpg", published: true };
+        expect((await read(ME)).items[0].story).toEqual({ id: "story-1", state: "ended" });
+        rows["story-1"] = storyRow({ story: "true" });
+        expect((await read(ME)).items[0].story.state, "story が true でない行を通している").toBe("ended");
+    });
+
+    it("🔴 親しい友達の名簿は投稿者ごとに1回だけ読む（強い読みをストーリーの数だけ投げない）", async () => {
+        rows[`closefriends#${PEER}`] = { id: `closefriends#${PEER}`, list: [ME] };
+        const many = Array.from({ length: 5 }, (_, i) => {
+            const sid = `story-c${i}`;
+            rows[sid] = storyRow({ id: sid, audience: "closeFriends" });
+            return quoted({ id: `m-close-${String(i).padStart(3, "0")}`, storyId: sid, t: `2026-11-09T00:01:0${i}.000Z` });
+        });
+        rows[KEY] = convRow(many, { updatedAt: "2026-11-09T00:02:00.000Z" });
+        calls = [];
+        const b = await read(ME);
+        expect(b.items.every((m: { story: { state: string } }) => m.story.state === "live")).toBe(true);
+        const reads = calls.filter((c) => c.cmd === "GetCommand" && c.input.Key.id === `closefriends#${PEER}`);
+        expect(reads, "名簿をストーリーの数だけ読んでいる").toHaveLength(1);
+        expect(reads[0].input.ConsistentRead, "名簿は強い読みのまま").toBe(true);
+        // 全員向けだけなら名簿を読まない
+        rows[KEY] = convRow([quoted()], { updatedAt: "2026-11-09T00:02:00.000Z" });
+        calls = [];
+        await read(ME);
+        expect(calls.some((c) => c.input.Key?.id === `closefriends#${PEER}`)).toBe(false);
+    });
+
+    it("🔴 上限で選ぶのは「最後に出てきた」のが新しい方（古いストーリーに最近返信があれば落とさない）", async () => {
+        rows["story-old"] = storyRow({ id: "story-old" });
+        const items = [quoted({ id: "m-old-first", storyId: "story-old", t: "2026-11-09T00:00:00.500Z" })];
+        for (let i = 0; i < QUOTE_LOOKUP_MAX; i++) {
+            const sid = `story-${String(i).padStart(2, "0")}`;
+            rows[sid] = storyRow({ id: sid });
+            items.push(quoted({ id: `m-story-${String(i).padStart(3, "0")}`, storyId: sid, t: `2026-11-09T00:01:${String(i).padStart(2, "0")}.000Z` }));
+        }
+        items.push(quoted({ id: "m-old-again", storyId: "story-old", t: "2026-11-09T00:03:00.000Z" }));
+        rows[KEY] = convRow(items, { updatedAt: "2026-11-09T00:03:00.000Z" });
+        const b = await read(ME);
+        const at = (id: string) => b.items.find((m: { id: string }) => m.id === id);
+        expect(at("m-old-again").story?.state, "最近返信のあった古いストーリーを落としている").toBe("live");
+        expect(at("m-old-first").story?.state).toBe("live");
+        expect(at("m-story-000").story, "最後に出てきたのが最も古いものを落とす").toBeUndefined();
+        expect(at("m-story-001").story.state).toBe("live");
+    });
+
     it("🔴 photos の表は1件ずつ GetItem で読む（BatchGetItem の権限が無い）・引くのは新しい方から上限まで", async () => {
         const many = Array.from({ length: QUOTE_LOOKUP_MAX + 3 }, (_, i) => {
             const sid = `story-${String(i).padStart(2, "0")}`;
@@ -1369,6 +1415,39 @@ describe("ストーリーへの返信: 写った会話・お知らせの欄", ()
         expect(lastNotif().dmConvId, "リクエストなのに隠せる印を付けている").toBeUndefined();
         await reply({ text: "https://example.com" });
         expect(lastNotif().dmConvId).toBeUndefined();
+    });
+
+    it("🔴 写しが上限時間を過ぎたら、dmConvId を付けずに通知を積み、応答は dm: null（timeout）。裏で終わっても二重にならない", async () => {
+        const saved = storyReplyTimeouts.mirrorMs;
+        storyReplyTimeouts.mirrorMs = 30;
+        let release!: () => void;
+        const gate = new Promise<void>((r) => { release = r; });
+        const real = mockSend.getMockImplementation()!;
+        mockSend.mockImplementation(async (c: { constructor: { name: string }; input: Record<string, any> }) => {   // eslint-disable-line @typescript-eslint/no-explicit-any
+            if (c.constructor.name === "PutCommand" && String(c.input.Item?.id ?? "").startsWith("dm#")) {
+                await gate;
+                rows[c.input.Item.id] = c.input.Item;   // 本体が入った
+            }
+            return real(c);
+        });
+        try {
+            const r = bodyOf(await reply({ text: "きれいですね" }));
+            expect(r).toMatchObject({ success: true, dm: null, dmSkipped: "timeout" });
+            expect(lastNotif()).toMatchObject({ type: "storyreply", replyKind: "text" });
+            expect(lastNotif().dmConvId, "写せたか分からないのに隠せる印を付けている").toBeUndefined();
+            // 裏の写しを最後まで通す
+            release();
+            await vi.waitFor(() => expect(entryWrites(ME).length).toBeGreaterThan(0));
+            expect(convWrites().filter((c) => c.cmd === "PutCommand")).toHaveLength(1);
+            // 同じ返信の id でもう一度写しても、通は増えない（冪等の鍵）
+            const again = await dm.mirrorStoryReplyToDm({ from: ME, to: PEER, text: "きれいですね", replyId: r.reply.id, name: "旅人A", storyId: "story-1" });
+            expect(again).toMatchObject({ mirrored: true, convId: CONV });
+            expect((rows[KEY] as { items: unknown[] }).items, "同じ返信が2通入った").toHaveLength(1);
+            expect(convWrites().filter((c) => c.cmd === "UpdateCommand"), "本体に足し直している").toHaveLength(0);
+        } finally {
+            storyReplyTimeouts.mirrorMs = saved;
+            mockSend.mockImplementation(real);
+        }
     });
 
     it("🔴 写してからお知らせを積む（印を書くため）", async () => {
