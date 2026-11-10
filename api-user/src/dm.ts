@@ -14,6 +14,7 @@ import { isUserId } from "./userId";
 import { readLiveCaller } from "./liveCaller";
 import { isReportReason, REPORT_NOTE_MAX } from "./report";
 import { isDeletedProfile } from "./types";
+import { storyQuotesFor, type StoryQuote } from "./dmStoryQuote";
 import {
     DM_CONVS_MAX, DM_REQUESTS_MAX, DM_INBOX_HARD_MAX, DM_DECLINED_MAX, slotCounts,
     DM_EXCERPT_MAX, dmInboxId, declinedAttr, readDmInbox, unreadConvCount,
@@ -62,7 +63,11 @@ export const DM_REPORT_LAST = 20;
 const WRITE_RETRIES = 3;
 const USERS_TABLE = requireEnv("USERS_TABLE");
 
-export type DmMessage = { id: string; from: string; text: string; t: string; via?: "story" };
+/**
+ * 1通。`via: "story"` はストーリーへの返信から写した通で、`storyId` はそのストーリー
+ * （2026-11-10 から書く。**それより前に写した通は持たない**）。
+ */
+export type DmMessage = { id: string; from: string; text: string; t: string; via?: "story"; storyId?: string };
 
 type ConvState = "inbox" | "request";
 
@@ -231,7 +236,7 @@ export class InboxFullError extends Error {
 async function upsertEntry(
     uid: string,
     convId: string,
-    e: { peer: string; t: string; excerpt: string; state: DmEntryState },
+    e: { peer: string; t: string; excerpt: string; state: DmEntryState; from: string },
     bump: boolean,
     msgId: string,
     canCreate = true,
@@ -243,13 +248,13 @@ async function upsertEntry(
                 TableName: PHOTOS_TABLE,
                 Key: key,
                 UpdateExpression:
-                    "SET convs.#c.#peer = :peer, convs.#c.#t = :t, convs.#c.#x = :x, convs.#c.#s = :s, convs.#c.#lid = :id, "
+                    "SET convs.#c.#peer = :peer, convs.#c.#t = :t, convs.#c.#x = :x, convs.#c.#s = :s, convs.#c.#lid = :id, convs.#c.#f = :from, "
                     + `convs.#c.#u = ${bump ? "if_not_exists(convs.#c.#u, :z) + :one" : ":z"}, updatedAt = :t`,
                 ConditionExpression:
                     "attribute_exists(convs.#c) AND convs.#c.#t <= :t AND (attribute_not_exists(convs.#c.#lid) OR convs.#c.#lid <> :id)",
-                ExpressionAttributeNames: { "#c": convId, "#peer": "peer", "#t": "t", "#x": "excerpt", "#s": "state", "#u": "unread", "#lid": "lastId" },
+                ExpressionAttributeNames: { "#c": convId, "#peer": "peer", "#t": "t", "#x": "excerpt", "#s": "state", "#u": "unread", "#lid": "lastId", "#f": "from" },
                 ExpressionAttributeValues: {
-                    ":peer": e.peer, ":t": e.t, ":x": e.excerpt, ":s": e.state, ":z": 0, ":id": msgId, ...(bump ? { ":one": 1 } : {}),
+                    ":peer": e.peer, ":t": e.t, ":x": e.excerpt, ":s": e.state, ":z": 0, ":id": msgId, ":from": e.from, ...(bump ? { ":one": 1 } : {}),
                 },
             }));
             return;
@@ -266,7 +271,7 @@ async function upsertEntry(
             UpdateExpression: "SET convs = if_not_exists(convs, :empty), uid = :uid, updatedAt = :t",
             ExpressionAttributeValues: { ":empty": {}, ":uid": uid, ":t": e.t },
         }));
-        const entry = { peer: e.peer, t: e.t, excerpt: e.excerpt, unread: bump ? 1 : 0, state: e.state, lastId: msgId };
+        const entry = { peer: e.peer, t: e.t, excerpt: e.excerpt, unread: bump ? 1 : 0, state: e.state, lastId: msgId, from: e.from };
         try {
             await ddb.send(new UpdateCommand({
                 TableName: PHOTOS_TABLE,
@@ -298,12 +303,21 @@ export type SendInput = {
     /** 冪等の鍵（再送で二重に入れない）。ストーリー返信の写しは返信の id を渡す */
     id?: string;
     via?: "story";
+    /** `via: "story"` のときの元のストーリー（通に残し、会話の引用札に使う） */
+    storyId?: string;
     /** 端末への知らせを送るか。ストーリー返信の写しは送らない（返信の通知が別に出る） */
     push: boolean;
     myName: string;
 };
 export type SendFail = { ok: false; status: number; message: string; code?: string };
-export type SendOk = { ok: true; convId: string; message: DmMessage; state: DmEntryState };
+export type SendOk = {
+    ok: true; convId: string; message: DmMessage; state: DmEntryState;
+    /**
+     * 受け取った側の置き場所（`inbox` か `request`）。**サーバーの中だけで使う**——送り主への応答に
+     * 出すと、相手が自分をフォローしているかが読み取れる（`sendResult` は出さない）
+     */
+    delivered: DmEntryState;
+};
 
 /** **理由コードも文面も、相手との関係で変えない**（1種類）。UI の文言は iOS 側で決める */
 const URL_REFUSED = "承認されるまではリンクを送れません";
@@ -344,7 +358,11 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
         return fail(409, `会話が${DM_CONVS_MAX}件に達しています。不要な会話を削除してください`, "selfFull");
     }
 
-    let message: DmMessage = { id: msgId, from: me, text, t: "", ...(inp.via ? { via: inp.via } : {}) };
+    let message: DmMessage = {
+        id: msgId, from: me, text, t: "",
+        ...(inp.via ? { via: inp.via } : {}),
+        ...(inp.via === "story" && typeof inp.storyId === "string" && inp.storyId ? { storyId: inp.storyId } : {}),
+    };
 
     let followsRecipient: boolean | null = null;   // 自分が相手をフォローしているか（門）
     let autoInbox: boolean | null = null;          // 相手が自分をフォロー or 親しい友達か
@@ -484,8 +502,8 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
         canCreateMine = !cur || clearedAtOf(cur, me) < message.t;
     }
     try {
-        await upsertEntry(to, convId, { peer: me, t: message.t, excerpt, state: theirState }, true, message.id, canCreateTheirs);
-        await upsertEntry(me, convId, { peer: to, t: message.t, excerpt, state: myState }, false, message.id, canCreateMine);
+        await upsertEntry(to, convId, { peer: me, t: message.t, excerpt, state: theirState, from: me }, true, message.id, canCreateTheirs);
+        await upsertEntry(me, convId, { peer: to, t: message.t, excerpt, state: myState, from: me }, false, message.id, canCreateMine);
     } catch (e) {
         if (e instanceof InboxFullError) {
             return fail(409, e.uid === me ? `会話が${DM_CONVS_MAX}件に達しています。不要な会話を削除してください` : "いま送れません",
@@ -499,7 +517,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
         await pushDmMessage(to, { byName: inp.myName, byId: me, convId })
             .catch((e) => console.error("sendDm: プッシュに失敗:", errName(e)));
     }
-    return { ok: true, convId, message, state: myState };
+    return { ok: true, convId, message, state: myState, delivered: theirState };
 }
 
 /** 相手（`owner`）の親しい友達に `who` が居るか。**読めなければ居ない扱い**（リクエストに倒す＝厳しい側） */
@@ -536,17 +554,33 @@ async function reserveDaily(uid: string, isNewConv: boolean): Promise<boolean> {
 }
 
 /**
+ * 写した結果。`mirrored` は会話 ID と、受け取った側の置き場所（**サーバーの中だけ**——返信した人への
+ * 応答には会話 ID だけを出す。`SendOk.delivered` の注記）。写らなかったときは理由のコード
+ * （`sendDm` の `code`。コードの無い失敗は `"error"`）。
+ */
+export type StoryMirror =
+    | { mirrored: true; convId: string; delivered: DmEntryState }
+    | { mirrored: false; code: string };
+
+/**
  * ストーリーへの文字の返信を、会話の最初の1通として写す（`postStoryReply` の成功後・**best-effort**）。
  * 絵文字だけのリアクションは呼ばない（今まで通り消える）。**失敗しても返信は成功のまま**——
  * 落ちた理由はコードだけをログに残す。返信の通知が別に出るので、この写しではプッシュしない。
- * 返信の id を冪等の鍵にする（二重に写さない）。
+ * 返信の id を冪等の鍵にする（二重に写さない）。**投げない**（結果で返す）。
  */
-export async function mirrorStoryReplyToDm(p: { from: string; to: string; text: string; replyId: string; name: string }): Promise<void> {
+export async function mirrorStoryReplyToDm(
+    p: { from: string; to: string; text: string; replyId: string; name: string; storyId: string },
+): Promise<StoryMirror> {
     try {
-        const r = await sendDm({ me: p.from, to: p.to, text: p.text, id: p.replyId, via: "story", push: false, myName: p.name });
-        if (!r.ok) console.warn(`mirrorStoryReplyToDm: 写しませんでした（${r.code ?? r.status}）`);
+        const r = await sendDm({
+            me: p.from, to: p.to, text: p.text, id: p.replyId, via: "story", storyId: p.storyId, push: false, myName: p.name,
+        });
+        if (r.ok) return { mirrored: true, convId: r.convId, delivered: r.delivered };
+        console.warn(`mirrorStoryReplyToDm: 写しませんでした（${r.code ?? r.status}）`);
+        return { mirrored: false, code: r.code ?? "error" };
     } catch (e) {
         console.error("mirrorStoryReplyToDm: 写せませんでした:", errName(e));
+        return { mirrored: false, code: "error" };
     }
 }
 
@@ -596,8 +630,14 @@ const okJson = (body: unknown) => ({
     body: JSON.stringify(body),
 });
 
-const shapeMessage = (m: DmMessage, me: string) => ({
+/**
+ * API に出す1通。`storyId` を持つ通には、読む人から見た引用札（`story`・`dmStoryQuote.ts`）を
+ * `quotes` から付ける（送信の応答は札を引かないので `storyId` だけ）
+ */
+const shapeMessage = (m: DmMessage, me: string, quotes?: ReadonlyMap<string, StoryQuote>) => ({
     id: m.id, from: m.from, mine: m.from === me, text: m.text, t: m.t, ...(m.via ? { via: m.via } : {}),
+    ...(m.storyId ? { storyId: m.storyId } : {}),
+    ...(m.storyId && quotes?.get(m.storyId) ? { story: quotes.get(m.storyId) } : {}),
 });
 
 // ---------------------------------------------------------------------------
@@ -625,6 +665,8 @@ async function listInbox(uid: string) {
                 id, peerId: e.peer, name: p.name, ...(p.username ? { username: p.username } : {}),
                 ...(p.deleted ? { deleted: true } : {}),
                 t: e.t, excerpt: e.excerpt, unread: e.unread, state: e.state,
+                // 最後の1通が自分のものか（抜粋の頭の「あなた: 」）。**この欄より前の行は分からないので出さない**
+                ...(e.from ? { lastMine: e.from === uid } : {}),
             };
         }),
         // バッジと同じ数（リクエストは含めない）
@@ -652,7 +694,11 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
 
     const visible = visibleTo(conv, uid);
     const items = since ? visible.filter((m) => m.t > since) : visible;
-    const peers = await peerInfos([peer]);
+    const [peers, quotes] = await Promise.all([
+        peerInfos([peer]),
+        // 返す通のうち、ストーリーへの返信から写した通だけ（無ければ読みに行かない）
+        storyQuotesFor(uid, [pair.lo, pair.hi], items.flatMap((m) => (m.storyId ? [m.storyId] : []))),
+    ]);
     const p = peers.get(peer) ?? fallbackPeer();
     const initiatorIsMe = conv.initiator === uid;
     // **始めた人には、相手が話すまで残り数を見せる**（リクエストでも直行でも同じ。承認だけでは見せ方を変えない）
@@ -666,7 +712,7 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
         canSend: !p.deleted && remaining !== 0,
         ...(remaining !== undefined ? { requestRemaining: remaining } : {}),
         t: conv.updatedAt,
-        items: items.map((m) => shapeMessage(m, uid)),
+        items: items.map((m) => shapeMessage(m, uid, quotes)),
     });
 }
 

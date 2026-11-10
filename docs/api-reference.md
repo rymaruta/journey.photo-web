@@ -291,7 +291,7 @@ export async function readApiError(res: Response, fallback: string): Promise<str
 - **断った印 `dec_`** は100人まで（越えるときは通数の小さいものから外す）
 - **会話 ID** は `<小さい uid>_<大きい uid>`（2人から一意）。`POST /dm` の応答の `conversationId` と、受信箱の `items[].id`
 - **行の種類（単一テーブル・GSI/TTL は作らない）**: `dm#<小さい>#<大きい>`（メッセージの輪 最大200通・約40KB・会話の状態）/
-  `dminbox#<uid>`（map `convs.<会話ID>` ＝ `{peer, t, excerpt, unread, state}`・1人200会話まで。溢れたら**新しい会話を断る**（409 `selfFull`／相手側は `unavailable`））/
+  `dminbox#<uid>`（map `convs.<会話ID>` ＝ `{peer, t, excerpt, unread, state, lastId, from}`・1人200会話まで。溢れたら**新しい会話を断る**（409 `selfFull`／相手側は `unavailable`））/
   `dmday#<uid>#<JSTの日付>`（1日 新規会話20人・送信300通の歯止め。429 `dailyLimit`）/ `dmreport#<会話ID>#<通報者>`
 - **始められる人**: 相手をフォローしている人だけ（無ければ 404）。**承認前の規則は全員に同じ（owner 判断 2026-11-09）**: 受け取った人が**返信か承認をするまで、送り主は文字3通まで・URL 不可**
   （4通目は 429 `requestLimit`・URL は 400 `requestUrl`。**理由コードも文面も、相手との関係で変えない**）。
@@ -304,6 +304,13 @@ export async function readApiError(res: Response, fallback: string): Promise<str
 - **ブロック**: 送信前に `isBlocked`。ブロックされた側には**ブロックと分かる応答を返さない（404）**。自分がブロックした相手へは 403 `blockedByMe`。
   一覧・会話は `hiddenUserIds` でふるう（**隠すだけで消さない**・解除で戻る・ブロック一覧が読めなければ 500）
 - **ストーリーとの接続**: `POST /stories/{id}/replies` が**文字の返信**に成功したあと、会話の最初の1通として写す（best-effort・失敗しても返信は成功・`via: "story"`・プッシュなし）。絵文字だけのリアクションは写さない
+- **2026-11-10 に足した欄（どれも後方互換。古い行・古い通は持たない＝欄が無い）**:
+  - 受信箱 `GET /dm` の `items[].lastMine: boolean`（最後の1通が自分のものか）。行に `from` を書き始める前の行は**欄なし**
+  - 会話 `GET /dm/{id}` の `items[].storyId`（ストーリーへの返信から写した通）と `items[].story`（読む人から見た引用札・`dmStoryQuote.ts`）:
+    `{id, state:"live", mediaType:"image", src, expiresAt}` / `{id, state:"live", mediaType:"video", expiresAt}`（動画は絵を返さない）/ `{id, state:"ended"}`。
+    `src` は `getStories` がその人に返すものと同じ URL で、**同じ門（期限・棚・投稿者を今もフォロー・親しい友達だけ）を通るときだけ**返す。外れたら `ended`（理由は区別しない）。photos の表は1件ずつ GetItem（`BatchGetItem` の権限は無い）で、1回に引くのは新しい方から20件のストーリーまで（越えた古い通は `story` なし＝分からない）
+  - `POST /stories/{id}/replies` の応答に `dm: {conversationId}`（DM に写った）/ `dm: null` ＋ `dmSkipped`（写らなかった理由。`sendDm` の `code`・`reaction`・`error`）。**相手の受信箱かリクエストの棚かは出さない**
+  - ベルの `storyreply` に `replyKind: "text"|"reaction"` と `dmConvId`（**受け取った人のふつうの受信箱に入ったときだけ**）。ベルには今までどおり積み、DM 画面を持つアプリが `dmConvId` の行を隠す。端末のバッジはこの行をベルの側で数えない（DM の未読で1回）。プッシュの中身に `convId`
 - **通知**: 端末へのプッシュは `NOTIF_DM`・引数は送り主の名前だけ（**本文は載せない**）。ベルの通知の輪（`notifs#`）には書かない。
   バッジは「ベルの未読 ＋ 受信箱の未読会話数」（リクエストとブロックの相手は含めない）。ベルの通知のプッシュも同じ数を出す
 - **退会**: `purgeDmFor` が会話ごとに自分の側を外し、受信箱を消す。相手の画面には会話が残り、名前は「退会したユーザー」（`deleted: true`）。`dmreport#` は消さない

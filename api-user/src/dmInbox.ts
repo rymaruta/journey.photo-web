@@ -57,6 +57,11 @@ export type DmEntry = {
     /** この人から見た未読の数 */
     unread: number;
     state: DmEntryState;
+    /**
+     * 最後のメッセージを送った人の uid（2026-11-10・iOS の DM 画面の「あなた: 」のため）。
+     * **この欄より前に書かれた行は持たない**（読み手は「分からない」として扱う）
+     */
+    from?: string;
 };
 
 export const DM_EXCERPT_MAX = 40;
@@ -81,6 +86,7 @@ export function parseEntries(item: Record<string, unknown> | undefined): Record<
             excerpt: typeof e.excerpt === "string" ? e.excerpt : "",
             unread: typeof e.unread === "number" && e.unread > 0 ? e.unread : 0,
             state: e.state as DmEntryState,
+            ...(typeof e.from === "string" ? { from: e.from } : {}),
         };
     }
     return out;

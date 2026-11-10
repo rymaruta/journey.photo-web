@@ -49,6 +49,22 @@ export type Notif = {
     tier?: number;
     /** `inspired` だけ: 元になった（受け取った人の）写真の ID */
     sourcePhotoId?: string;
+    /**
+     * `storyreply` だけ（2026-11-10 から書く）: 文字の返信（`text`）か、絵文字だけの反応（`reaction`）か。
+     * 文字と絵文字の両方を送った回は `text`。**この欄より前の行は持たない**
+     */
+    replyKind?: "text" | "reaction";
+    /**
+     * `storyreply` だけ（2026-11-10 判断）: 文字の返信が DM に写り、**受け取った人のふつうの受信箱に
+     * 入った**ときの会話 ID。DM の画面を持つアプリは、この行をベルに出さない（受信箱と二重になる）。
+     *
+     * **ベルには今までどおり積む**（積むのをやめない）。DM の画面を持たない Web（`NotificationsBell`）と
+     * 古いアプリには、この行が返信を知る唯一の入口なので、消すと返信が届いたことが分からなくなる。
+     * リクエストの棚に入った回（受け取った人が返信した人をフォローしていない）は付けない
+     * ——リクエストはバッジに出ないので、ベルの行を隠すと知らせが1つも無くなる。
+     * 端末のバッジ（`sendToDevices`）は、この行をベルの側で数えない（DM の未読で1回だけ数える）
+     */
+    dmConvId?: string;
     t: string;
 };
 
@@ -432,14 +448,20 @@ const PUSH_READY_TYPES: ReadonlySet<Notif["type"]> = new Set<Notif["type"]>([
  * `min(stored, items.length)` だと `[B,B,B,X,Y] / unread=3` で**2**が残り、
  * 「バッジ2 → 開くと『まだ届いていません』」に戻る。
  */
-export function visibleUnread(storedUnread: unknown, items: unknown, hidden: ReadonlySet<string>): number {
+export function visibleUnread(
+    storedUnread: unknown, items: unknown, hidden: ReadonlySet<string>,
+    opts: { skipDmMirrored?: boolean } = {},
+): number {
     const all = Array.isArray(items) ? items : [];
     const stored = typeof storedUnread === "number" ? storedUnread : 0;
     const headCount = Math.max(0, Math.min(stored, all.length));
-    if (hidden.size === 0) return headCount;
+    if (hidden.size === 0 && !opts.skipDmMirrored) return headCount;
     return all.slice(0, headCount).filter((n) => {
         const by = (n as { byId?: unknown })?.byId;
-        return !(typeof by === "string" && hidden.has(by));
+        if (typeof by === "string" && hidden.has(by)) return false;
+        // 端末のバッジだけ: DM の受信箱に入った返信は、DM の未読で数える（二重に数えない・`Notif.dmConvId`）
+        if (opts.skipDmMirrored && typeof (n as { dmConvId?: unknown })?.dmConvId === "string") return false;
+        return true;
     }).length;
 }
 
@@ -460,6 +482,8 @@ async function deliverPush(ownerId: string, notif: Notif, storedUnread?: unknown
             ...(typeof notif.tier === "number" ? { tier: String(notif.tier) } : {}),
             // 「この写真を見て撮影」: 押した先は新しい写真（`photoId`）。元の写真も添える
             ...(notif.sourcePhotoId ? { sourcePhotoId: notif.sourcePhotoId } : {}),
+            // ストーリーへの文字の返信が DM の受信箱に入った: 押した先に会話を選べるよう会話 ID を添える
+            ...(notif.dmConvId ? { convId: notif.dmConvId } : {}),
         },
     });
 }
@@ -513,7 +537,7 @@ async function sendToDevices(
             bellUnread = row?.Item?.unread;
             bellItems = row?.Item?.items;
         }
-        const badge = visibleUnread(bellUnread, bellItems, hidden) + await dmUnreadConvCount(ownerId, hidden);
+        const badge = visibleUnread(bellUnread, bellItems, hidden, { skipDmMirrored: true }) + await dmUnreadConvCount(ownerId, hidden);
         const result = await sendPush(tokens, {
             locKey: message.locKey,
             locArgs: message.locArgs,
