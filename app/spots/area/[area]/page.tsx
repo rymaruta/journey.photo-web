@@ -9,6 +9,7 @@ import SpotTopicPage from "@/app/components/SpotTopicPage";
 import { TopicChips, Lang } from "@/app/components/SpotTopicLists";
 import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta, cityLinksForPrefecture } from "@/lib/data/spotTopics";
 import { OVERSEAS_SLUG } from "@/lib/data/prefectures";
+import TopicFold from "@/app/components/TopicFold";
 
 /** JSON-LD を `<script>` に埋める形（`SpotTopicPage.tsx` と同じ。`</script>` で閉じられないように） */
 const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
@@ -113,14 +114,19 @@ export default async function SpotAreaPage({ params }: { params: Promise<{ area:
             <SpotIndexClient
                 spots={spotIndexItemsForArea(area)}
                 area={found ? { name: found.name, nameEn: found.nameEn } : undefined}
-            />
-            {/* 市区町村でさがす（2026-11-05・5件以上の市区町村の頁。HTML の本文に出るのでクロールの入口になる） */}
-            {found && cityLinks.length > 0 && (
-                <section className="mx-auto w-full max-w-5xl lg:max-w-6xl px-4 sm:px-6 md:px-8 pb-10 text-white" data-testid="area-city-links">
-                    <h2 className="font-serif text-xl font-bold m-0 mb-3"><Lang ja={`${found.name}の市区町村でさがす`} en={`Cities in ${found.nameEn}`} /></h2>
-                    <TopicChips links={cityLinks} />
-                </section>
-            )}
+            >
+                {/* 市区町村でさがす（2026-11-05・5件以上の市区町村の頁。HTML の本文に出るのでクロールの入口になる）。
+                    2026-11-10 案A: 文字の札は開け閉めの段に畳む（リンクは HTML に全部残る・URL は変えない） */}
+                {found && cityLinks.length > 0 && (
+                    <section className="mt-10" data-testid="area-city-links">
+                        <div className="border-t border-line">
+                            <TopicFold id="area-by-city" title={<Lang ja={`${found.name}の市区町村でさがす`} en={`Cities in ${found.nameEn}`} />} count={cityLinks.length}>
+                                <TopicChips links={cityLinks} />
+                            </TopicFold>
+                        </div>
+                    </section>
+                )}
+            </SpotIndexClient>
         </>
     );
 }

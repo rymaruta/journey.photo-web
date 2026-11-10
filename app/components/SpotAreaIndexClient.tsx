@@ -6,9 +6,12 @@ import type { SpotArea } from "@/lib/data/spotLink";
 import { REGIONS, REGION_EN, type RegionName } from "@/lib/data/prefectures";
 import { useLocale } from "@/app/i18n/context";
 import { CHIP_OFF, CHIP_SIZE, CHIP_HIT, CHIP_ROW } from "./chipStyles";
-import SpotAreaChip, { AREA_TILE_GRID } from "./SpotAreaChip";
 import SpotListSearch from "./SpotListSearch";
 import SectionHead from "./SectionHead";
+import type { SpotIndexPhotos } from "@/lib/data/spotIndexPhotos";
+import { ROUTES } from "@/lib/routes";
+import { PhotoTileLink, PHOTO_TILE_GRID, SeasonShelf } from "./SpotPhotoTiles";
+import { PhotoCredits } from "./SpotPhotoParts";
 
 /**
  * **公式撮影地ガイドの入口**（`/spots`）。**都道府県の一覧**を出す。
@@ -35,21 +38,37 @@ type Props = {
      * 実際に描く節だけを渡す）。無い節への死んだリンクを出さないため、ここでは決めない
      */
     jumps?: Array<{ id: string; label: string; labelEn: string }>;
+    /**
+     * 写真の札に要るもの（2026-11-10・案A）: 県の代表写真・件数の多い国・いまの季節の棚・頁の下の写真の出典。
+     * サーバー（`spotIndexPhotos`）が解いた**写真の場所と出典だけ**。無ければ県は名前だけの札になる
+     */
+    photos?: SpotIndexPhotos;
 };
 
-export default function SpotAreaIndexClient({ areas, total, draftCount, children, jumps = [] }: Props) {
+/** 地方の節。**北海道は東北と同じ節**（2026-11-10 案A: 札 1 枚だけの節を作らない） */
+const sectionOf = (r: RegionName): string => (r === "北海道" || r === "東北" ? "北海道・東北" : r);
+
+export default function SpotAreaIndexClient({ areas, total, draftCount, children, jumps = [], photos }: Props) {
     const { locale } = useLocale();
     const isJa = locale !== "en";
 
-    /** 地方ごとにまとめる。**0件の地方は作らない** */
+    /** 地方ごとにまとめる。**0件の地方は作らない**。北海道と東北は1つの節（両方あるときだけ「北海道・東北」と名乗る） */
     const groups = React.useMemo(() => {
-        const out: Array<{ region: RegionName | null; items: SpotArea[] }> = [];
+        const out: Array<{ key: string; label: string; labelEn: string; items: SpotArea[] }> = [];
         for (const r of REGIONS) {
             const items = areas.filter((a) => a.region === r);
-            if (items.length > 0) out.push({ region: r, items });
+            if (items.length === 0) continue;
+            const prev = out[out.length - 1];
+            if (prev && prev.key === sectionOf(r)) {
+                prev.items.push(...items);
+                prev.label = sectionOf(r);
+                prev.labelEn = "Hokkaido & Tohoku";
+            } else {
+                out.push({ key: sectionOf(r), label: r, labelEn: REGION_EN[r], items });
+            }
         }
         const overseas = areas.filter((a) => a.region === null);
-        if (overseas.length > 0) out.push({ region: null, items: overseas });
+        if (overseas.length > 0) out.push({ key: "overseas", label: "海外", labelEn: "Outside Japan", items: overseas });
         return out;
     }, [areas]);
 
@@ -60,9 +79,9 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
      * 描いている地方と節だけを並べる（死んだリンクを出さない）
      */
     const jumpItems = [
-        ...groups.map(({ region }) => ({
-            id: `spots-region-${region ?? "overseas"}`,
-            label: region === null ? (isJa ? "海外" : "Outside Japan") : (isJa ? region : REGION_EN[region]),
+        ...groups.map((g) => ({
+            id: `spots-region-${g.key === "overseas" ? "overseas" : g.label}`,
+            label: isJa ? g.label : g.labelEn,
         })),
         ...jumps.map((j) => ({ id: j.id, label: isJa ? j.label : j.labelEn })),
     ];
@@ -70,6 +89,7 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
     /** 県の一覧と切り口の節（静的HTML。検索の結果があるあいだだけ隠れる） */
     const list = (
         <>
+            {photos && <SeasonShelf seasonal={photos.seasonal} />}
             {jumpItems.length > 1 && (
                 <nav aria-label={isJa ? "このページ内の移動" : "Jump to a section"} className="mb-6" data-testid="spots-jump-band">
                     <ul className={CHIP_ROW} style={{ listStyle: "none" }}>
@@ -91,30 +111,54 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
                     {isJa ? "公開中の撮影スポットはまだありません。" : "No published spots yet."}
                 </p>
             ) : (
-                groups.map(({ region, items }) => (
-                    <section key={region ?? "overseas"} className="mb-7">
+                groups.map(({ key, label, labelEn, items }) => {
+                    const overseas = key === "overseas";
+                    const sum = items.reduce((n, a) => n + a.count, 0);
+                    const countries = overseas ? photos?.countries ?? [] : [];
+                    return (
+                    <section key={key} className="mb-7">
                         {/* 地方の見出しは節の見出し（明朝 22・`SectionHead`・2026-10-31 束 2 P3）。以前は明朝 17 */}
-                        <SectionHead id={`spots-region-${region ?? "overseas"}`}
+                        <SectionHead id={`spots-region-${overseas ? "overseas" : label}`}
                             title={<>
-                                {region === null
-                                    ? (isJa ? "海外" : "Outside Japan")
-                                    : (isJa ? region : REGION_EN[region])}
+                                {isJa ? label : labelEn}
                                 {/* 地方の件数（2026-11-09・見出しだけだと中身の多さが分からない）。12 以上・text-2（黒の上 10.6:1 の定義値） */}
                                 <span aria-hidden="true" className="ml-2 align-baseline font-sans font-normal tabular-nums text-text-2" style={{ fontSize: "13px" }}>
-                                    {isJa ? `${items.reduce((n, a) => n + a.count, 0)}件` : `${items.reduce((n, a) => n + a.count, 0)}`}
+                                    {isJa ? `${sum.toLocaleString("ja-JP")}件` : `${sum.toLocaleString("en-US")}`}
                                 </span>
                             </>} />
-                        <ul className={AREA_TILE_GRID} style={{ listStyle: "none" }}>
-                            {items.map((a) => (
+                        {/* 県・国は写真の札（2026-11-10 案A）。海外は件数の多い国を札にし、最後の札で国の一覧へ */}
+                        <ul className={PHOTO_TILE_GRID} style={{ listStyle: "none" }}>
+                            {overseas && countries.length > 0 ? (
+                                <>
+                                    {countries.map((c) => (
+                                        <li key={c.code}>
+                                            <PhotoTileLink href={c.href} label={isJa ? c.name : c.nameEn} count={c.count} cover={c.cover} testId="spots-country-tile" />
+                                        </li>
+                                    ))}
+                                    <li>
+                                        <Link href={ROUTES.SPOT_AREA(items[0].slug)} prefetch={false} data-testid="spots-all-countries"
+                                              className="flex flex-col justify-end w-full aspect-square rounded-xl bg-surface-3 ring-1 ring-inset ring-line-strong hover:bg-white/10 transition-colors px-2 pb-1.5 text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
+                                            <span className="font-semibold" style={{ fontSize: "15px", lineHeight: "20px" }}>
+                                                {isJa ? <>すべての国・<wbr />地域<span className="tabular-nums">（{photos?.countryTotal ?? countries.length}）</span></> : `All countries (${photos?.countryTotal ?? countries.length})`}
+                                                <span aria-hidden="true" className="ml-0.5 text-text-2">›</span>
+                                            </span>
+                                        </Link>
+                                    </li>
+                                </>
+                            ) : items.map((a) => (
                                 <li key={a.slug}>
-                                    <SpotAreaChip slug={a.slug} label={isJa ? a.name : a.nameEn} count={a.count} />
+                                    <PhotoTileLink href={ROUTES.SPOT_AREA(a.slug)} label={isJa ? a.name : a.nameEn} count={a.count}
+                                                   cover={photos?.areaCovers[a.slug]} testId="spots-area-tile" />
                                 </li>
                             ))}
                         </ul>
                     </section>
-                ))
+                    );
+                })
             )}
             {children}
+            {/* 写真の出典（CC BY・CC BY-SA）は畳まず、頁の下に常に出す（2026-11-10 秘書室の判断） */}
+            {photos && <PhotoCredits items={photos.credits} />}
         </>
     );
 

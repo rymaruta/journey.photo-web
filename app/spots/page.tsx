@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CHIP_OFF, CHIP_SIZE, CHIP_HIT } from "@/app/components/chipStyles";
 import SpotAreaIndexClient from "@/app/components/SpotAreaIndexClient";
 import { SPOTS } from "@/lib/data/spots";
 import { spotAreas } from "@/lib/data/spotLink";
@@ -12,6 +11,10 @@ import { spotIndexTopics, firstSpotOgImage, spotTwitterMeta } from "@/lib/data/s
 import { TopicChips, Lang } from "@/app/components/SpotTopicLists";
 import SectionHead, { SectionTitle } from "@/app/components/SectionHead";
 import { ROUTES } from "@/lib/routes";
+import { spotIndexPhotos } from "@/lib/data/spotIndexPhotos";
+import type { TopicLink } from "@/lib/data/spotTopics";
+import type { ReactNode } from "react";
+import TopicFold from "@/app/components/TopicFold";
 
 /**
  * **撮影地ガイドの入口。**
@@ -60,14 +63,13 @@ export default function SpotIndexPage() {
     // （実測は `lib/data/spotLink.ts` の `SpotArea` の注記）
     const total = visibleSpots(SPOTS).length;
     const areas = spotAreas();
-    // 地方の下の節へ飛ぶ近道は、実際に描く節だけ（`SpotIndexTopicSections` と同じ条件・2026-11-09）
+    // 地方の下の「ほかの切り口」へ飛ぶ近道は、実際に描くときだけ（`SpotIndexTopicSections` と同じ条件・2026-11-09）。
+    // 2026-11-10 案A: 季節・市区町村・テーマは1つの節の開け閉めの段に畳んだので、行き先はその節の見出し1つ
     const topics = spotIndexTopics();
     const topicsShown = topics.seasons.length > 0 || topics.themes.length > 0;
-    const jumps = !topicsShown ? [] : [
-        ...(topics.seasons.length > 0 ? [{ id: "spots-by-season", label: "季節", labelEn: "Season" }] : []),
-        ...(topics.cities.length > 0 ? [{ id: "spots-by-city", label: "市区町村", labelEn: "City" }] : []),
-        ...(topics.themes.length > 0 ? [{ id: "spots-by-theme", label: "テーマ", labelEn: "Theme" }] : []),
-    ];
+    const jumps = topicsShown ? [{ id: "spots-more", label: "ほかの切り口", labelEn: "More ways" }] : [];
+    // 写真の札（県の代表写真・国・いまの季節・出典）。渡すのは写真の場所と出典だけ（`spotIndexPhotos` の注記）
+    const photos = spotIndexPhotos(new Date());
     return (
         <>
             {/* **一覧の構造化データ（ItemList）。** 画面に並べている地域のリンク
@@ -76,9 +78,8 @@ export default function SpotIndexPage() {
             {areas.length > 0 && (
                 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(spotAreaItemList(areas)) }} />
             )}
-            <SpotAreaIndexClient areas={areas} total={total} draftCount={total - publishableSpots(SPOTS).length} jumps={jumps}>
+            <SpotAreaIndexClient areas={areas} total={total} draftCount={total - publishableSpots(SPOTS).length} jumps={jumps} photos={photos}>
                 <SpotIndexTopicSections />
-                <SpotIndexTodayEntry />
             </SpotAreaIndexClient>
         </>
     );
@@ -91,80 +92,82 @@ const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c").
 /**
  * **季節・テーマの切り口への入口**（2026-10-11）。県の一覧の下に置く。
  * 海外の国は「海外」の区画（`/spots/area/overseas`＝国の一覧）から辿る。
- * サーバーで描くので、切り口の一覧はクライアントの props に乗らない（HTML の本文だけ）
+ * サーバーで描くので、切り口の一覧はクライアントの props に乗らない（HTML の本文だけ）。
+ *
+ * 2026-11-10（札 rymaruta/journey.photo-ios#516 の案A・owner 承認）: 文字の札が頁の 4 分の 3 を占めていた
+ * （電話で 13,568px）ので、**同じ頁の中の開け閉めの段に畳む**。リンクは全部 HTML に残し、URL は変えない
  */
 function SpotIndexTopicSections() {
     const { seasons, themes, seasonThemes, cities, momiji, sakura, snow } = spotIndexTopics();
     if (seasons.length === 0 && themes.length === 0) return null;
+    const features: Array<{ id: string; title: ReactNode; links: TopicLink[] }> = [
+        { id: "spots-sakura", title: <Lang ja="桜の撮影スポット" en="Cherry blossom photo spots" />, links: sakura },
+        { id: "spots-momiji", title: <Lang ja="紅葉の撮影スポット" en="Autumn foliage photo spots" />, links: momiji },
+        { id: "spots-snow", title: <Lang ja="雪景色の撮影スポット" en="Snow scenery photo spots" />, links: snow },
+    ].filter((f) => f.links.length > 0);
+    const featureCount = features.reduce((n, f) => n + f.links.length, 0);
     return (
-        <div data-testid="spots-topic-index">
-            {seasons.length > 0 && (
-                <section className="mb-7">
-                    <SectionHead id="spots-by-season" eyebrow="SEASON" title={<Lang ja="季節でさがす" en="By season" />} />
-                    <TopicChips links={seasons} />
-                </section>
-            )}
-            {sakura.length > 0 && (
-                <section className="mb-7">
-                    <SectionHead id="spots-sakura" eyebrow="CHERRY BLOSSOMS" title={<Lang ja="桜の撮影スポット" en="Cherry blossom photo spots" />} />
-                    <TopicChips links={sakura} />
-                </section>
-            )}
-            {momiji.length > 0 && (
-                <section className="mb-7">
-                    <SectionHead id="spots-momiji" eyebrow="AUTUMN FOLIAGE" title={<Lang ja="紅葉の撮影スポット" en="Autumn foliage photo spots" />} />
-                    <TopicChips links={momiji} />
-                </section>
-            )}
-            {snow.length > 0 && (
-                <section className="mb-7">
-                    <SectionHead id="spots-snow" eyebrow="SNOW SCENERY" title={<Lang ja="雪景色の撮影スポット" en="Snow scenery photo spots" />} />
-                    <TopicChips links={snow} />
-                </section>
-            )}
-            {seasonThemes.length > 0 && (
-                <section className="mb-7">
-                    <SectionHead id="spots-by-season-theme" eyebrow="SEASON × THEME" title={<Lang ja="季節 × 種類でさがす" en="By season and type" />} />
-                    <TopicChips links={seasonThemes} />
-                </section>
-            )}
-            {cities.length > 0 && (
-                <section className="mb-7">
-                    <SectionHead id="spots-by-city" eyebrow="CITY" title={<Lang ja="市区町村でさがす" en="By city" />} />
-                    <TopicChips links={cities} />
-                </section>
-            )}
-            {themes.length > 0 && (
-                <section className="mb-7">
-                    <SectionHead id="spots-by-theme" eyebrow="THEME" title={<Lang ja="テーマでさがす" en="By theme" />} />
-                    {themes.map((g) => (
-                        <div key={g.category} className="mb-3">
-                            <SectionTitle as="h3"><Lang ja={g.category} en={g.categoryEn} /></SectionTitle>
-                            <TopicChips links={g.links} />
-                        </div>
-                    ))}
-                </section>
-            )}
-        </div>
+        <section className="mb-7" data-testid="spots-topic-index">
+            <SectionHead id="spots-more" eyebrow="MORE" title={<Lang ja="ほかの切り口でさがす" en="More ways to find spots" />} />
+            <div className="border-t border-line">
+                {seasons.length > 0 && (
+                    <TopicFold id="spots-by-season" title={<Lang ja="季節" en="Season" />} count={seasons.length}>
+                        <TopicChips links={seasons} />
+                    </TopicFold>
+                )}
+                {features.length > 0 && (
+                    <TopicFold id="spots-features" title={<Lang ja="桜・紅葉・雪景色" en="Cherry blossoms, foliage, snow" />} count={featureCount}>
+                        {features.map((f) => (
+                            <div key={f.id} className="mb-3">
+                                <SectionTitle as="h3" id={f.id}>{f.title}</SectionTitle>
+                                <TopicChips links={f.links} />
+                            </div>
+                        ))}
+                    </TopicFold>
+                )}
+                {seasonThemes.length > 0 && (
+                    <TopicFold id="spots-by-season-theme" title={<Lang ja="季節 × 種類" en="Season and type" />} count={seasonThemes.length}>
+                        <TopicChips links={seasonThemes} />
+                    </TopicFold>
+                )}
+                {cities.length > 0 && (
+                    <TopicFold id="spots-by-city" title={<Lang ja="市区町村" en="City" />} count={cities.length}>
+                        <TopicChips links={cities} />
+                    </TopicFold>
+                )}
+                {themes.length > 0 && (
+                    <TopicFold id="spots-by-theme" title={<Lang ja="テーマ" en="Theme" />} count={themes.reduce((n, g) => n + g.links.length, 0)}>
+                        {themes.map((g) => (
+                            <div key={g.category} className="mb-3">
+                                <SectionTitle as="h3"><Lang ja={g.category} en={g.categoryEn} /></SectionTitle>
+                                <TopicChips links={g.links} />
+                            </div>
+                        ))}
+                    </TopicFold>
+                )}
+                <SpotIndexTodayEntry />
+            </div>
+        </section>
     );
 }
 
 /**
  * **「今日の日の出・日の入り」への入口**（2026-11-07）。撮影に向く時間帯を日付で見る頁（`/today`）。
- * 県庁所在地の市付近の座標から計算した目安で、現在地でも調べられる
+ * 県庁所在地の市付近の座標から計算した目安で、現在地でも調べられる。
+ * 2026-11-10: 「ほかの切り口」の段と同じ行の形（52・題 15・右に ›）にした（開け閉めは無く、そのまま頁へ）
  */
 function SpotIndexTodayEntry() {
     return (
-        <section className="mb-7" data-testid="spots-today-entry">
-            <SectionHead id="spots-today" eyebrow="TODAY" title={<Lang ja="今日の日の出・日の入り" en="Today's sunrise and sunset" />} />
-            <p className="m-0 mb-2 max-w-2xl text-text-2" style={{ fontSize: "13px", lineHeight: "20px" }}>
-                今日の日の出・日の入り時刻と、朝夕のゴールデンアワー。現在地か県を選んで調べられます。
-            </p>
-            <Link href={ROUTES.TODAY} prefetch={false}
-                  className={`${CHIP_HIT} inline-flex items-center rounded-full ${CHIP_OFF} transition-colors`}
-                  style={CHIP_SIZE}>
-                今日の日の出・日の入りを調べる
-            </Link>
-        </section>
+        <Link href={ROUTES.TODAY} prefetch={false} data-testid="spots-today-entry"
+              className="flex items-center justify-between gap-3 min-h-[52px] border-b border-line text-white hover:bg-white/5 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded"
+              style={{ fontSize: "15px", lineHeight: "20px" }}>
+            <span className="min-w-0">
+                <Lang ja="今日の日の出・日の入り" en="Today's sunrise and sunset" />
+                <span className="block text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>
+                    <Lang ja="朝夕のゴールデンアワーも。現在地か県を選んで調べられます" en="With golden hours. Pick your location or a prefecture" />
+                </span>
+            </span>
+            <span aria-hidden="true" className="shrink-0 text-text-2" style={{ fontSize: "17px" }}>›</span>
+        </Link>
     );
 }
