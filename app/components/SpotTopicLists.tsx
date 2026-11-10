@@ -59,14 +59,19 @@ export const COMPACT_CREDIT_LINE = 24;
  * （表示の条件）が隠れていた。`compact` ではライセンスの行と作者の行の2行にし、作者の行だけを切る
  * （全文は `title`）。カードのリンクの外に置く（リンクの中にリンクを入れない）
  */
-export function TopicCreditLine({ credit, compact = false }: { credit: TopicCredit; compact?: boolean }) {
+export function TopicCreditLine({ credit, compact = false, inline = false }: {
+    credit: TopicCredit; compact?: boolean;
+    /** 段落の中に続けて置く（`<span>`・頁の下の「写真の出典」の1項目・2026-11-10）。`compact` とは併せない */
+    inline?: boolean;
+}) {
     const { locale } = useLocale();
     const photo = locale === "en" ? "Photo: " : "写真: ";
     const a = "text-white/60 underline underline-offset-2 hover:text-white";
     const style = { fontSize: "12px", lineHeight: "16px" } as const;
+    const Tag = inline ? "span" : "p";
     if (!credit.license) {
         const text = credit.text || credit.author;
-        return <p className={`m-0 text-white/60 ${compact ? "truncate" : "wrap-anywhere"}`} style={style} title={text}>{credit.text ? text : `${photo}${text}`}</p>;
+        return <Tag className={`m-0 text-white/60 ${compact ? "truncate" : "wrap-anywhere"}`} style={style} title={text} data-testid="topic-credit">{credit.text ? text : `${photo}${text}`}</Tag>;
     }
     const license = credit.licenseUrl
         ? <a href={credit.licenseUrl} target="_blank" rel="noopener noreferrer license" className={a}>{credit.license}</a>
@@ -102,9 +107,9 @@ export function TopicCreditLine({ credit, compact = false }: { credit: TopicCred
         );
     }
     return (
-        <p className="m-0 text-white/60 wrap-anywhere" style={style} data-testid="topic-credit">
+        <Tag className="m-0 text-white/60 wrap-anywhere" style={style} data-testid="topic-credit">
             {photo}{credit.author}{" / "}{license}{source}
-        </p>
+        </Tag>
     );
 }
 

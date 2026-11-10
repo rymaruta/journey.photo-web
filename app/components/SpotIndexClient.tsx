@@ -6,7 +6,7 @@ import type { SpotIndexItem } from "@/lib/data/spotLink";
 import { useLocale } from "@/app/i18n/context";
 import { ROUTES } from "@/lib/routes";
 import { CHIP_ON, CHIP_OFF, CHIP_SIZE, CHIP_HIT } from "./chipStyles";
-import { TopicCreditLine } from "./SpotTopicLists";
+import { CreditMark, PhotoCredits, SpotPhoto, usePhotoFailed } from "./SpotPhotoParts";
 
 /**
  * **公式撮影地ガイドの索引**（`/spots`）。
@@ -31,9 +31,53 @@ type Props = {
      * 省くと区画名のない一覧になる。
      */
     area?: { name: string; nameEn: string };
+    /** 格子の下・写真の出典の上に足す節（市区町村の段など。サーバーで描いたもの） */
+    children?: React.ReactNode;
 };
 
-export default function SpotIndexClient({ spots, area }: Props) {
+/**
+ * **スポットの札**（2026-11-10・札 rymaruta/journey.photo-ios#516 の案A・owner 承認）。正方形の写真＋名前（明朝 18・
+ * 板の「格子・札の題」）＋市区町村。説明 2 行は PC（`lg`）だけ。写真の出典は札の下に置かず、頁の下の「写真の出典」に
+ * まとめる（札の右上の © から移れる）。**写真が無いか読めなければ名前だけの札**（壊れた画像の印を出さない）
+ */
+function SpotCard({ s, areaName, isJa }: { s: SpotIndexItem; areaName?: string; isJa: boolean }) {
+    const cover = s.cover;
+    const [failed, fail] = usePhotoFailed(cover?.src);
+    const photo = !!cover && !failed;
+    // 県の頁では県名を繰り返さない（「北海道 釧路市」→「釧路市」）
+    const where = areaName && s.region.startsWith(`${areaName} `) ? s.region.slice(areaName.length + 1) : s.region;
+    return (
+        <div className="relative h-full">
+            <Link href={`/spots/${s.slug}`} prefetch={false} data-testid="spot-card" data-photo={photo ? "1" : "0"}
+                  className="group block h-full rounded-xl focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
+                <span className={`relative block w-full aspect-square overflow-hidden rounded-xl ${photo ? "bg-surface-2" : "bg-surface-3 ring-1 ring-inset ring-line-strong"}`}>
+                    {photo && cover ? (
+                        <SpotPhoto src={cover.src} onFail={fail} className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-[1.02] motion-reduce:transition-none" />
+                    ) : (
+                        /* 代表写真が無い・読めないときは**名前**（無関係な写真で埋めない） */
+                        <span className="absolute inset-0 flex items-center justify-center px-3 text-center font-serif font-bold text-white/80"
+                              style={{ fontSize: "17px", lineHeight: "1.3" }}>{s.name}</span>
+                    )}
+                </span>
+                <span className="block mt-2 font-serif font-bold text-white line-clamp-2 wrap-anywhere" style={{ fontSize: "18px", lineHeight: "24px" }}>{s.name}</span>
+                {(where || s.stage === "review") && (
+                    <span className="block mt-0.5 truncate text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>
+                        {s.stage === "review" && (isJa ? "下書き" : "Draft")}
+                        {s.stage === "review" && where ? " ・ " : ""}
+                        {where}
+                    </span>
+                )}
+                {s.summary && (
+                    <span className="hidden lg:block mt-1.5 text-text-2 line-clamp-2" data-testid="spot-card-summary"
+                          style={{ fontSize: "13px", lineHeight: "20px" }}>{s.summary}</span>
+                )}
+            </Link>
+            {photo && cover?.credit && <CreditMark creditKey={s.slug} name={s.name} />}
+        </div>
+    );
+}
+
+export default function SpotIndexClient({ spots, area, children }: Props) {
     const { locale } = useLocale();
     const isJa = locale !== "en";
     const [theme, setTheme] = React.useState<string | null>(null);
@@ -51,6 +95,8 @@ export default function SpotIndexClient({ spots, area }: Props) {
     }, [spots]);
 
     const shown = theme ? spots.filter((s) => s.category === theme) : spots;
+    const credits = React.useMemo(() => spots.flatMap((s) => s.cover?.credit
+        ? [{ key: s.slug, name: s.name, credit: s.cover.credit }] : []), [spots]);
 
     return (
         <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg mx-auto w-full max-w-5xl lg:max-w-6xl">
@@ -123,57 +169,13 @@ export default function SpotIndexClient({ spots, area }: Props) {
                     {isJa ? "公開中の撮影スポットはまだありません。" : "No published spots yet."}
                 </p>
             ) : (
-                <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 m-0 p-0" style={{ listStyle: "none" }}>
-                    {shown.map((s) => {
-                        const where = s.region;
-                        // 出すかどうかの判断はサーバー側で済んでいる（`cover` が null なら写真なし）。
-                        // 2026-10-22: 季節・テーマの頁のカード（`SpotTopicLists` の `Card`）と同じ形——サムネと、
-                        // CC BY 系の作者・ライセンス・出典の表示を写真の下・リンクの外に出す
-                        const cover = s.cover;
-                        return (
-                            <li key={s.slug}>
-                                <div className="h-full flex flex-col rounded-2xl overflow-hidden bg-surface ring-1 ring-line">
-                                <Link href={`/spots/${s.slug}`} prefetch={false}
-                                      className="group block flex-1 hover:bg-surface-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent">
-                                    <div className="relative w-full aspect-[16/10] overflow-hidden bg-surface-2">
-                                        {!cover ? (
-                                            /* 代表写真が無いときは**名前**（無関係な写真で埋めない） */
-                                            <div className="absolute inset-0 flex items-center justify-center px-4">
-                                                <span className="font-serif font-bold text-white/80 text-center"
-                                                      style={{ fontSize: "17px", lineHeight: "1.3" }}>{s.name}</span>
-                                            </div>
-                                        ) : (
-                                            // eslint-disable-next-line @next/next/no-img-element
-                                            <img src={s.cover!.src} alt={cover.alt} loading="lazy" decoding="async"
-                                                 className="absolute inset-0 w-full h-full object-cover" />
-                                        )}
-                                    </div>
-                                    <div className="p-3 pb-2">
-                                        <p className="m-0 font-serif font-bold text-white wrap-anywhere"
-                                           style={{ fontSize: "18px", lineHeight: "24px" }}>{s.name}</p>
-                                        {(where || s.stage === "review") && (
-                                            <p className="m-0 mt-0.5 text-white/60" style={{ fontSize: "12px", lineHeight: "16px" }}>
-                                                {s.stage === "review" && (isJa ? "下書き" : "Draft")}
-                                                {s.stage === "review" && where ? " ・ " : ""}
-                                                {where}
-                                            </p>
-                                        )}
-                                        {s.summary && (
-                                            <p className="m-0 mt-1.5 text-white/75 line-clamp-2"
-                                               style={{ fontSize: "13px", lineHeight: "20px" }}>{s.summary}</p>
-                                        )}
-                                    </div>
-                                </Link>
-                                {/* CC BY・CC BY-SA は作者とライセンスの表示が条件。写真の下・リンクの外（本文系の最小 12） */}
-                                {cover?.credit
-                                    ? <div className="px-3 pb-3"><TopicCreditLine credit={cover.credit} /></div>
-                                    : <div className="pb-1" />}
-                                </div>
-                            </li>
-                        );
-                    })}
+                <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-x-3 gap-y-5 m-0 p-0" style={{ listStyle: "none" }} data-testid="spot-grid">
+                    {shown.map((s) => <li key={s.slug}><SpotCard s={s} areaName={area?.name} isJa={isJa} /></li>)}
                 </ul>
             )}
+            {children}
+            {/* 写真の出典（CC BY・CC BY-SA）は畳まず、頁の下に常に出す（2026-11-10 秘書室の判断）。テーマで絞っても全部 */}
+            <PhotoCredits items={credits} />
         </main>
     );
 }

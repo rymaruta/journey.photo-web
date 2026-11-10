@@ -225,18 +225,20 @@ describe("計測", () => {
  * 件数 12px・縁は白8%。県の札（高さ 48・名前 15 semibold・件数 13・縁 白14%）と、ページ内の近道の帯にした。
  */
 describe("県の札とページ内の近道", () => {
-    it("県の札は高さ 48 以上・名前 15px・件数 13px（12px 以上）で、県の頁へのリンク", () => {
+    // 2026-11-10 案A（札 rymaruta/journey.photo-ios#516）: 県の一覧は写真の札。写真を渡さなければ「名前だけの札」
+    it("県の札は県の頁へのリンクで、名前 15px・件数 12px。写真の無い札は名前だけ（縁 白14%・件数は text-2）", () => {
         render(<Page />);
         const tile = screen.getByRole("link", { name: /山形県/ });
         expect(tile.getAttribute("href")).toBe("/spots/area/yamagata");
-        expect(tile.style.minHeight).toBe("48px");
-        const [name, count] = Array.from(tile.querySelectorAll("span"));
-        expect(name.style.fontSize).toBe("15px");
-        expect(count.style.fontSize).toBe("13px");
-        expect(count.textContent).toBe("3");
-        // 件数は text-2（札の地の上で 8.76:1・実測）。白の透過（text-white/60）には戻さない
-        expect(count.className).toContain("text-text-2");
+        expect(tile.getAttribute("data-photo")).toBe("0");
+        expect(tile.querySelector("img")).toBeNull();
+        expect(tile.className).toContain("aspect-square");
         expect(tile.className).toContain("ring-line-strong");
+        const name = within(tile).getByText("山形県");
+        const count = within(tile).getByText("3");
+        expect(name.style.fontSize).toBe("15px");
+        expect(count.style.fontSize).toBe("12px");
+        expect(count.className).toContain("text-text-2");
     });
 
     it("地方の見出しに、その地方の件数が出る", () => {

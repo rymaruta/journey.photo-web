@@ -244,11 +244,12 @@ describe("撮影スポットの一覧の頁の字と節（束 2）", () => {
         expect(screen.getByTestId("spots-back").className).toContain("min-h-[44px]");
     });
 
-    it("P1・P3 入口（/spots）: 題は明朝 32、地方と季節・テーマの節は明朝 22", () => {
+    // 2026-11-10 案A: 季節・テーマなどの切り口は「ほかの切り口でさがす」の節の開け閉めの段に畳んだ
+    it("P1・P3 入口（/spots）: 題は明朝 32、地方・いまの季節・ほかの切り口・写真の出典の節は明朝 22", () => {
         render(SpotIndexPage());
         expect(screen.getByRole("heading", { level: 1 }).className).toContain("text-4xl");
-        for (const name of ["近畿", "季節でさがす", "テーマでさがす"]) {
-            expect(screen.getByRole("heading", { level: 2, name }).style.fontSize, name).toBe("22px");
+        for (const name of [/^近畿/, /の撮影スポット$/, "ほかの切り口でさがす", /^写真の出典/]) {
+            expect(screen.getByRole("heading", { level: 2, name }).style.fontSize, String(name)).toBe("22px");
         }
     });
 });

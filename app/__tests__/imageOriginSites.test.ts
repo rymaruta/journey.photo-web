@@ -121,11 +121,13 @@ const EXEMPT: Array<[string, string, string]> = [
      "撮影スポットの一覧の行の丸い印（地図の下の一覧 `MapSpotList`・近くの撮影スポット `SpotRows`・2026-11-04）。"
      + "渡されるのは台帳の代表写真（`SpotPin.cover`）か、サイトに同梱した小さい版（`spotRowThumbPath(slug)`＝`/images/spots/thumb/<slug>.jpg`）だけ。"
      + "**利用者が上げた写真ではない**。出してよいかの判断はサーバー側（`lib/data/spotThumbs.ts` の `hasSpotRowThumb`）で済ませてある"],
-    ["app/components/SpotIndexClient.tsx", "s.cover!.src",
-     "県の頁（`/spots/area/<県>`）のカードの代表写真。季節・テーマの頁と同じ値"
-     + "（`topicCardCover`＝`spotCoverImage` のサイト内のパスかそのサムネ・2026-10-22）。"
+    ["app/components/SpotPhotoParts.tsx", "src",
+     "撮影スポットの写真の札（2026-11-10・案A）。県の頁（`/spots/area/<県>`）のカードと、`/spots` の県・国・いまの季節の札の代表写真。"
+     + "季節・テーマの頁と同じ値（`topicCardCover`＝`spotCoverImage` のサイト内のパスかそのサムネ・2026-10-22）。"
      + "利用者が上げた写真ではない。台帳をクライアントに載せないため"
-     + "サーバー側（`lib/data/spotLink.ts` の `spotIndexItemsForArea`）で解いた形から受け取る"],
+     + "サーバー側（`lib/data/spotLink.ts` の `spotIndexItemsForArea`・`lib/data/spotIndexPhotos.ts`）で解いた形から受け取る"],
+    ["app/components/SpotPhotoParts.tsx", "img.currentSrc || img.src",
+     "上の札の写真が水和の前に壊れて見えたときの読み直し（2026-11-10）。いま描いている `<img>` と同じ場所をもう1回読むだけで、新しい URL は作らない"],
     ["app/components/PhotoMap.tsx", "coverSrc",
      "地図の撮影スポットのピンの写真の丸（iOS の `SpotMapMarker`・2026-10-31 束 2）。`MapSpotList` の行と同じ値"
      + "（`SpotPin.cover.src`）で、利用者が上げた写真ではない。サーバー側（`lib/data/spotLink.ts` の `spotPins`）で解いた形から受け取る"],
