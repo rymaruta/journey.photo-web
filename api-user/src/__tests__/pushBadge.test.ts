@@ -269,3 +269,30 @@ describe("DM のプッシュとバッジ", () => {
         expect(mockSend).not.toHaveBeenCalled();
     });
 });
+
+// 🔴 ストーリーへの文字の返信が DM の受信箱に入った回（`Notif.dmConvId`・2026-11-10）。
+// バッジは「ベル ＋ DM の未読会話数」なので、ベルの側でも数えると1通の返信でバッジが 2 になる
+describe("DM に写ったストーリーの返信（dmConvId）", () => {
+    it("端末のバッジはベルの側で数えない（DM の未読で1回だけ）", async () => {
+        serve(2, [{ byId: OK, dmConvId: "a_b" } as { byId: string }, { byId: OK }]);
+        await pushNotification(ME, { ...notif, type: "storyreply", dmConvId: "a_b", replyKind: "text", photoSrc: "", t: "2026-11-10T00:00:00.000Z" });
+        expect(badgeSent(), "DM に写った返信をベルでも数えている").toBe(1);
+    });
+
+    it("画面の未読数（既定）は今までどおり数える（DM の画面を持たない Web・古いアプリの数を変えない）", () => {
+        const items = [{ byId: OK, dmConvId: "a_b" }, { byId: OK }];
+        expect(visibleUnread(2, items, new Set())).toBe(2);
+        expect(visibleUnread(2, items, new Set(), { skipDmMirrored: true })).toBe(1);
+        expect(visibleUnread(2, [{ byId: BAD, dmConvId: "a_b" }, { byId: OK }], new Set([BAD]), { skipDmMirrored: true })).toBe(1);
+    });
+
+    it("プッシュの中身に会話 ID を添える（押した先に会話を選べる）", async () => {
+        serve(1, [{ byId: OK }]);
+        await pushNotification(ME, { ...notif, type: "storyreply", dmConvId: "a_b", replyKind: "text", photoSrc: "", t: "2026-11-10T00:00:00.000Z" });
+        const msg = mockSend.mock.calls.at(-1)?.[1] as unknown as { data: Record<string, string> };
+        expect(msg.data).toMatchObject({ type: "storyreply", convId: "a_b" });
+        mockSend.mockClear();
+        await pushNotification(ME, { ...notif, type: "storyreply", replyKind: "reaction", photoSrc: "", t: "2026-11-10T00:00:00.000Z" });
+        expect((mockSend.mock.calls.at(-1)?.[1] as unknown as { data: Record<string, string> }).data.convId).toBeUndefined();
+    });
+});

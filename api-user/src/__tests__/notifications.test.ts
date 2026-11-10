@@ -59,7 +59,7 @@ describe("getNotifications", () => {
 
     it("何も無ければ空で返す", async () => {
         mockDdbSend.mockResolvedValueOnce({});
-        expect(JSON.parse((await invoke(getNotifications, ev())).body)).toEqual({ items: [], unread: 0 });
+        expect(JSON.parse((await invoke(getNotifications, ev())).body)).toEqual({ items: [], unread: 0, unreadExcludingDm: 0 });
     });
 
     it("返す件数は上限まで", async () => {
@@ -332,5 +332,17 @@ describe("ブロックした相手の通知は出さない", () => {
             .map((c) => (c[0].input as { Key?: { id?: string } })?.Key?.id ?? "")
             .filter((k) => k.startsWith("blocks#") || k.startsWith("blockedby#"));
         expect(keys, "通知が無いのにブロック一覧を読んでいる").toHaveLength(0);
+    });
+});
+
+// 2026-11-10: DM の受信箱に入ったストーリーの返信（`dmConvId`）を除いた未読数。`unread` の意味は変えない
+describe("unreadExcludingDm（足すだけの欄）", () => {
+    it("🔴 unread のうち dmConvId を持つ行を除いた数。unread は今までどおり", async () => {
+        const items = [{ ...notif(0), dmConvId: "a_b" }, notif(1), { ...notif(2), dmConvId: "a_c" }, notif(3)];
+        mockDdbSend.mockResolvedValueOnce({ Item: { items, unread: 3 } });
+        const body = JSON.parse((await invoke(getNotifications, ev())).body) as { unread: number; unreadExcludingDm: number; items: unknown[] };
+        expect(body.unread, "unread の意味を変えている").toBe(3);
+        expect(body.unreadExcludingDm, "先頭3件のうち dmConvId の無い1件だけ").toBe(1);
+        expect(body.items).toHaveLength(4);
     });
 });
