@@ -35,6 +35,7 @@ vi.mock("../blockCheck", async (importActual) => ({
     hiddenUserIds: (uid: string) => mockHidden(uid),
 }));
 
+const { QUOTE_LOOKUP_MAX } = await import("../dmStoryQuote");
 const [dm, { DM_CONVS_MAX, DM_REQUESTS_MAX, DM_INBOX_HARD_MAX, DM_DECLINED_MAX }, { postStoryReply }] = await Promise.all([import("../dm"), import("../dmInbox"), import("../storyReplies")]);
 const { handler, sendDm, purgeDmFor, convIdOf, parseConvId, containsUrl, cleanDmText, overBudgetCount,
     DM_REQUEST_MAX, DM_DAILY_NEW_CONVS, DM_DAILY_SENT, DM_MESSAGES_MAX, DM_REPORT_LAST } = dm;
@@ -72,6 +73,10 @@ beforeEach(() => {
         calls.push({ cmd, input: c.input });
         if (ccf(cmd, c.input)) throw Object.assign(new Error("ccf"), { name: "ConditionalCheckFailedException" });
         if (cmd === "GetCommand") { const r = rows[c.input.Key.id]; return r ? { Item: r } : {}; }
+        if (cmd === "BatchGetCommand" && c.input.RequestItems["photos-test"]) {
+            const ids = (c.input.RequestItems["photos-test"].Keys as { id: string }[]).map((k) => k.id);
+            return { Responses: { "photos-test": ids.map((k) => rows[k]).filter(Boolean) } };
+        }
         if (cmd === "BatchGetCommand") {
             const keys = (c.input.RequestItems[USERS].Keys as { userId: string }[]).map((k) => k.userId);
             return { Responses: { [USERS]: keys.map((k) => users[k]).filter(Boolean) } };
@@ -1172,5 +1177,206 @@ describe("経路の登録", () => {
     it("sendDm を直に呼ぶ（ストーリー返信の写しの入口）と、自分宛ては 400", async () => {
         const r = await sendDm({ me: ME, to: ME, text: "x", push: false, myName: "n" });
         expect(r).toMatchObject({ ok: false, status: 400 });
+    });
+});
+
+// ---------------------------------------------------------------------------
+// 2026-11-10: iOS の DM 画面のために足した欄（どれも後方互換）
+// ---------------------------------------------------------------------------
+
+describe("受信箱の行: 最後の1通を送った人（lastMine）", () => {
+    it("🔴 送信は両側の行に送り主（from）を書く（更新・作成のどちらでも）", async () => {
+        follows(PEER, ME);
+        // 行が無い（更新の条件 `attribute_exists(convs.#c)` が外れる）→ 作成の経路を通る
+        ccf = (cmd, input) => cmd === "UpdateCommand" && String(input.ConditionExpression ?? "").includes("#lid");
+        expect((await send("こんにちは")).statusCode).toBe(200);
+        const made = calls.filter((c) => c.cmd === "UpdateCommand" && c.input.UpdateExpression === "SET convs.#c = :entry");
+        expect(made.length).toBe(2);
+        for (const m of made) expect(m.input.ExpressionAttributeValues[":entry"].from, "作成の行に送り主が無い").toBe(ME);
+        for (const uid of [ME, PEER]) {
+            const w = entryWrites(uid)[0];
+            expect(w.input.UpdateExpression).toContain("convs.#c.#f = :from");
+            expect(w.input.ExpressionAttributeNames["#f"]).toBe("from");
+            expect(w.input.ExpressionAttributeValues[":from"], "更新の行の送り主が違う").toBe(ME);
+        }
+    });
+
+    it("🔴 GET /dm の各行に lastMine（自分なら true・相手なら false・欄の無い古い行は出さない）", async () => {
+        users[THIRD] = { userId: THIRD, displayName: "旅人C" };
+        const OLD = "44444444-4444-4444-8444-444444444444";
+        users[OLD] = { userId: OLD, displayName: "旅人Old" };
+        rows[`dminbox#${ME}`] = boxRow(ME, {
+            [CONV]: entry(PEER, { t: "2026-11-09T05:00:00.000Z", from: ME }),
+            [`${ME}_${THIRD}`]: entry(THIRD, { t: "2026-11-09T04:00:00.000Z", from: THIRD }),
+            [`${ME}_${OLD}`]: entry(OLD, { t: "2026-11-09T03:00:00.000Z" }),
+        });
+        const b = bodyOf(await invoke(handler, ev("GET /dm", ME)));
+        const by = (id: string) => b.items.find((i: { peerId: string }) => i.peerId === id);
+        expect(by(PEER).lastMine).toBe(true);
+        expect(by(THIRD).lastMine).toBe(false);
+        expect("lastMine" in by(OLD), "分からない行に値を作っている").toBe(false);
+    });
+});
+
+describe("会話の引用札（ストーリーへの返信から写した通・story）", () => {
+    const FUTURE = () => new Date(Date.now() + 3600_000).toISOString();
+    const storyRow = (o: Row = {}) => ({ id: "story-1", story: true, userId: PEER, src: "https://cdn/s.jpg", mediaType: "image", expiresAt: FUTURE(), ...o });
+    const quoted = (o: Row = {}) => ({ ...msg(ME, "きれい", "2026-11-09T00:00:01.000Z", "m-story-01"), via: "story", storyId: "story-1", ...o });
+    const read = async (uid = ME) => bodyOf(await invoke(handler, ev("GET /dm/{id}", uid, { id: CONV })));
+    beforeEach(() => {
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER) });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME) });
+        rows[KEY] = convRow([quoted(), msg(PEER, "ありがとう", "2026-11-09T00:00:02.000Z", "m-plain-01")], { updatedAt: "2026-11-09T00:00:02.000Z" });
+        rows["story-1"] = storyRow();
+        follows(PEER, ME);
+    });
+
+    it("🔴 見られる間は live（写真の URL・期限）。返信した人も投稿者も", async () => {
+        const mine = await read(ME);
+        expect(mine.items[0]).toMatchObject({ via: "story", storyId: "story-1", story: { id: "story-1", state: "live", mediaType: "image", src: "https://cdn/s.jpg" } });
+        expect(mine.items[0].story.expiresAt).toBe((rows["story-1"] as Row).expiresAt);
+        expect(mine.items[1].story, "ストーリーと関係ない通に札を付けている").toBeUndefined();
+        expect(mine.items[1].storyId).toBeUndefined();
+        const owner = await read(PEER);
+        expect(owner.items[0].story).toMatchObject({ state: "live", src: "https://cdn/s.jpg" });
+    });
+
+    it("🔴 期限切れ・棚へ移った・消えたストーリーは ended（絵を返さない）", async () => {
+        for (const row of [storyRow({ expiresAt: "2026-01-01T00:00:00.000Z" }), storyRow({ archivedAt: "2026-11-09T00:00:00.000Z" }), undefined]) {
+            if (row) rows["story-1"] = row; else delete rows["story-1"];
+            const b = await read(ME);
+            expect(b.items[0].story, JSON.stringify(row)).toEqual({ id: "story-1", state: "ended" });
+            expect(b.items[0].storyId).toBe("story-1");
+        }
+    });
+
+    it("🔴 返信した人がもうフォローしていない・親しい友達から外れた → ended（投稿者本人は見える）", async () => {
+        delete rows[`follow#${PEER}#${ME}`];
+        expect((await read(ME)).items[0].story, "フォローを外した人に絵を返している").toEqual({ id: "story-1", state: "ended" });
+        follows(PEER, ME);
+        rows["story-1"] = storyRow({ audience: "closeFriends" });
+        expect((await read(ME)).items[0].story, "親しい友達でない人に絵を返している").toEqual({ id: "story-1", state: "ended" });
+        rows[`closefriends#${PEER}`] = { id: `closefriends#${PEER}`, list: [ME] };
+        expect((await read(ME)).items[0].story.state).toBe("live");
+        delete rows[`closefriends#${PEER}`];
+        expect((await read(PEER)).items[0].story.state, "投稿者本人に見せていない").toBe("live");
+    });
+
+    it("動画は絵を返さない・会話の2人以外のストーリーは ended", async () => {
+        rows["story-1"] = storyRow({ mediaType: "video", src: "https://cdn/s.mp4" });
+        const v = (await read(ME)).items[0].story;
+        expect(v).toMatchObject({ state: "live", mediaType: "video" });
+        expect(v.src, "動画の URL をサムネイルの欄に入れている").toBeUndefined();
+        rows["story-1"] = storyRow({ userId: THIRD });
+        follows(THIRD, ME);
+        expect((await read(ME)).items[0].story.state).toBe("ended");
+    });
+
+    it("ストーリーが読めなくても会話は返す（札は ended）・ストーリーの通が無ければ読みに行かない", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        const real = mockSend.getMockImplementation()!;
+        mockSend.mockImplementation(async (c: { constructor: { name: string }; input: Record<string, any> }) => {   // eslint-disable-line @typescript-eslint/no-explicit-any
+            if (c.constructor.name === "GetCommand" && c.input.Key.id === "story-1") throw new Error("boom");
+            return real(c);
+        });
+        const r = await invoke(handler, ev("GET /dm/{id}", ME, { id: CONV }));
+        expect(r.statusCode).toBe(200);
+        expect(bodyOf(r).items[0].story).toEqual({ id: "story-1", state: "ended" });
+        mockSend.mockImplementation(real);
+        vi.restoreAllMocks();
+
+        rows[KEY] = convRow([msg(PEER, "ふつう", "2026-11-09T00:00:02.000Z", "m-plain-02")], { updatedAt: "2026-11-09T00:00:02.000Z" });
+        calls = [];
+        await read(ME);
+        expect(calls.some((c) => String(c.input.Key?.id ?? "").startsWith("story-")), "要らない読みをしている").toBe(false);
+    });
+
+    it("since の読み直しは、返す通のぶんだけ引く", async () => {
+        const b = bodyOf(await invoke(handler, ev("GET /dm/{id}", ME, { id: CONV, since: "2026-11-09T00:00:01.500Z" })));
+        expect(b.items.map((m: { text: string }) => m.text)).toEqual(["ありがとう"]);
+        expect(calls.some((c) => String(c.input.Key?.id ?? "").startsWith("story-"))).toBe(false);
+    });
+
+    it("🔴 photos の表は1件ずつ GetItem で読む（BatchGetItem の権限が無い）・引くのは新しい方から上限まで", async () => {
+        const many = Array.from({ length: QUOTE_LOOKUP_MAX + 3 }, (_, i) => {
+            const sid = `story-${String(i).padStart(2, "0")}`;
+            rows[sid] = storyRow({ id: sid });
+            return quoted({ id: `m-story-${String(i).padStart(3, "0")}`, storyId: sid, t: `2026-11-09T00:01:${String(i).padStart(2, "0")}.000Z` });
+        });
+        rows[KEY] = convRow(many, { updatedAt: "2026-11-09T00:02:00.000Z" });
+        calls = [];
+        const b = await read(ME);
+        expect(calls.some((c) => c.cmd === "BatchGetCommand" && c.input.RequestItems["photos-test"]), "権限の無い BatchGetItem を使っている").toBe(false);
+        const looked = calls.filter((c) => c.cmd === "GetCommand" && String(c.input.Key.id).startsWith("story-"));
+        expect(looked).toHaveLength(QUOTE_LOOKUP_MAX);
+        expect(b.items[0].story, "上限を越えた古い通に ended を付けている（分からないのに終わったと言う）").toBeUndefined();
+        expect(b.items[0].storyId).toBe("story-00");
+        expect(b.items.at(-1).story.state).toBe("live");
+    });
+});
+
+describe("ストーリーへの返信: 写った会話・お知らせの欄", () => {
+    const STORY = { id: "story-1", story: true, userId: PEER, src: "https://cdn/s.jpg", expiresAt: new Date(Date.now() + 60_000).toISOString() };
+    const reply = (body: unknown) => invoke(postStoryReply, {
+        requestContext: { authorizer: { jwt: { claims: { sub: ME } } } }, pathParameters: { id: "story-1" }, body: JSON.stringify(body),
+    });
+    const lastNotif = () => mockPushNotification.mock.calls.at(-1)?.[1] as Record<string, unknown>;
+    beforeEach(() => {
+        rows["story-1"] = STORY;
+        follows(PEER, ME);
+        follows(ME, PEER);
+    });
+
+    it("🔴 写った通にストーリーの id を残す", async () => {
+        await reply({ text: "きれいですね" });
+        const put = convWrites().find((c) => c.cmd === "PutCommand")!;
+        expect(put.input.Item.items[0]).toMatchObject({ via: "story", storyId: "story-1" });
+    });
+
+    it("🔴 応答: 写ったら dm.conversationId、絵文字だけなら dm: null と reaction", async () => {
+        const t = bodyOf(await reply({ text: "きれいですね" }));
+        expect(t.dm).toEqual({ conversationId: CONV });
+        expect(t.dmSkipped).toBeUndefined();
+        const e = bodyOf(await reply({ emoji: "❤️" }));
+        expect(e.dm).toBeNull();
+        expect(e.dmSkipped).toBe("reaction");
+    });
+
+    it("🔴 応答: 写らなかったら dm: null と理由（URL）。相手の置き場所（リクエストか）は出さない", async () => {
+        delete rows[`follow#${ME}#${PEER}`];
+        const u = bodyOf(await reply({ text: "見て https://example.com" }));
+        expect(u).toMatchObject({ success: true, dm: null, dmSkipped: "requestUrl" });
+        const r = bodyOf(await reply({ text: "いいですね" }));
+        expect(r.dm, "リクエストの棚でも会話 ID は返す").toEqual({ conversationId: CONV });
+        expect(JSON.stringify(r)).not.toMatch(/request|inbox|delivered|direct/);
+    });
+
+    it("🔴 お知らせ: 文字は replyKind text・受信箱に入ったら dmConvId／絵文字は reaction・dmConvId なし", async () => {
+        await reply({ text: "きれいですね" });
+        expect(lastNotif()).toMatchObject({ type: "storyreply", replyKind: "text", dmConvId: CONV });
+        await reply({ emoji: "😍" });
+        expect(lastNotif().replyKind).toBe("reaction");
+        expect(lastNotif().dmConvId).toBeUndefined();
+        await reply({ text: "両方", emoji: "😍" });
+        expect(lastNotif().replyKind, "文字と絵文字の両方は text").toBe("text");
+    });
+
+    it("🔴 お知らせ: リクエストの棚に入った回・写らなかった回は dmConvId を付けない（ベルの行を隠させない）", async () => {
+        delete rows[`follow#${ME}#${PEER}`];
+        await reply({ text: "いいですね" });
+        expect(convWrites().find((c) => c.cmd === "PutCommand")!.input.Item.state).toBe("request");
+        expect(lastNotif()).toMatchObject({ replyKind: "text" });
+        expect(lastNotif().dmConvId, "リクエストなのに隠せる印を付けている").toBeUndefined();
+        await reply({ text: "https://example.com" });
+        expect(lastNotif().dmConvId).toBeUndefined();
+    });
+
+    it("🔴 写してからお知らせを積む（印を書くため）", async () => {
+        let putBeforeNotif = false;
+        mockPushNotification.mockImplementation(async () => {
+            putBeforeNotif = convWrites().some((c) => c.cmd === "PutCommand");
+        });
+        await reply({ text: "きれいですね" });
+        expect(putBeforeNotif, "お知らせが写しより先に積まれている").toBe(true);
     });
 });

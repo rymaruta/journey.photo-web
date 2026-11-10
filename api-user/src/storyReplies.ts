@@ -11,7 +11,7 @@ import { storyAllowsReplies } from "./storyVisibility";
 import { canViewStoryAudience } from "./storyAudience";
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
-import { mirrorStoryReplyToDm } from "./dm";
+import { mirrorStoryReplyToDm, type StoryMirror } from "./dm";
 
 /**
  * ストーリーへの返信とリアクション。
@@ -327,6 +327,17 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
         // ——所有者は「返信が来たこと」すら知れなくなる（ベルの1行が
         // 唯一の手がかり）。通知は件数と独立で、`notify.ts` 側が自前で
         // 握るので投げない。
+        //
+        // **文字の返信は、DM の会話の最初の1通として残す**（2026-11-09・札 #505）。絵文字だけの
+        // リアクションは写さず、今までどおり消える。**best-effort**——写せなくても返信は成功
+        // （`mirrorStoryReplyToDm` は投げない）。返信の通知が別に出るので、この写しではプッシュしない。
+        //
+        // **通知より先に写す**（2026-11-10 判断）。通知に「DM の受信箱に入ったか」（`dmConvId`）を
+        // 書くため、写した結果が要る（アプリが受信箱とベルの二重を出さないための印・`notify.ts` の `Notif`）。
+        // 写しは読み書き十数回で、件数のやり直し（下）と違い待ち時間を足さない
+        const mirror: StoryMirror | null = ownerId && reply.text
+            ? await mirrorStoryReplyToDm({ from: uid, to: ownerId, text: reply.text, replyId: reply.id, name: reply.name, storyId })
+            : null;
         if (ownerId) {
             await pushNotification(ownerId, {
                 type: "storyreply",
@@ -335,6 +346,11 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
                 byName: reply.name,
                 byId: uid,
                 t: reply.t,
+                // 文字の返信か、絵文字だけの反応か（文字と絵文字の両方なら文字）
+                replyKind: reply.text ? "text" : "reaction",
+                // **受け取った人のふつうの受信箱に入ったときだけ**。リクエストの棚に入った回は付けない
+                // ——リクエストはバッジにも出ないので、ベルの行が唯一の知らせになる
+                ...(mirror?.mirrored && mirror.delivered === "inbox" ? { dmConvId: mirror.convId } : {}),
             });
         }
 
@@ -400,14 +416,13 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
             }
         }
 
-        // **文字の返信は、DM の会話の最初の1通として残す**（2026-11-09・札 #505）。絵文字だけの
-        // リアクションは写さず、今までどおり消える。**best-effort**——写せなくても返信は成功
-        // （`mirrorStoryReplyToDm` は投げない）。返信の通知が別に出るので、この写しではプッシュしない
-        if (ownerId && reply.text) {
-            await mirrorStoryReplyToDm({ from: uid, to: ownerId, text: reply.text, replyId: reply.id, name: reply.name });
-        }
-
-        return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ success: true, reply }) };
+        // **DM に写ったか**（2026-11-10・iOS の「送りました ›メッセージを見る」）。写ったら会話 ID だけ、
+        // 写らなかったら `dm: null` と理由（`dmSkipped`）。**相手の受信箱かリクエストの棚かは出さない**
+        // （相手が自分をフォローしているかが読み取れる・`SendOk.delivered`）
+        const dmFields = mirror?.mirrored
+            ? { dm: { conversationId: mirror.convId } }
+            : { dm: null, dmSkipped: mirror ? mirror.code : (reply.text ? "error" : "reaction") };
+        return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ success: true, reply, ...dmFields }) };
     } catch (e) {
         console.error("postStoryReply error:", e);
         return jsonError(500, "送信に失敗しました");
