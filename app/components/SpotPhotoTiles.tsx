@@ -23,7 +23,7 @@ const SCRIM = "linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.35) 55%, 
 
 /**
  * 写真の札（県・国）。名前と件数は写真の下端に白で。写真が無いか読めなければ名前だけの札。
- * `testId` は札のリンクに付ける
+ * `testId` は札のリンクに付ける。リンクの読み上げは名前と件数だけ（写真は飾り・`SpotPhoto` の注記）
  */
 export function PhotoTileLink({ href, label, count, cover, testId }: {
     href: string; label: string; count: number; cover: PhotoTile | null | undefined; testId: string;
@@ -36,7 +36,7 @@ export function PhotoTileLink({ href, label, count, cover, testId }: {
                   className={`${TILE} ${photo ? "bg-surface-2" : "bg-surface-3 ring-1 ring-inset ring-line-strong hover:bg-white/10 transition-colors"}`}>
                 {photo && cover && (
                     <>
-                        <SpotPhoto src={cover.src} alt={cover.alt} onFail={fail} />
+                        <SpotPhoto src={cover.src} onFail={fail} />
                         <span aria-hidden="true" className="absolute inset-x-0 bottom-0 h-3/5" style={{ background: SCRIM }} />
                     </>
                 )}
@@ -45,7 +45,8 @@ export function PhotoTileLink({ href, label, count, cover, testId }: {
                     <span className={`shrink-0 tabular-nums ${photo ? "text-white/72" : "text-text-2"}`} style={{ fontSize: "12px", lineHeight: "18px" }}>{count}</span>
                 </span>
             </Link>
-            {photo && cover?.creditKey && <CreditMark creditKey={cover.creditKey} name={label} />}
+            {/* © の読み上げは写っているスポット＋札の名前（「写真の出典: 阿寒湖（北海道）」・2026-11-10） */}
+            {photo && cover?.creditKey && <CreditMark creditKey={cover.creditKey} name={cover.creditName ?? label} place={cover.creditName ? label : undefined} />}
         </div>
     );
 }
@@ -69,7 +70,7 @@ function ShelfCard({ s }: { s: NonNullable<SpotIndexPhotos["seasonal"]>["spots"]
                     {failed ? (
                         <span className="absolute inset-0 flex items-center justify-center px-3 text-center font-serif font-bold text-white/80"
                               style={{ fontSize: "17px", lineHeight: "1.3" }}>{s.name}</span>
-                    ) : <SpotPhoto src={s.cover.src} alt={s.cover.alt} onFail={fail} />}
+                    ) : <SpotPhoto src={s.cover.src} onFail={fail} />}
                 </span>
                 <span className="block mt-1.5 truncate font-semibold text-white" style={{ fontSize: "15px", lineHeight: "20px" }}>{s.name}</span>
                 {s.region && <span className="block truncate text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>{s.region}</span>}

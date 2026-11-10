@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, fireEvent, cleanup, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, cleanup, waitFor, within } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 
 vi.mock("next/link", () => ({
@@ -125,11 +125,37 @@ describe("/spots の静的 HTML", () => {
     it("札に渡すのは写真の場所と出典の鍵だけ（出典の中身は一覧に1回）", () => {
         const keys = new Set<string>();
         for (const c of Object.values(photos.areaCovers)) for (const k of Object.keys(c)) keys.add(k);
-        expect([...keys].sort()).toEqual(expect.arrayContaining(["alt", "src"]));
-        expect([...keys].every((k) => ["alt", "src", "creditKey"].includes(k))).toBe(true);
+        expect([...keys].sort()).toEqual(["creditKey", "creditName", "src"]);
         expect(new Set(photos.credits.map((c) => c.key)).size).toBe(photos.credits.length);
     });
+
+    // 2026-11-10 確かめ役の指摘 1: 北海道の札の写真の代替文が「阿寒湖」で、読み上げが「阿寒湖 北海道 120」になっていた
+    it("🔴 札の写真は飾り（alt が空）——棚・県・国の写真のどれも", () => {
+        const imgs = root.querySelectorAll('img[data-testid="spot-photo"]');
+        expect(imgs.length).toBeGreaterThan(40);
+        for (const img of imgs) expect(img.getAttribute("alt"), img.getAttribute("src")!).toBe("");
+    });
+
+    // 2026-11-10 確かめ役の指摘 4: © の読み上げが札の名前（北海道）だけで、何の写真か言っていなかった
+    it("県の札の © は「写真の出典: 写っているスポット（県）」と読む", () => {
+        const hk = photos.areaCovers.hokkaido;
+        expect(hk?.creditKey).toBeTruthy();
+        const mark = root.querySelector('a[data-testid="spots-area-tile"][href="/spots/area/hokkaido"]')!.parentElement!
+            .querySelector('a[data-testid="credit-mark"]')!;
+        expect(mark.getAttribute("aria-label")).toBe(`写真の出典: ${hk.creditName}（北海道）`);
+    });
+
+    // 2026-11-10 確かめ役の指摘 2: 出典の説明が内部の呼び名（「札の写真の…」）だった
+    it("🔴 画面の文・読み上げに内部の呼び名「札」を出さない（地名の札幌・札所などは除く）", () => {
+        expect(root.querySelector('[data-testid="photo-credits"] > p')!.textContent)
+            .toBe("写真の作者とライセンスです。写真の右上の © から、その写真の項目に移れます。");
+        const texts = [root.textContent ?? "", ...[...root.querySelectorAll("[aria-label]")].map((e) => e.getAttribute("aria-label")!)];
+        for (const t of texts) expect(t.replace(PLACE_FUDA, "")).not.toContain("札");
+    });
 });
+
+/** 地名・寺社の語に入る「札」（札幌・札所など）。画面の文に出る「札」の見張りから外す */
+const PLACE_FUDA = /札(幌|所|沼|内|前|苅|弦|滑|比内|楽|森|実|的)|(棟|高|絵|お)札/g;
 
 describe("県の頁の静的 HTML（全県）", () => {
     it("どの県でも、スポット名のリンクが全部あり、写真の出典が畳まずに出て、市区町村のリンクも残る", async () => {
@@ -151,7 +177,10 @@ describe("県の頁の静的 HTML（全県）", () => {
                 expect(list, a.slug).not.toBeNull();
                 expect(list!.closest("details"), a.slug).toBeNull();
                 expect(list!.querySelectorAll('[data-testid="photo-credit-item"]').length, a.slug).toBe(withCredit.length);
+                expect(list!.textContent, a.slug).not.toMatch(/札の/);
             }
+            // 札の写真は飾り（名前は札の題が言う・2026-11-10 確かめ役の指摘 1）
+            for (const img of root.querySelectorAll('img[data-testid="spot-photo"]')) expect(img.getAttribute("alt"), a.slug).toBe("");
             // 札の下に出典を置かない（頁の下の一覧だけ）
             for (const c of root.querySelectorAll('[data-testid="topic-credit"]')) expect(c.closest('[data-testid="photo-credits"]'), a.slug).not.toBeNull();
             for (const l of cityLinksForPrefecture(a.slug)) {
@@ -179,7 +208,11 @@ describe("写真が無い・読めない札", () => {
         renderArea();
         const [card, empty] = screen.getAllByTestId("spot-card");
         expect(card.getAttribute("data-photo")).toBe("1");
-        expect(card.querySelector("img")!.getAttribute("alt")).toBe("あぶくま洞の鍾乳石");
+        // 写真は飾り（名前を2回読まない）。リンクの読み上げは題と市区町村
+        expect(card.querySelector("img")!.getAttribute("alt")).toBe("");
+        expect(within(screen.getByTestId("spot-grid")).getAllByRole("link")[0]).toBe(card);
+        expect(screen.getByRole("link", { name: /^あぶくま洞\s*田村市/ })).toBe(card);
+        expect(screen.queryByRole("link", { name: /あぶくま洞.*あぶくま洞/ })).toBeNull();
         expect(card.textContent).toContain("田村市");
         expect(card.textContent).not.toContain("福島県");
         expect(screen.getByTestId("spot-card-summary").className).toContain("hidden lg:block");
@@ -190,7 +223,7 @@ describe("写真が無い・読めない札", () => {
 
     it("県の頁: 写真が読めなければ名前だけの札に替わり、© も消える（出典の一覧は残す）", () => {
         renderArea();
-        const img = screen.getByRole("img", { name: "あぶくま洞の鍾乳石" });
+        const img = screen.getAllByTestId("spot-card")[0].querySelector("img")!;
         fireEvent.error(img);
         const card = screen.getAllByTestId("spot-card")[0];
         expect(card.getAttribute("data-photo")).toBe("0");
@@ -224,10 +257,10 @@ describe("写真が無い・読めない札", () => {
         ];
         const credit = { author: "A", license: "CC BY-SA 3.0" };
         const photos: SpotIndexPhotos = {
-            areaCovers: { hokkaido: { src: "/h.jpg", alt: "阿寒湖", creditKey: "akan" } },
-            countries: [{ code: "fr", name: "フランス", nameEn: "France", href: "/spots/area/overseas/fr", count: 5, cover: { src: "/f.jpg", alt: "パリ" } }],
+            areaCovers: { hokkaido: { src: "/h.jpg", creditKey: "akan", creditName: "阿寒湖" } },
+            countries: [{ code: "fr", name: "フランス", nameEn: "France", href: "/spots/area/overseas/fr", count: 5, cover: { src: "/f.jpg" } }],
             countryTotal: 60,
-            seasonal: { season: "autumn", href: "/spots/season/autumn", total: 9, spots: [{ slug: "akan", name: "阿寒湖", region: "北海道 釧路市", cover: { src: "/h.jpg", alt: "阿寒湖", creditKey: "akan" } }] },
+            seasonal: { season: "autumn", href: "/spots/season/autumn", total: 9, spots: [{ slug: "akan", name: "阿寒湖", region: "北海道 釧路市", cover: { src: "/h.jpg", creditKey: "akan", creditName: "阿寒湖" } }] },
             credits: [{ key: "akan", name: "阿寒湖", credit }],
         };
         const { container } = render(<LocaleProvider><SpotAreaIndexClient areas={AREAS} total={49} draftCount={0} photos={photos} /></LocaleProvider>);
@@ -238,12 +271,22 @@ describe("写真が無い・読めない札", () => {
         expect(tile("aomori").getAttribute("data-photo")).toBe("0");
         // 北海道と青森県は同じ節
         expect(hk.closest("section")).toBe(tile("aomori").closest("section"));
-        for (const img of screen.getAllByRole("img")) fireEvent.error(img);
+        // 🔴 読み上げは名前と件数だけ（写真の代替文「阿寒湖」を混ぜない）。© は写っているスポット（県）
+        expect(screen.getByRole("link", { name: /^北海道\s*41$/ })).toBe(hk);
+        // 棚の札は「阿寒湖 北海道 釧路市」（名前を2回読まない）
+        expect(screen.getByRole("link", { name: /^阿寒湖\s*北海道 釧路市$/ }).getAttribute("data-testid")).toBe("season-shelf-card");
+        expect(screen.getByRole("link", { name: "写真の出典: 阿寒湖（北海道）" })).toBeTruthy();
+        // 棚の札は写っているスポットそのものなので、名前だけ
+        expect(screen.getByRole("link", { name: "写真の出典: 阿寒湖" })).toBeTruthy();
+        const imgs = [...container.querySelectorAll("img")];
+        expect(imgs).toHaveLength(3);
+        for (const img of imgs) expect(img.getAttribute("alt")).toBe("");
+        for (const img of imgs) fireEvent.error(img);
         expect(hk.getAttribute("data-photo")).toBe("0");
         expect(hk.textContent).toContain("41");
         expect(screen.getByTestId("spots-country-tile").getAttribute("data-photo")).toBe("0");
         expect(screen.getByTestId("season-shelf-card").getAttribute("data-photo")).toBe("0");
-        expect(screen.queryAllByRole("img")).toHaveLength(0);
+        expect(container.querySelectorAll("img")).toHaveLength(0);
         expect(screen.queryAllByTestId("credit-mark")).toHaveLength(0);
         // 出典の一覧は残る
         expect(screen.getByTestId("photo-credit-item").id).toBe("photo-credit-akan");

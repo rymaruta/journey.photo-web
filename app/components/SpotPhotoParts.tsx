@@ -23,13 +23,22 @@ export const photoCreditId = (key: string) => `photo-credit-${key}`;
 /**
  * 写真（遅延読み込み・今ある小さい版）。`onFail` は読めなかったときに呼ぶ（`usePhotoFailed` の関数を渡す＝写真ごとに同じ関数）。
  *
+ * 🔴 **代替文は空（飾り）。** 札のリンクは名前と件数を文字で持つので、写真の代替文を足すと読み上げが
+ * 「阿寒湖 北海道 120」（北海道の札の写真が阿寒湖）や「阿寒湖 阿寒湖」になる（2026-11-10 確かめ役の指摘）。
+ * 画像検索への影響（2026-11-10 事実）: 札の写真は小さい版（`/images/spots/thumb/…`）で、代替文は全 3,121 件が
+ * スポットの名前そのもの（`topicCardCover` が `alt || name`）。スポットの頁の大きい写真（`/images/spots/…`）は
+ * 代替文を持ったまま（例: `akanko.jpg` の `alt="阿寒湖"`）なので、落ちるのは小さい版の名前だけ
+ *
  * 🔴 **水和の前に読み損ねた写真も拾う。** 静的 HTML の `<img>` は React が付く前に読み込みを始めるので、
  * そのあいだに失敗すると `onError` は届かない（React は付いたあとの出来事しか聞かない）。
  * 付いた時点で `complete`（読み終えたか壊れた）なのに `naturalWidth` が 0 なら、もう1回読んで確かめ、読めなければ失敗とする。
  * 遅延でまだ読みに行っていない写真は `complete` が偽なので、ここでは拾わない（あとで `onError` が来る）
+ * ——2026-11-10 実測（`next build` の書き出し・Playwright の Chromium と WebKit・電話 390 と PC 1280・/spots と北海道）:
+ * まだ読んでいない写真は両方とも `complete` が偽（例: WebKit の電話の /spots で 40 枚すべて）、確かめの読み直しは 0 回
+ * （開いて 3 秒で読みに行った写真は、電話の /spots で Chromium 66/66・WebKit 26/66。同じ写真を2回読んだものは無い）
  */
-export function SpotPhoto({ src, alt, onFail, className = "absolute inset-0 w-full h-full object-cover" }: {
-    src: string; alt: string; onFail: () => void; className?: string;
+export function SpotPhoto({ src, onFail, className = "absolute inset-0 w-full h-full object-cover" }: {
+    src: string; onFail: () => void; className?: string;
 }) {
     const ref = useRef<HTMLImageElement>(null);
     useEffect(() => {
@@ -46,7 +55,7 @@ export function SpotPhoto({ src, alt, onFail, className = "absolute inset-0 w-fu
     }, [src, onFail]);
     return (
         // eslint-disable-next-line @next/next/no-img-element
-        <img ref={ref} src={src} alt={alt} loading="lazy" decoding="async" onError={onFail}
+        <img ref={ref} src={src} alt="" loading="lazy" decoding="async" onError={onFail}
              className={className} data-testid="spot-photo" />
     );
 }
@@ -61,13 +70,17 @@ export function usePhotoFailed(src: string | undefined): [boolean, () => void] {
 
 /**
  * 札の右上の「©」（写真の上なので白・ガラスの丸 24px・当たり 44）。札のリンクの**外**に置く
- * （リンクの中にリンクを入れない）。押すと頁の下の、その写真の出典の項目へ移る
+ * （リンクの中にリンクを入れない）。押すと頁の下の、その写真の出典の項目へ移る。
+ * 読み上げは**写っているスポットの名前**（`name`）。県・国の札では札の名前（`place`）を括弧で添える
+ * （「写真の出典: 阿寒湖（北海道）」・2026-11-10 確かめ役の指摘。写真は飾りなので、何の写真かはここでしか言えない）
  */
-export function CreditMark({ creditKey, name }: { creditKey: string; name: string }) {
+export function CreditMark({ creditKey, name, place }: { creditKey: string; name: string; place?: string }) {
     const { locale } = useLocale();
+    const en = locale === "en";
+    const what = place ? (en ? `${name} (${place})` : `${name}（${place}）`) : name;
     return (
         <Link href={`#${photoCreditId(creditKey)}`} prefetch={false}
-           aria-label={locale === "en" ? `Photo credit: ${name}` : `写真の出典: ${name}`}
+           aria-label={en ? `Photo credit: ${what}` : `写真の出典: ${what}`}
            data-testid="credit-mark"
            className="absolute top-0 right-0 z-10 flex items-center justify-center w-11 h-11 rounded-full focus:outline-hidden focus-visible:ring-2 focus-visible:ring-white">
             <span aria-hidden="true"
@@ -98,8 +111,9 @@ export function PhotoCredits({ items }: { items: PhotoCreditItem[] }) {
                     </span></>} />
             <p className="m-0 mb-3 text-text-3" style={{ fontSize: "12px", lineHeight: "18px" }}>
                 {en
-                    ? "Photos on the cards, by place. The © on a card leads here."
-                    : "札の写真の作者とライセンスです。札の右上の © から、その写真の項目に移れます。"}
+                    ? "Photo authors and licenses, by place. The © on a photo leads here."
+                    // 画面の文に内部の呼び名（「札」）を出さない（2026-11-10 確かめ役の指摘）
+                    : "写真の作者とライセンスです。写真の右上の © から、その写真の項目に移れます。"}
             </p>
             <ol className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-6 m-0 p-0" style={{ listStyle: "none" }}>
                 {items.map((c) => (

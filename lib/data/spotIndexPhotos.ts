@@ -4,7 +4,7 @@
 //
 // 🔴 **サーバー側だけで呼ぶ**（台帳 `SPOTS` を読む）。画面（`"use client"`）へは解いた結果だけを props で渡す
 // ——渡したぶんは HTML に埋まり、訪問のたびに落ちる（`lib/data/spotLink.ts` の冒頭の実測）。
-// だから1枚の札に渡すのは**写真の場所・代替文・出典の鍵**だけ。出典の中身は頁の下の一覧（`credits`）に1回だけ載せる。
+// だから1枚の札に渡すのは**写真の場所・出典の鍵**だけ。出典の中身は頁の下の一覧（`credits`）に1回だけ載せる。
 
 import { SPOTS, type Spot } from "./spots";
 import { isPublished } from "../utils/spotGuide";
@@ -14,10 +14,11 @@ import { spotAreas, visibleSpotsInArea } from "./spotLink";
 import { countryTopics, countryEn, homeSeasonalSpots, topicCardCover, type TopicCredit, type HomeSeasonal } from "./spotTopics";
 
 /**
- * 札の写真。`creditKey` は頁の下の「写真の出典」の項目の鍵（＝写っているスポットのスラッグ）。
- * 表示の条件（CC BY 系）が無い写真は鍵ごと無い
+ * 札の写真。`creditKey` は頁の下の「写真の出典」の項目の鍵（＝写っているスポットのスラッグ）、`creditName` はそのスポットの名前
+ * （札の © の読み上げ「写真の出典: 阿寒湖（北海道）」に使う）。表示の条件（CC BY 系）が無い写真は鍵ごと無い。
+ * **代替文は持たない**——札の写真は飾り（`alt=""`・`SpotPhoto` の注記。2026-11-10 確かめ役の指摘）
  */
-export type PhotoTile = { src: string; alt: string; creditKey?: string };
+export type PhotoTile = { src: string; creditKey?: string; creditName?: string };
 
 /** 「写真の出典」の1項目。**どの写真か**をスポットの名前で言う（札の写真と対応が分かるように） */
 export type PhotoCreditEntry = { key: string; name: string; credit: TopicCredit };
@@ -65,13 +66,13 @@ export function spotIndexPhotos(now: Date = new Date(), spots: readonly Spot[] =
     const credits: PhotoCreditEntry[] = [];
     const seen = new Set<string>();
     /** 札の写真を作り、出典があれば一覧に足す（同じスポットの写真は1回だけ） */
-    const tile = (slug: string, name: string, cover: { src: string; alt: string; credit: TopicCredit | null }): PhotoTile => {
-        if (!cover.credit) return { src: cover.src, alt: cover.alt };
+    const tile = (slug: string, name: string, cover: { src: string; credit: TopicCredit | null }): PhotoTile => {
+        if (!cover.credit) return { src: cover.src };
         if (!seen.has(slug)) {
             seen.add(slug);
             credits.push({ key: slug, name, credit: cover.credit });
         }
-        return { src: cover.src, alt: cover.alt, creditKey: slug };
+        return { src: cover.src, creditKey: slug, creditName: name };
     };
 
     const home = homeSeasonalSpots(now, spots, SEASON_SHELF);
@@ -79,7 +80,7 @@ export function spotIndexPhotos(now: Date = new Date(), spots: readonly Spot[] =
         season: home.season, href: home.href, total: home.total,
         spots: home.spots.map((s) => ({
             slug: s.slug, name: s.name, region: s.region,
-            cover: tile(s.slug, s.name, { src: s.src, alt: s.alt, credit: s.credit }),
+            cover: tile(s.slug, s.name, { src: s.src, credit: s.credit }),
         })),
     };
 

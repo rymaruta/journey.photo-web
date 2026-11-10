@@ -69,6 +69,11 @@ export default function SpotIndexPage() {
     const topicsShown = topics.seasons.length > 0 || topics.themes.length > 0;
     const jumps = topicsShown ? [{ id: "spots-more", label: "ほかの切り口", labelEn: "More ways" }] : [];
     // 写真の札（県の代表写真・国・いまの季節・出典）。渡すのは写真の場所と出典だけ（`spotIndexPhotos` の注記）
+    //
+    // 2026-11-10 判断（確かめ役の指摘 3「出典が HTML に2回」への答え・実測）: 出典は HTML の本文と水和用のデータ（RSC）に
+    // 1回ずつ乗るが、これは App Router ではどちらの描き方でも同じ。**頁の下の「写真の出典」をサーバー側で描いて children で
+    // 渡す形を試すと、/spots は重くなった**——HTML（gzip）50,493 → 53,307 B・RSC（gzip）21,902 → 24,856 B。水和用のデータが
+    // 出典の値（66 件）ではなく、項目ごとの要素の木（li・p・span の class と style）を運ぶため。だから値を props で渡す今の形のまま
     const photos = spotIndexPhotos(new Date());
     return (
         <>

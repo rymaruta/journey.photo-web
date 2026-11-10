@@ -52,7 +52,7 @@ function SpotCard({ s, areaName, isJa }: { s: SpotIndexItem; areaName?: string; 
                   className="group block h-full rounded-xl focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent">
                 <span className={`relative block w-full aspect-square overflow-hidden rounded-xl ${photo ? "bg-surface-2" : "bg-surface-3 ring-1 ring-inset ring-line-strong"}`}>
                     {photo && cover ? (
-                        <SpotPhoto src={cover.src} alt={cover.alt} onFail={fail} className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-[1.02] motion-reduce:transition-none" />
+                        <SpotPhoto src={cover.src} onFail={fail} className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-[1.02] motion-reduce:transition-none" />
                     ) : (
                         /* 代表写真が無い・読めないときは**名前**（無関係な写真で埋めない） */
                         <span className="absolute inset-0 flex items-center justify-center px-3 text-center font-serif font-bold text-white/80"
