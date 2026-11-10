@@ -41,6 +41,15 @@ vi.mock("../notify", async (importActual) => ({
     pushNotification: (...a: unknown[]) => mockPush(...a),
 }));
 
+// ストーリーへの返信の DM への写し（`dm.ts` の `mirrorStoryReplyToDm`）はここでは止める。
+// 写しは会話の置き場所を決めるために相手の `closefriends#` を別に読む（`dm.ts` の
+// `isCloseFriendOf`。ストーリーの見せる範囲の門ではない）ので、下の「名簿の読み」の数に混ざる。
+// このファイルが見るのはストーリーの門だけ。写しは `dm` の試験が見る
+vi.mock("../dm", async (importActual) => ({
+    ...(await importActual<typeof import("../dm")>()),
+    mirrorStoryReplyToDm: async () => undefined,
+}));
+
 const { getStories, createStory, viewStory } = await import("../stories");
 const { postStoryReply } = await import("../storyReplies");
 const { voteStory } = await import("../storyVotes");
