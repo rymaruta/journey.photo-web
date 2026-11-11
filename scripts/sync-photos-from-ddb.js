@@ -173,7 +173,7 @@ function checkWriteSafety(nextCount, prevCount, { allowEmpty = ALLOW_EMPTY } = {
 // 内部の印で、外に出す理由が無い。**元の写真の ID `inspiredBy` は落とさない**（画面が使う）
 // `firstPublishedAt`（初めて公開した時刻・旅のトランクの印・`api-user/src/trunk.ts`）も落とす。
 // 2026-10-17 判断を変更: 中の印なので隠す（ラベルを配るかどうかの判定にだけ使う）
-const PRIVATE_FIELDS = ["srcOriginal", "key", "staticStale", "commentCount", "publicFeed", "keptFrom", "inspiredNotified", "firstPublishedAt"];
+const PRIVATE_FIELDS = ["srcOriginal", "key", "staticStale", "commentCount", "publicFeed", "keptFrom", "fromStory", "inspiredNotified", "firstPublishedAt"];
 
 function stripPrivateFields(item) {
     const out = { ...item };

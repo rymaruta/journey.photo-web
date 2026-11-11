@@ -168,3 +168,58 @@ describe("写真の削除", () => {
         expect(text).not.toContain("いいね");
     });
 });
+
+// 2026-11-11 判断（owner「ストーリーとそこから作った写真の関係を明確にして」）
+describe("ストーリーから作った写真", () => {
+    const STORY = { id: "s1", src: "https://cdn/x/s1.jpg", userId: "me", createdAt: "2026-11-11T00:00:00Z", expiresAt: "2099-01-01T00:00:00Z" };
+    const world = (photo: Record<string, unknown>, stories: unknown[]) => {
+        mockUserFetch.mockImplementation((url: string, init?: { method?: string }) => {
+            if (!init?.method && url === "/stories") return Promise.resolve({ ok: true, json: async () => stories });
+            if (!init?.method && url === "/stories/archive") return Promise.resolve({ ok: true, json: async () => [] });
+            if (!init?.method) return Promise.resolve({ ok: true, json: async () => [photo] });
+            return Promise.resolve({ ok: true, json: async () => ({ success: true }) });
+        });
+    };
+    const dialogButtons = async () => {
+        const dialog = await screen.findByRole("dialog");
+        const { within } = await import("@testing-library/react");
+        return within(dialog);
+    };
+
+    it("札「ストーリーから作った写真 ›」を出す（ストーリーがあれば押せる）", async () => {
+        world({ ...PHOTO, fromStory: "s1" }, [STORY]);
+        await openEditor();
+        expect(await screen.findByRole("button", { name: /ストーリーから作った写真/ })).toBeInTheDocument();
+    });
+
+    it("ストーリーがもう無ければ、札は文字だけ", async () => {
+        world({ ...PHOTO, fromStory: "s1" }, []);
+        await openEditor();
+        await waitFor(() => expect(screen.getByText("ストーリーから作った写真")).toBeInTheDocument());
+        expect(screen.queryByRole("button", { name: /ストーリーから作った写真/ })).toBeNull();
+    });
+
+    it("消す確認は2つ。「写真だけ消す」は withStory=0、「ストーリーも一緒に消す」は withStory=1", async () => {
+        world({ ...PHOTO, keptFrom: "s1" }, [STORY]);
+        await openEditor();
+        await screen.findByRole("button", { name: /ストーリーから作った写真/ });
+        await userEvent.click(screen.getByRole("button", { name: "削除" }));
+        const d = await dialogButtons();
+        expect(d.queryByRole("button", { name: "削除" }), "1つだけの「削除」が残っている").toBeNull();
+        expect(d.getByRole("button", { name: "ストーリーも一緒に消す" }).className).toContain("text-danger");
+        expect(d.getByRole("button", { name: "写真だけ消す" }).className).not.toContain("text-danger");
+        await userEvent.click(d.getByRole("button", { name: "写真だけ消す" }));
+        await waitFor(() => expect(deleteCalls()).toHaveLength(1));
+        expect(deleteCalls()[0][0]).toBe("/photos/p1?withStory=0");
+    });
+
+    it("「ストーリーも一緒に消す」は withStory=1", async () => {
+        world({ ...PHOTO, fromStory: "s1" }, [STORY]);
+        await openEditor();
+        await screen.findByRole("button", { name: /ストーリーから作った写真/ });
+        await userEvent.click(screen.getByRole("button", { name: "削除" }));
+        await userEvent.click((await dialogButtons()).getByRole("button", { name: "ストーリーも一緒に消す" }));
+        await waitFor(() => expect(deleteCalls()).toHaveLength(1));
+        expect(deleteCalls()[0][0]).toBe("/photos/p1?withStory=1");
+    });
+});

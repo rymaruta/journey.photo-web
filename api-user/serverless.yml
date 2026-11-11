@@ -603,6 +603,32 @@ functions:
           path: /feed
           method: GET
 
+  # 意見箱（札 #546・2026-11-11）。ログインした人の口。保存の形は `src/feedback.ts` の冒頭。
+  # 写真は `private/feedback/*` への署名つき PUT を返す（共有ロールの `private/*` の PutObject で足りる）
+  sendFeedback:
+    handler: src/feedback.sendFeedback
+    events:
+      - httpApi:
+          path: /user/feedback
+          method: POST
+          authorizer:
+            name: cognitoAuthorizer
+
+  # 意見箱のログインしていない人の口。**未認証で書ける**ので、持たせるのは専用の `FeedbackRole`
+  # （写真テーブルの GetItem / PutItem / UpdateItem と `private/feedback/*` の PutObject だけ）。
+  # 歯止めは IP ごと（1日 `FEEDBACK_DAILY_PER_IP`）と、ログインしていない人の全体（1日 `FEEDBACK_DAILY_TOTAL_ANON`。ログインした人とは別に数える）
+  sendFeedbackPublic:
+    handler: src/feedback.sendFeedbackPublic
+    role: FeedbackRole
+    environment:
+      # IP の目印を作る秘密の鍵（HMAC・`feedback.ts` の `ipBucket`）。**この関数にだけ配る**。
+      # GitHub の Secret `FEEDBACK_IP_KEY` から `deploy-api.yml` が渡す。未登録なら空で、鍵なしの目印に落ちて動き続ける
+      FEEDBACK_IP_KEY: ${param:feedbackIpKey, ''}
+    events:
+      - httpApi:
+          path: /feedback
+          method: POST
+
   # 自分がいいね済みかどうか。公開の getLikeCount とは別口にする
   # （あちらは共有キャッシュに載せているので、利用者ごとの値を混ぜられない）。
   getMyLike:
@@ -1646,6 +1672,53 @@ resources:
                     - dynamodb:GetItem
                   Resource:
                     - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+
+    # 意見箱のログインしていない人の口（sendFeedbackPublic）専用。未認証で書けるので、持たせるのは
+    # この口が実際に使うものだけ（`src/feedback.ts`）:
+    #   写真テーブル  GetItem（同じ id の送り直し）/ UpdateItem（`feedbackday#` の歯止めと索引）/ PutItem（`feedback#`）
+    #   S3           `private/feedback/*` への PutObject（署名つき PUT はこのロールの権限で署名される）
+    # **削除・Scan・Query・users テーブルは持たない。**
+    FeedbackRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-${aws:region}-feedback
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: feedback
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                # ログ。これが無いと失敗の理由がどこにも残らない
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # 触れる行は意見の2種類だけ（行の鍵の頭で縛る。写真・プロフィールなど他の行は読み書きできない）
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - "feedback#*"
+                        - "feedbackday#*"
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                  Resource:
+                    - arn:aws:s3:::${param:uploadBucket}/private/feedback/*
 
     # App Store Server Notifications の受け口（appStoreNotification）専用。未認証で呼べるので、
     # 持たせるのはこの口が実際に使うものだけ:

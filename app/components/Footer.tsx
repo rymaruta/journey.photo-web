@@ -29,6 +29,8 @@ export default function Footer() {
         { href: ROUTES.SAVED_SPOTS, label: locale === "en" ? "Want to go" : "行きたい場所" },
         { href: ROUTES.TERMS, label: locale === "en" ? "Terms" : "利用規約" },
         { href: ROUTES.PRIVACY, label: locale === "en" ? "Privacy" : "プライバシーポリシー" },
+        // 意見箱（2026-11-11 札 #546）
+        { href: ROUTES.FEEDBACK("footer"), label: locale === "en" ? "Send feedback" : "意見を送る" },
     ];
 
     return (

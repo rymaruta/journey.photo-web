@@ -16,7 +16,7 @@ import StoryThumb from "./StoryThumb";
  * **`<li>` の中に `<button>`。** `role="listitem"` を button に乗せると
  * 押せるものとして読まれない（アーカイブの画面で一度踏んだ）。
  */
-export default function StoryTile({ story, label, ariaLabel, onClick, disabled, pressed, children }: {
+export default function StoryTile({ story, label, ariaLabel, onClick, disabled, pressed, children, after }: {
     story: Story;
     /** 左下に出す短い文字（投稿した日） */
     label: string;
@@ -26,6 +26,8 @@ export default function StoryTile({ story, label, ariaLabel, onClick, disabled, 
     /** 選ぶ用途で「選んでいる」を伝える（`aria-pressed`）。開く用途では渡さない */
     pressed?: boolean;
     children?: React.ReactNode;
+    /** ボタンの**外**（隣）に重ねるもの。押せる札（リンク）はボタンの中に入れられない */
+    after?: React.ReactNode;
 }) {
     return (
         <li className="relative aspect-[9/16] overflow-hidden bg-surface">
@@ -50,6 +52,7 @@ export default function StoryTile({ story, label, ariaLabel, onClick, disabled, 
                 </span>
                 {children}
             </button>
+            {after}
         </li>
     );
 }
