@@ -76,7 +76,7 @@ export default function SearchHiddenSetting({ locale }: { locale: "ja" | "en" })
                         <span className="text-xs leading-relaxed text-white/60">
                             {en
                                 ? "Your profile page won't appear in Google and other search results. Your photos keep their own sharing settings."
-                                : "Google などの検索結果に、あなたのプロフィールの頁を出さないようにします。写真ごとの公開の設定は変わりません。"}
+                                : "Google などの検索結果に、あなたのプロフィールのページを出さないようにします。写真ごとの公開の設定は変わりません。"}
                         </span>
                     </span>
                     {/* 板のトグル（51×31・入は accent-deep に白い玉）。押せる高さは 44px */}

@@ -47,13 +47,21 @@ beforeEach(() => {
 });
 
 describe("検索エンジンにプロフィールを表示しない", () => {
-    it("true を保存し、本人の応答に真偽で返し、再ビルドを頼む", async () => {
+    it("true を保存し、本人の応答に真偽で返し、再ビルドを**束ねずに**頼む", async () => {
         mockSend.mockResolvedValueOnce(stored({})).mockResolvedValue({});
         const res = await invoke({ searchHidden: true });
         expect(res.statusCode).toBe(200);
         expect(putItem()?.searchHidden).toBe(true);
         expect(JSON.parse(res.body).searchHidden).toBe(true);
         expect(mockRebuild).toHaveBeenCalledTimes(1);
+        // 束ねて見送られると後から実行されず、隠したつもりの頁が索引に残る（確かめ役 2026-11-11）
+        expect(mockRebuild).toHaveBeenCalledWith("profile hidden from search: u1");
+    });
+
+    it("オンのまま名前を変えた回は、今までどおり束ねる", async () => {
+        mockSend.mockResolvedValueOnce(stored({ searchHidden: true })).mockResolvedValue({});
+        await invoke({ displayName: "新しい名前" });
+        expect(mockRebuild).toHaveBeenCalledWith("profile updated: u1", { coalesce: true });
     });
 
     it("false は行から消す（既定の「表示する」に戻す）", async () => {
@@ -63,6 +71,8 @@ describe("検索エンジンにプロフィールを表示しない", () => {
         expect(putItem()).not.toHaveProperty("searchHidden");
         expect(JSON.parse(res.body).searchHidden).toBe(false);
         expect(mockRebuild).toHaveBeenCalledTimes(1);
+        // 戻す（表示する）側は急がない＝束ねる
+        expect(mockRebuild).toHaveBeenCalledWith("profile updated: u1", { coalesce: true });
     });
 
     it("真偽以外は 400（文字の \"true\" を読み替えない）", async () => {
