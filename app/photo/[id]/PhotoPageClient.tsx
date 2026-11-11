@@ -53,7 +53,8 @@ import { useToast } from "../../../lib/hooks/useToast";
 import { useGuestPrompt } from "../../../lib/hooks/useGuestPrompt";
 import { track } from "../../../lib/utils/analytics";
 import { shareUrl, copyToClipboard, shareToTwitter, shareToLine } from "../../../lib/utils/share";
-import { renderShareCard, type ShareCardRatio } from "../../../lib/utils/signatureShareCard";
+import { takenDate } from "../../../lib/utils/shareCardStyles";
+import ShareCardDialog from "./ShareCardDialog";
 import { fetchImageBytes } from "../../../lib/utils/imageBytes";
 import { siteConfig, generatePhotoStructuredData, generateBreadcrumbStructuredData } from "../../../lib/utils/seo";
 import { slugify, collectionPath, categoryLabel } from "../../../lib/utils/collections";
@@ -618,6 +619,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     const spotLink = autoActive && autoOff ? null : builtSpotLink;
     // **通報。** 自分の投稿と未ログインには出さない（押しても断られる）
     const [reportOpen, setReportOpen] = useState(false);
+    // SNS に貼るカードを作る画面（2026-11-12 第8章）
+    const [shareCardOpen, setShareCardOpen] = useState(false);
     const reportBtnRef = React.useRef<HTMLButtonElement>(null);
     const { showToast } = useToast();
     // 最終版モックの並び: コメント／関連写真のタブ・コメント数・保存・ヒーローのスワイプ
@@ -964,44 +967,28 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
         }
     };
 
-    const handleSaveShareCard = async (ratio: ShareCardRatio) => {
-        if (!photo?.src) return;
-        try {
-            // Reuse the same-origin /uploads fallback used by StoryViewer; raw CDN URLs may reject CORS.
-            const imageBlob = await fetchImageBytes(publicImageUrl(photo.src));
-            const bitmap = await createImageBitmap(imageBlob);
-            let blob: Blob;
-            try {
-                blob = await renderShareCard(bitmap, {
-                    name: authorName || "Photographer",
-                    username: photo.uploaderUsername,
-                    location: photo.location,
-                    camera: photo.exif?.camera,
-                    lens: photo.exif?.lens,
-                    verified: authorMarks?.userId === photo.userId && authorMarks?.verified,
-                    pro: authorMarks?.userId === photo.userId && authorMarks?.pro,
-                    early: authorMarks?.userId === photo.userId && authorMarks?.earlyMark,
-                    badge: authorMarks?.userId === photo.userId ? authorMarks?.displayBadge : undefined,
-                    coords: photo.coords,
-                }, ratio);
-            } finally {
-                bitmap.close();
-            }
-            const url = URL.createObjectURL(blob);
-            try {
-                const link = document.createElement("a");
-                link.href = url;
-                link.download = `journey-photo-${photo.id}-${ratio.replace(":", "x")}.jpg`;
-                document.body.appendChild(link);
-                link.click();
-                link.remove();
-            } finally {
-                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-            }
-        } catch (error) {
-            log.warn("Share card export failed", error);
-            showToast(locale === "en" ? "Could not save the share card" : "共有カードを保存できませんでした", "error");
-        }
+    // SNS に貼るカード（2026-11-12 第8章）: 型（縦書き・インスタント・帯）と比率を選んで保存する画面を開く
+    const shareCardCredit = photo ? {
+        name: authorName || "Photographer",
+        username: photo.uploaderUsername,
+        location: photo.location,
+        camera: photo.exif?.camera,
+        lens: photo.exif?.lens,
+        verified: authorMarks?.userId === photo.userId && authorMarks?.verified,
+        pro: authorMarks?.userId === photo.userId && authorMarks?.pro,
+        early: authorMarks?.userId === photo.userId && authorMarks?.earlyMark,
+        badge: authorMarks?.userId === photo.userId ? authorMarks?.displayBadge : undefined,
+        coords: photo.coords,
+        taken: takenDate(photo.exif?.dateTimeOriginal, photo.date),
+    } : null;
+    const loadShareCardPhoto = async () => {
+        if (!photo?.src) throw new Error("No photo");
+        // Reuse the same-origin /uploads fallback used by StoryViewer; raw CDN URLs may reject CORS.
+        const imageBlob = await fetchImageBytes(publicImageUrl(photo.src));
+        return await createImageBitmap(imageBlob);
+    };
+    const handleShareCardError = () => {
+        showToast(locale === "en" ? "Could not save the share card" : "共有カードを保存できませんでした", "error");
     };
 
     const handleCopyLink = async (e?: React.MouseEvent) => {
@@ -1072,7 +1059,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     buttonSize={44}
                     items={[
                         { key: "share", label: locale === "en" ? "Share" : "共有", onSelect: () => void handleShare() },
-                        ...(["4:5", "9:16", "1:1"] as const).map(ratio => ({ key: `share-card-${ratio}`, label: locale === "en" ? `Save share image ${ratio}` : `共有画像を保存（${ratio}）`, onSelect: () => void handleSaveShareCard(ratio) })),
+                        // 2026-11-12 第8章: 比率ごとの3行（共有画像を保存（4:5）…）を1行にまとめ、開いた画面で型と比率を選ぶ
+                        ...(photo.src ? [{ key: "share-card", label: locale === "en" ? "Make a share image" : "SNS用の画像を作る", onSelect: () => setShareCardOpen(true) }] : []),
                         { key: "copy", label: locale === "en" ? "Copy link" : "リンクをコピー", onSelect: () => void handleCopyLink() },
                         { key: "x", label: locale === "en" ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(currentUrl, shareText, "photo") },
                         ...(locale === "ja" ? [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(currentUrl, shareText, "photo") }] : []),
@@ -1668,6 +1656,17 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     </section>
                 )}
 
+                {shareCardOpen && shareCardCredit && (
+                    <ShareCardDialog
+                        locale={locale === "en" ? "en" : "ja"}
+                        photoId={photo.id}
+                        credit={shareCardCredit}
+                        loadPhoto={loadShareCardPhoto}
+                        openerRef={reportBtnRef}
+                        onClose={() => setShareCardOpen(false)}
+                        onError={handleShareCardError}
+                    />
+                )}
                 {reportOpen && (
                     <ReportDialog
                         photoId={photo.id}
