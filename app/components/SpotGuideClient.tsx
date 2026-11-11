@@ -14,6 +14,7 @@ import { MapIcon, ArrowUpOnSquareIcon, ChevronRightIcon, ChevronLeftIcon } from 
 import { useToast } from "@/lib/hooks/useToast";
 import { shareUrl } from "@/lib/utils/share";
 import GalleryGrid from "./GalleryGrid";
+import type { PhotoCreator } from "@/lib/utils/photoCreators";
 import SpotRows, { type SpotRow } from "./SpotRows";
 import SectionHead from "./SectionHead";
 import { CARD, ROW_TALL, ROW_ICON_BOX, ROW_ICON, ROW_TITLE, ROW_SUB, ROW_CHEVRON } from "./rowStyles";
@@ -65,6 +66,11 @@ type Props = {
     spot: Spot;
     /** そのスポットの公開写真（本人が選んだ `spotId` と、自動の結び・`SpotGuidePage` の `photosForSpot`） */
     photos: Photo[];
+    /**
+     * 写真を載せた人（枚数の多い順・`photoCreators`）。グリッドの下にプロフィールへのリンクで出す
+     * （2026-11-11 判断 journey.photo-ios#525。最初の HTML の `<a href>` でプロフィールへ結ぶ）
+     */
+    creators?: PhotoCreator[];
     /** 自動で結んだ写真を含むか（節の下に小さく断る・2026-10-31 journey.photo-ios#425） */
     autoNote?: boolean;
     /** 周辺スポット（台帳に登録済みで、手で選んだものだけ） */
@@ -533,7 +539,7 @@ function Sources({ spot, field }: { spot: Spot; field: string }) {
 /** パンくずのリンク。**高さ 44px の押せる面**（以前は字の高さ約15px・2026-11-09 入口の案C） */
 const CRUMB = "inline-flex min-h-[44px] items-center hover:text-white/90";
 
-export default function SpotGuideClient({ spot, photos, autoNote = false, nearby, locationPath, area = null, sameArea = null, pageUrl, light = null, sky = null, samples = [], topics = [], country = null, visit = null }: Props) {
+export default function SpotGuideClient({ spot, photos, creators = [], autoNote = false, nearby, locationPath, area = null, sameArea = null, pageUrl, light = null, sky = null, samples = [], topics = [], country = null, visit = null }: Props) {
     const { locale } = useLocale();
     const { showToast } = useToast();
     const isJa = locale !== "en";
@@ -656,6 +662,20 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                     )}
                     <GalleryGrid photos={photos} locale={locale} sizes="(min-width:1024px) 300px, 50vw"
                                   columnsClassName="grid-cols-2 sm:grid-cols-3" />
+                    {/* 写真を載せた人（2026-11-11 判断 journey.photo-ios#525）。黒地の上のリンクなので真鍮＋下線
+                        （板「リンク・@名・#タグ（下線つき）」）。名前は押せる高さ 44px を持たせる */}
+                    {creators.length > 0 && (
+                        <div className="mt-2 flex flex-wrap items-center gap-x-3 text-white/60" style={{ fontSize: "13px", lineHeight: "20px" }}
+                             data-testid="spot-photo-creators">
+                            <span>{isJa ? "写真を載せた人" : "Photos by"}</span>
+                            {creators.map((c) => (
+                                <Link key={c.id} href={ROUTES.USER_PROFILE(c.id)} prefetch={false}
+                                      className="inline-flex items-center min-h-11 text-accent underline underline-offset-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded">
+                                    {c.name}
+                                </Link>
+                            ))}
+                        </div>
+                    )}
                     {/* 写真がある場所にも投稿の入口を置く（0枚のときだけだと、2枚目以降が紐付かない） */}
                     <div className="mt-3 text-center">
                         <Link href={uploadHref} prefetch={false}

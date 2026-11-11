@@ -7,11 +7,16 @@ import { render, screen } from "@testing-library/react";
  * 「関数は書いたが渡していない」。`initialBio` を受け取る側だけ直しても、
  * `page.tsx` が渡さなければ静的本文には1文字も出ない。
  */
-const profiles = vi.hoisted(() => ({ current: {} as Record<string, { bio?: string }> }));
+const profiles = vi.hoisted(() => ({ current: {} as Record<string, { bio?: string; username?: string }> }));
 vi.mock("../../../data/profiles.json", () => ({ default: profiles.current }));
 // 受け取った値をそのまま描く偽物（本物は API を叩く）
 vi.mock("../../UserProfileClient", () => ({
-    default: ({ initialBio }: { initialBio?: string }) => <div data-testid="client">{initialBio ?? "(渡っていない)"}</div>,
+    default: ({ initialBio, initialUsername }: { initialBio?: string; initialUsername?: string }) => (
+        <>
+            <div data-testid="client">{initialBio ?? "(渡っていない)"}</div>
+            <div data-testid="client-username">{initialUsername ?? "(渡っていない)"}</div>
+        </>
+    ),
 }));
 
 const UserProfilePage = (await import("../page")).default;
@@ -44,5 +49,27 @@ describe("静的なプロフィールページが、自己紹介を本文へ渡�
         profiles.current[OWNER] = { bio: "  自己紹介  " };
         render(await UserProfilePage({ params: Promise.resolve({ id: OWNER }) }));
         expect(screen.getByTestId("client").textContent).toBe("自己紹介");
+    });
+});
+
+// 2026-11-11 journey.photo-ios#525: `@ユーザー名` を最初の HTML に出す配線
+describe("静的なプロフィールページが、ユーザー名を本文へ渡す", () => {
+    it("ビルド時のユーザー名を渡す", async () => {
+        profiles.current[OWNER] = { username: "ryuhei" };
+        render(await UserProfilePage({ params: Promise.resolve({ id: OWNER }) }));
+        expect(screen.getByTestId("client-username").textContent).toBe("ryuhei");
+    });
+
+    it("決まりに合わないユーザー名は渡さない", async () => {
+        profiles.current[OWNER] = { username: "<b>x</b>" };
+        render(await UserProfilePage({ params: Promise.resolve({ id: OWNER }) }));
+        expect(screen.getByTestId("client-username").textContent).toBe("(渡っていない)");
+    });
+
+    it("構造化データの Person に @ユーザー名 を別名で出す", async () => {
+        profiles.current[OWNER] = { username: "ryuhei" };
+        const { container } = render(await UserProfilePage({ params: Promise.resolve({ id: OWNER }) }));
+        const ld = JSON.parse(container.querySelector('script[type="application/ld+json"]')!.textContent!);
+        expect([ld.mainEntity.alternateName].flat()).toContain("@ryuhei");
     });
 });

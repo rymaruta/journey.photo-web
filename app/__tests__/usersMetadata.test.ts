@@ -149,3 +149,50 @@ describe("プロフィールの説明文も1行", () => {
         expect(meta.description).toContain("旅先の光を追いかけて 写真を撮っています。");
     });
 });
+
+/**
+ * **ユーザー名・表示名で探されたときの題**（2026-11-11 journey.photo-ios#525・owner の要望）。
+ * 「<ユーザー名> journey photo」「<表示名> journey photo」で探されたときに当たるよう、
+ * 題は `表示名（@ユーザー名）の写真 | Journey Photo`。本番では title・説明・JSON-LD の
+ * どこにもユーザー名が無かった（curl で確認）。
+ */
+describe("プロフィールの題にユーザー名を入れる", () => {
+    const OWNER3 = "67d49a68-80f1-7083-b0e0-c767886ef868";
+    const metaWith = async (profile: Record<string, string>) => {
+        vi.resetModules();
+        vi.doMock("../data/profiles.json", () => ({ default: { [OWNER3]: profile } }));
+        const { generateMetadata } = await import("../users/[id]/page");
+        return generateMetadata({ params: Promise.resolve({ id: OWNER3 }) });
+    };
+    const titleOf = (m: Awaited<ReturnType<typeof metaWith>>) => (m.title as { absolute?: string }).absolute;
+
+    it("表示名（@ユーザー名）の写真 | Journey Photo", async () => {
+        const meta = await metaWith({ username: "ryuhei" });
+        expect(titleOf(meta)).toMatch(/^.+（@ryuhei）の写真 \| Journey Photo$/);
+        // SNS のカードも同じ題（同じページの中で食い違わせない）
+        expect(meta.openGraph?.title).toBe(titleOf(meta));
+        expect((meta.twitter as { title?: string })?.title).toBe(titleOf(meta));
+    });
+
+    it("説明文にも @ユーザー名 が入る（自己紹介が無い人）", async () => {
+        const meta = await metaWith({ username: "ryuhei" });
+        expect(meta.description).toContain("（@ryuhei）さんが Journey Photo で");
+    });
+
+    it("説明文にも @ユーザー名 が入る（自己紹介がある人）", async () => {
+        const meta = await metaWith({ username: "ryuhei", bio: "旅先の光を追いかけて写真を撮っています。" });
+        expect(meta.description).toContain("旅先の光を追いかけて");
+        expect(meta.description).toContain("@ryuhei");
+    });
+
+    it("ユーザー名が無い人は 表示名の写真 | Journey Photo", async () => {
+        const meta = await metaWith({});
+        expect(titleOf(meta)).toMatch(/^[^@（]+の写真 \| Journey Photo$/);
+        expect(meta.description).not.toContain("@");
+    });
+
+    it("決まりに合わないユーザー名は題に混ぜない", async () => {
+        const meta = await metaWith({ username: "a b<script>" });
+        expect(titleOf(meta)).not.toContain("@");
+    });
+});
