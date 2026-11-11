@@ -1,5 +1,6 @@
 "use client";
 
+import { SpotWantsLine } from "./SpotWants";
 import React from "react";
 import Link from "next/link";
 import type { Spot } from "@/lib/data/spots";
@@ -764,6 +765,8 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         style={{ fontSize: "32px", lineHeight: "1.25" }}>
                         {spot.name}
                     </h1>
+                    {/* みんなの「行きたい」（2026-11-11・撮影スポットを払うの②）。今月の数が10以上のときだけ */}
+                    {verified && <SpotWantsLine slug={spot.slug} />}
                     {(spot.reading || spot.nameEn) && (
                         <p className="m-0 mt-1 text-white/55" style={{ fontSize: "13px", lineHeight: "18px" }}>
                             {[spot.reading, spot.nameEn].filter(Boolean).join(" ・ ")}

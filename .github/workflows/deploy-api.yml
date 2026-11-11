@@ -74,6 +74,7 @@ jobs:
       cognitoUserPoolId: ${{ steps.pick.outputs.cognitoUserPoolId }}
       cognitoClientId: ${{ steps.pick.outputs.cognitoClientId }}
       cognitoPoolName: ${{ steps.pick.outputs.cognitoPoolName }}
+      siteBucket: ${{ steps.pick.outputs.siteBucket }}
       # 退会・削除・非公開のあとに静的サイトの再ビルドを頼む先。
       # トークン（REBUILD_DISPATCH_TOKEN）が未設定なら「頼まない」だけで、
       # 削除そのものは成功する。本番だけ設定する（staging は検索避けなので不要）。
@@ -109,6 +110,8 @@ jobs:
               cognitoUserPoolId=ap-northeast-1_ZbuhDQsWz
               cognitoClientId=21cs4cd8dkttmg3snloj72u8mu
               cognitoPoolName=prod-journey-photo-client-spa
+              # みんなの「行きたい」の毎日の集計が書く Web の置き場（`api-user` の `aggregateSpotWants`・2026-11-11）
+              siteBucket=prod-journey-photo.com
               # プッシュ通知（APNs）。**鍵そのものは Secrets から渡す**——
               # ここに書くのは公開識別子だけ（Bundle ID・Key ID・Team ID）
               apnsTopic=com.journeyphoto.JourneyPhoto
@@ -155,6 +158,7 @@ jobs:
               cognitoUserPoolId=ap-northeast-1_DSQ16c6vO
               cognitoClientId=1qjl9c8gmqidigps55jhv4foi
               cognitoPoolName=staging-journey-photo-client-spa
+              siteBucket=staging-journey-photo.com
               # staging のアプリは Bundle ID が別（`Config/Staging.xcconfig`）。
               # Xcode から直接入れたビルドは **sandbox** の APNs
               apnsTopic=com.journeyphoto.JourneyPhoto.staging
@@ -177,7 +181,7 @@ jobs:
               ;;
           esac
           # rebuildRepo は staging で意図的に空にするため、この必須チェックには入れない
-          for k in photosTable usersTable uploadBucket cloudfrontUrl cloudfrontDistributionId cognitoUserPoolId cognitoClientId cognitoPoolName; do
+          for k in photosTable usersTable uploadBucket cloudfrontUrl cloudfrontDistributionId cognitoUserPoolId cognitoClientId cognitoPoolName siteBucket; do
             v="${!k}"
             if [ -z "$v" ]; then
               echo "::error::$envName の $k が未設定です。リポジトリの Variables を確認してください。"
@@ -418,4 +422,5 @@ jobs:
             --param "cloudfrontDistributionId=${{ needs.config.outputs.cloudfrontDistributionId }}" \
             --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
             --param "cognitoClientId=${{ needs.config.outputs.cognitoClientId }}" \
+            --param "siteBucket=${{ needs.config.outputs.siteBucket }}" \
             ${extra[@]+"${extra[@]}"}

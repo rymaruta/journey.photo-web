@@ -1542,6 +1542,29 @@ functions:
 # プラグイン（serverless-iam-roles-per-function）は使わない。この環境から
 # postinstall が取得できず入らなかったのと、依存を1つ増やすより
 # CloudFormation を1つ書く方が読む人に見えるため。
+  # みんなの「行きたい」を数える（2026-11-11・撮影スポットを払うの②・`src/spotWants.ts`）。
+  # **未認証で呼べる口**（未ログインでも払える）。端末のでたらめな ID・日の上限・月1回で荒らしを止める。
+  # 役は数の行の読み書きだけ（共有の役の削除権を持たせない）
+  recordSpotWants:
+    handler: src/spotWants.recordSpotWants
+    role: SpotWantsRecordRole
+    events:
+      - httpApi:
+          path: /spots/wants
+          method: POST
+
+  # 毎日1回、今月の数を読んで上位と数を `app/data/spot-wants.json` にして Web の置き場へ書く。
+  # 急に増えた撮影スポットに印を付けて上位から外す。photos 表の TTL は無効なので、重なり止め・日の上限・塩の古い行もここで消す。
+  # 日本時間の 4:17（数の多い時間を避け、日の区切りの後）
+  aggregateSpotWants:
+    handler: src/spotWants.aggregateSpotWants
+    role: SpotWantsAggregateRole
+    timeout: 300
+    environment:
+      SITE_BUCKET: ${param:siteBucket}
+    events:
+      - schedule: cron(17 19 * * ? *)
+
 resources:
   Resources:
     # 地名さがし（Nominatim の代理）専用。ログと、結果の控えの読み書きだけ
@@ -1747,3 +1770,72 @@ resources:
                     - dynamodb:BatchGetItem
                   Resource:
                     - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+
+    # みんなの「行きたい」を受ける口（`recordSpotWants`）。数の行の読み書きだけ
+    SpotWantsRecordRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-${aws:region}-spotWantsRecord
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: spotWantsRecord
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+
+    # 毎日の集計（`aggregateSpotWants`）。数を読む・印を書く・古い行を消す・Web の置き場の1ファイルだけ書く
+    SpotWantsAggregateRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-${aws:region}-spotWantsAggregate
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: spotWantsAggregate
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:BatchGetItem
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:Scan
+                    - dynamodb:DeleteItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                  Resource:
+                    - arn:aws:s3:::${param:siteBucket}/app/data/spot-wants.json
