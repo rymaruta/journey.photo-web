@@ -17,6 +17,7 @@ import { reloadPage } from "../../lib/utils/reloadPage";
 import { resetFollowingCache } from "../../lib/hooks/useFollow";
 import { clearSharedPayload } from "../../lib/utils/shareStore";
 import { forgetUploadDraftOnSignOut } from "../../lib/utils/uploadDraft";
+import { forgetFeedbackDrafts } from "../../lib/feedback";
 import { clearSeenStories, setSeenStoriesUser, removeSeenStoriesUserData } from "../../lib/stories";
 import { setFavoritesUser, removeFavoritesUserData } from "../../lib/hooks/useFavorites";
 import { removeStoryArchiveUserData } from "../../lib/utils/storyArchivePref";
@@ -35,6 +36,8 @@ function clearAccountLocalState(): void {
     // 投稿画面の書きかけ（写真の**原本**ごと。位置情報も入っている）。
     // 残すと、同じ端末で次にログインした**別の人**の投稿画面に戻ってしまう
     void forgetUploadDraftOnSignOut();
+    // 意見箱の書きかけ（人ごとの鍵・札 journey.photo-ios#546）。次にログインした別の人に見せない
+    forgetFeedbackDrafts();
     // プッシュの宛先を覚えた印。**サーバーへは送らない**（ログアウトは
     // `unregisterPushToken` が外し、退会は `deleteAccount` が消す）。
     // 残すと、次にこの端末でログインした人の `registerPushToken` が

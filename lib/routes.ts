@@ -118,6 +118,11 @@ export const ROUTES = {
      * 画面が日付のファイルから読むので、HTML は空の殻（`app/q/layout.tsx`）
      */
     QUIZ: "/q",
+    /**
+     * 撮影スポットを払う（写真を右へ払うと行きたい・2026-11-11）。**検索に出す**（題と説明を持つ静的な頁・
+     * 札の山は `/app/data/swipe.json`）。未ログインでも払える。入口はホームの上段の札の1枚目
+     */
+    SWIPE: "/swipe",
     /** 写真とカメラの教科書（記事の一覧）。記事の台帳は `lib/data/learn/articles.ts` */
     LEARN: "/learn",
     LEARN_CAMERA_BASICS: "/learn/camera-basics",
@@ -129,6 +134,11 @@ export const ROUTES = {
     TODAY_PREF: (pref: string) => `/today/${encodeURIComponent(pref)}`,
     PRIVACY: "/privacy",
     TERMS: "/terms",
+    /**
+     * 意見を送る（札 #546・2026-11-11）。ログインしていなくても送れる。入口はフッターと設定。
+     * `?from=` でどこから来たかを渡す（`footer` | `settings`）。検索結果には出さない（`appPageMetadata`）
+     */
+    FEEDBACK: (from?: "footer" | "settings") => (from ? `/feedback?from=${from}` : "/feedback"),
     ADMIN: "/admin",
     LOGIN: "/login",
     SIGNUP: "/signup",

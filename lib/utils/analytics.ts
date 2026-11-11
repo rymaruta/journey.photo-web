@@ -46,7 +46,8 @@ export const COUNT_MAX = 10000;
 const ITEM_ID = "item_id" as const;
 export const ITEM_ID_PATTERN = /^[A-Za-z0-9_-]{1,80}$/;
 
-export const SIGNUP_FROM = ["wish", "other"] as const;
+/** `swipe` は撮影スポットを払う画面から（2026-11-11・`via=swipe`） */
+export const SIGNUP_FROM = ["wish", "swipe", "other"] as const;
 export const SIGNUP_ERROR_REASONS = [
     "password_mismatch", "password_short", "password_rule", "invalid_input",
     "already_registered", "code_mismatch", "code_expired", "alias_exists",
@@ -234,6 +235,10 @@ export function uploadErrorReason(err: unknown): UploadErrorReason {
  * ログイン画面が新規登録へのリンクに運ぶ。それ以外は `other`
  */
 export const WISH_VIA = "wish";
+/** 撮影スポットを払う画面（`/swipe`）の挟む札・足元から来た（2026-11-11） */
+export const SWIPE_VIA = "swipe";
 export function signupFromVia(via: string | null | undefined): SignupFrom {
-    return via === WISH_VIA ? "wish" : "other";
+    if (via === WISH_VIA) return "wish";
+    if (via === SWIPE_VIA) return "swipe";
+    return "other";
 }
