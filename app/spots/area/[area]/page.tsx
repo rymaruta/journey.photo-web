@@ -7,7 +7,7 @@ import { withPlaceholderParam } from "@/lib/server/staticParams";
 import { siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
 import SpotTopicPage from "@/app/components/SpotTopicPage";
 import { TopicChips, Lang } from "@/app/components/SpotTopicLists";
-import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta, cityLinksForPrefecture } from "@/lib/data/spotTopics";
+import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta, cityLinksForPrefecture, areaIntro } from "@/lib/data/spotTopics";
 import { OVERSEAS_SLUG } from "@/lib/data/prefectures";
 import TopicFold from "@/app/components/TopicFold";
 
@@ -104,7 +104,8 @@ export default async function SpotAreaPage({ params }: { params: Promise<{ area:
     const found = spotAreas().find((a) => a.slug === area);
     // パンくずと並べたスポットの `ItemList`（2026-10-16・切り口の頁と同じ形。県の頁だけ無かった）
     const cityLinks = found ? cityLinksForPrefecture(found.slug) : [];
-    const ld = found ? areaStructuredData(found, visibleSpotsInArea(found.slug)) : null;
+    const inArea = found ? visibleSpotsInArea(found.slug) : [];
+    const ld = found ? areaStructuredData(found, inArea) : null;
     return (
         <>
             {ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld.breadcrumb) }} />}
@@ -114,6 +115,8 @@ export default async function SpotAreaPage({ params }: { params: Promise<{ area:
             <SpotIndexClient
                 spots={spotIndexItemsForArea(area)}
                 area={found ? { name: found.name, nameEn: found.nameEn } : undefined}
+                // その県の台帳から数えた事実の導入文（2026-11-11・#527）
+                intro={found ? areaIntro(inArea) : undefined}
             >
                 {/* 市区町村でさがす（2026-11-05・5件以上の市区町村の頁。HTML の本文に出るのでクロールの入口になる）。
                     2026-11-10 案A: 文字の札は開け閉めの段に畳む（リンクは HTML に全部残る・URL は変えない） */}
