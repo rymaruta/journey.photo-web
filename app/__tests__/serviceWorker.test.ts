@@ -428,16 +428,17 @@ describe("控えの上限", () => {
     it("資産にも上限がある（ページとは別枠で数える）", async () => {
         const cache = await installed();
         fetchMock.mockResolvedValue(new Response("chunk", { status: 200 }));
-        await getAssets(155);
+        await getAssets(205);
 
         const { assets } = await countKinds(cache);
         // **上からだけでなく、値そのものを挟む。**
-        // `toBeLessThanOrEqual(150)` だけだと、上限を 20 に下げても緑になる
+        // `toBeLessThanOrEqual(200)` だけだと、上限を 20 に下げても緑になる
         // ——20 は「1ページ開くだけで自分のチャンクを追い出す」水準で、
         // オフラインの目的が崩れる。直したい方向の回帰を捕まえない形だった
-        expect(assets.length, "資産の上限が変わった（下げると同じ版どうしで追い出し合う）").toBe(150);
+        // 2026-11-11: 150 → 200（2デプロイ 78 × 2 = 156 が収まる・`public/sw.js` の注記）
+        expect(assets.length, "資産の上限が変わった（下げると同じ版どうしで追い出し合う）").toBe(200);
         const urls = (await cache.keys()).map((k) => k.url);
-        expect(urls.some((u) => u.endsWith("/chunks/c154.js"))).toBe(true);
+        expect(urls.some((u) => u.endsWith("/chunks/c204.js"))).toBe(true);
         expect(urls.some((u) => u.endsWith("/chunks/c0.js"))).toBe(false);
     });
 
