@@ -265,16 +265,18 @@ describe("プロフィールの読み取りは1人ずつ見張る", () => {
             .mockResolvedValueOnce(withItem({ bio: "旅の写真を撮っています" }));
         await freshDisplayNames(ddb, [photo("p1", "u1"), photo("p2", "u2")]);
         const { profiles, readFailures } = lastPublicProfiles();
-        expect(Object.keys(profiles), "読めた人まで落としている").toEqual(["u2"]);
+        // 読めなかった u1 は「検索エンジンに出さない」だけを持つ（#526・選んだ人の頁を載せない）
+        expect(Object.keys(profiles).sort(), "読めた人まで落としている").toEqual(["u1", "u2"]);
+        expect(profiles.u1).toEqual({ searchHidden: true });
         expect(profiles.u2.bio).toBe("旅の写真を撮っています");
         expect(readFailures).toBe(1);
     });
 
-    it("全員読めなければ 0人・失敗の人数が残る", async () => {
+    it("全員読めなければ、全員が出さない扱い・失敗の人数が残る", async () => {
         mockSend.mockRejectedValue(new Error("throughput exceeded"));
         await freshDisplayNames(ddb, [photo("p1", "u1")]);
         const { profiles, readFailures } = lastPublicProfiles();
-        expect(Object.keys(profiles)).toEqual([]);
+        expect(profiles).toEqual({ u1: { searchHidden: true } });
         expect(readFailures, "読めなかったことが残っていない（0人と区別が付かない）").toBe(1);
     });
 
@@ -328,3 +330,27 @@ describe("プロフィールを書き出したときに出す行", () => {
     });
 });
 
+
+// 2026-11-11 owner 承認・journey.photo-ios#526: 検索エンジンにプロフィールを表示しない
+describe("profiles.json の searchHidden", () => {
+    beforeEach(() => { mockSend.mockReset(); process.env.USERS_TABLE = "users-test"; });
+
+    it("true の人だけ searchHidden を載せ、射影にも入れる", async () => {
+        mockSend.mockImplementation(async (cmd: { input: { Key: { userId: string } } }) => ({
+            Item: cmd.input.Key.userId === "u1"
+                ? { displayName: "隠す人", searchHidden: true }
+                : { displayName: "出す人", bio: "自己紹介です", searchHidden: false },
+        }));
+        await freshDisplayNames(ddb, [photo("p1", "u1"), photo("p2", "u2")]);
+        const { profiles } = lastPublicProfiles();
+        expect(profiles.u1).toEqual({ searchHidden: true });
+        expect(profiles.u2).not.toHaveProperty("searchHidden");
+        expect(mockSend.mock.calls[0][0].input.ProjectionExpression).toContain("searchHidden");
+    });
+
+    it("読めなかった人は出さない側に倒す（選んだ人の頁を載せない）", async () => {
+        mockSend.mockRejectedValue(new Error("throttled"));
+        await freshDisplayNames(ddb, [photo("p1", "u1")]);
+        expect(lastPublicProfiles().profiles.u1).toEqual({ searchHidden: true });
+    });
+});

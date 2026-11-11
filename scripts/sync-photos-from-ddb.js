@@ -339,7 +339,8 @@ function profileWriteNotes(outputPath, profiles, readFailures) {
     if (readFailures > 0) {
         lines.push(`[sync] ⚠️ ${readFailures}人ぶんのプロフィールを読めませんでした。`
             + "このビルドでは その人の 自己紹介・website・Instagram が出ません"
-            + "（プロフィールの説明文も組み立て文に落ちます）。次のビルドで戻ります。");
+            + "（プロフィールの説明文も組み立て文に落ちます）。"
+            + "その人のプロフィールは検索エンジンに出さない扱いにします（noindex）。次のビルドで戻ります。");
     }
     return lines;
 }
@@ -360,6 +361,10 @@ function publicProfileFields(item) {
         const v = item?.[k];
         if (typeof v === "string" && v.trim()) out[k] = v.trim();
     }
+    // 検索エンジンにプロフィールを表示しない（2026-11-11 owner 承認・journey.photo-ios#526）。
+    // **true のときだけ載せる**（無い＝表示する）。`/users/<id>` を noindex にし、
+    // sitemap から外し、構造化データを出さないために読む
+    if (item?.searchHidden === true) out.searchHidden = true;
     return out;
 }
 
@@ -402,7 +407,7 @@ async function freshDisplayNames(ddb, photos) {
             const res = await ddb.send(new GetCommand({
                 TableName: usersTable,
                 Key: { userId },
-                ProjectionExpression: "displayName, deletedAt, bio, website, instagram, username",
+                ProjectionExpression: "displayName, deletedAt, bio, website, instagram, username, searchHidden",
             }));
             const item = res.Item;
             // 退会した人の名前は入れ直さない（写真側の値もそのまま残す。
@@ -415,6 +420,10 @@ async function freshDisplayNames(ddb, photos) {
             // **写真の同期は止めない。** ここで落とすとビルドごと止まる
             // （消した写真のページが残る方が悪い）
             failures++;
+            // **読めなかった人は、検索エンジンに出さない側に倒す**（#526）。
+            // 「表示しない」を選んだ人かどうか分からないまま索引に載せると、
+            // 選んだ人の頁が載る。noindex は次のビルドで戻る（載せる側の誤りは戻せない）
+            profiles.set(userId, { searchHidden: true });
             console.warn(`[sync] ${userId} のプロフィールを読めませんでした:`, err.message ?? err);
         }
     }

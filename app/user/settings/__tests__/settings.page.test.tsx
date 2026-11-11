@@ -18,6 +18,8 @@ const mockAuth = vi.hoisted(() => ({ value: { isAuthenticated: true, loading: fa
 
 // ブロック一覧は別のテスト（`BlockedUsers.test.tsx`）が見る
 vi.mock("../BlockedUsers", () => ({ default: () => null }));
+// 検索エンジンの入切は `SearchHiddenSetting.test.tsx` が見る。ここでは置き場所だけ（印を出す）
+vi.mock("../SearchHiddenSetting", () => ({ default: () => <div data-testid="search-hidden-inline" /> }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: mockReplace }) }));
 vi.mock("../../../auth/context", () => ({ useAuth: () => mockAuth.value }));
 vi.mock("../../../i18n/context", () => ({ useLocale: () => ({ locale: "ja" }) }));
@@ -76,6 +78,13 @@ describe("設定の骨格", () => {
     ])("中身の無い節を置かない: %s（%s）", async (_name, pattern) => {
         await open();
         expect(screen.queryByText(pattern), "操作できない項目が並んでいる").toBeNull();
+    });
+
+    // 2026-11-11 owner 承認（journey.photo-ios#526）: 「プライバシー」の節に置く
+    it("「検索エンジンにプロフィールを表示しない」は プライバシー の節にある", async () => {
+        await open();
+        const section = screen.getByTestId("search-hidden-inline").closest("section");
+        expect(section?.querySelector("h2")?.textContent).toBe("プライバシー");
     });
 
     it("在るものへは繋ぐ（プライバシーポリシー・利用規約・お問い合わせ）", async () => {

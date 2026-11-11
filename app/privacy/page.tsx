@@ -23,7 +23,7 @@ import { siteConfig, shareOgImage } from "@/lib/utils/seo";
 // 11節のログの保存期間（90日）は `api/serverless.yml`・`api-user/serverless.yml` の
 // `logRetentionInDays`（photo-gallery #397）。Lambda@Edge（OGP）のログは CloudFormation の外で
 // 期限が付いていないので、「全部が90日」とは書かない（`scripts/__tests__/logRetention.test.ts` の注記）。
-const LAST_UPDATED = "2026年11月9日";
+const LAST_UPDATED = "2026年11月11日";
 
 export const metadata: Metadata = {
     // サイト名は `app/layout.tsx` の `template` が付ける。ここでも足すと
@@ -160,6 +160,12 @@ export default function PrivacyPage() {
                         ログインしている方は、あなたのフォロー中・フォロワーの一覧と、旅のトランク（「5. 機能ごとの情報の扱い」）を見ることができます。
                         居住地は自由入力のプロフィール項目で、撮影地の集約ページや地図には使いません。
                         光と天気の知らせを受け取るかどうかの設定は公開しません。
+                    </p>
+                    <p>
+                        公開プロフィールと公開した写真は、Google などの検索エンジンの検索結果に表示されることがあります。
+                        設定の「検索エンジンにプロフィールを表示しない」をオンにすると、プロフィールの頁を検索エンジンに表示しないよう求めます
+                        （反映はサイトの更新のあとで、検索エンジン側の結果から消えるまでには時間がかかることがあります。写真ごとの公開の設定は変わりません）。
+                        この設定は公開しません。
                     </p>
                 </Section>
 
