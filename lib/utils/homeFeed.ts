@@ -109,15 +109,21 @@ export function mixFresh<T extends Photo>(ordered: readonly T[], now: Date = new
  */
 export function firstPostPhotoIds(photos: readonly Photo[], now: Date = new Date()): Set<string> {
     const oldest = new Map<string, { at: number; photo: Photo }>();
+    // 🔴 **`createdAt` の読めない写真を持つ人には印を付けない**（安全側・札 #537 の確かめ役・iOS と同じ）。
+    // 読めない写真のほうが古いかもしれず、前から載せている人に「はじめて」と付けてしまう
+    const unreadable = new Set<string>();
     for (const p of photos) {
         const owner = p.userId || p.uploadedBy || "";
+        if (!owner) continue;
         const at = postedAt(p);
-        if (!owner || at === null) continue;
+        if (at === null) { unreadable.add(owner); continue; }
         const current = oldest.get(owner);
         if (current && (current.at < at || (current.at === at && String(current.photo.id) <= String(p.id)))) continue;
         oldest.set(owner, { at, photo: p });
     }
-    const keys = new Set([...oldest.values()].filter((o) => isFresh(o.photo, now)).map((o) => groupKey(o.photo)));
+    const keys = new Set([...oldest.entries()]
+        .filter(([owner, o]) => !unreadable.has(owner) && isFresh(o.photo, now))
+        .map(([, o]) => groupKey(o.photo)));
     if (keys.size === 0) return new Set();
     return new Set(photos.filter((p) => keys.has(groupKey(p))).map((p) => String(p.id)));
 }

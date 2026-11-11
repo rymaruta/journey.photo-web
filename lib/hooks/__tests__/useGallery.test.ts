@@ -1059,3 +1059,33 @@ describe("useGallery: URL のハッシュ（#pref=…）を消さない", () => 
     });
 });
 
+// 🔴 **おすすめに新しい投稿を混ぜるのは、絞り込みの後**（札 journey.photo-ios#537 の確かめ役・2026-11-11・iOS の
+// `HomeFeedPageMemo.make` と同じ順・同じ入力と答え）。ブロックした人の写真は `usePhotos` が先に落とすので、ここには来ない
+// （iOS の試験の「bad」の写真 D・Z を除いた一覧）。絞る前に混ぜると、落ちた写真の分だけ枠がずれる
+describe("おすすめに新しい投稿を混ぜる（絞った後）", () => {
+    it("カテゴリで絞った後でも、新しい投稿が 2・5・8 番目に来る", () => {
+        vi.useFakeTimers({ toFake: ["Date"] });
+        vi.setSystemTime(new Date("2026-11-11T12:00:00.000Z"));
+        try {
+            const p = (id: string, likes: number, createdAt: string, userId: string, category = "y") =>
+                ({ id, src: `${id}.jpg`, title: id, likes, createdAt, userId, category, tags: [] }) as unknown as Photo;
+            const photos = [
+                p("A", 5, "2026-01-20T00:00:00.000Z", "u1", "x"),
+                p("B", 4, "2026-02-01T00:00:00.000Z", "u1"),
+                p("C", 3, "2026-03-01T00:00:00.000Z", "u1"),
+                p("E", 1, "2026-05-01T00:00:00.000Z", "u2"),
+                p("F", 1, "2026-06-01T00:00:00.000Z", "u2"),
+                p("G", 1, "2026-07-01T00:00:00.000Z", "u1"),
+                p("H", 0, "2026-08-01T00:00:00.000Z", "u1"),
+                p("N1", 0, "2026-11-11T06:00:00.000Z", "u3"),
+                p("N2", 0, "2026-11-11T00:00:00.000Z", "u4"),
+                p("N3", 0, "2026-11-10T00:00:00.000Z", "u5"),
+            ];
+            const { result } = renderHook(() => useGallery(photos));
+            act(() => { result.current.setFilters({ scope: "featured", category: "y" }); });
+            expect(result.current.filteredPhotos.map((x) => x.id)).toEqual(["B", "N1", "C", "G", "N2", "F", "E", "N3", "H"]);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+});

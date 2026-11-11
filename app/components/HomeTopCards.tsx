@@ -29,7 +29,7 @@ import Thumb from "./Thumb";
  *
  * **2026-10-31 iOS #422（#417 ③）に合わせ直した**: 札の背はどれも 116、題・一行・出典は1行ずつ（出典は
  * 真ん中を省き、末尾のライセンス名を残す）。今日のテーマの「参加する →」は題の右の小さいボタン（見た目 36・当たり 44）、
- * 今日もう参加した日は押せない「✓ 参加済み」（`hasJoinedTheme`）。
+ * 今週もう参加した週は押せない「✓ 参加済み」（`hasJoinedTheme`・前は今日のテーマで「今日もう参加した日」）。
  *
  * **電話の幅は横にめくる**（左右 16・次の札を 24 見せる・1 枚ずつ止まる）。**PC（1024 以上）は 4 枚を並べる**
  * （PC の幅の決まり W4: めくらずに並べる）。背はいちばん高い札にそろえる。
@@ -81,7 +81,7 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
         return hits.sort((a, b) => (Number(b.likes) || 0) - (Number(a.likes) || 0))[0] ?? null;
     }, [photos, theme, participants]);
 
-    // 今週もう参加したか（自分の写真のうち、今日投稿したテーマのタグの1枚）。描くのは載ったあと（端末の日付）
+    // 今週もう参加したか（自分の写真のうち、今週＝日本の時刻の月曜からお題のタグで投稿した1枚）。描くのは載ったあと（その時の日付）
     const joined = React.useMemo(() => !!theme && !!userId
         && hasJoinedTheme(theme, photos.filter((p) => p.userId === userId), tagKey), [theme, userId, photos]);
 
@@ -244,8 +244,9 @@ function ThemeCard({ theme, photo, en, joined, participants }: {
                 {theme && participants.length > 0 ? (
                     <Link href={`${ROUTES.SEARCH}?tags=${encodeURIComponent(theme.tag)}`} prefetch={false}
                           data-testid="home-theme-participants"
-                          // 見た目は 24 の行、当たりは上下 10 ずつ広げて 44
-                          className="relative flex items-center gap-1 min-w-0 self-start text-text-2 before:absolute before:inset-x-0 before:-inset-y-[10px] before:content-[''] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded"
+                          // 見た目は 24 の行、当たりは**下だけ** 20 広げて 44。上は広げない——上の「参加する」の当たり
+                          // （見た目 36 の下に 4）が行の間 4 を埋めて、ちょうどこの行の上端まで来ている（重ねない・札 #537 の確かめ役）
+                          className="relative flex items-center gap-1 min-w-0 self-start text-text-2 before:absolute before:inset-x-0 before:top-0 before:-bottom-[20px] before:content-[''] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded"
                           style={{ height: 24, touchAction: "manipulation" }}>
                         <span className="sr-only">{en ? "Everyone's posts, " : "みんなの参加、"}</span>
                         {participants.slice(0, 4).map((p) => (

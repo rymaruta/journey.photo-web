@@ -227,8 +227,26 @@ describe("今週のお題の参加済み・みんなの参加（iOS の `WeeklyT
         expect(row.getAttribute("href")).toBe(`/search?tags=${encodeURIComponent(tag)}`);
         expect(row.textContent).toContain("今週 1件の投稿");
         expect(row.textContent).toContain("みんなの参加");
-        // 見た目 24・当たりは上下 10 ずつ広げて 44
+        // 見た目 24・当たりは下だけ 20 広げて 44（上は「参加する」の当たり〈下に 4〉と行の間 4 で接するので広げない）
         expect(row.style.height).toBe("24px");
-        expect(row.className).toContain("before:-inset-y-[10px]");
+        expect(row.className).toContain("before:top-0");
+        expect(row.className).toContain("before:-bottom-[20px]");
+        expect(row.className).not.toContain("-inset-y-");
+        const join = screen.queryByTestId("home-theme-entry");
+        if (join) expect(join.className).toContain("before:-inset-y-[4px]");
+    });
+});
+
+// 🔴 **ホームの写真の並びに「はじめての投稿」の印を渡す**（札 journey.photo-ios#537 の確かめ役）。
+// `GalleryPageClient` が `HomeMosaic` に印の写真を渡し忘れると、印の部品は試験が通っても画面には出ない
+describe("ホームの写真のはじめての投稿の印", () => {
+    it("持ち主の公開の 1 枚目が 72 時間以内なら、その写真に印が出る", async () => {
+        photosState.current = [
+            { id: "first", src: "https://cdn/f.jpg", userId: "newbie", tags: [], createdAt: new Date(Date.now() - 3_600_000).toISOString(), date: "2026-11-11" },
+            { id: "old", src: "https://cdn/o.jpg", userId: "regular", tags: [], createdAt: "2026-01-01T00:00:00.000Z", date: "2026-01-01" },
+        ];
+        render(<ToastProvider><GalleryPageClient /></ToastProvider>);
+        await waitFor(() => expect(document.querySelector('[data-photo-id="first"] [data-testid="home-first-post"]')).not.toBeNull());
+        expect(document.querySelector('[data-photo-id="old"] [data-testid="home-first-post"]')).toBeNull();
     });
 });
