@@ -66,7 +66,7 @@ describe("スポットの頁の事実の段", () => {
         expect(access.textContent).toContain("電車");
         expect(access.textContent).toContain("例の駅から東へ歩いて5分");
         expect(access.textContent).toContain("参拝者用の駐車場あり");
-        expect(screen.getByTestId("spot-visit-access-sources").textContent).toContain("（公式サイトより・11月11日確認）");
+        expect(screen.getByTestId("spot-visit-access-sources").textContent).toContain("（公式サイトより・2026年11月11日確認）");
 
         const hours = screen.getByTestId("spot-hours");
         expect(hours.textContent).toContain("8時30分から17時");
@@ -79,11 +79,18 @@ describe("スポットの頁の事実の段", () => {
         expect(within(screen.getByTestId("spot-photo-rules-sources")).getByRole("link").getAttribute("href")).toBe(R.url);
     });
 
-    it("公式の頁に書いていない道具は「公式サイトに記載なし」（可否を推さない）。ドローンの法律の注意は出す", () => {
+    it("公式の頁に書いていない道具は行ごと出さない（可否を推さず、「記載なし」とも言わない）。ドローンの法律の注意は出す", () => {
         view(FACTS);
-        expect(screen.getByTestId("photo-rule-tripod").textContent).toContain("公式サイトに記載なし");
-        expect(screen.getByTestId("photo-rule-selfieStick").textContent).toContain("公式サイトに記載なし");
+        expect(screen.queryByTestId("photo-rule-tripod")).toBeNull();
+        expect(screen.queryByTestId("photo-rule-selfieStick")).toBeNull();
+        expect(screen.getByTestId("spot-photo-rules").textContent).not.toContain("記載なし");
         expect(screen.getByTestId("photo-rule-drone-law").textContent).toContain("小型無人機等飛行禁止法");
+    });
+
+    it("道具の決まりが無く注記だけでも、段は出る（道具の行は無し）", () => {
+        view({ ...FACTS, photoRules: { notes: [{ ...R, text: "本堂の中は撮影禁止" }] } });
+        expect(screen.getByTestId("spot-photo-rules").textContent).toContain("本堂の中は撮影禁止");
+        expect(screen.queryByTestId("photo-rule-drone")).toBeNull();
     });
 
     it("事実が無ければ段を出さない", () => {

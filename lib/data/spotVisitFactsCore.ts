@@ -18,7 +18,8 @@
 //
 // 🔴 **出典の無い事実は描かない。** 読み込みの側で、URL（https）・題・読んだ日の揃わない行を落とす
 // （`visitFactsFor`）。台帳の試験（`spotVisitFacts.test.ts`）は、そういう行がファイルに在るだけで落ちる。
-// 三脚・自撮り棒・ドローンは、公式の頁に書いていなければ**書かない**（画面は「公式サイトに記載なし」）。
+// 三脚・自撮り棒・ドローンは、公式の頁に書いていなければ**書かない**（画面にもその道具の行を出さない。
+// 読んだ頁に無いことは、サイト全体に無いことではない・確かめ役の指摘 2026-11-11）。
 // 可否を推して埋めない。
 
 
@@ -36,6 +37,11 @@ export type VisitFactSource = {
 export type VisitFactRow = VisitFactSource & {
     /** 画面に出す文（公式の頁の写しではなく、自分の言葉で短く） */
     text: string;
+    /**
+     * この日（ISO の日付）を過ぎたら出さない。**年の決まった事実だけ**に付ける
+     * （「2026年の紅葉まつりは11月14日〜29日」など）。判定はビルドの日（`cleanVisitFacts` の `today`）
+     */
+    validUntil?: string;
 };
 
 /** 撮影の決まりの可否。**公式の頁に書いてあるときだけ** */
@@ -53,7 +59,7 @@ export type VisitHoursRow = VisitFactRow & {
 export type SpotVisitFacts = {
     /** 調べを任せた人（owner）。**AI の名前は書かない** */
     delegatedBy: string;
-    /** 読んだ頁の全部。「記載なし」はこの頁に書いていなかったという意味 */
+    /** 読んだ頁の全部（事実の出典はこの中の頁でなければならない） */
     readPages: VisitFactSource[];
     /** 見頃（桜・紅葉・雪など、その場所に当てはまるものだけ） */
     bestSeasons?: Array<VisitFactRow & { subject: string }>;
@@ -88,11 +94,12 @@ export function hasSource(row: Partial<VisitFactSource> | null | undefined): row
         && typeof row!.readAt === "string" && ISO_DATE.test(row!.readAt);
 }
 
-const okRow = <T extends Partial<VisitFactRow>>(r: T | null | undefined): r is T & VisitFactRow =>
-    hasSource(r) && typeof r!.text === "string" && r!.text.trim().length > 0;
+/** 今日（ISO の日付・UTC）。ビルドの日に決まる */
+export const todayIso = (): string => new Date().toISOString().slice(0, 10);
 
-const okRule = (r: PhotoRule | undefined): PhotoRule | undefined =>
-    okRow(r) && (r.status === "allowed" || r.status === "prohibited" || r.status === "conditional") ? r : undefined;
+/** 期限（`validUntil`）を過ぎた行か */
+export const expired = (r: Partial<VisitFactRow> | null | undefined, today: string): boolean =>
+    Boolean(r && typeof r.validUntil === "string" && r.validUntil < today);
 
 const nonEmpty = <T,>(xs: T[] | undefined): T[] | undefined => (xs && xs.length > 0 ? xs : undefined);
 
@@ -102,7 +109,11 @@ const nonEmpty = <T,>(xs: T[] | undefined): T[] | undefined => (xs && xs.length 
  * ファイルは試験が見張るが、ここでも落とす（二重の守り）——出典の無い事実が画面に出るのは、
  * 誰も気づかない壊れ方なので
  */
-export function cleanVisitFacts(f: SpotVisitFacts | null | undefined): SpotVisitFacts | null {
+export function cleanVisitFacts(f: SpotVisitFacts | null | undefined, today: string = todayIso()): SpotVisitFacts | null {
+    const okRow = <T extends Partial<VisitFactRow>>(r: T | null | undefined): r is T & VisitFactRow =>
+        hasSource(r) && typeof r!.text === "string" && r!.text.trim().length > 0 && !expired(r, today);
+    const okRule = (r: PhotoRule | undefined): PhotoRule | undefined =>
+        okRow(r) && (r.status === "allowed" || r.status === "prohibited" || r.status === "conditional") ? r : undefined;
     if (!f || typeof f.delegatedBy !== "string" || !f.delegatedBy.trim()) return null;
     const rules = f.photoRules;
     const photoRules = rules ? {
@@ -170,6 +181,8 @@ export function visitFactProblems(file: FactsFile, today: string): string[] {
             if (!hasSource(r)) { out.push(`${slug}.${field}: 出典（https の URL・題・読んだ日）が無い「${r?.text ?? ""}」`); continue; }
             if (!(r as Partial<VisitFactRow>).text?.trim()) out.push(`${slug}.${field}: 文が空`);
             if (r.readAt > today) out.push(`${slug}.${field}: 読んだ日が未来 ${r.readAt}`);
+            const until = (r as Partial<VisitFactRow>).validUntil;
+            if (until !== undefined && !ISO_DATE.test(until)) out.push(`${slug}.${field}: validUntil の形 ${until}`);
             if (!read.has(r.url)) out.push(`${slug}.${field}: readPages に無い頁 ${r.url}`);
             const host = new URL(r.url).host;
             if (NOT_OFFICIAL_HOSTS.some((h) => host.includes(h))) out.push(`${slug}.${field}: 公式でない頁 ${host}`);
