@@ -4,7 +4,6 @@ import { randomUUID } from "crypto";
 import { ddb, PHOTOS_TABLE, USER_INDEX, STORY_INDEX, STORY_FEED_KEY } from "./dynamodb";
 import { JSON_HEADERS, getUserId, jsonError, isAdmin } from "./http";
 import { displayNameOf, DEFAULT_NAME, deletedAmong, withUnreadAsDeleted, DELETED_USER_NAME, pushNotification } from "./notify";
-import { mediaKeys, deriveUploadKey } from "./mediaKeys";
 import { isOwnUploadUrlFromEnv as isOwnUploadUrl, keyFromUploadUrl, canonicalUploadUrl } from "./uploadPolicy";
 import { s3DeleteMany } from "./s3Delete";
 import { invalidateUploads } from "./cdnInvalidate";
@@ -22,6 +21,7 @@ import { resolveStoryMentions, maskDeletedMentions } from "./storyMentions";
 
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
+import { sharesKeptMedia, storyOwnMediaKeys } from "./storyKeptMedia";
 
 // バケット名の検証と S3 の削除は `s3Delete.ts` に寄せた（未設定なら
 // そちらの読み込みで止まる）。
@@ -29,15 +29,8 @@ const STORY_TTL_MS = 24 * 60 * 60 * 1000; // 24時間
 const STORY_DAILY_LIMIT = 20; // 1ユーザーが24時間に投稿できるストーリー数
 const STORY_DEFAULT_DURATION_SEC = 5; // 画像ストーリーの既定表示秒数（この値なら保存しない）
 
-// ストーリーレコードから S3 オブジェクトキーを導出する
-// （key フィールド優先、無ければ src の URL パスから）
-function deriveStoryKey(item: Record<string, unknown>): string {
-    // 判定は mediaKeys の deriveUploadKey に寄せる（デコードしてから見る）。
-    // ここだけ生のパスで見ていると、保存時の検証と食い違って
-    // 「作れるが消せない」オブジェクトができる。
-    if (typeof item.key === "string" && item.key) return deriveUploadKey(item.key);
-    return deriveUploadKey(item.src);
-}
+// ストーリーレコードから S3 オブジェクトキーを導出するのは `storyKeptMedia.ts` の
+// `storyOwnMediaKeys`（写真を消すときに元のストーリーも消す `photoUpdate.ts` と共有・2026-11-11）
 
 /**
  * ストーリー削除時に消すべき S3 キー。
@@ -55,11 +48,10 @@ function storyMediaKeys(item: Record<string, unknown>): string[] {
     // 個別ページにも壊れた枠が並ぶ。
     // 消すのは行だけ＝**24時間で消える約束は守られる**（残るのは本人が
     // 選んだ1枚で、それは「ストーリー」ではなく「写真」になっている）。
-    if (typeof item.keptAs === "string" && item.keptAs) return [];
-    const keys = new Set(mediaKeys(item));
-    const primary = deriveStoryKey(item);
-    if (primary) keys.add(primary);
-    return [...keys];
+    // **写して切り離したとき（`keptCopy`・自分用に残すストーリー）は共有していない**ので、
+    // ストーリーの画像は消す——写真は自分の画像（`kept-…`）を持つ（`storyKeptMedia.ts`）
+    if (sharesKeptMedia(item)) return [];
+    return storyOwnMediaKeys(item);
 }
 
 // 過去24時間にこのユーザーが投稿したストーリー数を数える（レート制限用）
@@ -191,6 +183,7 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
                 // 「残した」印も本人だけ。画面は `isOwnStory` で守っているが、
                 // 応答に出す理由が無い（`viewers` と同じ扱い）
                 delete item.keptAs;
+                delete item.keptCopy;
                 // 「アーカイブに自動保存」の印も同じ——見る人に「この投稿は
                 // 24時間後も本人の手元に残る」と知らせる理由が無い
                 delete item.archive;
@@ -815,7 +808,8 @@ export const deleteStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         // **同じものを二度作らない。** 管理APIの写真削除
         // （`api/src/photosMutate.ts`）は上を全部やったうえで、`keptFrom` の
         // ストーリーと返信の文書まで消す。そちらを1回叩けば済む。
-        const keptPhotoId = typeof item.keptAs === "string" ? item.keptAs : "";
+        // 写して切り離した（`keptCopy`）なら共有していないので、管理者もそのまま消せる
+        const keptPhotoId = sharesKeptMedia(item) ? String(item.keptAs) : "";
         if (keptPhotoId && item.userId !== callerId) {
             // 印が死んだIDを指している場合まで断ると、管理者が**何もできなく
             // なる**。実在を確かめてから断る（この枝は管理者の削除だけ）。
