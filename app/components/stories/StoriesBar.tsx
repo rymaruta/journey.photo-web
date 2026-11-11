@@ -18,6 +18,7 @@ import { useSongSearch } from "../../../lib/hooks/useSongSearch";
 import { type SongResult } from "../../../lib/utils/music";
 import { startFromPointer, clampStart } from "../../../lib/utils/songTrim";
 import { log } from "../../../lib/utils/log";
+import { readStoryArchive, writeStoryArchive } from "../../../lib/utils/storyArchivePref";
 import {
     groupStories, hasUnseen, loadSeenStoryIds, markStorySeen, isSeenStoriesKey,
     type Story, type StoryGroup,
@@ -523,7 +524,8 @@ export default function StoriesBar() {
      */
     const [showLocation, setShowLocation] = useState(true);
     /**
-     * アーカイブに自動保存。**既定は切**＝これまでどおり24時間で消える。
+     * アーカイブに自動保存。**2026-11-11 判断（owner「最初からオンでいい」・iOS とそろえる）:
+     * 既定は入、最後に選んだ値を人ごとに覚える**（`lib/utils/storyArchivePref.ts`）。
      * 入にしたぶんだけ、期限切れの掃除が消さずに棚へ移す（本人だけが
      * `/user/archive` で見られる）。「24時間で消える約束」を守るのはここ
      * ——残るのは本人が選んだぶんだけ。
@@ -531,7 +533,14 @@ export default function StoriesBar() {
      * 入にした投稿は「残す」（ギャラリーへ）を押せない（実体を共有する
      * ので、写真を消すとアーカイブごと消えるため。サーバーも 409）
      */
-    const [archive, setArchive] = useState(false);
+    const [archive, setArchive] = useState(() => readStoryArchive(userId));
+    // ログインの状態が後から分かる・人が替わったら、その人の値を読む
+    useEffect(() => { setArchive(readStoryArchive(userId)); }, [userId]);
+    /** 切り替えたら人ごとに覚える（2026-11-11 判断） */
+    const changeArchive = useCallback((keep: boolean) => {
+        setArchive(keep);
+        writeStoryArchive(userId, keep);
+    }, [userId]);
 
     // 試聴用オーディオ（検索結果も選択中の曲も、常に1つだけ鳴らす）
     const previewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -731,8 +740,10 @@ export default function StoriesBar() {
         // 同じ設定で出る（画面は閉じているので気づけない）
         setAllowReplies(true);
         setShowLocation(true);
-        setArchive(false);
-    }, [stopPreview, clearSongSearch]);
+        // 自動保存は**その人が最後に選んだ値**へ戻す（2026-11-11 判断・既定は入）。
+        // 本人が選んだ値なので「黙って同じ設定で出る」驚きにはならない
+        setArchive(readStoryArchive(userId));
+    }, [stopPreview, clearSongSearch, userId]);
 
     // 下書きのプレビューURLを必ず解放する。
     // 解放は closeDraft の中だけにあったので、✕ を押さずに離れたとき
@@ -2160,12 +2171,12 @@ export default function StoriesBar() {
                                 disabled={posting}
                             />
 
-                            {/* 既定は切（24時間で消える）。入にしたぶんだけ本人の
-                                アーカイブに残る。モックの「アーカイブに自動保存」 */}
+                            {/* 既定は入・最後に選んだ値を人ごとに覚える（2026-11-11 判断）。
+                                入にしたぶんだけ本人のアーカイブに残る。モックの「アーカイブに自動保存」 */}
                             <SettingSwitch
                                 label={locale === "en" ? "Save to archive" : "アーカイブに自動保存"}
                                 checked={archive}
-                                onChange={setArchive}
+                                onChange={changeArchive}
                                 disabled={posting}
                             />
 
