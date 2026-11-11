@@ -263,11 +263,12 @@ describe("撮影スポットの一覧の頁の字と節（束 2）", () => {
         expect(p.textContent).toMatch(/^撮影スポットの案内です（\d+件）。/);
     });
 
-    it("P1・P3・P5 県の頁: 題は明朝 32、戻り道は当たり 44", async () => {
+    it("P1・P3 県の頁: 題は明朝 32。頭の「← 撮影スポットをさがす」は出さない（2026-11-11 owner）", async () => {
         const el = await SpotAreaPage({ params: Promise.resolve({ area: "kyoto" }) });
         render(el);
         expect(screen.getByRole("heading", { level: 1 }).className).toContain("text-4xl");
-        expect(screen.getByTestId("spots-back").className).toContain("min-h-[44px]");
+        expect(screen.queryByTestId("spots-back")).toBeNull();
+        expect(screen.queryByText("← 撮影スポットをさがす")).toBeNull();
     });
 
     // 2026-11-10 案A: 季節・テーマなどの切り口は「ほかの切り口でさがす」の節の開け閉めの段に畳んだ
