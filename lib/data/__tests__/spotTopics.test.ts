@@ -735,7 +735,9 @@ describe("テーマの頁の題・説明・導入文（2026-11-11・#527 GSC: 8�
         expect(rome).toBeGreaterThanOrEqual(2);
         expect(d).toContain(`ローマ${rome}か所`);
         const seasonal = t.spots.filter((s) => (s.seasonalGuide ?? []).length > 0).length;
-        expect(d).toContain(`${seasonal}か所に季節ごとの撮影の案内`);
+        // 台帳に季節の案内が無い組では書かない（無いものを数えない）
+        if (seasonal > 0) expect(d).toContain(`${seasonal === t.spots.length ? "全か所" : `${seasonal}か所`}に季節ごとの撮影の案内`);
+        else expect(d).not.toContain("季節ごとの撮影の案内");
         // 以前の決まり文句
         expect(d).not.toMatch(/うち\d+件は季節ごとの撮影の案内があります|時間帯ごとの撮影の案内があるのは/);
         for (const x of views) {
@@ -762,7 +764,8 @@ describe("テーマの頁の題・説明・導入文（2026-11-11・#527 GSC: 8�
         const t = themes.find((x) => x.categorySlug === "churches" && x.place.slug === "it")!;
         const v = themeView("churches", "it")!;
         const autumn = t.spots.filter((s) => (s.seasonalGuide ?? []).some((g) => g.season === "autumn")).length;
-        expect(v.intro).toContain(`秋${autumn}件`);
+        if (autumn > 0) expect(v.intro).toContain(`秋${autumn}件`);
+        else expect(v.intro).not.toContain("秋0件");
         const heritage = t.spots.filter((s) => /世界遺産/.test(`${s.summary ?? ""}${s.description ?? ""}`)).length;
         if (heritage > 0) expect(v.intro).toContain(`「世界遺産」とあるのは${heritage}件`);
         const tips = t.spots.filter((s) => (s.compositionTips ?? []).length > 0).length;
