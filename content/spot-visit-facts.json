@@ -1172,7 +1172,8 @@
      "text": "2027年からは、城址めぐりの入山料が1人1,000円になると案内している",
      "url": "https://www.azuchi-nobunaga.com/archives/news/%e6%8b%9d%e8%a6%b3%e6%96%99%e6%94%b9%e5%ae%9a%e3%81%a8%e5%b1%b1%e5%86%85%e3%83%88%e3%82%a4%e3%83%ac%e6%96%b0%e8%a8%ad%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b",
      "title": "城址めぐり入山料改定と山内トイレ新設のお知らせ – 織田信長の安土城址と摠見寺",
-     "readAt": "2026-11-11"
+     "readAt": "2026-11-11",
+     "validUntil": "2026-12-31"
     }
    ]
   },
@@ -1960,7 +1961,7 @@
    ],
    "fees": [
     {
-     "text": "天守の入場料は大人1,200円、小・中学生400円",
+     "text": "天守の入場料は大人1,200円。小・中学生は無料（2026年7月1日の改定から）",
      "url": "https://www.matsue-castle.jp/userguide/index",
      "title": "料金・営業時間｜国宝 松江城ホームページ",
      "readAt": "2026-11-11"
@@ -3597,56 +3598,6 @@
     }
    }
   },
-  "showa-kinen-park": {
-   "delegatedBy": "rymaruta",
-   "readPages": [
-    {
-     "url": "https://www.showakinen-koen.jp/",
-     "title": "国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.showakinen-koen.jp/park-information/",
-     "title": "ご利用案内 – 国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.showakinen-koen.jp/flower-information/",
-     "title": "花・植物 – 国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.showakinen-koen.jp/access/",
-     "title": "アクセス – 国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.showakinen-koen.jp/park-information/schedule/",
-     "title": "開園時間・休園日 – 国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.showakinen-koen.jp/park-information/price/",
-     "title": "各種料金 – 国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.showakinen-koen.jp/park-information/facility-use-application/",
-     "title": "施設利用申込 – 国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.showakinen-koen.jp/problem/",
-     "title": "公園内で困った時 – 国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.showakinen-koen.jp/park-information/park-rules/",
-     "title": "公園ルールや持込禁止品 – 国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11"
-    }
-   ]
-  },
   "kamakura-daibutsu": {
    "delegatedBy": "rymaruta",
    "readPages": [
@@ -4503,14 +4454,6 @@
      "text": "楼門の内は6:30開門・17:00閉門、河合社は6:30〜16:30",
      "url": "https://www.shimogamo-jinja.or.jp/",
      "title": "【公式】下鴨神社（賀茂御祖神社）｜京都・世界遺産の古社で心を整える参拝",
-     "readAt": "2026-11-11"
-    }
-   ],
-   "fees": [
-    {
-     "text": "大炊殿などの特別拝観は10:00〜16:00で、大人1,000円、中学生以下は無料",
-     "url": "https://www.shimogamo-jinja.or.jp/about/special",
-     "title": "特別拝観について | 下鴨神社 |賀茂御祖神社（かもみおやじんじゃ）",
      "readAt": "2026-11-11"
     }
    ]
@@ -6643,6 +6586,32 @@
      "text": "三佛堂の拝観は大人400円、小・中学生200円",
      "url": "https://www.rinnoji.or.jp/information.html",
      "title": "拝観のご案内 | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "fukuroda-falls": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.town.daigo.ibaraki.jp/page/page001474.html",
+     "title": "【国名勝】袋田の滝・生瀬滝 | 大子町公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "観瀑施設（袋田の滝トンネル）は5月〜10月が8:00〜18:00、11月が8:00〜17:00、12月〜4月が9:00〜17:00",
+     "url": "https://www.town.daigo.ibaraki.jp/page/page001474.html",
+     "title": "【国名勝】袋田の滝・生瀬滝 | 大子町公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "観瀑施設の利用料は大人（15歳以上・中学生を除く）500円、子ども（小・中学生）300円（2025年7月1日から）",
+     "url": "https://www.town.daigo.ibaraki.jp/page/page001474.html",
+     "title": "【国名勝】袋田の滝・生瀬滝 | 大子町公式ホームページ",
      "readAt": "2026-11-11"
     }
    ]
