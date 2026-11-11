@@ -464,30 +464,41 @@ export function generatePhotoStructuredData(photo: {
     return structuredData;
 }
 
+/** サイトを運営する組織の節点の `@id`（WebSite の `publisher` が指す） */
+export const ORGANIZATION_ID = `${siteConfig.url}/#organization`;
+
+/** App Store のアプリの頁（`siteConfig.iosAppId` から組む。`AppInstallCard` の `APP_STORE_URL` と同じ） */
+export const APP_STORE_PAGE_URL = `https://apps.apple.com/jp/app/id${siteConfig.iosAppId}`;
+
 /**
- * サイト全体の構造化データ（Organization）を生成
+ * サイト全体の構造化データ（Organization）を生成。**全ページに出す**（`app/layout.tsx`）。
+ *
+ * 2026-11-11 判断（journey.photo-ios#525）: Google の AI の概要で、名前の似た別のサービスと
+ * 混ぜて説明されていた（owner の検索画面で確認）。「Journey Photo とは何か」を機械に
+ * はっきり渡すため、トップだけでなく全ページに出し、短い名前・別表記・App Store の頁
+ * （`sameAs`＝同じ実体を指す外のURL）を持たせ、WebSite の `publisher` から `@id` で結ぶ。
+ * 公式の SNS は、実在を確かめたものだけ `sameAs` に足す（未確認の口は置かない）。
  */
 export function generateOrganizationStructuredData() {
     return {
         "@context": "https://schema.org",
         "@type": "Organization",
-        name: siteConfig.name,
+        "@id": ORGANIZATION_ID,
+        name: SITE_SHORT_NAME,
+        alternateName: SITE_ALTERNATE_NAMES.filter((n) => n !== SITE_SHORT_NAME),
         url: siteConfig.url,
         description: siteConfig.description,
         // **実在するファイルを指す。** ここも `/images/og-image.jpg`
         // （リポジトリにもビルド成果物にも無い）を指していた。ロゴは
         // 「一番新しい写真」では意味が通らないのでアイコンを使う
-        // （パスは `siteConfig.ogImage` の1か所から引く）
+        // （パスは `siteConfig.ogImage` の1か所から引く。512×512 の正方形）
         logo: {
             "@type": "ImageObject",
             url: `${siteConfig.url}${siteConfig.ogImage}`,
             width: 512,
             height: 512,
         },
-        sameAs: [
-            // SNSアカウントがあれば追加
-            // "https://www.instagram.com/your_handle",
-        ],
+        sameAs: [APP_STORE_PAGE_URL],
     };
 }
 
@@ -532,8 +543,11 @@ export function generateItemListStructuredData(
     };
 }
 
-/** サイト名の別表記（WebSite の `alternateName`） */
-export const SITE_ALTERNATE_NAMES = ["Journey Photo", "journeyphoto", "ジャーニーフォト"];
+/** サイトの短い名前（Organization の `name`） */
+export const SITE_SHORT_NAME = "Journey Photo";
+
+/** サイト名の別表記（WebSite・Organization の `alternateName`） */
+export const SITE_ALTERNATE_NAMES = [SITE_SHORT_NAME, "journeyphoto", "ジャーニーフォト"];
 
 /**
  * WebSite構造化データを生成（検索ボックス用）
@@ -549,6 +563,8 @@ export function generateWebSiteStructuredData() {
         // `alternateName` で申告する。`name` は変えない（サイト名は owner が決める）
         alternateName: SITE_ALTERNATE_NAMES,
         url: siteConfig.url,
+        // 運営は下の Organization（2026-11-11 判断 journey.photo-ios#525）
+        publisher: { "@id": ORGANIZATION_ID },
         description: siteConfig.description,
         potentialAction: {
             "@type": "SearchAction",

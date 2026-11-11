@@ -248,6 +248,28 @@ describe("generateOrganizationStructuredData", () => {
         expect(data["@type"]).toBe("Organization");
         expect(data.url).toBe(siteConfig.url);
     });
+
+    // 2026-11-11 journey.photo-ios#525: AI の概要で別のサービスと混ぜて説明されていた。
+    // 短い名前・別表記・正方形のロゴ・App Store の頁で「何者か」をはっきり渡す
+    it("名前は Journey Photo、別表記と App Store の頁を持つ", () => {
+        const data = generateOrganizationStructuredData();
+        expect(data.name).toBe("Journey Photo");
+        expect(data.alternateName).toEqual(expect.arrayContaining(["journeyphoto", "ジャーニーフォト"]));
+        expect(data.alternateName, "name と同じ表記を別名に重ねている").not.toContain("Journey Photo");
+        expect(data.sameAs).toContain("https://apps.apple.com/jp/app/id6814335283");
+        expect(data.logo).toMatchObject({ width: 512, height: 512 });
+        expect(data["@id"]).toBe(`${siteConfig.url}/#organization`);
+    });
+
+    it("WebSite の publisher がこの Organization を指す", () => {
+        const site = generateWebSiteStructuredData() as Record<string, unknown>;
+        expect(site.publisher).toEqual({ "@id": generateOrganizationStructuredData()["@id"] });
+    });
+
+    it("App Store の頁は、画面のアプリの入口と同じ URL", async () => {
+        const { APP_STORE_URL } = await import("../../../app/components/AppInstallCard");
+        expect(generateOrganizationStructuredData().sameAs).toContain(APP_STORE_URL);
+    });
 });
 
 describe("generateWebSiteStructuredData", () => {
