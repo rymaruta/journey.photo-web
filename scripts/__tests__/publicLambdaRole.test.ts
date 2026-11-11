@@ -56,9 +56,12 @@ const services = [
             "getPublicProfile", "searchUsers", "getLikeCount", "getComments", "getFollowStats", "getInvite", "getFeed",
             // App Store Server Notifications（Apple から・署名で確かめる。`purchases.ts`）
             "appStoreNotification",
+            // みんなの「行きたい」を数える口（2026-11-11・撮影スポットを払うの②）。未ログインでも払えるので未認証。
+            // 書くのは数の行だけ（専用ロール・鍵の頭 dynamodb:LeadingKeys で数の行に絞る・`spotWants.test.ts` が見る）
+            "recordSpotWants",
         ],
         /** PublicReadRole ではなく専用ロールで動かす公開関数（関数名 → ロール名） */
-        ownRole: { getFeed: "PublicFeedRole", appStoreNotification: "AppStoreNotifyRole" } as Record<string, string>,
+        ownRole: { getFeed: "PublicFeedRole", appStoreNotification: "AppStoreNotifyRole", recordSpotWants: "SpotWantsRecordRole" } as Record<string, string>,
     },
     { name: "api", file: "api/serverless.yml", publicFns: ["getPhotos", "getPhoto"], ownRole: {} as Record<string, string> },
 ];
