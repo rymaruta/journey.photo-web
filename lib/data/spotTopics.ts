@@ -157,7 +157,11 @@ export type TopicCard = {
 export type TopicCredit = { author: string; license?: string; licenseUrl?: string; sourceUrl?: string; text?: string };
 
 /** 別の切り口の頁へのリンク。`labelEn` は英語表示のとき（無ければ日本語のまま） */
-export type TopicLink = { href: string; label: string; labelEn?: string; count: number };
+export type TopicLink = {
+    href: string; label: string; labelEn?: string; count: number;
+    /** 構造化データ（`ItemList`）での名前。無ければ「<label>の撮影スポット」。リンクが1件のスポットへ直に行くときだけ持つ */
+    itemName?: string;
+};
 
 /** 頁の中身（`SpotTopicPage` が描く） */
 export type TopicView = {
@@ -531,7 +535,21 @@ const seasonLink = (t: SeasonTopic): TopicLink => ({
     ...link(seasonPath(t), seasonHeading(t).replace(/の撮影スポット$/, ""), t.spots.length),
     labelEn: `${SEASON_EN[t.season]}${t.area ? ` ${seasonAreaEn(t.area)}` : ""}`,
 });
-const countryLink = (t: CountryTopic): TopicLink => ({ ...link(ROUTES.SPOT_COUNTRY(t.code), t.name, t.spots.length), labelEn: countryEn(t.code) });
+/**
+ * 国のリンク。**頁が検索に出ない国（1件だけ・`MIN_INDEXABLE_COUNTRY` 未満）は、その1件のスポットの頁へ直に張る**
+ * （2026-11-11 判断・札 journey.photo-ios#527）。
+ *
+ * 国の頁は `noindex, follow` なので、そこからしか張られていないスポットの頁は検索から見て孤立していた
+ * （本番の sitemap の全 4,344 URL を辿って数えた: サン・ピエトロ大聖堂・ヴィクトリアの滝・エルデネ・ゾーの3件）。
+ * 1件しかない国の頁は、押してもその1件へもう一度押す行き止まり同然なので、直に行くほうが手数も1回少ない。
+ * 国の頁そのものは建てたまま（スポットの頁のパンくずから行ける）
+ */
+const countryLink = (t: CountryTopic): TopicLink => {
+    const only = t.spots.length < MIN_INDEXABLE_COUNTRY && t.spots.length === 1 ? t.spots[0] : undefined;
+    return only
+        ? { ...link(`/spots/${only.slug}`, t.name, 1), labelEn: countryEn(t.code), itemName: only.name }
+        : { ...link(ROUTES.SPOT_COUNTRY(t.code), t.name, t.spots.length), labelEn: countryEn(t.code) };
+};
 const OVERSEAS_CRUMB = () => ({ name: OVERSEAS_NAME, nameEn: "Outside Japan", href: ROUTES.SPOT_AREA(OVERSEAS_SLUG) });
 
 /** 海外の一覧（`/spots/area/overseas`）: 国の一覧。カードは出さない（国の頁に分けた） */
@@ -695,7 +713,7 @@ export function topicStructuredData(view: TopicView) {
     // カードの無い頁（海外の国の一覧）は、並べている国のリンクを ItemList にする
     const items = view.cards.length > 0
         ? view.cards.map((c) => ({ name: c.name, url: abs(`/spots/${c.slug}`) }))
-        : (view.related[0]?.links ?? []).map((l) => ({ name: `${l.label}の撮影スポット`, url: abs(l.href) }));
+        : (view.related[0]?.links ?? []).map((l) => ({ name: l.itemName ?? `${l.label}の撮影スポット`, url: abs(l.href) }));
     const itemList = items.length > 0 ? generateItemListStructuredData(view.heading, items) : null;
     return { breadcrumb, itemList };
 }
