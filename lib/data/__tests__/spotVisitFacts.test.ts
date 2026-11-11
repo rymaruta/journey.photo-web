@@ -37,6 +37,22 @@ describe("事実のファイル（content/spot-visit-facts.json）", () => {
         expect(visitFactSlugs().length).toBe(200);
     });
 
+    it("題・文に HTML の実体参照（&#x27; &amp; &quot; &raquo; など）を残さない（#559 の確かめ・2026-11-11）", () => {
+        const ENTITY = /&(#x?[0-9a-f]+|[a-z][a-z0-9]*);/i;
+        const bad: string[] = [];
+        const walk = (v: unknown, path: string) => {
+            if (typeof v === "string") { if (ENTITY.test(v)) bad.push(`${path}: ${v}`); return; }
+            if (Array.isArray(v)) { v.forEach((x, i) => walk(x, `${path}[${i}]`)); return; }
+            if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) walk(x, `${path}.${k}`);
+        };
+        walk(FILE, "file");
+        expect(bad).toEqual([]);
+    });
+
+    it("説明（_about）は今の作りどおり（書いていない道具は行ごと出さない。「記載なし」とは言わない）", () => {
+        expect((FILE as unknown as { _about: string })._about).not.toContain("記載なし");
+    });
+
     it("画面の文に「撮りどき」を使わない（CLAUDE.md の言葉の好み）", () => {
         expect(JSON.stringify(FILE.spots)).not.toContain("撮りどき");
     });
