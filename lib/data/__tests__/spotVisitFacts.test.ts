@@ -113,6 +113,46 @@ describe("読み込み（cleanVisitFacts・visitFactsFor）", () => {
     });
 });
 
+describe("年の決まった事実の期限（validUntil）", () => {
+    const row = { ...SRC, subject: "紅葉", text: "紅葉まつりは2026年11月14日〜29日", validUntil: "2026-11-29" };
+
+    it("期限の日までは出し、過ぎたら落とす（ビルドの日で判定）", () => {
+        expect(cleanVisitFacts(sample({ bestSeasons: [row] }), "2026-11-29")!.bestSeasons).toHaveLength(1);
+        const after = cleanVisitFacts(sample({ bestSeasons: [row] }), "2026-11-30")!;
+        expect(after.bestSeasons).toBeUndefined();
+        expect(after.access).toHaveLength(1);
+    });
+
+    it("期限が過ぎて何も残らなければ null", () => {
+        expect(cleanVisitFacts({ delegatedBy: "rymaruta", readPages: [SRC], bestSeasons: [row] }, "2027-01-01")).toBeNull();
+    });
+
+    it("期限の形が崩れていれば拾う", () => {
+        const f = sample({ bestSeasons: [{ ...row, validUntil: "11月29日" }] });
+        expect(visitFactProblems({ spots: { x: f } }, TODAY).join("\n")).toContain("validUntil");
+    });
+
+    it("年の決まった行には期限が付いている（紅葉まつり・ライトアップ・2026年の拝観時間）", () => {
+        const dated = ["naritasan", "tanzan-jinja", "kifune-jinja", "ishiyamadera", "kairakuen", "kiyomizudera"];
+        for (const slug of dated) {
+            const f = FILE.spots[slug];
+            const rows = [...(f.bestSeasons ?? []), ...(f.hours ?? [])].filter((r) => /20\d\d年/.test(r.text));
+            expect(rows.length, slug).toBeGreaterThan(0);
+            for (const r of rows) expect(r.validUntil, `${slug}: ${r.text}`).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+        }
+        // 実際のファイルでも、期限を過ぎた日には出ない
+        expect(visitFactsFor("kairakuen", FILE, "2027-01-01")).toBeNull();
+    });
+});
+
+describe("見頃の段には時期の事実だけ", () => {
+    it("「無料」「開園」「料金」のような時間・料金の事実を見頃に置かない", () => {
+        const bad = Object.entries(FILE.spots).flatMap(([slug, f]) =>
+            (f.bestSeasons ?? []).filter((r) => /無料|開園する|円/.test(r.text)).map((r) => `${slug}: ${r.text}`));
+        expect(bad).toEqual([]);
+    });
+});
+
 describe("構造化データ（openingHoursSpecification）", () => {
     it("毎日同じ時刻の行が1つだけのときに出す", () => {
         const f = sample({ hours: [{ ...SRC, text: "8時30分から17時", opens: "08:30", closes: "17:00" }] });

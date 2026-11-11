@@ -11,9 +11,9 @@ export * from "./spotVisitFactsCore";
 const FILE = raw as FactsFile;
 
 /** そのスポットの事実（出典の揃った行だけ）。無ければ `null` */
-export function visitFactsFor(slug: string, file: FactsFile = FILE): SpotVisitFacts | null {
+export function visitFactsFor(slug: string, file: FactsFile = FILE, today?: string): SpotVisitFacts | null {
     const f = Object.prototype.hasOwnProperty.call(file.spots, slug) ? file.spots[slug] : null;
-    return cleanVisitFacts(f);
+    return cleanVisitFacts(f, today);
 }
 
 /** 事実のファイルにあるスラッグ（試験と集計用） */

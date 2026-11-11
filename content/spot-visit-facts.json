@@ -99,7 +99,7 @@
    ],
    "bestSeasons": [
     {
-     "text": "観桜期（例年3月下旬〜4月上旬の7日間ほど）は無料で開園する",
+     "text": "観桜期は例年3月下旬〜4月上旬",
      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
      "title": "利用案内｜兼六園",
      "readAt": "2026-11-11",
@@ -152,6 +152,12 @@
     },
     {
      "text": "65歳以上は年齢の分かる証明を見せると無料",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
+     "title": "利用案内｜兼六園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "観桜期（例年3月下旬〜4月上旬の7日間ほど）は無料で開園する",
      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
      "title": "利用案内｜兼六園",
      "readAt": "2026-11-11"
@@ -672,6 +678,13 @@
      "readAt": "2026-11-11",
      "status": "conditional"
     },
+    "drone": {
+     "text": "ドローンの使用は禁止（城内の主な禁止事項）",
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/annai/",
+     "title": "開城時間・休城日等 | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
     "notes": [
      {
       "text": "二の丸御殿と本丸御殿の中は撮影禁止",
@@ -920,10 +933,11 @@
    },
    "hours": [
     {
-     "text": "開門は一年を通して6:00。閉門は18:00（7月〜8月中旬は18:30）、春・夏・秋の夜間特別拝観の間は21:30（2026年の案内）",
+     "text": "開門は一年を通して6:00。閉門は18:00（7月〜8月は18:30）。春（3月27日〜4月5日）・夏（8月14日〜16日）・秋（11月21日〜30日）の夜間特別拝観の間は21:30（2026年の案内）",
      "url": "https://www.kiyomizudera.or.jp/access.php",
      "title": "交通 | 音羽山 清水寺",
-     "readAt": "2026-11-11"
+     "readAt": "2026-11-11",
+     "validUntil": "2026-12-31"
     }
    ],
    "photoRules": {
@@ -1151,7 +1165,8 @@
      "text": "大人700円、高校生以下200円",
      "url": "https://www.azuchi-nobunaga.com/guide",
      "title": "拝観案内 – 織田信長の安土城址と摠見寺",
-     "readAt": "2026-11-11"
+     "readAt": "2026-11-11",
+     "validUntil": "2026-12-31"
     },
     {
      "text": "2027年からは、城址めぐりの入山料が1人1,000円になると案内している",
@@ -2349,7 +2364,7 @@
    ],
    "hours": [
     {
-     "text": "開門・閉門の時刻は日の出・日の入りに合わせて毎月変わる（11月は6:10〜16:10、12月は6:40〜16:00）",
+     "text": "開門・閉門の時刻は、日の出・日の入りに合わせて毎月変わる",
      "url": "https://www.meijijingu.or.jp/",
      "title": "明治神宮",
      "readAt": "2026-11-11"
@@ -2784,64 +2799,6 @@
      }
     ]
    }
-  },
-  "tokyo-skytree": {
-   "delegatedBy": "rymaruta",
-   "readPages": [
-    {
-     "url": "https://www.tokyo-skytree.jp/",
-     "title": "【公式】東京スカイツリー TOKYO SKYTREE",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.tokyo-skytree.jp/open-hours/",
-     "title": "営業時間",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.tokyo-skytree.jp/access/",
-     "title": "アクセス【公式】東京スカイツリー TOKYO SKYTREE",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.tokyo-skytree.jp/lp/first-sunrise2027/",
-     "title": "初日の出特別営業（2027） | 【公式】東京スカイツリー TOKYO SKYTREE",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.tokyo-skytree.jp/news/info/293/",
-     "title": "このたびの「令和８年熊本地震」により被災された皆様に、心よりお見舞い申しあげます。 被災地の一日も早い復興をお祈り申しあげます。【公式】東京スカイツリー TOKYO SKYTREE",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.tokyo-skytree.jp/ticket/",
-     "title": "チケット・料金【公式】東京スカイツリー TOKYO SKYTREE",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.tokyo-skytree.jp/press/post/722/",
-     "title": "東京スカイツリー® 初日の出特別営業開催【公式】東京スカイツリー TOKYO SKYTREE",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.tokyo-skytree.jp/news/info/304/",
-     "title": "東京スカイツリーからダイヤモンド富士を観よう!【公式】東京スカイツリー TOKYO SKYTREE",
-     "readAt": "2026-11-11"
-    },
-    {
-     "url": "https://www.tokyo-skytree.jp/fake-website/",
-     "title": "東京スカイツリー 非公認サイトにご注意ください【公式】東京スカイツリー TOKYO SKYTREE",
-     "readAt": "2026-11-11"
-    }
-   ],
-   "hours": [
-    {
-     "text": "展望台は10:00〜22:00（最終入場21:00）",
-     "url": "https://www.tokyo-skytree.jp/",
-     "title": "【公式】東京スカイツリー TOKYO SKYTREE",
-     "readAt": "2026-11-11"
-    }
-   ]
   },
   "tokyo-tower": {
    "delegatedBy": "rymaruta",
@@ -3688,15 +3645,6 @@
      "title": "公園ルールや持込禁止品 – 国営昭和記念公園公式ホームページ",
      "readAt": "2026-11-11"
     }
-   ],
-   "bestSeasons": [
-    {
-     "text": "園内に31品種・約1,500本の桜がある（半数はソメイヨシノ）。見頃は年で変わるので「花だより」で確かめる",
-     "url": "https://www.showakinen-koen.jp/flower-information/",
-     "title": "花・植物 – 国営昭和記念公園公式ホームページ",
-     "readAt": "2026-11-11",
-     "subject": "桜"
-    }
    ]
   },
   "kamakura-daibutsu": {
@@ -4022,7 +3970,8 @@
      "url": "https://www.naritasan.or.jp/",
      "title": "大本山成田山新勝寺",
      "readAt": "2026-11-11",
-     "subject": "紅葉"
+     "subject": "紅葉",
+     "validUntil": "2026-11-29"
     }
    ],
    "hours": [
@@ -4284,18 +4233,15 @@
      "readAt": "2026-11-11"
     }
    ],
-   "bestSeasons": [
-    {
-     "text": "桜の開花期間（3月25日〜4月24日）と菊花壇展（11月1日〜15日）の間は、月曜も開園する",
-     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
-     "title": "入園案内｜利用ガイド｜新宿御苑｜環境省",
-     "readAt": "2026-11-11",
-     "subject": "桜"
-    }
-   ],
    "hours": [
     {
      "text": "9:00〜18:00（10月1日〜3月14日は16:30まで、6月11日〜7月31日は19:00まで。入園は閉園30分前まで）。月曜休園（休日なら翌平日）と年末年始は休み",
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
+     "title": "入園案内｜利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "桜の開花期間（3月25日〜4月24日）と菊花壇展（11月1日〜15日）の間は、月曜も開園する",
      "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
      "title": "入園案内｜利用ガイド｜新宿御苑｜環境省",
      "readAt": "2026-11-11"
@@ -4852,7 +4798,8 @@
      "url": "https://www.tanzan.or.jp/",
      "title": "【公式】談山神社｜大和多武峰鎮座",
      "readAt": "2026-11-11",
-     "subject": "紅葉"
+     "subject": "紅葉",
+     "validUntil": "2026-12-06"
     }
    ],
    "hours": [
@@ -6087,7 +6034,8 @@
      "url": "https://kifunejinja.jp/",
      "title": "貴布禰総本宮 貴船神社",
      "readAt": "2026-11-11",
-     "subject": "紅葉"
+     "subject": "紅葉",
+     "validUntil": "2026-11-24"
     }
    ],
    "access": [
@@ -6170,7 +6118,8 @@
      "url": "https://www.ishiyamadera.or.jp/",
      "title": "大本山 石山寺 公式ホームページ",
      "readAt": "2026-11-11",
-     "subject": "紅葉"
+     "subject": "紅葉",
+     "validUntil": "2026-11-29"
     }
    ],
    "access": [
@@ -6371,7 +6320,8 @@
      "url": "https://ibaraki-kairakuen.jp/",
      "title": "日本三名園 偕楽園",
      "readAt": "2026-11-11",
-     "subject": "紅葉"
+     "subject": "紅葉",
+     "validUntil": "2026-11-29"
     }
    ]
   },
@@ -6648,6 +6598,52 @@
      "title": "交通案内｜多賀大社",
      "readAt": "2026-11-11",
      "mode": "train"
+    }
+   ]
+  },
+  "rinnoji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.rinnoji.or.jp/",
+     "title": "日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rinnoji.or.jp/information.html",
+     "title": "拝観のご案内 | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rinnoji.or.jp/access.html",
+     "title": "交通アクセス | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rinnoji.or.jp/news/20260914.html",
+     "title": "| 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rinnoji.or.jp/history/temple/",
+     "title": "境内案内 | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "4月〜10月は8:00〜17:00、11月〜3月は8:00〜16:00（常行堂は9:00から。受付は閉門30分前まで）",
+     "url": "https://www.rinnoji.or.jp/information.html",
+     "title": "拝観のご案内 | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "三佛堂の拝観は大人400円、小・中学生200円",
+     "url": "https://www.rinnoji.or.jp/information.html",
+     "title": "拝観のご案内 | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
     }
    ]
   }

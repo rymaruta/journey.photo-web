@@ -15,12 +15,12 @@ import { sourcesOf } from "@/lib/data/spotVisitFactsCore";
 const LABEL = { fontSize: "12px" } as const;
 
 const MONTH_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-/** 読んだ日（ISO）→「11月11日」/「Nov 11」。形が崩れていれば、そのまま出す */
+/** 読んだ日（ISO）→「2026年11月11日」/「Nov 11, 2026」（年も出す・確かめ役の指摘）。形が崩れていれば、そのまま出す */
 export function checkedDay(iso: string, isJa: boolean): string {
-    const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(iso);
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
     if (!m) return iso;
-    const mo = Number(m[1]), d = Number(m[2]);
-    return isJa ? `${mo}月${d}日` : `${MONTH_EN[mo - 1]} ${d}`;
+    const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
+    return isJa ? `${y}年${mo}月${d}日` : `${MONTH_EN[mo - 1]} ${d}, ${y}`;
 }
 const BODY = { fontSize: "13px", lineHeight: "20px" } as const;
 
@@ -132,36 +132,35 @@ const STATUS_EN = { allowed: "Allowed", prohibited: "Not allowed", conditional: 
 /**
  * 撮影の決まり（三脚・自撮り棒・ドローン・撮影禁止の範囲）。
  *
- * 三つの道具のうち、公式の頁に書いていないものは「公式サイトに記載なし」——**可否を推して書かない**。
+ * 三つの道具は、公式の頁に書いてあるものだけ行を出す。書いていないものは行ごと出さない——**可否を推して書かない**し、
+ * 「記載なし」とも言わない（読んだ頁に無いことは、サイト全体に無いことではない・2026-11-11 確かめ役の指摘）。
  * ドローンには、法律の決まりがあるという一般の注意を必ず添える（公式に書いてあってもなくても）
  */
 export function VisitPhotoRules({ facts, isJa, head }: { facts: SpotVisitFacts; isJa: boolean; head: (id: string, title: string) => React.ReactNode }) {
     const r = facts.photoRules;
     if (!r) return null;
-    const items: Array<[string, string, PhotoRule | undefined]> = [
+    const items = ([
         ["tripod", isJa ? "三脚" : "Tripods", r.tripod],
         ["selfieStick", isJa ? "自撮り棒" : "Selfie sticks", r.selfieStick],
         ["drone", isJa ? "ドローン" : "Drones", r.drone],
-    ];
+    ] as Array<[string, string, PhotoRule | undefined]>).filter((x): x is [string, string, PhotoRule] => Boolean(x[2]));
     const notes = r.notes ?? [];
     return (
         <section className="pt-8" aria-labelledby="spot-photo-rules" data-testid="spot-photo-rules">
             {head("spot-photo-rules", isJa ? "撮影の決まり" : "Photography rules")}
             <div className="rounded-xl bg-surface ring-1 ring-line p-3.5">
-                <dl className="m-0 flex flex-col gap-1.5">
+                {items.length > 0 && <dl className="m-0 flex flex-col gap-1.5">
                     {items.map(([key, label, rule]) => (
                         <div key={key} className="flex gap-3" data-testid={`photo-rule-${key}`}>
                             <dt className="flex-shrink-0 w-[4.5rem] text-white/55" style={BODY}>{label}</dt>
                             <dd className="m-0 text-white/85" style={BODY}>
-                                {rule
-                                    ? <><span className="text-white font-semibold">{(isJa ? STATUS_JA : STATUS_EN)[rule.status]}</span>{"　"}{rule.text}</>
-                                    : <span className="text-white/55">{isJa ? "公式サイトに記載なし" : "Not stated on the official site"}</span>}
+                                <span className="text-white font-semibold">{(isJa ? STATUS_JA : STATUS_EN)[rule.status]}</span>{"　"}{rule.text}
                             </dd>
                         </div>
                     ))}
-                </dl>
+                </dl>}
                 {notes.length > 0 && (
-                    <ul className="m-0 mt-2.5 p-0 flex flex-col gap-1" style={{ listStyle: "none" }}>
+                    <ul className={`m-0 ${items.length > 0 ? "mt-2.5" : ""} p-0 flex flex-col gap-1`} style={{ listStyle: "none" }}>
                         {notes.map((n) => (
                             <li key={n.text} className="text-white/85" style={BODY}>・{n.text}</li>
                         ))}
