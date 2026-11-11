@@ -73,15 +73,17 @@ describe("title（2026-10-22: 検索される型「〈名所〉 写真／撮影�
     });
 });
 
-describe("description（押す理由を頭・Wikipedia 由来の紹介文は後ろ）", () => {
+describe("description（名前の次に紹介文の最初の1文・押す理由はその後ろ・2026-11-11 #527）", () => {
     const plain = { ...base, seasonalGuide: undefined, timeOfDayGuide: undefined };
 
-    it("頭に「〇〇の写真・撮影スポット。」と作例の節の枚数・光の表、紹介文は最後", () => {
+    it("頭に「〇〇の写真・撮影スポット。」、すぐ後に紹介文の最初の1文（何か・どこか）、作例の節の枚数・光の表はその後ろ", () => {
         const d = spotPageDescription(plain, { light: true, samples: 5, cover: true });
         // 2026-11-09: 約120字に収める。紹介文は文ごとに入れ、収まらない文は入れない（途中で切らない）
         const [s1, s2] = base.summary!.split("。");
-        expect(d).toBe(`姫路城の写真・撮影スポット。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${s1}。${s2}。`);
-        expect(d.indexOf("作例5枚")).toBeLessThan(d.indexOf(s1));
+        expect(d).toBe(`姫路城の写真・撮影スポット。${s1}。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${s2}。`);
+        // 🔴 2026-11-11（#527）: 「〈名所〉とは」「〈名所〉 場所」に、検索結果の頭（約100字）で答える
+        expect(d.indexOf(s1)).toBe("姫路城の写真・撮影スポット。".length);
+        expect(d.indexOf(s1)).toBeLessThan(d.indexOf("作例5枚"));
     });
 
     it("無いものは書かない（作例0枚なら作例を書かない・写真が無ければ「写真」と名乗らない）", () => {
@@ -93,13 +95,13 @@ describe("description（押す理由を頭・Wikipedia 由来の紹介文は後�
         expect(none).not.toContain("作例");
     });
 
-    it("季節ごとの景色は在る季節だけを春夏秋冬の順で・計算の要約（方角・天の川）は紹介文より前", () => {
+    it("季節ごとの景色は在る季節だけを春夏秋冬の順で・計算の要約（方角・天の川）は紹介文の2文目より前", () => {
         const d = spotPageDescription(
             { ...base, seasonalGuide: [{ season: "winter", text: "氷柱" }, { season: "spring", text: "桜" }] as unknown as Spot["seasonalGuide"], timeOfDayGuide: [{ time: "morning", text: "順光" }] as unknown as Spot["timeOfDayGuide"] },
             { samples: 1, computed: "日の入りは6月が西北西寄り、12月が西南西寄り" },
         );
         const [s1, s2] = base.summary!.split("。");
-        expect(d).toBe(`姫路城の写真・撮影スポット。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${s1}。${s2}。`);
+        expect(d).toBe(`姫路城の写真・撮影スポット。${s1}。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${s2}。`);
     });
 
     it("🔴 閉鎖・運休・見学できない季節は並べない（公開中の台帳の実例で）", () => {
@@ -174,12 +176,12 @@ describe("description の長さ（2026-11-09: 約120字・文の途中で切ら�
     it("🔴 水増ししない: 紹介文も列挙も無ければ頭の1文だけ・紹介文が短ければ短いまま", () => {
         expect(body(spotPageDescription({ ...plain, summary: undefined }, {}))).toBe("姫路城の撮影スポット。");
         const d = body(spotPageDescription({ ...plain, summary: "城です。" }, { samples: 1, cover: true }));
-        expect(d).toBe("姫路城の写真・撮影スポット。作例1枚。城です。");
+        expect(d).toBe("姫路城の写真・撮影スポット。城です。作例1枚。");
     });
 
     it("計算の要約は、収まるときだけ入る（紹介文の最初の1文より後）", () => {
         const short = body(spotPageDescription({ ...plain, summary: "城です。" }, { computed: "日の入りは6月が西北西寄り" }));
-        expect(short).toBe("姫路城の撮影スポット。日の入りは6月が西北西寄り。城です。");
+        expect(short).toBe("姫路城の撮影スポット。城です。日の入りは6月が西北西寄り。");
     });
 });
 

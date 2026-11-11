@@ -17,6 +17,7 @@
 import type { Spot } from "./spots";
 import { isPublished, isVerified } from "../utils/spotGuide";
 import { SEASON_JA } from "./spotTopics";
+import { titleWidth } from "../utils/titleWidth";
 
 /** 地名の部分（日本は「県 市」、海外は「国 都市」——海外の州名より国名の方が検索に効く） */
 export function spotWhere(spot: Pick<Spot, "region">): string {
@@ -33,10 +34,8 @@ export function spotWhere(spot: Pick<Spot, "region">): string {
  */
 export const SPOT_TITLE_MAX = 33;
 
-/** 全角換算の長さ（半角の英数・記号は 0.5） */
-export function titleWidth(s: string): number {
-    return [...s].reduce((n, ch) => n + (/[\u0020-\u007e]/.test(ch) ? 0.5 : 1), 0);
-}
+/** 全角換算の長さ（半角の英数・記号は 0.5）。テーマの頁の題も使うので `lib/utils/titleWidth.ts` に置いた */
+export { titleWidth };
 
 /** ページに在るもの（title・description の材料）。**数えたものだけ**を渡す */
 export type SpotPageFacts = {
@@ -136,9 +135,9 @@ function clipAtComma(sentence: string, room: number): string {
 }
 
 /**
- * 撮影地ページの description。**頭に押す理由**（作例の数・季節ごとの景色・光の表）を置き、
- * Wikipedia 由来の紹介文（`summary`）を続ける（2026-10-22 判断: 検索結果に出る頭の 80〜120 字で
- * 「この場所の写真が見られる・季節や光の案内がある」を伝える）。
+ * 撮影地ページの description。頭に「〇〇の写真・撮影スポット。」、続けて**紹介文（`summary`）の最初の1文**、
+ * 押す理由（作例の数・季節ごとの景色・光の表）、計算の要約、紹介文の残り（2026-11-11・#527 で順を変えた。
+ * それまでは 2026-10-22 判断で押す理由を紹介文より前に置いていた）。
  * 季節は価値判断を含まない「季節ごとの景色」と言い、閉鎖・運休を書いた季節は並べない。
  * 写真が1枚も無いスポットは「写真」と名乗らない。
  * 下書きは頭に「【下書き・運営未確認】」（共有のプレビューで確認済みに見せない）
@@ -146,7 +145,7 @@ function clipAtComma(sentence: string, room: number): string {
  * **長さ（2026-11-09）**: 約120字（`SPOT_DESCRIPTION_TARGET`）。入れる優先は
  * 頭の1文 → 作例・案内の列挙 → 紹介文の最初の1文（必ず）→ 計算の要約（日の入りの方角・天の川）→ 紹介文の2文目以降。
  * 収まらない文は入れない（**文の途中で切らない**）。説明が薄い頁を水増しせず、無いものは書かない。
- * 書く順は従来どおり 頭 → 列挙 → 計算の要約 → 紹介文（紹介文だけが固有の文なので、先に入れるかを決めている）
+ * 書く順は 頭 → 紹介文の最初の1文 → 列挙 → 計算の要約 → 紹介文の残り（2026-11-11）
  */
 export function spotPageDescription(
     spot: Pick<Spot, "name" | "summary" | "seasonalGuide" | "timeOfDayGuide"> & Partial<Spot>,
@@ -200,7 +199,13 @@ export function spotPageDescription(
         sumOut.push(sent);
         used += len(sent);
     }
-    return `${lead}${listOut}${computedOut}${sumOut.join("")}`;
+    // 2026-11-11（#527）: 書く順を 頭 → **紹介文の最初の1文** → 列挙 → 計算の要約 → 紹介文の残り に変えた。
+    // GSC（過去3か月）で、10位以内に出ていても押されていない語に「〈名所〉とは」「〈名所〉 意味」「〈名所〉 場所」
+    // 「〈名所〉 写真」が並び、検索結果に出る頭の約100字（スマホ）が全頁でほぼ同じ列挙（作例N枚、月ごとの日の出・…）
+    // だった（3,555 頁で同じ形）。その名所が何か・どこにあるかに答える紹介文を名前のすぐ後に置き、列挙は後ろへ。
+    // 入れる優先（何を入れるか）は変えていない
+    const [firstOut, ...restOut] = sumOut;
+    return `${lead}${firstOut ?? ""}${listOut}${computedOut}${restOut.join("")}`;
 }
 
 /**

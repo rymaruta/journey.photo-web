@@ -46,7 +46,19 @@ export default function SpotTopicPage({ view, eyebrow }: { view: TopicView; eyeb
                 <p aria-hidden className="m-0 mb-1.5 eyebrow text-accent">{eyebrow}</p>
                 <h1 className="font-serif text-4xl font-bold m-0 wrap-anywhere" data-testid="spots-title"><Lang ja={view.heading} en={view.headingEn} /></h1>
                 {view.intro && (
-                    <p className="m-0 mt-2 mb-6 text-text-2 max-w-3xl" style={{ fontSize: "15px", lineHeight: "24px" }}>{view.intro}</p>
+                    <p className={`m-0 mt-2 ${view.placeLink ? "mb-1" : "mb-6"} text-text-2 max-w-3xl`} style={{ fontSize: "15px", lineHeight: "24px" }}>{view.intro}</p>
+                )}
+                {/* 2026-11-11（#527）: テーマの頁 → その国・県の撮影スポットの一覧（パンくずのほかに、本文の流れの中にも置く）。
+                    黒地の上のリンクは真鍮（板の決まり）・押せる的 44px */}
+                {view.placeLink && (
+                    <p className="m-0 mb-6">
+                        <Link href={view.placeLink.href} prefetch={false} data-testid="topic-place-link"
+                              className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong"
+                              style={{ fontSize: "15px" }}>
+                            <Lang ja={`${view.placeLink.label}をすべて見る（${view.placeLink.count}件）`}
+                                  en={`All ${view.placeLink.labelEn ?? view.placeLink.label} (${view.placeLink.count})`} />
+                        </Link>
+                    </p>
                 )}
 
                 {view.cards.length > 0 && <TopicCards cards={view.cards} />}

@@ -7,6 +7,7 @@
 import React from "react";
 import Link from "next/link";
 import TrackedLink from "@/app/components/TrackedLink";
+import InlineText from "../_parts/InlineText";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { ROUTES } from "@/lib/routes";
 import { publicImageUrl } from "@/lib/utils/seo";
@@ -78,7 +79,7 @@ export default async function CameraBasicsPage() {
                                     <span className="text-accent font-semibold">要点　</span>{l.point}
                                 </p>
                                 {l.body.map((para) => (
-                                    <p key={para} className="m-0 mt-4 text-chip-text" style={{ fontSize: "16px", lineHeight: "30px" }}>{para}</p>
+                                    <p key={para} className="m-0 mt-4 text-chip-text" style={{ fontSize: "16px", lineHeight: "30px" }}><InlineText text={para} /></p>
                                 ))}
                                 {l.table && <LearnTable {...l.table} />}
                                 {(l.examples ?? []).map((id) => (
@@ -104,7 +105,7 @@ export default async function CameraBasicsPage() {
                         <p aria-hidden="true" className="m-0 eyebrow text-accent">撮影の手引き</p>
                         <h2 id={`guide-${g.id}`} className="m-0 mt-1.5 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>{g.title}</h2>
                         <ul className="m-0 mt-4 pl-5 flex flex-col gap-3 text-chip-text marker:text-accent" style={{ fontSize: "15px", lineHeight: "26px" }}>
-                            {g.items.map((item) => <li key={item}>{item}</li>)}
+                            {g.items.map((item) => <li key={item}><InlineText text={item} /></li>)}
                         </ul>
                     </section>
                 ))}
