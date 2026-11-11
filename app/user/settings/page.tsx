@@ -46,6 +46,7 @@ import { ROUTES } from "../../../lib/routes";
 import { siteConfig } from "../../../lib/utils/seo";
 import DeleteAccountModal from "../../components/DeleteAccountModal";
 import LightAlertSettings from "./LightAlertSettings";
+import SearchHiddenSetting from "./SearchHiddenSetting";
 import { SettingsGroup, SettingsRowButton, SettingsRowLink, SettingsShell } from "./SettingsParts";
 
 /** 下の画面の行き先（`ROUTES.SETTINGS` の下） */
@@ -127,6 +128,8 @@ export default function SettingsPage() {
                 {/* **解除できる場所がここしか無い**——ストーリーの返信からブロックできるぶん、戻す口が要る */}
                 <SettingsRowLink href={SETTINGS_SUBPAGES.blocked} title={en ? "Blocked people" : "ブロックした人"} />
                 <SettingsRowLink href={SETTINGS_SUBPAGES.closeFriends} title={en ? "Close friends" : "親しい友達"} />
+                {/* 2026-11-11 owner 承認（journey.photo-ios#526）。既定はオフ＝表示する */}
+                <SearchHiddenSetting locale={en ? "en" : "ja"} />
             </SettingsGroup>
 
             <SettingsGroup title={en ? "Photos & shooting" : "写真と撮影"}>

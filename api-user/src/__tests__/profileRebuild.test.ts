@@ -78,8 +78,8 @@ describe("プロフィールの保存と再ビルド", () => {
 });
 
 describe("静的な頁に焼かれる項目の判定", () => {
-    it("sync が書き出す項目と同じ並び（表示名＋bio/website/instagram/username）", () => {
-        expect([...STATIC_PROFILE_FIELDS].sort()).toEqual(["bio", "displayName", "instagram", "username", "website"]);
+    it("sync が書き出す項目と同じ並び（表示名＋bio/website/instagram/username/searchHidden）", () => {
+        expect([...STATIC_PROFILE_FIELDS].sort()).toEqual(["bio", "displayName", "instagram", "searchHidden", "username", "website"]);
     });
     it("前後の空白だけの違いは変更と見なさない", () => {
         expect(publicStaticFieldsChanged({ bio: "a " }, { bio: "a" })).toBe(false);

@@ -23,6 +23,8 @@ vi.mock("../BlockedUsers", () => ({ default: () => <div data-testid="blocked-lis
 vi.mock("../CloseFriends", () => ({ default: () => <div data-testid="close-friends-inline" /> }));
 // 光と天気の知らせは `LightAlertSettings.test.tsx` が見る
 vi.mock("../LightAlertSettings", () => ({ default: () => null }));
+// 検索エンジンの入切は `SearchHiddenSetting.test.tsx` が見る。ここでは置き場所だけ（印を出す）
+vi.mock("../SearchHiddenSetting", () => ({ default: () => <div data-testid="search-hidden-inline" /> }));
 vi.mock("../../../components/DeleteAccountModal", () => ({
     default: ({ isOpen }: { isOpen: boolean }) => (isOpen ? <div data-testid="delete-modal-open" /> : null),
 }));
@@ -68,6 +70,14 @@ describe("設定の骨格（iOS `SettingsView` の並び・2026-11-04）", () =>
         await open();
         expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent))
             .toEqual(["Pro", "旅の道具", "公開範囲とプライバシー", "写真と撮影", "ヘルプと規約", "アカウント"]);
+    });
+
+    // 2026-11-11 owner 承認（journey.photo-ios#526）: 「公開範囲とプライバシー」の節に置く
+    it("「検索エンジンにプロフィールを表示しない」は 公開範囲とプライバシー の節にある", async () => {
+        await open();
+        const row = screen.getByTestId("search-hidden-inline");
+        const section = row.closest("section");
+        expect(section?.querySelector("h2")?.textContent).toBe("公開範囲とプライバシー");
     });
 
     it("節の見出しは真鍮の眉ラベル（白50%の小見出しではない）", async () => {

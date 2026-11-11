@@ -4,6 +4,7 @@ import { readFile } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 import { siteConfig, publicImageUrl } from "../utils/seo";
+import { isSearchHidden } from "../utils/searchHidden";
 import { collectEntries, collectionPath, collectionIndexPath, isIndexableCollection, isIndexableCollectionIndex, photosInCollection, type CollectionType } from "../utils/collections";
 import { SPOTS } from "../data/spots";
 import { spotAreas, visibleSpotsInArea } from "../data/spotLink";
@@ -44,7 +45,7 @@ async function loadPhotos(): Promise<Photo[]> {
 const toAbsolute = (src: string): string => publicImageUrl(src);
 
 /** プライバシーポリシーの本文を最後に変えた日。**`app/privacy/page.tsx` の `LAST_UPDATED` と揃える**（`page.facts.test.ts` が見る） */
-const PRIVACY_LAST_MODIFIED = "2026-11-09";
+const PRIVACY_LAST_MODIFIED = "2026-11-11";
 
 /** 利用規約の本文を最後に変えた日。**`app/terms/page.tsx` の `LAST_UPDATED` と揃える** */
 const TERMS_LAST_MODIFIED = "2026-11-09";
@@ -94,7 +95,9 @@ export async function sitemapGroups(): Promise<Record<SitemapKind, MetadataRoute
         const cur = byUser.get(p.userId);
         if (!cur || t > cur) byUser.set(p.userId, t);
     }
-    const userUrls: MetadataRoute.Sitemap = Array.from(byUser.entries()).map(([userId, last]) => ({
+    // 「検索エンジンにプロフィールを表示しない」人は載せない（2026-11-11 owner 承認・journey.photo-ios#526。
+    // 頁は noindex。「見に来い」と呼んで「載せるな」と言う形にしない）
+    const userUrls: MetadataRoute.Sitemap = Array.from(byUser.entries()).filter(([userId]) => !isSearchHidden(userId)).map(([userId, last]) => ({
         url: `${baseUrl}/users/${userId}`,
         ...lm(last),
         changeFrequency: "weekly",
