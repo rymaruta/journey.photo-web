@@ -122,6 +122,25 @@ describe("数える", () => {
         expect((spotCall.input.ExpressionAttributeValues as Record<string, number>)[":max"]).toBe(W.IP_SPOT_DAILY_MAX);
     });
 
+    it("IPv6 は /64 にまとめて数える（下の 64 ビットを替えても同じ回線）", () => {
+        expect(W.ipBucket("2001:db8:1:2:aaaa:bbbb:cccc:dddd")).toBe("2001:db8:1:2::/64");
+        expect(W.ipBucket("2001:db8:1:2::1")).toBe("2001:db8:1:2::/64");
+        expect(W.ipBucket("2001:DB8:0001:0002:ffff::")).toBe("2001:db8:1:2::/64");
+        expect(W.ipBucket("2001:db8::1")).toBe("2001:db8:0:0::/64");
+        expect(W.ipBucket("::ffff:203.0.113.7")).toBe("203.0.113.7");
+        expect(W.ipBucket("203.0.113.7")).toBe("203.0.113.7");
+        expect(W.hashIp("2001:db8:1:2::1", "s")).toBe(W.hashIp("2001:db8:1:2:ffff:ffff:ffff:ffff", "s"));
+        expect(W.hashIp("2001:db8:1:2::1", "s")).not.toBe(W.hashIp("2001:db8:1:3::1", "s"));
+    });
+
+    it("数える撮影スポットが無い要求は、塩も読まずにすぐ返す", async () => {
+        ddbWith();
+        const res = await run(ev({ device: DEVICE, slugs: ["no-such-spot-xyz"] }));
+        expect(res.statusCode).toBe(200);
+        expect(JSON.parse(res.body)).toEqual({ counted: 0 });
+        expect(mockDdbSend).not.toHaveBeenCalled();
+    });
+
     it("生の IP はどこにも書かない（塩と混ぜたハッシュだけ）", async () => {
         ddbWith();
         await run(ev({ device: DEVICE, slugs: [SLUG] }, "198.51.100.23"));
@@ -159,18 +178,34 @@ describe("毎日の集計", () => {
         expect(W.isSpike(0, 29)).toBe(false);
     });
 
-    it("消すのは前の月より古い重なり止めと、前日より古い日の行・塩だけ", () => {
+    it("日の行・回線の行・塩は2日以内に消える（プライバシーポリシーの約束・確かめ役の指摘 B1）", () => {
+        expect(W.maxDayRowLifetimeHours()).toBeLessThan(48);
+        // 掃除の時刻は serverless.yml の cron と同じ（19:47 UTC = 4:47 JST）
+        const yml = readFileSync(join(__dirname, "..", "..", "serverless.yml"), "utf-8");
+        const m = /cleanupSpotWants:[\s\S]*?cron\((\d+) (\d+) /.exec(yml);
+        expect(m, "cleanupSpotWants の cron が無い").not.toBeNull();
+        const jst = (Number(m![2]) + 9) % 24 + Number(m![1]) / 60;
+        expect(Math.abs(jst - W.CLEANUP_HOUR_JST)).toBeLessThan(0.05);
+        const page = readFileSync(join(__dirname, "..", "..", "..", "app", "privacy", "page.tsx"), "utf-8");
+        expect(page).toContain("2日以内に消します");
+    });
+
+    it("消すのは前の月より古い重なり止めと、今日より前の日の行・回線の行・塩だけ", () => {
         const month = "2026-11", day = "2026-11-11";
         expect(W.isExpiredRow("wantby#2026-09#d", month, day)).toBe(true);
         expect(W.isExpiredRow("wantby#2026-10#d", month, day)).toBe(false);
         expect(W.isExpiredRow("wantday#2026-11-09#d", month, day)).toBe(true);
-        expect(W.isExpiredRow("wantday#2026-11-10#d", month, day)).toBe(false);
+        expect(W.isExpiredRow("wantday#2026-11-10#d", month, day), "前日の行も消す（今日より前）").toBe(true);
+        expect(W.isExpiredRow("wantday#2026-11-11#d", month, day), "今日の行は残す").toBe(false);
+        expect(W.isExpiredRow("wantsalt#2026-11-10", month, day)).toBe(true);
+        expect(W.isExpiredRow("wantip#2026-11-10#h", month, day)).toBe(true);
         expect(W.isExpiredRow("wantip#2026-11-09#h#slug", month, day)).toBe(true);
         expect(W.isExpiredRow("wantsalt#2026-11-09", month, day)).toBe(true);
         expect(W.isExpiredRow("spotwant#2025-01#a", month, day), "数の行は消さない").toBe(false);
         expect(W.isExpiredRow("spots#user", month, day)).toBe(false);
         // 年をまたぐ
         expect(W.isExpiredRow("wantby#2025-12#d", "2026-01", "2026-01-01")).toBe(false);
+        expect(W.isExpiredRow("wantday#2025-12-31#d", "2026-01", "2026-01-01")).toBe(true);
         expect(W.isExpiredRow("wantby#2025-11#d", "2026-01", "2026-01-01")).toBe(true);
     });
 
@@ -242,6 +277,8 @@ describe("権限と流量（serverless.yml）", () => {
 
     it("この口だけ流量を絞る", () => {
         expect(yml).toContain('"POST /spots/wants":');
+        // 段の経路ごとの設定は経路ができてから（論理名は sls package で確かめた）
+        expect(yml).toMatch(/HttpApiStage:\s*\n(?:\s*#.*\n)*\s*DependsOn:\s*\n\s*- HttpApiRoutePostSpotsWants/);
         expect(yml).toMatch(/ThrottlingRateLimit: \d+/);
         expect(yml).toMatch(/ThrottlingBurstLimit: \d+/);
         expect(yml).toContain("cleanupSpotWants:");
