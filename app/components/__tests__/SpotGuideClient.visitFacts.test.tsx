@@ -66,7 +66,7 @@ describe("スポットの頁の事実の段", () => {
         expect(access.textContent).toContain("電車");
         expect(access.textContent).toContain("例の駅から東へ歩いて5分");
         expect(access.textContent).toContain("参拝者用の駐車場あり");
-        expect(screen.getByTestId("spot-visit-access-sources").textContent).toContain("AI 照合 2026-11-11");
+        expect(screen.getByTestId("spot-visit-access-sources").textContent).toContain("（公式サイトより・11月11日確認）");
 
         const hours = screen.getByTestId("spot-hours");
         expect(hours.textContent).toContain("8時30分から17時");
