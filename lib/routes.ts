@@ -129,6 +129,11 @@ export const ROUTES = {
     TODAY_PREF: (pref: string) => `/today/${encodeURIComponent(pref)}`,
     PRIVACY: "/privacy",
     TERMS: "/terms",
+    /**
+     * 意見を送る（札 #546・2026-11-11）。ログインしていなくても送れる。入口はフッターと設定。
+     * `?from=` でどこから来たかを渡す（`footer` | `settings`）。検索結果には出さない（`appPageMetadata`）
+     */
+    FEEDBACK: (from?: "footer" | "settings") => (from ? `/feedback?from=${from}` : "/feedback"),
     ADMIN: "/admin",
     LOGIN: "/login",
     SIGNUP: "/signup",
