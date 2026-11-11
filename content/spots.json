@@ -83507,7 +83507,6 @@
       "鬼の洗濯板は低い位置から斜めに見ると、岩の筋が連なる様子が出ます",
       "参拝の場です。運玉を投げる人の前に立たないでください"
     ],
-    "officialWebsiteUrl": "https://www.udojingu.com/",
     "status": "published",
     "draftedAt": "2026-09-24",
     "draftedBy": "claude",
@@ -156138,8 +156137,7 @@
           "title": "公式サイト「cuevadelasmanos.org」"
         }
       ]
-    },
-    "officialWebsiteUrl": "https://cuevadelasmanos.org/"
+    }
   },
   {
     "spotId": "sp_18276f5af322",
