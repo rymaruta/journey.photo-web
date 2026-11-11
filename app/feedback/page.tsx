@@ -63,13 +63,14 @@ export default function FeedbackPage() {
         setScreen(screenFrom(new URLSearchParams(window.location.search).get("from")));
     }, []);
 
-    // 書きかけは人ごとの鍵（`feedbackDraftKey`）。ログインの確かめが済んでから、その人の分だけ戻す
+    // 書きかけは人ごとの鍵（`feedbackDraftKey`）。ログインの確かめが済んでから、その人の分だけ戻す。
+    // **欄にもう文字があれば上書きしない**（確かめの最中に書き始めた文字を消さない・2026-11-11 確かめ役の指摘）
     const draftKey = feedbackDraftKey(isAuthenticated ? userId : null);
     useEffect(() => {
         if (loading) return;
         try {
             const saved = window.localStorage.getItem(draftKey);
-            setText(saved ? saved.slice(0, FEEDBACK_TEXT_MAX) : "");
+            if (saved) setText((current) => (current.trim() ? current : saved.slice(0, FEEDBACK_TEXT_MAX)));
         } catch { /* 端末に残せない環境でも書ける */ }
     }, [draftKey, loading]);
 

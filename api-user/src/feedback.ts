@@ -280,6 +280,19 @@ export async function receiveFeedback(input: FeedbackInput, who: Who, now = Date
     return ok(input.id);
 }
 
+/**
+ * 受け取る本文の大きさの上限（バイト）。本文 1000 字（UTF-8 で最大 4000 バイト程度）と短い欄だけなので、
+ * これを超えるものは**読み解く前に断る**（未認証の口で大きな JSON を `JSON.parse` させない・2026-11-11 確かめ役の指摘）
+ */
+export const FEEDBACK_BODY_MAX_BYTES = 16 * 1024;
+
+/** 大きすぎる本文なら 413 の応答、読めれば null */
+export function bodyTooLarge(body: string | null | undefined): APIGatewayProxyStructuredResultV2 | null {
+    return Buffer.byteLength(body ?? "", "utf8") > FEEDBACK_BODY_MAX_BYTES
+        ? jsonError(413, "長すぎて受け取れませんでした", "feedback_too_large")
+        : null;
+}
+
 const readJson = (body: string | null | undefined): unknown => {
     try {
         return JSON.parse(body ?? "{}") as unknown;
@@ -304,6 +317,8 @@ export const sendFeedback: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (ev
     if (!uid) return jsonError(401, "認証が必要です");
     const gone = await assertLiveCaller(uid);
     if (gone) return gone;
+    const tooLarge = bodyTooLarge(event.body);
+    if (tooLarge) return tooLarge;
     const input = parseFeedback(readJson(event.body));
     if (!isFeedbackInput(input)) return input;
     return guarded(() => receiveFeedback(input, { uid }), "sendFeedback");
@@ -313,6 +328,8 @@ export const sendFeedback: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (ev
 export const sendFeedbackPublic: APIGatewayProxyHandlerV2 = async (event) => {
     const ip = event.requestContext?.http?.sourceIp ?? "";
     if (!ip) return jsonError(400, "不正なリクエスト");
+    const tooLarge = bodyTooLarge(event.body);
+    if (tooLarge) return tooLarge;
     const input = parseFeedback(readJson(event.body));
     if (!isFeedbackInput(input)) return input;
     const now = Date.now();

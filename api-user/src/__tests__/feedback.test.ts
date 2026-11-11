@@ -224,6 +224,19 @@ describe("ログインしていない人（POST /feedback）", () => {
         expect(r.statusCode).toBe(409);
     });
 
+    it("大きすぎる本文は、読み解く前に 413 で断る（JSON.parse もしない・何も書かない）", async () => {
+        const parse = vi.spyOn(JSON, "parse");
+        const huge = JSON.stringify({ text: "a".repeat(fb.FEEDBACK_BODY_MAX_BYTES) });
+        const r = await call(sendFeedbackPublic, { body: huge, requestContext: { http: { sourceIp: "198.51.100.7" } } } as never);
+        expect(r.statusCode).toBe(413);
+        expect(parse).not.toHaveBeenCalledWith(huge);
+        parse.mockRestore();
+        expect(calls).toEqual([]);
+        // 上限ちょうどまでは読む（本文 1000 字の日本語は十分に収まる）
+        const r2 = await call(sendFeedbackPublic, anon({ text: "あ".repeat(1000) }));
+        expect(r2.statusCode).toBe(200);
+    });
+
     it("上限なら 429", async () => {
         ccfOn = (c) => c.cmd === "UpdateCommand";
         const r = await call(sendFeedbackPublic, anon({ text: "a" }));
