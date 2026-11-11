@@ -167,6 +167,10 @@
   - 公開の判定は `isPublished`（人の確認か AI 照合）。`delegatedBy` に AI の名前は
     書けない（`spotsLedger.test.ts`）。出典の要る項目（access・parking・safetyNotes）は
     AI 照合では出せない（確認者つきの出典が要るまま）
+    - **例外（2026-11-11 owner 承認・journey.photo-ios#535）:** `content/spot-visit-facts.json` の事実
+      （アクセス・駐車場・時間・料金・撮影の決まり・見頃）は、公式サイトの頁の URL と読んだ日が付いていれば、
+      AI が読んだものでも出してよい。頁には「公式サイトより・〇月〇日確認」と出典のリンクを必ず出す。
+      人の確認者つきの access がある所はそちらを優先し、重ねない
   - 写真（`spot-images.json`）は `aiCheck.imageChecked` かつ座標のずれ無しのときだけアプリに出す
   - 写真の小さい版（`public/images/spots/thumb/`・アプリの `thumbUrl`）は**自動で作られる**（`localize-spot-images.mjs` と本番のビルドが `scripts/spot-thumbs.mjs` を呼ぶ）。揃っているかは `node scripts/spot-thumbs.mjs --check` で見られる
 - **Wikipedia / Wikidata の API は叩きすぎない**（2026-09-28・owner の指示）。
