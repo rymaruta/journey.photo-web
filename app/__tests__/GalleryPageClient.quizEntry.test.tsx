@@ -54,14 +54,15 @@ beforeEach(async () => {
 
 const cards = () => screen.getByTestId("home-top-cards");
 const order = () => [...cards().querySelectorAll("li")].map((li) =>
-    (li.querySelector("[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry]") as HTMLElement).dataset.testid);
+    (li.querySelector("[data-testid=home-swipe-entry],[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry]") as HTMLElement).dataset.testid);
 
 describe("ホームの上段の札", () => {
     it("タブの直下に札の並び（今日のテーマ → 今日の一問 → 撮影スポット）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         await screen.findByTestId("home-top-cards");
         expect(screen.getByRole("tablist").nextElementSibling).toBe(cards());
-        expect(order()).toEqual(["home-theme-card", "home-quiz-entry", "home-spots-entry"]);
+        // 2026-11-11: 撮影スポットを払う入口がいつも1枚目（iOS と同じ）
+        expect(order()).toEqual(["home-swipe-entry", "home-theme-card", "home-quiz-entry", "home-spots-entry"]);
     });
 
     it("札の形は iOS と同じ（背 116・角 16・地 surface・白8% の縁・明朝 18 の題・眉は真鍮）", async () => {
@@ -78,11 +79,11 @@ describe("ホームの上段の札", () => {
         expect(quiz.querySelector(".eyebrow")!.className).toContain("text-accent");
     });
 
-    it("PC は 3 枚を並べ、電話は横にめくる（PC の幅の決まり W4）", async () => {
+    it("PC は 4 枚を並べ、電話は横にめくる（PC の幅の決まり W4）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const ul = (await screen.findByTestId("home-top-cards")).querySelector("ul")!;
         expect(ul.className).toContain("overflow-x-auto");
-        expect(ul.className).toContain("lg:grid-cols-3");
+        expect(ul.className).toContain("lg:grid-cols-4");
         expect(ul.style.scrollSnapType).toBe("x mandatory");
         // 読み上げ用の字（sr-only・絶対配置）が並びの切り取りの外へ出て頁を横に広げない
         expect(ul.className.split(/\s+/)).toContain("relative");
@@ -195,5 +196,28 @@ describe("今日のテーマの参加済み（iOS の `DailyTheme.hasJoined`）"
         expect(hasJoinedTheme(theme, [{ tags: [theme.tag], createdAt: yesterday }], tagKey)).toBe(false);
         expect(hasJoinedTheme(theme, [{ tags: ["別のタグ"], createdAt: new Date().toISOString() }], tagKey)).toBe(false);
         expect(hasJoinedTheme(theme, [{ tags: [theme.tag], createdAt: new Date().toISOString() }], tagKey)).toBe(true);
+    });
+});
+
+describe("ホームの撮影スポットを払う札（2026-11-11）", () => {
+    it("行き先は /swipe・未ログインは「ログインなしではじめる」", async () => {
+        render(<ToastProvider><GalleryPageClient /></ToastProvider>);
+        const entry = await screen.findByTestId("home-swipe-entry");
+        expect(entry.getAttribute("href")).toBe("/swipe");
+        expect(entry.textContent).toContain("行きたい場所を探す");
+        expect(entry.textContent).toContain("ログインなしではじめる");
+    });
+
+    it("一度開いた端末は「行きたい n か所 · 続きから」", async () => {
+        window.localStorage.setItem("jp-swipe-started", "1");
+        window.localStorage.setItem("jp-swipe-wants", JSON.stringify(["SPOT-a", "SPOT-b"]));
+        try {
+            render(<ToastProvider><GalleryPageClient /></ToastProvider>);
+            const entry = await screen.findByTestId("home-swipe-entry");
+            await waitFor(() => expect(entry.textContent).toContain("行きたい 2 か所 · 続きから"));
+        } finally {
+            window.localStorage.removeItem("jp-swipe-started");
+            window.localStorage.removeItem("jp-swipe-wants");
+        }
     });
 });

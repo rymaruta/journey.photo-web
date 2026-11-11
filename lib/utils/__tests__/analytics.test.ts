@@ -53,5 +53,8 @@ describe("signupFromVia", () => {
         expect(signupFromVia(null)).toBe("other");
         expect(signupFromVia("")).toBe("other");
         expect(signupFromVia("WISH")).toBe("other");
+        // 撮影スポットを払う画面（`/swipe`）から（2026-11-11）
+        expect(signupFromVia("swipe")).toBe("swipe");
+        expect(signupFromVia("SWIPE")).toBe("other");
     });
 });

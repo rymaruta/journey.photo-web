@@ -9,7 +9,7 @@ import { forgotPassword, confirmForgotPassword, PASSWORD_RULE_MESSAGE } from "..
 import { userFetch } from "../../lib/utils/api";
 import { ROUTES, safeNextPath } from "../../lib/routes";
 import { pendingNameKey } from "../../lib/utils/pendingName";
-import { WISH_VIA } from "../../lib/utils/analytics";
+import { WISH_VIA, SWIPE_VIA } from "../../lib/utils/analytics";
 import { LockClosedIcon, EnvelopeIcon, ArrowLeftIcon } from "@heroicons/react/24/outline";
 import { BTN_FILL } from "../components/buttonStyles";
 
@@ -27,10 +27,12 @@ function LoginForm() {
     const nextPath = safeNextPath(searchParams?.get("next"));
     // 「行きたい」から来た印（`via=wish`）を新規登録へ運ぶ（登録までの数え方・#432）。
     // 決まった値だけ通す
-    const viaWish = searchParams?.get("via") === WISH_VIA;
+    // 2026-11-11: 撮影スポットを払う画面（`/swipe`）から来た印（`via=swipe`）も運ぶ
+    const viaRaw = searchParams?.get("via");
+    const via = viaRaw === WISH_VIA || viaRaw === SWIPE_VIA ? viaRaw : null;
     const signupQuery = [
         nextPath ? `next=${encodeURIComponent(nextPath)}` : "",
-        viaWish ? `via=${WISH_VIA}` : "",
+        via ? `via=${via}` : "",
     ].filter(Boolean).join("&");
     const signupHref = signupQuery ? `/signup?${signupQuery}` : "/signup";
     const { login, isAuthenticated, loading, userId } = useAuth();

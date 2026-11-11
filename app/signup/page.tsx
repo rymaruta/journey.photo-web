@@ -49,7 +49,7 @@ function loadPendingFrom(em: string): SignupFrom | null {
     try {
         const raw = localStorage.getItem(pendingVerifyKey(em));
         const from = raw ? (JSON.parse(raw) as { from?: unknown })?.from : null;
-        return from === "wish" || from === "other" ? from : null;
+        return from === "wish" || from === "swipe" || from === "other" ? from : null;
     } catch { return null; }
 }
 function loadPending(em: string): string | null {
@@ -101,7 +101,7 @@ function SignupForm() {
     const [resendCooldown, setResendCooldown] = useState(0);
     // 控えから戻したときの `from`（URL に `via` が無い回のため）
     const [pendingFrom, setPendingFrom] = useState<SignupFrom | null>(null);
-    const from: SignupFrom = fromUrl === "wish" ? "wish" : (pendingFrom ?? fromUrl);
+    const from: SignupFrom = fromUrl !== "other" ? fromUrl : (pendingFrom ?? fromUrl);
 
     // ログイン済みならトップへ
     useEffect(() => {

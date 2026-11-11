@@ -103,6 +103,11 @@ export const ROUTES = {
      * 画面が日付のファイルから読むので、HTML は空の殻（`app/q/layout.tsx`）
      */
     QUIZ: "/q",
+    /**
+     * 撮影スポットを払う（写真を右へ払うと行きたい・2026-11-11）。**検索に出す**（題と説明を持つ静的な頁・
+     * 札の山は `/app/data/swipe.json`）。未ログインでも払える。入口はホームの上段の札の1枚目
+     */
+    SWIPE: "/swipe",
     PRIVACY: "/privacy",
     TERMS: "/terms",
     ADMIN: "/admin",
@@ -205,7 +210,7 @@ export function safeNextPath(raw: unknown): string | null {
 }
 
 /** ログイン画面へ。戻り先を添える（省略時は既定＝自分のプロフィール） */
-export function loginWithNext(next?: string | null, via?: "wish"): string {
+export function loginWithNext(next?: string | null, via?: "wish" | "swipe"): string {
     const safe = safeNextPath(next);
     const base = safe ? `${ROUTES.LOGIN}?next=${encodeURIComponent(safe)}` : ROUTES.LOGIN;
     // `via` は登録までの数え方（`lib/utils/analytics.ts` の `signupFromVia`）。
