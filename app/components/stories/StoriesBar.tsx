@@ -20,7 +20,7 @@ import { startFromPointer, clampStart } from "../../../lib/utils/songTrim";
 import { log } from "../../../lib/utils/log";
 import { readStoryArchive, writeStoryArchive } from "../../../lib/utils/storyArchivePref";
 import {
-    groupStories, hasUnseen, storyDeletePath, loadSeenStoryIds, markStorySeen, isSeenStoriesKey,
+    groupStories, hasUnseen, storyDeletePaths, loadSeenStoryIds, markStorySeen, isSeenStoriesKey,
     type Story, type StoryGroup,
 } from "../../../lib/stories";
 import StoryViewer from "./StoryViewer";
@@ -530,8 +530,8 @@ export default function StoriesBar() {
      * `/user/archive` で見られる）。「24時間で消える約束」を守るのはここ
      * ——残るのは本人が選んだぶんだけ。
      *
-     * 入にした投稿は「残す」（ギャラリーへ）を押せない（実体を共有する
-     * ので、写真を消すとアーカイブごと消えるため。サーバーも 409）
+     * 入にした投稿も「残す」（ギャラリーへ）を押せる（2026-11-11 から。サーバーが画像を写して
+     * 切り離すので、写真を消してもアーカイブは残る・`api-user/src/storyKeptMedia.ts`）
      */
     const [archive, setArchive] = useState(() => readStoryArchive(userId));
     // ログインの状態が後から分かる・人が替わったら、その人の値を読む
@@ -1129,8 +1129,9 @@ export default function StoriesBar() {
     const handleDeleteStory = useCallback(async (storyId: string, withPhotoId?: string) => {
         try {
             const { userFetch, isGoneResponse, readApiError } = await import("../../../lib/utils/api");
-            // 「写真も一緒に消す」は写真の口へ（2026-11-11・`storyDeletePath`）
-            const res = await userFetch(storyDeletePath(storyId, withPhotoId), { method: "DELETE" });
+            // 「写真も一緒に消す」は写真の口 → ストーリーの口の順（2026-11-11・`storyDeletePaths`）
+            for (const path of storyDeletePaths(storyId, withPhotoId)) {
+            const res = await userFetch(path, { method: "DELETE" });
             // 404 は成功として扱う（別タブで先に消した／24時間で期限切れ）。
             // 失敗と読んで throw していたので `loadStories()` に到達せず、
             // **もう存在しないストーリーがバーに残り続けた**（開くと画像が
@@ -1142,6 +1143,7 @@ export default function StoriesBar() {
                 // 伝わらない
                 throw new Error(await readApiError(res,
                     locale === "en" ? "Failed to delete" : "削除に失敗しました"));
+            }
             }
             showToast(locale === "en" ? "Story deleted" : "ストーリーを削除しました", "success");
             await loadStories();

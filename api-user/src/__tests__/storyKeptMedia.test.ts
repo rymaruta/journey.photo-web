@@ -295,6 +295,24 @@ describe("消すときの約束（写したとき）", () => {
     });
 });
 
+describe("守り", () => {
+    // 写真の `fromStory` が**他人のストーリー**を指していても、一緒に消すで消さない（`deleteMyPhoto` の `own`）
+    it("一緒に消す（withStory=1）でも、他人のストーリーは消さない", async () => {
+        table.set("story-x", {
+            id: "story-x", story: true, userId: "someone-else", mediaType: "image",
+            src: `https://cdn.test/uploads/someone-else/x.webp`, key: "uploads/someone-else/x.webp",
+            storyFeed: "1", createdAt: "2026-11-11T00:00:00.000Z", expiresAt: FUTURE,
+        });
+        bucket.add("uploads/someone-else/x.webp");
+        table.set("p-mine", { id: "p-mine", userId: ME, src: `https://cdn.test/${COPY}`, key: COPY, fromStory: "story-x" });
+        bucket.add(COPY);
+        expect((await call(deleteMyPhoto, ev("p-mine", { withStory: "1" }))).statusCode).toBe(200);
+        expect(table.has("story-x"), "他人のストーリーを消した").toBe(true);
+        expect(bucket.has("uploads/someone-else/x.webp"), "他人の画像を消した").toBe(true);
+        expect(bucket.has(COPY)).toBe(false);
+    });
+});
+
 describe("消すときの約束（共有のとき・生きている普通のストーリー）", () => {
     it("約束5: 期限の掃除は、共有している写真の画像を消さない（今までどおり）", async () => {
         putStory();

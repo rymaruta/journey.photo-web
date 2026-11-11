@@ -176,3 +176,22 @@ export async function listPhotosByUser(userId: string): Promise<Photo[]> {
     } while (lastKey);
     return items.sort((a, b) => (b.createdAt ?? "").localeCompare(a.createdAt ?? ""));
 }
+
+/**
+ * ストーリーの「写真にした」印を外す（2026-11-11・`api-user/src/storyKeptDelete.ts` の `unmarkKept` と**対**）。
+ * **この写真を指しているときだけ**（条件が外れたら何もしない＝行が無い・別の写真を指す）。
+ * 管理者が写した写真（`fromStory`）を消したとき、ストーリーに死んだ id を残さない
+ */
+export async function unmarkKeptStory(storyId: string, photoId: string): Promise<void> {
+    try {
+        await ddb.send(new UpdateCommand({
+            TableName: TABLE,
+            Key: { id: storyId },
+            UpdateExpression: "REMOVE keptAs, keptCopy",
+            ConditionExpression: "keptAs = :p",
+            ExpressionAttributeValues: { ":p": photoId },
+        }));
+    } catch (e) {
+        if ((e as { name?: string }).name !== "ConditionalCheckFailedException") throw e;
+    }
+}

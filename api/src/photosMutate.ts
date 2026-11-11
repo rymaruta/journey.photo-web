@@ -1,6 +1,6 @@
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { S3Client, DeleteObjectCommand } from "@aws-sdk/client-s3";
-import { getPhotoById, updatePhotoFields, deletePhotoById } from "./ddb-photos";
+import { getPhotoById, updatePhotoFields, deletePhotoById, unmarkKeptStory } from "./ddb-photos";
 import { removePhotoFromAlbum } from "./albumCleanup";
 import { PUBLIC_FEED_KEY, RESTRICTED_FEED_KEY } from "./publicFeed";
 import { isAdmin, getCallerUserId } from "./auth";
@@ -396,6 +396,15 @@ export const deletePhoto: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
             } catch (e) {
                 console.error(`deletePhoto: 元のストーリーを消せませんでした（${sourceStory}）:`, e);
             }
+        }
+        // **写した写真（`fromStory`・自分用に残すストーリーから）はストーリーを消さない**——画像を共有して
+        // いない。代わりにストーリーの「写真にした」印を外す（死んだ id を指したまま「写真にしました ›」を
+        // 出さない・もう一度写真にできる。2026-11-11・`api-user/src/storyKeptDelete.ts` と同じ）
+        const copiedFrom = (photo as Record<string, unknown>).fromStory;
+        if (!sourceStory && typeof copiedFrom === "string" && copiedFrom) {
+            await unmarkKeptStory(copiedFrom, id).catch((e) => {
+                console.error(`deletePhoto: 元のストーリーの印を外せませんでした（${copiedFrom}）:`, e);
+            });
         }
 
         await deletePhotoById(id);

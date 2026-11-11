@@ -254,16 +254,25 @@ describe("getStories", () => {
 
     // 「残した」印も本人だけ（`viewers` と同じ扱い）
     it("keptAs も投稿者にだけ返す", async () => {
-        mockDdbSend.mockResolvedValueOnce({
-            Items: [
-                { id: "s1", userId: "me", createdAt: "1", keptAs: "p-1" },
-                { id: "s2", userId: "other", createdAt: "2", keptAs: "p-2" },
-            ],
+        // 相手をフォローしている世界にする（しないと相手の1本が返らず、何も見ない試験になる）
+        mockDdbSend.mockImplementation((cmd: { constructor: { name: string }; input: { Key?: { id?: string } } }) => {
+            if (cmd.constructor.name === "GetCommand") {
+                const id = String(cmd.input.Key?.id ?? "");
+                return Promise.resolve(id.startsWith("follow#") ? { Item: { id } } : {});
+            }
+            return Promise.resolve({ Items: [
+                { id: "s1", userId: "me", createdAt: "1", keptAs: "p-1", keptCopy: true },
+                { id: "s2", userId: "other", createdAt: "2", keptAs: "p-2", keptCopy: true },
+            ] });
         });
         const res = await invoke(getStories, authedEvent("me"));
-        const items = JSON.parse(res.body) as Array<{ id: string; keptAs?: string }>;
+        const items = JSON.parse(res.body) as Array<{ id: string; keptAs?: string; keptCopy?: boolean }>;
         expect(items.find((i) => i.id === "s1")?.keptAs, "自分の分まで消している").toBe("p-1");
         expect(items.find((i) => i.id === "s2")?.keptAs, "他人に「残した」印を返している").toBeUndefined();
+        // 「画像を写した」印も本人だけ（2026-11-11）。**相手の1本が返っていることも確かめる**
+        // （返っていなければ、何も見ていない試験になる）
+        expect(items.some((i) => i.id === "s2"), "前提: 他人の1本が返っていない").toBe(true);
+        expect("keptCopy" in (items.find((i) => i.id === "s2") ?? {}), "他人に「写した」印を返している").toBe(false);
     });
 
     it("ページネーション（LastEvaluatedKey）を辿って全件返す", async () => {

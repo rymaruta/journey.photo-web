@@ -326,14 +326,15 @@ export function hasUnseen(group: StoryGroup, seen: Set<string>): boolean {
 }
 
 /**
- * ストーリーを消す口（2026-11-11 判断）。「写真も一緒に消す」は**写真の口**に `withStory=1` で頼む
- * （写真を消すには再ビルドの依頼まで要り、その鍵は写真の口にしか無い・`api-user/src/storyKeptDelete.ts`）。
- * 「ストーリーだけ消す」・写真にしていないストーリーは今までどおりストーリーの口
+ * ストーリーを消すときに叩く口（順に・2026-11-11 判断）。「写真も一緒に消す」は**写真の口**に
+ * `withStory=1` で頼む（写真を消すには再ビルドの依頼まで要り、その鍵は写真の口にしか無い・
+ * `api-user/src/storyKeptDelete.ts`）。**続けてストーリーの口も叩く**——写真がもう無い（404）と
+ * 写真の口はストーリーに触らないので、404 を「ストーリーも消えた」と扱うとストーリーが残る。
+ * 一緒に消えていればストーリーの口は 404（＝消せた）。呼ぶ側は 404 を成功として扱う
  */
-export function storyDeletePath(storyId: string, withPhotoId?: string): string {
-    return withPhotoId
-        ? `/photos/${encodeURIComponent(withPhotoId)}?withStory=1`
-        : `/stories/${encodeURIComponent(storyId)}`;
+export function storyDeletePaths(storyId: string, withPhotoId?: string): string[] {
+    const story = `/stories/${encodeURIComponent(storyId)}`;
+    return withPhotoId ? [`/photos/${encodeURIComponent(withPhotoId)}?withStory=1`, story] : [story];
 }
 
 /**
@@ -364,4 +365,15 @@ export async function findOwnStory(storyId: string): Promise<Story | null> {
         } catch { /* 次を見る */ }
     }
     return null;
+}
+
+/**
+ * 期限が切れた1本か（棚へ移った・ハイライトから開いた）。サーバーは期限切れを写真にできない
+ * （`api-user/src/storyKeep.ts` の `isStoryExpired`）ので、「残す」を出さない判定に使う。
+ * `archivedAt` は棚の一覧だけが持つ。無ければ期限の時刻で見る（同時刻は切れている・サーバーと同じ）
+ */
+export function isStoryShelved(story: { archivedAt?: string; expiresAt?: string }, now: number = Date.now()): boolean {
+    if (story.archivedAt) return true;
+    const t = story.expiresAt ? Date.parse(story.expiresAt) : NaN;
+    return Number.isFinite(t) && t <= now;
 }
