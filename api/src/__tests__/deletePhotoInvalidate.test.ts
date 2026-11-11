@@ -13,6 +13,7 @@ const mockInvalidate = vi.hoisted(() => vi.fn());
 const mockGetPhoto = vi.hoisted(() => vi.fn());
 const mockDeleteRow = vi.hoisted(() => vi.fn());
 const mockRebuild = vi.hoisted(() => vi.fn());
+const mockUnmark = vi.hoisted(() => vi.fn(async () => undefined));
 
 vi.mock("@aws-sdk/client-s3", () => ({
     S3Client: class { send = mockS3Send; },
@@ -27,6 +28,7 @@ vi.mock("../ddb-photos", () => ({
     getPhotoById: mockGetPhoto,
     deletePhotoById: mockDeleteRow,
     updatePhotoFields: vi.fn(),
+    unmarkKeptStory: mockUnmark,
 }));
 // 旅のトランクの印を外す処理（`trunkLabelPlaceDrop.ts`）は自分のテストで見る。ここでは本物の DynamoDB に行かせない
 vi.mock("../trunkLabelPlaceDrop", () => ({ dropTrunkPlaceOkQuietly: vi.fn(async () => undefined) }));
@@ -189,6 +191,18 @@ describe("管理APIの削除: ギャラリーに残した実体は消さない",
         expect(mockDeleteRow, "行は予定どおり消す").toHaveBeenCalledWith("p1");
     });
 
+    // 2026-11-11: 自分用に残すストーリーから写真にしたときは画像を**写して**切り離す
+    // （`keptCopy`）。共有していないので、ストーリーの画像は消す（置き去りにしない）
+    it("写して切り離した（keptCopy）ストーリーは、ストーリーの画像を消す", async () => {
+        mockGetPhoto.mockResolvedValue({
+            id: "p1", userId: "someone", story: true, keptAs: "photo-kept", keptCopy: true,
+            src: "https://cdn.test/uploads/someone/s1.webp",
+        });
+        const res = await invoke();
+        expect(res.statusCode).toBe(200);
+        expect(mockS3Send, "ストーリーの画像が置き去り").toHaveBeenCalled();
+    });
+
     it("残していないストーリーは、これまでどおり実体ごと消す", async () => {
         mockGetPhoto.mockResolvedValue({
             id: "p1", userId: "someone", story: true,
@@ -227,6 +241,21 @@ describe("管理APIの削除: 残した写真を消したら、元のストー�
         mockGetPhoto.mockResolvedValue({ id: "p1", userId: "someone", src: "https://cdn.test/uploads/someone/p1.jpg" });
         await invoke();
         expect(mockDeleteRow.mock.calls.map((c) => c[0] as string)).toEqual(["p1"]);
+        expect(mockUnmark).not.toHaveBeenCalled();
+    });
+
+    // 2026-11-11: 写した写真（`fromStory`）は画像を共有していないので**ストーリーを消さない**。
+    // 代わりにストーリーの「写真にした」印を外す（死んだ id で「写真にしました ›」を出さない）
+    it("fromStory なら、ストーリーは消さずに印だけ外す", async () => {
+        mockUnmark.mockClear();
+        mockGetPhoto.mockResolvedValue({
+            id: "p1", userId: "someone", fromStory: "story-1",
+            src: "https://cdn.test/uploads/someone/kept-p1.jpg",
+        });
+        const res = await invoke();
+        expect(res.statusCode).toBe(200);
+        expect(mockDeleteRow.mock.calls.map((c) => c[0] as string), "自分用に残したストーリーまで消している").toEqual(["p1"]);
+        expect(mockUnmark, "ストーリーに死んだ写真の id が残る").toHaveBeenCalledWith("story-1", "p1");
     });
 });
 
