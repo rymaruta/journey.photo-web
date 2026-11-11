@@ -16,7 +16,7 @@ vi.mock("@aws-sdk/s3-request-presigner", () => ({ getSignedUrl: (...a: unknown[]
 
 const fb = await import("../feedback");
 const { sendFeedback, sendFeedbackPublic, parseFeedback, ipBucket, feedbackDayOf, cleanToken,
-    FEEDBACK_TEXT_MAX, FEEDBACK_DAILY_PER_IP, FEEDBACK_DAILY_PER_USER, FEEDBACK_DAILY_TOTAL, FEEDBACK_PHOTO_MAX_BYTES } = fb;
+    FEEDBACK_TEXT_MAX, FEEDBACK_DAILY_PER_IP, FEEDBACK_DAILY_PER_USER, FEEDBACK_DAILY_TOTAL_USER, FEEDBACK_DAILY_TOTAL_ANON, FEEDBACK_PHOTO_MAX_BYTES } = fb;
 
 const ME = "11111111-1111-4111-8111-111111111111";
 const DRAFT = "aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee";
@@ -111,9 +111,10 @@ describe("ログインした人（POST /user/feedback）", () => {
         expect(u.Key).toEqual({ id: `feedbackday#${feedbackDayOf()}` });
         expect(u.ExpressionAttributeNames["#w"]).toBe(`by_u_${ME}`);
         expect(u.ExpressionAttributeValues[":maxWho"]).toBe(FEEDBACK_DAILY_PER_USER);
-        expect(u.ExpressionAttributeValues[":maxTotal"]).toBe(FEEDBACK_DAILY_TOTAL);
+        expect(u.ExpressionAttributeValues[":maxTotal"]).toBe(FEEDBACK_DAILY_TOTAL_USER);
+        expect(u.ExpressionAttributeNames["#t"]).toBe("totalUser");
         expect(u.ExpressionAttributeValues[":idl"]).toEqual([DRAFT]);
-        expect(u.ConditionExpression).toContain("total < :maxTotal");
+        expect(u.ConditionExpression).toContain("#t < :maxTotal");
         expect(u.ConditionExpression).toContain("#w < :maxWho");
     });
 
@@ -179,6 +180,10 @@ describe("ログインしていない人（POST /feedback）", () => {
         const u = update();
         expect(u.ExpressionAttributeNames["#w"]).toBe(`by_ip_${ipBucket("198.51.100.7", feedbackDayOf())}`);
         expect(u.ExpressionAttributeValues[":maxWho"]).toBe(FEEDBACK_DAILY_PER_IP);
+        // 全体の数はログインした人と別（IP を集めてもログインした人の枠は減らない）
+        expect(u.ExpressionAttributeNames["#t"]).toBe("totalAnon");
+        expect(u.ExpressionAttributeValues[":maxTotal"]).toBe(FEEDBACK_DAILY_TOTAL_ANON);
+        expect(FEEDBACK_DAILY_TOTAL_ANON).toBeLessThan(FEEDBACK_DAILY_TOTAL_USER);
         const item = put().Item;
         // 宛先が無いので返事は約束しない。送った人も持たない
         expect(item.wantsReply).toBe(false);
@@ -187,9 +192,30 @@ describe("ログインしていない人（POST /feedback）", () => {
         expect(JSON.stringify([item, u])).not.toContain("198.51.100.7");
     });
 
-    it("IP のハッシュは日が変わると別の値（日をまたいで同じ人を追えない）", () => {
-        expect(ipBucket("198.51.100.7", "2026-11-11")).not.toBe(ipBucket("198.51.100.7", "2026-11-12"));
-        expect(ipBucket("198.51.100.7", "2026-11-11")).toMatch(/^[0-9a-f]{16}$/);
+    it("IP の目印は日が変わると別の値（日をまたいで同じ人を追えない）", () => {
+        expect(ipBucket("198.51.100.7", "2026-11-11", "k")).not.toBe(ipBucket("198.51.100.7", "2026-11-12", "k"));
+        expect(ipBucket("198.51.100.7", "2026-11-11", "k")).toMatch(/^[0-9a-f]{16}$/);
+    });
+
+    it("鍵があれば HMAC（鍵を知らなければ IP から目印を作り直せない）。鍵が無くても動く", async () => {
+        const { createHash, createHmac } = await import("node:crypto");
+        const plain = createHash("sha256").update("2026-11-11|198.51.100.7").digest("hex").slice(0, 16);
+        const keyed = ipBucket("198.51.100.7", "2026-11-11", "secret-key");
+        expect(keyed).toBe(createHmac("sha256", "secret-key").update("2026-11-11|198.51.100.7").digest("hex").slice(0, 16));
+        expect(keyed).not.toBe(plain);
+        expect(ipBucket("198.51.100.7", "2026-11-11", "other-key")).not.toBe(keyed);
+        const warn = vi.spyOn(console, "warn").mockImplementation(() => undefined);
+        expect(ipBucket("198.51.100.7", "2026-11-11", "")).toBe(plain);
+        warn.mockRestore();
+    });
+
+    it("ログインしていない人の送り直しには、写真の署名を出し直さない（id を知った別の人に上書きさせない）", async () => {
+        rows[`feedback#${DRAFT}`] = { id: `feedback#${DRAFT}`, photoKey: `private/feedback/${DRAFT}`, photoType: "image/jpeg" };
+        const r = await call(sendFeedbackPublic, anon({ id: DRAFT, text: "a", photo: { contentType: "image/jpeg", size: 10 } }));
+        expect(r.statusCode).toBe(200);
+        expect(bodyOf(r).upload).toBeUndefined();
+        expect(mockSign).not.toHaveBeenCalled();
+        expect(calls.map((c) => c.cmd)).toEqual(["GetCommand"]);
     });
 
     it("ログインした人の送った id を、ログインしていない人は送り直せない", async () => {

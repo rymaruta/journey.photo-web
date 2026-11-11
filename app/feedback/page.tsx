@@ -23,8 +23,8 @@ import { ROUTES } from "../../lib/routes";
 import { userFetch, userPublicFetch } from "../../lib/utils/api";
 import { toUploadSafeFile } from "../../lib/utils/image";
 import {
-    FEEDBACK_DRAFT_KEY, FEEDBACK_PHOTO_MAX_BYTES, FEEDBACK_TEXT_MAX,
-    feedbackBody, screenFrom, sendFeedback, type FeedbackScreen,
+    FEEDBACK_PHOTO_MAX_BYTES, FEEDBACK_TEXT_MAX,
+    feedbackBody, feedbackDraftKey, screenFrom, sendFeedback, type FeedbackScreen,
 } from "../../lib/feedback";
 import { BTN_FILL } from "../components/buttonStyles";
 
@@ -41,7 +41,7 @@ const newId = () => (typeof crypto !== "undefined" && "randomUUID" in crypto
     : "xxxxxxxx-xxxx-4xxx-8xxx-xxxxxxxxxxxx".replace(/x/g, () => Math.floor(Math.random() * 16).toString(16)));
 
 export default function FeedbackPage() {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, userId, loading } = useAuth();
     const { locale } = useLocale();
     const en = locale === "en";
     const textId = useId();
@@ -61,16 +61,22 @@ export default function FeedbackPage() {
     useEffect(() => {
         // `?from=` は事前描画では読めないので、描いたあとに読む（URL の問いを読むフックの Suspense を避ける）
         setScreen(screenFrom(new URLSearchParams(window.location.search).get("from")));
-        try {
-            const saved = window.localStorage.getItem(FEEDBACK_DRAFT_KEY);
-            if (saved) setText(saved.slice(0, FEEDBACK_TEXT_MAX));
-        } catch { /* 端末に残せない環境でも書ける */ }
     }, []);
+
+    // 書きかけは人ごとの鍵（`feedbackDraftKey`）。ログインの確かめが済んでから、その人の分だけ戻す
+    const draftKey = feedbackDraftKey(isAuthenticated ? userId : null);
+    useEffect(() => {
+        if (loading) return;
+        try {
+            const saved = window.localStorage.getItem(draftKey);
+            setText(saved ? saved.slice(0, FEEDBACK_TEXT_MAX) : "");
+        } catch { /* 端末に残せない環境でも書ける */ }
+    }, [draftKey, loading]);
 
     const keepDraft = (value: string) => {
         try {
-            if (value.trim()) window.localStorage.setItem(FEEDBACK_DRAFT_KEY, value);
-            else window.localStorage.removeItem(FEEDBACK_DRAFT_KEY);
+            if (value.trim()) window.localStorage.setItem(draftKey, value);
+            else window.localStorage.removeItem(draftKey);
         } catch { /* 残せなくても書ける */ }
     };
 
@@ -114,6 +120,13 @@ export default function FeedbackPage() {
                 setDone(true);
                 return;
             }
+            if (!result.offline && result.textDelivered) {
+                // 本文はもう届いている。次に送るものは新しい1件（同じ id で直した本文を送ると捨てられる）
+                idRef.current = "";
+                keepDraft("");
+                setText("");
+                setPhoto(null);
+            }
             setError(result.offline
                 ? (en ? "You seem to be offline. Your note is kept here — send it again when you're connected."
                     : "つながっていないようです。書いたものは残してあります。つながったらもう一度送ってください")
@@ -130,13 +143,14 @@ export default function FeedbackPage() {
         <main className="min-h-screen bg-bg text-white" data-testid="feedback-page">
             <div className="max-w-sm mx-auto px-4 pt-12 pb-16">
                 <Link
-                    href={ROUTES.HOME}
+                    // 設定から来たら設定へ戻す（iOS の「< 設定」と同じ）。ほかはトップへ
+                    href={screen === "web-settings" ? ROUTES.SETTINGS : ROUTES.HOME}
                     prefetch={false}
                     className="inline-flex items-center gap-1.5 min-h-[44px] text-xs text-white/60 hover:text-white transition-colors mb-4"
                     style={{ touchAction: "manipulation" }}
                 >
                     <ArrowLeftIcon aria-hidden="true" className="w-3 h-3" />
-                    {en ? "Back" : "戻る"}
+                    {screen === "web-settings" ? (en ? "Settings" : "設定") : (en ? "Back" : "戻る")}
                 </Link>
                 <div className="flex flex-col gap-8">
                     <h1 className={TITLE_CLASS}>{en ? "Send feedback" : "意見を送る"}</h1>
