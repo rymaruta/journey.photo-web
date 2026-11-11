@@ -383,6 +383,9 @@ jobs:
           # 通しておき、owner が鍵を作った時点で**コードの変更なしに**効く
           CLOUDFRONT_KEY_PAIR_ID: ${{ secrets.CLOUDFRONT_KEY_PAIR_ID }}
           CLOUDFRONT_PRIVATE_KEY: ${{ secrets.CLOUDFRONT_PRIVATE_KEY }}
+          # 意見箱のログインしていない口の、IP の目印を作る鍵（HMAC・札 journey.photo-ios#546）。
+          # **未登録でも何も壊れない**——空なら旗ごと渡さず、鍵なしの目印に落ちる（`feedback.ts` の `ipBucket`）
+          FEEDBACK_IP_KEY: ${{ secrets.FEEDBACK_IP_KEY }}
         run: |
           set -euo pipefail
           extra=()
@@ -410,6 +413,8 @@ jobs:
           if [ -n "${APPSTORE_APP_APPLE_ID:-}" ]; then extra+=(--param "appStoreAppAppleId=$APPSTORE_APP_APPLE_ID"); fi
           echo "Pro の購入: ${APPSTORE_BUNDLE_ID:-(なし)} / ${APPSTORE_ENVIRONMENTS:-(なし)}"
           if [ -n "${CLOUDFRONT_PRIVATE_KEY:-}" ]; then extra+=(--param "cloudfrontPrivateKey=$CLOUDFRONT_PRIVATE_KEY"); fi
+          if [ -n "${FEEDBACK_IP_KEY:-}" ]; then extra+=(--param "feedbackIpKey=$FEEDBACK_IP_KEY"); fi
+          echo "意見箱の IP の目印: $([ -n "${FEEDBACK_IP_KEY:-}" ] && echo '鍵あり' || echo '(なし・鍵なしの目印)')"
           echo "再ビルド依頼: repo=$([ -n "$REBUILD_REPO" ] && echo "$REBUILD_REPO" || echo '(なし)')" \
                "token=$([ -n "$REBUILD_TOKEN" ] && echo '設定あり' || echo '(なし)')" \
                "曲検索の予約=$([ -n "$MUSIC_SEARCH_RESERVED" ] && echo "$MUSIC_SEARCH_RESERVED" || echo '(なし)')" \

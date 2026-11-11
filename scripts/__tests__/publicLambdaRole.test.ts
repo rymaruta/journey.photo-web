@@ -59,9 +59,11 @@ const services = [
             // みんなの「行きたい」を数える口（2026-11-11・撮影スポットを払うの②）。未ログインでも払えるので未認証。
             // 書くのは数の行だけ（専用ロール・鍵の頭 dynamodb:LeadingKeys で数の行に絞る・`spotWants.test.ts` が見る）
             "recordSpotWants",
+            // 意見箱のログインしていない人の口（札 #546。`feedback.ts`・IP ごとの上限）
+            "sendFeedbackPublic",
         ],
         /** PublicReadRole ではなく専用ロールで動かす公開関数（関数名 → ロール名） */
-        ownRole: { getFeed: "PublicFeedRole", appStoreNotification: "AppStoreNotifyRole", recordSpotWants: "SpotWantsRecordRole" } as Record<string, string>,
+        ownRole: { getFeed: "PublicFeedRole", appStoreNotification: "AppStoreNotifyRole", recordSpotWants: "SpotWantsRecordRole", sendFeedbackPublic: "FeedbackRole" } as Record<string, string>,
     },
     { name: "api", file: "api/serverless.yml", publicFns: ["getPhotos", "getPhoto"], ownRole: {} as Record<string, string> },
 ];
@@ -236,5 +238,49 @@ describe("AppStoreNotifyRole は知らせの処理に要るものだけ持つ", 
             `logs:CreateLogStream ${LOGS_ARN}`,
             `logs:PutLogEvents ${LOGS_ARN}`,
         ].sort());
+    });
+});
+
+// 意見箱のログインしていない人の口（sendFeedbackPublic・札 #546）専用。未認証で**書ける**口なので、
+// 動詞と資源を組で固定する（削除・Scan・Query・users テーブル・`private/feedback/` の外の S3 を持たない）
+describe("FeedbackRole は意見の受け取りに要るものだけ持つ", () => {
+    const yml = readFileSync(join(ROOT, "api-user/serverless.yml"), "utf8");
+    const res = yml.split(/\nresources:\n/)[1]!;
+    const m = /^ {4}FeedbackRole:$([\s\S]*?)(?=^ {4}\w+:$)/m.exec(res);
+    const PHOTOS_ARN = "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}";
+    const S3_ARN = "arn:aws:s3:::${param:uploadBucket}/private/feedback/*";
+    const LOGS_ARN = "arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*";
+
+    it("動詞と資源の組がちょうどこれだけ", () => {
+        expect(m, "FeedbackRole が無い").not.toBeNull();
+        const block = m![1].replace(/^\s*#.*$/gm, "");
+        expect(block).toContain("Service: lambda.amazonaws.com");
+        const pairs = block.split(/^\s*- Effect: /m).slice(1).flatMap((st) => {
+            expect(st.split("\n")[0].trim()).toBe("Allow");
+            const actions = [...st.split(/Resource:/)[0].matchAll(/^\s*-\s+([a-z0-9-]+:[A-Za-z]+)\s*$/gm)].map((x) => x[1]);
+            const resources = [...(st.split(/Resource:/)[1] ?? "").matchAll(/^\s*-\s+(arn:\S+)\s*$/gm)].map((x) => x[1]);
+            return actions.flatMap((a) => resources.map((r) => `${a} ${r}`));
+        }).sort();
+        expect(pairs).toEqual([
+            `dynamodb:GetItem ${PHOTOS_ARN}`,
+            `dynamodb:PutItem ${PHOTOS_ARN}`,
+            `dynamodb:UpdateItem ${PHOTOS_ARN}`,
+            `logs:CreateLogStream ${LOGS_ARN}`,
+            `logs:PutLogEvents ${LOGS_ARN}`,
+            `s3:PutObject ${S3_ARN}`,
+        ].sort());
+    });
+
+    it("DynamoDB は意見の2種類の行だけ（行の鍵の頭で縛る）", () => {
+        const block = m![1].replace(/^\s*#.*$/gm, "");
+        const ddbStatement = block.split(/^\s*- Effect: /m).slice(1).find((st) => st.includes("dynamodb:"));
+        expect(ddbStatement).toBeDefined();
+        expect(ddbStatement).toMatch(/Condition:\s*\n\s*ForAllValues:StringLike:\s*\n\s*dynamodb:LeadingKeys:\s*\n\s*- "feedback#\*"\s*\n\s*- "feedbackday#\*"/);
+    });
+
+    it("IP の目印の鍵は、ログインしていない口にだけ配る", () => {
+        const fn = /^ {2}sendFeedbackPublic:$([\s\S]*?)(?=^ {2}\w+:$)/m.exec(yml);
+        expect(fn![1]).toMatch(/FEEDBACK_IP_KEY: \$\{param:feedbackIpKey, ''\}/);
+        expect(yml.match(/FEEDBACK_IP_KEY:/g)).toHaveLength(1);
     });
 });

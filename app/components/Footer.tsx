@@ -50,6 +50,8 @@ export default function Footer() {
     const legalLinks = [
         { href: ROUTES.TERMS, label: en ? "Terms" : "利用規約" },
         { href: ROUTES.PRIVACY, label: en ? "Privacy" : "プライバシーポリシー" },
+        // 意見箱（2026-11-11 札 #546）。規約と同じ最後の1行に（組や行を増やさない）
+        { href: ROUTES.FEEDBACK("footer"), label: en ? "Send feedback" : "意見を送る" },
     ];
 
     // 押せる高さ 44px・字 13px（px で書く。rem の段に頼らない）。押している間は真鍮（黒地の上）
