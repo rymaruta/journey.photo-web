@@ -532,6 +532,9 @@ export function generateItemListStructuredData(
     };
 }
 
+/** サイト名の別表記（WebSite の `alternateName`） */
+export const SITE_ALTERNATE_NAMES = ["Journey Photo", "journeyphoto", "ジャーニーフォト"];
+
 /**
  * WebSite構造化データを生成（検索ボックス用）
  */
@@ -540,6 +543,11 @@ export function generateWebSiteStructuredData() {
         "@context": "https://schema.org",
         "@type": "WebSite",
         name: siteConfig.name,
+        // **サイト名の表記ゆれ**（2026-11-11 判断 journey.photo-ios#525）。
+        // 「<名前> journeyphoto」のように詰めて・カナで探す人がいる。本文に隠し語を
+        // 置くのではなく、Google のサイト名の決まりどおり WebSite の
+        // `alternateName` で申告する。`name` は変えない（サイト名は owner が決める）
+        alternateName: SITE_ALTERNATE_NAMES,
         url: siteConfig.url,
         description: siteConfig.description,
         potentialAction: {
