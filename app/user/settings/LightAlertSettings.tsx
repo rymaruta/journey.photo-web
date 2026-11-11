@@ -20,7 +20,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { userFetch, sessionErrorMessage } from "../../../lib/utils/api";
 import { usableObject } from "../../../lib/utils/apiRows";
 import { ROUTES } from "../../../lib/routes";
-import { SettingsNote, SettingsRowLink } from "./SettingsParts";
+import { SettingsNote, SettingsRowLink, SettingsToggleRow } from "./SettingsParts";
 
 export default function LightAlertSettings({ locale }: { locale: "ja" | "en" }) {
     const en = locale === "en";
@@ -82,41 +82,15 @@ export default function LightAlertSettings({ locale }: { locale: "ja" | "en" }) 
                 detail={en ? "This week's light and weather at your wishlist places" : "行きたい場所の、今週の光と天気"}
                 testId="settings-light"
             />
-            <div className="flex items-center gap-3 px-[14px] py-[13px] min-h-[54px]">
-                <span className="flex-1 min-w-0 flex flex-col gap-1">
-                    <span className="text-[15px] leading-[20px] text-white">{label}</span>
-                    <span className="text-[12px] leading-[1.55] text-white/60">
-                        {en
-                            ? "If a wishlist place looks set for a clear, glowing sunrise, we'll tell you the evening before (in the iPhone app)."
-                            : "行きたい場所が、明日の朝に晴れて朝焼けになりそうなら前の晩に（iPhone のアプリに届きます）。"}
-                    </span>
-                </span>
-                {/* 板のトグル（51×31・入は accent-deep に白い玉）。押せる高さは 44px */}
-                <button
-                    type="button"
-                    role="switch"
-                    aria-checked={wants}
-                    aria-label={label}
-                    disabled={saving}
-                    onClick={() => void toggle()}
-                    className="flex-shrink-0 flex items-center disabled:opacity-60"
-                    style={{ width: "51px", minHeight: "44px", touchAction: "manipulation" }}
-                >
-                    <span
-                        className={`relative block rounded-full transition-colors ${wants ? "bg-accent-deep" : "bg-white/20"}`}
-                        style={{ width: "51px", height: "31px" }}
-                    >
-                        <span
-                            className="absolute rounded-full bg-white transition-transform"
-                            style={{
-                                width: "27px", height: "27px", top: "2px", left: "2px",
-                                boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
-                                transform: wants ? "translateX(20px)" : "translateX(0)",
-                            }}
-                        />
-                    </span>
-                </button>
-            </div>
+            <SettingsToggleRow
+                label={label}
+                detail={en
+                    ? "If a wishlist place looks set for a clear, glowing sunrise, we'll tell you the evening before (in the iPhone app)."
+                    : "行きたい場所が、明日の朝に晴れて朝焼けになりそうなら前の晩に（iPhone のアプリに届きます）。"}
+                on={wants}
+                disabled={saving}
+                onToggle={() => void toggle()}
+            />
             {error && <SettingsNote role="alert" tone="danger">{error}</SettingsNote>}
         </>
     );

@@ -3,7 +3,8 @@ import { readFile } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 import type { Photo } from "@/lib/data/photos";
-import { siteConfig, INDEXABLE_ROBOTS, publicImageUrl } from "@/lib/utils/seo";
+import { siteConfig, INDEXABLE_ROBOTS, NOINDEX_FOLLOW_ROBOTS, publicImageUrl } from "@/lib/utils/seo";
+import { isSearchHidden } from "@/lib/utils/searchHidden";
 import UserProfileClient from "../UserProfileClient";
 import { withPlaceholderParam } from "../../../lib/server/staticParams";
 import PROFILES from "../../data/profiles.json";
@@ -157,7 +158,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         // follow: true }` とだけ書くと、ルートが持っている
         // `googleBot: { "max-image-preview": "large" … }` が消える
         // （実測で、この1ページだけ `googlebot` の meta を失っていた）
-        robots: INDEXABLE_ROBOTS,
+        // **「検索エンジンにプロフィールを表示しない」を選んだ人は noindex**
+        // （2026-11-11 owner 承認・journey.photo-ios#526）。リンクは辿らせる
+        // （写真の頁は写真ごとの公開設定のまま）。sitemap からも外す（`lib/server/sitemap.ts`）
+        robots: isSearchHidden(id) ? NOINDEX_FOLLOW_ROBOTS : INDEXABLE_ROBOTS,
         description,
         alternates: { canonical: url },
         openGraph: {
@@ -186,7 +190,8 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
     const rawBio = rawBioOf(id);
 
     // ProfilePage 構造化データ（検索結果でのプロフィール理解を助ける）
-    const jsonLd = summary
+    // 「検索エンジンにプロフィールを表示しない」人には出さない（#526。人の同定材料を渡さない）
+    const jsonLd = summary && !isSearchHidden(id)
         ? {
             "@context": "https://schema.org",
             "@type": "ProfilePage",

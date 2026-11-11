@@ -1,4 +1,5 @@
 import type { Photo } from "@/lib/data/photos";
+import { isSearchHidden } from "@/lib/utils/searchHidden";
 
 /** 写真を載せた人（プロフィールへのリンク用） */
 export type PhotoCreator = { id: string; name: string };
@@ -13,13 +14,22 @@ export type PhotoCreator = { id: string; name: string };
  * ときの頁の重みのため。
  *
  * 表示名の無い写真は数えない（「ユーザー」の名前でリンクを並べない）。
+ *
+ * **「検索エンジンにプロフィールを表示しない」を選んだ人は並べない**（#526・確かめ役 2026-11-11）。
+ * 頁は noindex でも、索引される撮影スポットの頁から名前つきのリンクを張れば、名前と頁を
+ * 結ぶ道をこちらから作ることになる。写真そのものはグリッドに出たまま（写真ごとの公開は別の設定）。
+ * 既定は `isSearchHidden`（ビルド時の profiles.json。読めなかった人も隠す側）。
  */
-export function photoCreators(photos: readonly Pick<Photo, "userId" | "displayName">[], limit = 8): PhotoCreator[] {
+export function photoCreators(
+    photos: readonly Pick<Photo, "userId" | "displayName">[],
+    limit = 8,
+    exclude: (userId: string) => boolean = isSearchHidden,
+): PhotoCreator[] {
     const seen = new Map<string, { name: string; count: number; first: number }>();
     photos.forEach((p, i) => {
         const id = typeof p.userId === "string" ? p.userId : "";
         const name = typeof p.displayName === "string" ? p.displayName.trim() : "";
-        if (!id || !name) return;
+        if (!id || !name || exclude(id)) return;
         const cur = seen.get(id);
         if (cur) cur.count++;
         else seen.set(id, { name, count: 1, first: i });

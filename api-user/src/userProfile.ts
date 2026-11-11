@@ -250,6 +250,14 @@ export type UserProfile = {
      * 本人の応答には常に真偽で載せる（`withBadgeFields`）。公開プロフィールには出さない
      */
     lightAlert?: boolean;
+    /**
+     * 検索エンジンにプロフィールを表示しない（2026-11-11 owner 承認・journey.photo-ios#526）。
+     * **既定は表示する。** 行には「表示しない」（`true`）のときだけ置く（無い＝表示する）。
+     * 効くのは静的サイトの `/users/<id>`（noindex・sitemap から外す・構造化データを出さない）で、
+     * ビルド時に `scripts/sync-photos-from-ddb.js` が読む。本人の応答には常に真偽で載せる。
+     * 公開プロフィールには出さない（他人に知らせる必要が無い）
+     */
+    searchHidden?: boolean;
     updatedAt?: string;
 };
 
@@ -286,11 +294,11 @@ export const RESERVED_USERNAMES = new Set([
 ]);
 
 /**
- * 静的サイトの頁（`/users/<id>` の title・説明・`@名`・構造化データ）に焼かれる項目。
+ * 静的サイトの頁（`/users/<id>` の title・説明・`@名`・構造化データ・noindex）に焼かれる項目。
  * sync（`scripts/sync-photos-from-ddb.js` の `freshDisplayNames` / `publicProfileFields`）が
  * users テーブルから引くものと同じ並び。
  */
-export const STATIC_PROFILE_FIELDS = ["displayName", "username", "bio", "website", "instagram"] as const;
+export const STATIC_PROFILE_FIELDS = ["displayName", "username", "bio", "website", "instagram", "searchHidden"] as const;
 
 /**
  * 静的サイトに焼かれる項目が変わったときに呼ぶもの（再ビルドの依頼）。
@@ -302,7 +310,7 @@ export const STATIC_PROFILE_FIELDS = ["displayName", "username", "bio", "website
  * GitHub の書き込みトークンを配ることになる（IAM-2）。依頼の本体は
  * `profileUpdate.ts`（`updateMyProfile` の Lambda の入口）だけが持ち、ここへ差し込む。
  */
-type StaticChangeHook = (userId: string) => Promise<unknown>;
+type StaticChangeHook = (userId: string, change: { becameSearchHidden: boolean }) => Promise<unknown>;
 let staticChangeHook: StaticChangeHook | null = null;
 export function setStaticChangeHook(hook: StaticChangeHook | null): void {
     staticChangeHook = hook;
@@ -313,8 +321,17 @@ export function publicStaticFieldsChanged(
     prev: Partial<Record<(typeof STATIC_PROFILE_FIELDS)[number], unknown>> | null | undefined,
     next: Partial<Record<(typeof STATIC_PROFILE_FIELDS)[number], unknown>> | null | undefined,
 ): boolean {
-    const norm = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+    // 真偽（`searchHidden`）は true だけを「ある」と見る（行には true のときだけ置く）
+    const norm = (v: unknown) => (v === true ? "\u0001true" : typeof v === "string" ? v.trim() : "");
     return STATIC_PROFILE_FIELDS.some((k) => norm(prev?.[k]) !== norm(next?.[k]));
+}
+
+/** 保存で「検索エンジンに表示しない」がオフ（無い）→ オンに変わったか */
+export function becameSearchHidden(
+    prev: { searchHidden?: unknown } | null | undefined,
+    next: { searchHidden?: unknown } | null | undefined,
+): boolean {
+    return prev?.searchHidden !== true && next?.searchHidden === true;
 }
 
 /** 入力を正規化して検証する。不正なら理由を返す。 */
@@ -588,6 +605,7 @@ export const updateMyProfile: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
         songs?: unknown;
         displayBadge?: unknown; proMarkStyle?: unknown;
         lightAlert?: unknown;
+        searchHidden?: unknown;
         verifiedMarkOff?: unknown;
         earlyMarkOn?: unknown;
     };
@@ -790,6 +808,15 @@ export const updateMyProfile: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
         return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "知らせの設定が不正です" }) };
     }
     /**
+     * 検索エンジンにプロフィールを表示しない（`searchHidden`・#526）。**真偽だけ受ける**
+     * （文字の "true" を黙って読み替えない——載せたくない人が載ったままになる）。
+     * `true` だけ行に置き、`false` は消す（既定の「表示する」に戻す）
+     */
+    const hasSearchHiddenKey = "searchHidden" in body;
+    if (hasSearchHiddenKey && typeof body.searchHidden !== "boolean") {
+        return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "検索エンジンの設定が不正です" }) };
+    }
+    /**
      * 認証済みの印を外す（`verifiedMarkOff`）。**真偽だけ受ける**（`lightAlert` と同じく、文字の
      * "true" を黙って読み替えない）。`true` だけ行に置き、`false` は消す（付け直す）。
      * `verified` そのものは受け取らない——印を外せても、資格を自分に付けることはできない
@@ -938,6 +965,7 @@ export const updateMyProfile: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
     apply("displayBadge", hasDisplayBadgeKey, displayBadge);
     apply("proMarkStyle", hasProMarkStyleKey, proMarkStyle);
     apply("lightAlert", hasLightAlertKey, body.lightAlert === false ? false : undefined);
+    apply("searchHidden", hasSearchHiddenKey, body.searchHidden === true ? true : undefined);
     apply("verifiedMarkOff", hasVerifiedMarkOffKey, body.verifiedMarkOff === true ? true : undefined);
     apply("earlyMarkOn", hasEarlyMarkKey, typeof body.earlyMarkOn === "boolean" ? body.earlyMarkOn : undefined);
 
@@ -1111,8 +1139,11 @@ export const updateMyProfile: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
         // 検索に出る頁は古い名前のまま**だった。
         // 何度でも無料で起こせる操作なので `coalesce`（10分に1回へ束ねる）。
         // 失敗しても保存は成功のまま返す（`requestSiteRebuild` は投げない）。
+        // ただし `searchHidden` を**オンにした**回だけは束ねない（`becameSearchHidden`）——
+        // 束ねて見送られた分は後から実行されないので、隠したつもりの頁が次の誰かの
+        // 保存まで索引・サイトマップに残り続ける（確かめ役 2026-11-11・#526）。
         if (staticChangeHook && publicStaticFieldsChanged(prev, profile)) {
-            await staticChangeHook(userId);
+            await staticChangeHook(userId, { becameSearchHidden: becameSearchHidden(prev, profile) });
         }
 
         // **写真の行に焼かれた表示名は、ここでは直さない。**
@@ -1219,6 +1250,8 @@ function withBadgeFields<T extends object>(p: T): T & ReturnType<typeof badgeFie
 
     // 光と天気の知らせ: 行に無ければ「受け取る」。本人の応答には常に真偽で載せる
     rest.lightAlert = (p as { lightAlert?: unknown }).lightAlert !== false;
+    // 検索エンジンにプロフィールを表示しないか（#526）: 行に無ければ「表示する」。常に真偽で載せる
+    rest.searchHidden = (p as { searchHidden?: unknown }).searchHidden === true;
     // 認証済みの印を外しているか: 本人の応答には常に真偽で載せる（名前の横の画面の初期値）。
     // 本人の応答の `verified` は資格のまま（外していても true）——画面は両方を見て決める
     rest.verifiedMarkOff = (p as { verifiedMarkOff?: unknown }).verifiedMarkOff === true;

@@ -132,6 +132,53 @@ export const SettingsRowButton = React.forwardRef<HTMLButtonElement, {
     );
 });
 
+/**
+ * 入切の行（板のトグル 51×31・入は accent-deep に白い玉・押せる高さは 44px）。
+ * 2026-11-11: 「光と天気の知らせ」（`LightAlertSettings`）にあった形を、「検索エンジンに
+ * プロフィールを表示しない」（`SearchHiddenSetting`・#526）と分け合うためにここへ移した（写しを作らない）。
+ */
+export function SettingsToggleRow({ label, detail, on, disabled, onToggle, testId }: {
+    label: string;
+    detail?: React.ReactNode;
+    on: boolean;
+    disabled?: boolean;
+    onToggle: () => void;
+    testId?: string;
+}) {
+    return (
+        <div className="flex items-center gap-3 px-[14px] py-[13px] min-h-[54px]" data-testid={testId}>
+            <span className="flex-1 min-w-0 flex flex-col gap-1">
+                <span className="text-[15px] leading-[20px] text-white">{label}</span>
+                {detail && <span className="text-[12px] leading-[1.55] text-white/60">{detail}</span>}
+            </span>
+            <button
+                type="button"
+                role="switch"
+                aria-checked={on}
+                aria-label={label}
+                disabled={disabled}
+                onClick={onToggle}
+                className="flex-shrink-0 flex items-center disabled:opacity-60"
+                style={{ width: "51px", minHeight: "44px", touchAction: "manipulation" }}
+            >
+                <span
+                    className={`relative block rounded-full transition-colors ${on ? "bg-accent-deep" : "bg-white/20"}`}
+                    style={{ width: "51px", height: "31px" }}
+                >
+                    <span
+                        className="absolute rounded-full bg-white transition-transform"
+                        style={{
+                            width: "27px", height: "27px", top: "2px", left: "2px",
+                            boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
+                            transform: on ? "translateX(20px)" : "translateX(0)",
+                        }}
+                    />
+                </span>
+            </button>
+        </div>
+    );
+}
+
 /** 札の中の注記（行ではない1文・iOS `SettingsView.note`） */
 export function SettingsNote({ children, tone = "muted", role }: {
     children: React.ReactNode;

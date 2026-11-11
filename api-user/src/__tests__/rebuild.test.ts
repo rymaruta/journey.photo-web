@@ -577,3 +577,70 @@ describe("requestSiteRebuild: 依頼の再試行", () => {
         expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 });
+
+// #526・確かめ役 2026-11-11: 「検索エンジンに表示しない」をオンにした回の急ぎ（束ねない）依頼は、
+// 1人 10 分に1本まで。素通しだとオン／オフの繰り返しで月の予算を数分で使い切れ、全員の掃除が止まる
+describe("急ぎの依頼（urgentKey）", () => {
+    /** `lastAt` の条件付き書き込みだけを本物どおりに真似る表（予算の行は常に通す） */
+    function fakeTable() {
+        const lastAt = new Map<string, number>();
+        mockDdbSend.mockImplementation(async (cmd: { input: {
+            Key: { id: string }; UpdateExpression: string;
+            ExpressionAttributeValues: Record<string, number>;
+        } }) => {
+            const { Key: { id }, UpdateExpression: expr, ExpressionAttributeValues: v } = cmd.input;
+            if (id.startsWith("rebuild#budget#")) return {};
+            if (expr.startsWith("SET lastAt")) {
+                const cur = lastAt.get(id);
+                if (cur !== undefined && cur >= v[":cutoff"]) throw condFail();
+                lastAt.set(id, v[":now"]);
+                return {};
+            }
+            if (expr.startsWith("REMOVE lastAt")) {
+                if (lastAt.get(id) !== v[":mine"]) throw condFail();
+                lastAt.delete(id);
+                return {};
+            }
+            return {};
+        });
+        return lastAt;
+    }
+    it("オン／オフを3回くり返しても、束ねない依頼は1本（残りは束ねる側へ回って見送られる）", async () => {
+        const table = fakeTable();
+        const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+        globalThis.fetch = fetchMock as unknown as typeof fetch;
+        const { requestSiteRebuild } = await loadWith({ REBUILD_REPO: "o/r", REBUILD_DISPATCH_TOKEN: "tok" });
+
+        const sent: boolean[] = [];
+        for (let i = 0; i < 3; i++) {
+            sent.push(await requestSiteRebuild("profile hidden from search: u1", { urgentKey: "hidden#u1" }));
+            sent.push(await requestSiteRebuild("profile updated: u1", { coalesce: true }));
+        }
+        // 1本目のオンだけ束ねずに通る。オフ（束ねる）は最初の1本だけ通り、あとは全部見送り
+        expect(sent).toEqual([true, true, false, false, false, false]);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+        expect(table.has("rebuild#hidden#u1")).toBe(true);
+        // 退会の掃除（`account.ts`）が消す行と同じ ID
+        const { urgentRowId, searchHiddenUrgentKey } = await import("../rebuildKeys");
+        expect(urgentRowId(searchHiddenUrgentKey("u1"))).toBe("rebuild#hidden#u1");
+        expect(table.get("rebuild#hidden#u1")).toBeTypeOf("number");
+    });
+
+    it("別の人の急ぎは、それぞれ1本ずつ束ねずに通る", async () => {
+        fakeTable();
+        const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+        globalThis.fetch = fetchMock as unknown as typeof fetch;
+        const { requestSiteRebuild } = await loadWith({ REBUILD_REPO: "o/r", REBUILD_DISPATCH_TOKEN: "tok" });
+        expect(await requestSiteRebuild("a", { urgentKey: "hidden#a" })).toBe(true);
+        expect(await requestSiteRebuild("b", { urgentKey: "hidden#b" })).toBe(true);
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it("依頼に失敗したら、その人の急ぎの印を戻す（直ったあとにもう一度急げる）", async () => {
+        const table = fakeTable();
+        globalThis.fetch = vi.fn().mockResolvedValue({ ok: false, status: 401, text: async () => "" }) as unknown as typeof fetch;
+        const { requestSiteRebuild } = await loadWith({ REBUILD_REPO: "o/r", REBUILD_DISPATCH_TOKEN: "tok" });
+        expect(await requestSiteRebuild("x", { urgentKey: "hidden#u1" })).toBe(false);
+        expect(table.has("rebuild#hidden#u1")).toBe(false);
+    });
+});
