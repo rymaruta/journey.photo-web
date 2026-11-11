@@ -2,7 +2,7 @@
 // ↑ happy-dom では結果が変わる（原因は未調査。2026-09-30 の切り替えで落ちたもの）。DOM のテストの既定は happy-dom（vitest.config.ts）
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor, within } from "@testing-library/react";
 import type { Photo } from "@/lib/data/photos";
 
 /**
@@ -196,13 +196,41 @@ describe("写真ページ: 最終版モックの並び", () => {
         const { unmount } = page();
         await screen.findByText("夕陽に染まる白い街");
         fireEvent.click(screen.getByRole("button", { name: "その他" }));
-        expect(screen.getAllByRole("menuitem").map((m) => m.textContent)).toEqual(["共有", "リンクをコピー", "Xで共有", "LINEで共有", "撮影地マップで見る", "Google マップで開く"]);
+        // 2026-11-12 第8章: SNS に貼るカードを作る画面の入口（本番の比率ごとの3行を1行にまとめたもの）
+        expect(screen.getAllByRole("menuitem").map((m) => m.textContent)).toEqual(["共有", "SNS用の画像を作る", "リンクをコピー", "Xで共有", "LINEで共有", "撮影地マップで見る", "Google マップで開く"]);
         unmount();
         authState.current = { isAuthenticated: true, userId: "viewer", loading: false };
         page();
         await screen.findByText("夕陽に染まる白い街");
         fireEvent.click(screen.getByRole("button", { name: "その他" }));
         expect(screen.getAllByRole("menuitem").map((m) => m.textContent)).toContain("この投稿を通報する");
+    });
+
+    it("SNS用の画像を作る: 型を横に払って選ぶ画面が開き、見本の列と比率で選べる（第8章）", async () => {
+        try { window.localStorage.removeItem("signatureShare.style"); } catch { /* 無くてもよい */ }
+        page();
+        await screen.findByText("夕陽に染まる白い街");
+        fireEvent.click(screen.getByRole("button", { name: "その他" }));
+        fireEvent.click(screen.getByRole("menuitem", { name: "SNS用の画像を作る" }));
+        const dialog = await screen.findByRole("dialog", { name: "SNSに共有" });
+        const styles = within(dialog).getByRole("group", { name: "カードの型" });
+        const items = within(styles).getAllByRole("button");
+        expect(items.map((b) => b.textContent)).toEqual(["縦書き", "インスタント", "帯"]);
+        // 初めては縦書き。押すと選ばれ、次に開くときも覚えている
+        expect(items[0].getAttribute("aria-pressed")).toBe("true");
+        fireEvent.click(items[1]);
+        expect(items[1].getAttribute("aria-pressed")).toBe("true");
+        expect(window.localStorage.getItem("signatureShare.style")).toBe("instant");
+        // 見本を左へ払うと次の型（帯）
+        const preview = within(dialog).getByTestId("share-card-preview");
+        fireEvent.pointerDown(preview, { clientX: 200, pointerId: 1 });
+        fireEvent.pointerUp(preview, { clientX: 100, pointerId: 1 });
+        expect(items[2].getAttribute("aria-pressed")).toBe("true");
+        // 比率はどこに貼るかの言葉つき
+        const ratios = within(dialog).getAllByRole("radio");
+        expect(ratios.map((r) => r.textContent)).toEqual(["投稿4:5", "ストーリー9:16", "正方形1:1"]);
+        fireEvent.click(within(dialog).getByRole("button", { name: "閉じる" }));
+        expect(screen.queryByRole("dialog", { name: "SNSに共有" })).toBeNull();
     });
 
     it("1枚だけならヒーローにスワイプの手を付けない（縦スクロールを奪わない）", async () => {

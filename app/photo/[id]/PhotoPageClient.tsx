@@ -66,6 +66,9 @@ import { useSongSearch } from "../../../lib/hooks/useSongSearch";
 import { usablePhotoRows } from "../../../lib/utils/apiRows";
 import { sessionErrorMessage } from "../../../lib/utils/api";
 import { publicImageUrl } from "@/lib/utils/seo";
+import { fetchImageBytes } from "../../../lib/utils/imageBytes";
+import { takenDate } from "../../../lib/utils/shareCardStyles";
+import ShareCardDialog from "./ShareCardDialog";
 import SongSearchError from "../../components/SongSearchError";
 import SpotAutoNotice from "./SpotAutoNotice";
 import SpotRows, { type SpotRow } from "../../components/SpotRows";
@@ -570,6 +573,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     const spotLink = autoActive && autoOff ? null : builtSpotLink;
     // **通報。** 自分の投稿と未ログインには出さない（押しても断られる）
     const [reportOpen, setReportOpen] = useState(false);
+    // SNS に貼るカードを作る画面（2026-11-12 第8章）
+    const [shareCardOpen, setShareCardOpen] = useState(false);
     const reportBtnRef = React.useRef<HTMLButtonElement>(null);
     const { showToast } = useToast();
     // 最終版モックの並び: コメント／関連写真のタブ・コメント数・保存・ヒーローのスワイプ
@@ -916,6 +921,26 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
         }
     };
 
+    // SNS に貼るカード（2026-11-12 第8章）: 型（縦書き・インスタント・帯）と比率を選んで保存する画面を開く
+    const shareCardCredit = photo ? {
+        name: photo.displayName?.trim() || photo.uploaderUsername || "Photographer",
+        username: photo.uploaderUsername,
+        location: photo.location,
+        camera: photo.exif?.camera,
+        lens: photo.exif?.lens,
+        coords: photo.coords,
+        taken: takenDate(photo.exif?.dateTimeOriginal, photo.date),
+    } : null;
+    const loadShareCardPhoto = async () => {
+        if (!photo?.src) throw new Error("No photo");
+        // Reuse the same-origin /uploads fallback used by StoryViewer; raw CDN URLs may reject CORS.
+        const imageBlob = await fetchImageBytes(publicImageUrl(photo.src));
+        return await createImageBitmap(imageBlob);
+    };
+    const handleShareCardError = () => {
+        showToast(locale === "en" ? "Could not save the share card" : "共有カードを保存できませんでした", "error");
+    };
+
     const handleCopyLink = async (e?: React.MouseEvent) => {
         if (e) {
             e.stopPropagation();
@@ -983,6 +1008,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     buttonSize={44}
                     items={[
                         { key: "share", label: locale === "en" ? "Share" : "共有", onSelect: () => void handleShare() },
+                        // 2026-11-12 第8章: 開いた画面で型と比率を選んで保存する（本番の比率ごとの3行を1行にまとめたもの）
+                        ...(photo.src ? [{ key: "share-card", label: locale === "en" ? "Make a share image" : "SNS用の画像を作る", onSelect: () => setShareCardOpen(true) }] : []),
                         { key: "copy", label: locale === "en" ? "Copy link" : "リンクをコピー", onSelect: () => void handleCopyLink() },
                         { key: "x", label: locale === "en" ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(currentUrl, shareText) },
                         ...(locale === "ja" ? [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(currentUrl, shareText) }] : []),
@@ -1567,6 +1594,17 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     </section>
                 )}
 
+                {shareCardOpen && shareCardCredit && (
+                    <ShareCardDialog
+                        locale={locale === "en" ? "en" : "ja"}
+                        photoId={photo.id}
+                        credit={shareCardCredit}
+                        loadPhoto={loadShareCardPhoto}
+                        openerRef={reportBtnRef}
+                        onClose={() => setShareCardOpen(false)}
+                        onError={handleShareCardError}
+                    />
+                )}
                 {reportOpen && (
                     <ReportDialog
                         photoId={photo.id}
