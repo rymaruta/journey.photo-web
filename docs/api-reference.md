@@ -312,6 +312,14 @@ export async function readApiError(res: Response, fallback: string): Promise<str
   - `POST /stories/{id}/replies` の応答に `dm: {conversationId}`（DM に写った）/ `dm: null` ＋ `dmSkipped`（写らなかった理由。`sendDm` の `code`・`reaction`・`error`・`timeout`＝写しが3秒を過ぎた。裏で続いた写しが後で入ることはあるが、返信の id が冪等の鍵なので二重にはならない）。**相手の受信箱かリクエストの棚かは出さない**
   - ベルの `storyreply` に `replyKind: "text"|"reaction"` と `dmConvId`（**受け取った人のふつうの受信箱に入ったときだけ**）。ベルには今までどおり積み、DM 画面を持つアプリが `dmConvId` の行を隠す。端末のバッジはこの行をベルの側で数えない（DM の未読で1回）。プッシュの中身に `convId`。写しが3秒を過ぎた回は `dmConvId` を付けない
   - `GET /user/notifications` に `unreadExcludingDm`（`unread` のうち `dmConvId` を持つ行を除いた数。DM 画面を持つアプリのベルのバッジ用）。**`unread` の意味は変えない**
+- **2026-11-11 に足した欄（写真を送る・札 #541。後方互換・新しい GSI と表は無し）**:
+  - `POST /dm`・`POST /dm/{id}/messages` の本文に `photoId`（任意）。**写真があれば `text` は空でよい**（両方空は 400 `empty`）。
+    送る人に今見せてよい写真だけ（保存と同じ門 `photoVisibility.ts`: 公開・下書きでない・ストーリーでない・公開範囲・持ち主にブロックされていない）。外れたら 404 `photoNotFound`、形が違えば 400 `badRequest`。
+    **承認前は写真を送れない**（400 `requestPhoto`・URL と同じ考え）
+  - 会話の1通に `photoId`。**写真だけの通は `text` を「写真を送りました」で埋め、`photoOnly: true` を添える**（古いアプリに空の吹き出しを出させない）。受信箱の抜粋も同じ文
+  - `GET /dm/{id}` の `items[].photo`（読む人から見た写真の札・`dmPhotoQuote.ts`）: `{id, state:"live", src, title?, location?, ownerId?}` / `{id, state:"gone"}`。
+    **読む人ごとに**保存と同じ門で決め直す（消した・非公開・範囲の外・ブロックで `gone`。理由は区別しない）。`src` は縮小版 `thumbSrc`（無ければ `src`）。1回に引くのは新しい方から20枚まで（越えた通は `photo` なし）
+  - 通報の写しに `photoId`
 - **通知**: 端末へのプッシュは `NOTIF_DM`・引数は送り主の名前だけ（**本文は載せない**）。ベルの通知の輪（`notifs#`）には書かない。
   バッジは「ベルの未読 ＋ 受信箱の未読会話数」（リクエストとブロックの相手は含めない）。ベルの通知のプッシュも同じ数を出す
 - **退会**: `purgeDmFor` が会話ごとに自分の側を外し、受信箱を消す。相手の画面には会話が残り、名前は「退会したユーザー」（`deleted: true`）。`dmreport#` は消さない
