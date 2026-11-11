@@ -22,5 +22,5 @@ export function cleanMultilineText(v: unknown, max: number): string {
     return t ? truncate(t, max) : "";
 }
 
-/** U+200B-200F・202A-202E・2060・2066-2069・FEFF・00AD */
-export const INVISIBLE = /[​-‏‪-‮⁠⁦-⁩﻿­]/g;
+/** U+200B-200F・202A-202E・2060・2066-2069・FEFF・00AD（見えない字なので、ソースには \u の書き方で書く） */
+export const INVISIBLE = /[\u200B-\u200F\u202A-\u202E\u2060\u2066-\u2069\uFEFF\u00AD]/g;

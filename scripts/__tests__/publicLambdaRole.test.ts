@@ -267,4 +267,17 @@ describe("FeedbackRole は意見の受け取りに要るものだけ持つ", () 
             `s3:PutObject ${S3_ARN}`,
         ].sort());
     });
+
+    it("DynamoDB は意見の2種類の行だけ（行の鍵の頭で縛る）", () => {
+        const block = m![1].replace(/^\s*#.*$/gm, "");
+        const ddbStatement = block.split(/^\s*- Effect: /m).slice(1).find((st) => st.includes("dynamodb:"));
+        expect(ddbStatement).toBeDefined();
+        expect(ddbStatement).toMatch(/Condition:\s*\n\s*ForAllValues:StringLike:\s*\n\s*dynamodb:LeadingKeys:\s*\n\s*- "feedback#\*"\s*\n\s*- "feedbackday#\*"/);
+    });
+
+    it("IP の目印の鍵は、ログインしていない口にだけ配る", () => {
+        const fn = /^ {2}sendFeedbackPublic:$([\s\S]*?)(?=^ {2}\w+:$)/m.exec(yml);
+        expect(fn![1]).toMatch(/FEEDBACK_IP_KEY: \$\{param:feedbackIpKey, ''\}/);
+        expect(yml.match(/FEEDBACK_IP_KEY:/g)).toHaveLength(1);
+    });
 });

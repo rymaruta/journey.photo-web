@@ -64,6 +64,6 @@ describe("sendFeedback", () => {
             post: async () => json(200, { ok: true, id: ID, upload: { url: "https://s3.example/put", contentType: "image/jpeg" } }),
             put: async () => new Response(null, { status: 403 }), signedIn: false,
         });
-        expect(r).toEqual({ ok: false, offline: false, message: "ひとことは届きました。写真は送れませんでした" });
+        expect(r).toEqual({ ok: false, offline: false, message: "ひとことは届きました。写真は送れませんでした", textDelivered: true });
     });
 });

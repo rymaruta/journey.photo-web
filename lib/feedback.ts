@@ -50,7 +50,13 @@ export type FeedbackResult =
     | { ok: true }
     /** 通信が届かなかった（書いたものは欄に残す。押し直せば同じ id で送る） */
     | { ok: false; offline: true }
-    | { ok: false; offline: false; message: string };
+    | { ok: false; offline: false; message: string; textDelivered?: true };
+
+/**
+ * 本文は届いたが写真だけ送れなかった。**本文はもう保存されている**ので、呼び手は id を新しくし、欄を空にする
+ * （同じ id で本文を直して送り直すと、サーバーは「もう在る」と読んで直した本文を捨てる）
+ */
+const PHOTO_FAILED: FeedbackResult = { ok: false, offline: false, message: "ひとことは届きました。写真は送れませんでした", textDelivered: true };
 
 type Fetcher = (path: string, init: RequestInit) => Promise<Response>;
 
@@ -88,18 +94,37 @@ export async function sendFeedback(
     } catch { /* 写真の署名が読めない */ }
     if (!upload || typeof upload.url !== "string" || typeof upload.contentType !== "string") {
         // 本文は届いている。写真だけ送れなかったことを言う
-        return { ok: false, offline: false, message: "ひとことは届きました。写真は送れませんでした" };
+        return PHOTO_FAILED;
     }
     try {
         const put = deps.put ?? ((url: string, init: RequestInit) => fetch(url, init));
         // 署名に入っている種別と同じ文字列で送る（違うと 403）
         const r = await put(upload.url, { method: "PUT", headers: { "Content-Type": upload.contentType }, body: photo });
-        if (!r.ok) return { ok: false, offline: false, message: "ひとことは届きました。写真は送れませんでした" };
+        if (!r.ok) return PHOTO_FAILED;
     } catch {
-        return { ok: false, offline: false, message: "ひとことは届きました。写真は送れませんでした" };
+        return PHOTO_FAILED;
     }
     return { ok: true };
 }
 
-/** 書きかけを端末に残す鍵（送れなかったとき・閉じたときに失わない。この端末のこの人だけ） */
+/** 書きかけを端末に残す鍵の頭（送れなかったとき・閉じたときに失わない） */
 export const FEEDBACK_DRAFT_KEY = "jp_feedback_draft";
+
+/**
+ * 書きかけの鍵は**人ごと**（ログインしていなければ `anon`）。同じ端末で次にログインした別の人に、
+ * 前の人の書きかけを見せない。ログアウト・退会では全部消す（`forgetFeedbackDrafts`）
+ */
+export const feedbackDraftKey = (userId: string | null | undefined) => `${FEEDBACK_DRAFT_KEY}:${userId || "anon"}`;
+
+/** 書きかけを全部消す（`app/auth/context.tsx` の `clearAccountLocalState`）。読めない環境では何もしない */
+export function forgetFeedbackDrafts(storage?: Storage): void {
+    try {
+        const s = storage ?? window.localStorage;
+        const keys: string[] = [];
+        for (let i = 0; i < s.length; i++) {
+            const k = s.key(i);
+            if (k && (k === FEEDBACK_DRAFT_KEY || k.startsWith(`${FEEDBACK_DRAFT_KEY}:`))) keys.push(k);
+        }
+        keys.forEach((k) => s.removeItem(k));
+    } catch { /* 端末に触れない環境 */ }
+}
