@@ -9,7 +9,7 @@
 //   政府・医療の権威あるサイトに限っていて、このサイトでは出ない
 
 import type { Metadata } from "next";
-import { siteConfig, shareOgImage, shareImageUrl, INDEXABLE_ROBOTS } from "@/lib/utils/seo";
+import { siteConfig, shareOgImage, shareImageUrl, INDEXABLE_ROBOTS, ORGANIZATION_ID } from "@/lib/utils/seo";
 
 export function learnMetadata(path: string, title: string, description: string, type: "website" | "article"): Metadata {
     const url = `${siteConfig.url}${path}`;
@@ -46,7 +46,10 @@ export function articleStructuredData(input: {
     images: string[];
 }) {
     const url = `${siteConfig.url}${input.path}`;
-    const org = { "@type": "Organization", name: "Journey Photo", url: siteConfig.url };
+    // 書き手・発行元は全ページに出している Organization（`app/layout.tsx`）を @id で指す
+    // （#525 の続き・確かめ役 2026-11-11。ここで別の Organization を作ると、検索エンジンには
+    // ロゴ・別名・sameAs の無い2つ目の組織に見える）
+    const org = { "@id": ORGANIZATION_ID };
     return {
         "@context": "https://schema.org",
         "@type": "Article",

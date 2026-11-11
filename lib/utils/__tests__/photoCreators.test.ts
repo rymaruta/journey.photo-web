@@ -1,4 +1,8 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
+
+// 既定の除外はビルド時の profiles.json（`isSearchHidden`）。ここでは「hid」だけ隠した人にする
+vi.mock("@/lib/utils/searchHidden", () => ({ isSearchHidden: (id: string) => id === "hid" }));
+
 import { photoCreators } from "../photoCreators";
 
 // 2026-11-11 journey.photo-ios#525: 撮影スポットの頁から投稿者のプロフィールへ結ぶ
@@ -21,5 +25,20 @@ describe("写真を載せた人", () => {
         const many = Array.from({ length: 12 }, (_, i) => ({ userId: `u${i}`, displayName: `N${i}` }));
         expect(photoCreators(many)).toHaveLength(8);
         expect(photoCreators(many, 3)).toHaveLength(3);
+    });
+
+    // #526・確かめ役 2026-11-11: noindex の人の名前つきリンクを、索引される撮影スポットの頁に張らない
+    it("検索エンジンに表示しないを選んだ人は並べない（既定で profiles.json を見る）", () => {
+        const out = photoCreators([
+            { userId: "hid", displayName: "隠した人" },
+            { userId: "hid", displayName: "隠した人" },
+            { userId: "a", displayName: "A" },
+        ]);
+        expect(out).toEqual([{ id: "a", name: "A" }]);
+    });
+
+    it("除外の判定は差し替えられる", () => {
+        expect(photoCreators([{ userId: "a", displayName: "A" }, { userId: "b", displayName: "B" }], 8, (id) => id === "a"))
+            .toEqual([{ id: "b", name: "B" }]);
     });
 });

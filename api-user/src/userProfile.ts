@@ -310,7 +310,7 @@ export const STATIC_PROFILE_FIELDS = ["displayName", "username", "bio", "website
  * GitHub の書き込みトークンを配ることになる（IAM-2）。依頼の本体は
  * `profileUpdate.ts`（`updateMyProfile` の Lambda の入口）だけが持ち、ここへ差し込む。
  */
-type StaticChangeHook = (userId: string) => Promise<unknown>;
+type StaticChangeHook = (userId: string, change: { becameSearchHidden: boolean }) => Promise<unknown>;
 let staticChangeHook: StaticChangeHook | null = null;
 export function setStaticChangeHook(hook: StaticChangeHook | null): void {
     staticChangeHook = hook;
@@ -324,6 +324,14 @@ export function publicStaticFieldsChanged(
     // 真偽（`searchHidden`）は true だけを「ある」と見る（行には true のときだけ置く）
     const norm = (v: unknown) => (v === true ? "\u0001true" : typeof v === "string" ? v.trim() : "");
     return STATIC_PROFILE_FIELDS.some((k) => norm(prev?.[k]) !== norm(next?.[k]));
+}
+
+/** 保存で「検索エンジンに表示しない」がオフ（無い）→ オンに変わったか */
+export function becameSearchHidden(
+    prev: { searchHidden?: unknown } | null | undefined,
+    next: { searchHidden?: unknown } | null | undefined,
+): boolean {
+    return prev?.searchHidden !== true && next?.searchHidden === true;
 }
 
 /** 入力を正規化して検証する。不正なら理由を返す。 */
@@ -1131,8 +1139,11 @@ export const updateMyProfile: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
         // 検索に出る頁は古い名前のまま**だった。
         // 何度でも無料で起こせる操作なので `coalesce`（10分に1回へ束ねる）。
         // 失敗しても保存は成功のまま返す（`requestSiteRebuild` は投げない）。
+        // ただし `searchHidden` を**オンにした**回だけは束ねない（`becameSearchHidden`）——
+        // 束ねて見送られた分は後から実行されないので、隠したつもりの頁が次の誰かの
+        // 保存まで索引・サイトマップに残り続ける（確かめ役 2026-11-11・#526）。
         if (staticChangeHook && publicStaticFieldsChanged(prev, profile)) {
-            await staticChangeHook(userId);
+            await staticChangeHook(userId, { becameSearchHidden: becameSearchHidden(prev, profile) });
         }
 
         // **写真の行に焼かれた表示名は、ここでは直さない。**

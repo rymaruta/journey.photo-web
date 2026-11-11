@@ -132,7 +132,6 @@ export const SettingsRowButton = React.forwardRef<HTMLButtonElement, {
     );
 });
 
-/** 札の中の注記（行ではない1文・iOS `SettingsView.note`） */
 /**
  * 入切の行（板のトグル 51×31・入は accent-deep に白い玉・押せる高さは 44px）。
  * 2026-11-11: 「光と天気の知らせ」（`LightAlertSettings`）にあった形を、「検索エンジンに
@@ -180,6 +179,7 @@ export function SettingsToggleRow({ label, detail, on, disabled, onToggle, testI
     );
 }
 
+/** 札の中の注記（行ではない1文・iOS `SettingsView.note`） */
 export function SettingsNote({ children, tone = "muted", role }: {
     children: React.ReactNode;
     tone?: "muted" | "danger";

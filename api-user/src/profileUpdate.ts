@@ -14,8 +14,15 @@ import { requestSiteRebuild } from "./rebuild";
  * （`REBUILD_MONTHLY_MAX`）も `requestSiteRebuild` が持つ。失敗しても保存は
  * 成功のまま返す（`requestSiteRebuild` は投げない）。
  *
+ * **例外: 「検索エンジンに表示しない」をオンにした回は束ねない**（#526・確かめ役 2026-11-11）。
+ * 束ねて見送られた依頼は後から実行されないので、直前に誰かの保存があると、隠したつもりの
+ * 頁が次の誰かの保存まで noindex にならず sitemap にも残る。プライバシーの操作なので確実に頼む。
+ * オフに戻す・名前を変えるなどは今までどおり束ねる。月の上限は束ねなくても効く。
+ *
  * 依頼をこのファイルに分けた理由は `userProfile.ts` の `setStaticChangeHook` の注記。
  */
-setStaticChangeHook((userId) => requestSiteRebuild(`profile updated: ${userId}`, { coalesce: true }));
+setStaticChangeHook((userId, { becameSearchHidden }) => becameSearchHidden
+    ? requestSiteRebuild(`profile hidden from search: ${userId}`)
+    : requestSiteRebuild(`profile updated: ${userId}`, { coalesce: true }));
 
 export const updateMyProfile = updateMyProfileCore;

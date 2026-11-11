@@ -69,7 +69,7 @@ export default function SearchHiddenSetting({ locale }: { locale: "ja" | "en" })
                 label={en ? "Hide my profile from search engines" : "検索エンジンにプロフィールを表示しない"}
                 detail={en
                     ? "Your profile page won't appear in Google and other search results. Your photos keep their own sharing settings."
-                    : "Google などの検索結果に、あなたのプロフィールの頁を出さないようにします。写真ごとの公開の設定は変わりません。"}
+                    : "Google などの検索結果に、あなたのプロフィールのページを出さないようにします。写真ごとの公開の設定は変わりません。"}
                 on={hidden}
                 disabled={saving}
                 onToggle={() => void toggle()}
