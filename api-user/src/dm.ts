@@ -737,7 +737,8 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
     const [peers, quotes, photos] = await Promise.all([
         peerInfos([peer]),
         // 返す通のうち、ストーリーへの返信から写した通だけ（無ければ読みに行かない）
-        storyQuotesFor(uid, [pair.lo, pair.hi], items.flatMap((m) => (m.storyId ? [m.storyId] : []))),
+        // 紹介した写真の門は、上で読んだ見る人のブロック一覧をそのまま使う（読み直さない）
+        storyQuotesFor(uid, [pair.lo, pair.hi], items.flatMap((m) => (m.storyId ? [m.storyId] : [])), hidden),
         // 送った写真の札（読む人の目で見せてよいか決め直す・無ければ読みに行かない）
         photoQuotesFor(uid, items.flatMap((m) => (m.photoId ? [m.photoId] : []))),
     ]);

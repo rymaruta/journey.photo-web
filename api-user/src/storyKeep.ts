@@ -118,6 +118,13 @@ export const keepStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
         // （`storyKeptMedia.ts`）。写真に `keptFrom` を付けないので、写真を消してもストーリーは残る
         const copyArchive = story.archive === true;
 
+        // **写真を紹介したストーリーは残せない**（2026-11-11・`storyPhotoShare.ts`）。絵は紹介した
+        // 写真の札で、残すと**人の写真が自分のギャラリーの1枚になる**（持ち主の公開範囲・削除が
+        // 効かない写しができる）。自分の写真の紹介でも、同じ写真の写しが増えるだけなので断る
+        if (typeof story.sharedPhotoId === "string" && story.sharedPhotoId) {
+            return jsonError(409, "写真を紹介したストーリーはギャラリーに残せません");
+        }
+
         // 枚数の上限は写真の口と同じものを使う（複製した規則は静かにずれる）
         const limit = await photoLimitError(userId, false);
         if (limit) return limit;

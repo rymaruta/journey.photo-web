@@ -1673,3 +1673,58 @@ describe("NotificationsBell: この写真を見て撮影の通知（type: inspir
         expect(document.querySelector('img[src="https://c/new-1.webp"]')).not.toBeNull();
     });
 });
+
+// 写真をストーリーで紹介（`storyshare`）・コメントに返信（`commentreply`）（2026-11-11・journey.photo-ios#541）。
+// **片側だけ足すと何も出ない**（notify.ts と対）
+describe("NotificationsBell: 紹介と返信の通知（#541）", () => {
+    const SHARE = { type: "storyshare", photoId: "mine-1", photoSrc: "https://c/mine-1.webp", byName: "そら", byId: "u7", t: "2026-07-10T00:00:00Z" };
+    const REPLY = { type: "commentreply", photoId: "p-2", photoSrc: "https://c/p-2.webp", byName: "みか", byId: "u8", commentId: "c9", t: "2026-07-10T01:00:00Z" };
+
+    it("文面を出し、写真へ飛ぶ（紹介は自分の写真・返信はコメントの付いた写真）", async () => {
+        mockUserFetch.mockImplementation((url: string) => Promise.resolve(
+            url === "/user/following" ? fetchOk({ userIds: [] }) : fetchOk({ items: [REPLY, SHARE], unread: 2 }),
+        ));
+        render(<NotificationsBell />);
+        await waitFor(() => expect(mockUserFetch).toHaveBeenCalled());
+        fireEvent.click(screen.getByRole("button", { name: "通知" }));
+
+        expect(screen.getByText(/さんがあなたの写真をストーリーで紹介しました/).textContent).toBe("そら さんがあなたの写真をストーリーで紹介しました");
+        expect(screen.getByText(/さんがあなたのコメントに返信しました/).textContent).toBe("みか さんがあなたのコメントに返信しました");
+        const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
+        expect(hrefs).toContain("/?photo=mine-1");
+        expect(hrefs).toContain("/?photo=p-2");
+    });
+
+    it("返信は、写真の個別ページがあればそのコメントの位置へ（無い写真はモーダルなので写真だけ）", async () => {
+        const { commentReplyHref } = await import("../NotificationsBell");
+        const PHOTO_INDEX = (await import("@/app/data/photo-index.json")).default as { photoIds: string[] };
+        expect(commentReplyHref("not-built-p", "c9")).toBe("/?photo=not-built-p");
+        const built = PHOTO_INDEX.photoIds[0];
+        if (built) {
+            expect(commentReplyHref(built, "c 9")).toBe(`/photo/${built}#comment-c%209`);
+            expect(commentReplyHref(built, undefined)).toBe(`/photo/${built}`);
+        }
+    });
+
+    it("返信の行は、個別ページのある写真ならそのコメントの位置へ飛ぶ", async () => {
+        const PHOTO_INDEX = (await import("@/app/data/photo-index.json")).default as { photoIds: string[] };
+        const built = PHOTO_INDEX.photoIds[0];
+        expect(built, "索引に写真が無い（この試験が何も確かめない）").toBeTruthy();
+        mockUserFetch.mockImplementation((url: string) => Promise.resolve(
+            url === "/user/following" ? fetchOk({ userIds: [] }) : fetchOk({ items: [{ ...REPLY, photoId: built }], unread: 1 }),
+        ));
+        render(<NotificationsBell />);
+        await waitFor(() => expect(mockUserFetch).toHaveBeenCalled());
+        fireEvent.click(screen.getByRole("button", { name: "通知" }));
+        await waitFor(() => expect(screen.getByText(/さんがあなたのコメントに返信しました/)).toBeTruthy());
+        const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
+        expect(hrefs).toContain(`/photo/${built}#comment-c9`);
+    });
+
+    it("返信は「コメント」のタブに入り、紹介は「すべて」だけ", async () => {
+        const { inTab } = await import("../NotificationsBell");
+        expect(inTab("commentreply", "comment")).toBe(true);
+        expect(inTab("storyshare", "comment")).toBe(false);
+        expect(inTab("storyshare", "all")).toBe(true);
+    });
+});
