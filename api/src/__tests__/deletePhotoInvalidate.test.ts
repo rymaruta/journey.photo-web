@@ -189,6 +189,18 @@ describe("管理APIの削除: ギャラリーに残した実体は消さない",
         expect(mockDeleteRow, "行は予定どおり消す").toHaveBeenCalledWith("p1");
     });
 
+    // 2026-11-11: 自分用に残すストーリーから写真にしたときは画像を**写して**切り離す
+    // （`keptCopy`）。共有していないので、ストーリーの画像は消す（置き去りにしない）
+    it("写して切り離した（keptCopy）ストーリーは、ストーリーの画像を消す", async () => {
+        mockGetPhoto.mockResolvedValue({
+            id: "p1", userId: "someone", story: true, keptAs: "photo-kept", keptCopy: true,
+            src: "https://cdn.test/uploads/someone/s1.webp",
+        });
+        const res = await invoke();
+        expect(res.statusCode).toBe(200);
+        expect(mockS3Send, "ストーリーの画像が置き去り").toHaveBeenCalled();
+    });
+
     it("残していないストーリーは、これまでどおり実体ごと消す", async () => {
         mockGetPhoto.mockResolvedValue({
             id: "p1", userId: "someone", story: true,

@@ -16,6 +16,8 @@ import { dropUnusedKeys } from "./dropUnused";
 import { removePinnedPhoto } from "./userProfile";
 import { replaceRefusal, buildReplace, type ReplaceBody } from "./photoReplace";
 import { sweepStoryVotes } from "./storyVotes";
+import { parseWithStory, readStoryRow, canHandOver, unmarkKept, deleteStoryTogether } from "./storyKeptDelete";
+import { storyOwnMediaKeys } from "./storyKeptMedia";
 import { refreshBadgesQuietly } from "./badgeStore";
 import { revokeLabelQuietly, grantLabelForPhotoQuietly, refreshLabelPlaceQuietly } from "./trunk";
 import { sanitizeInspiredBy, isInspiredByClear, readVisibleSource, notifyInspiredOnce } from "./inspired";
@@ -1011,7 +1013,21 @@ export const deleteMyPhoto: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         // **消したはずの写真が最大1年 公開URLで取れる**。`mediaKeys` は
         // `srcOriginal`（GPS 入りの原本）も含むので、消えていないのは
         // 見た目の1枚だけではない。
-        const keys = mediaKeys(item);
+        // 0. **元のストーリーとの関係**（2026-11-11 判断・`storyKeptDelete.ts`）。
+        //    `keptFrom`＝画像を共有している（生きている間に残した）／`fromStory`＝写した（自分用に残す
+        //    ストーリーから）。`withStory` で「一緒に消す」「写真だけ消す」を受ける（無ければ古いアプリ）
+        const withStory = parseWithStory(event.queryStringParameters?.withStory);
+        const sharedStoryId = typeof item.keptFrom === "string" && item.keptFrom ? item.keptFrom : "";
+        const copiedStoryId = !sharedStoryId && typeof item.fromStory === "string" && item.fromStory ? item.fromStory : "";
+        // 「写真だけ消す」で画像を共有しているなら、**共有の画像はストーリーに渡す**（写真の分だけ消す）。
+        // 渡せない（ストーリーがもう無い・期限切れ・別の写真を指す）なら、今までどおり全部消す
+        let handOver: Record<string, unknown> | undefined;
+        if (sharedStoryId && withStory === "photoOnly") {
+            const story = await readStoryRow(sharedStoryId);
+            if (canHandOver(story, id)) handOver = story;
+        }
+        const handOverKeys = new Set(handOver ? storyOwnMediaKeys(handOver) : []);
+        const keys = mediaKeys(item).filter((k) => !handOverKeys.has(k));
         const s3Failures = await s3DeleteMany(keys, `deleteMyPhoto(${id})`);
         if (s3Failures > 0) {
             // 行は S3 キーの唯一の手がかり。消し残したまま行を消すと、
@@ -1019,7 +1035,44 @@ export const deleteMyPhoto: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
             return { statusCode: 500, headers: JSON_HEADERS, body: JSON.stringify({ error: "画像の削除を完了できませんでした。時間をおいてもう一度お試しください" }) };
         }
 
-        // 1b. **ストーリーから残した写真なら、元のストーリーも消す。**
+        // 1a. **写真だけ消す（共有）**: ストーリーの「写真にした」印を外して、画像をストーリーに渡す。
+        //     外したあとは、ストーリーの削除・期限の掃除が画像を消す（置き去りにしない）。
+        //     外せなかった（その間にストーリーが消えた）なら、渡す先が無いので画像もここで消す
+        if (handOver) {
+            let handed: boolean;
+            try {
+                handed = await unmarkKept(sharedStoryId, id);
+            } catch (e) {
+                // 外せたか分からない。写真の行を残して 500（押し直せば続きから）
+                console.error(`deleteMyPhoto: ストーリーの印を外せませんでした（${sharedStoryId}）:`, e);
+                return { statusCode: 500, headers: JSON_HEADERS, body: JSON.stringify({ error: "削除に失敗しました。時間をおいてもう一度お試しください" }) };
+            }
+            if (!handed && await s3DeleteMany([...handOverKeys], `deleteMyPhoto(${id})`) > 0) {
+                return { statusCode: 500, headers: JSON_HEADERS, body: JSON.stringify({ error: "画像の削除を完了できませんでした。時間をおいてもう一度お試しください" }) };
+            }
+        }
+
+        // 1c. **写した写真**（`fromStory`）: 一緒に消すならストーリーも丸ごと（画像も）消す。
+        //     写真だけなら、ストーリーの印を外す（札が消え、もう一度写真にできる）。ストーリーは残す
+        if (copiedStoryId) {
+            try {
+                const story = await readStoryRow(copiedStoryId);
+                const own = story && (story.userId ?? story.uploadedBy) === callerId;
+                if (withStory === "together" && story && own) {
+                    if (!await deleteStoryTogether(story, `deleteMyPhoto(${id})`)) {
+                        return { statusCode: 500, headers: JSON_HEADERS, body: JSON.stringify({ error: "ストーリーの画像の削除を完了できませんでした。時間をおいてもう一度お試しください" }) };
+                    }
+                } else if (story && story.keptAs === id) {
+                    await unmarkKept(copiedStoryId, id);
+                }
+            } catch (e) {
+                // 写真の行を残して 500（押し直せば続きから。消せた画像は S3 に無いので再実行も通る）
+                console.error(`deleteMyPhoto: 元のストーリーを片づけられませんでした（${copiedStoryId}）:`, e);
+                return { statusCode: 500, headers: JSON_HEADERS, body: JSON.stringify({ error: "削除に失敗しました。時間をおいてもう一度お試しください" }) };
+            }
+        }
+
+        // 1b. **ストーリーから残した写真（共有）なら、元のストーリーも消す**（一緒に消す・古いアプリ）。
         //
         // 実体（S3）は**共有**している（`storyKeep.ts`）。写真だけ消すと、
         // まだ生きているストーリーが**全員のトレイに割れた画像で出続ける**
@@ -1035,8 +1088,8 @@ export const deleteMyPhoto: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         // 持たないので **GSI にも Scan にも一覧にも出ない**＝どの削除経路
         // からも二度と辿れない（TTL も無い）。24時間で消えるはずの
         // 他人の文章とその人の `uid` が、無期限に残っていた。
-        if (typeof item.keptFrom === "string" && item.keptFrom) {
-            const storyId = item.keptFrom;
+        if (sharedStoryId && !handOver) {
+            const storyId = sharedStoryId;
             try {
                 await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: `storyreplies#${storyId}` } }));
                 // 票の文書（`storyvotes#<id>`）も同じ（`storyVotes.ts`）
