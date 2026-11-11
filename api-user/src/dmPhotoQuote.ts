@@ -1,4 +1,6 @@
 import { readVisiblePhoto, type VisiblePhotoRow } from "./photoVisibility";
+import { isRestrictedRow } from "./sanitize";
+import { signPhotoImages } from "./signedUrl";
 
 /**
  * DM の会話に出す「送った写真」の札（2026-11-11・札 #541・`dmStoryQuote.ts` と同じ作り）。
@@ -35,8 +37,12 @@ export function titleText(raw: unknown): string | undefined {
 }
 
 function shape(id: string, row: VisiblePhotoRow): PhotoQuote {
-    const thumb = typeof row.thumbSrc === "string" && row.thumbSrc ? row.thumbSrc : undefined;
-    const src = thumb ?? (typeof row.src === "string" ? row.src : "");
+    // **公開範囲を絞った写真の絵は署名つき URL にする**（絞った写真は `/private/` に置かれ、署名が無いと 403。
+    // 一覧 `/feed/restricted`（`restrictedFeed.ts`）・自分の写真（`userPhotos.ts`）と同じ `signPhotoImages`。
+    // 鍵が無い環境では何もしない）。公開の写真は署名しない（一覧と同じ URL のまま・控えが効く）
+    const r = isRestrictedRow(row) ? signPhotoImages({ ...row } as Record<string, unknown>) as VisiblePhotoRow : row;
+    const thumb = typeof r.thumbSrc === "string" && r.thumbSrc ? r.thumbSrc : undefined;
+    const src = thumb ?? (typeof r.src === "string" ? r.src : "");
     if (!src) return { id, state: "gone" };
     const title = titleText(row.title);
     const location = typeof row.location === "string" && row.location.trim() ? row.location.trim() : undefined;

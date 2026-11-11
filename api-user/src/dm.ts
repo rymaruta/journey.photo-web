@@ -365,9 +365,6 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     const gone = await deletedAmong([to]);
     if (gone.unread.size > 0) return fail(500, "送信に失敗しました");
     if (gone.deleted.has(to)) return fail(404, "相手が見つかりません", "notFound");
-    // 写真は**送る人に今見せてよい写真だけ**（下書き・非公開・範囲の外・持ち主にブロックされた人は送れない）。
-    // 受け取る人に見せるかは、読むたびに `dmPhotoQuote.ts` が受け取る人の目で決め直す
-    if (photoId && !await readVisiblePhoto(photoId, me)) return fail(404, "写真が見つかりません", "photoNotFound");
 
     const lo = me < to ? me : to;
     const hi = me < to ? to : me;
@@ -393,6 +390,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     let after: { state: ConvState; initiator: string; direct: boolean } | null = null;
     let duplicate = false;
     let peerSpoke = false;   // 相手がこの会話で話したことがあるか（送り主に見せる状態を決める）
+    let photoChecked = false;   // 写真を見せてよいかは1回だけ読む（やり直しの度に読まない）
 
     for (let attempt = 0; attempt <= WRITE_RETRIES; attempt++) {
         if (attempt === WRITE_RETRIES) return fail(409, "混み合っています。もう一度お試しください", "busy");
@@ -448,6 +446,15 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
             }
         } else {
             nextState = "inbox";
+        }
+
+        // 写真は**送る人に今見せてよい写真だけ**（下書き・非公開・範囲の外・持ち主にブロックされた人は送れない）。
+        // **同じ id の再送の判定（上の `stored`）と承認前の断りの後に読む**——入った1通の再送を、その後に写真が
+        // 非公開になったことで 404 にしない（2026-11-11・確かめ役の指摘）。受け取る人に見せるかは、読むたびに
+        // `dmPhotoQuote.ts` が受け取る人の目で決め直す
+        if (photoId && !photoChecked) {
+            if (!await readVisiblePhoto(photoId, me)) return fail(404, "写真が見つかりません", "photoNotFound");
+            photoChecked = true;
         }
 
         // 相手の枠（リクエストは別枠）。**書く前に断る**（本体が入ってから 409 にしない）
