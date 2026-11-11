@@ -616,7 +616,7 @@ functions:
 
   # 意見箱のログインしていない人の口。**未認証で書ける**ので、持たせるのは専用の `FeedbackRole`
   # （写真テーブルの GetItem / PutItem / UpdateItem と `private/feedback/*` の PutObject だけ）。
-  # 歯止めは IP ごと（1日 `FEEDBACK_DAILY_PER_IP`）と全体（1日 `FEEDBACK_DAILY_TOTAL`）
+  # 歯止めは IP ごと（1日 `FEEDBACK_DAILY_PER_IP`）と、ログインしていない人の全体（1日 `FEEDBACK_DAILY_TOTAL_ANON`。ログインした人とは別に数える）
   sendFeedbackPublic:
     handler: src/feedback.sendFeedbackPublic
     role: FeedbackRole

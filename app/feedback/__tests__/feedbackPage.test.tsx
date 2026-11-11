@@ -32,6 +32,7 @@ beforeEach(() => {
     window.history.replaceState(null, "", "/feedback");
     auth.isAuthenticated = true;
     auth.userId = "u1";
+    auth.loading = false;
     mockUserFetch.mockReset().mockResolvedValue(json(200, { ok: true, id: "x" }));
 });
 
@@ -42,6 +43,20 @@ describe("書きかけは人ごと", () => {
         render(<FeedbackPage />);
         expect(await screen.findByDisplayValue("わたしの書きかけ")).toBeTruthy();
         expect(screen.queryByDisplayValue("前の人の書きかけ")).toBeNull();
+    });
+
+    it("ログインの確かめ中に書いた文字は、確かめが済んでも書きかけで上書きしない", async () => {
+        auth.loading = true;
+        auth.isAuthenticated = false;
+        auth.userId = null;
+        window.localStorage.setItem(feedbackDraftKey("u1"), "前に残した書きかけ");
+        const { rerender } = render(<FeedbackPage />);
+        await userEvent.type(await screen.findByTestId("feedback-text"), "いま書いた");
+        auth.loading = false;
+        auth.isAuthenticated = true;
+        auth.userId = "u1";
+        rerender(<FeedbackPage />);
+        await waitFor(() => expect((screen.getByTestId("feedback-text") as HTMLTextAreaElement).value).toBe("いま書いた"));
     });
 
     it("ログアウト・退会で全部消す（forgetFeedbackDrafts）", () => {

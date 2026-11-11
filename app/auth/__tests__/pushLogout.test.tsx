@@ -124,4 +124,14 @@ describe("ログアウトとプッシュの宛先", () => {
         await loginThenLogout();
         expect(mockForgetStored, "端末に残る印を捨てていない").toHaveBeenCalled();
     });
+
+    // 意見箱の書きかけ（人ごとの鍵・札 journey.photo-ios#546）も、ログアウトで消す。
+    // 残すと、同じ端末で次にログインした別の人の頁に前の人の文が出る
+    it("意見箱の書きかけも捨てる", async () => {
+        localStorage.setItem("jp_feedback_draft:u1", "前の人の書きかけ");
+        localStorage.setItem("jp_feedback_draft:anon", "ログイン前の書きかけ");
+        await loginThenLogout();
+        expect(localStorage.getItem("jp_feedback_draft:u1"), "ログアウトで意見の書きかけが残っている").toBeNull();
+        expect(localStorage.getItem("jp_feedback_draft:anon")).toBeNull();
+    });
 });
