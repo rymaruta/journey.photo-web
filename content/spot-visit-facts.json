@@ -7949,14 +7949,6 @@
      "readAt": "2026-11-11"
     }
    ],
-   "hours": [
-    {
-     "text": "聖域のミサは月〜土曜が11時と15時、日曜が11時と14時（変わることがある）",
-     "url": "https://en.santuariocristoredentor.com.br/informacoes",
-     "title": "Horários do Cristo Redentor Missas confissões e atendimento — Santuário Cristo Redentor",
-     "readAt": "2026-11-11"
-    }
-   ],
    "photoRules": {
     "drone": {
      "text": "コルコバードでの趣味のドローンは禁止。公開時間中はドローンの運用もできない",
@@ -8264,7 +8256,7 @@
    ],
    "fees": [
     {
-     "text": "「ツヴィンガー券」（アルテ・マイスター絵画館・数学物理学サロン・磁器コレクション）は大人18ユーロ、割引13.50ユーロ、未就学児は無料（特別展は別）",
+     "text": "「ツヴィンガー券」（アルテ・マイスター絵画館・数学物理学サロン・磁器コレクション）は大人18ユーロ、割引13.50ユーロ、20歳未満の生徒2ユーロ、未就学児は無料（特別展は別）",
      "url": "https://www.skd.museum/en/besuch/zwinger-mit-semperbau/",
      "title": "SKD: Zwinger with Semperbau",
      "readAt": "2026-11-11"
@@ -8377,13 +8369,6 @@
     }
    ],
    "fees": [
-    {
-     "text": "外国人の入園料は60,000キープ（2026年11月14日まで）",
-     "url": "https://tourismluangprabang.org/ja/things-to-do-2/nature/kuang-si-waterfall/",
-     "title": "クアンシーの滝 – 観光ルアンパバーンの公式ウェブサイト",
-     "readAt": "2026-11-11",
-     "validUntil": "2026-11-14"
-    },
     {
      "text": "2026年11月15日から、外国人の入園料は100,000キープ（ラオス人は20,000キープ、12歳以下は無料）",
      "url": "https://tourismluangprabang.org/ja/things-to-do-2/nature/kuang-si-waterfall/",
@@ -9129,6 +9114,12 @@
    "hours": [
     {
      "text": "聖ポール天主堂跡（マテル・デイ教会の正面）は24時間いつでも見られる。天主堂跡の中の展示は9:00〜18:00（入場は17:30まで）",
+     "url": "https://www.wh.mo/en/site/detail/18",
+     "title": "澳門世界遺產",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "天主堂跡の中の天主教芸術博物館と地下納骨堂は9:00〜18:00（入場は17:30まで）で、火曜は14:00以降休み",
      "url": "https://www.wh.mo/en/site/detail/18",
      "title": "澳門世界遺產",
      "readAt": "2026-11-11"
@@ -9903,7 +9894,15 @@
    ],
    "hours": [
     {
-     "text": "開館は8:30〜16:30。チケットは予約制で、入場料は1人40元（2026年11月の案内。季節で変わる）",
+     "text": "火曜〜日曜に開き、月曜は休み（国の伝統的な祝日を除く）。4月1日〜10月31日は8:30〜17:00（最終入場16:00）、11月1日〜3月31日は8:30〜16:30（最終入場15:30）",
+     "url": "https://intl.dpm.org.cn/visit.html",
+     "title": "Visit_The Palace Museum_Visit",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入場料は1人40元（2026年11月の案内。季節で変わる）",
      "url": "https://intl.dpm.org.cn/?l=jp",
      "title": "故宮博物院",
      "readAt": "2026-11-11",
@@ -10709,12 +10708,10 @@
    ],
    "hours": [
     {
-     "text": "毎日9:00〜17:30に開いている",
+     "text": "毎日9:00〜17:30（最終入場は閉まる30分前）。クリスマス（12月25日）は休み",
      "url": "https://www.thealamo.org/",
      "title": "The Alamo",
-     "readAt": "2026-11-11",
-     "opens": "09:00",
-     "closes": "17:30"
+     "readAt": "2026-11-11"
     }
    ],
    "fees": [

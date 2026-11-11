@@ -1004,7 +1004,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         )}
 
                         {/* ── 撮影の決まり（三脚・自撮り棒・ドローン・撮影禁止の範囲）。公式の頁に書いてあることだけ ── */}
-                        {visit && <VisitPhotoRules facts={visit} isJa={isJa} head={headOf} />}
+                        {visit && <VisitPhotoRules facts={visit} isJa={isJa} head={headOf} inJapan={spot.region?.country === "日本"} />}
 
                         {light && <LightTable light={light} sky={sky} isJa={isJa} />}
                         {/* 日本のスポットは、その県の「今日の日の出・日の入り」へ（2026-11-07）。海外は県の頁が無い */}
