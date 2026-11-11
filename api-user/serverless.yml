@@ -1516,6 +1516,38 @@ functions:
       # 期限切れのぶんだけを直接引ける。1時間ごとでも読む量は小さい。
       - schedule: cron(5 * * * ? *)
 
+  # みんなの「行きたい」を数える（2026-11-11・撮影スポットを払うの②・`src/spotWants.ts`）。
+  # **未認証で呼べる口**（未ログインでも払える）。端末のでたらめな ID・日の上限・月1回で荒らしを止める。
+  # 役は数の行の読み書きだけ（共有の役の削除権を持たせない・鍵の頭 `dynamodb:LeadingKeys` で数の行に絞る）。
+  # 流量はこの口だけ絞る（下の `resources.extensions.HttpApiStage` の `RouteSettings`）
+  recordSpotWants:
+    handler: src/spotWants.recordSpotWants
+    role: SpotWantsRecordRole
+    events:
+      - httpApi:
+          path: /spots/wants
+          method: POST
+
+  # 毎日1回、今月の数を読んで上位と数を `app/data/spot-wants.json` にして Web の置き場へ書く。
+  # 急に増えた撮影スポットに印を付けて上位から外す。日本時間の 4:17（日の区切りの後）
+  aggregateSpotWants:
+    handler: src/spotWants.aggregateSpotWants
+    role: SpotWantsAggregateRole
+    timeout: 300
+    environment:
+      SITE_BUCKET: ${param:siteBucket}
+    events:
+      - schedule: cron(17 19 * * ? *)
+
+  # 毎日1回、古い重なり止め・日の上限・塩の行を消す（photos 表の TTL は無効・有効にしない）。
+  # 数の配りとは別の関数（片方が落ちても他方は動く）。日本時間の 4:47
+  cleanupSpotWants:
+    handler: src/spotWants.cleanupSpotWants
+    role: SpotWantsAggregateRole
+    timeout: 300
+    events:
+      - schedule: cron(47 19 * * ? *)
+
 # ---------------------------------------------------------------------------
 # 未認証で呼べる5つの口だけ、専用の最小ロールに分ける（IAM-1）
 #
@@ -1542,29 +1574,6 @@ functions:
 # プラグイン（serverless-iam-roles-per-function）は使わない。この環境から
 # postinstall が取得できず入らなかったのと、依存を1つ増やすより
 # CloudFormation を1つ書く方が読む人に見えるため。
-  # みんなの「行きたい」を数える（2026-11-11・撮影スポットを払うの②・`src/spotWants.ts`）。
-  # **未認証で呼べる口**（未ログインでも払える）。端末のでたらめな ID・日の上限・月1回で荒らしを止める。
-  # 役は数の行の読み書きだけ（共有の役の削除権を持たせない）
-  recordSpotWants:
-    handler: src/spotWants.recordSpotWants
-    role: SpotWantsRecordRole
-    events:
-      - httpApi:
-          path: /spots/wants
-          method: POST
-
-  # 毎日1回、今月の数を読んで上位と数を `app/data/spot-wants.json` にして Web の置き場へ書く。
-  # 急に増えた撮影スポットに印を付けて上位から外す。photos 表の TTL は無効なので、重なり止め・日の上限・塩の古い行もここで消す。
-  # 日本時間の 4:17（数の多い時間を避け、日の区切りの後）
-  aggregateSpotWants:
-    handler: src/spotWants.aggregateSpotWants
-    role: SpotWantsAggregateRole
-    timeout: 300
-    environment:
-      SITE_BUCKET: ${param:siteBucket}
-    events:
-      - schedule: cron(17 19 * * ? *)
-
 resources:
   Resources:
     # 地名さがし（Nominatim の代理）専用。ログと、結果の控えの読み書きだけ
@@ -1794,6 +1803,7 @@ resources:
                     - logs:PutLogEvents
                   Resource:
                     - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # 数の行（鍵の頭 spotwant・wantby・wantday・wantip・wantsalt）だけ。写真の行は読み書きできない
                 - Effect: Allow
                   Action:
                     - dynamodb:GetItem
@@ -1801,6 +1811,14 @@ resources:
                     - dynamodb:UpdateItem
                   Resource:
                     - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - spotwant*
+                        - wantby#*
+                        - wantday#*
+                        - wantip#*
+                        - wantsalt#*
 
     # 毎日の集計（`aggregateSpotWants`）。数を読む・印を書く・古い行を消す・Web の置き場の1ファイルだけ書く
     SpotWantsAggregateRole:
@@ -1825,13 +1843,28 @@ resources:
                     - logs:PutLogEvents
                   Resource:
                     - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # 読み書き・削除は数の行（鍵の頭で絞る）だけ。**写真の行は権限でも消せない**
                 - Effect: Allow
                   Action:
                     - dynamodb:BatchGetItem
                     - dynamodb:GetItem
                     - dynamodb:PutItem
-                    - dynamodb:Scan
+                    - dynamodb:BatchWriteItem
                     - dynamodb:DeleteItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - spotwant*
+                        - wantby#*
+                        - wantday#*
+                        - wantip#*
+                        - wantsalt#*
+                # 古い行を探す Scan（読むだけ・鍵の頭の条件は Scan には効かないので別に置く。projection は id だけ）
+                - Effect: Allow
+                  Action:
+                    - dynamodb:Scan
                   Resource:
                     - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
                 - Effect: Allow
@@ -1839,3 +1872,14 @@ resources:
                     - s3:PutObject
                   Resource:
                     - arn:aws:s3:::${param:siteBucket}/app/data/spot-wants.json
+
+  # API Gateway（HTTP API）の段の設定に足す（serverless が作る `HttpApiStage` に重ねる）。
+  # **みんなの「行きたい」の口だけ流量を絞る**（2026-11-11 確かめ役の指摘 5）。ほかの口は今のまま
+  # 秒 10 件・瞬間 20 件を越えた分は API Gateway が 429 で断る（Lambda も DB も動かない）
+  extensions:
+    HttpApiStage:
+      Properties:
+        RouteSettings:
+          "POST /spots/wants":
+            ThrottlingRateLimit: 10
+            ThrottlingBurstLimit: 20

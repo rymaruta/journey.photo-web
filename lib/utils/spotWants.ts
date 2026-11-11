@@ -29,7 +29,8 @@ export const WANT_BATCH = 5;
 export const WANT_SEND_MAX = 10;
 const QUEUE_MAX = 40;
 
-export type SpotWant = { slug: string; name: string; nameEn?: string; n: number; rank: number };
+/** `rank` は日本の撮影スポットだけ（海外は数だけ・2026-11-11 判断） */
+export type SpotWant = { slug: string; name: string; nameEn?: string; n: number; rank?: number };
 export type SpotWantsFile = { month: string; updatedAt: string; spots: SpotWant[] };
 
 export function parseSpotWants(raw: unknown): SpotWantsFile | null {
@@ -39,12 +40,13 @@ export function parseSpotWants(raw: unknown): SpotWantsFile | null {
     const spots: SpotWant[] = [];
     for (const r of o.spots) {
         const x = r as Record<string, unknown>;
-        if (!x || typeof x.slug !== "string" || typeof x.n !== "number" || typeof x.rank !== "number") continue;
+        if (!x || typeof x.slug !== "string" || typeof x.n !== "number") continue;
         // 10未満は配られない決まり。紛れ込んでも出さない
         if (x.n < 10) continue;
         spots.push({
             slug: x.slug, name: typeof x.name === "string" && x.name ? x.name : x.slug,
-            ...(typeof x.nameEn === "string" && x.nameEn ? { nameEn: x.nameEn } : {}), n: x.n, rank: x.rank,
+            ...(typeof x.nameEn === "string" && x.nameEn ? { nameEn: x.nameEn } : {}), n: x.n,
+            ...(typeof x.rank === "number" ? { rank: x.rank } : {}),
         });
     }
     return { month: o.month, updatedAt: typeof o.updatedAt === "string" ? o.updatedAt : "", spots };

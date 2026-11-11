@@ -1,6 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 import type { APIGatewayProxyHandlerV2, ScheduledHandler } from "aws-lambda";
-import { BatchGetCommand, DeleteCommand, GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { BatchGetCommand, BatchWriteCommand, GetCommand, PutCommand, ScanCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { ddb, PHOTOS_TABLE } from "./dynamodb";
 import { JSON_HEADERS, jsonError } from "./http";
@@ -47,22 +47,49 @@ import LEDGER from "./data/lightLedger.json";
  *  1. 同じ端末・同じ撮影スポットは月1回（`wantby`）
  *  2. 1端末 1日 `DEVICE_DAILY_MAX` 件まで
  *  3. 同じ回線 1日 `IP_DAILY_MAX` 件まで
- *  4. 画面はまとめて送る（5件ごと・閉じるとき）。1回で受けるのは `MAX_PER_REQUEST` 件まで
+ *  3'. 同じ回線・同じ撮影スポットは 1日 `IP_SPOT_DAILY_MAX` 件まで（端末の ID を作り直して1つの撮影スポットを押し上げるのを止める）
+ *  4. 画面はまとめて送る（5件ごと・閉じるとき）。1回で受けるのは `MAX_PER_REQUEST` 件まで・本文は `MAX_BODY_BYTES` まで
+ *     （JSON を読む前に断る）。API Gateway でもこの口だけ流量を絞る（`serverless.yml` の `HttpApiStage` の `RouteSettings`）
  *  5. 数が `MIN_SHOWN` 未満の撮影スポットは数を出さない（`spot-wants.json` に載せない）
- *  6. 急に増えた撮影スポットは毎日の集計で印を付け、その月は上位から外す（`isSpike`）
- *  7. 撮影スポットの鍵は台帳の写し（`data/lightLedger.json`＝画面に出ている撮影スポット）にあるものだけ受ける
+ *  6. 急に増えた撮影スポットは毎日の集計で印を付け、その月は上位から外す（`isSpike`・最低の数 `SPIKE_FLOOR` と前の月の数を見る）
+ *  7. 撮影スポットの鍵は台帳の写し（`data/lightLedger.json`＝画面に出ている撮影スポット）にあるものだけ受ける。
+ *     2026-11-11 判断: 写しが古いと公開中の撮影スポットを断る（確かめ役の実測: 写し 1,782 件・公開 3,677 件・払う札 400 のうち
+ *     168 が写しに無かった）。**試験で落とす**方を選んだ——`scripts/__tests__/spotWantsLedger.test.ts` が「公開中の撮影スポットと
+ *     払う札が全部写しにある」を見る。`npm test` は本番の反映（Deploy Site・Deploy API の確かめ）でも流れるので、古いまま出ない。
+ *     デプロイの時に作る案は、api-user の反映の段にルートの依存の取り込み（Actions の分数）が増えるので採らなかった。
+ *     撮影スポットを公開したら、同じ変更で `npx tsx scripts/gen-light-ledger.ts` を流す（光と天気の知らせの写しと同じファイル）
+ *
+ * 権限（IAM）は数の行の鍵の頭（`dynamodb:LeadingKeys`）に絞る——写真の行を、この口からは読み書きも削除もできない。
+ *
+ * ## 順位は日本の撮影スポットだけ（2026-11-11 判断）
+ *
+ * 「全国 r 位」は日本の撮影スポットの中の順位。海外の撮影スポットは数だけ配り、順位は付けない。
+ * 日本かどうかは写しの時刻帯（`Asia/Tokyo`。台帳の国「日本」から決まる・`spotTimeZone`）で見る。
  */
 
 export const DEVICE_DAILY_MAX = 50;
 export const IP_DAILY_MAX = 300;
+/** 同じ回線・同じ撮影スポットの1日の上限 */
+export const IP_SPOT_DAILY_MAX = 20;
 export const MAX_PER_REQUEST = 10;
+/** 本文の上限（バイト）。10件の鍵と端末の ID で 1KB に届かない */
+export const MAX_BODY_BYTES = 4096;
 export const MIN_SHOWN = 10;
 /** 急に増えたと見なす1日の増え方の下限（これ未満の増え方は印を付けない） */
 export const SPIKE_MIN = 30;
+/**
+ * 急に増えたと見なす基準の最低の数。月初め（前日の数が0）に本物の人気の撮影スポットが1日で 30 を超えても
+ * 印を付けない——基準は「前日までの数・前の月の数の半分・この数」のいちばん大きいもの
+ */
+export const SPIKE_FLOOR = 100;
 
-type Ledger = { spots: [string, string, string, ...unknown[]][] };
-const ROWS = (LEDGER as unknown as Ledger).spots;
+type Ledger = { timeZones: string[]; spots: [string, string, string, number, number, number][] };
+const L = LEDGER as unknown as Ledger;
+const ROWS = L.spots;
 const ALLOWED: ReadonlySet<string> = new Set(ROWS.map((r) => r[0]));
+/** 日本の撮影スポット（順位を付ける） */
+const JAPAN: ReadonlySet<string> = new Set(ROWS.filter((r) => L.timeZones[r[5]] === "Asia/Tokyo").map((r) => r[0]));
+export const isJapanSpot = (slug: string) => JAPAN.has(slug);
 /** 名前（配る形に入れる・頁が索引を読まずに名前を出せる）。英語の名前が無ければ "" */
 const NAMES: ReadonlyMap<string, [string, string]> = new Map(ROWS.map((r) => [r[0], [r[1], r[2]]]));
 export const allSlugs = (): string[] => [...ALLOWED];
@@ -77,6 +104,7 @@ export const countId = (month: string, slug: string) => `spotwant#${month}#${slu
 export const byId = (month: string, device: string) => `wantby#${month}#${device}`;
 export const dayId = (day: string, device: string) => `wantday#${day}#${device}`;
 export const ipId = (day: string, ipHash: string) => `wantip#${day}#${ipHash}`;
+export const ipSpotId = (day: string, ipHash: string, slug: string) => `wantip#${day}#${ipHash}#${slug}`;
 export const saltId = (day: string) => `wantsalt#${day}`;
 export const snapId = (month: string) => `spotwantsnap#${month}`;
 
@@ -171,19 +199,23 @@ async function firstThisMonth(month: string, device: string, slug: string): Prom
  * 1件ごとに: 端末の日の上限 → 回線の日の上限 → 月1回 → 数を進める
  */
 export const recordSpotWants: APIGatewayProxyHandlerV2 = async (event) => {
-    const parsed = parseWants(event.isBase64Encoded && event.body ? Buffer.from(event.body, "base64").toString("utf8") : event.body);
+    const raw = event.isBase64Encoded && event.body ? Buffer.from(event.body, "base64").toString("utf8") : event.body;
+    // 大きな本文は読む前に断る（JSON.parse に数 MB を渡さない）
+    if (raw && Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) return jsonError(413, "too large");
+    const parsed = parseWants(raw);
     if (!parsed) return jsonError(400, "invalid request");
     const { month, day } = jstParts(new Date());
     const ip = event.requestContext?.http?.sourceIp ?? "";
-    let ipHash: string | null = null;
     let counted = 0;
     try {
+        // 回線の上限を先に（端末の ID をいくつ作っても、回線の上限を越えたら端末の行も増やさない）
+        const ipHash = ip ? hashIp(ip, await daySalt(day)) : null;
         for (const slug of parsed.slugs) {
-            if (!(await bump(dayId(day, parsed.device), DEVICE_DAILY_MAX))) break;
-            if (ip) {
-                ipHash ??= hashIp(ip, await daySalt(day));
+            if (ipHash) {
                 if (!(await bump(ipId(day, ipHash), IP_DAILY_MAX))) break;
+                if (!(await bump(ipSpotId(day, ipHash, slug), IP_SPOT_DAILY_MAX))) continue;
             }
+            if (!(await bump(dayId(day, parsed.device), DEVICE_DAILY_MAX))) break;
             if (!(await firstThisMonth(month, parsed.device, slug))) continue;
             await ddb.send(new UpdateCommand({
                 TableName: PHOTOS_TABLE,
@@ -204,17 +236,21 @@ export const recordSpotWants: APIGatewayProxyHandlerV2 = async (event) => {
 // 毎日の集計（EventBridge・`aggregateSpotWants`）
 // ─────────────────────────────────────────────────────────────
 
-/** 急に増えたか: 1日に `SPIKE_MIN` 以上増え、しかも前日までの数より多く増えた（倍を超えた） */
-export function isSpike(prev: number, now: number): boolean {
+/**
+ * 急に増えたか: 1日に `SPIKE_MIN` 以上増え、しかも基準より多く増えた。
+ * 基準は「前日までの数・前の月の数の半分・`SPIKE_FLOOR`」のいちばん大きいもの（月初めに本物の人気を外さない）
+ */
+export function isSpike(prev: number, now: number, lastMonth = 0): boolean {
     const d = now - prev;
-    return d >= SPIKE_MIN && d > prev;
+    return d >= SPIKE_MIN && d > Math.max(prev, lastMonth / 2, SPIKE_FLOOR);
 }
 
 export type SpotWantsFile = {
     month: string;
     updatedAt: string;
     /** 数が `MIN_SHOWN` 以上で、印の付いていない撮影スポット。多い順・同じ数はスラッグの順。`rank` は1から */
-    spots: { slug: string; name: string; nameEn?: string; n: number; rank: number }[];
+    /** `rank` は日本の撮影スポットだけ（海外は数だけ・2026-11-11 判断） */
+    spots: { slug: string; name: string; nameEn?: string; n: number; rank?: number }[];
 };
 
 /** 数から配る形を作る（印の付いたものと `MIN_SHOWN` 未満は載せない） */
@@ -222,23 +258,30 @@ export function rankWants(counts: ReadonlyMap<string, number>, flagged: Readonly
     const rows = [...counts]
         .filter(([slug, n]) => n >= MIN_SHOWN && !flagged.has(slug))
         .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+    // 順位は日本の撮影スポットの中だけで数える（同じ数は同じ順位）
     let rank = 0;
+    let seen = 0;
     let prevN = -1;
-    const spots = rows.map(([slug, n], i) => {
-        if (n !== prevN) { rank = i + 1; prevN = n; }
+    const spots = rows.map(([slug, n]) => {
         const [name, nameEn] = NAMES.get(slug) ?? [slug, ""];
-        return { slug, name, ...(nameEn ? { nameEn } : {}), n, rank };
+        const base = { slug, name, ...(nameEn ? { nameEn } : {}), n };
+        if (!isJapanSpot(slug)) return base;
+        seen += 1;
+        if (n !== prevN) { rank = seen; prevN = n; }
+        return { ...base, rank };
     });
     return { month, updatedAt: now.toISOString(), spots };
 }
 
 /** 消してよい行か（重なり止めは前の月より古いもの・日の行と塩は前日より古いもの） */
+/** "2026-01" → "2025-12" */
+export function previousMonth(month: string): string {
+    const [y, m] = month.split("-").map(Number);
+    return new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
+}
+
 export function isExpiredRow(id: string, month: string, day: string): boolean {
-    const prevMonth = (() => {
-        const [y, m] = month.split("-").map(Number);
-        const d = new Date(Date.UTC(y, m - 2, 1));
-        return d.toISOString().slice(0, 7);
-    })();
+    const prevMonth = previousMonth(month);
     const yesterday = new Date(Date.parse(`${day}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
     const part = id.split("#")[1] ?? "";
     if (id.startsWith("wantby#")) return part < prevMonth;
@@ -268,9 +311,11 @@ async function readCounts(month: string): Promise<Map<string, number>> {
     return counts;
 }
 
+/** 古い重なり止め・日の上限・塩の行を消す（25 件ずつまとめて・消せなかった分はやり直す） */
 async function cleanup(month: string, day: string): Promise<number> {
     let removed = 0;
     let start: Record<string, unknown> | undefined;
+    const expired: string[] = [];
     do {
         const res = await ddb.send(new ScanCommand({
             TableName: PHOTOS_TABLE,
@@ -280,25 +325,37 @@ async function cleanup(month: string, day: string): Promise<number> {
             ExclusiveStartKey: start,
         }));
         for (const it of (res.Items ?? []) as { id: string }[]) {
-            if (!isExpiredRow(it.id, month, day)) continue;
-            await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: it.id } }));
-            removed += 1;
+            if (isExpiredRow(it.id, month, day)) expired.push(it.id);
         }
         start = res.LastEvaluatedKey as Record<string, unknown> | undefined;
     } while (start);
+    for (let i = 0; i < expired.length; i += 25) {
+        let requests: Record<string, unknown>[] = expired.slice(i, i + 25).map((id) => ({ DeleteRequest: { Key: { id } } }));
+        for (let tries = 0; requests.length > 0 && tries < 5; tries++) {
+            const res = await ddb.send(new BatchWriteCommand({ RequestItems: { [PHOTOS_TABLE]: requests } }));
+            const left = (res.UnprocessedItems?.[PHOTOS_TABLE] ?? []) as Record<string, unknown>[];
+            removed += requests.length - left.length;
+            requests = left;
+        }
+    }
     return removed;
 }
 
-/** 毎日1回: 今月の数を読み、急に増えたものに印を付け、上位と数を `spot-wants.json` にして Web の置き場へ。古い行を消す */
+/**
+ * 毎日1回: 今月の数を読み、急に増えたものに印を付け、上位と数を `spot-wants.json` にして Web の置き場へ。
+ * 古い行の掃除は別の関数（`cleanupSpotWants`）——掃除が落ちても数の配りは止めない
+ */
 export const aggregateSpotWants: ScheduledHandler = async () => {
     const now = new Date();
-    const { month, day } = jstParts(now);
+    const { month } = jstParts(now);
     const counts = await readCounts(month);
     const snap = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: snapId(month) } }));
+    const last = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: snapId(previousMonth(month)) } }));
     const prev = ((snap.Item as { counts?: Record<string, number> } | undefined)?.counts) ?? {};
+    const lastMonth = ((last.Item as { counts?: Record<string, number> } | undefined)?.counts) ?? {};
     const flagged = new Set<string>(((snap.Item as { flagged?: string[] } | undefined)?.flagged) ?? []);
     for (const [slug, n] of counts) {
-        if (!flagged.has(slug) && isSpike(prev[slug] ?? 0, n)) {
+        if (!flagged.has(slug) && isSpike(prev[slug] ?? 0, n, lastMonth[slug] ?? 0)) {
             flagged.add(slug);
             // 運営が見る（CloudWatch Logs）。数と撮影スポットだけ・誰が払ったかは持っていない
             console.warn(`spotWants: spike ${slug} ${prev[slug] ?? 0} -> ${n} (${month})`);
@@ -317,6 +374,15 @@ export const aggregateSpotWants: ScheduledHandler = async () => {
         ContentType: "application/json; charset=utf-8",
         CacheControl: "public, max-age=3600",
     }));
+    console.log(`spotWants: ${counts.size} counted, ${file.spots.length} shown, ${flagged.size} flagged`);
+};
+
+/**
+ * 毎日1回: 古い重なり止め・日の上限・塩の行を消す。photos 表の TTL は無効で、有効にするのは DB の変更なので
+ * しない（2026-11-11 判断）。数の配り（`aggregateSpotWants`）とは別の関数にして、片方が落ちても他方は動く
+ */
+export const cleanupSpotWants: ScheduledHandler = async () => {
+    const { month, day } = jstParts(new Date());
     const removed = await cleanup(month, day);
-    console.log(`spotWants: ${counts.size} counted, ${file.spots.length} shown, ${flagged.size} flagged, ${removed} old rows removed`);
+    console.log(`spotWants: ${removed} old rows removed`);
 };

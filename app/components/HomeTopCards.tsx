@@ -13,7 +13,6 @@ import { tagKey } from "../../lib/utils/collections";
 import type { HomeSeasonal } from "../../lib/data/spotTopics";
 import type { Photo } from "@/lib/data/photos";
 import Thumb from "./Thumb";
-import { HomeWantsStrip } from "./SpotWants";
 import { readSwipeStarted, readSwipeWants } from "../../lib/utils/spotSwipe";
 
 /**
@@ -169,8 +168,6 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                     />
                 </li>
             </ul>
-            {/* 今月いちばん行きたい（2026-11-11・撮影スポットを払うの②）。払う入口の札の下・数が載ったときだけ */}
-            <div className="px-4 sm:px-0 mt-3"><HomeWantsStrip /></div>
         </section>
     );
 }

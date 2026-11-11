@@ -8,7 +8,7 @@
 //
 //  - `SpotWantsLine`: 撮影スポットの頁の題の下に1行「今月の行きたい 1,284 · 全国1位」
 //  - `AreaWantsTop`: 県の一覧の頭に「今月いちばん行きたい」3つ（並びの既定は変えない）
-//  - `HomeWantsStrip`: トップの上段の札（払う入口）の下に今月の上位4つ（押すとその頁）
+//  （トップの上位の並びは置かない——iOS に無く、入口を増やさない・2026-11-11 確かめ役の指摘 9）
 
 import React from "react";
 import Link from "next/link";
@@ -25,8 +25,11 @@ export function SpotWantsLine({ slug }: { slug: string }) {
         <p className="m-0 mt-2 flex items-baseline gap-2 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }} data-testid="spot-wants-line">
             <span>{en ? "Want to go this month" : "今月の行きたい"}</span>
             <span className="text-white font-semibold tabular-nums">{wantCount(hit.n, en)}</span>
-            <span aria-hidden="true">·</span>
-            <span className="text-accent tabular-nums">{en ? `#${hit.rank} overall` : `全国${hit.rank}位`}</span>
+            {/* 順位は日本の撮影スポットだけ（海外は数だけ・2026-11-11 判断） */}
+            {hit.rank !== undefined && <>
+                <span aria-hidden="true">·</span>
+                <span className="text-accent tabular-nums">{en ? `#${hit.rank} in Japan` : `全国${hit.rank}位`}</span>
+            </>}
         </p>
     );
 }
@@ -59,33 +62,5 @@ export function AreaWantsTop({ spots }: { spots: readonly { slug: string; name: 
                 ))}
             </ol>
         </section>
-    );
-}
-
-export function HomeWantsStrip() {
-    const { locale } = useLocale();
-    const en = locale === "en";
-    const file = useSpotWants();
-    const top = file?.spots.slice(0, 4) ?? [];
-    if (top.length === 0) return null;
-    const month = Number(file!.month.slice(5, 7));
-    return (
-        <nav aria-label={en ? "Most wanted this month" : "今月いちばん行きたい"} className="-mt-2 mb-4" data-testid="home-wants-strip">
-            <p className="m-0 mb-1 text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>
-                {en ? "Most wanted this month" : `今月いちばん行きたい · ${month}月`}
-            </p>
-            <ol className="m-0 p-0 flex gap-x-4 overflow-x-auto no-scrollbar" style={{ listStyle: "none" }}>
-                {top.map((w) => (
-                    <li key={w.slug} className="shrink-0">
-                        <Link href={`/spots/${w.slug}`} prefetch={false}
-                              className="inline-flex items-center gap-1.5 min-h-[44px] text-white hover:text-accent focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded"
-                              style={{ fontSize: "14px" }}>
-                            <span className="font-serif font-bold text-accent tabular-nums">{w.rank}</span>
-                            <span>{en && w.nameEn ? w.nameEn : w.name}</span>
-                        </Link>
-                    </li>
-                ))}
-            </ol>
-        </nav>
     );
 }

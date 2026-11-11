@@ -9,7 +9,7 @@ vi.mock("../api", async (orig) => ({ ...(await orig<Record<string, unknown>>()),
 vi.mock("../../../app/i18n/context", () => ({ useLocale: () => ({ locale: "ja" }) }));
 
 const W = await import("../spotWants");
-const { SpotWantsLine, AreaWantsTop, HomeWantsStrip } = await import("../../../app/components/SpotWants");
+const { SpotWantsLine, AreaWantsTop } = await import("../../../app/components/SpotWants");
 
 const FILE = {
     month: "2026-11", updatedAt: "x",
@@ -91,18 +91,19 @@ describe("出す", () => {
         expect(top.querySelector("a")!.getAttribute("href")).toBe("/spots/shirakawago");
     });
 
-    it("トップ: 今月の上位4つ（押すとその頁）", async () => {
-        render(<HomeWantsStrip />);
-        const strip = await screen.findByTestId("home-wants-strip");
-        expect([...strip.querySelectorAll("a")].map((a) => a.getAttribute("href"))).toEqual(
-            ["/spots/shirakawago", "/spots/kawaguchiko", "/spots/miyakojima", "/spots/arashiyama"]);
-        expect(strip.textContent).toContain("今月いちばん行きたい · 11月");
+    it("海外の撮影スポットは数だけ（順位を出さない）", async () => {
+        vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({ month: "2026-11", updatedAt: "x",
+            spots: [{ slug: "louvre", name: "ルーヴル", n: 800 }] }) })));
+        render(<SpotWantsLine slug="louvre" />);
+        const line = await screen.findByTestId("spot-wants-line");
+        expect(line.textContent).toContain("800");
+        expect(line.textContent).not.toContain("位");
     });
 
     it("ファイルが無い・読めないときは何も出さない", async () => {
         vi.stubGlobal("fetch", vi.fn(async () => ({ ok: false, json: async () => ({}) })));
-        render(<HomeWantsStrip />);
+        render(<SpotWantsLine slug="shirakawago" />);
         await new Promise((r) => setTimeout(r, 20));
-        expect(screen.queryByTestId("home-wants-strip")).toBeNull();
+        expect(screen.queryByTestId("spot-wants-line")).toBeNull();
     });
 });
