@@ -19,7 +19,7 @@ export const dynamicParams = false;
  *
  * 🔴 `/spots` に全件を並べると、台帳が伸びたぶんだけ索引が重くなる
  * （実測は `lib/data/spotLink.ts` の `SpotArea` の注記）。HTML は
- * `no-cache, no-store` で配るので、**訪問のたびに落ちるバイト**になる。
+ * `no-cache`（毎回たしかめる） で配るので、**訪問のたびに落ちるバイト**になる。
  * だから `/spots` は県の一覧にし、スポットはこのページに分ける。
  *
  * **公開できるスポットが1件も無い県のページは作らない**（`spotAreas` が

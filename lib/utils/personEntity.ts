@@ -1,6 +1,7 @@
 import { siteConfig } from "./seo";
 import { spacelessName } from "./nameVariants";
 import { personNodeId } from "./personId";
+import { safeUsername } from "./profileTitle";
 
 /**
  * 人の構造化データ（schema.org の `Person`）。
@@ -17,7 +18,7 @@ import { personNodeId } from "./personId";
  * 出さない（材料は `scripts/sync-photos-from-ddb.js` が users テーブルから
  * `bio` / `website` / `instagram` / `username` に絞って書き出す）。
  */
-export type PublicProfile = { bio?: string; website?: string; instagram?: string };
+export type PublicProfile = { bio?: string; website?: string; instagram?: string; username?: string };
 
 /**
  * `sameAs` に出してよい URL か。
@@ -61,7 +62,14 @@ export function personEntity(input: {
     const sameAs = [safeSameAs(input.profile?.website), instagramUrl(input.profile?.instagram)]
         .filter((v): v is string => !!v);
     const bio = (input.profile?.bio ?? "").trim();
-    const alt = spacelessName(input.displayName);
+    // **別名は「空白を詰めた名前」と「@ユーザー名」。**
+    // 2026-11-11 判断（journey.photo-ios#525）: ユーザー名で探されたときの同定材料。
+    // Google の ProfilePage の見本も `alternateName` にハンドル（"@…"）を置いている。
+    // 1つだけなら今までどおり文字列（写真ページの `creator` と同じ形）。
+    const handle = safeUsername(input.profile?.username);
+    const alts = [spacelessName(input.displayName), handle ? `@${handle}` : undefined]
+        .filter((v): v is string => !!v);
+    const alt = alts.length > 1 ? alts : alts[0];
     return {
         "@type": "Person",
         // **写真ページ30枚の `creator` / `author` と同じ節点だと名乗る**

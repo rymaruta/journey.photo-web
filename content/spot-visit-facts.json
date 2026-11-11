@@ -1,5 +1,5 @@
 {
- "_about": "撮影スポットの頁の「行く前に知りたい事実」（見頃・アクセス・開いている時間と料金・撮影の決まり）。札 rymaruta/journey.photo-ios#527 の案 2（2026-11-11）。AI が公式サイト（施設・自治体・観光協会）の頁を読み、事実の1行ごとに読んだ頁の URL・題・読んだ日（readAt）を付けた。出典の揃わない行は試験が落とし、画面も描かない。三脚・自撮り棒・ドローンは公式の頁に書いてあるときだけ（無ければ画面は『公式サイトに記載なし』）。readPages は読んだ頁の全部。形と規則は lib/data/spotVisitFacts.ts",
+ "_about": "撮影スポットの頁の「行く前に知りたい事実」（見頃・アクセス・開いている時間と料金・撮影の決まり）。札 rymaruta/journey.photo-ios#527 の案 2（2026-11-11）。AI が公式サイト（施設・自治体・観光協会）の頁を読み、事実の1行ごとに読んだ頁の URL・題・読んだ日（readAt）を付けた。出典の揃わない行は試験が落とし、画面も描かない。三脚・自撮り棒・ドローンは公式の頁に書いてあるときだけ（書いていない道具は行ごと出さず、可否を推さない）。readPages は読んだ頁の全部。形と規則は lib/data/spotVisitFacts.ts",
  "spots": {
   "fushimi-inari-taisha": {
    "delegatedBy": "rymaruta",
@@ -3944,17 +3944,17 @@
     },
     {
      "url": "https://asahidake.hokkaido.jp/archives/blog/26554",
-     "title": "&#x1f6a0;１１月１５日まで行ける！ | 大雪山旭岳ロープウェイ",
+     "title": "🚠１１月１５日まで行ける！ | 大雪山旭岳ロープウェイ",
      "readAt": "2026-11-11"
     },
     {
      "url": "https://asahidake.hokkaido.jp/archives/blog/26502",
-     "title": "&#x2603; 冬？の１１月のご案内 &#x1f6a0; | 大雪山旭岳ロープウェイ",
+     "title": "☃ 冬？の１１月のご案内 🚠 | 大雪山旭岳ロープウェイ",
      "readAt": "2026-11-11"
     },
     {
      "url": "https://asahidake.hokkaido.jp/archives/blog/26444",
-     "title": "&#x1f6a0;営業時間変更のお知らせ&#x23f0;10/21より | 大雪山旭岳ロープウェイ",
+     "title": "🚠営業時間変更のお知らせ⏰10/21より | 大雪山旭岳ロープウェイ",
      "readAt": "2026-11-11"
     }
    ],
@@ -6615,6 +6615,5498 @@
      "readAt": "2026-11-11"
     }
    ]
+  },
+  "ashikaga-flower-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.ashikaga.co.jp/",
+     "title": "【公式】花と光の楽園 あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ashikaga.co.jp/faq.html",
+     "title": "お問い合せ・よくある質問 | あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ashikaga.co.jp/fee.html",
+     "title": "入園料・開園時間 | あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ashikaga.co.jp/guide/index.html",
+     "title": "園内マップ | あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ashikaga.co.jp/access.html",
+     "title": "交通・アクセス | あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ashikaga.co.jp/guide/food.html",
+     "title": "団体のご予約とご利用案内 | あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ashikaga.co.jp/news/details.php?id=810",
+     "title": "お知らせ詳細 | お知らせ一覧 | あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ashikaga.co.jp/guide/flowershop.php",
+     "title": "花うりば | あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ashikaga.co.jp/guide/restaurant.php",
+     "title": "レストラン | あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "藤・ツツジ・シャクナゲは4月中旬〜5月中旬",
+     "url": "https://www.ashikaga.co.jp/",
+     "title": "【公式】花と光の楽園 あしかがフラワーパーク",
+     "readAt": "2026-11-11",
+     "subject": "藤"
+    },
+    {
+     "text": "チューリップ・雪柳・桜は3月上旬〜4月中旬",
+     "url": "https://www.ashikaga.co.jp/",
+     "title": "【公式】花と光の楽園 あしかがフラワーパーク",
+     "readAt": "2026-11-11",
+     "subject": "チューリップ・桜"
+    },
+    {
+     "text": "花菖蒲・アジサイは6月上旬〜7月上旬",
+     "url": "https://www.ashikaga.co.jp/",
+     "title": "【公式】花と光の楽園 あしかがフラワーパーク",
+     "readAt": "2026-11-11",
+     "subject": "花菖蒲・アジサイ"
+    }
+   ],
+   "parking": {
+    "text": "無料駐車場あり（通常は普通車300台、繁忙期は臨時を含め約6,000台）",
+    "url": "https://www.ashikaga.co.jp/faq.html",
+    "title": "お問い合せ・よくある質問 | あしかがフラワーパーク",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "入園料と開園時間は花の咲き具合で変わる。昼の部と夜の部は入れ替え制で、最終のチケット販売は閉園30分前まで",
+     "url": "https://www.ashikaga.co.jp/",
+     "title": "【公式】花と光の楽園 あしかがフラワーパーク",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "tripod": {
+     "text": "三脚は使ってよい。通路の妨げにならないようにし、持って歩くときは脚を畳む",
+     "url": "https://www.ashikaga.co.jp/faq.html",
+     "title": "お問い合せ・よくある質問 | あしかがフラワーパーク",
+     "readAt": "2026-11-11",
+     "status": "allowed"
+    },
+    "drone": {
+     "text": "ドローンの持ち込みは断っている",
+     "url": "https://www.ashikaga.co.jp/faq.html",
+     "title": "お問い合せ・よくある質問 | あしかがフラワーパーク",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "notes": [
+     {
+      "text": "照明器具・レフ板・脚立は持ち込めない。園内からのライブ配信も禁止",
+      "url": "https://www.ashikaga.co.jp/faq.html",
+      "title": "お問い合せ・よくある質問 | あしかがフラワーパーク",
+      "readAt": "2026-11-11"
+     },
+     {
+      "text": "コスプレやウェディングドレスでの入園は断っている",
+      "url": "https://www.ashikaga.co.jp/faq.html",
+      "title": "お問い合せ・よくある質問 | あしかがフラワーパーク",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "antelope-canyon": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://navajonationparks.org/guided-tour-operators/antelope-canyon-tour-operators/",
+     "title": "Antelope Canyon Tour Operators | Navajo Nation Parks & Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://navajonationparks.org/guided-tour-operators/",
+     "title": "Guided Tours in Navajo Nation | Navajo Nation Parks & Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://navajonationparks.org/guided-tour-operators/monument-valley-tour-operators/",
+     "title": "Monument Valley Tour Operators | Navajo Nation Parks & Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://navajonationparks.org/guided-tour-operators/canyon-de-chelly-tour-operators/",
+     "title": "Canyon de Chelly Tour Operator | Navajo Nation Parks & Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://navajonationparks.org/directions/",
+     "title": "Directions in Navajo Nation | Navajo Nation Parks & Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://navajonationparks.org/rules-regulations/",
+     "title": "Rules & Regulations | Navajo Nation Parks & Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://navajonationparks.org/entry-fee/",
+     "title": "Monument Valley Entry Fee | Navajo Nation Parks & Recreation",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "アンテロープ・キャニオンのどの場所も、ガイドツアーでしか入れない（ナバホ・ネーションの公認ツアー会社を選んで申し込む）",
+     "url": "https://navajonationparks.org/guided-tour-operators/antelope-canyon-tour-operators/",
+     "title": "Antelope Canyon Tour Operators | Navajo Nation Parks & Recreation",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入場料は1人・1か所・1日あたり15ドル。ガイドツアーの料金は別",
+     "url": "https://navajonationparks.org/guided-tour-operators/antelope-canyon-tour-operators/",
+     "title": "Antelope Canyon Tour Operators | Navajo Nation Parks & Recreation",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "rokko-garden-terrace": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.rokkosan.com/gt/",
+     "title": "六甲ガーデンテラス・ 自然体感展望台 六甲枝垂れ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rokkosan.com/gt/operation/",
+     "title": "ご利用案内 | 六甲ガーデンテラス・ 自然体感展望台 六甲枝垂れ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rokkosan.com/top/faq/",
+     "title": "よくある質問 | 神戸・六甲山 公式おでかけサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rokkosan.com/top/news/%e5%85%ad%e7%94%b2%e3%82%ac%e3%83%bc%e3%83%87%e3%83%b3%e3%83%86%e3%83%a9%e3%82%b9/26844/",
+     "title": "【11/8(日)】六甲ビューパレス団体貸切営業のお知らせ | 神戸・六甲山 公式おでかけサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rokkosan.com/top/access/",
+     "title": "アクセス | 神戸・六甲山 公式おでかけサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "六甲山上バスの「六甲ガーデンテラス」で降りる",
+     "url": "https://www.rokkosan.com/gt/",
+     "title": "六甲ガーデンテラス・ 自然体感展望台 六甲枝垂れ",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "駐車場あり（普通車1,000円、繁忙日は2,000円）",
+    "url": "https://www.rokkosan.com/gt/operation/",
+    "title": "ご利用案内 | 六甲ガーデンテラス・ 自然体感展望台 六甲枝垂れ",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "展望台「六甲枝垂れ」は2026年3月20日〜11月29日が10:00〜21:00（最終受付20:30）",
+     "url": "https://www.rokkosan.com/gt/operation/",
+     "title": "ご利用案内 | 六甲ガーデンテラス・ 自然体感展望台 六甲枝垂れ",
+     "readAt": "2026-11-11",
+     "validUntil": "2026-11-29"
+    }
+   ],
+   "fees": [
+    {
+     "text": "六甲ガーデンテラスのエリアは入場無料。展望台「六甲枝垂れ」は大人（中学生以上）1,000円、4歳〜小学生500円",
+     "url": "https://www.rokkosan.com/gt/operation/",
+     "title": "ご利用案内 | 六甲ガーデンテラス・ 自然体感展望台 六甲枝垂れ",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "chiba-port-tower": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://chiba-porttower.com/",
+     "title": "千葉ポートタワー │ 公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://chiba-porttower.com/guide.php",
+     "title": "施設案内･料金 │ 千葉ポートタワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://chiba-porttower.com/access.php",
+     "title": "アクセス │ 千葉ポートタワー",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR京葉線・千葉モノレールの千葉みなと駅から歩いて12分",
+     "url": "https://chiba-porttower.com/",
+     "title": "千葉ポートタワー │ 公式サイト",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "hours": [
+    {
+     "text": "6月〜9月は毎日9:00〜21:00。10月〜5月は平日9:00〜19:00、土日祝9:00〜20:00（最終入館は閉館30分前）",
+     "url": "https://chiba-porttower.com/guide.php",
+     "title": "施設案内･料金 │ 千葉ポートタワー",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入館料は大人420円、小・中学生200円、小学生未満は無料",
+     "url": "https://chiba-porttower.com/guide.php",
+     "title": "施設案内･料金 │ 千葉ポートタワー",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "tokyo-international-forum": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.t-i-forum.co.jp/",
+     "title": "公式 | 東京国際フォーラム | Tokyo International Forum",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.t-i-forum.co.jp/visitors/",
+     "title": "来場者の方へ | 東京国際フォーラム",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.t-i-forum.co.jp/visitors/event/",
+     "title": "イベントカレンダー | 東京国際フォーラム",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.t-i-forum.co.jp/visitors/facilities/",
+     "title": "ホール・会議室 | 東京国際フォーラム",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.t-i-forum.co.jp/visitors/facilities/a/",
+     "title": "ホールA | 東京国際フォーラム",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.t-i-forum.co.jp/visitors/facilities/b7/",
+     "title": "ホールB7 | 東京国際フォーラム",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.t-i-forum.co.jp/visitors/facilities/b5/",
+     "title": "ホールB5 | 東京国際フォーラム",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.t-i-forum.co.jp/visitors/facilities/c/",
+     "title": "ホールC | 東京国際フォーラム",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.t-i-forum.co.jp/visitors/facilities/d7/",
+     "title": "ホールD7 | 東京国際フォーラム",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR有楽町駅・地下鉄有楽町駅・JR京葉線東京駅（地下1階）などから入れる",
+     "url": "https://www.t-i-forum.co.jp/visitors/",
+     "title": "来場者の方へ | 東京国際フォーラム",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "hours": [
+    {
+     "text": "建物の開館時間は7:00〜23:30",
+     "url": "https://www.t-i-forum.co.jp/",
+     "title": "公式 | 東京国際フォーラム | Tokyo International Forum",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "griffith-observatory": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://griffithobservatory.lacity.gov/",
+     "title": "Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://griffithobservatory.lacity.gov/visit/",
+     "title": "Visit - Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://griffithobservatory.lacity.gov/visit/getting-here/",
+     "title": "Getting Here - Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://griffithobservatory.lacity.gov/visit/calendar/",
+     "title": "Calendar - Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://griffithobservatory.lacity.gov/visit/school-programs/",
+     "title": "School Programs - Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://griffithobservatory.lacity.gov/visit/accessibility/",
+     "title": "Accessibility - Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://griffithobservatory.lacity.gov/visit/guidelines/",
+     "title": "Guidelines - Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://griffithobservatory.lacity.gov/visit/faqs/",
+     "title": "FAQs - Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://griffithobservatory.lacity.gov/exhibits/samuel-oschin-planetarium/",
+     "title": "Samuel Oschin Planetarium - Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "天文台への入館は無料",
+     "url": "https://griffithobservatory.lacity.gov/",
+     "title": "Griffith Observatory - Southern California’s gateway to the cosmos!",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "ise-jingu-geku": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.isejingu.or.jp/about/geku/index.html",
+     "title": "豊受大神宮（外宮）｜神宮について｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/",
+     "title": "ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/access/",
+     "title": "交通アクセス｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/first/beginner_visit.html",
+     "title": "知る見るわかる、伊勢神宮 - 参拝編 -｜はじめての神宮｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/course/",
+     "title": "神宮の回り方｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/amulet/",
+     "title": "授与品（お神札・お守り）｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/map/",
+     "title": "内宮｜域内マップ｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/manner/",
+     "title": "参拝の作法とマナー｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/prayer/",
+     "title": "ご祈祷のご案内｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "伊勢市駅から歩いて約5分",
+     "url": "https://www.isejingu.or.jp/first/beginner_visit.html",
+     "title": "知る見るわかる、伊勢神宮 - 参拝編 -｜はじめての神宮｜伊勢神宮",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "hours": [
+    {
+     "text": "参拝は朝5時から。閉まるのは1〜4月・9月が18時、5〜8月が19時、10〜12月が17時",
+     "url": "https://www.isejingu.or.jp/visit/",
+     "title": "ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "predjama-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.postojnska-jama.eu/en/predjama-castle/",
+     "title": "Predjama Castle » Postojna Cave Park - Welcome to the official website",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.postojnska-jama.eu/en/tickets/",
+     "title": "Postojna Cave Park Tickets » Postojna Cave Park - Welcome to the official website",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.postojnska-jama.eu/en/information/",
+     "title": "Information » Postojna Cave Park - Welcome to the official website",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.postojnska-jama.eu/en/information/contact-details/",
+     "title": "Contact Details » Postojna Cave Park - Welcome to the official website",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "休日や悪天候の日も含め、毎日開いている（時間は公式の頁で確かめる）",
+     "url": "https://www.postojnska-jama.eu/en/predjama-castle/",
+     "title": "Predjama Castle » Postojna Cave Park - Welcome to the official website",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "takaoka-daibutsu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.takaokadaibutsu.xyz/",
+     "title": "高岡大仏",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.takaokadaibutsu.xyz/enjoy_access.html",
+     "title": "高岡大仏 » enjoy_access",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.takaokadaibutsu.xyz/enjoy_yard.html",
+     "title": "高岡大仏 » enjoy_yard",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "あいの風とやま鉄道の高岡駅から歩いて約10分。万葉線の「坂下町」停留所からは約5分",
+     "url": "https://www.takaokadaibutsu.xyz/enjoy_access.html",
+     "title": "高岡大仏 » enjoy_access",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "能越自動車道の高岡ICから約15分",
+     "url": "https://www.takaokadaibutsu.xyz/enjoy_access.html",
+     "title": "高岡大仏 » enjoy_access",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "参拝者専用の無料駐車場が2か所（大仏の背後に8台・境内の横に4台）",
+    "url": "https://www.takaokadaibutsu.xyz/enjoy_access.html",
+    "title": "高岡大仏 » enjoy_access",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "台座回廊の拝観は6:00〜18:00",
+     "url": "https://www.takaokadaibutsu.xyz/enjoy_access.html",
+     "title": "高岡大仏 » enjoy_access",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "harukas-300": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.abenoharukas-300.jp/observatory/",
+     "title": "ハルカス300（展望台）｜あべのハルカス（大阪市阿倍野区）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.abenoharukas-300.jp/observatory/access.html",
+     "title": "アクセスのご案内｜ハルカス300（展望台）｜あべのハルカス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.abenoharukas-300.jp/observatory/information.html",
+     "title": "営業案内｜ハルカス300（展望台）｜あべのハルカス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.abenoharukas-300.jp/observatory/ticket/",
+     "title": "ハルカス300 チケット",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.abenoharukas-300.jp/observatory/guide.html",
+     "title": "施設案内｜ハルカス300（展望台）｜あべのハルカス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.abenoharukas-300.jp/observatory/faq.html",
+     "title": "FAQ ｜ハルカス300（展望台）｜あべのハルカス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.abenoharukas-300.jp/service/",
+     "title": "サービス案内｜あべのハルカスについて｜あべのハルカス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.abenoharukas-300.jp/access.html",
+     "title": "アクセス｜あべのハルカスについて｜あべのハルカス",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "展望台専用の駐車場は無い。公共交通機関で来るよう案内している",
+    "url": "https://www.abenoharukas-300.jp/observatory/",
+    "title": "ハルカス300（展望台）｜あべのハルカス（大阪市阿倍野区）",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "展望台は9:00〜22:00（最終入場21:30）",
+     "url": "https://www.abenoharukas-300.jp/observatory/",
+     "title": "ハルカス300（展望台）｜あべのハルカス（大阪市阿倍野区）",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "当日券は大人（15歳以上）2,200円、小・中学生900円、5歳以下は無料。WEB前売券は安い",
+     "url": "https://www.abenoharukas-300.jp/observatory/information.html",
+     "title": "営業案内｜ハルカス300（展望台）｜あべのハルカス",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "empire-state-building": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.esbnyc.com/",
+     "title": "Empire State Building: Visit the Top NYC Observation Deck",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.esbnyc.com/buy-tickets",
+     "title": "Empire State Building Observation Deck Tickets | Buy Online",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.esbnyc.com/buy-tickets/86th-floor-observation-deck",
+     "title": "Empire State Building 86th Floor Tickets | ESB",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.esbnyc.com/buy-tickets/empire-state-building-flex-ticket",
+     "title": "Flex Ticket: Arrive Anytime | Empire State Building",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.esbnyc.com/buy-tickets/86th-102nd-floor-observation-decks",
+     "title": "Empire State Building 102nd Floor & 86th Floor Tickets",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.esbnyc.com/visit/hours-of-operation",
+     "title": "Where Is the Empire State Building? Hours & Directions",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.esbnyc.com/buy-tickets/premium-experience",
+     "title": "Premium Guided Tour Experience | Empire State Building",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.esbnyc.com/visit/birthday-celebrations-esb",
+     "title": "Birthday Celebrations at ESB | Empire State Building",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "展望台の入口は西34丁目20番地（5番街と6番街の間）",
+     "url": "https://www.esbnyc.com/visit/hours-of-operation",
+     "title": "Where Is the Empire State Building? Hours & Directions",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "hours": [
+    {
+     "text": "展望台は一年365日開いている。開く時刻は日によって9時か10時で、閉まるのは22時（2026年11月の案内）",
+     "url": "https://www.esbnyc.com/visit/hours-of-operation",
+     "title": "Where Is the Empire State Building? Hours & Directions",
+     "readAt": "2026-11-11",
+     "validUntil": "2026-11-30"
+    }
+   ],
+   "fees": [
+    {
+     "text": "展望台のチケットは46ドルから（券の種類と日時で変わる）",
+     "url": "https://www.esbnyc.com/",
+     "title": "Empire State Building: Visit the Top NYC Observation Deck",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "juan-fernandez-islands": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://chile.travel/en/attractions/juan-fernandez-archipelago-national-park/",
+     "title": "Juan Fernández Archipelago National Park - Chile Travel",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://chile.travel/en/areas/atacama-desert-and-altiplano/",
+     "title": "Atacama Desert and Altiplano - Chile Travel",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://chile.travel/en/landscapes/desert-and-altiplano/",
+     "title": "Desert and Altiplano - Chile Travel",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://chile.travel/en/blog/ranches-on-chilean-patagonia-you-must-visit-in-2027/",
+     "title": "Ranches on Chilean Patagonia You Must Visit in 2027",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "サンティアゴのトバラバ飛行場からチャーター便で2.5〜3時間。ロビンソン・クルーソー飛行場に降り、船で約1時間かけてサン・フアン・バウティスタの町へ渡る",
+     "url": "https://chile.travel/en/attractions/juan-fernandez-archipelago-national-park/",
+     "title": "Juan Fernández Archipelago National Park - Chile Travel",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    },
+    {
+     "text": "町からセルカークの展望台などへは歩く。国立公園の奥や湾へは船でしか行けない",
+     "url": "https://chile.travel/en/attractions/juan-fernandez-archipelago-national-park/",
+     "title": "Juan Fernández Archipelago National Park - Chile Travel",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ]
+  },
+  "chausuyama-kogen": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.chausuyama.jp/",
+     "title": "茶臼山高原",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chausuyama.jp/day/2014022615262966.html",
+     "title": "交通",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chausuyama.jp/blog/2021072012315233.html",
+     "title": "BBQ受付中",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chausuyama.jp/hours/",
+     "title": "料金・営業時間",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chausuyama.jp/news/2016020710374185.html",
+     "title": "◆よくあるお問い合わせ◆ ～茶臼山高原～",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chausuyama.jp/news/2015051416290872.html",
+     "title": "ご来場の際の注意事項",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "駐車場の門が開いているのは8:00〜20:00",
+     "url": "https://www.chausuyama.jp/day/2014022615262966.html",
+     "title": "交通",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "茶臼山高原ではドローンの飛行は禁止",
+     "url": "https://www.chausuyama.jp/",
+     "title": "茶臼山高原",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "n-seoul-tower": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.seoultower.co.kr/jp/",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.seoultower.co.kr/jp/intro/faq",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.seoultower.co.kr/jp/store/index",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.seoultower.co.kr/jp/visit/index",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.seoultower.co.kr/jp/visit/cablecar",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.seoultower.co.kr/jp/visit/transfers",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.seoultower.co.kr/jp/visit/parking",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.seoultower.co.kr/jp/store/coupon",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.seoultower.co.kr/jp/store/plaza",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "明洞駅5番出口から会賢交差点へ進み、傾斜型エレベーター（南山オルミ）と南山ケーブルカーを乗り継いで約15分",
+     "url": "https://www.seoultower.co.kr/jp/visit/cablecar",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "エコ電気バスの01番グリーン循環バスで行ける（観光バスの乗り入れは2021年8月から制限）",
+     "url": "https://www.seoultower.co.kr/jp/intro/faq",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "hours": [
+    {
+     "text": "平日は10:00〜22:30、週末・祝日は10:00〜23:00",
+     "url": "https://www.seoultower.co.kr/jp/intro/faq",
+     "title": "YTNソウルタワー",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "victoria-peak": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.thepeak.com.hk/en",
+     "title": "Homepage | THE PEAK HONG KONG",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thepeak.com.hk/en/ticket-and-booking/peak-tram-chartering",
+     "title": "Group Bookings | THE PEAK HONG KONG",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thepeak.com.hk/en/getting-to-the-peak/transportation",
+     "title": "Transportation | THE PEAK HONG KONG",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thepeak.com.hk/en/faq",
+     "title": "FAQ | THE PEAK HONG KONG",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "中環（IFC2）からミニバス1番で山頂へ（中環発は毎日6:20〜深夜0:00、10〜12分おき）",
+     "url": "https://www.thepeak.com.hk/en/getting-to-the-peak/transportation",
+     "title": "Transportation | THE PEAK HONG KONG",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "hours": [
+    {
+     "text": "ピーク・トラム（中環・山頂の駅）は毎日7:30〜23:00、ピーク・タワーは7:00〜23:00、展望台スカイテラス428は8:30〜22:00",
+     "url": "https://www.thepeak.com.hk/en/ticket-and-booking/peak-tram-chartering",
+     "title": "Group Bookings | THE PEAK HONG KONG",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "white-cliffs-of-dover": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nationaltrust.org.uk/visit/kent/the-white-cliffs-of-dover",
+     "title": "The White Cliffs of Dover | Kent | National Trust",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nationaltrust.org.uk/visit",
+     "title": "Best Days Out & Places To Visit in the UK | National Trust",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nationaltrust.org.uk/visit/bath-bristol",
+     "title": "Bath and Bristol | South West | England | National Trust",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nationaltrust.org.uk/visit/birmingham-west-midlands",
+     "title": "Birmingham and West Midlands | Midlands | National Trust",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nationaltrust.org.uk/visit/cambridgeshire",
+     "title": "Cambridgeshire | East Anglia | National Trust",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nationaltrust.org.uk/visit/cheshire-greater-manchester",
+     "title": "Cheshire and Manchester | England | National Trust",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nationaltrust.org.uk/visit/cornwall",
+     "title": "Cornwall | South West | England | National Trust",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nationaltrust.org.uk/visit/devon",
+     "title": "Devon | South West | England | National Trust",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nationaltrust.org.uk/visit/dorset",
+     "title": "Dorset | South West | England | National Trust",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "ラングドン・クリフスに駐車場あり（有料。ナショナル・トラスト会員とブルーバッジの人は無料）",
+    "url": "https://www.nationaltrust.org.uk/visit/kent/the-white-cliffs-of-dover",
+    "title": "The White Cliffs of Dover | Kent | National Trust",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "ファン・ベイの地下壕と砲台跡は2027年3月まで閉鎖",
+     "url": "https://www.nationaltrust.org.uk/visit/kent/the-white-cliffs-of-dover",
+     "title": "The White Cliffs of Dover | Kent | National Trust",
+     "readAt": "2026-11-11",
+     "validUntil": "2027-03-31"
+    }
+   ]
+  },
+  "omiwa-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://oomiwa.or.jp/",
+     "title": "【公式】三輪明神 大神神社 (おおみわじんじゃ)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomiwa.or.jp/access/",
+     "title": "アクセス | 大神神社（おおみわじんじゃ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomiwa.or.jp/info/%e4%b8%89%e8%bc%aa%e5%b1%b1%e7%99%bb%e6%8b%9d%e3%81%ab%e3%81%a4%e3%81%84%e3%81%a6%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b/",
+     "title": "三輪山登拝についてのお知らせ | 大神神社（おおみわじんじゃ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomiwa.or.jp/news/sns%e3%81%ab%e9%96%a2%e3%81%99%e3%82%8b%e3%81%94%e6%b3%a8%e6%84%8f-2/",
+     "title": "SNSに関するご注意 | 大神神社（おおみわじんじゃ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomiwa.or.jp/info/%e5%85%ac%e5%bc%8fsns%e9%96%8b%e8%a8%ad%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b/",
+     "title": "公式SNS開設のお知らせ | 大神神社（おおみわじんじゃ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomiwa.or.jp/info/%e3%80%90%e5%a5%89%e7%b4%8d%e8%8f%8a%e8%8a%b1%e5%b1%95%e3%80%91%e9%96%8b%e8%8a%b1%e7%8a%b6%e6%b3%81/",
+     "title": "【奉納菊花展】開花状況 | 大神神社（おおみわじんじゃ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomiwa.or.jp/info/%ef%bc%91%ef%bc%91%e6%9c%88%e3%81%ae%e3%81%8a%e7%a5%ad%e3%82%8a%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85-6/",
+     "title": "１１月のお祭りのご案内 | 大神神社（おおみわじんじゃ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomiwa.or.jp/info/%e4%bb%a4%e5%92%8c%ef%bc%99%e5%b9%b4%e3%80%8c%e4%b8%89%e8%bc%aa%e5%b1%b1%e3%82%ab%e3%83%ac%e3%83%b3%e3%83%80%e3%83%bc%e3%80%8d%e9%a0%92%e5%b8%83%e9%96%8b%e5%a7%8b%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89/",
+     "title": "令和９年「三輪山カレンダー」頒布開始のお知らせ | 大神神社（おおみわじんじゃ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomiwa.or.jp/info/%e3%80%8c%e6%98%87%e9%81%8b%e3%81%88%e3%81%a8%e5%ae%88%e3%80%8d%e6%8e%88%e4%b8%8e%e7%b5%82%e4%ba%86%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b-3/",
+     "title": "「昇運えと守」授与終了のお知らせ | 大神神社（おおみわじんじゃ）",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "大神神社と桜井駅を結ぶ路線バスは2026年3月末で運行を終えた（臨時バスを除く）",
+     "url": "https://oomiwa.or.jp/",
+     "title": "【公式】三輪明神 大神神社 (おおみわじんじゃ)",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ]
+  },
+  "nakanoshima-library": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.library.pref.osaka.jp/site/nakato/",
+     "title": "中之島図書館 | 来館案内・施設案内 | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.library.pref.osaka.jp/site/info/summary.html",
+     "title": "運営情報 | 図書館について | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.library.pref.osaka.jp/site/info/kiji.html",
+     "title": "大阪府立図書館紹介記事 | 図書館について | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.library.pref.osaka.jp/site/info/info.html",
+     "title": "お問合せ | 図書館について | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.library.pref.osaka.jp/50994",
+     "title": "来館案内・施設案内 | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.library.pref.osaka.jp/site/central/date.html",
+     "title": "開館時間・開館日カレンダー | 来館案内・施設案内 | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.library.pref.osaka.jp/site/central/annai11.html",
+     "title": "利用案内 | 来館案内・施設案内 | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.library.pref.osaka.jp/site/central/annai20.html",
+     "title": "フロア案内 | 来館案内・施設案内 | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.library.pref.osaka.jp/51016",
+     "title": "主題室案内 | 来館案内・施設案内 | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "月〜金曜は9:00〜20:00、土曜は9:00〜17:00。日曜・祝日、3月・6月・10月の第2木曜、年末年始は休館",
+     "url": "https://www.library.pref.osaka.jp/site/nakato/",
+     "title": "中之島図書館 | 来館案内・施設案内 | 大阪府立図書館",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "館内で撮った写真や映像を出版・放映に使うときは、申請の手続きがある",
+      "url": "https://www.library.pref.osaka.jp/site/nakato/",
+      "title": "中之島図書館 | 来館案内・施設案内 | 大阪府立図書館",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "templo-mayor": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.inah.gob.mx/zonas/zona-arqueologica-templo-mayor",
+     "title": "Zona Arqueológica Templo Mayor",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inah.gob.mx/prensa/infografias/infografias-prensa",
+     "title": "Tren Maya",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inah.gob.mx/prensa/infografias/informe-2018-2024",
+     "title": "Informe 2018-2024",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inah.gob.mx/transparencia-inah/informacion-relevante-en-materia-de-proteccion-de-datos-personales",
+     "title": "Información relevante en materia de protección de datos personales",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inah.gob.mx/acceso-a-la-informacion/denuncias",
+     "title": "Obligaciones de Transparencia",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inah.gob.mx/transparencia-inah/solicitudes-de-acceso-a-la-informacion",
+     "title": "Solicitudes de acceso a la información",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inah.gob.mx/acceso-a-la-informacion/normatividad",
+     "title": "Normatividad",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inah.gob.mx/transparencia-inah/informacion-socialmente-util",
+     "title": "Información socialmente útil",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inah.gob.mx/transparencia-inah/informacion-de-interes-general",
+     "title": "Información de interés general",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "火曜〜日曜の9:00〜17:00（月曜は休み）",
+     "url": "https://www.inah.gob.mx/zonas/zona-arqueologica-templo-mayor",
+     "title": "Zona Arqueológica Templo Mayor",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入場料は210ペソ（メキシコ国民とメキシコ在住の外国人は105ペソ）",
+     "url": "https://www.inah.gob.mx/zonas/zona-arqueologica-templo-mayor",
+     "title": "Zona Arqueológica Templo Mayor",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kitain": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kitain.net/",
+     "title": "川越大師 喜多院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kitain.net/information/",
+     "title": "参詣案内 | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kitain.net/information/visit/",
+     "title": "拝観 | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kitain.net/information/annual-events/",
+     "title": "年間行事 | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kitain.net/information/souvenir/",
+     "title": "境内みやげ品店 | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kitain.net/news/post-2539/",
+     "title": "令和９年 お正月初護摩前受付のご案内 | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kitain.net/news/post-3072/",
+     "title": "「山門保存修理工事」のご案内（令和８年６月更新） | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kitain.net/information/annual-events/15-nov/",
+     "title": "七五三祝祷祈願 | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kitain.net/information/annual-events/01-nov/",
+     "title": "小江戸川越菊まつり | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "西武新宿線の本川越駅から歩いて約15分（東武東上線・JRの川越駅からは約20分）",
+     "url": "https://kitain.net/",
+     "title": "川越大師 喜多院",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "関越自動車道の川越ICから約20分",
+     "url": "https://kitain.net/",
+     "title": "川越大師 喜多院",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "hours": [
+    {
+     "text": "客殿などの拝観は、3月1日〜11月23日が平日9:00〜16:30・日祝9:00〜16:50、11月24日〜2月末が平日9:00〜16:00・日祝9:00〜16:20（受付は30分前まで）",
+     "url": "https://kitain.net/information/visit/",
+     "title": "拝観 | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "客殿・書院・五百羅漢の拝観料は大人400円、小・中学生200円",
+     "url": "https://kitain.net/information/visit/",
+     "title": "拝観 | 川越大師 喜多院",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "aiguille-du-midi": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://aiguilledumidi.montblancnaturalresort.com/fr",
+     "title": "Aiguille du Midi - Téléphérique, Panoramique Mont-Blanc",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/info-live",
+     "title": "Webcam / Météo - Aiguille du Midi - Chamonix Mont-Blanc",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/acces-et-plans",
+     "title": "Accès et plan - Se rendre à l'Aiguille du Midi - Chamonix",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/personnes-en-situation-de-handicap",
+     "title": "Personnes en situation de handicap",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/page/cinema-immersif",
+     "title": "Cinema immersif 4D - Aiguille du Midi - Mont-Blanc",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/page/pas-dans-le-vide",
+     "title": "Pas dans le vide - Aiguille du Midi - Vivez le grand frisson",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/plan-du-site",
+     "title": "Aiguille du Midi - Téléphérique, Panoramique Mont-Blanc",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "グレポンの有料駐車場がある",
+    "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/acces-et-plans",
+    "title": "Accès et plan - Se rendre à l'Aiguille du Midi - Chamonix",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "photoRules": {
+    "drone": {
+     "text": "ドローンは禁止",
+     "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/acces-et-plans",
+     "title": "Accès et plan - Se rendre à l'Aiguille du Midi - Chamonix",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "christ-the-redeemer": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://en.santuariocristoredentor.com.br/",
+     "title": "Santuário Cristo Redentor",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://en.santuariocristoredentor.com.br/informacoes",
+     "title": "Horários do Cristo Redentor Missas confissões e atendimento — Santuário Cristo Redentor",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://en.santuariocristoredentor.com.br/localizacao",
+     "title": "Como chegar ao Cristo Redentor trem vans e acesso — Santuário Cristo Redentor",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://en.santuariocristoredentor.com.br/politica-de-visitacao",
+     "title": "Política de Visitação do Cristo Redentor regras e acesso — Santuário Cristo Redentor",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://en.santuariocristoredentor.com.br/uso-de-drones",
+     "title": "Drones no Cristo Redentor restrições e autorizações — Santuário Cristo Redentor",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "コルコバードでの趣味のドローンは禁止。公開時間中はドローンの運用もできない",
+     "url": "https://en.santuariocristoredentor.com.br/uso-de-drones",
+     "title": "Drones no Cristo Redentor restrições e autorizações — Santuário Cristo Redentor",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "karak-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://international.visitjordan.com/wheretogo/karak/",
+     "title": "Karak, Jordan | Crusader Castle & Historic Town",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://international.visitjordan.com/",
+     "title": "Visit Jordan 2026 – Official Site | Petra, Wadi Rum & Dead Sea",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://international.visitjordan.com/page/2/general-information/",
+     "title": "General Information",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://international.visitjordan.com/page/5/gettingaround/",
+     "title": "Getting around",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://international.visitjordan.com/page/5/getting-around/",
+     "title": "Getting around",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://international.visitjordan.com/page/19/getting-around/",
+     "title": "Ground Transportation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://international.visitjordan.com/page/17/entrance-fees/",
+     "title": "Jordan Entrance Fees | Petra, Museums & Reserves Prices",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "カラク城の入場料は外国人2ヨルダン・ディナール、ヨルダン人0.25ディナール（博物館の入場を含む）",
+     "url": "https://international.visitjordan.com/page/17/entrance-fees/",
+     "title": "Jordan Entrance Fees | Petra, Museums & Reserves Prices",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "hirome": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.hirome.co.jp/",
+     "title": "ひろめ市場",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hirome.co.jp/access.html",
+     "title": "アクセス｜ひろめ市場",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "月〜土曜は10:00〜23:00、日曜は9:00〜23:00（店ごとに営業時間は違う）",
+     "url": "https://www.hirome.co.jp/",
+     "title": "ひろめ市場",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "nezu-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://nedujinja.or.jp/",
+     "title": "根津神社HP",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nedujinja.or.jp/keidaiannai/",
+     "title": "境内案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nedujinja.or.jp/access/",
+     "title": "アクセス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nedujinja.or.jp/openclose/",
+     "title": "２5．開閉時間",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nedujinja.or.jp/onegai/",
+     "title": "ご参拝時のお願い",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nedujinja.or.jp/keidaisatsuei/",
+     "title": "境内での撮影について",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nedujinja.or.jp/sukeikai/",
+     "title": "崇敬会案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nedujinja.or.jp/2026/10/12/%e6%96%b0%e5%b9%b4%e4%bc%9a%e7%a4%be%e5%8f%82%e6%8b%9d%e3%81%ab%e3%81%a4%e3%81%84%e3%81%a6-2-2-2/",
+     "title": "令和９年 新年会社参拝のご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nedujinja.or.jp/openclose/",
+     "title": "２5．開閉時間",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nedujinja.or.jp/keidaisatsuei/",
+     "title": "境内での撮影について",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "つつじ苑に入れるのは4月のつつじまつりの間だけ（100種・3,000株）",
+     "url": "https://nedujinja.or.jp/keidaiannai/",
+     "title": "境内案内",
+     "readAt": "2026-11-11",
+     "subject": "つつじ"
+    }
+   ],
+   "access": [
+    {
+     "text": "東京メトロ千代田線の根津駅・千駄木駅から歩いて5分（南北線の東大前駅からも5分）",
+     "url": "https://nedujinja.or.jp/access/",
+     "title": "アクセス",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "個人の参拝・観光の記念撮影なら申請は要らない。商用の撮影や放映のための撮影は申請が要る",
+      "url": "https://nedujinja.or.jp/keidaisatsuei/",
+      "title": "境内での撮影について",
+      "readAt": "2026-11-11"
+     },
+     {
+      "text": "企業主催・有料の撮影会、露出の多い衣装や巫女・神主のコスプレ、写真素材として売るための撮影、楽器や音楽を流しながらの撮影、当社の挙式以外の婚礼衣装での撮影は許可していない",
+      "url": "https://nedujinja.or.jp/keidaisatsuei/",
+      "title": "境内での撮影について",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "central-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.centralparknyc.org/",
+     "title": "Homepage | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.centralparknyc.org/visit",
+     "title": "Planning a Visit | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.centralparknyc.org/activities/guides",
+     "title": "Guides | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.centralparknyc.org/locations?filters=information",
+     "title": "Places to See | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.centralparknyc.org/activities/guides/fall-foliage-tracker",
+     "title": "Fall Guide & Foliage Tracker | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.centralparknyc.org/welcoming-visitors",
+     "title": "Welcoming Visitors | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.centralparknyc.org/giving/planned-giving",
+     "title": "Planned Giving | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.centralparknyc.org/restoration/bethesda-fountain-restoration",
+     "title": "Bethesda Fountain Restoration | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.centralparknyc.org/activities/guides/fall-foliage-tracker",
+     "title": "Fall Guide & Foliage Tracker | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "公園は一年365日、6:00〜翌1:00に開いている",
+     "url": "https://www.centralparknyc.org/visit",
+     "title": "Planning a Visit | Central Park Conservancy",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "osaka-chuo-kokaido": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://osaka-chuokokaido.com/ja",
+     "title": "大阪市中央公会堂 OSAKA CITY CENTRAL PUBLIC HALL 国指定重要文化財",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://osaka-chuokokaido.com/ja/facilities-information",
+     "title": "大阪市中央公会堂 OSAKA CITY CENTRAL PUBLIC HALL 国指定重要文化財",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://osaka-chuokokaido.com/ja/access",
+     "title": "大阪市中央公会堂 OSAKA CITY CENTRAL PUBLIC HALL 国指定重要文化財",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://osaka-chuokokaido.com/ja/nakanoshima-info",
+     "title": "大阪市中央公会堂 OSAKA CITY CENTRAL PUBLIC HALL 国指定重要文化財",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://osaka-chuokokaido.com/ja/faq",
+     "title": "大阪市中央公会堂 OSAKA CITY CENTRAL PUBLIC HALL 国指定重要文化財",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "開館は9:30〜21:30（休館日を除く）。年末年始（12月28日〜1月4日）は休館",
+     "url": "https://osaka-chuokokaido.com/ja/facilities-information",
+     "title": "大阪市中央公会堂 OSAKA CITY CENTRAL PUBLIC HALL 国指定重要文化財",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "zwinger-dresden": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.skd.museum/en/besuch/zwinger-mit-semperbau/",
+     "title": "SKD: Zwinger with Semperbau",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.skd.museum/en/visit/",
+     "title": "SKD: Visit",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.skd.museum/en/visit/grassi-museum-leipzig/",
+     "title": "SKD: GRASSI Museum Leipzig",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.skd.museum/en/visit/jaegerhof/",
+     "title": "SKD: Jägerhof",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.skd.museum/en/visit/japanisches-palais/",
+     "title": "SKD: Japanisches Palais",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.skd.museum/en/visit/royal-palace/",
+     "title": "SKD: Royal Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.skd.museum/en/visit/schloss-pillnitz/",
+     "title": "SKD: Schloss Pillnitz",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "「ツヴィンガー券」（アルテ・マイスター絵画館・数学物理学サロン・磁器コレクション）は大人18ユーロ、割引13.50ユーロ、20歳未満の生徒2ユーロ、未就学児は無料（特別展は別）",
+     "url": "https://www.skd.museum/en/besuch/zwinger-mit-semperbau/",
+     "title": "SKD: Zwinger with Semperbau",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "mount-ngauruhoe": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/central-north-island/places/tongariro-national-park/",
+     "title": "Tongariro National Park",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.doc.govt.nz/footer-links/contact-us/visitor-centres/tongariro-national-park-visitor-centre/",
+     "title": "Tongariro National Park Visitor Centre",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/central-north-island/places/tongariro-national-park/about-tongariro-national-park/tongariro-weather/",
+     "title": "Tongariro weather: Tongariro National Park",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.doc.govt.nz/our-work/sustainable-visitor-management-for-tongariro/",
+     "title": "Sustainable visitor management for Tongariro",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.doc.govt.nz/get-involved/apply-for-permits/all-permissions/drone-use-on-conservation-land/",
+     "title": "Drone use on conservation land: Apply for permits",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "トンガリロ国立公園と近くの町（オハクネなど）へは、全国路線のバスが毎日走っている",
+     "url": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/central-north-island/places/tongariro-national-park/",
+     "title": "Tongariro National Park",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "トンガリロ国立公園では、許可なくドローンを飛ばすことは禁止",
+     "url": "https://www.doc.govt.nz/parks-and-recreation/places-to-go/central-north-island/places/tongariro-national-park/",
+     "title": "Tongariro National Park",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "kuang-si-falls": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://tourismluangprabang.org/ja/things-to-do-2/nature/kuang-si-waterfall/",
+     "title": "クアンシーの滝 – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://tourismluangprabang.org/ja/things-to-do-2/culture-and-history/heritage-information-center/",
+     "title": "ヘリテージ・インフォメーションセンター – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://tourismluangprabang.org/ja/things-to-do-2/culture-and-history/uxo-visitors-centre/",
+     "title": "UXOビジターセンター – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://tourismluangprabang.org/ja/recommended-trip/5-things/5-reasons-to-visit-the-national-museum/",
+     "title": "国立博物館を訪れる5つの理由 – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://tourismluangprabang.org/ja/recommended-trip/5-things/5-reasons-to-visit-chomphet/",
+     "title": "Chom phet を訪ねる5つの理由 – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://tourismluangprabang.org/ja/recommended-trip/5-things/5-reasons-to-visit-the-uxo-centre/",
+     "title": "UXO センターを訪れる 5 つの理由 – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://tourismluangprabang.org/ja/recommended-trip/visit-other-province/",
+     "title": "ラオス北部の旅 – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://tourismluangprabang.org/ja/recommended-trip/visit-other-province/oudomxay/",
+     "title": "ウドムサイ – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://tourismluangprabang.org/ja/recommended-trip/visit-other-province/syabouly/",
+     "title": "シャブリー – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "開園は8:00〜17:30",
+     "url": "https://tourismluangprabang.org/ja/things-to-do-2/nature/kuang-si-waterfall/",
+     "title": "クアンシーの滝 – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "2026年11月15日から、外国人の入園料は100,000キープ（ラオス人は20,000キープ、12歳以下は無料）",
+     "url": "https://tourismluangprabang.org/ja/things-to-do-2/nature/kuang-si-waterfall/",
+     "title": "クアンシーの滝 – 観光ルアンパバーンの公式ウェブサイト",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "mount-siguniang": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.sgns.cn/",
+     "title": "四姑娘山景区官方网站",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sgns.cn/understand/guide",
+     "title": "景区导览",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sgns.cn/info/contact/6378-2025-09-28-09-23-01",
+     "title": "订票服务",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sgns.cn/outdoors/safety/know",
+     "title": "登山注意事项",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sgns.cn/outdoors/safety/know-3",
+     "title": "旅游注意事项",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sgns.cn/info/news",
+     "title": "景区新闻",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sgns.cn/info/notice",
+     "title": "景区公告",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sgns.cn/info/procurement",
+     "title": "采购公告",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sgns.cn/info/weichat",
+     "title": "微信推送",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "5〜9月は高山植物の花の時期",
+     "url": "https://www.sgns.cn/outdoors/safety/know-3",
+     "title": "旅游注意事项",
+     "readAt": "2026-11-11",
+     "subject": "高山の花"
+    },
+    {
+     "text": "10〜12月は色づいた森の時期",
+     "url": "https://www.sgns.cn/outdoors/safety/know-3",
+     "title": "旅游注意事项",
+     "readAt": "2026-11-11",
+     "subject": "紅葉"
+    },
+    {
+     "text": "12〜5月は雪と氷の時期。晴れた日は朝日に染まる雪山（日照金山）や雲海が見られることが多い",
+     "url": "https://www.sgns.cn/outdoors/safety/know-3",
+     "title": "旅游注意事项",
+     "readAt": "2026-11-11",
+     "subject": "雪"
+    }
+   ]
+  },
+  "ushiku-chateau": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://ushiku-chateau.com/",
+     "title": "【公式】牛久シャトー ｜牛久シャトー株式会社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ushiku-chateau.com/facility/",
+     "title": "見学施設のご案内 | 【公式】牛久シャトー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ushiku-chateau.com/access/",
+     "title": "アクセス | 【公式】牛久シャトー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ushiku-chateau.com/film_commission/",
+     "title": "ロケ地のご案内 | 【公式】牛久シャトー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ushiku-chateau.com/access/",
+     "title": "アクセス | 【公式】牛久シャトー",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR常磐線の牛久駅東口（シャトー口）から歩いて約8分",
+     "url": "https://ushiku-chateau.com/",
+     "title": "【公式】牛久シャトー ｜牛久シャトー株式会社",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "圏央道のつくば牛久ICから国道408号線経由で約20分",
+     "url": "https://ushiku-chateau.com/",
+     "title": "【公式】牛久シャトー ｜牛久シャトー株式会社",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "タイムズ牛久中央（262台・60分100円、平日は1日最大300円）",
+    "url": "https://ushiku-chateau.com/",
+    "title": "【公式】牛久シャトー ｜牛久シャトー株式会社",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "見学施設は10:00〜16:00（無料）",
+     "url": "https://ushiku-chateau.com/facility/",
+     "title": "見学施設のご案内 | 【公式】牛久シャトー",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "iolani-palace": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.iolanipalace.org/",
+     "title": "Iolani Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.iolanipalace.org/visit/",
+     "title": "Visit – Iolani Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.iolanipalace.org/visit/tours-admission/",
+     "title": "Tours & Admission – Iolani Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.iolanipalace.org/visit/tours-admission/guided-tours/",
+     "title": "Docent-Led Tours – Iolani Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.iolanipalace.org/visit/tours-admission/self-led-audio-tours/",
+     "title": "Self-led Audio Tours – Iolani Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.iolanipalace.org/visit/tours-admission/kalakaua-legacy-tour/",
+     "title": "​ Kalākaua Legacy Tour – Iolani Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.iolanipalace.org/visit/tours-admission/hawaii-royal-connection-japan/",
+     "title": "Hawaii’s Royal Connection to Japan Tour – Iolani Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.iolanipalace.org/visit/tours-admission/white-glove-tour/",
+     "title": "White Glove Tour – Iolani Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.iolanipalace.org/visit/tours-admission/royal-legacy-tour/",
+     "title": "Royal Legacy Tour – Iolani Palace",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "ツアーは火曜〜土曜。予約を強く勧めている（当日の空きがあれば予約なしでも入れる）",
+     "url": "https://www.iolanipalace.org/visit/",
+     "title": "Visit – Iolani Palace",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "音声ガイドで回るツアー（要予約）は火・金・土曜が9:00〜15:30、水曜が13:00〜15:00、木曜が13:00〜14:00",
+     "url": "https://www.iolanipalace.org/visit/tours-admission/self-led-audio-tours/",
+     "title": "Self-led Audio Tours – Iolani Palace",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "fukui-dinosaur-museum": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.dinosaur.pref.fukui.jp/",
+     "title": "FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/ticket.html",
+     "title": "恐竜博物館 観覧券販売｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.dinosaur.pref.fukui.jp/visit/",
+     "title": "交通アクセス｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/access.html",
+     "title": "交通アクセス｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/fee.html",
+     "title": "開館時間・料金｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/floormap.html",
+     "title": "フロアマップ｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/barrierfree.html",
+     "title": "バリアフリー情報｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/admission.html",
+     "title": "入館方法について｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/supporters.html",
+     "title": "年間パスポート（ＦＰＤＭサポーターズ倶楽部）のごあんない｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "入館の時間枠は通常期が9:00から16:30まで（入館後の滞在時間に制限は無い）",
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/ticket.html",
+     "title": "恐竜博物館 観覧券販売｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "常設展の観覧券は一般1,000円、高・大学生800円、小・中学生500円、70歳以上500円、未就学児は無料",
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/ticket.html",
+     "title": "恐竜博物館 観覧券販売｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "観覧券は日時指定の事前購入が原則（販売数に余裕がある日だけ当日券を館の券売機で売る）。60日前から買える",
+     "url": "https://www.dinosaur.pref.fukui.jp/guide/ticket.html",
+     "title": "恐竜博物館 観覧券販売｜来館のご案内｜FPDM: 福井県立恐竜博物館",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "mount-agung": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.indonesia.travel/gb/en/destination/bali-nusa-tenggara/bali/gunung-agung",
+     "title": "Mount Agung: Trek Bali's Sacred Peak - Indonesia Travel",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.indonesia.travel/gb/en/formai",
+     "title": "Create Your Ideal Indonesia Trip Itinerary with MaiA",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.indonesia.travel/gb/en/general-information",
+     "title": "General Information",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.indonesia.travel/gb/en/travel-ideas/adventure/bali-vacation-in-mind-get-informed-of-the-latest-regulations",
+     "title": "Bali vacation in mind? Get informed of the latest regulations - Indonesia Travel",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.indonesia.travel/gb/en/brand-guidelines",
+     "title": "Brand Guidelines",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "いちばん早く人気の登山道は南側のプラ・パサール・アグンから。南の火口の頂（2,907m）まで約3〜4時間",
+     "url": "https://www.indonesia.travel/gb/en/destination/bali-nusa-tenggara/bali/gunung-agung",
+     "title": "Mount Agung: Trek Bali's Sacred Peak - Indonesia Travel",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ]
+  },
+  "godollo-palace": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kiralyikastely.hu/",
+     "title": "Gödöllői Királyi Kastély",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kiralyikastely.hu/informaciok-muzeumpedagogiai-latogatas-elott.html",
+     "title": "Információk múzeumpedagógiai látogatás előtt",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kiralyikastely.hu/nyari-tabor.html",
+     "title": "Nyári tábor",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kiralyikastely.hu/altalanos-informaciok-iksz.html",
+     "title": "Általános információk iskolai közösségi szolgálatról",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kiralyikastely.hu/latogatoi-informaciok.html",
+     "title": "Látogatással kapcsolatos információk",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kiralyikastely.hu/kapcsolat-informacios-irodai.html",
+     "title": "Kapcsolat Információs iroda",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kiralyikastely.hu/tourinform.html",
+     "title": "Tourinform - Gödöllő",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kiralyikastely.hu/erzsebet-nap.html",
+     "title": "Erzsébet-napi programok",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "月曜〜日曜の10:00〜18:00（チケット売り場は17:00まで）",
+     "url": "https://kiralyikastely.hu/",
+     "title": "Gödöllői Királyi Kastély",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "bhangarh-fort": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.incredibleindia.gov.in/en/rajasthan/alwar/bhangarh-fort",
+     "title": "Explore the Bhangarh Fort in Alwar | Incredible India",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.incredibleindia.gov.in/en/faqs",
+     "title": "FAQs",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.incredibleindia.gov.in/en/plan-your-trip/weather",
+     "title": "Weather",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.incredibleindia.gov.in/en/tourism-information-centre",
+     "title": "Tourism Information Centre",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.incredibleindia.gov.in/en/plan-your-trip/public-holidays",
+     "title": "Public holidays",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.incredibleindia.gov.in/en/plan-your-trip/visa",
+     "title": "Visa",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.incredibleindia.gov.in/en/airport-information",
+     "title": "Airport Information",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.incredibleindia.gov.in/en/plan-your-trip/travel-partners",
+     "title": "Travel Partners",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.incredibleindia.gov.in/en/rajasthan/alwar/rajasthan-a-quick-guide-to-alwar",
+     "title": "Rajasthan: A Quick Guide To Alwar",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "開くのは9:00、閉まるのは17:00",
+     "url": "https://www.incredibleindia.gov.in/en/rajasthan/alwar/bhangarh-fort",
+     "title": "Explore the Bhangarh Fort in Alwar | Incredible India",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "brisbane-city-botanic-gardens": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.brisbane.qld.gov.au/parks-and-recreation/botanic-gardens/city-botanic-gardens",
+     "title": "City Botanic Gardens | Brisbane City Council",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.brisbane.qld.gov.au/transport-and-parking/bikeways-in-brisbane/brisbane-bikeways",
+     "title": "Brisbane bikeways | Brisbane City Council",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.brisbane.qld.gov.au/libraries-venues-and-facilities/venue-and-places/sir-thomas-brisbane-planetarium",
+     "title": "Sir Thomas Brisbane Planetarium | Brisbane City Council",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.brisbane.qld.gov.au/parks-and-recreation/parks-and-greenspaces/book-a-park-site",
+     "title": "Book a park site | Brisbane City Council",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.brisbane.qld.gov.au/parks-and-recreation/sports-and-leisure/find-brisbane-river-hubs-and-facilities",
+     "title": "Find Brisbane River hubs and facilities | Brisbane City Council",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.brisbane.qld.gov.au/parks-and-recreation/botanic-gardens/brisbane-botanic-gardens-mt-coot-tha",
+     "title": "Brisbane Botanic Gardens Mt Coot-tha | Brisbane City Council",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.brisbane.qld.gov.au/transport-and-parking/public-transport/citycats-and-ferries",
+     "title": "CityCats and ferries | Brisbane City Council",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.brisbane.qld.gov.au/transport-and-parking/parking/parking-in-brisbane",
+     "title": "Parking in Brisbane | Brisbane City Council",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.brisbane.qld.gov.au/building-and-planning",
+     "title": "Building and planning | Brisbane City Council",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "毎日24時間開いている（カフェなどの施設は別の営業時間）",
+     "url": "https://www.brisbane.qld.gov.au/parks-and-recreation/botanic-gardens/city-botanic-gardens",
+     "title": "City Botanic Gardens | Brisbane City Council",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "ueda-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.ueda.nagano.jp/site/park/5552.html",
+     "title": "上田城跡公園 - 上田市の公園 - 上田市ホームページ（都市計画課）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ueda.nagano.jp/site/userguide/13040.html",
+     "title": "外国語への対応（Foreign language） - 初めての方へ - 上田市ホームページ（広報課）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ueda.nagano.jp/site/uedajo/125721.html",
+     "title": "上田城跡公園へのアクセス・駐車場 - 上田城サイト - 上田市ホームページ（都市計画課）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ueda.nagano.jp/site/park/97496.html",
+     "title": "公園利用に関するお願い - 上田市の公園 - 上田市ホームページ（都市計画課）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ueda.nagano.jp/life/sub/4/",
+     "title": "よくある質問 - 上田市ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ueda.nagano.jp/site/userguide/18032.html",
+     "title": "キーワードで探す方法 - 初めての方へ - 上田市ホームページ（広報課）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ueda.nagano.jp/soshiki/kotu/1748.html",
+     "title": "上田市 鉄道・バスの時刻表は、こちら！ - 上田市ホームページ（交通政策課）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ueda.nagano.jp/soshiki/hoiku/121385.html",
+     "title": "入園・入学 - 上田市ホームページ（保育課）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ueda.nagano.jp/site/userguide/",
+     "title": "初めての方へ - 上田市ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR・しなの鉄道・上田電鉄の上田駅から歩いて12分",
+     "url": "https://www.city.ueda.nagano.jp/site/uedajo/125721.html",
+     "title": "上田城跡公園へのアクセス・駐車場 - 上田城サイト - 上田市ホームページ（都市計画課）",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "上信越自動車道の上田菅平ICから約15分（約4km）",
+     "url": "https://www.city.ueda.nagano.jp/site/uedajo/125721.html",
+     "title": "上田城跡公園へのアクセス・駐車場 - 上田城サイト - 上田市ホームページ（都市計画課）",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "上田城跡北駐車場（216台）などがある",
+    "url": "https://www.city.ueda.nagano.jp/site/uedajo/125721.html",
+    "title": "上田城跡公園へのアクセス・駐車場 - 上田城サイト - 上田市ホームページ（都市計画課）",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "上田城跡公園には開園時間がなく、いつでも入れる（櫓と博物館は開館時間・入館料あり）",
+     "url": "https://www.city.ueda.nagano.jp/site/park/5552.html",
+     "title": "上田城跡公園 - 上田市の公園 - 上田市ホームページ（都市計画課）",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "chapultepec-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://mnh.inah.gob.mx/",
+     "title": "Museo Nacional de Historia Castillo de Chapultepec",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://mnh.inah.gob.mx/informacion-general",
+     "title": "Información general",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://mnh.inah.gob.mx/visitas-guiadas",
+     "title": "Visitas guiadas",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "国立歴史博物館（チャプルテペック城）は火曜〜日曜の9:00〜17:00。月曜は祝日でも休み。閉館15分前から退出を始める",
+     "url": "https://mnh.inah.gob.mx/informacion-general",
+     "title": "Información general",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "yonago-suitori": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://yonago-mizutori.com/",
+     "title": "米子水鳥公園 | 公益財団法人 中海水鳥国際交流基金財団",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yonago-mizutori.com/user_guide/",
+     "title": "ご利用案内 | 米子水鳥公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yonago-mizutori.com/school/",
+     "title": "学校・福祉施設でのご利用 | 米子水鳥公園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "米子自動車道の米子ICから20分、JR米子駅から車で10分",
+     "url": "https://yonago-mizutori.com/user_guide/",
+     "title": "ご利用案内 | 米子水鳥公園",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    },
+    {
+     "text": "JR米子駅から日の丸バス内浜線で「乗越」まで20分、そこから1.4km歩いて約20分",
+     "url": "https://yonago-mizutori.com/user_guide/",
+     "title": "ご利用案内 | 米子水鳥公園",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "hours": [
+    {
+     "text": "4月〜10月は9:00〜17:30。11月〜3月は土日祝が7:00〜17:30、平日が9:00〜17:30。火曜（祝日なら翌日）と祝日の翌日（土日を除く）、12月29日〜1月3日は休み",
+     "url": "https://yonago-mizutori.com/user_guide/",
+     "title": "ご利用案内 | 米子水鳥公園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "ネイチャーセンターの入館料は大人310円。中学生以下と70歳以上は無料",
+     "url": "https://yonago-mizutori.com/user_guide/",
+     "title": "ご利用案内 | 米子水鳥公園",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "horaibashi": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.shimada.shizuoka.jp/kanko-docs/houraibasi.html",
+     "title": "蓬莱橋の概要 - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.shimada.shizuoka.jp/faq",
+     "title": "よくあるご質問 - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.shimada.shizuoka.jp/faq/",
+     "title": "よくあるご質問 - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.shimada.shizuoka.jp/kanko-docs/houraievent.html",
+     "title": "蓬莱橋「イベント広場等」使用の手続き - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.shimada.shizuoka.jp/kurashi-docs/bus.html",
+     "title": "コミュニティバスの路線と時刻表 - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.shimada.shizuoka.jp/kurashi-docs/kodomokan.html",
+     "title": "島田市こども館のご案内 - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.shimada.shizuoka.jp/gyosei/shisei/gaiyo/soshiki/division/d44.html",
+     "title": "図書館課 - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.shimada.shizuoka.jp/gyosei-docs/accessibility.html",
+     "title": "ウェブアクセシビリティ方針 - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.shimada.shizuoka.jp/gyosei-docs/access_siyakusyo.html",
+     "title": "市役所へのアクセス - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR島田駅から歩いて20分",
+     "url": "https://www.city.shimada.shizuoka.jp/kanko-docs/houraibasi.html",
+     "title": "蓬莱橋の概要 - 島田市公式ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "東名高速の吉田ICから約15分（8km）、新東名の島田金谷ICから約20分",
+     "url": "https://www.city.shimada.shizuoka.jp/kanko-docs/houraibasi.html",
+     "title": "蓬莱橋の概要 - 島田市公式ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "無料駐車場あり（第1は普通車25台、河川敷の第2は普通車50台）",
+    "url": "https://www.city.shimada.shizuoka.jp/kanko-docs/houraibasi.html",
+    "title": "蓬莱橋の概要 - 島田市公式ホームページ",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "fees": [
+    {
+     "text": "渡橋料は大人100円、小学生10円。8:30〜17:00は番小屋で払い、それ以外は橋の手前の料金箱へ",
+     "url": "https://www.city.shimada.shizuoka.jp/kanko-docs/houraibasi.html",
+     "title": "蓬莱橋の概要 - 島田市公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "ruins-of-st-pauls-macau": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.wh.mo/en/site/detail/18",
+     "title": "澳門世界遺產",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.wh.mo/en/content/visitor/",
+     "title": "澳門世界遺產",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "聖ポール天主堂跡（マテル・デイ教会の正面）は24時間いつでも見られる。天主堂跡の中の展示は9:00〜18:00（入場は17:30まで）",
+     "url": "https://www.wh.mo/en/site/detail/18",
+     "title": "澳門世界遺產",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "天主堂跡の中の天主教芸術博物館と地下納骨堂は9:00〜18:00（入場は17:30まで）で、火曜は14:00以降休み",
+     "url": "https://www.wh.mo/en/site/detail/18",
+     "title": "澳門世界遺產",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "oya-history-museum": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.oya909.co.jp/",
+     "title": "大谷資料館 - 大谷石の歴史と巨大地下空間",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.oya909.co.jp/as-studio/",
+     "title": "撮影実績 - 大谷資料館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.oya909.co.jp/access/",
+     "title": "アクセス情報 - 大谷資料館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.oya909.co.jp/release/2026/10/10/2222/",
+     "title": "11月分館内案内ガイド受付終了いたします。 - 大谷資料館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.oya909.co.jp/release/2026/09/19/2216/",
+     "title": "台風接近により、休館、営業時間短縮の可能性あります。 - 大谷資料館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.oya909.co.jp/release/2026/06/06/2180/",
+     "title": "7月分の館内案内ガイド受付終了いたします。 - 大谷資料館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.oya909.co.jp/events/2026/09/16/%ef%bc%99%e6%9c%88%ef%bc%91%ef%bc%99%e6%97%a5%ef%bd%9e%ef%bc%92%ef%bc%93%e6%97%a5%e3%81%af%e3%80%81%e8%87%a8%e6%99%82%e9%a7%90%e8%bb%8a%e5%a0%b4%e9%96%8b%e8%a8%ad%e3%81%84%e3%81%9f%e3%81%97%e3%81%be/",
+     "title": "９月１９日～２３日は、臨時駐車場開設いたします！ - 大谷資料館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.oya909.co.jp/events/2026/08/02/8%e6%9c%8813%e6%97%a5%ef%bd%9e16%e6%97%a5%e3%81%af%e3%80%81%e3%83%91%e3%83%bc%e3%82%af%ef%bc%86%e3%83%90%e3%82%b9%e3%83%a9%e3%82%a4%e3%83%89%e3%82%92%e3%81%94%e5%88%a9%e7%94%a8%e3%81%8f%e3%81%a0/",
+     "title": "8月13日～16日は、パーク＆バスライドをご利用ください。 - 大谷資料館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.oya909.co.jp/events/2025/08/05/%e3%81%8a%e7%9b%86%e6%9c%9f%e9%96%93%e4%b8%ad%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85/",
+     "title": "お盆期間中のご案内 - 大谷資料館",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "4月〜11月は9:00〜17:00（最終入館16:30）で無休。12月〜3月は9:30〜16:30（最終入館16:00）で火曜休館。12月26日〜1月3日は休館",
+     "url": "https://www.oya909.co.jp/access/",
+     "title": "アクセス情報 - 大谷資料館",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人1,000円（2026年4月から）、小・中学生400円、未就学児は無料。現金払いのみ",
+     "url": "https://www.oya909.co.jp/access/",
+     "title": "アクセス情報 - 大谷資料館",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "arches-national-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/arch/index.htm",
+     "title": "Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/arch/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/arch/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/arch/planyourvisit/conditions.htm",
+     "title": "Alerts & Conditions - Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/arch/planyourvisit/maps.htm",
+     "title": "Maps - Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/arch/planyourvisit/calendar.htm",
+     "title": "Calendar - Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/arch/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/arch/planyourvisit/regulations.htm",
+     "title": "Regulations - Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/arch/planyourvisit/nearbyattractions.htm",
+     "title": "Nearby Attractions - Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "2026年は時間指定の入園予約は要らない。営業時間内ならいつでも入れるが、混むと入口で車を回されることがある（デビルズ・ガーデンのキャンプ場とファイアリー・ファーネスのハイキングは予約が要る）",
+     "url": "https://www.nps.gov/arch/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Arches National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11",
+     "mode": "car",
+     "validUntil": "2026-12-31"
+    }
+   ]
+  },
+  "puy-de-dome": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.panoramiquedesdomes.fr/",
+     "title": "Panoramique des Dômes - Le train à crémaillère du Puy de Dôme",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.panoramiquedesdomes.fr/les-espaces-de-visite/",
+     "title": "Visite du Puy de Dôme - Panoramique des Dômes",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.panoramiquedesdomes.fr/accessibilite-pmr-poussettes-animaux/",
+     "title": "Le puy de Dôme accessible - Panoramique des Dômes",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.panoramiquedesdomes.fr/faq/",
+     "title": "FAQ - Panoramique des Dômes - Puy de Dôme",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.panoramiquedesdomes.fr/audio-a-bord-du-train/",
+     "title": "Audioguide du Puy de Dôme - Panoramique des Dômes",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.panoramiquedesdomes.fr/chasse-aux-oeufs-revisitee-2/",
+     "title": "Chasse aux œufs au Puy de Dôme — Panoramique des Dômes",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.panoramiquedesdomes.fr/travaux-au-sommet-du-puy-de-dome/",
+     "title": "Travaux au Puy de Dôme : Informations sur les accès",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.panoramiquedesdomes.fr/plan-du-site/",
+     "title": "Panoramique des Dômes - Plan du site",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.panoramiquedesdomes.fr/accessibilite/",
+     "title": "Panoramique des Dômes - Accessibilité",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "山頂（標高1,465m）へは電気式のラック鉄道「パノラミック・デ・ドーム」で15分",
+     "url": "https://www.panoramiquedesdomes.fr/",
+     "title": "Panoramique des Dômes - Le train à crémaillère du Puy de Dôme",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ]
+  },
+  "monte-cassino": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://abbaziamontecassino.it/",
+     "title": "Abbazia di Montecassino Sito web ufficiale",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://abbaziamontecassino.it/visita-montecassino/",
+     "title": "Visita Montecassino - Abbazia di Montecassino",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://abbaziamontecassino.it/visita-montecassino/prenota-una-visita-guidata/",
+     "title": "Prenota una visita guidata - Abbazia di Montecassino",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://abbaziamontecassino.it/visita-montecassino/prenota-una-cappella-per-la-s-messa/",
+     "title": "Prenota una cappella per la Santa Messa - Abbazia di Montecassino",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://abbaziamontecassino.it/visita-montecassino/prenota-il-tour-della-bibilioteca/",
+     "title": "Prenota il Tour della Biblioteca - Abbazia di Montecassino",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://abbaziamontecassino.it/visita-montecassino/come-raggiungerci/",
+     "title": "Come raggiungerci - Abbazia di Montecassino",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://abbaziamontecassino.it/visita-montecassino/accesso-allarchivio-e-alla-biblioteca/",
+     "title": "Accesso all'Archivio e alla Biblioteca - Abbazia di Montecassino",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://abbaziamontecassino.it/visita-montecassino/offerta-didattica/",
+     "title": "Offerta didattica - Abbazia di Montecassino",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://abbaziamontecassino.it/visita-montecassino/offerta-per-parrocchie/",
+     "title": "Offerta per Parrocchie - Abbazia di Montecassino",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "4月〜10月は毎日9:30〜18:30、11月〜3月は毎日9:30〜17:15",
+     "url": "https://abbaziamontecassino.it/",
+     "title": "Abbazia di Montecassino Sito web ufficiale",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "miyazaki-jingu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://miyazakijingu.or.jp/",
+     "title": "宮﨑神宮（公式ホームページ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://miyazakijingu.or.jp/publics/index/24/",
+     "title": "ご参拝・ご祈願｜宮﨑神宮（公式ホームページ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://miyazakijingu.or.jp/publics/index/31/",
+     "title": "朔日参りと参拝餅｜宮﨑神宮（公式ホームページ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://miyazakijingu.or.jp/publics/index/41/detail=1/b_id=163/r_id=668/sp_ssid=7",
+     "title": "神武養正講社（崇敬会）入会のご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://miyazakijingu.or.jp/publics/index/41/detail=1/b_id=163/r_id=405/sp_ssid=7",
+     "title": "結婚式に伴う前撮りについてのご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://miyazakijingu.or.jp/publics/index/41/detail=1/b_id=163/r_id=393/sp_ssid=7",
+     "title": "命名についてのご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://miyazakijingu.or.jp/publics/index/4/",
+     "title": "交通のご案内｜宮﨑神宮（公式ホームページ）",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "結婚式の前撮りには撮影の許可が要る（前日までに希望の日時を連絡する。祭典などで断ることもある）",
+      "url": "https://miyazakijingu.or.jp/publics/index/41/detail=1/b_id=163/r_id=405/sp_ssid=7",
+      "title": "結婚式に伴う前撮りについてのご案内",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "takato-joshi": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.inacity.jp/shisetsu/koenshisetsu/takatojoshikoen.html",
+     "title": "高遠（たかとお）城址公園:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inacity.jp/kurashi/kotsu_jikokuhyo/index.html",
+     "title": "交通・時刻表・駐車場:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inacity.jp/kurashi/shisetsu/index.html",
+     "title": "施設案内:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inacity.jp/shisei/kakushuplanshiryo/index.html",
+     "title": "各種計画プラン等資料庫:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inacity.jp/sangyo_noringyo/kogyoshinko/index.html",
+     "title": "工業振興（制度のご案内、産学官の連携）:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inacity.jp/sangyo_noringyo/shogyoshinko/index.html",
+     "title": "商業振興（制度等のご案内）:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inacity.jp/shisetsu/index.html",
+     "title": "施設案内:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inacity.jp/kankojoho/sakura_meisho/takatojoshi_sakura/digitalticket.html",
+     "title": "高遠城址公園さくら祭りはデジタルチケットをご利用ください:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.inacity.jp/shisetsu/koenshisetsu/inakoenguide.html",
+     "title": "伊那公園:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "約1,500本のタカトオコヒガンザクラが4月に咲く。さくら祭りは咲き始めから散り終わりまで（3月末〜4月中旬）",
+     "url": "https://www.inacity.jp/shisetsu/koenshisetsu/takatojoshikoen.html",
+     "title": "高遠（たかとお）城址公園:伊那市公式ホームページ",
+     "readAt": "2026-11-11",
+     "subject": "桜"
+    },
+    {
+     "text": "約250本のカエデが色づく。もみじ祭りは10月下旬〜11月上旬",
+     "url": "https://www.inacity.jp/shisetsu/koenshisetsu/takatojoshikoen.html",
+     "title": "高遠（たかとお）城址公園:伊那市公式ホームページ",
+     "readAt": "2026-11-11",
+     "subject": "紅葉"
+    }
+   ],
+   "fees": [
+    {
+     "text": "さくら祭りの間は入園料が要る（大人600円、子ども300円など）。もみじ祭りは無料",
+     "url": "https://www.inacity.jp/shisetsu/koenshisetsu/takatojoshikoen.html",
+     "title": "高遠（たかとお）城址公園:伊那市公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "shanghai-botanical-garden": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.shbg.org/",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shbg.org/sites/zhiwuyuan/InfoCtgList.aspx?ctgId=d95a0216-5d88-42ca-9346-c638b213465b",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shbg.org/sites/zhiwuyuan/InfoList.aspx?ctgId=737e03a1-a4d0-4e86-8f8c-e1fbffb005ae",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shbg.org/sites/zhiwuyuan/InfoList.aspx?ctgId=22ea9dc1-52f2-47fa-9c81-bf65eb9d313a",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shbg.org/sites/zhiwuyuan/InfoList.aspx?ctgId=2aa13abc-c695-4556-b0b7-044dbfefdafc",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shbg.org/sites/zhiwuyuan/InfoList.aspx?ctgId=3c25f682-3f21-4cb3-994b-ab79489bacae",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shbg.org/sites/zhiwuyuan/InfoList.aspx?ctgId=0426a037-9920-4f18-af06-ff85230b5027",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shbg.org/sites/zhiwuyuan/InfoContent.aspx?ctgId=404bd85e-d109-467e-bbd2-e1bf1e9821fb&infoId=5b76a221-212f-4520-9452-84d8d9974605",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shbg.org/sites/zhiwuyuan/InfoList.aspx?ctgId=8083ff7f-1cfa-42e2-a3d5-b850c095c357",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "1号門は11月〜翌4月が7:00〜17:00、5月〜10月が7:00〜18:00。3号門・4号門は6:00から開く",
+     "url": "https://www.shbg.org/",
+     "title": "上海植物园",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "miyajidake-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.miyajidake.or.jp/",
+     "title": "宮地嶽神社（みやじだけじんじゃ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.miyajidake.or.jp/gokitou",
+     "title": "ご祈祷・ご参拝 | 宮地嶽神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.miyajidake.or.jp/gokitou/gosanpai",
+     "title": "参拝の作法 | 宮地嶽神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.miyajidake.or.jp/access",
+     "title": "交通アクセス | 宮地嶽神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.miyajidake.or.jp/en-guide",
+     "title": "Guide Book | 宮地嶽神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.miyajidake.or.jp/news/topics/%e4%bb%a4%e5%92%8c9%e5%b9%b4-%e6%96%b0%e6%98%a5%e6%98%87%e6%ae%bf%e5%8f%82%e6%8b%9d-%e3%81%8a%e7%94%b3%e3%81%97%e8%be%bc%e3%81%bf%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85",
+     "title": "令和9年 新春昇殿参拝 お申し込みのご案内 | 宮地嶽神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.miyajidake.or.jp/shahou/%e7%a4%be%e5%a0%b1116%e5%8f%b7",
+     "title": "社報116号 | 宮地嶽神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.miyajidake.or.jp/gokitou",
+     "title": "ご祈祷・ご参拝 | 宮地嶽神社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR福間駅から西鉄バスかタクシーで約5分（歩くと約25分・約2km）",
+     "url": "https://www.miyajidake.or.jp/access",
+     "title": "交通アクセス | 宮地嶽神社",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    },
+    {
+     "text": "九州自動車道の古賀IC（福岡市方面から）か若宮IC（北九州市方面から）",
+     "url": "https://www.miyajidake.or.jp/access",
+     "title": "交通アクセス | 宮地嶽神社",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ]
+  },
+  "mount-washington-new-hampshire": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nhstateparks.org/find-parks-trails/mt-washington-state-park/",
+     "title": "NH State Parks - Mt. Washington State Park",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nhstateparks.org/find-parks-trails/find-trails-maps-clubs",
+     "title": "NH State Parks - Trail Information",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nhstateparks.org/about-nh-parks/who-we-are/park-accessibility",
+     "title": "NH State Parks - Park Accessibility",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nhstateparks.org/find-parks-trails/pet-friendly-parks-trails",
+     "title": "NH State Parks - Visiting With Your Pets",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nhstateparks.org/fees-reservations",
+     "title": "NH State Parks - Fees and Reservation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nhstateparks.org/fees-reservations/make-an-online-reservation",
+     "title": "NH State Parks - Day -Use Reservations",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nhstateparks.org/fees-reservations/camping-rates-reservations",
+     "title": "NH State Parks - Camping Rates and Reservations",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nhstateparks.org/fees-reservations/parking-entry-parking-fees",
+     "title": "NH State Parks - Entry and Parking Fees",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nhstateparks.org/fees-reservations/operating-schedules",
+     "title": "NH State Parks - Operating Schedules",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "山頂のシャーマン・アダムズ・サミット・ビルは2026年10月16日から閉館。2027年5月（日は未定）に再開する",
+     "url": "https://www.nhstateparks.org/find-parks-trails/mt-washington-state-park/",
+     "title": "NH State Parks - Mt. Washington State Park",
+     "readAt": "2026-11-11",
+     "validUntil": "2027-05-31"
+    }
+   ]
+  },
+  "tonami-tulip": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.tonami.lg.jp/section/1607p/",
+     "title": "砺波チューリップ公園 - 砺波市役所",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.tonami.lg.jp/info/63574p/",
+     "title": "砺波チューリップ公園を利用する時の申請先について - 砺波市役所",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "新高岡駅で城端線に乗り換えて約20分の砺波駅で降り、歩いて15分",
+     "url": "https://www.city.tonami.lg.jp/section/1607p/",
+     "title": "砺波チューリップ公園 - 砺波市役所",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入園は無料（となみチューリップフェアの期間を除く）。フェアの前10日間と後7日間は準備と片付けで入れない",
+     "url": "https://www.city.tonami.lg.jp/section/1607p/",
+     "title": "砺波チューリップ公園 - 砺波市役所",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kamakura-hasedera": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.hasedera.jp/",
+     "title": "鎌倉 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hasedera.jp/2026/11/24185/",
+     "title": "【秋の夜間特別拝観】 | 鎌倉 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hasedera.jp/category/event-info/",
+     "title": "行事 | 鎌倉 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hasedera.jp/guide/",
+     "title": "拝観のご案内 | 鎌倉 長谷寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "駐車場あり（普通車30台・30分350円。予約や駐車場だけの利用はできない）",
+    "url": "https://www.hasedera.jp/guide/",
+    "title": "拝観のご案内 | 鎌倉 長谷寺",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "拝観の受付は通常8:00〜16:30（閉山17:00）、4月〜6月は8:00〜17:00（閉山17:30）",
+     "url": "https://www.hasedera.jp/guide/",
+     "title": "拝観のご案内 | 鎌倉 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "秋の夜間特別拝観は2026年11月21日〜12月6日、日没から19:00閉門（19:30閉山）",
+     "url": "https://www.hasedera.jp/2026/11/24185/",
+     "title": "【秋の夜間特別拝観】 | 鎌倉 長谷寺",
+     "readAt": "2026-11-11",
+     "validUntil": "2026-12-06"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人400円、小学生200円",
+     "url": "https://www.hasedera.jp/guide/",
+     "title": "拝観のご案内 | 鎌倉 長谷寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "tripod": {
+     "text": "秋の夜間特別拝観の間は、三脚・一脚は使えない",
+     "url": "https://www.hasedera.jp/2026/11/24185/",
+     "title": "【秋の夜間特別拝観】 | 鎌倉 長谷寺",
+     "readAt": "2026-11-11",
+     "status": "conditional",
+     "validUntil": "2026-12-06"
+    }
+   }
+  },
+  "skellig-michael": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://heritageireland.ie/places-to-visit/sceilg-mhichil/",
+     "title": "Sceilg Mhichíl UNESCO World Heritage Property | Heritage Ireland",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://heritageireland.ie/visit/heritage-card/",
+     "title": "Heritage Card | Heritage Ireland",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://heritageireland.ie/visit/",
+     "title": "Visit | Heritage Ireland",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://heritageireland.ie/visit/places-to-visit/",
+     "title": "Places to visit | Heritage Ireland",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://heritageireland.ie/visit/places-to-visit/daniel-oconnell-house-derrynane-house/",
+     "title": "Daniel O’Connell House – Derrynane House | Heritage Ireland",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://heritageireland.ie/visit/places-to-visit/the-blasket-centre-ionad-an-bhlascaoid/",
+     "title": "Ionad an Bhlascaoid – The Blasket Centre | Heritage Ireland",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://heritageireland.ie/visit/places-to-visit/ilnacullin-garinish-island/",
+     "title": "Ilnacullin – Garinish Island | Heritage Ireland",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://heritageireland.ie/visit/places-to-visit/scattery-island-monastic-site/",
+     "title": "Scattery Island Monastic Site and Visitor Centre | Heritage Ireland",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://heritageireland.ie/visit/places-to-visit/ardfert-cathedral/",
+     "title": "Ardfert Cathedral | Heritage Ireland",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "2026年の公開は終わり、島は閉鎖中。2027年に再開する",
+     "url": "https://heritageireland.ie/places-to-visit/sceilg-mhichil/",
+     "title": "Sceilg Mhichíl UNESCO World Heritage Property | Heritage Ireland",
+     "readAt": "2026-11-11",
+     "validUntil": "2026-12-31"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入場は無料",
+     "url": "https://heritageireland.ie/places-to-visit/sceilg-mhichil/",
+     "title": "Sceilg Mhichíl UNESCO World Heritage Property | Heritage Ireland",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "島へ渡るボートの料金は別（島へは許可を持つボート会社の船でしか行けない）",
+     "url": "https://heritageireland.ie/places-to-visit/sceilg-mhichil/",
+     "title": "Sceilg Mhichíl UNESCO World Heritage Property | Heritage Ireland",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "seokguram": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://japanese.visitkorea.or.kr/svc/contents/contentsView.do?vcontsId=110934&menuSn=351",
+     "title": "慶州石窟庵［ユネスコ世界遺産］（경주 석굴암 [유네스코 세계유산]）- 韓国観光公社公式サイト「VISITKOREA」",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://japanese.visitkorea.or.kr/svc/contents/contentsView.do?vcontsId=190775&menuSn=638",
+     "title": "VISITKOREA（ウェブサイト／アプリ）Cookieポリシー- 韓国観光公社公式サイト「VISITKOREA」",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "駐車場あり",
+    "url": "https://japanese.visitkorea.or.kr/svc/contents/contentsView.do?vcontsId=110934&menuSn=351",
+    "title": "慶州石窟庵［ユネスコ世界遺産］（경주 석굴암 [유네스코 세계유산]）- 韓国観光公社公式サイト「VISITKOREA」",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "9:00〜18:00（退場は19:00まで）、年中無休。季節で変わることがある",
+     "url": "https://japanese.visitkorea.or.kr/svc/contents/contentsView.do?vcontsId=110934&menuSn=351",
+     "title": "慶州石窟庵［ユネスコ世界遺産］（경주 석굴암 [유네스코 세계유산]）- 韓国観光公社公式サイト「VISITKOREA」",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "韓国観光公社の案内では利用料金は無料",
+     "url": "https://japanese.visitkorea.or.kr/svc/contents/contentsView.do?vcontsId=110934&menuSn=351",
+     "title": "慶州石窟庵［ユネスコ世界遺産］（경주 석굴암 [유네스코 세계유산]）- 韓国観光公社公式サイト「VISITKOREA」",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "forbidden-city": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://intl.dpm.org.cn/?l=jp",
+     "title": "故宮博物院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://intl.dpm.org.cn/visit.html",
+     "title": "Visit_The Palace Museum_Visit",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://intl.dpm.org.cn/visit/play.html",
+     "title": "見学プランを立てる_故宮博物院_故宮博物院",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "火曜〜日曜に開き、月曜は休み（国の伝統的な祝日を除く）。4月1日〜10月31日は8:30〜17:00（最終入場16:00）、11月1日〜3月31日は8:30〜16:30（最終入場15:30）",
+     "url": "https://intl.dpm.org.cn/visit.html",
+     "title": "Visit_The Palace Museum_Visit",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入場料は1人40元（2026年11月の案内）",
+     "url": "https://intl.dpm.org.cn/?l=jp",
+     "title": "故宮博物院",
+     "readAt": "2026-11-11",
+     "validUntil": "2027-03-31"
+    }
+   ]
+  },
+  "aizu-yanaizu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://temple.aizu-yanaizu.com/",
+     "title": "福満虚空藏菩薩 霊巌山 圓藏寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "門が開いているのは4月1日〜11月末が7:00〜15:45、12月1日〜3月末が7:30〜15:45",
+     "url": "https://temple.aizu-yanaizu.com/",
+     "title": "福満虚空藏菩薩 霊巌山 圓藏寺",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "echizen-daibutsu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.etizen-daibutu.com/",
+     "title": "TOP - 【公式】臨済宗妙心寺派 大師山清大寺 越前大仏",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.etizen-daibutu.com/%E5%A2%83%E5%86%85%E3%81%AE%E3%81%94%E6%A1%88%E5%86%85/",
+     "title": "越前大仏-境内のご案内 - 【公式】臨済宗妙心寺派 大師山清大寺 越前大仏",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.etizen-daibutu.com/%E6%8B%9D%E8%A6%B3%E3%81%AE%E3%81%94%E6%A1%88%E5%86%85/",
+     "title": "清大寺越前大仏-拝観のご案内 - 【公式】臨済宗妙心寺派 大師山清大寺 越前大仏",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.etizen-daibutu.com/%E7%A0%94%E4%BF%AE%E3%81%AE%E3%81%94%E6%A1%88%E5%86%85/",
+     "title": "越前大仏-研修のご案内 - 【公式】臨済宗妙心寺派 大師山清大寺 越前大仏",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.etizen-daibutu.com/%E4%BA%A4%E9%80%9A%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9/",
+     "title": "越前大仏-交通アクセス - 【公式】臨済宗妙心寺派 大師山清大寺 越前大仏",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.etizen-daibutu.com/%E4%BE%9B%E9%A4%8A%E6%A1%88%E5%86%85-%E4%BA%BA%E9%AA%A8%E9%81%BA%E7%81%B0-%E5%8B%95%E7%89%A9%E4%BE%9B%E9%A4%8A/",
+     "title": "越前大仏-供養案内(人骨遺灰/動物供養) - 【公式】臨済宗妙心寺派 大師山清大寺 越前大仏",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "北陸自動車道の福井北ICから中部縦貫自動車道に入り、勝山ICで降りる",
+     "url": "https://www.etizen-daibutu.com/%E4%BA%A4%E9%80%9A%E3%82%A2%E3%82%AF%E3%82%BB%E3%82%B9/",
+     "title": "越前大仏-交通アクセス - 【公式】臨済宗妙心寺派 大師山清大寺 越前大仏",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "無料駐車場あり（400台）",
+    "url": "https://www.etizen-daibutu.com/%E6%8B%9D%E8%A6%B3%E3%81%AE%E3%81%94%E6%A1%88%E5%86%85/",
+    "title": "清大寺越前大仏-拝観のご案内 - 【公式】臨済宗妙心寺派 大師山清大寺 越前大仏",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "拝観は8:00〜17:00、1月〜3月は9:00〜16:00（変わることがある）",
+     "url": "https://www.etizen-daibutu.com/%E6%8B%9D%E8%A6%B3%E3%81%AE%E3%81%94%E6%A1%88%E5%86%85/",
+     "title": "清大寺越前大仏-拝観のご案内 - 【公式】臨済宗妙心寺派 大師山清大寺 越前大仏",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "shiroishi-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.shiro-f.jp/shiroishijo",
+     "title": "白石城 – 白石市文化体育振興財団",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shiro-f.jp/shiroishijo/info",
+     "title": "入場案内 – 白石市文化体育振興財団",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shiro-f.jp/shiroishijo/info/access",
+     "title": "アクセス – 白石市文化体育振興財団",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shiro-f.jp/shiroishijo-news/post-2559/",
+     "title": "白石城関連施設 冬季営業期間のお知らせ – 白石市文化体育振興財団",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "天守と武家屋敷は、冬季（2026年11月1日〜2027年3月31日）は9:00〜16:00（最終入館15:30）",
+     "url": "https://www.shiro-f.jp/shiroishijo",
+     "title": "白石城 – 白石市文化体育振興財団",
+     "readAt": "2026-11-11",
+     "validUntil": "2027-03-31"
+    }
+   ]
+  },
+  "haruna-ko": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.takasaki.gunma.jp/site/sightseeing/4625.html",
+     "title": "榛名山・榛名湖（観光情報） - 観光サイト - 高崎市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.takasaki.gunma.jp/site/userguide/",
+     "title": "トップページの概要 - 高崎市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.takasaki.gunma.jp/site/userguide/1964.html",
+     "title": "リンク・著作権・免責事項 - このホームページの使い方 - 高崎市公式ホームページ（広報課）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.takasaki.gunma.jp/site/userguide/2779.html",
+     "title": "個人情報保護方針 - このホームページの使い方 - 高崎市公式ホームページ（広報課）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.takasaki.gunma.jp/site/userguide/25820.html",
+     "title": "ウェブアクセシビリティ - このホームページの使い方 - 高崎市公式ホームページ（広報課）",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "関越自動車道の高崎ICから車で約60分",
+     "url": "https://www.city.takasaki.gunma.jp/site/sightseeing/4625.html",
+     "title": "榛名山・榛名湖（観光情報） - 観光サイト - 高崎市公式ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    },
+    {
+     "text": "JR高崎駅からバスで約90分",
+     "url": "https://www.city.takasaki.gunma.jp/site/sightseeing/4625.html",
+     "title": "榛名山・榛名湖（観光情報） - 観光サイト - 高崎市公式ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ]
+  },
+  "tamagawa-onsen": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tamagawa-onsen.jp/",
+     "title": "【公式】玉川温泉 秋田県 田沢湖 効能溢れる癒しの湯治宿",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tamagawa-onsen.jp/access/",
+     "title": "アクセス｜【公式】玉川温泉 秋田県 田沢湖 効能溢れる癒しの湯治宿",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tamagawa-onsen.jp/information/",
+     "title": "新着情報｜【公式】玉川温泉 秋田県 田沢湖 効能溢れる癒しの湯治宿",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tamagawa-onsen.jp/information/page.php",
+     "title": "www.tamagawa-onsen.jp",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tamagawa-onsen.jp/information/page.php?id=79",
+     "title": "講演会開催のご案内 ｜【公式】新玉川温泉 秋田県 田沢湖 日本の山岳温泉リゾート",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tamagawa-onsen.jp/information/page.php?id=60",
+     "title": "初雪が降りました！ ｜【公式】新玉川温泉 秋田県 田沢湖 日本の山岳温泉リゾート",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tamagawa-onsen.jp/information/page.php?id=78",
+     "title": "【重要】10月19日～路線バスの運行について ｜【公式】新玉川温泉 秋田県 田沢湖 日本の山岳温泉リゾート",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tamagawa-onsen.jp/information/page.php?id=77",
+     "title": "オリジナルアロマオイルづくり体験開催のご案内 ｜【公式】新玉川温泉 秋田県 田沢湖 日本の山岳温泉リゾート",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tamagawa-onsen.jp/information/page.php?id=76",
+     "title": "Moflin（モフリン） × 玉川温泉 コラボプラン登場！ ｜【公式】新玉川温泉 秋田県 田沢湖 日本の山岳温泉リゾート",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "日帰りの人は宿へ下る途中の秋田県営玉川園地駐車場を使う（8:30〜16:30・1回300円）",
+    "url": "https://www.tamagawa-onsen.jp/",
+    "title": "【公式】玉川温泉 秋田県 田沢湖 効能溢れる癒しの湯治宿",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "fees": [
+    {
+     "text": "日帰り入浴は大人1,000円、小人500円（2026年4月16日から）",
+     "url": "https://www.tamagawa-onsen.jp/",
+     "title": "【公式】玉川温泉 秋田県 田沢湖 効能溢れる癒しの湯治宿",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "ikuno-ginzan": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.ikuno-ginzan.co.jp/",
+     "title": "生野銀山",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ikuno-ginzan.co.jp/access/access.html",
+     "title": "生野銀山【交通案内】",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ikuno-ginzan.co.jp/news/news.php?doc=533",
+     "title": "生野銀山",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ikuno-ginzan.co.jp/news/news.php?doc=506",
+     "title": "生野銀山",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR生野駅からデマンドバスか生野タクシー。歩くと約4km",
+     "url": "https://www.ikuno-ginzan.co.jp/access/access.html",
+     "title": "生野銀山【交通案内】",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ]
+  },
+  "toji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://toji.or.jp/",
+     "title": "東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toji.or.jp/guide/",
+     "title": "境内のご案内｜東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toji.or.jp/guide/kondo/",
+     "title": "金堂｜境内のご案内｜東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toji.or.jp/guide/kodo/",
+     "title": "講堂｜境内のご案内｜東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toji.or.jp/guide/jikido/",
+     "title": "食堂｜境内のご案内｜東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toji.or.jp/guide/gojunoto/",
+     "title": "五重塔｜境内のご案内｜東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toji.or.jp/guide/miedo/",
+     "title": "御影堂〈大師堂〉｜境内のご案内｜東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toji.or.jp/guide/dainichido/",
+     "title": "大日堂・鎮守八幡宮・宝蔵｜境内のご案内｜東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toji.or.jp/guide/shoshibo/",
+     "title": "小子房｜境内のご案内｜東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "紅葉のライトアップと金堂・講堂の夜間特別拝観は2026年10月31日〜12月13日",
+     "url": "https://toji.or.jp/",
+     "title": "東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11",
+     "subject": "紅葉",
+     "validUntil": "2026-12-13"
+    }
+   ],
+   "hours": [
+    {
+     "text": "御影堂は、生身供が始まる朝6時から閉門まで、誰でも自由にお参りできる",
+     "url": "https://toji.or.jp/guide/miedo/",
+     "title": "御影堂〈大師堂〉｜境内のご案内｜東寺 – 世界遺産 真言宗総本山 教王護国寺",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "cape-ashizuri": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.tosashimizu.kochi.jp/kanko/g01_ashizurimisaki.html",
+     "title": "足摺岬 - 土佐清水市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.tosashimizu.kochi.jp/kanko/access.html",
+     "title": "アクセス - 土佐清水市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.tosashimizu.kochi.jp/kanko/guidebook.html",
+     "title": "観光パンフレット - 土佐清水市",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "高知西南交通のバスで「足摺岬」へ",
+     "url": "https://www.city.tosashimizu.kochi.jp/kanko/g01_ashizurimisaki.html",
+     "title": "足摺岬 - 土佐清水市",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    },
+    {
+     "text": "土佐清水市役所から車で約20分（15km）",
+     "url": "https://www.city.tosashimizu.kochi.jp/kanko/g01_ashizurimisaki.html",
+     "title": "足摺岬 - 土佐清水市",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "駐車場は岬の先端に20台、第一駐車場115台、東側駐車場50台",
+    "url": "https://www.city.tosashimizu.kochi.jp/kanko/g01_ashizurimisaki.html",
+    "title": "足摺岬 - 土佐清水市",
+    "readAt": "2026-11-11",
+    "available": true
+   }
+  },
+  "sanzenin": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.sanzenin.or.jp/",
+     "title": "天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sanzenin.or.jp/guide",
+     "title": "ご案内 – 天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sanzenin.or.jp/information",
+     "title": "お知らせ – 天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sanzenin.or.jp/guide/heritage",
+     "title": "国宝と重文 – 天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sanzenin.or.jp/access",
+     "title": "アクセス – 天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sanzenin.or.jp/guide/ground",
+     "title": "境内MAP – 天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sanzenin.or.jp/guide/info",
+     "title": "拝観時間・料金 – 天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sanzenin.or.jp/information/guidance/2050.html",
+     "title": "2026年11月のご参拝と秋の行事について – 天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.sanzenin.or.jp/information/news/2048.html",
+     "title": "【2026年10月24日】写経休止のお知らせ – 天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "3月〜10月は9:00〜17:00、11月は8:45〜16:45、12月〜2月は9:00〜16:30",
+     "url": "https://www.sanzenin.or.jp/",
+     "title": "天台宗 京都大原三千院",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "ozu-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://ozucastle.jp/",
+     "title": "大洲城公式ウェブサイト｜愛媛県大洲市 -",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ozucastle.jp/ozu_castle/guidance/",
+     "title": "利用案内 - 大洲城公式ウェブサイト｜愛媛県大洲市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ozucastle.jp/site_guide/",
+     "title": "このサイトのご利用について - 大洲城公式ウェブサイト｜愛媛県大洲市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ozucastle.jp/site_guide/privacy/",
+     "title": "プライバシーポリシー - 大洲城公式ウェブサイト｜愛媛県大洲市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ozucastle.jp/news/1933/",
+     "title": "大洲城「武将なりきり体験」令和8年11月実施日のご案内 - 大洲城公式ウェブサイト｜愛媛県大洲市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ozucastle.jp/news/1923/",
+     "title": "大洲城「武将なりきり体験」令和8年10月実施日のご案内 - 大洲城公式ウェブサイト｜愛媛県大洲市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ozucastle.jp/news/1809/",
+     "title": "「大洲城ナイトツアー」実施のご案内 - 大洲城公式ウェブサイト｜愛媛県大洲市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ozucastle.jp/news/1587/",
+     "title": "大洲城天守復元20周年記念事業「持続可能な観光まちづくりミニシンポジウム」のご案内 - 大洲城公式ウェブサイト｜愛媛県大洲市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ozucastle.jp/site_guide/",
+     "title": "このサイトのご利用について - 大洲城公式ウェブサイト｜愛媛県大洲市",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR伊予大洲駅前から市内循環バス「ぐるりんおおず」で約10分の「大洲城前」で降り、歩いて約5分（駅から歩くと約30分）",
+     "url": "https://ozucastle.jp/",
+     "title": "大洲城公式ウェブサイト｜愛媛県大洲市 -",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9:00〜17:00（札止め16:30）",
+     "url": "https://ozucastle.jp/",
+     "title": "大洲城公式ウェブサイト｜愛媛県大洲市 -",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "hatsushima": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.hatsushima.jp/",
+     "title": "初島リゾートライン【公式】熱海から30分のリゾートアイランド",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hatsushima.jp/news/detail.php?id=258",
+     "title": "船舶法定検査に伴う運航ダイヤのご案内について（ドックダイヤ）【公式】初島リゾートライン",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hatsushima.jp/access/",
+     "title": "初島のアクセス【公式】初島リゾートライン",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hatsushima.jp/access/ship.php",
+     "title": "高速船のご紹介とお楽しみ【公式】初島リゾートライン",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "熱海と初島を結ぶ船の運賃は、大人（中学生以上）往復2,900円・片道1,450円、小学生は往復1,450円",
+     "url": "https://www.hatsushima.jp/",
+     "title": "初島リゾートライン【公式】熱海から30分のリゾートアイランド",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kumano-hayatama": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kumanohayatama.jp/",
+     "title": "熊野速玉大社【公式】｜熊野信仰のはじまり・全国熊野神社総本宮 – 熊野速玉大社公式サイト。全国熊野神社総本宮として、熊野信仰のはじまりと人生甦りの祈りを今に伝えます。ご参拝、ご祈祷、祭礼・神事、授与品、御創建千九百年大祭などをご案内します。",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kumanohayatama.jp/worship/",
+     "title": "参拝・祈祷 – 熊野速玉大社【公式】｜熊野信仰のはじまり・全国熊野神社総本宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kumanohayatama.jp/access/",
+     "title": "アクセス・駐車場 – 熊野速玉大社【公式】｜熊野信仰のはじまり・全国熊野神社総本宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kumanohayatama.jp/347/",
+     "title": "日本サッカー協会「FIFAワールドカップ」御礼奉告参拝 – 熊野速玉大社【公式】｜熊野信仰のはじまり・全国熊野神社総本宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kumanohayatama.jp/magazine/319/",
+     "title": "日々の感謝を静寂の御神前に | 熊野速玉大社の正式参拝 – 熊野速玉大社【公式】｜熊野信仰のはじまり・全国熊野神社総本宮",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "無料駐車場あり（第1駐車場は普通車31台・大型バス4台。繁忙期・祭礼時は臨時もある）",
+    "url": "https://kumanohayatama.jp/",
+    "title": "熊野速玉大社【公式】｜熊野信仰のはじまり・全国熊野神社総本宮 – 熊野速玉大社公式サイト。全国熊野神社総本宮として、熊野信仰のはじまりと人生甦りの祈りを今に伝えます。ご参拝、ご祈祷、祭礼・神事、授与品、御創建千九百年大祭などをご案内します。",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "毎日参拝できる。門は6:00〜17:00、授与所は8:00〜17:00",
+     "url": "https://kumanohayatama.jp/",
+     "title": "熊野速玉大社【公式】｜熊野信仰のはじまり・全国熊野神社総本宮 – 熊野速玉大社公式サイト。全国熊野神社総本宮として、熊野信仰のはじまりと人生甦りの祈りを今に伝えます。ご参拝、ご祈祷、祭礼・神事、授与品、御創建千九百年大祭などをご案内します。",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "rokkaen": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://rokkaen.com/",
+     "title": "六華苑｜록카엔｜Rokkaen｜桑名市｜観光｜旧諸戸清六邸｜重要文化財｜ジョサイア・コンドル｜名勝",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://rokkaen.com/introduct",
+     "title": "六華苑｜施設のご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://rokkaen.com/about",
+     "title": "六華苑｜営業案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://rokkaen.com/school",
+     "title": "六華苑｜講座",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://rokkaen.com/product",
+     "title": "六華苑｜商品のご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://rokkaen.com/tea",
+     "title": "六華苑｜喫茶のご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://rokkaen.com/access",
+     "title": "六華苑｜アクセス",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "桑名駅東口から歩いて約20分（バスなら「田町」で降りて約10分）",
+     "url": "https://rokkaen.com/",
+     "title": "六華苑｜록카엔｜Rokkaen｜桑名市｜観光｜旧諸戸清六邸｜重要文化財｜ジョサイア・コンドル｜名勝",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "parking": {
+    "text": "無料の第1・第2駐車場がある（9:00〜17:00）",
+    "url": "https://rokkaen.com/",
+    "title": "六華苑｜록카엔｜Rokkaen｜桑名市｜観光｜旧諸戸清六邸｜重要文化財｜ジョサイア・コンドル｜名勝",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "9:00〜17:00（入苑は16:00まで）。月曜（祝日なら翌平日）と12月29日〜1月3日は休み",
+     "url": "https://rokkaen.com/",
+     "title": "六華苑｜록카엔｜Rokkaen｜桑名市｜観光｜旧諸戸清六邸｜重要文化財｜ジョサイア・コンドル｜名勝",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入苑料は一般460円、中学生150円",
+     "url": "https://rokkaen.com/",
+     "title": "六華苑｜록카엔｜Rokkaen｜桑名市｜観光｜旧諸戸清六邸｜重要文化財｜ジョサイア・コンドル｜名勝",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "nojimazaki": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tokokai.org/tourlight/tourlight04/",
+     "title": "野島埼灯台（のじまさき） | 「灯台のことなら」 公益社団法人 燈光会",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokokai.org/about/books/",
+     "title": "刊行物のご案内 | 「灯台のことなら」 公益社団法人 燈光会",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "灯台に上れる参観時間は、午前が土日等8:30〜12:00・平日9:00〜12:00。午後は3月〜9月が土日等13:00〜17:00・平日13:00〜16:30、10月〜2月が13:00〜16:00（12時〜13時は休み）",
+     "url": "https://www.tokokai.org/tourlight/tourlight04/",
+     "title": "野島埼灯台（のじまさき） | 「灯台のことなら」 公益社団法人 燈光会",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "参観寄付金は中学生以上300円。小学生以下は無料",
+     "url": "https://www.tokokai.org/tourlight/tourlight04/",
+     "title": "野島埼灯台（のじまさき） | 「灯台のことなら」 公益社団法人 燈光会",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "daiozaki": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tokokai.org/tourlight/tourlight09/",
+     "title": "大王埼灯台（だいおうさき） | 「灯台のことなら」 公益社団法人 燈光会",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokokai.org/about/books/",
+     "title": "刊行物のご案内 | 「灯台のことなら」 公益社団法人 燈光会",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "灯台に上れる参観時間は、午前が通年9:00〜12:00。午後は3月〜10月が土日等13:00〜16:30・平日13:00〜16:00、11月〜2月が13:00〜16:00（12時〜13時は休み）",
+     "url": "https://www.tokokai.org/tourlight/tourlight09/",
+     "title": "大王埼灯台（だいおうさき） | 「灯台のことなら」 公益社団法人 燈光会",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "参観寄付金は中学生以上300円。小学生以下は無料",
+     "url": "https://www.tokokai.org/tourlight/tourlight09/",
+     "title": "大王埼灯台（だいおうさき） | 「灯台のことなら」 公益社団法人 燈光会",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "mosaic-tile-museum": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.mosaictile-museum.jp/",
+     "title": "多治見市モザイクタイルミュージアム（公式サイト）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mosaictile-museum.jp/guidance/",
+     "title": "多治見市モザイクタイルミュージアム（公式サイト）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mosaictile-museum.jp/activities/",
+     "title": "多治見市モザイクタイルミュージアム（公式サイト）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mosaictile-museum.jp/event/202606/",
+     "title": "多治見市モザイクタイルミュージアム（公式サイト）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mosaictile-museum.jp/information2/",
+     "title": "多治見市モザイクタイルミュージアム（公式サイト）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mosaictile-museum.jp/publication/",
+     "title": "多治見市モザイクタイルミュージアム（公式サイト）",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9:00〜17:00（入館は閉館30分前まで）。休館日は月曜（祝日なら翌平日）",
+     "url": "https://www.mosaictile-museum.jp/",
+     "title": "多治見市モザイクタイルミュージアム（公式サイト）",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "the-alamo": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.thealamo.org/",
+     "title": "The Alamo",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thealamo.org/visit",
+     "title": "Visit the Alamo | The Alamo",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thealamo.org/visit/tours-and-experiences",
+     "title": "Tours and Experience | The Alamo",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thealamo.org/visit/whats-at-the-alamo",
+     "title": "What's at the Alamo | The Alamo",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thealamo.org/visit/calendar/upcoming-events",
+     "title": "Upcoming Events | The Alamo",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thealamo.org/visit/visiting-tips",
+     "title": "Visiting Tips | The Alamo",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thealamo.org/visit/san-antonio-citypass",
+     "title": "San Antonio CityPASS® | The Alamo",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thealamo.org/visit/military-ceremonies-and-staff-rides",
+     "title": "Military Ceremonies and Staff Rides | The Alamo",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.thealamo.org/support/alamo-plan",
+     "title": "Alamo Plan | The Alamo",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "毎日9:00〜17:30（最終入場は閉まる30分前）。クリスマス（12月25日）は休み",
+     "url": "https://www.thealamo.org/",
+     "title": "The Alamo",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "アラモ教会（テキサス自由の聖堂）は無料の入場券を予約して入る。ガイドツアーなどは有料",
+     "url": "https://www.thealamo.org/",
+     "title": "The Alamo",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "phoksundo-lake": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://ntb.gov.np/en/shey-phoksundo-national-park",
+     "title": "Shey-Phoksundo National Park | Lake | Nepal Tourism Board",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ntb.gov.np/en/plan-your-trip/trip-ideas/travel-with-children",
+     "title": "Travel with children | Travel Nepal | Nepal Tourism Board",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ntb.gov.np/en/plan-your-trip/trip-ideas/ganesh-himal-trek",
+     "title": "Ganesh Himal Trek | Trekking in Nepal | Eastern Nepal Trekkng",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ntb.gov.np/en/plan-your-trip/trip-ideas/chandragiri-chitlang-kulekhani",
+     "title": "Chandragiri-Chitlang-Kulekhani Trip | Nepal Trip Ideas",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ntb.gov.np/en/plan-your-trip/trip-ideas/pilgrimage-to-doleshwar-mahadev-temple",
+     "title": "Doleshwar Mahadev Temple in Nepal | Nepal Tourism Board",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ntb.gov.np/en/plan-your-trip/about-nepal/geography",
+     "title": "Geography of Nepal | Nepal Tourism Board",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ntb.gov.np/en/plan-your-trip/about-nepal/wildlife",
+     "title": "Wildlife In Nepal | National Parks | Nepal Tourism Board",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ntb.gov.np/en/plan-your-trip/about-nepal/climate",
+     "title": "Climate In Nepal | Plan Your Trip | Nepal Tourism Board",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ntb.gov.np/en/plan-your-trip/about-nepal/people",
+     "title": "People of Nepal | Plan Your Trip | Nepal Tourism Board",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "ネパールガンジからドルパのジュファル空港へ飛び（20分）、そこから3日歩く",
+     "url": "https://ntb.gov.np/en/shey-phoksundo-national-park",
+     "title": "Shey-Phoksundo National Park | Lake | Nepal Tourism Board",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    }
+   ]
+  },
+  "evora-cathedral": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.evoracathedral.com/?lang=en",
+     "title": "Cabido da Sé de Évora - Sé Catedral de Évora -",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.evoracathedral.com/index.php/informacoes/?lang=en",
+     "title": "Cabido da Sé de Évora - Sé Catedral de Évora - Information",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "大聖堂・博物館・屋上の眺望は9:00〜17:00（博物館の最終入場は閉館30分前）。12月24日午後・25日・1月1日は休み",
+     "url": "https://www.evoracathedral.com/index.php/informacoes/?lang=en",
+     "title": "Cabido da Sé de Évora - Sé Catedral de Évora - Information",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大聖堂・回廊・屋上の眺望・博物館をすべて回る券は5ユーロ。親と一緒の12歳以下は無料",
+     "url": "https://www.evoracathedral.com/index.php/informacoes/?lang=en",
+     "title": "Cabido da Sé de Évora - Sé Catedral de Évora - Information",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "mount-rainier": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/mora/index.htm",
+     "title": "Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/mora/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/mora/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/mora/planyourvisit/conditions.htm",
+     "title": "Alerts & Conditions - Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/mora/planyourvisit/maps.htm",
+     "title": "Maps - Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/mora/planyourvisit/calendar.htm",
+     "title": "Calendar - Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/mora/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/mora/planyourvisit/winter.htm",
+     "title": "Winter at Mount Rainier - Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/mora/faqs.htm",
+     "title": "Frequently Asked Questions - Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "国立公園の土地と水面でドローンを飛ばす・離着陸させることは禁止",
+     "url": "https://www.nps.gov/mora/planyourvisit/conditions.htm",
+     "title": "Alerts & Conditions - Mount Rainier National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "statue-of-liberty": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/stli/index.htm",
+     "title": "Statue Of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/stli/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Statue Of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/stli/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Statue Of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/stli/planyourvisit/conditions.htm",
+     "title": "Alerts & Conditions - Statue Of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/stli/planyourvisit/maps.htm",
+     "title": "Maps - Statue Of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/stli/planyourvisit/calendar.htm",
+     "title": "Calendar - Statue Of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/stli/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Statue Of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/stli/planyourvisit/accessibility.htm",
+     "title": "Accessibility - Statue Of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/elis/index.htm",
+     "title": "Ellis Island Part of Statue of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "ニューヨーク側のフェリーと保安検査の場所は、バッテリー公園の中の新しい場所に移った",
+     "url": "https://www.nps.gov/stli/index.htm",
+     "title": "Statue Of Liberty National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    }
+   ]
+  },
+  "zion-national-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/zion/index.htm",
+     "title": "Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/zion/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/zion/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/zion/planyourvisit/conditions.htm",
+     "title": "Current Conditions - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/zion/planyourvisit/maps.htm",
+     "title": "Maps - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/zion/planyourvisit/calendar.htm",
+     "title": "Calendar of Events - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/zion/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/zion/planyourvisit/traffic.htm",
+     "title": "Traffic & Travel Tips - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/zion/planyourvisit/ranger-led-activities.htm",
+     "title": "Ranger-led Activities - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "春先から晩秋は、ザイオン・キャニオンの中を無料のシャトルが走る",
+     "url": "https://www.nps.gov/zion/planyourvisit/conditions.htm",
+     "title": "Current Conditions - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "hours": [
+    {
+     "text": "公園は一年中、毎日24時間開いている（窓口・許可事務所・キャンプ場の時間は季節で変わる）",
+     "url": "https://www.nps.gov/zion/planyourvisit/conditions.htm",
+     "title": "Current Conditions - Zion National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "joshua-tree-national-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/jotr/index.htm",
+     "title": "Joshua Tree National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/jotr/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Joshua Tree National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/jotr/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Joshua Tree National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/jotr/planyourvisit/conditions.htm",
+     "title": "Alerts & Conditions - Joshua Tree National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/jotr/planyourvisit/maps.htm",
+     "title": "Maps - Joshua Tree National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/jotr/planyourvisit/calendar.htm",
+     "title": "Calendar - Joshua Tree National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/jotr/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Joshua Tree National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/es-es/jotr/index.htm",
+     "title": "(U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/jotr/learn/index.htm",
+     "title": "Learn About the Park - Joshua Tree National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "公園は一年中、毎日24時間開いていて、いつでも車で出入りできる。園内に水は無いので水・食べ物は持って入る",
+     "url": "https://www.nps.gov/jotr/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Joshua Tree National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "alcatraz-island": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/alca/index.htm",
+     "title": "Alcatraz Island (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/alca/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Alcatraz Island (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/alca/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Alcatraz Island (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/alca/planyourvisit/conditions.htm",
+     "title": "Current Conditions - Alcatraz Island (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/alca/planyourvisit/maps.htm",
+     "title": "Maps - Alcatraz Island (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/alca/planyourvisit/calendar.htm",
+     "title": "Calendar - Alcatraz Island (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/alca/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Alcatraz Island (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/goga/index.htm",
+     "title": "Golden Gate National Recreation Area (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/muwo/index.htm",
+     "title": "Muir Woods National Monument (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "島へは国立公園局と契約した民間のフェリー会社の船でしか渡れない",
+     "url": "https://www.nps.gov/alca/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Alcatraz Island (U.S. National Park Service)",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    }
+   ]
+  },
+  "lincoln-memorial": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/linc/index.htm",
+     "title": "Lincoln Memorial (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/linc/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Lincoln Memorial (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/linc/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Lincoln Memorial (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/linc/planyourvisit/conditions.htm",
+     "title": "Alerts & Conditions - Lincoln Memorial (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/linc/planyourvisit/maps.htm",
+     "title": "Maps - Lincoln Memorial (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/linc/planyourvisit/calendar.htm",
+     "title": "Calendar - Lincoln Memorial (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/linc/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Lincoln Memorial (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/linc/faqs.htm",
+     "title": "Frequently Asked Questions - Lincoln Memorial (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/aboutus/accessibility.htm",
+     "title": "Accessibility (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "記念館の下の階（博物館と地下構造）に入るには事前予約の券（1ドル）が要る。30日前から予約できる",
+     "url": "https://www.nps.gov/linc/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Lincoln Memorial (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "isle-royale-national-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/isro/index.htm",
+     "title": "Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/isro/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/isro/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/isro/planyourvisit/conditions.htm",
+     "title": "Current Conditions - Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/isro/planyourvisit/maps.htm",
+     "title": "Maps - Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/isro/planyourvisit/calendar.htm",
+     "title": "Calendar - Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/isro/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/isro/planyourvisit/group-camping-7-or-more-people.htm",
+     "title": "Group Camping - Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/isro/planyourvisit/mapsbrochures.htm",
+     "title": "Maps & Brochures - Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "スペリオル湖に浮かぶ島で、フェリー・水上飛行機・自分の船でしか行けない",
+     "url": "https://www.nps.gov/isro/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Isle Royale National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    }
+   ]
+  },
+  "ushimado-olive": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://nippon-olive.info/",
+     "title": "岡山県牛窓の観光 牛窓オリーブ園/日本オリーブ株式会社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nippon-olive.info/about/access/",
+     "title": "アクセスマップ :: 岡山県牛窓の観光 牛窓オリーブ園/日本オリーブ株式会社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR赤穂線の邑久駅から東備バス（牛窓行）で約20分の「オリーブ園入口」で降り、歩いて30分ほど",
+     "url": "https://nippon-olive.info/about/access/",
+     "title": "アクセスマップ :: 岡山県牛窓の観光 牛窓オリーブ園/日本オリーブ株式会社",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "fees": [
+    {
+     "text": "年中無休で、入園は無料",
+     "url": "https://nippon-olive.info/",
+     "title": "岡山県牛窓の観光 牛窓オリーブ園/日本オリーブ株式会社",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "budapest-keleti": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.mavcsoport.hu/mav-szemelyszallitas/belfoldi-utazas/vasutallomas/budapest-keleti",
+     "title": "Budapest-Keleti | MÁV-csoport",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mavcsoport.hu/mav-szemelyszallitas/belfoldi-utazas/dijszabasi-informaciok-vasuti-es-buszos-utazashoz",
+     "title": "Díjszabási információk vasúti és buszos utazáshoz | MÁV-csoport",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mavcsoport.hu/mav-szemelyszallitas/belfoldi-utazas/dijszabasi-informaciok-budapest-kornyeki-kozlekedesrol",
+     "title": "Díjszabási információk a Budapest környéki közlekedésről | MÁV-csoport",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mavcsoport.hu/mav-szemelyszallitas/belfoldi-utazas/dijszabasi-informaciok",
+     "title": "Díjszabási információk | MÁV-csoport",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mavcsoport.hu/mavinform/valtozas-egy-reggeli-aszodi-s80-asnal-0",
+     "title": "Változás egy reggeli aszódi S80-asnál | MÁV-csoport",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mavcsoport.hu/mavinform/vamosgyork-szolnok-reggeli-valtozasok",
+     "title": "Vámosgyörk-Szolnok reggeli változások | MÁV-csoport",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mavcsoport.hu/mavinform/szeged-es-hodmezovasarhely-kozott-helyreall-menetrend",
+     "title": "Szeged és Hódmezővásárhely között helyreáll a menetrend | MÁV-csoport",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mavcsoport.hu/mavinform/533-ozd-miskolc-potlobusz",
+     "title": "5:33 Ózd > Miskolc pótlóbusz | MÁV-csoport",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mavcsoport.hu/mavinform/s21-624-ocsa-koki-potlobusz-0",
+     "title": "S21 6:24 Ócsa > KöKi pótlóbusz | MÁV-csoport",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "駅舎は月〜金曜が3:45〜翌1:00、土日が3:45〜翌2:00に開いている",
+     "url": "https://www.mavcsoport.hu/mav-szemelyszallitas/belfoldi-utazas/vasutallomas/budapest-keleti",
+     "title": "Budapest-Keleti | MÁV-csoport",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "york-minster": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://yorkminster.org/",
+     "title": "Homepage | York Minster",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yorkminster.org/visit/plan-your-visit/",
+     "title": "Plan your visit | York Minster",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yorkminster.org/visit/suggested-itineraries/",
+     "title": "Suggested itineraries | York Minster",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yorkminster.org/visit/families/",
+     "title": "Families | York Minster",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yorkminster.org/visit/schools/",
+     "title": "School visits | York Minster",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yorkminster.org/visit/groups/",
+     "title": "Group Visits | York Minster",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yorkminster.org/visit/faq/",
+     "title": "FAQs | York Minster",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yorkminster.org/visit/accessibility-2/",
+     "title": "Accessibility | York Minster",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://yorkminster.org/visit/",
+     "title": "Visit | York Minster",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入場券は13〜28ポンド（券の種類で違う）",
+     "url": "https://yorkminster.org/",
+     "title": "Homepage | York Minster",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "singapore-zoo": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.mandai.com/ja/singapore-zoo.html",
+     "title": "世界トップ3の動物園 | シンガポール動物園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mandai.com/ja/rainforest-wild-adventure.html",
+     "title": "シンガポールで楽しい場所 | マンダイ・ワイルドライフ・リザーブ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mandai.com/ja/tickets-and-passes.html",
+     "title": "チケット料金 | マンダイ・ワイルドライフ・リザーブ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mandai.com/ja/tickets-and-passes/multi-attractions.html",
+     "title": "マルチアトラクション・デスティネーションパス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mandai.com/ja/tickets-and-passes/single-attractions.html",
+     "title": "観光施設の個別入場券料金",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mandai.com/ja/plan-your-visit.html",
+     "title": "基本情報 | マンダイ・ワイルドライフ・リザーブ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mandai.com/ja/plan-your-visit/getting-to-and-around.html",
+     "title": "旅の計画を立てる | マンダイ・ワイルドライフ・リザーブ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mandai.com/ja/plan-your-visit/know-before-you-go.html",
+     "title": "訪問のご案内 | マンダイ・ワイルドライフ・リザーブ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mandai.com/ja/plan-your-visit/maps.html",
+     "title": "マップ | マンダイ・ワイルドライフ・リザーブ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "毎日8:30〜18:00（最終入場17:00）",
+     "url": "https://www.mandai.com/ja/singapore-zoo.html",
+     "title": "世界トップ3の動物園 | シンガポール動物園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "チケットはS$34から",
+     "url": "https://www.mandai.com/ja/singapore-zoo.html",
+     "title": "世界トップ3の動物園 | シンガポール動物園",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "chateau-d-if": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.chateau-if.fr/en",
+     "title": "Château d'If",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chateau-if.fr/en/visit/groupes-du-champ-social",
+     "title": "Groupes du champ social | If Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chateau-if.fr/en/visit/practical-information",
+     "title": "Practical information | If Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chateau-if.fr/en/visit/visits-and-activities",
+     "title": "Visits and activities | If Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chateau-if.fr/en/visit/eating-out",
+     "title": "Eating out | If Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chateau-if.fr/en/visit/what-to-do-around-the-monument",
+     "title": "What to do around the monument | If Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chateau-if.fr/en/visit/family-visits",
+     "title": "Family visits | If Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chateau-if.fr/en/visit/in-the-group",
+     "title": "In the group | If Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.chateau-if.fr/en/visit/visitors-with-disabilities",
+     "title": "Visitors with disabilities | If Castle",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入場料は7ユーロ",
+     "url": "https://www.chateau-if.fr/en",
+     "title": "Château d'If",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "taj-mahal": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tajmahal.gov.in/",
+     "title": "Taj Mahal-Official Website of Taj Mahal, Government of Uttar Pradesh (India)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tajmahal.gov.in/visiting-hours.aspx",
+     "title": "Visiting Hours",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tajmahal.gov.in/travel-information.aspx",
+     "title": "Travel Information",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tajmahal.gov.in/news-announcements.aspx",
+     "title": "News & Announcements",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tajmahal.gov.in/about-agra.aspx",
+     "title": "About Agra",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tajmahal.gov.in/getting-around-taj-mahal.aspx",
+     "title": "Getting Around Taj Mahal",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tajmahal.gov.in/ticketing.aspx",
+     "title": "Ticketing",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tajmahal.gov.in/travel-guide.aspx",
+     "title": "Travel Guide",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tajmahal.gov.in/feedback.aspx",
+     "title": "Feedback",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "金曜は休み。ほかの日は日の出30分前から日没30分前まで入れる",
+     "url": "https://www.tajmahal.gov.in/",
+     "title": "Taj Mahal-Official Website of Taj Mahal, Government of Uttar Pradesh (India)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "チケット売り場は日の出の1時間前に開き、日没の45分前に閉まる（オンラインでも買える）",
+     "url": "https://www.tajmahal.gov.in/ticketing.aspx",
+     "title": "Ticketing",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入場料は外国人1,100ルピー、SAARC・BIMSTEC加盟国の人540ルピー、インド国民・OCIカード所持者50ルピー。霊廟の中に入るときは別に200ルピー（任意）",
+     "url": "https://www.tajmahal.gov.in/visiting-hours.aspx",
+     "title": "Visiting Hours",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "15歳未満は入場料が要らない（インド人・外国人とも）",
+     "url": "https://www.tajmahal.gov.in/travel-information.aspx",
+     "title": "Travel Information",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "タージ・マハルの中と周りでは、ドローンカメラは固く禁止",
+     "url": "https://www.tajmahal.gov.in/",
+     "title": "Taj Mahal-Official Website of Taj Mahal, Government of Uttar Pradesh (India)",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "okage-yokocho": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://okageyokocho.com/",
+     "title": "伊勢志摩への旅行・観光なら伊勢神宮内宮前おかげ横丁",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okageyokocho.com/access/",
+     "title": "アクセス - おかげ横丁",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okageyokocho.com/guide/",
+     "title": "おかげ横丁総合案内 - おかげ横丁",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okageyokocho.com/works/20261106-2/",
+     "title": "【11/10】『伊勢のしめ縄』 予約販売のご案内 - おかげ横丁",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "伊勢自動車道の伊勢西ICで降りて右折し、県道32号を内宮方面へ2〜3分（約1.2km）",
+     "url": "https://okageyokocho.com/access/",
+     "title": "アクセス - おかげ横丁",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "おかげ横丁に駐車場は無い。近くの市営駐車場などを使う",
+    "url": "https://okageyokocho.com/access/",
+    "title": "アクセス - おかげ横丁",
+    "readAt": "2026-11-11",
+    "available": false
+   }
+  },
+  "mount-bromo": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.indonesia.travel/gb/en/destination/java/east-java/bromo-tengger-semeru-national-park---mount-bromo",
+     "title": "Mount Bromo: Indonesia's Spectacular Peak - Indonesia Travel",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.indonesia.travel/gb/en/formai",
+     "title": "Create Your Ideal Indonesia Trip Itinerary with MaiA",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.indonesia.travel/gb/en/general-information",
+     "title": "General Information",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.indonesia.travel/gb/en/travel-ideas/adventure/bali-vacation-in-mind-get-informed-of-the-latest-regulations",
+     "title": "Bali vacation in mind? Get informed of the latest regulations - Indonesia Travel",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.indonesia.travel/gb/en/brand-guidelines",
+     "title": "Brand Guidelines",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "東ジャワの州都スラバヤから車で約4時間",
+     "url": "https://www.indonesia.travel/gb/en/destination/java/east-java/bromo-tengger-semeru-national-park---mount-bromo",
+     "title": "Mount Bromo: Indonesia's Spectacular Peak - Indonesia Travel",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ]
+  },
+  "eltz-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://burg-eltz.de/en/homepage",
+     "title": "Home page - Eltz Castle - One of the most beautiful castles in Germany",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://burg-eltz.de/en/oppening-times-tickets",
+     "title": "Opening Times & Tickets - Eltz Castle - One of the most beautiful castles in Germany",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://burg-eltz.de/en/faq",
+     "title": "FAQ - Eltz Castle - One of the most beautiful castles in Germany",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "城の駐車場は1日4ユーロ（現金のみ）。駐車場から城へは10分おきのシャトルバス（1人片道2ユーロ）か、歩いて行く",
+    "url": "https://burg-eltz.de/en/homepage",
+    "title": "Home page - Eltz Castle - One of the most beautiful castles in Germany",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "月曜〜日曜の9:30から開いている",
+     "url": "https://burg-eltz.de/en/homepage",
+     "title": "Home page - Eltz Castle - One of the most beautiful castles in Germany",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "entsuin-matsushima": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.entuuin.or.jp/",
+     "title": "円通院 臨済宗妙心寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.entuuin.or.jp/news/article03.html",
+     "title": "来年度（令和5年4月1日）から拝観料が変わります。 | お知らせ | 円通院 臨済宗妙心寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.entuuin.or.jp/news/article02.html",
+     "title": "拝観時間の変更について。 | お知らせ | 円通院 臨済宗妙心寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.entuuin.or.jp/news/article01.html",
+     "title": "商業目的とした写真撮影は禁止となっております。 | お知らせ | 円通院 臨済宗妙心寺派",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "紅葉のライトアップは2026年10月24日〜11月23日",
+     "url": "https://www.entuuin.or.jp/",
+     "title": "円通院 臨済宗妙心寺派",
+     "readAt": "2026-11-11",
+     "subject": "紅葉",
+     "validUntil": "2026-11-23"
+    }
+   ]
+  },
+  "getty-center": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.getty.edu/visit/center/",
+     "title": "Visit the Getty Center | Getty",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.getty.edu/visit/center/",
+     "title": "Visit the Getty Center | Getty",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.getty.edu/visit/villa/",
+     "title": "Visit the Getty Villa | Getty",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.getty.edu/visit/",
+     "title": "Visit Our Museums - Locations, Exhibitions, Highlights | Getty",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.getty.edu/visit/app/",
+     "title": "GettyGuide App | Visit Getty",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.getty.edu/visit/photo-and-video-policy/",
+     "title": "Photography and Video Policy | Getty",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.getty.edu/visit/center/top-things-to-do/",
+     "title": "Top Things to Do | Getty Center",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.getty.edu/visit/center/parking-and-transportation/",
+     "title": "Parking and Transportation | Getty Center",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "火〜金曜・日曜は10:00〜18:30、土曜は10:00〜21:00、月曜は休み（元日・独立記念日・感謝祭・クリスマスも休み）",
+     "url": "https://www.getty.edu/visit/center/",
+     "title": "Visit the Getty Center | Getty",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入館は無料。時間指定の入館予約が要る",
+     "url": "https://www.getty.edu/visit/center/",
+     "title": "Visit the Getty Center | Getty",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "nottingham-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nottinghamcastle.org.uk/",
+     "title": "Home - Nottingham Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nottinghamcastle.org.uk/visit/",
+     "title": "Visit - Nottingham Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nottinghamcastle.org.uk/accessibility/",
+     "title": "Accessibility - Nottingham Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nottinghamcastle.org.uk/admission/",
+     "title": "Admission: Museum & Grounds - Nottingham Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nottinghamcastle.org.uk/rover-pass/",
+     "title": "Rover Pass - Nottingham Castle",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nottinghamcastle.org.uk/cave-tours/",
+     "title": "Cave Tours - Nottingham Castle",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人18ポンド（予約手数料が別）。15歳以下は大人1人につき3人まで無料。1年間何度でも入れる券",
+     "url": "https://www.nottinghamcastle.org.uk/",
+     "title": "Home - Nottingham Castle",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kiyosumi-keiryu-hiroba": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.kimitsu.lg.jp/site/kanko/2259.html",
+     "title": "清水渓流広場（濃溝の滝・亀岩の洞窟） ※一部通行止が発生しています - 君津市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.kimitsu.lg.jp/site/userguide/2830.html",
+     "title": "外国語への対応（Foreign language） - はじめての方へ - 君津市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.kimitsu.lg.jp/site/kanko/2207.html",
+     "title": "交通アクセス - 君津市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.kimitsu.lg.jp/soshiki/12/96.html",
+     "title": "君津市デマンドタクシー「きみぴょん号」のご案内 - 君津市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.kimitsu.lg.jp/site/userguide/2861.html",
+     "title": "リンク・著作権・免責事項 - はじめての方へ - 君津市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.kimitsu.lg.jp/site/userguide/2883.html",
+     "title": "個人情報の取り扱い (プライバシーポリシー) - はじめての方へ - 君津市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.kimitsu.lg.jp/site/userguide/2863.html",
+     "title": "アクセシビリティ - はじめての方へ - 君津市公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "6月下旬がホタルの見頃（ゲンジボタル・ヘイケボタル）",
+     "url": "https://www.city.kimitsu.lg.jp/site/kanko/2259.html",
+     "title": "清水渓流広場（濃溝の滝・亀岩の洞窟） ※一部通行止が発生しています - 君津市公式ホームページ",
+     "readAt": "2026-11-11",
+     "subject": "ホタル"
+    }
+   ],
+   "parking": {
+    "text": "駐車場は第一26台・第二20台・第三約80台（シーズン中は混む）",
+    "url": "https://www.city.kimitsu.lg.jp/site/kanko/2259.html",
+    "title": "清水渓流広場（濃溝の滝・亀岩の洞窟） ※一部通行止が発生しています - 君津市公式ホームページ",
+    "readAt": "2026-11-11",
+    "available": true
+   }
+  },
+  "inasayama": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://inasayama.info/",
+     "title": "【公式】稲佐山公園 – 長崎市にある稲佐山公園のウェブサイトです。憩いの空間やレクリエーションの場として人々に親しまれており、毎年数多くのイベントが開催されています。標高333メートルの山頂からは市内全景を望むことができ、夜景のビュースポッ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inasayama.info/access/",
+     "title": "アクセス – 【公式】稲佐山公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inasayama.info/category/information/",
+     "title": "お知らせ – 【公式】稲佐山公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inasayama.info/20261106-07/",
+     "title": "稲佐山公園中腹駐車場の駐車規制について – 【公式】稲佐山公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inasayama.info/8-22/",
+     "title": "8/22 Sky Jamboree開催に伴い、一般来園者の中腹駐車場が制限されます – 【公式】稲佐山公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inasayama.info/qa/",
+     "title": "よくある質問 – 【公式】稲佐山公園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "長崎ロープウェイの上りの最終は21:00",
+     "url": "https://inasayama.info/",
+     "title": "【公式】稲佐山公園 – 長崎市にある稲佐山公園のウェブサイトです。憩いの空間やレクリエーションの場として人々に親しまれており、毎年数多くのイベントが開催されています。標高333メートルの山頂からは市内全景を望むことができ、夜景のビュースポッ",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "hanauma-bay": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.honolulu.gov/dpr/hanauma-bay-nature-preserve/",
+     "title": "Hanauma Bay Nature Preserve | Department of Parks and Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.honolulu.gov/dpr/park-closure-hours/",
+     "title": "Park Closure Hours | Department of Parks and Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.honolulu.gov/dpr/honolulu-botanical-gardens/hbg-permit-information/",
+     "title": "Wedding and Photography | Department of Parks and Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.honolulu.gov/dpr/hanauma-bay-nature-preserve/hanauma-bay-safety-accessibility/",
+     "title": "Safety & Accessibility | Department of Parks and Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.honolulu.gov/dpr/city-news/new-concession-aims-to-improve-access-to-hanauma-bay/",
+     "title": "New concession aims to improve access to Hanauma Bay | Department of Parks and Recreation",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.honolulu.gov/accessibility-policy/",
+     "title": "Accessibility Policy - City and County of Honolulu",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "ハナウマ湾自然保護区は7:00〜16:00（最終入場14:00）、月曜と火曜は休み",
+     "url": "https://www.honolulu.gov/dpr/park-closure-hours/",
+     "title": "Park Closure Hours | Department of Parks and Recreation",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "badlands-national-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/badl/index.htm",
+     "title": "Badlands National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/badl/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Badlands National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/badl/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Badlands National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/badl/planyourvisit/conditions.htm",
+     "title": "Current Conditions - Badlands National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/badl/planyourvisit/maps.htm",
+     "title": "Maps - Badlands National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/badl/planyourvisit/calendar.htm",
+     "title": "Calendar - Badlands National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/badl/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Badlands National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/aboutus/accessibility.htm",
+     "title": "Accessibility (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/aboutus/faqs.htm",
+     "title": "Frequently Asked Questions (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入園料は自家用車1台30ドル（乗っている人を含めて7日間有効）、バイクは25ドル",
+     "url": "https://www.nps.gov/badl/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Badlands National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "clingmans-dome": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nps.gov/grsm/index.htm",
+     "title": "Great Smoky Mountains National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/grsm/planyourvisit/index.htm",
+     "title": "Plan Your Visit - Great Smoky Mountains National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/grsm/planyourvisit/basicinfo.htm",
+     "title": "Basic Information - Great Smoky Mountains National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/grsm/planyourvisit/conditions.htm",
+     "title": "Current Conditions - Great Smoky Mountains National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/grsm/planyourvisit/maps.htm",
+     "title": "Maps - Great Smoky Mountains National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/grsm/planyourvisit/calendar.htm",
+     "title": "Activities for the Public - Great Smoky Mountains National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/grsm/planyourvisit/fees.htm",
+     "title": "Fees & Passes - Great Smoky Mountains National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/grsm/planyourvisit/autotouring.htm",
+     "title": "Auto Touring - Great Smoky Mountains National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nps.gov/grsm/planyourvisit/visitorcenters.htm",
+     "title": "Visitor Centers - Great Smoky Mountains National Park (U.S. National Park Service)",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "グレート・スモーキー山脈国立公園の中で15分を超えて車を止めるときは、駐車タグが要る",
+    "url": "https://www.nps.gov/grsm/planyourvisit/index.htm",
+    "title": "Plan Your Visit - Great Smoky Mountains National Park (U.S. National Park Service)",
+    "readAt": "2026-11-11",
+    "available": true
+   }
   }
  }
 }

@@ -17,6 +17,7 @@ import { spotSamples, coverImageObject, spotCoverSeoSource, spotSeoImage } from 
 import { loadAllPhotos } from "@/lib/server/photos";
 import { autoLinksFor } from "@/lib/server/spotAutoLinks";
 import { photosLinkedTo } from "@/lib/utils/spotAutoLink";
+import { photoCreators } from "@/lib/utils/photoCreators";
 import { SPOTS } from "@/lib/data/spots";
 import { visibleSpots, isPublished } from "@/lib/utils/spotGuide";
 import { slimForGrid } from "@/lib/utils/related";
@@ -110,6 +111,7 @@ export default async function SpotGuidePage({ slug }: { slug: string }) {
             <SpotGuideClient
                 spot={spotForClient}
                 photos={mine.map(slimForGrid)}
+                creators={photoCreators(mine)}
                 autoNote={hasAuto}
                 nearby={nearby}
                 locationPath={locationPath}

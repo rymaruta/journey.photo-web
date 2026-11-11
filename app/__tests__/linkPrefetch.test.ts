@@ -9,7 +9,7 @@ const nodePath = require("path");
  *
  * Next の `<Link>` は既定で「画面に入ったら先読み」。このサイトは静的書き出しで、
  * `deploy-static-site.js` は HTML も RSC の控え（`.txt`）も
- * **`no-cache, no-store` で配る**（`isHtmlOrTxt`）——**画面に出入りするたびに
+ * **`no-cache`（毎回たしかめる） で配る**（`isHtmlOrTxt`）——**画面に出入りするたびに
  * 行き先を丸ごと落とし直す**。
  *
  * 実測（`out/` を手元に配って1訪問ぶんを数えた。サーバが実際に書いたバイト）:

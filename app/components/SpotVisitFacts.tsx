@@ -136,7 +136,7 @@ const STATUS_EN = { allowed: "Allowed", prohibited: "Not allowed", conditional: 
  * 「記載なし」とも言わない（読んだ頁に無いことは、サイト全体に無いことではない・2026-11-11 確かめ役の指摘）。
  * ドローンには、法律の決まりがあるという一般の注意を必ず添える（公式に書いてあってもなくても）
  */
-export function VisitPhotoRules({ facts, isJa, head }: { facts: SpotVisitFacts; isJa: boolean; head: (id: string, title: string) => React.ReactNode }) {
+export function VisitPhotoRules({ facts, isJa, head, inJapan = true }: { facts: SpotVisitFacts; isJa: boolean; head: (id: string, title: string) => React.ReactNode; inJapan?: boolean }) {
     const r = facts.photoRules;
     if (!r) return null;
     const items = ([
@@ -167,9 +167,14 @@ export function VisitPhotoRules({ facts, isJa, head }: { facts: SpotVisitFacts; 
                     </ul>
                 )}
                 <p className="m-0 mt-2.5 text-white/55" style={{ fontSize: "12px", lineHeight: "17px" }} data-testid="photo-rule-drone-law">
-                    {isJa
-                        ? "ドローンは、施設の決まりとは別に、航空法と小型無人機等飛行禁止法の決まりがあります。"
-                        : "Apart from the site's own rules, drones are regulated in Japan by the Civil Aeronautics Act and the Small Unmanned Aircraft Flight Prohibition Act."}
+                    {/* 法律名は日本のスポットだけ。海外に日本の法律を出さない（#559 の確かめ） */}
+                    {inJapan
+                        ? isJa
+                            ? "ドローンは、施設の決まりとは別に、航空法と小型無人機等飛行禁止法の決まりがあります。"
+                            : "Apart from the site's own rules, drones are regulated in Japan by the Civil Aeronautics Act and the Small Unmanned Aircraft Flight Prohibition Act."
+                        : isJa
+                          ? "ドローンは、施設の決まりとは別に、その国・地域の法律の決まりがあります。"
+                          : "Apart from the site's own rules, drones are also subject to the laws of the country or region."}
                 </p>
                 <VisitSources rows={[r.tripod, r.selfieStick, r.drone, ...notes]} isJa={isJa} testId="spot-photo-rules-sources" />
             </div>

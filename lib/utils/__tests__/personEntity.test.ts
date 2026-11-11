@@ -160,3 +160,20 @@ describe("空白を詰めた別表記", () => {
         expect(p.name).toBe("丸田 竜平");
     });
 });
+
+// 2026-11-11 journey.photo-ios#525: ユーザー名で探されたときの同定材料
+describe("人の構造化データ: @ユーザー名", () => {
+    it("ユーザー名を alternateName に @ 付きで出す（空白を詰めた名前と並べる）", () => {
+        const p = personEntity({ id: "u1", displayName: "丸田 竜平", profile: { username: "ryuhei" } });
+        expect(p.alternateName).toEqual(["丸田竜平", "@ryuhei"]);
+    });
+
+    it("別名が1つなら今までどおり文字列", () => {
+        expect(personEntity({ id: "u1", displayName: "luzhj", profile: { username: "luzhj_01" } }).alternateName).toBe("@luzhj_01");
+        expect(personEntity({ id: "u1", displayName: "丸田 竜平" }).alternateName).toBe("丸田竜平");
+    });
+
+    it("決まりに合わないユーザー名は出さない", () => {
+        expect(personEntity({ id: "u1", displayName: "luzhj", profile: { username: "<x>" } }).alternateName).toBeUndefined();
+    });
+});
