@@ -96,18 +96,18 @@ async function pickOne() {
  */
 const savedTags = (v: string) => v.split(",").map((x) => x.trim()).filter(Boolean);
 
-// **ホームの「今日のテーマ」から来た投稿（`?tag=夜`）。** タグが入っていなければ、
+// **ホームの「今週のお題」から来た投稿（`?tag=夜`・前は今日のテーマ）。** タグが入っていなければ、
 // 入口を押しても何も起きないのと同じ（iOS の `MissionRouter.join` と同じ働き）
-describe("今日のテーマから来た投稿", () => {
+describe("今週のお題から来た投稿", () => {
     beforeEach(() => { search.value = "tag=夜"; });
 
-    it("テーマのタグが最初から入っている", async () => {
+    it("お題のタグが最初から入っている", async () => {
         await pickOne();
         const field = await screen.findByPlaceholderText("タグ（カンマ区切り）") as HTMLInputElement;
         await waitFor(() => expect(savedTags(field.value)).toEqual(["夜"]));
     });
 
-    it("テーマ以外の語は URL から入れない", async () => {
+    it("お題以外の語は URL から入れない", async () => {
         search.value = "tag=" + encodeURIComponent("知らない語");
         await pickOne();
         const field = await screen.findByPlaceholderText("タグ（カンマ区切り）") as HTMLInputElement;

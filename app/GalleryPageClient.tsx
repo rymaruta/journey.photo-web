@@ -16,6 +16,7 @@ import { GRID_SIZES_SEARCH, GRID_COLUMNS_SEARCH } from "./components/gridSizes";
 import GalleryModal from "./components/GalleryModal";
 import SearchParamWatcher from "./components/SearchParamWatcher";
 import { resolveShortPhotoId } from "@/lib/utils/shortPhotoLink";
+import { firstPostPhotoIds } from "@/lib/utils/homeFeed";
 import { usePhotos } from "../lib/hooks/usePhotos";
 import { useToast } from "../lib/hooks/useToast";
 import { useAuth } from "./auth/context";
@@ -243,6 +244,10 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
    * （静的HTML も新着のまま）。
    */
   const hasFeatured = React.useMemo(() => PHOTOS.some((p) => p.featured === true), [PHOTOS]);
+
+  /** **はじめての投稿**の写真（ホームの写真に印・iOS の `GalleryViewModel.firstPostIds`・札 journey.photo-ios#537 案1）。
+   *  公開の全件から数える。時刻で決まるので、印そのものは載ったあとにだけ出す（`HomeMosaic`） */
+  const firstPostIds = React.useMemo(() => firstPostPhotoIds(PHOTOS), [PHOTOS]);
 
   /**
    * いま絞り込んでいるか（タブ以外の条件）。
@@ -710,7 +715,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
           輪の列は未ログインでは何も描かない（`StoriesBar`・iOS の `StoriesRow` も同じ） */}
       {surface === "home" && <StoriesBar />}
 
-      {/* **上段のめくる札**（今日のテーマ・今日の一問・撮影スポット・2026-10-31 束 1 H2・iOS の `HomeTopCardView`）。
+      {/* **上段のめくる札**（今週のお題・今日の一問・撮影スポット・2026-10-31 束 1 H2・iOS の `HomeTopCardView`）。
           輪の列の下・切り替えの上（iOS と同じ）＝どのタブでも同じ位置。以前は文字だけの帯 3 本（`QuizEntry`・`SpotsEntry`・`ThemeEntry`） */}
       {surface === "home" && <HomeTopCards locale={locale === "en" ? "en" : "ja"} photos={PHOTOS} seasonal={seasonalSpots} />}
       {/* アプリのご案内（2026-11-06 owner「目立つところに」）。上段の札のすぐ下＝最初の画面の続きで目に入る位置 */}
@@ -805,6 +810,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
                   photos={filteredPhotos.slice(0, SEASON_SHELF_AFTER)}
                   locale={locale === "en" ? "en" : "ja"}
                   priorityCount={hasFeatured && !narrowedNow ? 0 : HOME_PRIORITY_COUNT}
+                  firstPostIds={firstPostIds}
                 />
                 {seasonalShelfShown && (
                   <div className="mt-4">
@@ -817,6 +823,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
                       photos={filteredPhotos.slice(SEASON_SHELF_AFTER)}
                       locale={locale === "en" ? "en" : "ja"}
                       priorityCount={0}
+                      firstPostIds={firstPostIds}
                     />
                   </div>
                 )}
@@ -837,6 +844,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
               photos={filteredPhotos}
               locale={locale === "en" ? "en" : "ja"}
               priorityCount={HOME_PRIORITY_COUNT}
+              firstPostIds={firstPostIds}
             />
           )}
         </HomeColumns></HomePanel>
