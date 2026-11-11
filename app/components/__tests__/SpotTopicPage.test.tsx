@@ -39,6 +39,22 @@ describe("SpotTopicPage", () => {
         expect(ld[1].numberOfItems).toBe(view.cards.length);
     });
 
+    it("テーマの頁（#527）: 導入文の下に国の一覧へのリンク・カードに撮り方のこつ（カードのリンクの中）", () => {
+        const view = themeView("churches", "it")!;
+        const { container } = render(<SpotTopicPage view={view} eyebrow="x" />);
+        const place = screen.getByTestId("topic-place-link");
+        expect(place.getAttribute("href")).toBe("/spots/area/overseas/it");
+        expect(place.textContent).toBe(`イタリアの撮影スポットをすべて見る（${view.placeLink!.count}件）`);
+        const tips = screen.getAllByTestId("topic-card-tip");
+        expect(tips).toHaveLength(view.cards.filter((c) => c.tip).length);
+        expect(tips[0].textContent).toBe(`撮り方　${view.cards[0].tip}`);
+        expect(tips[0].closest("a")?.getAttribute("href")).toBe(`/spots/${view.cards[0].slug}`);
+        expect(container.querySelectorAll("ul.grid > li")).toHaveLength(view.cards.length);
+        // 地方の頁には一覧の頁が無いので出さない
+        render(<SpotTopicPage view={themeView("temples-shrines", "kinki")!} eyebrow="x" />);
+        expect(screen.getAllByTestId("topic-place-link")).toHaveLength(1);
+    });
+
     it("写真のクレジットはカードの下に文字で出る（CC BY 系）", () => {
         const view = themeView("temples-shrines", "kinki")!;
         render(<SpotTopicPage view={view} eyebrow="x" />);

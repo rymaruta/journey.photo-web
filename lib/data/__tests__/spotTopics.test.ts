@@ -7,9 +7,11 @@ import {
     countryView, themeView, seasonView, overseasView, cityView, seasonThemeView, cityLinksForPrefecture,
     topicStructuredData, topicTitle, topicMetadata, topicLinksForSpot, spotIndexTopics,
     homeSeasonalSpots, seasonOfMonth, SEASON_TOP_CARDS, spotTopicSitemapEntries, themePath, seasonPath, areaIntro,
+    themeBreakdown, THEME_TITLE_MAX, THEME_DESCRIPTION_MAX,
 } from "../spotTopics";
 import { prefectureByName, OVERSEAS_SLUG } from "../prefectures";
 import { siteConfig, INDEXABLE_ROBOTS } from "../../utils/seo";
+import { titleWidth } from "../../utils/titleWidth";
 
 /**
  * **撮影スポットの切り口の頁（国・テーマ・季節）**（2026-10-11）。
@@ -122,7 +124,8 @@ describe("テーマ（カテゴリ × 地域）", () => {
         const v = themeView("temples-shrines", "kyoto")!;
         const n = shown.filter((s) => s.category === "寺社" && s.region?.prefecture === "京都府").length;
         expect(v.heading).toBe("京都府の寺社の撮影スポット");
-        expect(topicTitle(v)).toBe(`京都府の寺社の撮影スポット${n}選`);
+        // 2026-11-11（#527）: 題の後ろに載っている名所の名前（並びの先頭から・全角33以内）
+        expect(topicTitle(v).startsWith(`京都府の寺社の撮影スポット${n}選｜${v.cards[0].name}`)).toBe(true);
         expect(v.intro).toContain(`${n}件`);
         expect(v.intro).toContain(v.cards[0].name);
         // パンくずは県の一覧を通る
@@ -246,10 +249,12 @@ describe("説明（description）", () => {
         for (const v of [themeView("temples-shrines", "kyoto")!, countryView("fr")!, seasonView("autumn", "kinki")!, overseasView()]) {
             const d = topicMetadata(v).description!;
             expect(d).not.toContain("撮影ガイドつき");
-            expect(d.startsWith(v.intro.slice(0, 40))).toBe(true);
+            // テーマの頁は自分の説明（`themeDescription`・#527）。ほかは導入文の頭のまま
+            if (v.path.startsWith("/spots/theme/")) expect(d).toBe(v.description);
+            else expect(d.startsWith(v.intro.slice(0, 40))).toBe(true);
         }
-        const v = themeView("temples-shrines", "kyoto")!;
-        const n = shown.filter((s) => s.category === "寺社" && s.region?.prefecture === "京都府" && (s.timeOfDayGuide ?? []).length > 0).length;
+        const v = countryView("fr")!;
+        const n = shown.filter((s) => s.region?.country === "フランス" && (s.timeOfDayGuide ?? []).length > 0).length;
         if (n > 0) expect(v.descriptionExtra).toBe(`時間帯ごとの撮影の案内があるのは${n}件です。`);
         else expect(v.descriptionExtra).toBeUndefined();
     });
@@ -698,3 +703,84 @@ describe("県の頁の導入文（areaIntro・#527）", () => {
     });
 });
 
+
+describe("テーマの頁の題・説明・導入文（2026-11-11・#527 GSC: 8〜13位で押されていない）", () => {
+    const themes = themeTopics();
+    const views = themes.map((t) => themeView(t.categorySlug, t.place.slug)!);
+    const len = (t: string) => [...t].length;
+
+    it("題はサイト名を付けない完全な形（absolute）・全角33以内・載っている名所の名前を入れる", () => {
+        const v = themeView("churches", "it")!;
+        const m = topicMetadata(v);
+        // 以前は「イタリアの教会の撮影スポット54選 | Journey Photo 旅フォトギャラリー」（どの教会かが題に無い）
+        expect(m.title).toEqual({ absolute: `イタリアの教会の撮影スポット${v.cards.length}選｜${v.cards[0].name}ほか` });
+        expect((m.openGraph as { title?: string }).title).toBe(topicTitle(v));
+        for (const x of views) {
+            const t = topicTitle(x);
+            expect(t.startsWith(`${x.heading}${x.cards.length}選`), x.path).toBe(true);
+            // 名前が入らない長さのときは「見出し＋N選」だけ（それより短くは削らない）
+            if (t !== `${x.heading}${x.cards.length}選`) expect(titleWidth(t), `${x.path}: ${t}`).toBeLessThanOrEqual(THEME_TITLE_MAX);
+            expect(t, x.path).not.toMatch(/Journey Photo|撮りどき/);
+        }
+        // 名前の入った題が大半（全部が「N選」止まりなら組み方が効いていない）
+        expect(views.filter((x) => topicTitle(x).includes("｜")).length / views.length).toBeGreaterThan(0.8);
+    });
+
+    it("説明は名所の名前で始まり、件数・多い市（州・県）・案内の件数を数えた値で書く（決まり文句の2文を足さない）", () => {
+        const t = themes.find((x) => x.categorySlug === "churches" && x.place.slug === "it")!;
+        const v = themeView("churches", "it")!;
+        const d = topicMetadata(v).description as string;
+        expect(d.startsWith(`${v.cards[0].name}、${v.cards[1].name}、${v.cards[2].name}など、イタリアの教会の撮影スポット${t.spots.length}か所。`)).toBe(true);
+        const rome = t.spots.filter((s) => s.region?.city === "ローマ").length;
+        expect(rome).toBeGreaterThanOrEqual(2);
+        expect(d).toContain(`ローマ${rome}か所`);
+        const seasonal = t.spots.filter((s) => (s.seasonalGuide ?? []).length > 0).length;
+        expect(d).toContain(`${seasonal}か所に季節ごとの撮影の案内`);
+        // 以前の決まり文句
+        expect(d).not.toMatch(/うち\d+件は季節ごとの撮影の案内があります|時間帯ごとの撮影の案内があるのは/);
+        for (const x of views) {
+            const dx = topicMetadata(x).description as string;
+            expect(len(dx), x.path).toBeLessThanOrEqual(THEME_DESCRIPTION_MAX);
+            expect(dx, x.path).toMatch(/。$/);
+            expect(dx, x.path).not.toContain("撮りどき");
+        }
+        // 頁ごとに違う文（同じ説明の頁が2つ無い）
+        expect(new Set(views.map((x) => topicMetadata(x).description)).size).toBe(views.length);
+    });
+
+    it("内訳: 国は市と州・県のうち多く言える方、2件以上の所だけ（アメリカの火山はハワイ州）", () => {
+        const us = themes.find((x) => x.categorySlug === "volcanoes" && x.place.slug === "us")!;
+        const hawaii = us.spots.filter((s) => s.region?.prefecture === "ハワイ州").length;
+        expect(themeBreakdown(us)[0]).toEqual(["ハワイ州", hawaii]);
+        for (const t of themes) for (const [, k] of themeBreakdown(t)) expect(k).toBeGreaterThanOrEqual(2);
+        // 地方の頁は県ごと
+        const kinki = themes.find((x) => x.categorySlug === "old-townscapes" && x.place.slug === "kinki")!;
+        for (const [name] of themeBreakdown(kinki)) expect(name).toMatch(/[都道府県]$/);
+    });
+
+    it("導入文に、その組の台帳から数えた事実（季節ごと・撮り方のこつ・世界遺産の記述）を足す", () => {
+        const t = themes.find((x) => x.categorySlug === "churches" && x.place.slug === "it")!;
+        const v = themeView("churches", "it")!;
+        const autumn = t.spots.filter((s) => (s.seasonalGuide ?? []).some((g) => g.season === "autumn")).length;
+        expect(v.intro).toContain(`秋${autumn}件`);
+        const heritage = t.spots.filter((s) => /世界遺産/.test(`${s.summary ?? ""}${s.description ?? ""}`)).length;
+        if (heritage > 0) expect(v.intro).toContain(`「世界遺産」とあるのは${heritage}件`);
+        const tips = t.spots.filter((s) => (s.compositionTips ?? []).length > 0).length;
+        expect(v.intro).toContain(tips === t.spots.length ? "撮り方のこつは全件に" : `撮り方のこつは${tips}件に`);
+        // 組ごとに違う導入文
+        expect(new Set(views.map((x) => x.intro)).size).toBe(views.length);
+    });
+
+    it("カードに撮り方のこつ（台帳の compositionTips の1つ目）・国と県の一覧へのリンク", () => {
+        const t = themes.find((x) => x.categorySlug === "churches" && x.place.slug === "it")!;
+        const v = themeView("churches", "it")!;
+        const first = t.spots.find((s) => s.slug === v.cards[0].slug)!;
+        expect(v.cards[0].tip).toBe(first.compositionTips![0]);
+        expect(v.placeLink?.href).toBe("/spots/area/overseas/it");
+        expect(v.placeLink?.count).toBe(countryTopics().find((c) => c.code === "it")!.spots.length);
+        expect(themeView("temples-shrines", "kyoto")!.placeLink?.href).toBe("/spots/area/kyoto");
+        expect(themeView("temples-shrines", "kinki")!.placeLink).toBeUndefined();
+        // テーマの頁以外のカードには付けない（頁の重さを変えない）
+        expect(countryView("it")!.cards.some((c) => c.tip)).toBe(false);
+    });
+});

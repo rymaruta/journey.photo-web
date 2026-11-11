@@ -142,6 +142,12 @@ function Card({ c }: { c: TopicCard }) {
                     {c.summary && (
                         <p className="m-0 mt-1.5 text-white/75 line-clamp-2" style={{ fontSize: "13px", lineHeight: "20px" }}>{c.summary}</p>
                     )}
+                    {/* 撮り方のこつ（テーマの頁だけ・2026-11-11 #527）。概要と同じ大きさ・眉は真鍮（黒地の上） */}
+                    {c.tip && (
+                        <p className="m-0 mt-1.5 text-white/75 line-clamp-2" style={{ fontSize: "13px", lineHeight: "20px" }} data-testid="topic-card-tip">
+                            <span className="text-accent font-semibold">撮り方　</span>{c.tip}
+                        </p>
+                    )}
                 </div>
             </Link>
             {/* CC BY・CC BY-SA は作者とライセンスの表示が条件。写真の下・リンクの外（本文系の最小 12） */}
