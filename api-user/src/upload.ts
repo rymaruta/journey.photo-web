@@ -650,6 +650,9 @@ export const savePhoto: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
                 // 門（`photoUpdate.ts`）をすり抜けて共有中の実体を動かせ、
                 // `deleteMyPhoto` もストーリーを一緒に消さなくなる（レビューで指摘）
                 "keptFrom",
+                // 自分用に残したストーリーから写した写真の元（2026-11-11・`storyKeptMedia.ts`）。
+                // 落とすと「ストーリーから作った写真」の札と「一緒に消す」が消える
+                "fromStory",
                 // **「この写真を見て撮影」の通知の控え。** 落としても二重には送らない
                 // （正は別の文書 `inspiredNotif#…`）が、落とすと文書を引き直す分が増える
                 "inspiredNotified",
