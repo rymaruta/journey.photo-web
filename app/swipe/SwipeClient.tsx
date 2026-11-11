@@ -62,6 +62,8 @@ export default function SwipeClient() {
     const [dragging, setDragging] = React.useState(false);
     const [said, setSaid] = React.useState("");
     const [moved, setMoved] = React.useState<number | null>(null);
+    /** ログインして戻った回に移した鍵（山と足元の数に足す）。移し終えるまで null・移すものが無ければ [] */
+    const [movedKeys, setMovedKeys] = React.useState<string[] | null>(null);
     const reduceMotion = usePrefersReducedMotion();
 
     // 札の山（ビルドで書き出した小さな JSON）
@@ -86,8 +88,9 @@ export default function SwipeClient() {
     const handing = React.useRef(false);
     React.useEffect(() => {
         if (loading || !isAuthenticated || handing.current) return;
-        if (readSwipeWants().length === 0) return;
+        const before = readSwipeWants();
         handing.current = true;
+        if (before.length === 0) { setMovedKeys([]); return; }
         (async () => {
             const result = await handOffSwipeWants(async (key) => {
                 const res = await userFetch("/user/spots", {
@@ -97,6 +100,9 @@ export default function SwipeClient() {
                 });
                 return res.ok;
             });
+            const left = new Set(readSwipeWants());
+            // 移した鍵は、取り直す前のサーバーの一覧に無い——山と足元の数に足して作り直す（2026-11-11 確かめ役の指摘 10）
+            setMovedKeys(before.filter((k) => !left.has(k)));
             if (result.moved > 0) {
                 setMoved(result.moved);
                 saved.retry();
@@ -110,13 +116,13 @@ export default function SwipeClient() {
     // 山を作る（1回だけ）。ログイン中は「行きたい場所」の一覧が分かってから（入れた場所を出さない）
     React.useEffect(() => {
         if (deck !== null || load.state !== "ready" || loading) return;
-        if (isAuthenticated && saved.pending) return;
-        const wanted = new Set<string>(isAuthenticated ? saved.slugs : readSwipeWants());
+        if (isAuthenticated && (saved.pending || movedKeys === null)) return;
+        const wanted = new Set<string>(isAuthenticated ? [...saved.slugs, ...(movedKeys ?? [])] : readSwipeWants());
         const built = buildSwipeDeck(load.cards, wanted, new Set(readSwipeSeen()));
         if (built.restarted) resetSwipeSeen();
         setDeck(built.deck);
-        setWishCount(isAuthenticated ? saved.slugs.length : readSwipeWants().length);
-    }, [deck, load, loading, isAuthenticated, saved.pending, saved.slugs]);
+        setWishCount(isAuthenticated ? wanted.size : readSwipeWants().length);
+    }, [deck, load, loading, isAuthenticated, saved.pending, saved.slugs, movedKeys]);
 
     const current = deck && deck[decisions.length] ? deck[decisions.length] : null;
     const upcoming = deck && deck[decisions.length + 1] ? deck[decisions.length + 1] : null;
