@@ -114,29 +114,52 @@ describe("公開設定: 公開範囲は選ばせない", () => {
 });
 
 describe("公開設定: アーカイブに自動保存", () => {
-    // **既定は切**＝これまでどおり24時間で消える。残るのは本人が入にしたぶんだけ
-    it("既定は切で、その値は送らない", async () => {
-        await pickImage();
-        expect(screen.getByRole("switch", { name: "アーカイブに自動保存" })).toHaveAttribute("aria-checked", "false");
-        expect(await post()).not.toHaveProperty("archive");
-    });
-
-    it("入にすると archive: true を送る", async () => {
-        await pickImage();
-        await userEvent.click(screen.getByRole("switch", { name: "アーカイブに自動保存" }));
-        expect(screen.getByRole("switch", { name: "アーカイブに自動保存" })).toHaveAttribute("aria-checked", "true");
-        expect((await post()).archive).toBe(true);
-    });
-
-    // 残すと、次の投稿が黙ってアーカイブに残る（公開範囲と同じ理由で戻す）
-    it("閉じて選び直すと切に戻っている", async () => {
-        await pickImage();
-        await userEvent.click(screen.getByRole("switch", { name: "アーカイブに自動保存" }));
+    // 2026-11-11 判断（owner「最初からオンでいい」・iOS とそろえる）: **既定は入**、
+    // 最後に選んだ値を人ごとに覚える（`lib/utils/storyArchivePref.ts`）
+    const toggle = () => screen.getByRole("switch", { name: "アーカイブに自動保存" });
+    const reopen = async () => {
         await userEvent.click(screen.getByRole("button", { name: /キャンセル|閉じる/ }));
         const input = document.querySelector('input[type="file"]') as HTMLInputElement;
         await userEvent.upload(input, new File(["img2"], "b.jpg", { type: "image/jpeg" }));
         await screen.findByRole("button", { name: /ストーリーに投稿/ }, { timeout: 5000 });
-        expect(screen.getByRole("switch", { name: "アーカイブに自動保存" })).toHaveAttribute("aria-checked", "false");
+    };
+
+    it("初めては入で、archive: true を送る", async () => {
+        await pickImage();
+        expect(toggle()).toHaveAttribute("aria-checked", "true");
+        expect((await post()).archive).toBe(true);
+    });
+
+    it("切にすると archive を送らない", async () => {
+        await pickImage();
+        await userEvent.click(toggle());
+        expect(toggle()).toHaveAttribute("aria-checked", "false");
+        expect(await post()).not.toHaveProperty("archive");
+    });
+
+    // 一度切った人は、閉じて選び直しても切のまま（毎回切らせない）。覚えは人ごと
+    it("切を選んだ人は、閉じて選び直しても切のまま", async () => {
+        await pickImage();
+        await userEvent.click(toggle());
+        await reopen();
+        expect(toggle()).toHaveAttribute("aria-checked", "false");
+        expect(localStorage.getItem("jp_story_archive:me")).toBe("0");
+    });
+
+    it("入に戻した人は、次も入", async () => {
+        localStorage.setItem("jp_story_archive:me", "0");
+        await pickImage();
+        expect(toggle()).toHaveAttribute("aria-checked", "false");
+        await userEvent.click(toggle());
+        await reopen();
+        expect(toggle()).toHaveAttribute("aria-checked", "true");
+    });
+
+    // 🔴 前の人の「切」を次の人に使わない
+    it("別の人の覚えは使わない", async () => {
+        localStorage.setItem("jp_story_archive:someone-else", "0");
+        await pickImage();
+        expect(toggle()).toHaveAttribute("aria-checked", "true");
     });
 });
 

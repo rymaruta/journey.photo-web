@@ -128,14 +128,14 @@ describe("ストーリーをギャラリーに残す", () => {
         });
         view(own());
         await userEvent.click(await screen.findByLabelText("ギャラリーに残す"));
-        const link = await screen.findByText("仕上げる");
+        const link = await screen.findByText("写真にしました");
         expect(link.closest("a")?.getAttribute("href")).toBe("/user/edit?id=p-1");
     });
 
     // 既に残してあるストーリーを開き直したとき（サーバーが `keptAs` を返す）
     it("既に残してあれば、最初から導線を出す", async () => {
         view(own({ keptAs: "p-9" }));
-        const link = await screen.findByText("仕上げる");
+        const link = await screen.findByText("写真にしました");
         expect(link.closest("a")?.getAttribute("href")).toBe("/user/edit?id=p-9");
         expect(screen.queryByLabelText("ギャラリーに残す"), "残してあるのに押させている").toBeNull();
     });
@@ -164,7 +164,7 @@ describe("ストーリーをギャラリーに残す", () => {
         view(own());
         await userEvent.click(await screen.findByLabelText("ギャラリーに残す"));
         expect(await screen.findByRole("alert")).toBeInTheDocument();
-        expect(screen.queryByText("仕上げる"), "失敗したのに残したと出ている").toBeNull();
+        expect(screen.queryByText("写真にしました"), "失敗したのに残したと出ている").toBeNull();
     });
 
     // **応答を待っている間は進めない。** 進むと、残した手応えが別の1枚に出る
@@ -192,7 +192,7 @@ describe("ストーリーをギャラリーに残す", () => {
         // ——本番の Deploy Site を1回落とした当のもの（下の afterEach を見よ）
         await waitFor(() => expect(keepPosts()).toHaveLength(1));
         release();
-        await screen.findByText("仕上げる");
+        await screen.findByText("写真にしました");
     });
 
     // **実時間で待たない。** 以前はここで `setTimeout(30)` を挟んでいたが、
@@ -234,7 +234,7 @@ describe("ストーリーをギャラリーに残す", () => {
             // 判定とその後始末（`setKeeping(false)`）まで進める
             for (let i = 0; i < 10; i++) await Promise.resolve();
         });
-        expect(screen.queryByText("仕上げる"), "別の1枚に手応えが出ている").toBeNull();
+        expect(screen.queryByText("写真にしました"), "別の1枚に手応えが出ている").toBeNull();
     });
 });
 
@@ -324,7 +324,7 @@ describe("残すときに、一覧用のサムネも作って送る", () => {
         view(own());
         await userEvent.click(await screen.findByLabelText("ギャラリーに残す"));
         await waitFor(() => expect(keepPosts()).toHaveLength(1));
-        expect(await screen.findByText("仕上げる")).toBeInTheDocument();
+        expect(await screen.findByText("写真にしました")).toBeInTheDocument();
     });
 });
 
@@ -440,7 +440,7 @@ describe("残せなかったら、上げたサムネを捨てる", () => {
         view(own());
         await userEvent.click(await screen.findByLabelText("ギャラリーに残す"));
         await waitFor(() => expect(keepPosts()).toHaveLength(1));
-        await screen.findByText("仕上げる");
+        await screen.findByText("写真にしました");
         expect(discards(), "使われているサムネを消している").toHaveLength(0);
     });
 });
