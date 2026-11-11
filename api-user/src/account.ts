@@ -11,6 +11,7 @@ import { purgeDmFor } from "./dm";
 import { updateFollowersQuietly } from "./follow";
 import { requireEnv } from "./env";
 import { requestSiteRebuild } from "./rebuild";
+import { searchHiddenUrgentKey, urgentRowId } from "./rebuildKeys";
 import { deviceTokens, deviceOwnerId } from "./devices";
 import { isDeletedProfile } from "./types";
 import { albumKey, albumMemberKey, albumsOfUserKey } from "./invite";
@@ -706,6 +707,8 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         // 5. 自分の各ドキュメント（既知キー）
         await ddbDelete(PHOTOS_TABLE, { id: `notifs#${uid}` });
         await ddbDelete(PHOTOS_TABLE, { id: `followstats#${uid}` });
+        // 「検索エンジンに表示しない」の急ぎの再ビルドの印（`rebuild#hidden#<uid>`・#526）
+        await ddbDelete(PHOTOS_TABLE, { id: urgentRowId(searchHiddenUrgentKey(uid)) });
         // 自分をフォローしていた人の一覧。**自分の行なので消してよい**
         // （相手側の `following#<相手>` に自分が残るのは既知——
         //  `getUserFollowing` が `deleted: true` で伏せる）

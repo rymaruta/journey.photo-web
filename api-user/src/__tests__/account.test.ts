@@ -107,6 +107,8 @@ describe("deleteAccount", () => {
         expect(ids).toContain("p1");
         expect(ids).toContain("notifs#me");
         expect(ids).toContain("followstats#me");
+        // 「検索エンジンに表示しない」の急ぎの再ビルドの印（#526）も消す
+        expect(ids).toContain("rebuild#hidden#me");
         expect(ids).toContain("following#me");
         // **「行きたい場所」も消す**（`savedSpots.ts` の `spots#<uid>`）。
         // 決定的キーの自分の行で、本人しか読めない一覧なので、ここで

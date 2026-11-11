@@ -1,5 +1,6 @@
 import { updateMyProfile as updateMyProfileCore, setStaticChangeHook } from "./userProfile";
 import { requestSiteRebuild } from "./rebuild";
+import { searchHiddenUrgentKey } from "./rebuildKeys";
 
 /**
  * `PUT /user/profile` の Lambda の入口（serverless.yml の `updateMyProfile`）。
@@ -26,7 +27,7 @@ import { requestSiteRebuild } from "./rebuild";
  * 依頼をこのファイルに分けた理由は `userProfile.ts` の `setStaticChangeHook` の注記。
  */
 setStaticChangeHook((userId, { becameSearchHidden }) => becameSearchHidden
-    ? requestSiteRebuild(`profile hidden from search: ${userId}`, { urgentKey: `hidden#${userId}` })
+    ? requestSiteRebuild(`profile hidden from search: ${userId}`, { urgentKey: searchHiddenUrgentKey(userId) })
     : requestSiteRebuild(`profile updated: ${userId}`, { coalesce: true }));
 
 export const updateMyProfile = updateMyProfileCore;
