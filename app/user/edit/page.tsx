@@ -1253,7 +1253,7 @@ function EditContent() {
                     locale={isJa ? "ja" : "en"}
                     ownUserId={userId}
                     isAuthenticated
-                    onSeen={() => { /* 自分のストーリー。既読は要らない */ }}
+                    onSeen={() => undefined}
                     onClose={() => setSourceOpen(false)}
                 />
             )}
