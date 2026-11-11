@@ -224,7 +224,7 @@ describe("撮影スポットの一覧の頁の字と節（束 2）", () => {
         expect(h1.className).not.toContain("text-2xl");
         expect(screen.getByText(view.intro).style.fontSize).toBe("15px");
         if (view.related.length > 0) {
-            const h2 = screen.getAllByRole("heading", { level: 2 })[0];
+            const h2 = screen.getByRole("heading", { level: 2, name: view.related[0].heading });
             expect(h2.style.fontSize).toBe("22px");
         }
     });
@@ -234,7 +234,33 @@ describe("撮影スポットの一覧の頁の字と節（束 2）", () => {
         const { container } = render(<SpotTopicPage view={view} eyebrow="x" />);
         const card = container.querySelector("ul.grid > li > div > a")!;
         expect(card.querySelector("div.aspect-\\[16\\/10\\]")).toBeTruthy();
-        expect((card.querySelector("p.font-serif") as HTMLElement).style.fontSize).toBe("18px");
+        expect((card.querySelector("h2.font-serif") as HTMLElement).style.fontSize).toBe("18px");
+    });
+
+    // 2026-11-11（#527）: スポットの名前は見出し（h2）。h1 の下に段を飛ばさない
+    it("カードのスポット名は h2（切り口の頁・県の頁）", async () => {
+        const view = themeView("temples-shrines", "kyoto")!;
+        const { unmount } = render(<SpotTopicPage view={view} eyebrow="x" />);
+        const names = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+        for (const c of view.cards) expect(names, c.name).toContain(c.name);
+        expect(screen.queryAllByRole("heading", { level: 3 })).toHaveLength(0);
+        unmount();
+        const el = await SpotAreaPage({ params: Promise.resolve({ area: "kyoto" }) });
+        const { container } = render(el);
+        const cards = container.querySelectorAll('[data-testid="spot-card"]');
+        expect(cards.length).toBeGreaterThan(10);
+        for (const a of cards) expect(a.querySelector("h2")?.textContent, a.getAttribute("href") ?? "").toBeTruthy();
+    });
+
+    it("県の頁は件数の文の後ろに、その県の台帳から数えた導入文を出す（#527）", async () => {
+        const { areaIntro } = await import("@/lib/data/spotTopics");
+        const { visibleSpotsInArea } = await import("@/lib/data/spotLink");
+        const intro = areaIntro(visibleSpotsInArea("kyoto"));
+        expect(intro).toContain("種類は");
+        const el = await SpotAreaPage({ params: Promise.resolve({ area: "kyoto" }) });
+        render(el);
+        const p = screen.getByText((_, node) => node?.tagName === "P" && (node.textContent ?? "").includes(intro));
+        expect(p.textContent).toMatch(/^撮影スポットの案内です（\d+件）。/);
     });
 
     it("P1・P3・P5 県の頁: 題は明朝 32、戻り道は当たり 44", async () => {

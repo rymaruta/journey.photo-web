@@ -33,6 +33,8 @@ type Props = {
     area?: { name: string; nameEn: string };
     /** 格子の下・写真の出典の上に足す節（市区町村の段など。サーバーで描いたもの） */
     children?: React.ReactNode;
+    /** 件数の文の後ろに足す導入文（県の頁・台帳から数えた事実だけ・`areaIntro`）。日本語の表示のときだけ出す */
+    intro?: string;
 };
 
 /**
@@ -59,7 +61,9 @@ function SpotCard({ s, areaName, isJa }: { s: SpotIndexItem; areaName?: string; 
                               style={{ fontSize: "17px", lineHeight: "1.3" }}>{s.name}</span>
                     )}
                 </span>
-                <span className="block mt-2 font-serif font-bold text-white line-clamp-2 wrap-anywhere" style={{ fontSize: "18px", lineHeight: "24px" }}>{s.name}</span>
+                {/* 2026-11-11（#527）: 名前は見出し（h2）。h1 の下にほかの見出しが無く、h3 にすると段が飛ぶ。
+                    見た目は同じ（字の大きさ・太さは指定のまま・余白は m-0 で消す） */}
+                <h2 className="block m-0 mt-2 font-serif font-bold text-white line-clamp-2 wrap-anywhere" style={{ fontSize: "18px", lineHeight: "24px" }}>{s.name}</h2>
                 {(where || s.stage === "review") && (
                     <span className="block mt-0.5 truncate text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>
                         {s.stage === "review" && (isJa ? "下書き" : "Draft")}
@@ -77,7 +81,7 @@ function SpotCard({ s, areaName, isJa }: { s: SpotIndexItem; areaName?: string; 
     );
 }
 
-export default function SpotIndexClient({ spots, area, children }: Props) {
+export default function SpotIndexClient({ spots, area, children, intro }: Props) {
     const { locale } = useLocale();
     const isJa = locale !== "en";
     const [theme, setTheme] = React.useState<string | null>(null);
@@ -127,6 +131,7 @@ export default function SpotIndexClient({ spots, area, children }: Props) {
                     : (isJa
                         ? `撮影スポットの案内です（${spots.length}件${draftCount > 0 ? `・うち下書き${draftCount}件` : ""}）。写真の投稿がまだ無い場所も載っています。`
                         : `Photo spot guides (${spots.length}${draftCount > 0 ? `, ${draftCount} drafts` : ""}). Places with no photos yet are listed too.`)}
+                {isJa && intro}
             </p>
             )}
 
