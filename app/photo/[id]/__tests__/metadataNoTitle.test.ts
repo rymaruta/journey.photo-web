@@ -51,6 +51,16 @@ describe("題が無い写真のページ題", () => {
         });
     }
 
+    // 2026-11-11（札 journey.photo-ios#527）: 題も撮影地も無い写真は「写真」だけで、ほかの写真と区別が付かなかった
+    it("題も撮影地も無く、投稿者が分かる → 「<名前>さんの写真」（撮影地があれば今までどおり撮影地）", async () => {
+        for (const [, t] of NO_TITLES) {
+            expect(titles(await meta({ ...base, ...t, displayName: "luzhj" }))).toEqual(["luzhjさんの写真", "luzhjさんの写真", "luzhjさんの写真"]);
+            expect(titles(await meta({ ...base, ...t, displayName: "luzhj", location: "板橋区" }))).toEqual(["板橋区の写真", "板橋区の写真", "板橋区の写真"]);
+        }
+        // 題があれば題（投稿者は足さない）
+        expect((await meta({ ...base, title: { ja: "朝の湖" }, displayName: "luzhj" })).title).toBe("朝の湖");
+    });
+
     it("どの形でも「無題」「Untitled」を名乗らない（共有カードの alt も）", async () => {
         for (const [, t] of NO_TITLES) {
             for (const loc of [{}, { location: "板橋区" }]) {
