@@ -3,9 +3,7 @@ import { PutCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, PHOTOS_TABLE } from "./dynamodb";
 import { JSON_HEADERS, getUserId, jsonError } from "./http";
 import { updateUserList, readUserList } from "./userList";
-import { canViewPhoto } from "./restrictedFeed";
-import { isBlocked } from "./blockCheck";
-import { isRestrictedRow } from "./sanitize";
+import { readVisiblePhoto, isPhotoId } from "./photoVisibility";
 import { assertLiveCaller } from "./liveCaller";
 
 // 写真の「保存」（ブックマーク）。あとで見返すための、**自分だけの棚**。
@@ -61,7 +59,6 @@ const savesId = (uid: string) => `saves#${uid}`;
 const SAVED_MAX = 1000;
 
 /** 写真IDの形。uuid を要求せず、長さと文字種だけ見る（古い採番も通す） */
-const isPhotoId = (x: string) => x.length > 0 && x.length <= 128 && !x.includes("#");
 
 /**
  * 一覧を書き換える。**投げない**——書けたかどうかを返し、
@@ -103,37 +100,14 @@ function putMarker(photoId: string, userId: string) {
 }
 
 /**
- * その写真が**今このサイトに出ていて、この人に見せてよいか**。
- *
- * `likes.ts` の `readLikeCount` と同じ判定（`published` が無い古い行は
- * 公開扱い・ストーリーは対象外・`src` を持たない内部の文書は写真ではない）。
- * いいねは書き込みの `ConditionExpression` に畳み込めるが、保存には
- * 更新するカウンタが無いので、**1回 GetItem して確かめる**。
+ * その写真が**今このサイトに出ていて、この人に見せてよいか**。判定は `photoVisibility.ts` の1か所
+ * （DM で写真を送る口と共有・2026-11-11 判断）。
  *
  * これが無いと、IDさえ分かれば**他人の下書きを保存できる**——本人が
  * 非公開に戻した写真が、保存した人の棚に居座ることになる。
  */
 async function isVisiblePhoto(photoId: string, viewerId: string): Promise<boolean> {
-    const res = await ddb.send(new GetCommand({
-        TableName: PHOTOS_TABLE,
-        Key: { id: photoId },
-        ProjectionExpression: "src, published, story, userId, uploadedBy, audience",
-    }));
-    const item = res.Item as {
-        src?: unknown; published?: unknown; story?: unknown; userId?: unknown; uploadedBy?: unknown; audience?: unknown;
-    } | undefined;
-    if (!item?.src || item.published === false || item.story === true) return false;
-    // **公開範囲を絞った写真は、見せてよい相手だけが保存できる**（S-1）。
-    // 判定は一覧（`/feed/restricted`）と同じ `canViewPhoto`（ブロックも見る）
-    if (isRestrictedRow(item)) return canViewPhoto(item, viewerId);
-    // 🔴 **公開の写真も、持ち主にブロックされた人は保存できない**（2026-10-03）。
-    // `canViewPhoto` は公開の写真ではブロックを見ずに通すので、ここで見る。
-    // 判定はコメントの投稿・いいねと同じ「持ち主がこの人をブロックしているか」。
-    // 所有者は `userId ?? uploadedBy`（古い行は `uploadedBy` だけ・`likes.ts` と同じ）
-    const ownerRaw = item.userId ?? item.uploadedBy;
-    const owner = typeof ownerRaw === "string" ? ownerRaw : undefined;
-    if (owner && owner !== viewerId && await isBlocked(owner, viewerId)) return false;
-    return true;
+    return (await readVisiblePhoto(photoId, viewerId)) !== null;
 }
 
 /** マーカーが在るか（＝保存済みか）。判定はここ1つ */

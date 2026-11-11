@@ -15,6 +15,8 @@ import { readLiveCaller } from "./liveCaller";
 import { isReportReason, REPORT_NOTE_MAX } from "./report";
 import { isDeletedProfile } from "./types";
 import { storyQuotesFor, type StoryQuote } from "./dmStoryQuote";
+import { photoQuotesFor, type PhotoQuote } from "./dmPhotoQuote";
+import { readVisiblePhoto, isPhotoId } from "./photoVisibility";
 import {
     DM_CONVS_MAX, DM_REQUESTS_MAX, DM_INBOX_HARD_MAX, DM_DECLINED_MAX, slotCounts,
     DM_EXCERPT_MAX, dmInboxId, declinedAttr, readDmInbox, unreadConvCount,
@@ -66,8 +68,15 @@ const USERS_TABLE = requireEnv("USERS_TABLE");
 /**
  * 1通。`via: "story"` はストーリーへの返信から写した通で、`storyId` はそのストーリー
  * （2026-11-10 から書く。**それより前に写した通は持たない**）。
+ *
+ * `photoId` は送った写真（2026-11-11 から・札 #541）。**写真だけの通は `text` が空**——API に出すときは
+ * 古いアプリのために `text` を「写真を送りました」で埋め、`photoOnly: true` を添える（`shapeMessage`）。
+ * 新しい GSI・表は作らない（会話の本体の1通に欄を1つ足すだけ）。
  */
-export type DmMessage = { id: string; from: string; text: string; t: string; via?: "story"; storyId?: string };
+export type DmMessage = { id: string; from: string; text: string; t: string; via?: "story"; storyId?: string; photoId?: string };
+
+/** 写真だけの通の、抜粋と古いアプリ向けの本文（文字の無い吹き出しを出させない） */
+export const DM_PHOTO_TEXT = "写真を送りました";
 
 type ConvState = "inbox" | "request";
 
@@ -305,6 +314,8 @@ export type SendInput = {
     via?: "story";
     /** `via: "story"` のときの元のストーリー（通に残し、会話の引用札に使う） */
     storyId?: string;
+    /** 送る写真（2026-11-11・札 #541）。送る人に見せてよい写真だけ（`photoVisibility.ts`）。文字は無くてよい */
+    photoId?: unknown;
     /** 端末への知らせを送るか。ストーリー返信の写しは送らない（返信の通知が別に出る） */
     push: boolean;
     myName: string;
@@ -322,6 +333,11 @@ export type SendOk = {
 /** **理由コードも文面も、相手との関係で変えない**（1種類）。UI の文言は iOS 側で決める */
 const URL_REFUSED = "承認されるまではリンクを送れません";
 const REQUEST_LIMITED = `承認されるまでは${DM_REQUEST_MAX}通までです`;
+/**
+ * 承認前は写真も送れない（2026-11-11 判断・札 #541）。URL と同じ考え: 承認前の歯止めは「文字3通まで」で、
+ * 知らない人から絵が届く口を作らない（迷惑・不快な絵を見せない）。理由コードは関係で変えない
+ */
+const PHOTO_REFUSED = "承認されるまでは写真を送れません";
 
 const fail = (status: number, message: string, code?: string): SendFail => ({ ok: false, status, message, code });
 
@@ -335,7 +351,10 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     const to = typeof inp.to === "string" ? inp.to.toLowerCase() : "";
     if (!isUserId(me) || !isUserId(to) || to === me) return fail(400, "不正なリクエスト", "badRequest");
     const text = cleanDmText(inp.text);
-    if (!text) return fail(400, "メッセージを入力してください", "empty");
+    // 写真は ID の形だけ先に見る（見せてよいかは下で読む）。**欄があって形が違えば断る**（黙って文字だけにしない）
+    const photoId = inp.photoId === undefined || inp.photoId === null ? undefined : isPhotoId(inp.photoId) ? inp.photoId : null;
+    if (photoId === null) return fail(400, "不正なリクエスト", "badRequest");
+    if (!text && !photoId) return fail(400, "メッセージを入力してください", "empty");
     const msgId = typeof inp.id === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(inp.id) ? inp.id : uuidv4();
 
     // **ブロックされていたら 404**（ブロックと分かる応答は返さない）。自分がブロックした相手には、
@@ -346,6 +365,9 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     const gone = await deletedAmong([to]);
     if (gone.unread.size > 0) return fail(500, "送信に失敗しました");
     if (gone.deleted.has(to)) return fail(404, "相手が見つかりません", "notFound");
+    // 写真は**送る人に今見せてよい写真だけ**（下書き・非公開・範囲の外・持ち主にブロックされた人は送れない）。
+    // 受け取る人に見せるかは、読むたびに `dmPhotoQuote.ts` が受け取る人の目で決め直す
+    if (photoId && !await readVisiblePhoto(photoId, me)) return fail(404, "写真が見つかりません", "photoNotFound");
 
     const lo = me < to ? me : to;
     const hi = me < to ? to : me;
@@ -362,6 +384,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
         id: msgId, from: me, text, t: "",
         ...(inp.via ? { via: inp.via } : {}),
         ...(inp.via === "story" && typeof inp.storyId === "string" && inp.storyId ? { storyId: inp.storyId } : {}),
+        ...(photoId ? { photoId } : {}),
     };
 
     let followsRecipient: boolean | null = null;   // 自分が相手をフォローしているか（門）
@@ -405,6 +428,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
             nextState = "request";
             direct = autoInbox;
             if (containsUrl(text)) return fail(400, URL_REFUSED, "requestUrl");
+            if (photoId) return fail(400, PHOTO_REFUSED, "requestPhoto");
             // 断られたあとの再送でも、送った通数は戻らない（`dec_<送り主>`・直行の相手が消した場合も同じ）
             const prior = theirBox.declined[me] ?? 0;
             if (prior >= DM_REQUEST_MAX) return fail(429, REQUEST_LIMITED, "requestLimit");
@@ -413,6 +437,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
             direct = conv.direct === true;
             if (conv.initiator === me) {
                 if (containsUrl(text)) return fail(400, URL_REFUSED, "requestUrl");
+                if (photoId) return fail(400, PHOTO_REFUSED, "requestPhoto");
                 if (conv.reqCount >= DM_REQUEST_MAX) return fail(429, REQUEST_LIMITED, "requestLimit");
                 nextState = "request";
                 bumpReq = true;
@@ -486,7 +511,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     if (!after) return fail(409, "混み合っています。もう一度お試しください", "busy");
 
     // --- 受信箱（相手 → 自分）。**本体は入っているので、落ちたら 500 を返し、同じ id の再送で続きをやり直す** ---
-    const excerpt = truncate(text.replace(/\s+/g, " "), DM_EXCERPT_MAX);
+    const excerpt = truncate((text || DM_PHOTO_TEXT).replace(/\s+/g, " "), DM_EXCERPT_MAX);
     const requestOpen = after.state === "request";
     // 受け取る側の置き場所だけが違う（直行ならリクエストの棚に置かず、プッシュも出す）
     const theirState: DmEntryState = requestOpen && !after.direct ? "request" : "inbox";
@@ -634,10 +659,18 @@ const okJson = (body: unknown) => ({
  * API に出す1通。`storyId` を持つ通には、読む人から見た引用札（`story`・`dmStoryQuote.ts`）を
  * `quotes` から付ける（送信の応答は札を引かないので `storyId` だけ）
  */
-const shapeMessage = (m: DmMessage, me: string, quotes?: ReadonlyMap<string, StoryQuote>) => ({
-    id: m.id, from: m.from, mine: m.from === me, text: m.text, t: m.t, ...(m.via ? { via: m.via } : {}),
+const shapeMessage = (
+    m: DmMessage, me: string, quotes?: ReadonlyMap<string, StoryQuote>, photos?: ReadonlyMap<string, PhotoQuote>,
+) => ({
+    id: m.id, from: m.from, mine: m.from === me,
+    // 写真だけの通は、古いアプリに空の吹き出しを出させないよう本文を埋め、新しいアプリには `photoOnly` で知らせる
+    text: m.text || (m.photoId ? DM_PHOTO_TEXT : m.text),
+    t: m.t, ...(m.via ? { via: m.via } : {}),
     ...(m.storyId ? { storyId: m.storyId } : {}),
     ...(m.storyId && quotes?.get(m.storyId) ? { story: quotes.get(m.storyId) } : {}),
+    ...(m.photoId ? { photoId: m.photoId } : {}),
+    ...(m.photoId && !m.text ? { photoOnly: true } : {}),
+    ...(m.photoId && photos?.get(m.photoId) ? { photo: photos.get(m.photoId) } : {}),
 });
 
 // ---------------------------------------------------------------------------
@@ -694,10 +727,12 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
 
     const visible = visibleTo(conv, uid);
     const items = since ? visible.filter((m) => m.t > since) : visible;
-    const [peers, quotes] = await Promise.all([
+    const [peers, quotes, photos] = await Promise.all([
         peerInfos([peer]),
         // 返す通のうち、ストーリーへの返信から写した通だけ（無ければ読みに行かない）
         storyQuotesFor(uid, [pair.lo, pair.hi], items.flatMap((m) => (m.storyId ? [m.storyId] : []))),
+        // 送った写真の札（読む人の目で見せてよいか決め直す・無ければ読みに行かない）
+        photoQuotesFor(uid, items.flatMap((m) => (m.photoId ? [m.photoId] : []))),
     ]);
     const p = peers.get(peer) ?? fallbackPeer();
     const initiatorIsMe = conv.initiator === uid;
@@ -712,7 +747,7 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
         canSend: !p.deleted && remaining !== 0,
         ...(remaining !== undefined ? { requestRemaining: remaining } : {}),
         t: conv.updatedAt,
-        items: items.map((m) => shapeMessage(m, uid, quotes)),
+        items: items.map((m) => shapeMessage(m, uid, quotes, photos)),
     });
 }
 
@@ -896,7 +931,7 @@ async function reportConversation(uid: string, convId: string | undefined, body:
             convId, reporterId: uid, reportedId: peer,
             reason: body.reason,
             ...(note ? { note } : {}),
-            messages: last.map((m) => ({ id: m.id, from: m.from, text: m.text, t: m.t })),
+            messages: last.map((m) => ({ id: m.id, from: m.from, text: m.text, t: m.t, ...(m.photoId ? { photoId: m.photoId } : {}) })),
             createdAt: new Date().toISOString(),
         },
         // 条件は付けない。同じ人が押し直したら上書き（理由を選び直したい・直近の写しを新しくしたい）
@@ -1002,7 +1037,7 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
         if (route === "POST /dm") {
             return sendResult(await sendDm({
                 me: uid, to: String(body.to ?? ""), text: body.text, id: typeof body.id === "string" ? body.id : undefined,
-                push: true, myName,
+                photoId: body.photoId, push: true, myName,
             }));
         }
         if (route === "POST /dm/{id}/messages") {
@@ -1010,7 +1045,7 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
             if (!pair || (uid !== pair.lo && uid !== pair.hi)) return jsonError(404, "会話が見つかりません", "notFound");
             return sendResult(await sendDm({
                 me: uid, to: uid === pair.lo ? pair.hi : pair.lo, text: body.text, id: typeof body.id === "string" ? body.id : undefined,
-                push: true, myName,
+                photoId: body.photoId, push: true, myName,
             }));
         }
         return jsonError(404, "見つかりません");
