@@ -19,6 +19,7 @@ import { clearSharedPayload } from "../../lib/utils/shareStore";
 import { forgetUploadDraftOnSignOut } from "../../lib/utils/uploadDraft";
 import { clearSeenStories, setSeenStoriesUser, removeSeenStoriesUserData } from "../../lib/stories";
 import { setFavoritesUser, removeFavoritesUserData } from "../../lib/hooks/useFavorites";
+import { removeStoryArchiveUserData } from "../../lib/utils/storyArchivePref";
 
 /**
  * アカウントを離れるとき（ログアウト・退会）に、端末に残る
@@ -476,6 +477,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             // ハート一覧を端末に残さない
             if (deletedUserId) removeFavoritesUserData(deletedUserId);
             if (deletedUserId) removeSeenStoriesUserData(deletedUserId);
+            // ストーリーの「アーカイブに自動保存」の覚え（2026-11-11）
+            if (deletedUserId) removeStoryArchiveUserData(deletedUserId);
             markResolved(false, false);
             setAuthState({
                 isAuthenticated: false,
