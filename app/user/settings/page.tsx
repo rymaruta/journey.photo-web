@@ -62,6 +62,7 @@ import {
 import BlockedUsers from "./BlockedUsers";
 import CloseFriends from "./CloseFriends";
 import LightAlertSettings from "./LightAlertSettings";
+import SearchHiddenSetting from "./SearchHiddenSetting";
 
 export default function SettingsPage() {
     const { isAuthenticated, loading, deleteAccount, userId } = useAuth();
@@ -524,6 +525,8 @@ export default function SettingsPage() {
                     {/* 親しい友達（iOS の設定の「プライバシー」と同じ場所）。
                         公開範囲を「親しい友達」にした写真を見られる人を選ぶ */}
                     {userId && <CloseFriends locale={locale as "ja" | "en"} userId={userId} />}
+                    {/* 2026-11-11 owner 承認（journey.photo-ios#526）。既定はオフ＝表示する */}
+                    <SearchHiddenSetting locale={locale === "en" ? "en" : "ja"} />
                     <div className={cardClass}>
                         {/* **在るものだけ並べる。** この2つは実在するページ
                             （`app/privacy` / `app/terms`）。同じ節に「広告の

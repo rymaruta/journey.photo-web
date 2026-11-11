@@ -18,7 +18,7 @@ import { MusicProvider } from "./music/MusicContext";
 import MiniPlayer from "./components/MiniPlayer";
 import BottomNav from "./components/BottomNav";
 import { LocaleProvider } from "./i18n/context";
-import { siteConfig, generateWebSiteStructuredData, INDEXABLE_ROBOTS, FEED_ALTERNATE, shareOgImage, shareImageUrl } from "../lib/utils/seo";
+import { siteConfig, generateWebSiteStructuredData, generateOrganizationStructuredData, INDEXABLE_ROBOTS, FEED_ALTERNATE, shareOgImage, shareImageUrl } from "../lib/utils/seo";
 
 // Instagram IAB / iOS Safari でブラウザUIを除いた実際の表示領域を使う
 // viewportFit=cover でノッチ・ホームインジケーター領域の safe-area-inset を有効化
@@ -118,6 +118,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const webSiteStructuredData = generateWebSiteStructuredData();
+  // サイトの運営者（Organization）。**全ページに出す**（2026-11-11 判断 journey.photo-ios#525。
+  // 前はトップだけで、別のサービスと混ぜて説明されていた）。WebSite の publisher が @id で指す
+  const organizationStructuredData = generateOrganizationStructuredData();
   
   return (
     // **`data-scroll-behavior="smooth"` は Next 16 への合図。** `globals.css` が
@@ -150,6 +153,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(webSiteStructuredData).replace(/</g, "\\u003c").replace(/>/g, "\\u003e") }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationStructuredData).replace(/</g, "\\u003c").replace(/>/g, "\\u003e") }}
         />
         {/*
           アセット読み込み失敗からの自己修復（インライン版）。

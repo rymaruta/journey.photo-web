@@ -74,7 +74,9 @@ const services = [
     // 厳密に1つにするなら savePhoto を別ファイルへ切り出す（未着手）。
     {
         name: "api-user", dir: "api-user",
-        expected: ["presignedUrl", "savePhoto", "discardUpload", "updatePhotoVisibility", "deleteMyPhoto", "deleteAccount"],
+        // updateMyProfile はプロフィールの名前・@ユーザー名などが変わったら頼む
+        // （2026-11-11 journey.photo-ios#525。入口は src/profileUpdate.ts）
+        expected: ["presignedUrl", "savePhoto", "discardUpload", "updatePhotoVisibility", "deleteMyPhoto", "deleteAccount", "updateMyProfile"],
         // timeout を広げなくてよい例外（自分では `requestSiteRebuild` を呼ばず、
         // savePhoto と同じファイルに居るだけ）
         notDispatching: ["presignedUrl", "discardUpload"],

@@ -451,8 +451,12 @@ const OWNER_CHIP_IDLE =
  *   出ているのに**本文には1文字も無かった**。索引に載るページで、しかも
  *   本人が書いた唯一の自己記述なので、ここに出す価値がいちばん高い。
  *   **`/users?id=` のクエリ版は渡さない**（あちらはビルド時に相手が決まらない）。
+ * @param initialUsername ビルド時に分かっているユーザー名（`@` 無し。`/users/<id>` だけが渡す）。
+ *   2026-11-11 判断（journey.photo-ios#525）: 「<ユーザー名> journey photo」で探されたときに
+ *   当たるよう、**JS が走る前の本文に `@ユーザー名` を出す**。それまでは API を読んだあとにしか
+ *   出ず、本番の最初の HTML に1回も無かった。扱いは `initialBio` と同じ「届くまでの控え」。
  */
-export default function UserProfileClient({ userId, initialBio }: { userId: string; initialBio?: string }) {
+export default function UserProfileClient({ userId, initialBio, initialUsername }: { userId: string; initialBio?: string; initialUsername?: string }) {
     const { locale } = useLocale();
     const { showToast } = useToast();
 
@@ -1072,6 +1076,8 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
      * 出るだけ」、他方は「条件が偽で出ない」で、どちらも文字として現れない。
      */
     const shownBio = userProfile ? userProfile.bio : initialBio;
+    /** 画面に出すユーザー名。自己紹介と同じく「届くまでの間だけ控え」（消した人に古い名前を残さない） */
+    const shownUsername = userProfile ? userProfile.username : initialUsername;
 
     const pinnedPhotoIds = useMemo(() => userProfile?.pinnedPhotoIds ?? [], [userProfile?.pinnedPhotoIds]);
     const togglePin = useCallback(async (photoId: string, pin: boolean) => {
@@ -1469,7 +1475,7 @@ export default function UserProfileClient({ userId, initialBio }: { userId: stri
                                     />
                                 </h1>
                                 <ProfileHandleLine
-                                    username={userProfile?.username}
+                                    username={shownUsername}
                                     homeLocation={userProfile?.homeLocation}
                                     locale={locale === "en" ? "en" : "ja"}
                                     className="mt-0.5"

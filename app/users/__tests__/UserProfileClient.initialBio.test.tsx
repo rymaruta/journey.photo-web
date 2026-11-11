@@ -70,3 +70,29 @@ describe("ビルド時の自己紹介を、届く前に出す", () => {
         expect(document.body.textContent).not.toContain("ビルド時の自己紹介");
     });
 });
+
+/**
+ * **ユーザー名も、届く前に出す**（2026-11-11 journey.photo-ios#525）。
+ * 「<ユーザー名> journey photo」で探されたときに当たるよう、最初の HTML に
+ * `@ユーザー名` を入れる。本番では API を読んだあとにしか出ず、最初の HTML に
+ * 1回も無かった（`ryuhei` の頁を curl で確認）。
+ */
+describe("ビルド時のユーザー名を、届く前に出す", () => {
+    it("応答が返る前でも @ユーザー名 が出る", async () => {
+        render(<UserProfileClient userId="someone" initialUsername="ryuhei" />);
+        expect((await screen.findByTestId("profile-handle")).textContent).toBe("@ryuhei");
+    });
+
+    it("ユーザー名を消した人には、古い控えを出さない", async () => {
+        profileResponse.current = { userId: "someone", displayName: "誰か" };
+        render(<UserProfileClient userId="someone" initialUsername="old_name" />);
+        await waitFor(() => expect(document.body.textContent).toContain("誰か"));
+        expect(document.body.textContent, "消したはずのユーザー名が残っている").not.toContain("@old_name");
+    });
+
+    it("届いたユーザー名で置き換わる", async () => {
+        profileResponse.current = { userId: "someone", displayName: "誰か", username: "new_name" };
+        render(<UserProfileClient userId="someone" initialUsername="old_name" />);
+        await waitFor(() => expect(screen.getByTestId("profile-handle").textContent).toBe("@new_name"));
+    });
+});
