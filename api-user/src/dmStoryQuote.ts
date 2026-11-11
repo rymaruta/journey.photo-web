@@ -3,6 +3,8 @@ import { ddb, PHOTOS_TABLE } from "./dynamodb";
 import { isFollowing } from "./followCheck";
 import { closeFriendOwnersAmong, isCloseFriendsStory } from "./storyAudience";
 import { isStoryExpired } from "./storyExpiry";
+import { hiddenUserIds } from "./blockCheck";
+import { unviewableSharedPhotos } from "./storyPhotoShare";
 
 /**
  * DM の会話に出す「ストーリーへの返信」の引用札（2026-11-10 判断・iOS の DM 画面の
@@ -27,6 +29,10 @@ import { isStoryExpired } from "./storyExpiry";
  *   - ブロックは呼ぶ側（`getConversation`）が会話ごと 404 にしている（両向き）
  *   - 投稿者が会話の2人のどちらでもない行は `ended`（`storyId` はサーバーが書く値だが、念のため）
  *   - **読めなかったら `ended`**（見せない側に倒す。フォローの門と同じ）
+ *   - **写真を紹介したストーリー（`sharedPhotoId`）は、紹介した写真をいま見る人が見られる間だけ**
+ *     （`getStories` と同じ `unviewableSharedPhotos`・2026-11-11 #541）。絵に写真が写っているので、
+ *     持ち主が非公開・削除・退会・ブロックしたあとも DM の札に写真が出続けないようにする。
+ *     紹介した本人には一覧と同じく出す。見る人のブロック一覧・写真が読めなければ `ended`
  *
  * **動画は絵を返さない**（ストーリーの行に止め絵・縮小版が無い。動画の URL をサムネイルの欄に
  * 入れると、画面が動画を丸ごと読みに行く）。**縮小版は無い**——写真も一覧と同じ原寸の `src`。
@@ -40,7 +46,7 @@ export type StoryQuote =
 
 type StoryRow = {
     id?: unknown; story?: unknown; userId?: unknown; uploadedBy?: unknown; src?: unknown;
-    mediaType?: unknown; expiresAt?: unknown; archivedAt?: unknown; audience?: unknown;
+    mediaType?: unknown; expiresAt?: unknown; archivedAt?: unknown; audience?: unknown; sharedPhotoId?: unknown;
 };
 
 const ended = (id: string): StoryQuote => ({ id, state: "ended" });
@@ -51,11 +57,13 @@ const errName = (e: unknown) => (e as { name?: string })?.name ?? "Error";
 /**
  * `viewer` から見た引用札を、ストーリー ID ごとに返す。`participants` は会話の2人。
  * **投げない**（読めなければ全部 `ended`）。上限を越えた古いストーリーは Map に入れない（札なし）。
+ * `viewerHidden` は見る人のブロック一覧（`hiddenUserIds`・呼ぶ側が読んでいれば渡す。無ければここで読む）。
  */
 export async function storyQuotesFor(
     viewer: string,
     participants: readonly [string, string],
     storyIds: readonly string[],
+    viewerHidden?: ReadonlySet<string>,
 ): Promise<Map<string, StoryQuote>> {
     const out = new Map<string, StoryQuote>();
     // **最後に出てきた順**に並べる（古いストーリーでも最近返信があれば新しい側に来る。上限で落とすのは古い側）
@@ -80,10 +88,11 @@ export async function storyQuotesFor(
             const res = await ddb.send(new GetCommand({
                 TableName: PHOTOS_TABLE,
                 Key: { id },
-                ProjectionExpression: "#id, #story, #uid, #up, #src, #mt, #exp, #arc, #aud",
+                ProjectionExpression: "#id, #story, #uid, #up, #src, #mt, #exp, #arc, #aud, #sp",
                 ExpressionAttributeNames: {
                     "#id": "id", "#story": "story", "#uid": "userId", "#up": "uploadedBy", "#src": "src",
                     "#mt": "mediaType", "#exp": "expiresAt", "#arc": "archivedAt", "#aud": "audience",
+                    "#sp": "sharedPhotoId",
                 },
             }));
             if (res.Item) rows.set(id, res.Item as StoryRow);
@@ -118,6 +127,22 @@ export async function storyQuotesFor(
         return p;
     };
 
+    // 紹介した写真の門（見る人が紹介した本人でない行だけ）。見る人のブロック一覧は1回だけ読む
+    const sharedRows = targets
+        .map((id) => rows.get(id))
+        .filter((r): r is StoryRow => !!r && typeof r.sharedPhotoId === "string" && r.sharedPhotoId.length > 0
+            && String(r.userId ?? r.uploadedBy ?? "") !== viewer);
+    let lostShared: Set<string> | "unread" = new Set();
+    if (sharedRows.length > 0) {
+        try {
+            lostShared = await unviewableSharedPhotos(sharedRows as Record<string, unknown>[],
+                viewerHidden ?? await hiddenUserIds(viewer));
+        } catch (e) {
+            console.error("storyQuotesFor: 紹介した写真を確かめられませんでした:", errName(e));
+            lostShared = "unread";
+        }
+    }
+
     await Promise.all(targets.map(async (id) => {
         const row = rows.get(id);
         if (!row || row.story !== true) return;
@@ -128,6 +153,9 @@ export async function storyQuotesFor(
             if (!await follows(owner)) return;
             // 見せる範囲の判定は `canViewStoryAudience` と同じ（本人は上で通した・全員向けは名簿を読まない）
             if (isCloseFriendsStory(row) && !await inCloseFriends(owner)) return;
+            const shared = row.sharedPhotoId;
+            if (typeof shared === "string" && shared.length > 0
+                && (lostShared === "unread" || lostShared.has(shared))) return;
         }
         const mediaType = row.mediaType === "video" ? "video" : "image";
         const src = mediaType === "image" && typeof row.src === "string" && row.src ? row.src : undefined;

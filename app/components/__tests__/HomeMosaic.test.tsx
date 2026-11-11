@@ -179,4 +179,17 @@ describe("HomeMosaic", () => {
         expect(said.className.split(/\s+/)).toContain("sr-only");
         expect(tiles(container)[0].querySelector(".tabular-nums")!.getAttribute("aria-hidden")).toBe("true");
     });
+
+    it("はじめての投稿の印（札 journey.photo-ios#537 案1）: 渡した写真だけに出て、読み上げの名前にも入る。静的 HTML には焼かない", () => {
+        const photos = ["a", "b", "c"].map((i) => photo(i));
+        const { container } = render(<HomeMosaic photos={photos} locale="ja" firstPostIds={new Set(["b"])} />);
+        const marks = container.querySelectorAll('[data-testid="home-first-post"]');
+        expect(marks.length).toBe(1);
+        const [, b, c] = tiles(container);
+        expect(b.contains(marks[0])).toBe(true);
+        expect(nameOf(b)).toContain("はじめての投稿");
+        expect(nameOf(c)).not.toContain("はじめての投稿");
+        // 時刻で決まるので、サーバーで描いた HTML には出さない（水和が食い違わない）
+        expect(renderToString(<HomeMosaic photos={photos} locale="ja" firstPostIds={new Set(["b"])} />)).not.toContain("はじめての投稿");
+    });
 });

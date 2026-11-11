@@ -33,12 +33,15 @@ type Props = {
     /** 最初に読む枚数（`loading="eager"`）。既定は大きい1枚＋最初の2枚の段＝3枚
      *  （2枚だと同じ段の右だけ遅れて出る）。`fetchPriority="high"` と先読みは先頭の1枚だけ */
     priorityCount?: number;
+    /** **はじめての投稿**の写真の id（`firstPostPhotoIds`・iOS の `HomeFeedTile.isFirstPost`・札 journey.photo-ios#537 案1）。
+     *  時刻で決まるので、印は載ったあとにだけ出す（静的 HTML に焼かない） */
+    firstPostIds?: ReadonlySet<string>;
 };
 
 /** 段どうし・段の中の隙間（板: 4px） */
 const GAP = 4;
 
-export default function HomeMosaic({ photos, locale, priorityCount = 3 }: Props) {
+export default function HomeMosaic({ photos, locale, priorityCount = 3, firstPostIds }: Props) {
     // 大きい段かどうかを**何番目か**で引く（並びそのものは `editorialRows` が決める・`editorialLargeIndexes`）
     const large = React.useMemo(() => editorialLargeIndexes(photos), [photos]);
     return (
@@ -48,7 +51,8 @@ export default function HomeMosaic({ photos, locale, priorityCount = 3 }: Props)
         <ol className="-mx-4 sm:mx-0 grid grid-cols-2 m-0 p-0" style={{ gap: GAP, listStyle: "none" }}>
             {photos.map((p, i) => (
                 <li key={p.id} className={`m-0 p-0 ${large.has(i) ? "col-span-2" : ""}`}>
-                    <HomeTile photo={p} locale={locale} large={large.has(i)} priority={i < priorityCount} lcp={i === 0 && priorityCount > 0} />
+                    <HomeTile photo={p} locale={locale} large={large.has(i)} priority={i < priorityCount} lcp={i === 0 && priorityCount > 0}
+                              firstPost={!!firstPostIds?.has(String(p.id))} />
                 </li>
             ))}
         </ol>
@@ -65,8 +69,10 @@ function useAfterHydration(): boolean {
 }
 
 /** ホームの1枚。写真・撮影地と撮った人の重ね・右下のいいねの数・複数枚の印 */
-function HomeTile({ photo, locale, large = false, priority = false, lcp = false }: {
+function HomeTile({ photo, locale, large = false, priority = false, lcp = false, firstPost = false }: {
     photo: Photo; locale: Locale; large?: boolean; priority?: boolean;
+    /** その人の**はじめての投稿**か（72 時間だけ）。左上に印を出す */
+    firstPost?: boolean;
     /** 先頭の1枚（スマホの LCP）。これだけ `fetchPriority="high"` と `<head>` の先読みを付ける */
     lcp?: boolean;
 }) {
@@ -139,6 +145,17 @@ function HomeTile({ photo, locale, large = false, priority = false, lcp = false 
                     {/* 撮影地が無い写真は名前を重ねない（iOS と同じ）が、**誰の写真かは読ませる** */}
                     <span className="sr-only">{byline}</span>
                 </>
+            )}
+
+            {/* **はじめての投稿**の印（iOS の `HomeFeedTile.firstPostMark`・札 journey.photo-ios#537 案1・2026-11-11）。
+                初めて載せた人の1枚に、見る人が気づいて反応を返せるように。押すものではない。写真の上なので白だけ
+                （地は右下のいいねの丸と同じ黒 55%・字は 12px）。見える文字がそのまま読み上げの名前に入る。
+                時刻で決まるので載ったあとにだけ出す（`hydrated`） */}
+            {firstPost && hydrated && (
+                <span data-testid="home-first-post" className="absolute inline-flex items-center rounded-full text-white bg-black/55 font-semibold pointer-events-none whitespace-nowrap"
+                      style={{ top: 8, left: 8, height: 24, padding: "0 8px", fontSize: "12px", lineHeight: "16px" }}>
+                    <span className="sr-only">{isJa ? "、" : ", "}</span>{isJa ? "はじめての投稿" : "First post"}
+                </span>
             )}
 
             {/* 複数枚の印（板: 右上の重なった四角） */}

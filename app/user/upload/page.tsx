@@ -25,7 +25,7 @@ import { unstrippableMessage, gifRejectedLabel } from "../../../lib/utils/upload
 import { usablePhotoRows } from "../../../lib/utils/apiRows";
 import type { Photo } from "../../../lib/data/photos";
 import MemberOnlyNotice from "../../components/MemberOnlyNotice";
-import { readThemeTag } from "../../../lib/utils/dailyTheme";
+import { readThemeTag } from "../../../lib/utils/weeklyTheme";
 import { collectOwnValues, toggleTag, hasTag, suggestTags, dropFragment, splitTags, TAG_SEPARATOR, type OwnValues } from "../../../lib/utils/ownValues";
 import { tagKey } from "../../../lib/utils/collections";
 import { presignAndPut } from "../../../lib/utils/uploadToS3";
@@ -310,8 +310,8 @@ function UploadPageInner() {
     const [audience, setAudience] = useState<Audience>("everyone");
     const [tags, setTags] = useState("");
     /**
-     * **ホームの「今日のテーマ」から来た**（`?tag=夜`）。そのタグを入れておく（iOS の
-     * `MissionRouter.join` と同じ）。テーマのタグ以外は `readThemeTag` が捨てる。
+     * **ホームの「今週のお題」から来た**（`?tag=夜`・前は今日のテーマ）。そのタグを入れておく（iOS の
+     * `MissionRouter.join` と同じ）。お題のタグ以外は `readThemeTag` が捨てる。
      * 入っていれば何もしない（押し直しで外さない）。外すのは人がチップで
      */
     const themeTag = readThemeTag(searchParams?.get("tag"));
