@@ -11,6 +11,8 @@ import { useLocale } from "../../i18n/context";
 import { useToast } from "../../../lib/hooks/useToast";
 import { ArrowLeftIcon, PhotoIcon, ExclamationTriangleIcon } from "@heroicons/react/24/outline";
 import type { Photo, LocalizedParagraphs } from "@/lib/data/photos";
+import { sourceStoryIdOf, findOwnStory, type Story } from "@/lib/stories";
+import StoryViewer from "../../components/stories/StoryViewer";
 import { log } from "../../../lib/utils/log";
 import { ROUTES } from "../../../lib/routes";
 import { toastWithStaticPage } from "../../../lib/utils/staticPage";
@@ -222,7 +224,7 @@ function EditContent() {
      *  **`--bottom-bar-h` には書かない**——書き手が2人になると、あとから
      *  描いた方の高さで `MiniPlayer` が浮く（この画面が書き手の2人目だった） */
     const pageBarRef = usePageBarHeight();
-    const { isAuthenticated, isAdminUser, isGeneralUser, loading } = useAuth();
+    const { isAuthenticated, isAdminUser, isGeneralUser, loading, userId } = useAuth();
     const router = useRouter();
     const searchParams = useSearchParams();
     const { locale } = useLocale();
@@ -248,6 +250,12 @@ function EditContent() {
     showToastRef.current = showToast;
 
     const [photo, setPhoto] = useState<Photo | null>(null);
+    /**
+     * この写真を作った元のストーリー（2026-11-11 判断・owner「関係を明確にして」）。
+     * `id` だけ在ってストーリーが無い（消えた）ときは札を文字だけにし、消す確認も今までどおり
+     */
+    const [sourceStory, setSourceStory] = useState<{ id: string; story: Story | null } | null>(null);
+    const [sourceOpen, setSourceOpen] = useState(false);
     const [loadingPhoto, setLoadingPhoto] = useState(true);
     // 読み込みに失敗したか。トーストは数秒で消えるので、画面にも残す。
     const [loadFailed, setLoadFailed] = useState(false);
@@ -422,12 +430,14 @@ function EditContent() {
      * できるのは非公開にすることだけで、S3 の実体（GPS 入りの原本を含む）は
      * 残っていた。サーバー側は DELETE /photos/{id}（api-user）。
      */
-    const handleDelete = useCallback(async () => {
+    const handleDelete = useCallback(async (withStory?: "1" | "0") => {
         if (!photoId) return;
         setDeleting(true);
         try {
             const { userFetch, readApiError } = await import("../../../lib/utils/api");
-            const res = await userFetch(`/photos/${encodeURIComponent(photoId)}`, { method: "DELETE" });
+            // 元のストーリーがあるときは「一緒に消す（1）」「写真だけ（0）」を必ず送る（2026-11-11）
+            const q = withStory ? `?withStory=${withStory}` : "";
+            const res = await userFetch(`/photos/${encodeURIComponent(photoId)}${q}`, { method: "DELETE" });
             if (!res.ok) {
                 // サーバーは理由を返す（「画像の削除を完了できませんでした」など）。
                 // 押し直せば続きから消えるので、そう読める文言のまま出す。
@@ -532,6 +542,16 @@ function EditContent() {
         return Object.keys(changed).length > 0;
     }, [original, coordsTouched, date, buildFields]);
     useEffect(() => { dirtyRef.current = dirty; }, [dirty]);
+
+    // 元のストーリーを探す（いま出ている → 自分用に残した棚）。見つからなければ札は文字だけ
+    const sourceId = sourceStoryIdOf(photo);
+    useEffect(() => {
+        if (!sourceId) { setSourceStory(null); return; }
+        let alive = true;
+        setSourceStory({ id: sourceId, story: null });
+        void findOwnStory(sourceId).then((story) => { if (alive) setSourceStory({ id: sourceId, story }); });
+        return () => { alive = false; };
+    }, [sourceId]);
 
 
     // 認証ゲート（一般ユーザー or 管理者）。upload ページと同じ方針。
@@ -824,6 +844,24 @@ function EditContent() {
                         {isDraft ? (isJa ? "下書きを編集" : "Edit draft") : (isJa ? "写真を編集" : "Edit photo")}
                     </h1>
                 </div>
+
+                {/* **関係の札「ストーリーから作った写真 ›」**（2026-11-11 判断）。黒地なので真鍮。
+                    元のストーリーがまだあれば押すと開く・無ければ文字だけ */}
+                {sourceStory && (
+                    sourceStory.story ? (
+                        <button
+                            type="button"
+                            onClick={() => setSourceOpen(true)}
+                            className="mb-3 inline-flex items-center gap-1 min-h-11 text-sm font-semibold text-accent hover:text-accent-strong"
+                            style={{ touchAction: "manipulation" }}
+                        >
+                            {isJa ? "ストーリーから作った写真" : "Made from a story"}
+                            <span aria-hidden="true">›</span>
+                        </button>
+                    ) : (
+                        <p className="mb-3 text-sm text-accent">{isJa ? "ストーリーから作った写真" : "Made from a story"}</p>
+                    )
+                )}
 
                 {photo.src && (
                     // **取れなかったときに枠ごと消えないようにする。**
@@ -1208,6 +1246,18 @@ function EditContent() {
                 `next dev`（turbopack）は解析に失敗して**リポジトリ全体が
                 500 になる**——実測でトップページが開かなかった。
                 見張りは `app/__tests__/tailwindArbitrary.test.ts`。 */}
+            {sourceOpen && sourceStory?.story && userId && (
+                <StoryViewer
+                    groups={[{ userId, displayName: sourceStory.story.displayName ?? "", items: [sourceStory.story] }]}
+                    initialGroupIndex={0}
+                    locale={isJa ? "ja" : "en"}
+                    ownUserId={userId}
+                    isAuthenticated
+                    onSeen={() => { /* 自分のストーリー。既読は要らない */ }}
+                    onClose={() => setSourceOpen(false)}
+                />
+            )}
+
             {confirmDelete && (
                 <div
                     ref={confirmRef}
@@ -1220,13 +1270,42 @@ function EditContent() {
                     <div className="w-full max-w-[340px] space-y-2" onClick={(e) => e.stopPropagation()}>
                         <div className="rounded-2xl bg-surface-2/95 backdrop-blur-xl overflow-hidden">
                             <p className="px-4 py-3.5 text-center text-[13px] text-white/55 leading-snug">
-                                {isJa
+                                {sourceStory?.story
+                                    ? (isJa
+                                        ? "この写真はストーリーから作りました。ストーリーも一緒に消すか選んでください。画像とコメントも消え、この操作は取り消せません。"
+                                        : "This photo was made from a story. Choose whether to delete the story too. The image, comments and likes will be deleted. This can't be undone.")
+                                    : isJa
                                     ? "この写真を削除します。画像とコメントも消え、この操作は取り消せません。"
                                     : "This photo will be deleted along with its image, comments and likes. This can't be undone."}
                             </p>
+                            {sourceStory?.story ? (
+                                <>
+                                    {/* 2026-11-11 判断: 既定の選び方は無し。危険の色はストーリーも消える側だけ */}
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleDelete("1")}
+                                        disabled={deleting}
+                                        className="w-full py-3.5 border-t border-line text-danger text-[17px] font-semibold hover:bg-white/5 active:bg-white/10 transition disabled:opacity-50 flex items-center justify-center gap-2"
+                                        style={{ touchAction: "manipulation" }}
+                                    >
+                                        {deleting && <div className="w-3.5 h-3.5 border-2 border-danger/40 border-t-danger rounded-full animate-spin" />}
+                                        {isJa ? "ストーリーも一緒に消す" : "Delete with the story"}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => void handleDelete("0")}
+                                        disabled={deleting}
+                                        className="w-full py-3.5 border-t border-line text-white text-[17px] font-semibold hover:bg-white/5 active:bg-white/10 transition disabled:opacity-50"
+                                        style={{ touchAction: "manipulation" }}
+                                    >
+                                        {isJa ? "写真だけ消す" : "Delete photo only"}
+                                    </button>
+                                </>
+                            ) : (
                             <button
                                 type="button"
-                                onClick={() => void handleDelete()}
+                                // 元のストーリーがもう無いなら「写真だけ」を送る（古い動きで残りを巻き込まない）
+                                onClick={() => void handleDelete(sourceStory ? "0" : undefined)}
                                 disabled={deleting}
                                 className="w-full py-3.5 border-t border-line text-danger text-[17px] font-semibold hover:bg-white/5 active:bg-white/10 transition disabled:opacity-50 flex items-center justify-center gap-2"
                                 style={{ touchAction: "manipulation" }}
@@ -1234,6 +1313,7 @@ function EditContent() {
                                 {deleting && <div className="w-3.5 h-3.5 border-2 border-danger/40 border-t-danger rounded-full animate-spin" />}
                                 {isJa ? "削除" : "Delete"}
                             </button>
+                            )}
                         </div>
                         <button
                             ref={confirmCancelRef}

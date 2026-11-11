@@ -10,7 +10,7 @@ import { useLocale } from "../../i18n/context";
 import { useToast } from "../../../lib/hooks/useToast";
 import { log } from "../../../lib/utils/log";
 import { ROUTES, loginWithNext } from "../../../lib/routes";
-import { groupStories, storyDayLabel, type Story } from "@/lib/stories";
+import { groupStories, storyDayLabel, storyDeletePath, type Story } from "@/lib/stories";
 import StoryViewer from "../../components/stories/StoryViewer";
 import StoryTile from "../../components/stories/StoryTile";
 
@@ -107,10 +107,11 @@ export default function StoryArchivePage() {
 
     // 削除は `StoriesBar` の `handleDeleteStory` と同じ形（404 は成功・
     // サーバーの理由をそのまま出す・技術文字列は出さない）
-    const handleDelete = useCallback(async (storyId: string) => {
+    const handleDelete = useCallback(async (storyId: string, withPhotoId?: string) => {
         try {
             const { userFetch, isGoneResponse, readApiError } = await import("../../../lib/utils/api");
-            const res = await userFetch(`/stories/${encodeURIComponent(storyId)}`, { method: "DELETE" });
+            // 「写真も一緒に消す」は写真の口へ（2026-11-11・`storyDeletePath`）
+            const res = await userFetch(storyDeletePath(storyId, withPhotoId), { method: "DELETE" });
             if (!res.ok && !await isGoneResponse(res)) {
                 // **棚へ移った行は掃除が来ない**（`deleteStory` の注記）ので、
                 // 実体を消したあと行の削除が転ぶと、押し直しだけが道。理由を
@@ -200,6 +201,18 @@ export default function StoryArchivePage() {
                                     label={label}
                                     ariaLabel={isJa ? `${label} のストーリーを開く` : `Open story from ${label}`}
                                     onClick={() => openStory(s)}
+                                    after={typeof s.keptAs === "string" && s.keptAs ? (
+                                        // 関係の札「写真にしました ›」（2026-11-11 判断）。押すとその写真（下書きは編集の画面）へ。
+                                        // 写真の上に置くので白（ガラスの札）
+                                        <Link
+                                            href={ROUTES.EDIT(s.keptAs)}
+                                            className="absolute left-1 top-1 inline-flex items-center gap-0.5 min-h-11 px-2 rounded-full bg-black/60 text-white font-semibold"
+                                            style={{ fontSize: "12px", touchAction: "manipulation" }}
+                                        >
+                                            {isJa ? "写真にしました" : "Made into a photo"}
+                                            <span aria-hidden="true">›</span>
+                                        </Link>
+                                    ) : undefined}
                                 />
                             );
                         })}

@@ -110,8 +110,11 @@ type Props = {
     ownUserId?: string | null;
     isAuthenticated: boolean;
     onSeen: (storyId: string) => void;
-    /** 自分のストーリーを削除。成功時 true を返すと閉じる */
-    onDelete?: (storyId: string) => Promise<boolean>;
+    /**
+     * 自分のストーリーを削除。成功時 true を返すと閉じる。
+     * `withPhotoId` があれば「写真も一緒に消す」（2026-11-11・写真の口 `DELETE /photos/{id}?withStory=1`）
+     */
+    onDelete?: (storyId: string, withPhotoId?: string) => Promise<boolean>;
     /**
      * 返信一覧からブロックした。**親はストーリーの一覧を取り直すこと。**
      *
@@ -1001,10 +1004,31 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
         if (await blockSender(group.userId)) onClose();
     }, [group?.userId, blockSender, onClose]);
 
-    const handleDelete = useCallback(async () => {
+    /** このストーリーから作った写真（この画面で作った・一覧が運んだ） */
+    const keptId = item && isOwnStory ? (keptPhotoId ?? (typeof item.keptAs === "string" && item.keptAs ? item.keptAs : null)) : null;
+    /** 写真の「いいね・コメント」の数（消す確認に出す・読めなければ出さない） */
+    const [keptCounts, setKeptCounts] = useState<{ likes: number; comments: number } | null>(null);
+    useEffect(() => {
+        setKeptCounts(null);
+        if (!confirmDelete || !keptId) return;
+        let alive = true;
+        void (async () => {
+            try {
+                const { publicFetch } = await import("../../../lib/utils/api");
+                const res = await publicFetch(`/photos/${encodeURIComponent(keptId)}`);
+                if (!res.ok) return;   // 下書き（公開していない）は読めない＝数も無い
+                const p = await res.json() as { likes?: unknown; commentCount?: unknown };
+                const n = (v: unknown) => (typeof v === "number" && v > 0 ? Math.floor(v) : 0);
+                if (alive) setKeptCounts({ likes: n(p.likes), comments: n(p.commentCount) });
+            } catch { /* 数は無くても消せる */ }
+        })();
+        return () => { alive = false; };
+    }, [confirmDelete, keptId]);
+
+    const handleDelete = useCallback(async (withPhotoId?: string) => {
         if (!item || !onDelete) return;
         setDeleting(true);
-        const ok = await onDelete(item.id);
+        const ok = await (withPhotoId ? onDelete(item.id, withPhotoId) : onDelete(item.id));
         setDeleting(false);
         if (ok) onClose();
         else setConfirmDelete(false);
@@ -1612,23 +1636,22 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
                         検索にも出ないが、写真には個別ページも地図も集約ページも
                         ある。この1枚だけ、**下書きの写真**として残す
                         （公開は編集画面で本人が押す）。動画は写真の行にできない */}
-                    {/* **「アーカイブに自動保存」の投稿には出さない。** 残した写真と
-                        ストーリーは S3 の実体を共有し、写真を消すとアーカイブごと
-                        消える。サーバーも 409 で断る（`storyKeep.ts`）ので、押しても
-                        断られるだけのボタンを置かない */}
-                    {isOwnStory && item.mediaType !== "video" && item.archive !== true && (
-                        keptPhotoId || item.keptAs ? (
+                    {/* **「アーカイブに自動保存」の投稿にも出す**（2026-11-11）。前は実体を共有して
+                        写真を消すとアーカイブごと消えるので出さなかった。今はサーバーが画像を写して
+                        切り離す（`storyKeptMedia.ts`） */}
+                    {isOwnStory && item.mediaType !== "video" && (
+                        keptId ? (
                             <Link
-                                /* **URL を手で書かない**（`ROUTES.EDIT` と1文字同じものを
-                                   書いていた）。`<a>` だと静的サイトを丸ごと読み直すので、
-                                   他の導線（`PhotoPageClient`）と同じ `Link` に寄せる */
-                                href={ROUTES.EDIT(keptPhotoId ?? String(item.keptAs))}
-                                className="pointer-events-auto flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary/90 text-ink text-xs font-semibold"
+                                /* **関係の札「写真にしました ›」**（2026-11-11 判断）。押すとその写真へ。
+                                   写真は下書きで作るので、行き先は編集の画面（`ROUTES.EDIT`）。
+                                   写真の上に置くので白（上の「写真を見る」と同じガラスの札） */
+                                href={ROUTES.EDIT(keptId)}
+                                className="pointer-events-auto flex-shrink-0 inline-flex items-center gap-1.5 min-h-11 px-4 rounded-full bg-black/55 border border-line backdrop-blur-md text-white text-sm font-semibold"
                                 style={{ touchAction: "manipulation" }}
                             >
-                                <PhotoIcon className="w-4 h-4" />
-                                {/* 短く。3つ並ぶ段なので、1文字でも幅が効く */}
-                                {locale === "en" ? "Edit" : "仕上げる"}
+                                <PhotoIcon className="w-4 h-4" aria-hidden="true" />
+                                {locale === "en" ? "Made into a photo" : "写真にしました"}
+                                <span aria-hidden="true">›</span>
                             </Link>
                         ) : (
                             <button
@@ -1974,7 +1997,23 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
             {/* 削除の確認。**同じシートの部品**で、説明文と赤い1項目だけを出す */}
             {confirmDelete && (
                 <StoryActionSheet
-                    items={[{
+                    // 2026-11-11 判断（owner「ストーリーとそこから作った写真の関係を明確にして」）:
+                    // 写真にしたストーリーは「写真も一緒に消す」「ストーリーだけ消す」を選ぶ（既定の選び方は無し）。
+                    // 危険の色は写真も消える側だけ。写真にしていなければ今までどおり
+                    items={keptId ? [{
+                        key: "delete-with-photo",
+                        label: locale === "en" ? "Delete with the photo" : "写真も一緒に消す",
+                        danger: true,
+                        busy: deleting,
+                        closeOnSelect: false,
+                        onSelect: () => { void handleDelete(keptId); },
+                    }, {
+                        key: "delete-story-only",
+                        label: locale === "en" ? "Delete story only" : "ストーリーだけ消す",
+                        disabled: deleting,
+                        closeOnSelect: false,
+                        onSelect: () => { void handleDelete(); },
+                    }] : [{
                         key: "delete",
                         label: locale === "en" ? "Delete" : "削除",
                         danger: true,
@@ -1983,7 +2022,9 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
                         closeOnSelect: false,
                         onSelect: () => { void handleDelete(); },
                     }]}
-                    description={locale === "en"
+                    description={keptId
+                        ? keptDeleteDescription(locale, keptCounts)
+                        : locale === "en"
                         ? "This story will be deleted. This can't be undone."
                         : "このストーリーを削除します。この操作は取り消せません。"}
                     onClose={() => { if (!deleting) setConfirmDelete(false); }}
@@ -1995,4 +2036,22 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
             </div>
         </div>
     );
+}
+
+/**
+ * 写真にしたストーリーを消すときの説明（2026-11-11 判断）。写真のいいね・コメントがあれば数を添える。
+ * 「捨てる」は使わない（何が起きるかで言う）
+ */
+export function keptDeleteDescription(locale: "ja" | "en", counts: { likes: number; comments: number } | null): string {
+    const head = locale === "en"
+        ? "You made a photo from this story. Choose whether to delete the photo too. This can't be undone."
+        : "このストーリーから写真を作っています。写真も一緒に消すか選んでください。この操作は取り消せません。";
+    if (!counts || (counts.likes === 0 && counts.comments === 0)) return head;
+    const parts = locale === "en"
+        ? [counts.likes > 0 ? `${counts.likes} like${counts.likes === 1 ? "" : "s"}` : "", counts.comments > 0 ? `${counts.comments} comment${counts.comments === 1 ? "" : "s"}` : ""]
+        : [counts.likes > 0 ? `いいね ${counts.likes}` : "", counts.comments > 0 ? `コメント ${counts.comments}` : ""];
+    const list = parts.filter(Boolean).join(locale === "en" ? " and " : "・");
+    return locale === "en"
+        ? `${head} Deleting the photo also removes its ${list}.`
+        : `${head}写真を消すと、${list} も消えます。`;
 }
