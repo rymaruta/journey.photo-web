@@ -134,7 +134,8 @@ function Card({ c }: { c: TopicCard }) {
                     )}
                 </div>
                 <div className="p-3 pb-2">
-                    <p className="m-0 font-serif font-bold text-white wrap-anywhere" style={{ fontSize: "18px", lineHeight: "24px" }}>{c.name}</p>
+                    {/* 2026-11-11（#527）: 名前は見出し（h2・h1 のすぐ下の段）。見た目は同じ */}
+                    <h2 className="m-0 font-serif font-bold text-white wrap-anywhere" style={{ fontSize: "18px", lineHeight: "24px" }}>{c.name}</h2>
                     {c.region && (
                         <p className="m-0 mt-0.5 text-white/60" style={{ fontSize: "12px", lineHeight: "16px" }}>{c.region}</p>
                     )}

@@ -862,6 +862,34 @@ export function cityIntro(t: CityTopic, cards: readonly TopicCard[]): string {
         + (seasonal > 0 ? `うち${seasonal}件は季節ごとの撮影の案内があります。` : "");
 }
 
+/**
+ * **県の頁（`/spots/area/<県>`）の導入文**（2026-11-11・札 rymaruta/journey.photo-ios#527）。
+ * 以前は件数の1文（「撮影スポットの案内です（57件）」）だけで、47頁が同じ形だった。
+ * **その県の台帳から数えた事実だけ**を書く（決まり文句を足さない・`topicDescription` の注記と同じ線）:
+ * 種類の内訳・多い市区町村・季節の案内がある件数・「桜」「紅葉」「雪」の記述がある件数。
+ * 数が無い項目は文ごと省く。2件未満の県は空（並べる中身と同じことしか言えない）
+ */
+export function areaIntro(spots: readonly Spot[]): string {
+    if (spots.length < 2) return "";
+    const kinds = categoryBreakdown(spots);
+    const cities = new Map<string, number>();
+    for (const s of spots) if (s.region?.city) cities.set(s.region.city, (cities.get(s.region.city) ?? 0) + 1);
+    // 1件ずつしか無い市区町村は「多い」と言えないので、2件以上の所だけ
+    const topCities = [...cities.entries()].filter(([, k]) => k >= 2)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja")).slice(0, 3)
+        .map(([c, k]) => `${c}${k}件`).join("・");
+    const seasons = SEASONS.map((se) => [se, spots.filter((s) => hasSeason(s, se)).length] as const).filter(([, k]) => k > 0);
+    const keywords = SEASONS.flatMap((se) => {
+        const kw = SEASON_KEYWORD[se];
+        const k = kw ? spots.filter((s) => hasSeasonKeyword(s, se)).length : 0;
+        return kw && k > 0 ? [[kw, k] as const] : [];
+    }).map(([kw, k], i) => i === 0 ? `「${kw}」の記述があるのは${k}件` : `「${kw}」は${k}件`);
+    return (kinds ? `種類は${kinds}など。` : "")
+        + (topCities ? `多いのは${topCities}です。` : "")
+        + (seasons.length > 0 ? `季節ごとの撮影の案内があるのは${seasons.map(([se, k]) => `${SEASON_JA[se]}${k}件`).join("・")}です。` : "")
+        + (keywords.length > 0 ? `季節の案内に${keywords.join("、")}です。` : "");
+}
+
 export function seasonThemeIntro(t: SeasonThemeTopic, cards: readonly TopicCard[]): string {
     const n = t.spots.length;
     const label = SEASON_JA[t.season];
@@ -935,11 +963,18 @@ export function featureIntro(feature: FeatureKey, t: FeatureTopic, cards: readon
     const where = t.place ? `${t.place.name}で、` : "";
     const kinds = categoryBreakdown(t.spots);
     const time = t.spots.filter((s) => (s.timeOfDayGuide ?? []).length > 0).length;
-    let text = `${where}${SEASON_JA[def.season]}の撮影の案内に「${def.keyword}」の記述があるスポットを${n}件まとめました。`
-        + (kinds ? `種類は${kinds}など。` : "")
-        + `${names(cards)}など。`;
-    if (time > 0) text += `うち${time}件は時間帯ごとの撮影の案内もあります。`;
-    return text;
+    // 2026-11-11 判断（札 rymaruta/journey.photo-ios#527）: まとめの頁は全部を並べない（`FEATURE_TOP_CARDS`）。
+    // 題は並べた数（「36選」）なので、導入文も「全部で N 件・この頁には M 件」と分けて言う
+    // （以前は「149件まとめました」と書き、題の「36選」と食い違っていた。`seasonIntro` と同じ言い方）
+    const lead = cards.length < n
+        ? `${where}${SEASON_JA[def.season]}の撮影の案内に「${def.keyword}」の記述があるスポットは${n}件あります。`
+            + (kinds ? `種類は${kinds}など。` : "")
+            + `この頁には${names(cards)}など${cards.length}件を載せ、ほかは地方・県の頁にあります。`
+        : `${where}${SEASON_JA[def.season]}の撮影の案内に「${def.keyword}」の記述があるスポットを${n}件まとめました。`
+            + (kinds ? `種類は${kinds}など。` : "")
+            + `${names(cards)}など。`;
+    // 一部だけ並べる頁では「うち」が並べた数のうちと読めるので、全体の数を言う
+    return time > 0 ? `${lead}${cards.length < n ? `${n}件のうち` : "うち"}${time}件は時間帯ごとの撮影の案内もあります。` : lead;
 }
 export const momijiIntro = (t: FeatureTopic, cards: readonly TopicCard[]): string => featureIntro("momiji", t, cards);
 
@@ -1008,7 +1043,8 @@ export function featureView(feature: FeatureKey, place: string | null, spots: re
             },
         ].filter((g) => g.links.length > 0),
         indexable: true,
-        descriptionExtra: timeGuideNote(t.spots),
+        // 時間帯の件数は導入文（`featureIntro`）が言っている。ここで足すと説明に同じ事実が2回並ぶ
+        // （「うち93件は時間帯ごとの…。時間帯ごとの…のは93件です。」・2026-11-11 本番の HTML で確かめた・#527）
         ogImage: ogImageOf(t.spots, cards),
         lastModified: latest(t.spots),
     };
