@@ -1291,6 +1291,56 @@ describe("会話の引用札（ストーリーへの返信から写した通・s
         expect(calls.some((c) => String(c.input.Key?.id ?? "").startsWith("story-")), "要らない読みをしている").toBe(false);
     });
 
+    describe("🔴 写真を紹介したストーリー（sharedPhotoId・#541）", () => {
+        const photo = (o: Row = {}) => ({ id: "p-shared", src: "https://cdn/p.jpg", userId: THIRD, ...o });
+        beforeEach(() => {
+            rows["story-1"] = storyRow({ sharedPhotoId: "p-shared" });
+            rows["p-shared"] = photo();
+            mockHidden.mockResolvedValue(new Set<string>());
+            mockDeleted.mockReturnValue({ deleted: new Set<string>(), unread: new Set<string>() });
+        });
+        afterEach(() => { mockHidden.mockReset().mockResolvedValue(new Set<string>()); });
+
+        it("紹介した写真が見られる間は live", async () => {
+            expect((await read(ME)).items[0].story.state).toBe("live");
+        });
+
+        const lost: [string, () => void][] = [
+            ["持ち主が非公開にした", () => { rows["p-shared"] = photo({ published: false }); }],
+            ["持ち主が範囲を絞った", () => { rows["p-shared"] = photo({ audience: "followers" }); }],
+            ["持ち主が消した", () => { delete rows["p-shared"]; }],
+            ["持ち主が退会した", () => { mockDeleted.mockReturnValue({ deleted: new Set([THIRD]), unread: new Set<string>() }); }],
+            ["見る人と持ち主のあいだにブロック", () => { mockHidden.mockResolvedValue(new Set([THIRD])); }],
+        ];
+        for (const [label, arrange] of lost) {
+            it(`${label}: 見る人には ended（紹介した本人には live）`, async () => {
+                vi.spyOn(console, "error").mockImplementation(() => undefined);
+                arrange();
+                expect((await read(ME)).items[0].story, "見られない写真を DM の札に出している").toEqual({ id: "story-1", state: "ended" });
+                expect((await read(PEER)).items[0].story.state, "紹介した本人に見せていない").toBe("live");
+                vi.restoreAllMocks();
+            });
+        }
+
+        it("見る人のブロック一覧は会話の読みで読んだものを使う（読み直さない）", async () => {
+            mockHidden.mockClear();
+            await read(ME);
+            expect(mockHidden).toHaveBeenCalledTimes(1);
+        });
+
+        it("紹介した写真が読めなければ ended", async () => {
+            vi.spyOn(console, "error").mockImplementation(() => undefined);
+            const real = mockSend.getMockImplementation()!;
+            mockSend.mockImplementation(async (c: { constructor: { name: string }; input: Record<string, any> }) => {   // eslint-disable-line @typescript-eslint/no-explicit-any
+                if (c.constructor.name === "GetCommand" && c.input.Key.id === "p-shared") throw new Error("boom");
+                return real(c);
+            });
+            expect((await read(ME)).items[0].story).toEqual({ id: "story-1", state: "ended" });
+            mockSend.mockImplementation(real);
+            vi.restoreAllMocks();
+        });
+    });
+
     it("since の読み直しは、返す通のぶんだけ引く", async () => {
         const b = bodyOf(await invoke(handler, ev("GET /dm/{id}", ME, { id: CONV, since: "2026-11-09T00:00:01.500Z" })));
         expect(b.items.map((m: { text: string }) => m.text)).toEqual(["ありがとう"]);
@@ -1457,5 +1507,168 @@ describe("ストーリーへの返信: 写った会話・お知らせの欄", ()
         });
         await reply({ text: "きれいですね" });
         expect(putBeforeNotif, "お知らせが写しより先に積まれている").toBe(true);
+    });
+});
+
+describe("🔴 同じ会話で、送った写真の札と、紹介のストーリーの引用の門が両方効く（#541 の ① と ③）", () => {
+    const FUTURE = () => new Date(Date.now() + 3600_000).toISOString();
+    const read = async (uid = ME) => bodyOf(await invoke(handler, ev("GET /dm/{id}", uid, { id: CONV })));
+    beforeEach(() => {
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER) });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME) });
+        rows["photo-1"] = { id: "photo-1", src: "https://cdn/p.jpg", thumbSrc: "https://cdn/p_t.webp", userId: THIRD };
+        rows["story-1"] = { id: "story-1", story: true, userId: PEER, src: "https://cdn/s.jpg", mediaType: "image", expiresAt: FUTURE(), sharedPhotoId: "p-shared" };
+        rows["p-shared"] = { id: "p-shared", src: "https://cdn/ps.jpg", userId: THIRD };
+        follows(PEER, ME);
+        rows[KEY] = convRow([
+            { ...msg(ME, "きれい", "2026-11-09T00:00:01.000Z", "m-story-01"), via: "story", storyId: "story-1" },
+            { ...msg(PEER, "", "2026-11-09T00:00:02.000Z", "m-photo-01"), photoId: "photo-1" },
+        ], { updatedAt: "2026-11-09T00:00:02.000Z" });
+    });
+
+    it("どちらも見られる間は両方 live", async () => {
+        const b = await read(ME);
+        expect(b.items[0].story.state).toBe("live");
+        expect(b.items[1].photo.state).toBe("live");
+    });
+
+    it("紹介した写真を非公開にした → 引用だけ ended（送った写真の札は live のまま）", async () => {
+        rows["p-shared"] = { ...(rows["p-shared"] as Row), published: false };
+        const b = await read(ME);
+        expect(b.items[0].story, "紹介の写真の門が効いていない").toEqual({ id: "story-1", state: "ended" });
+        expect(b.items[1].photo.state).toBe("live");
+    });
+
+    it("送った写真を非公開にした → 写真の札だけ gone（引用は live のまま）", async () => {
+        rows["photo-1"] = { ...(rows["photo-1"] as Row), published: false };
+        const b = await read(ME);
+        expect(b.items[0].story.state).toBe("live");
+        expect(b.items[1].photo, "送った写真の門が効いていない").toEqual({ id: "photo-1", state: "gone" });
+    });
+});
+
+describe("写真を送る（photoId・札 #541・2026-11-11）", () => {
+    const photo = (o: Row = {}) => ({ id: "photo-1", src: "https://cdn/p.jpg", thumbSrc: "https://cdn/p_t.webp", userId: THIRD, title: { ja: "弘前城の桜", en: "Hirosaki" }, location: "青森県弘前市", ...o });
+    const accepted = () => {
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")]);
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER) });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME) });
+    };
+    const read = async (uid = ME) => bodyOf(await invoke(handler, ev("GET /dm/{id}", uid, { id: CONV })));
+    beforeEach(() => { rows["photo-1"] = photo(); follows(PEER, ME); });
+
+    it("🔴 承認後は写真だけで送れる。本体は text 空・photoId、抜粋と API の本文は「写真を送りました」・photoOnly", async () => {
+        accepted();
+        const r = await send("", ME, PEER, { photoId: "photo-1" });
+        expect(r.statusCode).toBe(200);
+        const b = bodyOf(r);
+        expect(b.message).toMatchObject({ text: "写真を送りました", photoId: "photo-1", photoOnly: true });
+        const stored = (convWrites().at(-1)!.input.ExpressionAttributeValues as Record<string, { photoId?: string; text: string }[]>)[":new"][0];
+        expect(stored).toMatchObject({ text: "", photoId: "photo-1" });
+        expect(entryWrites(PEER).at(-1)!.input.ExpressionAttributeValues[":x"]).toBe("写真を送りました");
+    });
+
+    it("写真と文字を一緒に送ると、本文はそのまま・photoOnly は付けない", async () => {
+        accepted();
+        const b = bodyOf(await send("この場所です", ME, PEER, { photoId: "photo-1" }));
+        expect(b.message).toMatchObject({ text: "この場所です", photoId: "photo-1" });
+        expect(b.message.photoOnly).toBeUndefined();
+    });
+
+    it("🔴 承認前（会話の始まり・リクエストの間）は写真を断る（何も書かない）", async () => {
+        const r = await send("", ME, PEER, { photoId: "photo-1" });
+        expect(r.statusCode).toBe(400);
+        expect(bodyOf(r).code).toBe("requestPhoto");
+        expect(writes()).toHaveLength(0);
+        rows[KEY] = convRow([msg(ME, "a", "2026-11-09T00:00:00.000Z")], { state: "request", initiator: ME, reqCount: 1 });
+        const again = await send("見て", ME, PEER, { photoId: "photo-1" });
+        expect(bodyOf(again).code).toBe("requestPhoto");
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("🔴 送る人に見せられない写真は 404 photoNotFound（下書き・ストーリー・無い・持ち主にブロックされた）", async () => {
+        accepted();
+        for (const row of [photo({ published: false }), photo({ story: true }), undefined]) {
+            if (row) rows["photo-1"] = row; else delete rows["photo-1"];
+            const r = await send("", ME, PEER, { photoId: "photo-1" });
+            expect(r.statusCode).toBe(404);
+            expect(bodyOf(r).code).toBe("photoNotFound");
+        }
+        rows["photo-1"] = photo();
+        rows[`block#${THIRD}#${ME}`] = { id: "b" };
+        expect(bodyOf(await send("", ME, PEER, { photoId: "photo-1" })).code).toBe("photoNotFound");
+        expect(convWrites()).toHaveLength(0);
+    });
+
+    it("形の違う photoId は 400（黙って文字だけにしない）・文字も写真も無ければ empty", async () => {
+        accepted();
+        expect(bodyOf(await send("やあ", ME, PEER, { photoId: "a#b" })).code).toBe("badRequest");
+        expect(bodyOf(await send("やあ", ME, PEER, { photoId: 12 })).code).toBe("badRequest");
+        expect(bodyOf(await send("", ME, PEER)).code).toBe("empty");
+        expect(convWrites()).toHaveLength(0);
+    });
+
+    it("🔴 会話を読むと、読む人の目で写真の札を付ける（live: 縮小版・題・撮影地 / 見られなければ gone）", async () => {
+        accepted();
+        rows[KEY] = convRow([{ ...msg(ME, "", "2026-11-09T00:00:02.000Z", "m-photo-01"), photoId: "photo-1" }, msg(PEER, "a", "2026-11-09T00:00:03.000Z")]);
+        const mine = await read(ME);
+        expect(mine.items[0]).toMatchObject({
+            text: "写真を送りました", photoOnly: true, photoId: "photo-1",
+            photo: { id: "photo-1", state: "live", src: "https://cdn/p_t.webp", title: "弘前城の桜", location: "青森県弘前市", ownerId: THIRD },
+        });
+        expect(mine.items[1].photo, "写真の無い通に札を付けている").toBeUndefined();
+        // 持ち主が受け取った人をブロックした → 受け取った人には gone（送った人には live のまま）
+        rows[`block#${THIRD}#${PEER}`] = { id: "b" };
+        expect((await read(PEER)).items[0].photo).toEqual({ id: "photo-1", state: "gone" });
+        expect((await read(ME)).items[0].photo.state).toBe("live");
+        // 非公開に戻した → 2人とも gone
+        rows["photo-1"] = photo({ published: false });
+        expect((await read(ME)).items[0].photo).toEqual({ id: "photo-1", state: "gone" });
+    });
+
+    it("🔴 公開範囲を絞った写真: 見せてよい人（フォロワー）にだけ live で、絵は署名つき URL。フォロワーでない受け手には gone", async () => {
+        const { generateKeyPairSync } = await import("node:crypto");
+        const { privateKey } = generateKeyPairSync("rsa", {
+            modulusLength: 2048,
+            privateKeyEncoding: { type: "pkcs8", format: "pem" },
+            publicKeyEncoding: { type: "spki", format: "pem" },
+        });
+        const saved = { id: process.env.CLOUDFRONT_KEY_PAIR_ID, key: process.env.CLOUDFRONT_PRIVATE_KEY };
+        process.env.CLOUDFRONT_KEY_PAIR_ID = "K1";
+        process.env.CLOUDFRONT_PRIVATE_KEY = privateKey;
+        try {
+            accepted();
+            rows["photo-1"] = photo({ audience: "followers", src: "https://cdn/private/p.jpg", thumbSrc: "https://cdn/private/p_t.webp" });
+            rows[KEY] = convRow([{ ...msg(ME, "", "2026-11-09T00:00:02.000Z", "m-photo-01"), photoId: "photo-1" }]);
+            follows(THIRD, ME);   // 送った人は持ち主のフォロワー・受け取った人は違う
+            const mine = await read(ME);
+            expect(mine.items[0].photo.state).toBe("live");
+            expect(mine.items[0].photo.src).toContain("https://cdn/private/p_t.webp?");
+            expect(mine.items[0].photo.src, "絞った写真の絵に署名が無い").toContain("Signature=");
+            expect((await read(PEER)).items[0].photo, "フォロワーでない受け手に絞った写真を見せている").toEqual({ id: "photo-1", state: "gone" });
+            // 公開の写真には署名しない（一覧と同じ URL）
+            rows["photo-1"] = photo();
+            expect((await read(ME)).items[0].photo.src).toBe("https://cdn/p_t.webp");
+        } finally {
+            if (saved.id === undefined) delete process.env.CLOUDFRONT_KEY_PAIR_ID; else process.env.CLOUDFRONT_KEY_PAIR_ID = saved.id;
+            if (saved.key === undefined) delete process.env.CLOUDFRONT_PRIVATE_KEY; else process.env.CLOUDFRONT_PRIVATE_KEY = saved.key;
+        }
+    });
+
+    it("🔴 同じ id の再送は、写真がその後に非公開になっても 404 にしない（入った1通をそのまま返す）", async () => {
+        accepted();
+        const first = await send("", ME, PEER, { photoId: "photo-1", id: "k-photo-0001" });
+        expect(first.statusCode).toBe(200);
+        // 1通目が本体に入った形にする（モックは書き込みを rows に写さないので、手で入れる）
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z"), { ...bodyOf(first).message, text: "", mine: undefined }]);
+        rows["photo-1"] = photo({ published: false });
+        const again = await send("", ME, PEER, { photoId: "photo-1", id: "k-photo-0001" });
+        expect(again.statusCode, "入った1通の再送を写真の判定で断っている").toBe(200);
+    });
+
+    it("古い通（photoId なし）は今までどおり（photo・photoOnly の欄を作らない）", async () => {
+        accepted();
+        const b = await read(ME);
+        expect(Object.keys(b.items[0]).sort()).toEqual(["from", "id", "mine", "t", "text"]);
     });
 });
