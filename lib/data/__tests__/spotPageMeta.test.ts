@@ -73,13 +73,16 @@ describe("title（2026-10-22: 検索される型「〈名所〉 写真／撮影�
     });
 });
 
-describe("description（押す理由を頭・Wikipedia 由来の紹介文は後ろ）", () => {
+describe("description（名前の次に紹介文の最初の1文・押す理由はその後ろ・2026-11-11 #527）", () => {
     const plain = { ...base, seasonalGuide: undefined, timeOfDayGuide: undefined };
 
-    it("頭に「〇〇の写真・撮影地ガイド。」と作例の節の枚数・光の表、紹介文は最後", () => {
+    it("頭に「〇〇の写真・撮影地ガイド。」、すぐ後に紹介文の最初の1文、作例の節の枚数・光の表はその後ろ", () => {
         const d = spotPageDescription(plain, { light: true, samples: 5, cover: true });
-        expect(d).toBe(`姫路城の写真・撮影地ガイド。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${base.summary}`);
-        expect(d.indexOf("作例5枚")).toBeLessThan(d.indexOf(base.summary!));
+        const [s1, ...rest] = base.summary!.split("。").filter(Boolean);
+        expect(d).toBe(`姫路城の写真・撮影地ガイド。${s1}。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${rest.map((x) => `${x}。`).join("")}`);
+        // 🔴 2026-11-11（#527）: 「〈名所〉とは」「〈名所〉 場所」に、検索結果の頭で答える
+        expect(d.indexOf(s1)).toBe("姫路城の写真・撮影地ガイド。".length);
+        expect(d.indexOf(s1)).toBeLessThan(d.indexOf("作例5枚"));
     });
 
     it("無いものは書かない（作例0枚なら作例を書かない・写真が無ければ「写真」と名乗らない）", () => {
@@ -89,12 +92,13 @@ describe("description（押す理由を頭・Wikipedia 由来の紹介文は後�
         expect(none).not.toContain("作例");
     });
 
-    it("季節ごとの景色は在る季節だけを春夏秋冬の順で・計算の要約（方角・天の川）は紹介文より前", () => {
+    it("季節ごとの景色は在る季節だけを春夏秋冬の順で・計算の要約（方角・天の川）は紹介文の2文目より前", () => {
         const d = spotPageDescription(
             { ...base, seasonalGuide: [{ season: "winter", text: "氷柱" }, { season: "spring", text: "桜" }] as unknown as Spot["seasonalGuide"], timeOfDayGuide: [{ time: "morning", text: "順光" }] as unknown as Spot["timeOfDayGuide"] },
             { samples: 1, computed: "日の入りは6月が西北西寄り、12月が西南西寄り" },
         );
-        expect(d).toBe(`姫路城の写真・撮影地ガイド。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${base.summary}`);
+        const [s1, ...rest] = base.summary!.split("。").filter(Boolean);
+        expect(d).toBe(`姫路城の写真・撮影地ガイド。${s1}。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${rest.map((x) => `${x}。`).join("")}`);
     });
 
     it("🔴 閉鎖・運休・見学できない季節は並べない（公開中の台帳の実例で）", () => {

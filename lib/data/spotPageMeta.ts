@@ -17,6 +17,7 @@
 import type { Spot } from "./spots";
 import { isPublished, isVerified } from "../utils/spotGuide";
 import { SEASON_JA } from "./spotTopics";
+import { titleWidth } from "../utils/titleWidth";
 
 /** 地名の部分（日本は「県 市」、海外は「国 都市」——海外の州名より国名の方が検索に効く） */
 export function spotWhere(spot: Pick<Spot, "region">): string {
@@ -33,10 +34,8 @@ export function spotWhere(spot: Pick<Spot, "region">): string {
  */
 export const SPOT_TITLE_MAX = 33;
 
-/** 全角換算の長さ（半角の英数・記号は 0.5） */
-export function titleWidth(s: string): number {
-    return [...s].reduce((n, ch) => n + (/[\u0020-\u007e]/.test(ch) ? 0.5 : 1), 0);
-}
+/** 全角換算の長さ（半角の英数・記号は 0.5）。テーマの頁の題も使うので `lib/utils/titleWidth.ts` に置いた */
+export { titleWidth };
 
 /** ページに在るもの（title・description の材料）。**数えたものだけ**を渡す */
 export type SpotPageFacts = {
@@ -110,9 +109,9 @@ export function isClosureSeasonText(text: string): boolean {
 }
 
 /**
- * 撮影地ページの description。**頭に押す理由**（作例の数・季節ごとの景色・日の入りの方角・天の川）を置き、
- * Wikipedia 由来の紹介文（`summary`）は後ろへ回す（2026-10-22 判断: 検索結果に出る頭の 80〜120 字で
- * 「この場所の写真が見られる・季節や光の案内がある」を伝える）。
+ * 撮影地ページの description。頭に名前、続けて**紹介文（`summary`）の最初の1文**、押す理由
+ * （作例の数・季節ごとの景色・日の入りの方角・天の川）、紹介文の残り（2026-11-11・#527 で順を変えた。
+ * それまでは 2026-10-22 判断で押す理由を紹介文より前に置いていた）。
  * 季節は価値判断を含まない「季節ごとの景色」と言い、閉鎖・運休を書いた季節は並べない。
  * 写真が1枚も無いスポットは「写真」と名乗らない。
  * 下書きは頭に「【下書き・運営未確認】」（共有のプレビューで確認済みに見せない）
@@ -133,12 +132,17 @@ export function spotPageDescription(
     if (facts.light) parts.push("月ごとの日の出・日の入り・ゴールデンアワー");
     const computed = facts.computed?.trim();
     const summary = spot.summary?.trim();
+    const close = (t: string) => (/[。.!?！？]$/.test(t) ? t : `${t}。`);
+    // 2026-11-11（#527・本番の main と同じ順）: 紹介文の**最初の1文**を名前のすぐ後に置き、押す理由はその後ろ。
+    // GSC で「〈名所〉とは」「〈名所〉 場所」が10位以内でも押されず、頭の約100字が全頁でほぼ同じ列挙だった
+    const sums = summary ? (close(summary).match(/[^。！？!?]+[。！？!?]?/gu) ?? []).map((x) => x.trim()).filter(Boolean) : [];
     return [
         draft,
         lead,
+        sums[0] ?? "",
         parts.length ? `${parts.join("、")}。` : "",
-        computed ? (/[。.!?！？]$/.test(computed) ? computed : `${computed}。`) : "",
-        summary ? (/[。.!?！？]$/.test(summary) ? summary : `${summary}。`) : "",
+        computed ? close(computed) : "",
+        sums.slice(1).join(""),
     ].join("");
 }
 
