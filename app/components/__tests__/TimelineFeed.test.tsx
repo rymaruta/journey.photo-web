@@ -52,6 +52,19 @@ beforeEach(() => {
 });
 
 describe("TimelineFeed", () => {
+    // 🔴 **フォロー中でも「はじめての投稿」の印を出す**（札 journey.photo-ios#537 の確かめ役・iOS と同じ）。
+    // `HomeMosaic` に印の写真を渡し忘れると、ほかのタブでは出るのにここだけ出ない
+    it("はじめての投稿の印（持ち主の公開の 1 枚目が 72 時間以内）", async () => {
+        photosState.current = {
+            photos: [{ id: "n1", src: "https://cdn/n1.jpg", userId: "N", displayName: "Nさん", title: "初めて", createdAt: new Date(Date.now() - 3_600_000).toISOString(), location: "京都" }],
+            loading: false, loaded: true, failed: false,
+        };
+        follow.fetch.mockResolvedValue(new Set(["N"]));
+        render(<Feed />);
+        await waitFor(() => expect(cardIds()).toEqual(["n1"]));
+        expect(document.querySelector('[data-photo-id="n1"] [data-testid="home-first-post"]')).not.toBeNull();
+    });
+
     it("フォローしている人の写真だけが、投稿の新しい順に並ぶ（自分のは混ざらない）", async () => {
         follow.fetch.mockResolvedValue(new Set(["A"]));
         render(<Feed />);

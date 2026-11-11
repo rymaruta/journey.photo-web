@@ -6,6 +6,7 @@ import { useAuth } from "../auth/context";
 import { usePhotos } from "../../lib/hooks/usePhotos";
 import { fetchFollowingSet, subscribeFollowingSet } from "../../lib/hooks/useFollow";
 import { timelinePhotos } from "../../lib/utils/timeline";
+import { firstPostPhotoIds } from "../../lib/utils/homeFeed";
 import { ROUTES, loginWithNext } from "../../lib/routes";
 import HomeMosaic from "./HomeMosaic";
 
@@ -30,6 +31,8 @@ type Props = { locale: string };
 export default function TimelineFeed({ locale }: Props) {
     const { isAuthenticated, loading: authLoading } = useAuth();
     const { photos, loaded: photosLoaded, failed: photosFailed } = usePhotos();
+    // はじめての投稿の印（公開の全件から・iOS と同じ・札 journey.photo-ios#537 案1）
+    const firstPostIds = React.useMemo(() => firstPostPhotoIds(photos), [photos]);
     // `null` ＝ まだ分からない。**「0人」と混ぜない**（取得中に「まだ誰も
     // フォローしていません」を出すと、フォローが効いていないように見える）
     const [following, setFollowing] = React.useState<Set<string> | null>(null);
@@ -116,7 +119,7 @@ export default function TimelineFeed({ locale }: Props) {
             </Empty>
         );
     }
-    return <HomeMosaic photos={items} locale={isJa ? "ja" : "en"} />;
+    return <HomeMosaic photos={items} locale={isJa ? "ja" : "en"} firstPostIds={firstPostIds} />;
 }
 
 const pillClass = "px-4 py-2 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors";
