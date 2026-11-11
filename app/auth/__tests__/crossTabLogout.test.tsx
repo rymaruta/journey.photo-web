@@ -54,6 +54,9 @@ vi.mock("../../../lib/hooks/useFavorites", () => ({
     removeFavoritesUserData: vi.fn(),
 }));
 
+const mockReload = vi.hoisted(() => vi.fn());
+vi.mock("../../../lib/utils/reloadPage", () => ({ reloadPage: mockReload }));
+
 const { AuthProvider, useAuth } = await import("../context");
 
 function Harness() {
@@ -153,6 +156,42 @@ describe("戻るで復元されたページ", () => {
         mockGetCurrentSession.mockResolvedValue(null);
         pageshow(true);
         await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("out"));
+    });
+
+    // 2026-11-11（札 journey.photo-ios#527）: HTML を no-store で配るのをやめ、Chrome でも bfcache が効く。
+    // ログイン中の中身（DM・通知）を描いたまま止まった頁が、ログアウト後の「戻る」で丸ごと見えないよう読み直す
+    it("ログイン中で止まった頁が、戻ってきたら未ログイン → 頁を読み直す", async () => {
+        mockReload.mockClear();
+        mockGetCurrentSession.mockResolvedValue(session("u1"));
+        render(<AuthProvider><Harness /></AuthProvider>);
+        await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("in"));
+        mockGetCurrentSession.mockResolvedValue(null);
+        pageshow(true);
+        await waitFor(() => expect(mockReload).toHaveBeenCalledTimes(1));
+    });
+
+    it("戻ってきてもログイン中のまま → 読み直さない（bfcache の速さを保つ）", async () => {
+        mockReload.mockClear();
+        mockGetCurrentSession.mockResolvedValue(session("u1"));
+        render(<AuthProvider><Harness /></AuthProvider>);
+        await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("in"));
+        const calls = mockGetCurrentSession.mock.calls.length;
+        pageshow(true);
+        await waitFor(() => expect(mockGetCurrentSession.mock.calls.length).toBeGreaterThan(calls));
+        await new Promise((r) => setTimeout(r, 20));
+        expect(mockReload).not.toHaveBeenCalled();
+    });
+
+    it("止まる前から未ログインの頁 → 読み直さない", async () => {
+        mockReload.mockClear();
+        mockGetCurrentSession.mockResolvedValue(null);
+        render(<AuthProvider><Harness /></AuthProvider>);
+        await waitFor(() => expect(screen.getByTestId("state").textContent).toBe("out"));
+        const calls = mockGetCurrentSession.mock.calls.length;
+        pageshow(true);
+        await waitFor(() => expect(mockGetCurrentSession.mock.calls.length).toBeGreaterThan(calls));
+        await new Promise((r) => setTimeout(r, 20));
+        expect(mockReload).not.toHaveBeenCalled();
     });
 
     it("普通の読み込み（persisted でない）では確かめ直さない", async () => {
