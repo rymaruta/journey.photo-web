@@ -255,6 +255,14 @@ describe("generateWebSiteStructuredData", () => {
         expect(data["@type"]).toBe("WebSite");
         expect(data.url).toBe(siteConfig.url);
     });
+
+    // 2026-11-11 journey.photo-ios#525: 「journeyphoto」と詰めて探す人のため、
+    // サイト名の別表記を Google の決まりどおり alternateName で申告する（隠し語は使わない）
+    it("サイト名の別表記を alternateName で申告し、name は変えない", () => {
+        const data = generateWebSiteStructuredData();
+        expect(data.alternateName).toEqual(expect.arrayContaining(["Journey Photo", "journeyphoto"]));
+        expect(data.name).toBe(siteConfig.name);
+    });
 });
 
 // タグ・撮影地・カテゴリのページも同じ関数を使っている。引数を渡していなかった

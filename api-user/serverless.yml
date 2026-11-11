@@ -238,7 +238,17 @@ functions:
             name: cognitoAuthorizer
 
   updateMyProfile:
-    handler: src/userProfile.updateMyProfile
+    # 2026-11-11 判断（journey.photo-ios#525）: 静的な /users/<id> に焼かれる
+    # 名前・@ユーザー名・自己紹介などが変わったら再ビルドを頼む。
+    # 頼む関数は 15 秒（savePhoto と同じ理由。GitHub が遅いだけで、保存できて
+    # いるのに 500 が返らないように）
+    timeout: 15
+    handler: src/profileUpdate.updateMyProfile
+    environment:
+      # 再ビルド依頼はこの関数から出す（provider には置かない。IAM-2）
+      REBUILD_REPO: ${param:rebuildRepo, ''}
+      REBUILD_DISPATCH_TOKEN: ${param:rebuildToken, ''}
+      REBUILD_MONTHLY_MAX: ${param:rebuildMonthlyMax, ''}
     events:
       - httpApi:
           path: /user/profile

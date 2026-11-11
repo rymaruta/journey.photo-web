@@ -9,6 +9,7 @@ import { withPlaceholderParam } from "../../../lib/server/staticParams";
 import PROFILES from "../../data/profiles.json";
 import { personEntity } from "../../../lib/utils/personEntity";
 import { metaText } from "@/lib/utils/metaText";
+import { profileTitle, profileWho, safeUsername } from "@/lib/utils/profileTitle";
 
 // ユーザープロフィールの静的生成版（/users/<userId>）。
 // ビルド時点の photos.json に投稿があるユーザーごとにページを生成し、
@@ -90,6 +91,15 @@ function rawBioOf(id: string): string {
     return ((PROFILES as Record<string, { bio?: string }>)[id]?.bio ?? "").trim();
 }
 
+/**
+ * ビルド時に分かっているユーザー名（`@` は付けない）。材料は `profiles.json`
+ * （sync が users テーブルから `username` を書き出している）。
+ * 2026-11-11 判断（journey.photo-ios#525）: 最初の HTML に出す。
+ */
+function usernameOf(id: string): string | undefined {
+    return safeUsername((PROFILES as Record<string, { username?: string }>)[id]?.username);
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
     const { id } = await params;
     const summary = await loadUserSummary(id);
@@ -98,7 +108,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         return { title: "プロフィール", description: siteConfig.description };
     }
 
-    const title = `${summary.displayName}の旅フォト`;
+    const username = usernameOf(id);
+    const title = profileTitle(summary.displayName, username);
+    const who = profileWho(summary.displayName, username);
     // **自己紹介があれば、それを説明文にする。**
     //
     // 組み立てた文（「…さんが Journey Photo で旅の写真をN枚公開中。」）は
@@ -113,9 +125,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     // 表示は**生のまま**（改行は `whitespace-pre-wrap` が出す）。
     // メタ情報だけ1行に均す（`metaText` の説明を参照）
     const bio = metaText(rawBioOf(id));
-    const generated = `${summary.displayName}さんが Journey Photo で旅の写真を${summary.photoCount}枚公開中。旅先の風景やスナップをお楽しみください。`;
+    const generated = `${who}さんが Journey Photo で旅の写真を${summary.photoCount}枚公開中。旅先の風景やスナップをお楽しみください。`;
     const description = bio.length >= 10 && bio.length <= 120
-        ? `${bio}（Journey Photo で旅の写真を${summary.photoCount}枚公開中）`
+        ? `${bio}（${who}・Journey Photo で旅の写真を${summary.photoCount}枚公開中）`
         : generated;
     const url = `${siteConfig.url}/users/${id}`;
     const images = summary.latestPhotoSrc
@@ -124,14 +136,15 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         // （実測 0/30）。写真ページは同じ理由で寸法をやめてある
         // （`app/photo/[id]/page.tsx` のコメント）——ここだけ 3:2 の
         // 決め打ちが残っていた
-        ? [{ url: summary.latestPhotoSrc, alt: title }]
+        ? [{ url: summary.latestPhotoSrc, alt: `${who}の写真` }]
         : undefined;
 
     return {
-        // サイト名は親から降りる `template` が付ける（`app/users/layout.tsx`
-        // が `title` を素の文字列で置いていた間は降りてこず、この
-        // `<title>` だけサイト名が落ちていた）
-        title,
+        // **`absolute` で付ける**（2026-11-11 判断 journey.photo-ios#525）。
+        // 親の template（「 | Journey Photo 旅フォトギャラリー」）だと名前の後ろが
+        // 長く、検索結果で `@ユーザー名` が切られやすい。サイト名は短い
+        // 「Journey Photo」を `profileTitle` が付ける
+        title: { absolute: title },
         // **検索結果に出す。** 親のレイアウトが `/users?id=` を隠すために
         // `robots: { index: false }` を置いており、**子がこのキーを書かない
         // かぎりそのまま降りる**（Next のメタデータ結合）。その結果、
@@ -151,13 +164,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
             type: "profile",
             url,
             siteName: siteConfig.name,
-            title: `${title} | Journey Photo`,
+            title,
             description,
             ...(images ? { images } : {}),
         },
         twitter: {
             card: "summary_large_image",
-            title: `${title} | Journey Photo`,
+            title,
             description,
             ...(summary.latestPhotoSrc ? { images: [summary.latestPhotoSrc] } : {}),
         },
@@ -180,7 +193,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
             mainEntity: personEntity({
                 id,
                 displayName: summary.displayName,
-                profile: (PROFILES as Record<string, { bio?: string; website?: string; instagram?: string }>)[id],
+                profile: { ...(PROFILES as Record<string, { bio?: string; website?: string; instagram?: string }>)[id], username: usernameOf(id) },
             }),
         }
         : null;
@@ -193,7 +206,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ id
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c").replace(/>/g, "\\u003e") }}
                 />
             )}
-            <UserProfileClient key={id} userId={id} initialBio={rawBio} />
+            <UserProfileClient key={id} userId={id} initialBio={rawBio} initialUsername={usernameOf(id)} />
         </>
     );
 }

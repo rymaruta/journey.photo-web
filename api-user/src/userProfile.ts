@@ -285,6 +285,38 @@ export const RESERVED_USERNAMES = new Set([
     "anonymous", "guest", "unknown", "deleted", "test",
 ]);
 
+/**
+ * 静的サイトの頁（`/users/<id>` の title・説明・`@名`・構造化データ）に焼かれる項目。
+ * sync（`scripts/sync-photos-from-ddb.js` の `freshDisplayNames` / `publicProfileFields`）が
+ * users テーブルから引くものと同じ並び。
+ */
+export const STATIC_PROFILE_FIELDS = ["displayName", "username", "bio", "website", "instagram"] as const;
+
+/**
+ * 静的サイトに焼かれる項目が変わったときに呼ぶもの（再ビルドの依頼）。
+ *
+ * **このファイルは `rebuild.ts` を import しない。** ここは `purchases.ts`・
+ * `userSearch.ts`・`photoUpdate.ts` からも import されるので、直に import すると
+ * 依存を辿る守り（`scripts/__tests__/rebuildTokenScope.test.ts`）が、
+ * 未認証の `getPublicProfile` まで含む6関数を「再ビルドに届く」と数え、
+ * GitHub の書き込みトークンを配ることになる（IAM-2）。依頼の本体は
+ * `profileUpdate.ts`（`updateMyProfile` の Lambda の入口）だけが持ち、ここへ差し込む。
+ */
+type StaticChangeHook = (userId: string) => Promise<unknown>;
+let staticChangeHook: StaticChangeHook | null = null;
+export function setStaticChangeHook(hook: StaticChangeHook | null): void {
+    staticChangeHook = hook;
+}
+
+/** 保存の前後で、静的サイトに焼かれる項目が1つでも変わったか */
+export function publicStaticFieldsChanged(
+    prev: Partial<Record<(typeof STATIC_PROFILE_FIELDS)[number], unknown>> | null | undefined,
+    next: Partial<Record<(typeof STATIC_PROFILE_FIELDS)[number], unknown>> | null | undefined,
+): boolean {
+    const norm = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+    return STATIC_PROFILE_FIELDS.some((k) => norm(prev?.[k]) !== norm(next?.[k]));
+}
+
 /** 入力を正規化して検証する。不正なら理由を返す。 */
 export function normalizeUsername(raw: unknown): { username?: string; error?: string } {
     if (raw === null || raw === "") return {};            // 明示的なクリア
@@ -1068,6 +1100,19 @@ export const updateMyProfile: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
         // 保存できたら古いユーザー名の予約を解放する（付け替え・クリア時）
         if (hasUsernameKey && prev?.username && prev.username !== username) {
             await releaseUsername(prev.username, userId);
+        }
+
+        // **他人に見える静的な面が変わったら、サイトを作り直してもらう。**
+        //
+        // 2026-11-11 判断（journey.photo-ios#525）: 静的な `/users/<id>` の
+        // title・説明・`@ユーザー名`・構造化データは、ビルド時に users テーブルから
+        // 引く（`scripts/sync-photos-from-ddb.js`）。それまでこの保存は再ビルドを
+        // 頼んでいなかったので、**名前を変えても、誰かが次に投稿・編集するまで
+        // 検索に出る頁は古い名前のまま**だった。
+        // 何度でも無料で起こせる操作なので `coalesce`（10分に1回へ束ねる）。
+        // 失敗しても保存は成功のまま返す（`requestSiteRebuild` は投げない）。
+        if (staticChangeHook && publicStaticFieldsChanged(prev, profile)) {
+            await staticChangeHook(userId);
         }
 
         // **写真の行に焼かれた表示名は、ここでは直さない。**
