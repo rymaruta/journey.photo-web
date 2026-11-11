@@ -17,12 +17,16 @@ import { requestSiteRebuild } from "./rebuild";
  * **例外: 「検索エンジンに表示しない」をオンにした回は束ねない**（#526・確かめ役 2026-11-11）。
  * 束ねて見送られた依頼は後から実行されないので、直前に誰かの保存があると、隠したつもりの
  * 頁が次の誰かの保存まで noindex にならず sitemap にも残る。プライバシーの操作なので確実に頼む。
- * オフに戻す・名前を変えるなどは今までどおり束ねる。月の上限は束ねなくても効く。
+ * オフに戻す・名前を変えるなどは今までどおり束ねる。
+ *
+ * **束ねないのは1人 10 分に1本まで**（`urgentKey: hidden#<userId>`）。素通しだと、オン／オフを
+ * API で繰り返すだけで月の予算を数分で使い切れ、全員の削除後の掃除が止まる（確かめ役 2026-11-11）。
+ * 2本目からは束ねる側に回る。
  *
  * 依頼をこのファイルに分けた理由は `userProfile.ts` の `setStaticChangeHook` の注記。
  */
 setStaticChangeHook((userId, { becameSearchHidden }) => becameSearchHidden
-    ? requestSiteRebuild(`profile hidden from search: ${userId}`)
+    ? requestSiteRebuild(`profile hidden from search: ${userId}`, { urgentKey: `hidden#${userId}` })
     : requestSiteRebuild(`profile updated: ${userId}`, { coalesce: true }));
 
 export const updateMyProfile = updateMyProfileCore;

@@ -55,7 +55,7 @@ describe("検索エンジンにプロフィールを表示しない", () => {
         expect(JSON.parse(res.body).searchHidden).toBe(true);
         expect(mockRebuild).toHaveBeenCalledTimes(1);
         // 束ねて見送られると後から実行されず、隠したつもりの頁が索引に残る（確かめ役 2026-11-11）
-        expect(mockRebuild).toHaveBeenCalledWith("profile hidden from search: u1");
+        expect(mockRebuild).toHaveBeenCalledWith("profile hidden from search: u1", { urgentKey: "hidden#u1" });
     });
 
     it("オンのまま名前を変えた回は、今までどおり束ねる", async () => {
