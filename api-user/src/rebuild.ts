@@ -296,6 +296,7 @@ export async function requestSiteRebuild(reason: string, options: RebuildOptions
     // 急ぎの印（鍵ごと）。取れたら束ねず、取れなければ束ねる側へ
     let urgent: { id: string; stamp: number } | null = null;
     if (options.urgentKey) {
+        // 行の ID の作り方は api-user の `rebuildKeys.ts` の `urgentRowId` と同じ（退会の掃除がそちらで消す）
         const id = `rebuild#${options.urgentKey}`;
         const claim = await claimRebuildSlot(Date.now(), id);
         if (claim.allowed) {

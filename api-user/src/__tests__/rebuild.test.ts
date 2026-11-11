@@ -620,6 +620,9 @@ describe("急ぎの依頼（urgentKey）", () => {
         expect(sent).toEqual([true, true, false, false, false, false]);
         expect(fetchMock).toHaveBeenCalledTimes(2);
         expect(table.has("rebuild#hidden#u1")).toBe(true);
+        // 退会の掃除（`account.ts`）が消す行と同じ ID
+        const { urgentRowId, searchHiddenUrgentKey } = await import("../rebuildKeys");
+        expect(urgentRowId(searchHiddenUrgentKey("u1"))).toBe("rebuild#hidden#u1");
         expect(table.get("rebuild#hidden#u1")).toBeTypeOf("number");
     });
 

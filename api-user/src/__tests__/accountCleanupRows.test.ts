@@ -81,6 +81,9 @@ const EXEMPT: Array<[prefix: string, reason: string, calledInAccount: string]> =
     // 1日の歯止め（`dmday#<uid>#<日付>`）は2段のキーで、この走査には見えない（`dm.test.ts` が掃除を直に見る）。
     // 通報の写し（`dmreport#`）は運営の記録なので消さない
     ["dminbox", "`dm.ts` の `purgeDmFor` が会話ごとの自分の側を外し、本体の受信箱も消す", "purgeDmFor"],
+    // 2026-11-11・#526。「検索エンジンに表示しない」の急ぎの再ビルドの印。行は `rebuild#hidden#<uid>` で、
+    // 鍵を作る関数を通して消す
+    ["hidden", "`rebuildKeys.ts` の `searchHiddenUrgentKey`（行は `urgentRowId` で `rebuild#hidden#<uid>`）を `account.ts` が消す", "searchHiddenUrgentKey"],
 ];
 
 /**
