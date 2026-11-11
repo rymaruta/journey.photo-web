@@ -1878,6 +1878,10 @@ resources:
   # 秒 10 件・瞬間 20 件を越えた分は API Gateway が 429 で断る（Lambda も DB も動かない）
   extensions:
     HttpApiStage:
+      # 段の経路ごとの設定は、その経路ができてからでないと付けられない（無い経路を指すと段の作成が落ちる）。
+      # 経路の論理名は `sls package` で確かめた（2026-11-11・HttpApiRoutePostSpotsWants）
+      DependsOn:
+        - HttpApiRoutePostSpotsWants
       Properties:
         RouteSettings:
           "POST /spots/wants":

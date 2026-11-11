@@ -173,7 +173,26 @@ async function daySalt(day: string): Promise<string> {
 }
 
 export function hashIp(ip: string, salt: string): string {
-    return createHash("sha256").update(`${salt}:${ip}`).digest("base64url").slice(0, 22);
+    return createHash("sha256").update(`${salt}:${ipBucket(ip)}`).digest("base64url").slice(0, 22);
+}
+
+/**
+ * 回線のまとまり。IPv4 はそのまま、**IPv6 は先頭の /64 にまとめる**（2026-11-11 確かめ役の指摘 B3）。
+ * IPv6 は1つの回線（家・携帯の1台）に /64 がまるごと配られ、下の 64 ビットは端末が自由に替えられる——
+ * そのまま数えると、アドレスを替えるだけで回線の上限を越えられる
+ */
+export function ipBucket(ip: string): string {
+    const v = ip.trim().toLowerCase();
+    if (!v.includes(":")) return v;
+    // "::ffff:1.2.3.4"（IPv4 を IPv6 で書いた形）は IPv4 として数える
+    const mapped = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/.exec(v);
+    if (mapped) return mapped[1];
+    const [head, tail = ""] = v.split("::");
+    const left = head ? head.split(":") : [];
+    const right = tail ? tail.split(":") : [];
+    const fill = v.includes("::") ? Array(Math.max(0, 8 - left.length - right.length)).fill("0") : [];
+    const groups = [...left, ...fill, ...right].map((g) => (parseInt(g || "0", 16) || 0).toString(16));
+    return `${groups.slice(0, 4).join(":")}::/64`;
 }
 
 /** 同じ端末・同じ撮影スポットはその月1回。初めてなら true（印を付ける） */
@@ -204,6 +223,8 @@ export const recordSpotWants: APIGatewayProxyHandlerV2 = async (event) => {
     if (raw && Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) return jsonError(413, "too large");
     const parsed = parseWants(raw);
     if (!parsed) return jsonError(400, "invalid request");
+    // 数える撮影スポットが無ければ、塩も読まずにすぐ返す（台帳に無い鍵だけの要求で DB を叩かない・指摘 B4）
+    if (parsed.slugs.length === 0) return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ counted: 0 }) };
     const { month, day } = jstParts(new Date());
     const ip = event.requestContext?.http?.sourceIp ?? "";
     let counted = 0;
@@ -280,14 +301,29 @@ export function previousMonth(month: string): string {
     return new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 7);
 }
 
+/**
+ * 消してよい行か。重なり止め（`wantby#`）は前の月より古いもの、日の行・回線の行・塩は**今日より前**のもの。
+ *
+ * 2026-11-11（確かめ役の指摘 B1）: 日の行・回線の行・塩は「前日より古い」だったので、掃除（毎日 日本時間 4:47）の
+ * 間が空くと最長で3日近く残り、プライバシーポリシーの「2日以内に消す」が本当ではなかった。いまは今日より前を消すので、
+ * 行ができてから消えるまでは最長で「その日の終わり＋翌日の掃除まで」＝ 1日と5時間ほど（`maxDayRowLifetimeHours`）
+ */
 export function isExpiredRow(id: string, month: string, day: string): boolean {
     const prevMonth = previousMonth(month);
-    const yesterday = new Date(Date.parse(`${day}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10);
     const part = id.split("#")[1] ?? "";
     if (id.startsWith("wantby#")) return part < prevMonth;
-    if (id.startsWith("wantday#") || id.startsWith("wantip#") || id.startsWith("wantsalt#")) return part < yesterday;
+    if (id.startsWith("wantday#") || id.startsWith("wantip#") || id.startsWith("wantsalt#")) return part < day;
     return false;
 }
+
+/** 掃除の時刻（日本時間の時。`serverless.yml` の `cleanupSpotWants` の cron と同じ・19:47 UTC = 4:47 JST） */
+export const CLEANUP_HOUR_JST = 4.8;
+
+/**
+ * 日の行（日の上限・回線の行・塩）が残る最長の時間（時）。その日の 0:00 にできた行は、その日の終わり（24 時間）のあと、
+ * 翌日の掃除（`CLEANUP_HOUR_JST`）で消える。掃除が1回落ちると 24 時間延びる（落ちた回は CloudWatch に残る）
+ */
+export const maxDayRowLifetimeHours = () => 24 + CLEANUP_HOUR_JST;
 
 const s3 = new S3Client({});
 export const SPOT_WANTS_KEY = "app/data/spot-wants.json";
