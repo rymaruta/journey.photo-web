@@ -16,6 +16,7 @@ import { LEARN_ARTICLES } from "@/lib/data/learn/articles";
 import { ExampleGrid, FaqList, LearnTable } from "./LearnParts";
 import { Diagram } from "./Diagrams";
 import QuizBlock from "./QuizBlock";
+import InlineText from "./InlineText";
 
 const CALLOUT: Record<"tip" | "warn" | "memo", { label: string; box: string; mark: string }> = {
     tip: { label: "コツ", box: "bg-accent-soft ring-1 ring-line", mark: "text-accent" },
@@ -28,14 +29,14 @@ function BlockView({ b, sectionId, index, examples }: {
 }) {
     switch (b.t) {
         case "p":
-            return <p className="m-0 mt-4 text-chip-text" style={{ fontSize: "16px", lineHeight: "30px" }}>{b.text}</p>;
+            return <p className="m-0 mt-4 text-chip-text" style={{ fontSize: "16px", lineHeight: "30px" }}><InlineText text={b.text} /></p>;
         case "h":
             return <h3 className="m-0 mt-8 text-white font-semibold" style={{ fontSize: "18px", lineHeight: "28px" }}>{b.text}</h3>;
         case "list": {
             const Tag = b.ordered ? "ol" : "ul";
             return (
                 <Tag className={`m-0 mt-4 pl-6 flex flex-col gap-2 text-chip-text marker:text-accent ${b.ordered ? "list-decimal" : "list-disc"}`} style={{ fontSize: "16px", lineHeight: "28px" }}>
-                    {b.items.map((it) => <li key={it}>{it}</li>)}
+                    {b.items.map((it) => <li key={it}><InlineText text={it} /></li>)}
                 </Tag>
             );
         }
@@ -46,7 +47,7 @@ function BlockView({ b, sectionId, index, examples }: {
             return (
                 <aside className={`mt-5 rounded-2xl px-4 py-3 ${c.box}`} data-testid={`learn-callout-${b.kind}`}>
                     <p className="m-0 text-white" style={{ fontSize: "15px", lineHeight: "26px" }}>
-                        <span className={`font-semibold ${c.mark}`}>{b.title ?? c.label}　</span>{b.text}
+                        <span className={`font-semibold ${c.mark}`}>{b.title ?? c.label}　</span><InlineText text={b.text} />
                     </p>
                 </aside>
             );
@@ -59,7 +60,7 @@ function BlockView({ b, sectionId, index, examples }: {
                             <span aria-hidden="true" className="flex-shrink-0 w-8 h-8 rounded-full ring-1 ring-accent text-accent inline-flex items-center justify-center tabular-nums" style={{ fontSize: "14px" }}>{i + 1}</span>
                             <span className="min-w-0">
                                 <span className="block text-white font-semibold" style={{ fontSize: "15px", lineHeight: "24px" }}>{s.title}</span>
-                                <span className="block mt-1 text-text-2" style={{ fontSize: "15px", lineHeight: "26px" }}>{s.text}</span>
+                                <span className="block mt-1 text-text-2" style={{ fontSize: "15px", lineHeight: "26px" }}><InlineText text={s.text} /></span>
                             </span>
                         </li>
                     ))}
