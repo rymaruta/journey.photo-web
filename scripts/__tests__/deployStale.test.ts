@@ -133,7 +133,7 @@ describe("classifyStaleObjects（デプロイ時の削除判定）", () => {
 });
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { invalidationPathsFor, isNoStore, isInvalidatable } = require("../deploy-static-site.js");
+const { invalidationPathsFor, isRevalidatedEachTime, isInvalidatable } = require("../deploy-static-site.js");
 
 // 以前は毎回 "/*" を無効化していた。写真も同じディストリビューションから
 // 配信していて max-age=31536000 を付けているのに、push と1日4回の定期ビルドの
@@ -160,11 +160,11 @@ describe("invalidationPathsFor", () => {
             // 2026-11-09: 種類別のサイトマップ（索引の `sitemap.xml` が束ねる）
             "sitemap-spots.xml", "sitemap-areas.xml", "sitemap-hubs.xml", "sitemap-today.xml",
             "sitemap-learn.xml", "sitemap-collections.xml", "sitemap-photos.xml", "sitemap-pages.xml"]) {
-            expect(isNoStore(k), `${k} は no-store`).toBe(true);
+            expect(isRevalidatedEachTime(k), `${k} は no-cache（毎回たしかめる）`).toBe(true);
             expect(isInvalidatable(k), `${k} は消さない`).toBe(false);
         }
         for (const k of ["favicon.ico", "icon-512.png", "images/a.jpg", "app/data/spots/a.json", "app/data/quiz/q.json"]) {
-            expect(isNoStore(k), `${k} は max-age=3600`).toBe(false);
+            expect(isRevalidatedEachTime(k), `${k} は max-age=3600`).toBe(false);
             expect(isInvalidatable(k), `${k} は消す`).toBe(true);
         }
         expect(isInvalidatable("_next/static/chunks/a.js")).toBe(false);

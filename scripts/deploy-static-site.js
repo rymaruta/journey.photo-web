@@ -214,7 +214,7 @@ const NO_CACHE_KEYS = new Set([
     "sitemap.xml",
     "sitemap-images.xml",
     // フィードも写真を追加するたびに変わる。入れないと 1時間 `max-age` で配られる
-    // （この一覧は no-cache で配る＝`isNoStore`。2026-11-06 から、これらは無効化しない）
+    // （この一覧は no-cache で配る＝`isRevalidatedEachTime`。2026-11-06 から、これらは無効化しない）
     "feed.xml",
 ]);
 
@@ -224,7 +224,7 @@ const NO_CACHE_KEYS = new Set([
 const SITEMAP_KEY = /^sitemap(-[a-z]+)?\.xml$/;
 
 /** 毎回たしかめさせて配るか（`no-cache`・`cacheControlFor`。アップロードの Cache-Control と、無効化の要否が同じ判定を使う） */
-function isNoStore(key) {
+function isRevalidatedEachTime(key) {
     return isHtmlOrTxt(key) || NO_CACHE_KEYS.has(key) || SITEMAP_KEY.test(key);
 }
 
@@ -241,13 +241,13 @@ function isNoStore(key) {
  */
 function isInvalidatable(key) {
     if (key.startsWith("_next/")) return false;
-    // **毎回たしかめさせて配るもの（`isNoStore`）は消さない**（2026-11-06・AWS の予算の通知を受けて）。
+    // **毎回たしかめさせて配るもの（`isRevalidatedEachTime`）は消さない**（2026-11-06・AWS の予算の通知を受けて）。
     // 実測: HTML は `Cache-Control: no-cache, no-store, must-revalidate`（2026-11-11 から `no-cache`）で配り、配信は
     // Managed-CachingOptimized（MinTTL 1 秒）。本番に2回続けて取ると 2 回目は `RefreshHit`（元に確かめ直す）で、
     // **古い HTML が残るのは最大 1 秒**。それなのにデプロイのたびに全ページ（約 245 パス）を消していて、
     // 月 1,000 パスの無料枠を約 4 回で使い切り、あとは 1 パス 0.005 ドル（今月 11/1〜11/6 で 4,167 パス・15.8 ドル）。
     // 消す意味があるのは、`max-age=3600` で配る固定名の資産（favicon・アイコン・images/ ・app/data の JSON など）だけ
-    if (isNoStore(key)) return false;
+    if (isRevalidatedEachTime(key)) return false;
     return true;
 }
 
@@ -264,7 +264,7 @@ function isInvalidatable(key) {
  * CloudFront は `no-store` でも `no-cache` でも最小 TTL（1 秒）だけ持つので、エッジの振る舞い・無効化（しない）・費用は変わらない
  */
 function cacheControlFor(key) {
-    return isNoStore(key)
+    return isRevalidatedEachTime(key)
         ? "no-cache"
         : key.startsWith("_next/")
             ? "public, max-age=31536000, immutable"
@@ -999,7 +999,7 @@ async function main() {
 module.exports = {
     verifyOgImage, splitImagesFirst,
     assertNoForbiddenContent, assertRobotsMatchesTarget, invalidationTargets,
-    FORBIDDEN_IN_OUTPUT, forbiddenPattern, shouldScan, classifyStaleObjects, deletesImmediately, isHtmlOrTxt, isNoStore, ASSET_GRACE_MS, invalidationPathsFor, changedKeys, isInvalidatable, cacheControlFor,
+    FORBIDDEN_IN_OUTPUT, forbiddenPattern, shouldScan, classifyStaleObjects, deletesImmediately, isHtmlOrTxt, isRevalidatedEachTime, ASSET_GRACE_MS, invalidationPathsFor, changedKeys, isInvalidatable, cacheControlFor,
     bulkDeleteGuard, BULK_DELETE_RATIO, BULK_DELETE_MIN, deleteStaleKeys,
     pageCheckTargets, runnerLooksReachable };
 
