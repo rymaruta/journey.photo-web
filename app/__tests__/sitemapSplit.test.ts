@@ -57,7 +57,7 @@ describe("サイトマップを種類別に分ける", () => {
             .filter((t) => isIndexableCollectionIndex(collectEntries(photos, t).length)).length;
         const spots = publishableSpots(SPOTS);
         const expected =
-            4 /* トップ・privacy・terms・map */ + users +
+            5 /* トップ・privacy・terms・map・swipe（2026-11-11） */ + users +
             photos.length + collections + indexes +
             spots.length + (spots.length >= 3 ? 1 : 0) + spotAreas().filter((a) => a.publishedCount >= 2).length +
             spotTopicSitemapEntries(base).length +

@@ -148,7 +148,7 @@ describe("イベントごとの形", () => {
 
     it("既存の wish_tap・sign_up の欄と値は変えていない", () => {
         expect(EVENT_SPEC.wish_tap).toEqual({ signed_in: [0, 1], kind: ["spot", "location"] });
-        expect(EVENT_SPEC.sign_up).toEqual({ method: ["email"], from: ["wish", "other"] });
+        expect(EVENT_SPEC.sign_up).toEqual({ method: ["email"], from: ["wish", "swipe", "other"] });
     });
 });
 
@@ -158,6 +158,9 @@ describe("signupFromVia", () => {
         expect(signupFromVia(null)).toBe("other");
         expect(signupFromVia("")).toBe("other");
         expect(signupFromVia("WISH")).toBe("other");
+        // 撮影スポットを払う画面（`/swipe`）から（2026-11-11）
+        expect(signupFromVia("swipe")).toBe("swipe");
+        expect(signupFromVia("SWIPE")).toBe("other");
     });
 });
 

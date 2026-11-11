@@ -382,3 +382,14 @@ describe("旅のトランクの節が、人のトランクの口と合ってい�
         }
     });
 });
+
+describe("撮影スポットを払う画面（/swipe・2026-11-11）", () => {
+    it("ログインせずに払った「行きたい」の端末の印は40件まで・ログインでサーバーへ移す、と本文に書いてある", () => {
+        const n = constOf("lib/utils/spotSwipe.ts", "SWIPE_WANT_MAX");
+        expect(page).toContain("撮影スポットを払う画面（/swipe）");
+        expect(page, "本文の件数が実装と違う").toContain(`最大${n}件`);
+        expect(page).toContain("ログインしたときに、ご自身の「行きたい場所」としてサーバーへ移し");
+        // 移す口は「行きたい場所」と同じ（POST /user/spots）
+        expect(read("lib/utils/spotSwipe.ts")).toContain("POST /user/spots");
+    });
+});

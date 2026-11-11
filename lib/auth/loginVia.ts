@@ -10,8 +10,11 @@
  * 依存を持たない（循環させない）。
  */
 
-/** `wish` は「行きたい」（登録の数え方 `signupFromVia` が見る値。変えない） */
-export const LOGIN_VIAS = ["wish", "like", "save", "follow", "comment", "upload"] as const;
+/**
+ * `wish` は「行きたい」（登録の数え方 `signupFromVia` が見る値。変えない）。
+ * `swipe` は撮影スポットを払う画面（`/swipe`・2026-11-11）の挟む札・足元の「地図で見る」から
+ */
+export const LOGIN_VIAS = ["wish", "like", "save", "follow", "comment", "upload", "swipe"] as const;
 export type LoginVia = (typeof LOGIN_VIAS)[number];
 
 /** URL の値が許可リストに在るときだけ返す（無ければ null） */
@@ -31,6 +34,7 @@ const LOGIN_REASON_JA: Record<LoginVia, string> = {
     follow: "フォローにはログインが必要です。ログインすると、フォロー中の人の写真が見られます。",
     comment: "コメントにはログインが必要です。ログインすると、撮った人に感想を届けられます。",
     upload: "投稿にはログインが必要です。ログインすると、あなたの写真を公開できます。",
+    swipe: "払った場所の地図にはログインが必要です。ログインすると、行きたい場所に移ります。",
 };
 export const LOGIN_REASON_GENERIC_JA = "ログインすると、いいね・コメント・投稿ができます。";
 
