@@ -239,6 +239,13 @@ export async function sitemapGroups(): Promise<Record<SitemapKind, MetadataRoute
             changeFrequency: "weekly",
             priority: 0.5,
         },
+        {
+            // 撮影スポットを払う（2026-11-11・検索に出す公開頁。`app/swipe/layout.tsx`）。
+            // 札の山は撮影スポットの台帳から作るが、頁の更新日は持たないので lastModified は付けない
+            url: `${baseUrl}${ROUTES.SWIPE}`,
+            changeFrequency: "weekly",
+            priority: 0.5,
+        },
     ];
 
     return {

@@ -35,6 +35,8 @@ describe("loginVia（許可リスト）", () => {
 
     it("loginWithNext は許可リストの via だけ付ける（next も引き継ぐ）", () => {
         expect(loginWithNext("/photo/p1", "like")).toBe("/login?next=%2Fphoto%2Fp1&via=like");
+        // 撮影スポットを払う画面の挟む札・足元（2026-11-11）
+        expect(loginWithNext("/swipe", "swipe")).toBe("/login?next=%2Fswipe&via=swipe");
         expect(loginWithNext(null, "follow")).toBe("/login?via=follow");
         expect(loginWithNext("/photo/p1", "wish")).toBe("/login?next=%2Fphoto%2Fp1&via=wish");
         // 型を破って任意の文字列を渡しても付けない

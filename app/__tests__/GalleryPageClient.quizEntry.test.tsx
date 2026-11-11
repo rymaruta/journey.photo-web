@@ -54,14 +54,14 @@ beforeEach(async () => {
 
 const cards = () => screen.getByTestId("home-top-cards");
 const order = () => [...cards().querySelectorAll("li")].map((li) =>
-    (li.querySelector("[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry],[data-testid=home-learn-entry]") as HTMLElement).dataset.testid);
+    (li.querySelector("[data-testid=home-swipe-entry],[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry],[data-testid=home-learn-entry]") as HTMLElement).dataset.testid);
 
 describe("ホームの上段の札の眉（2026-11-09・9人のレビュー）", () => {
     it("日本語の画面は日本語の眉（THIS WEEK 等の英字を出さない）", () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const text = cards().textContent ?? "";
-        for (const w of ["今週のお題", "今日の一問", "撮影スポット", "カメラ講座"]) expect(text, w).toContain(w);
-        for (const w of ["THIS WEEK", "DAILY QUIZ", "PHOTO SPOTS", "PHOTO GUIDES"]) expect(text, w).not.toContain(w);
+        for (const w of ["写真を払う", "今週のお題", "今日の一問", "撮影スポット", "カメラ講座"]) expect(text, w).toContain(w);
+        for (const w of ["WHERE TO NEXT", "THIS WEEK", "DAILY QUIZ", "PHOTO SPOTS", "PHOTO GUIDES"]) expect(text, w).not.toContain(w);
     });
 });
 
@@ -80,7 +80,8 @@ describe("ホームの上段の札", () => {
         expect(band).toBe(screen.getByTestId("home-entry-band"));
         expect(band.nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
         expect(screen.getByTestId("home-feed-row")).toContainElement(screen.getByRole("tablist"));
-        expect(order()).toEqual(["home-theme-card", "home-quiz-entry", "home-spots-entry", "home-learn-entry"]);
+        // 2026-11-11: 撮影スポットを払う入口がいつも1枚目（iOS と同じ）
+        expect(order()).toEqual(["home-swipe-entry", "home-theme-card", "home-quiz-entry", "home-spots-entry", "home-learn-entry"]);
     });
 
     it("札の形は iOS と同じ（背 116・角 16・地 surface・白8% の縁・明朝 18 の題・眉は真鍮）", async () => {
@@ -101,7 +102,7 @@ describe("ホームの上段の札", () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const ul = (await screen.findByTestId("home-top-cards")).querySelector("ul")!;
         expect(ul.className).toContain("overflow-x-auto");
-        expect(ul.className).toContain("lg:grid-cols-4");
+        expect(ul.className).toContain("lg:grid-cols-3");
         expect(ul.style.scrollSnapType).toBe("x mandatory");
         // 読み上げ用の字（sr-only・絶対配置）が並びの切り取りの外へ出て頁を横に広げない
         expect(ul.className.split(/\s+/)).toContain("relative");
@@ -248,5 +249,28 @@ describe("ホームの写真のはじめての投稿の印", () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         await waitFor(() => expect(document.querySelector('[data-photo-id="first"] [data-testid="home-first-post"]')).not.toBeNull());
         expect(document.querySelector('[data-photo-id="old"] [data-testid="home-first-post"]')).toBeNull();
+    });
+});
+
+describe("ホームの撮影スポットを払う札（2026-11-11）", () => {
+    it("行き先は /swipe・未ログインは「ログインなしではじめる」・2回目から「続きから」", async () => {
+        render(<ToastProvider><GalleryPageClient /></ToastProvider>);
+        const entry = await screen.findByTestId("home-swipe-entry");
+        expect(entry.getAttribute("href")).toBe("/swipe");
+        expect(entry.textContent).toContain("行きたい場所を探す");
+        expect(entry.textContent).toContain("ログインなしではじめる");
+    });
+
+    it("一度開いた端末は「行きたい n か所 · 続きから」", async () => {
+        window.localStorage.setItem("jp-swipe-started", "1");
+        window.localStorage.setItem("jp-swipe-wants", JSON.stringify(["SPOT-a", "SPOT-b"]));
+        try {
+            render(<ToastProvider><GalleryPageClient /></ToastProvider>);
+            const entry = await screen.findByTestId("home-swipe-entry");
+            await waitFor(() => expect(entry.textContent).toContain("行きたい 2 か所 · 続きから"));
+        } finally {
+            window.localStorage.removeItem("jp-swipe-started");
+            window.localStorage.removeItem("jp-swipe-wants");
+        }
     });
 });
