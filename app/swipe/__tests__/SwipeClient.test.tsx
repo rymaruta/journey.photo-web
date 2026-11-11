@@ -150,6 +150,14 @@ describe("ログインして戻った", () => {
         expect(posts.map(([path, init]) => [path, JSON.parse(String((init as RequestInit).body)).slug]))
             .toEqual([["/user/spots", "SPOT-s1"], ["/user/spots", "SPOT-s2"]]);
         expect(window.localStorage.getItem("jp-swipe-wants")).toBeNull();
+        // 移した2か所は足元の数に入り、山には出ない（取り直す前のサーバーの一覧に無くても・確かめ役の指摘 10）
+        await waitFor(() => expect(screen.getByTestId("swipe-count").textContent).toBe("行きたい 2 か所"));
+        for (let i = 0; i < 28; i++) {
+            const s = currentSlug();
+            expect(["s1", "s2"]).not.toContain(s);
+            fireEvent.click(screen.getByTestId("swipe-pass"));
+            if (i < 27) await waitFor(() => expect(currentSlug()).not.toBe(s));
+        }
     });
 
     it("ログイン中の行きたいはその場で行きたい場所へ・地図は本人の地図", async () => {
