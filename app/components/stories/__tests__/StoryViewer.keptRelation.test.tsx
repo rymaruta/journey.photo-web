@@ -23,7 +23,7 @@ vi.mock("../../../../lib/utils/api", () => ({
 }));
 
 import StoryViewer, { keptDeleteDescription } from "../StoryViewer";
-import { storyDeletePath, sourceStoryIdOf } from "@/lib/stories";
+import { storyDeletePaths, sourceStoryIdOf, isStoryShelved } from "@/lib/stories";
 
 const own = (extra: Record<string, unknown> = {}): StoryGroup[] => [{
     userId: "me", displayName: "自分",
@@ -96,10 +96,41 @@ describe("写真にしたストーリー: 消す確認", () => {
     });
 });
 
+describe("期限が切れた1本には「残す」を出さない（サーバーは期限切れを 404 で断る）", () => {
+    it("棚から開いた（archivedAt）1本には出さない", () => {
+        view(own({ archive: true, archivedAt: "2026-11-10T10:00:00Z", expiresAt: "2026-11-10T10:00:00Z" }));
+        expect(screen.queryByLabelText("ギャラリーに残す"), "押すと必ず 404 になるボタンを出している").toBeNull();
+    });
+
+    it("期限の時刻を過ぎた1本にも出さない", () => {
+        view(own({ expiresAt: "2020-01-01T00:00:00Z" }));
+        expect(screen.queryByLabelText("ギャラリーに残す")).toBeNull();
+    });
+
+    it("期限が切れていても、写真にしてあれば札は出す", () => {
+        view(own({ archivedAt: "2026-11-10T10:00:00Z", keptAs: "p-9" }));
+        expect(screen.getByText("写真にしました")).toBeTruthy();
+    });
+
+    it("生きている1本には出す", () => {
+        view(own());
+        expect(screen.getByLabelText("ギャラリーに残す")).toBeTruthy();
+    });
+
+    it("判定: 棚の印・期限（同時刻は切れている）", () => {
+        const now = Date.parse("2026-11-11T00:00:00Z");
+        expect(isStoryShelved({ archivedAt: "x" }, now)).toBe(true);
+        expect(isStoryShelved({ expiresAt: "2026-11-11T00:00:00Z" }, now)).toBe(true);
+        expect(isStoryShelved({ expiresAt: "2026-11-12T00:00:00Z" }, now)).toBe(false);
+        expect(isStoryShelved({}, now)).toBe(false);
+    });
+});
+
 describe("消す口と関係の読み方", () => {
-    it("一緒に消すときは写真の口に withStory=1、ストーリーだけはストーリーの口", () => {
-        expect(storyDeletePath("s1", "p-9")).toBe("/photos/p-9?withStory=1");
-        expect(storyDeletePath("s1")).toBe("/stories/s1");
+    // 写真がもう無い（404）と写真の口はストーリーに触らない。続けてストーリーの口も叩く（404 は消せた）
+    it("一緒に消すときは写真の口（withStory=1）→ ストーリーの口、ストーリーだけはストーリーの口", () => {
+        expect(storyDeletePaths("s1", "p-9")).toEqual(["/photos/p-9?withStory=1", "/stories/s1"]);
+        expect(storyDeletePaths("s1")).toEqual(["/stories/s1"]);
     });
 
     it("写真の元のストーリーは keptFrom（共有）か fromStory（写し）", () => {

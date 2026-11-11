@@ -10,7 +10,7 @@ import { useLocale } from "../../i18n/context";
 import { useToast } from "../../../lib/hooks/useToast";
 import { log } from "../../../lib/utils/log";
 import { ROUTES, loginWithNext } from "../../../lib/routes";
-import { groupStories, storyDayLabel, storyDeletePath, type Story } from "@/lib/stories";
+import { groupStories, storyDayLabel, storyDeletePaths, type Story } from "@/lib/stories";
 import StoryViewer from "../../components/stories/StoryViewer";
 import StoryTile from "../../components/stories/StoryTile";
 
@@ -110,13 +110,15 @@ export default function StoryArchivePage() {
     const handleDelete = useCallback(async (storyId: string, withPhotoId?: string) => {
         try {
             const { userFetch, isGoneResponse, readApiError } = await import("../../../lib/utils/api");
-            // 「写真も一緒に消す」は写真の口へ（2026-11-11・`storyDeletePath`）
-            const res = await userFetch(storyDeletePath(storyId, withPhotoId), { method: "DELETE" });
-            if (!res.ok && !await isGoneResponse(res)) {
-                // **棚へ移った行は掃除が来ない**（`deleteStory` の注記）ので、
-                // 実体を消したあと行の削除が転ぶと、押し直しだけが道。理由を
-                // そのまま出して押し直しを促す
-                throw new Error(await readApiError(res, isJa ? "削除に失敗しました" : "Failed to delete"));
+            // 「写真も一緒に消す」は写真の口 → ストーリーの口の順（2026-11-11・`storyDeletePaths`）
+            for (const path of storyDeletePaths(storyId, withPhotoId)) {
+                const res = await userFetch(path, { method: "DELETE" });
+                if (!res.ok && !await isGoneResponse(res)) {
+                    // **棚へ移った行は掃除が来ない**（`deleteStory` の注記）ので、
+                    // 実体を消したあと行の削除が転ぶと、押し直しだけが道。理由を
+                    // そのまま出して押し直しを促す
+                    throw new Error(await readApiError(res, isJa ? "削除に失敗しました" : "Failed to delete"));
+                }
             }
             removedRef.current.add(storyId);
             showToast(isJa ? "アーカイブから削除しました" : "Removed from archive", "success");

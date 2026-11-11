@@ -15,7 +15,7 @@ import Link from "next/link";
 import { ROUTES } from "@/lib/routes";
 import UserAvatar from "../UserAvatar";
 import type { StoryGroup, StoryViewer as ViewerEntry } from "@/lib/stories";
-import { timeAgo } from "@/lib/stories";
+import { timeAgo, isStoryShelved } from "@/lib/stories";
 import { log } from "@/lib/utils/log";
 import { hasStoryTextItem, type StoryVoteChoice, type StoryVoteState } from "@/lib/utils/storyText";
 import { useMusic } from "../../music/MusicContext";
@@ -1637,7 +1637,9 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
                                 {locale === "en" ? "Made into a photo" : "写真にしました"}
                                 <span aria-hidden="true">›</span>
                             </Link>
-                        ) : (
+                        ) : isStoryShelved(item) ? null : (
+                            // **期限が切れた1本（棚・ハイライトから開いた）には出さない**——サーバーは
+                            // 期限切れを 404 で断る（`storyKeep.ts` の `isStoryExpired`・掃除との競合を広げない）
                             <button
                                 onClick={() => void keepToGallery()}
                                 disabled={keeping}
