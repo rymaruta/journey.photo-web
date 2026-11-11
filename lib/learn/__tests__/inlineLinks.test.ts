@@ -38,6 +38,10 @@ describe("本文のリンクの書き方（inlineSegments）", () => {
     it("🔴 サイトの外への道は拾わない（本文に外のリンクを紛れ込ませない）", () => {
         expect(inlineHrefs("[外](https://example.com)と[中](/spots)")).toEqual(["/spots"]);
         expect(inlineSegments("[外](https://example.com)")).toEqual(["[外](https://example.com)"]);
+        // `//`（プロトコル相対）と `/\`（ブラウザは `//` と読む）も外。文字のまま残す
+        expect(inlineSegments("[a](//evil.com)")).toEqual(["[a](//evil.com)"]);
+        expect(inlineSegments("[a](/\\evil.com)")).toEqual(["[a](/\\evil.com)"]);
+        expect(inlineHrefs("[a](//evil.com)と[b](/\\evil.com)と[c](/spots)")).toEqual(["/spots"]);
     });
 });
 
@@ -86,13 +90,17 @@ describe("教科書から撮影スポットへのリンク", () => {
      * 🔴 **本文で言っていることが、張った先の頁に書いてあること**（台帳が変わったら気づけるように）。
      * 「〇〇の頁でも〜の撮り方を案内しています」「〜の名所」と書いた所は、その頁の撮り方・時間帯・紹介文に在る語で確かめる
      */
-    const CLAIMS: Record<string, RegExp> = {
-        "fukuroda-falls": /三脚/, "oirase-keiryu": /ND/, "shibuya-scramble": /1\/4秒/, "monet-no-ike": /偏光/,
-        makino: /ぼか/, tsugaike: /ぼか/, ryusendo: /ホワイトバランス/, "shimonada-station": /水平線/, byodoin: /水平線/,
-        "arakurayama-sengen-park": /望遠/, "farm-tomita": /望遠/, inasayama: /夜景/, "mt-hakodate": /夜景/,
-        "shikoku-karst": /星/, jododaira: /星/, "chichibugahama": /日の入り|日が沈んだ/, "takeda-castle-ruins": /川霧/,
-        "bitchu-matsuyama-castle": /雲海/, "lake-mashu": /晴れ/, akanko: /結露/, "hida-daishonyudo": /曇/, "ikuno-ginzan": /曇/,
-        kamikatsu: /手前から奥/, "oigawa-sl": /列車|鐵道/, "choshi-dentetsu": /電車|鉄道/, "kegon-falls": /滝/,
+    // 主張ごとに、かなめの語を2つずつ（1語だけだと、別の意味でその語が出てくる文でも通ってしまう）
+    const CLAIMS: Record<string, RegExp[]> = {
+        "fukuroda-falls": [/三脚/, /長秒露光/], "oirase-keiryu": [/ND/, /三脚/], "shibuya-scramble": [/1\/4秒/, /人が流れ/],
+        "monet-no-ike": [/偏光/, /反射/], makino: [/ぼか/, /花/], tsugaike: [/ぼか/, /望遠/], ryusendo: [/ホワイトバランス/, /照明/],
+        "shimonada-station": [/水平線/, /傾き/], byodoin: [/水平線/, /水面/], "arakurayama-sengen-park": [/望遠/, /塔/],
+        "farm-tomita": [/望遠/, /花畑/], inasayama: [/夜景/, /展望台/], "mt-hakodate": [/夜景/, /見下ろす/],
+        "shikoku-karst": [/星/, /三脚/], jododaira: [/星空/, /星空が濃い/], chichibugahama: [/日の入り|日が沈んだ/, /水面/],
+        "takeda-castle-ruins": [/川霧/, /雲海/], "bitchu-matsuyama-castle": [/雲海/, /明け方|朝/], "lake-mashu": [/晴れ/, /湖面/],
+        akanko: [/結露/, /寒さ/], "hida-daishonyudo": [/曇/, /温度差/], "ikuno-ginzan": [/曇/, /温度差/],
+        kamikatsu: [/手前から奥/, /畦/], "oigawa-sl": [/列車|鐵道/, /SL|蒸気機関車/], "choshi-dentetsu": [/電車|鉄道/, /沿線/],
+        "kegon-falls": [/滝/, /落差/],
     };
     it("本文で言ったことは、張った先のスポットの頁の文に在る", () => {
         const linked = new Set([...texts.values()].flat().flatMap(inlineHrefs).flatMap((h) => /^\/spots\/([^/]+)$/.exec(h)?.[1] ?? []).filter((x) => spotSlugs.has(x)));
@@ -101,7 +109,8 @@ describe("教科書から撮影スポットへのリンク", () => {
             const said = CLAIMS[slug];
             expect(said, `${slug} の確かめ方を CLAIMS に足す`).toBeDefined();
             const words = [s.summary, s.description, ...(s.compositionTips ?? []), ...(s.timeOfDayGuide ?? []).map((g) => g.text), ...(s.seasonalGuide ?? []).map((g) => g.text)].join(" ");
-            expect(words, slug).toMatch(said);
+            expect(said.length, slug).toBeGreaterThanOrEqual(2);
+            for (const re of said) expect(words, `${slug} ${re}`).toMatch(re);
         }
         // 「月ごとの日の出・日の入りとゴールデンアワーの表があります（たとえば父母ヶ浜）」の表が本当に出る
         const c = SPOTS.find((x) => x.slug === "chichibugahama")!;

@@ -10,7 +10,8 @@
 
 export type InlineSegment = string | { label: string; href: string };
 
-const LINK = /\[([^\]\n]+)\]\((\/[^)\s]*)\)/g;
+// `//evil.com`（プロトコル相対）・`/\evil.com`（ブラウザが `//` と読む）は外へ出るので拾わない（2026-11-11 確かめ役）
+const LINK = /\[([^\]\n]+)\]\((\/(?![\/\\])[^)\s]*)\)/g;
 
 /** 本文の文字列を、文字とリンクの並びに分ける */
 export function inlineSegments(text: string): InlineSegment[] {
