@@ -1695,6 +1695,32 @@ describe("NotificationsBell: 紹介と返信の通知（#541）", () => {
         expect(hrefs).toContain("/?photo=p-2");
     });
 
+    it("返信は、写真の個別ページがあればそのコメントの位置へ（無い写真はモーダルなので写真だけ）", async () => {
+        const { commentReplyHref } = await import("../NotificationsBell");
+        const PHOTO_INDEX = (await import("@/app/data/photo-index.json")).default as { photoIds: string[] };
+        expect(commentReplyHref("not-built-p", "c9")).toBe("/?photo=not-built-p");
+        const built = PHOTO_INDEX.photoIds[0];
+        if (built) {
+            expect(commentReplyHref(built, "c 9")).toBe(`/photo/${built}#comment-c%209`);
+            expect(commentReplyHref(built, undefined)).toBe(`/photo/${built}`);
+        }
+    });
+
+    it("返信の行は、個別ページのある写真ならそのコメントの位置へ飛ぶ", async () => {
+        const PHOTO_INDEX = (await import("@/app/data/photo-index.json")).default as { photoIds: string[] };
+        const built = PHOTO_INDEX.photoIds[0];
+        expect(built, "索引に写真が無い（この試験が何も確かめない）").toBeTruthy();
+        mockUserFetch.mockImplementation((url: string) => Promise.resolve(
+            url === "/user/following" ? fetchOk({ userIds: [] }) : fetchOk({ items: [{ ...REPLY, photoId: built }], unread: 1 }),
+        ));
+        render(<NotificationsBell />);
+        await waitFor(() => expect(mockUserFetch).toHaveBeenCalled());
+        fireEvent.click(screen.getByRole("button", { name: "通知" }));
+        await waitFor(() => expect(screen.getByText(/さんがあなたのコメントに返信しました/)).toBeTruthy());
+        const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
+        expect(hrefs).toContain(`/photo/${built}#comment-c9`);
+    });
+
     it("返信は「コメント」のタブに入り、紹介は「すべて」だけ", async () => {
         const { inTab } = await import("../NotificationsBell");
         expect(inTab("commentreply", "comment")).toBe(true);

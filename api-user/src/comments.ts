@@ -481,7 +481,7 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         // **返信の相手に知らせる**（2026-11-11・#541 の ②）。自分自身・ブロックのある相手（両向き）・
         // 退会した人には送らない。相手が写真の持ち主なら、持ち主への「コメント」の知らせの代わりに
         // こちら1つだけ（同じ1件で2つ届けない）
-        const replyTarget = await replyNotifyTarget(comment.replyTo, uid);
+        const replyTarget = await replyNotifyTarget(comment.replyTo, uid, photo);
         if (replyTarget) {
             await pushNotification(replyTarget, {
                 type: "commentreply",
@@ -518,18 +518,23 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
  *
  * ブロックは**両向き**で見る——`pushNotification` は「受け取る人が送った人をブロックしている」
  * だけを止めるので、返信した本人が相手をブロックしている向きはここで止める。
+ * **相手がいまこの写真を見られないなら送らない**（範囲を絞った写真で、フォローを外した・親しい友達から
+ * 外れた人に、知らせと写真の絵を届けない・`canViewPhoto`）。
  * 読めなかったら送らない側（知らせは本体ではない）
  */
-async function replyNotifyTarget(replyTo: CommentReplyTo | undefined, callerId: string): Promise<string | undefined> {
+async function replyNotifyTarget(
+    replyTo: CommentReplyTo | undefined, callerId: string, photo: { userId?: unknown; audience?: unknown },
+): Promise<string | undefined> {
     const target = replyTo?.uid;
     if (!target || target === callerId) return undefined;
     try {
-        const [a, b, gone] = await Promise.all([
+        const [a, b, gone, canView] = await Promise.all([
             isBlocked(target, callerId),
             isBlocked(callerId, target),
             deletedAmong([target]).then(withUnreadAsDeleted),
+            canViewPhoto(photo, target),
         ]);
-        if (a || b || gone.has(target)) return undefined;
+        if (a || b || gone.has(target) || !canView) return undefined;
         return target;
     } catch (e) {
         console.error("replyNotifyTarget: 相手を確かめられませんでした:", e);

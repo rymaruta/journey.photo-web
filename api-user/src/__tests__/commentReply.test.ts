@@ -56,12 +56,14 @@ const mikaComment = { id: "c-mika", uid: "mika", name: "みか", text: "あり�
 type Cmd = { constructor: { name: string }; input: Record<string, unknown> & { Key?: { id?: string } } };
 
 /** 写真 p1（持ち主 mika）とコメント欄。書き込みは捕まえて返す */
-function world(items: Record<string, unknown>[] = [kenjiComment, mikaComment]) {
+function world(items: Record<string, unknown>[] = [kenjiComment, mikaComment], photoExtra: Record<string, unknown> = {},
+    followers: string[] = []) {
     const writes: Cmd[] = [];
     mockDdbSend.mockImplementation((cmd: Cmd) => {
         if (cmd.constructor.name === "GetCommand") {
             const id = String(cmd.input.Key?.id ?? "");
-            if (id === "p1") return Promise.resolve({ Item: { id: "p1", src: "s", thumbSrc: "t", userId: "mika", location: "金沢" } });
+            if (id === "p1") return Promise.resolve({ Item: { id: "p1", src: "s", thumbSrc: "t", userId: "mika", location: "金沢", ...photoExtra } });
+            if (followers.some((f) => id === `follow#mika#${f}`)) return Promise.resolve({ Item: { id } });
             if (id === "comments#p1") return Promise.resolve({ Item: { items } });
             return Promise.resolve({});
         }
@@ -133,6 +135,29 @@ describe("postComment: 返信", () => {
         mockUnreadIds.mockReturnValue(new Set(["kenji"]));
         expect((await invoke(postComment, ev("sora", { id: "p1" }, { text: "x", replyTo: "c-kenji" }))).statusCode).toBe(200);
         expect(sentTypes()).toEqual([["mika", "comment"]]);
+    });
+
+    it("🔴 範囲を絞った写真で、相手がもう見られない（フォローを外した）なら知らせない（絵も届けない）", async () => {
+        world(undefined, { audience: "followers" }, ["sora"]);
+        expect((await invoke(postComment, ev("sora", { id: "p1" }, { text: "x", replyTo: "c-kenji" }))).statusCode).toBe(200);
+        expect(sentTypes(), "見られない人に返信の知らせと写真を送っている").toEqual([["mika", "comment"]]);
+        mockPush.mockReset().mockResolvedValue(undefined);
+        world(undefined, { audience: "followers" }, ["sora", "kenji"]);
+        expect((await invoke(postComment, ev("sora", { id: "p1" }, { text: "x", replyTo: "c-kenji" }))).statusCode).toBe(200);
+        expect(sentTypes()).toEqual([["kenji", "commentreply"], ["mika", "comment"]]);
+    });
+
+    it("🔴 範囲を絞った写真で、相手が見られるか読めなかったら知らせない", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        world(undefined, { audience: "followers" }, ["sora", "kenji"]);
+        const real = mockDdbSend.getMockImplementation()!;
+        mockDdbSend.mockImplementation((cmd: Cmd) => {
+            if (cmd.constructor.name === "GetCommand" && cmd.input.Key?.id === "follow#mika#kenji") return Promise.reject(new Error("boom"));
+            return real(cmd);
+        });
+        expect((await invoke(postComment, ev("sora", { id: "p1" }, { text: "x", replyTo: "c-kenji" }))).statusCode).toBe(200);
+        expect(sentTypes()).toEqual([["mika", "comment"]]);
+        vi.restoreAllMocks();
     });
 
     it("相手のコメントがもう無ければ、ふつうのコメントとして残す（書いたものを捨てない）", async () => {
