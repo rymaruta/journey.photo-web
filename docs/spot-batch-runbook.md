@@ -33,7 +33,7 @@
    それが終わってから
 3. **費用**: Actions は無料枠を超えている見込み（CLAUDE.md）。この手順で使う Actions は本番の Deploy Site（1回 約25分）だけ。
    試しに流すワークフローは無い。費用・データベース・GSI が増える変更はこの手順に含まれない（あれば owner の承認）
-4. 作業ツリー: photo-gallery を `git fetch origin develop main` し、`origin/develop` から枝を切る
+4. 作業ツリー: photo-gallery を `git fetch origin develop main` し、`origin/develop` から枝を切る（s01 は main にだけある行も重なりの材料に足す。第7束で main 側の別の追加と3件重複したため）
    （例 `claude/spots-batch6`）。**`npm run verify` を2本同時に流さない**ので、別の検査が走っている作業ツリーでは作業しない
 
 ## 1. 作業用フォルダを作る
