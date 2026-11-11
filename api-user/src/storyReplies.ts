@@ -11,7 +11,7 @@ import { storyAllowsReplies } from "./storyVisibility";
 import { canViewStoryAudience } from "./storyAudience";
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
-import { mirrorStoryReplyToDm } from "./dm";
+import { mirrorStoryReplyToDm, type StoryMirror } from "./dm";
 
 /**
  * ストーリーへの返信とリアクション。
@@ -89,6 +89,19 @@ const TEXT_MAX = 200;
 const ITEM_BUDGET_BYTES = 350 * 1024;
 
 export const storyRepliesId = (storyId: string) => `storyreplies#${storyId}`;
+
+/** DM への写しを待つ時間の上限（テストで縮められるよう、書き換えられる入れ物にしてある） */
+export const storyReplyTimeouts = { mirrorMs: 3000 };
+
+/** `p` が `ms` 以内に終わらなければ `fallback`。**`p` は止めない**（裏で続く）。タイマーは必ず片付ける */
+async function withTimeout<T, F>(p: Promise<T>, ms: number, fallback: F): Promise<T | F> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+        return await Promise.race([p, new Promise<F>((resolve) => { timer = setTimeout(() => resolve(fallback), ms); })]);
+    } finally {
+        if (timer) clearTimeout(timer);
+    }
+}
 
 /** `next` を足しても収まるように、**古い方から**落とす件数を返す */
 export function overBudgetCount(existing: readonly StoryReply[], next: StoryReply): number {
@@ -322,11 +335,29 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
         // （きれいに直すなら `TransactWriteItems`（行の ConditionCheck ＋
         //   文書の Update）だが、`comments.ts` から写した構造ごと変わる。
         //   `viewStory` が同じ事故を長いコメント付きで塞いでいる）
-        // **通知は件数より先に出す。** この関数は既定の6秒で動くので、
+        // **通知は件数より先に出す。** この関数の上限は 15 秒（serverless.yml）だが、
         // 件数のやり直しで枠を使い切ると `pushNotification` に届かない
         // ——所有者は「返信が来たこと」すら知れなくなる（ベルの1行が
         // 唯一の手がかり）。通知は件数と独立で、`notify.ts` 側が自前で
         // 握るので投げない。
+        //
+        // **文字の返信は、DM の会話の最初の1通として残す**（2026-11-09・札 #505）。絵文字だけの
+        // リアクションは写さず、今までどおり消える。**best-effort**——写せなくても返信は成功
+        // （`mirrorStoryReplyToDm` は投げない）。返信の通知が別に出るので、この写しではプッシュしない。
+        //
+        // **通知より先に写す**（2026-11-10 判断）。通知に「DM の受信箱に入ったか」（`dmConvId`）を
+        // 書くため、写した結果が要る（アプリが受信箱とベルの二重を出さないための印・`notify.ts` の `Notif`）。
+        // 写しは読み書き十数回で、件数のやり直し（下）と違い待ち時間を足さない
+        // **待つのは `storyReplyTimeouts.mirrorMs` まで**（2026-11-10 判断）。過ぎたら `dmConvId` を付けずに通知を積む
+        // （ベルと受信箱の二重は出うるが、知らせが遅れる・消えるよりよい）。打ち切っても写しは裏で続き、
+        // 終わったときに二重にはならない——返信の id を冪等の鍵にしている（`sendDm` が同じ id の通を足さない）
+        const mirror: StoryMirror | null = ownerId && reply.text
+            ? await withTimeout(
+                mirrorStoryReplyToDm({ from: uid, to: ownerId, text: reply.text, replyId: reply.id, name: reply.name, storyId }),
+                storyReplyTimeouts.mirrorMs,
+                { mirrored: false, code: "timeout" } as const,
+            )
+            : null;
         if (ownerId) {
             await pushNotification(ownerId, {
                 type: "storyreply",
@@ -335,6 +366,11 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
                 byName: reply.name,
                 byId: uid,
                 t: reply.t,
+                // 文字の返信か、絵文字だけの反応か（文字と絵文字の両方なら文字）
+                replyKind: reply.text ? "text" : "reaction",
+                // **受け取った人のふつうの受信箱に入ったときだけ**。リクエストの棚に入った回は付けない
+                // ——リクエストはバッジにも出ないので、ベルの行が唯一の知らせになる
+                ...(mirror?.mirrored && mirror.delivered === "inbox" ? { dmConvId: mirror.convId } : {}),
             });
         }
 
@@ -400,14 +436,13 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
             }
         }
 
-        // **文字の返信は、DM の会話の最初の1通として残す**（2026-11-09・札 #505）。絵文字だけの
-        // リアクションは写さず、今までどおり消える。**best-effort**——写せなくても返信は成功
-        // （`mirrorStoryReplyToDm` は投げない）。返信の通知が別に出るので、この写しではプッシュしない
-        if (ownerId && reply.text) {
-            await mirrorStoryReplyToDm({ from: uid, to: ownerId, text: reply.text, replyId: reply.id, name: reply.name });
-        }
-
-        return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ success: true, reply }) };
+        // **DM に写ったか**（2026-11-10・iOS の「送りました ›メッセージを見る」）。写ったら会話 ID だけ、
+        // 写らなかったら `dm: null` と理由（`dmSkipped`）。**相手の受信箱かリクエストの棚かは出さない**
+        // （相手が自分をフォローしているかが読み取れる・`SendOk.delivered`）
+        const dmFields = mirror?.mirrored
+            ? { dm: { conversationId: mirror.convId } }
+            : { dm: null, dmSkipped: mirror ? mirror.code : (reply.text ? "error" : "reaction") };
+        return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ success: true, reply, ...dmFields }) };
     } catch (e) {
         console.error("postStoryReply error:", e);
         return jsonError(500, "送信に失敗しました");
