@@ -1,0 +1,6620 @@
+{
+ "_about": "撮影スポットの頁の「行く前に知りたい事実」（見頃・アクセス・開いている時間と料金・撮影の決まり）。札 rymaruta/journey.photo-ios#527 の案 2（2026-11-11）。AI が公式サイト（施設・自治体・観光協会）の頁を読み、事実の1行ごとに読んだ頁の URL・題・読んだ日（readAt）を付けた。出典の揃わない行は試験が落とし、画面も描かない。三脚・自撮り棒・ドローンは公式の頁に書いてあるときだけ（無ければ画面は『公式サイトに記載なし』）。readPages は読んだ頁の全部。形と規則は lib/data/spotVisitFacts.ts",
+ "spots": {
+  "fushimi-inari-taisha": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://inari.jp/",
+     "title": "伏見稲荷大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inari.jp/about/faq/",
+     "title": "よくあるご質問｜伏見稲荷大社とは｜伏見稲荷大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inari.jp/request/",
+     "title": "伏見稲荷大社からのお願い | 伏見稲荷大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inari.jp/access/",
+     "title": "交通アクセス｜伏見稲荷大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR奈良線の稲荷駅で降りてすぐ（京都駅から5分）。京阪本線の伏見稲荷駅からは東へ歩いて5分",
+     "url": "https://inari.jp/access/",
+     "title": "交通アクセス｜伏見稲荷大社",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "京都市バス南5系統の「稲荷大社前」で降り、東へ歩いて7分",
+     "url": "https://inari.jp/access/",
+     "title": "交通アクセス｜伏見稲荷大社",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "参拝者用の駐車場あり（参拝以外の駐車は不可）。周りの道は混むため、公共交通機関で来るよう案内している。12月30日〜1月6日は境内の駐車場を閉鎖",
+    "url": "https://inari.jp/access/",
+    "title": "交通アクセス｜伏見稲荷大社",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "photoRules": {
+    "drone": {
+     "text": "境内でドローンなどを飛ばすことは禁止",
+     "url": "https://inari.jp/request/",
+     "title": "伏見稲荷大社からのお願い | 伏見稲荷大社",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "notes": [
+     {
+      "text": "営業目的の撮影と、禁止された場所での撮影は禁止。狭い参道に立ち止まって参拝者の通行をふさぐ撮影も禁止",
+      "url": "https://inari.jp/request/",
+      "title": "伏見稲荷大社からのお願い | 伏見稲荷大社",
+      "readAt": "2026-11-11"
+     },
+     {
+      "text": "本殿をはじめ建物の中や柵の中へは、許しなく入れない",
+      "url": "https://inari.jp/request/",
+      "title": "伏見稲荷大社からのお願い | 伏見稲荷大社",
+      "readAt": "2026-11-11"
+     },
+     {
+      "text": "ウェディングドレス姿など、参拝にふさわしくない姿で境内を歩くことは禁止",
+      "url": "https://inari.jp/request/",
+      "title": "伏見稲荷大社からのお願い | 伏見稲荷大社",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "kenrokuen": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/",
+     "title": "文化財指定庭園 特別名勝 兼六園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/access.html",
+     "title": "アクセス｜兼六園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
+     "title": "利用案内｜兼六園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "観桜期は例年3月下旬〜4月上旬",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
+     "title": "利用案内｜兼六園",
+     "readAt": "2026-11-11",
+     "subject": "桜"
+    }
+   ],
+   "access": [
+    {
+     "text": "金沢駅からバスで12分の「兼六園下・金沢城」で降り、歩いて5分で桂坂口",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/access.html",
+     "title": "アクセス｜兼六園",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    },
+    {
+     "text": "北陸自動車道の金沢森本ICから約20分（金沢西IC・金沢東ICからは約30分）",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/access.html",
+     "title": "アクセス｜兼六園",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "近くに県の兼六駐車場（普通車480台・24時間）と本多の森駐車場がある（有料）",
+    "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/access.html",
+    "title": "アクセス｜兼六園",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "3月1日〜10月15日は7:00〜18:00、10月16日〜2月末は8:00〜17:00（最終入園は閉園30分前）",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
+     "title": "利用案内｜兼六園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "朝は無料の早朝開園があり、4月〜8月は4:00から、11月〜2月は6:00から入れる（入口は蓮池門口と随身坂口だけ）",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
+     "title": "利用案内｜兼六園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人（18歳以上）320円、6〜18歳未満100円",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
+     "title": "利用案内｜兼六園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "65歳以上は年齢の分かる証明を見せると無料",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
+     "title": "利用案内｜兼六園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "観桜期（例年3月下旬〜4月上旬の7日間ほど）は無料で開園する",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
+     "title": "利用案内｜兼六園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "園内での撮影やイベントなどは、事前の申請と許可が要ると案内している（内容は管理事務所に確かめる）",
+      "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kenrokuen-garden/info.html",
+      "title": "利用案内｜兼六園",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "himeji-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.himeji.lg.jp/castle/",
+     "title": "姫路城公式サイト：トップページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.himeji.lg.jp/castle/category/10-1-0-0-0-0-0-0-0-0.html",
+     "title": "ご利用案内 | 姫路城公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.himeji.lg.jp/castle/0000024303.html",
+     "title": "【ご来城の皆さまへ】熱中症に注意しましょう！ | 姫路城公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.himeji.lg.jp/faq/faq_category.php?frmCd=12-0-0-0-0",
+     "title": "姫路城 | FAQ（よくある質問） | 姫路市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.himeji.lg.jp/castle/0000007671.html",
+     "title": "姫路城ご利用案内 | 姫路城公式サイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "姫路駅北口から神姫バスで「大手門前」へ。降りて歩いて約5分で改札口",
+     "url": "https://www.city.himeji.lg.jp/castle/0000007671.html",
+     "title": "姫路城ご利用案内 | 姫路城公式サイト",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    },
+    {
+     "text": "JR姫路駅・山陽姫路駅から歩いて約20分",
+     "url": "https://www.city.himeji.lg.jp/castle/0000007671.html",
+     "title": "姫路城ご利用案内 | 姫路城公式サイト",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9:00〜17:00（最終入城16:00）。休みは12月29日・30日",
+     "url": "https://www.city.himeji.lg.jp/castle/0000007671.html",
+     "title": "姫路城ご利用案内 | 姫路城公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "大天守に上がれる人数は1時間あたり1,000人までで、混む日は入口で待つことがある",
+     "url": "https://www.city.himeji.lg.jp/castle/0000007671.html",
+     "title": "姫路城ご利用案内 | 姫路城公式サイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "18歳以上2,500円（姫路市民は1,000円）。18歳未満は無料",
+     "url": "https://www.city.himeji.lg.jp/castle/0000007671.html",
+     "title": "姫路城ご利用案内 | 姫路城公式サイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "姫路城の上空でドローンを飛ばすことは禁止",
+     "url": "https://www.city.himeji.lg.jp/castle/category/10-1-0-0-0-0-0-0-0-0.html",
+     "title": "ご利用案内 | 姫路城公式サイト",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "matsumoto-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.matsumoto-castle.jp/",
+     "title": "国宝 松本城 - 松本城をより楽しむ公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsumoto-castle.jp/faq",
+     "title": "よくあるご質問 | 国宝 松本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsumoto-castle.jp/access",
+     "title": "国宝 松本城へのアクセス | 国宝 松本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsumoto-castle.jp/info",
+     "title": "観覧案内 | 国宝 松本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsumoto-castle.jp/info/season",
+     "title": "松本城の四季 | 国宝 松本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsumoto-castle.jp/info/guide",
+     "title": "ボランティアガイドのご案内 | 国宝 松本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsumoto-castle.jp/info/apps",
+     "title": "スマートフォンアプリのご紹介 | 国宝 松本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsumoto-castle.jp/event-info",
+     "title": "イベント最新情報 | 国宝 松本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsumoto-castle.jp/town/spot",
+     "title": "周辺観光地・名所案内 | 国宝 松本城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR篠ノ井線の松本駅から歩いて約20分",
+     "url": "https://www.matsumoto-castle.jp/access",
+     "title": "国宝 松本城へのアクセス | 国宝 松本城",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "松本駅お城口から周遊バス「タウンスニーカー」北コースで約10分、「松本城・市役所前」で降りる",
+     "url": "https://www.matsumoto-castle.jp/access",
+     "title": "国宝 松本城へのアクセス | 国宝 松本城",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "無料の駐車場は無い。近くの市営駐車場（松本城北・大手門）から黒門券売所まで歩いて8分ほど",
+    "url": "https://www.matsumoto-castle.jp/faq",
+    "title": "よくあるご質問 | 国宝 松本城",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "8:30〜17:00（入場は16:30まで）",
+     "url": "https://www.matsumoto-castle.jp/faq",
+     "title": "よくあるご質問 | 国宝 松本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "天守のライトアップは一年を通して、日没から22:00まで",
+     "url": "https://www.matsumoto-castle.jp/faq",
+     "title": "よくあるご質問 | 国宝 松本城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "松本城と松本城公園の敷地内では、特別な許可がある場合を除きドローンの飛行は禁止",
+     "url": "https://www.matsumoto-castle.jp/faq",
+     "title": "よくあるご質問 | 国宝 松本城",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "ise-jingu-naiku": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.isejingu.or.jp/about/naiku/",
+     "title": "皇大神宮（内宮）｜神宮について｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/",
+     "title": "ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/access/",
+     "title": "交通アクセス｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/first/beginner_visit.html",
+     "title": "知る見るわかる、伊勢神宮 - 参拝編 -｜はじめての神宮｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/course/",
+     "title": "神宮の回り方｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/amulet/",
+     "title": "授与品（お神札・お守り）｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/map/",
+     "title": "内宮｜域内マップ｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/manner/",
+     "title": "参拝の作法とマナー｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.isejingu.or.jp/visit/prayer/",
+     "title": "ご祈祷のご案内｜ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "外宮からバスかタクシーで約10分",
+     "url": "https://www.isejingu.or.jp/first/beginner_visit.html",
+     "title": "知る見るわかる、伊勢神宮 - 参拝編 -｜はじめての神宮｜伊勢神宮",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "hours": [
+    {
+     "text": "参拝は朝5時から。閉まるのは1〜4月・9月が18時、5〜8月が19時、10〜12月が17時",
+     "url": "https://www.isejingu.or.jp/visit/",
+     "title": "ご参拝・ご祈祷｜伊勢神宮",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "izumo-taisha": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://izumooyashiro.or.jp/kaguraden",
+     "title": "神楽殿 | 出雲大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://izumooyashiro.or.jp/faq",
+     "title": "よくあるご質問 | 出雲大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://izumooyashiro.or.jp/daisengu/gohousan",
+     "title": "ご奉賛のお願い～将来の御遷宮に向けて | 出雲大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://izumooyashiro.or.jp/precinct/keidai-index",
+     "title": "境内のご案内 | 境内のご案内 | 出雲大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://izumooyashiro.or.jp/precinct",
+     "title": "境内のご案内 | 境内のご案内 | 出雲大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://izumooyashiro.or.jp/access",
+     "title": "交通アクセス | 出雲大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://izumooyashiro.or.jp/precinct/keidai-index",
+     "title": "境内のご案内 | 境内のご案内 | 出雲大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR出雲市駅から一畑バス（出雲大社・日御碕・宇竜行き）で25分",
+     "url": "https://izumooyashiro.or.jp/access",
+     "title": "交通アクセス | 出雲大社",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "参拝者用の駐車場が3か所（大駐車場385台ほか）",
+    "url": "https://izumooyashiro.or.jp/access",
+    "title": "交通アクセス | 出雲大社",
+    "readAt": "2026-11-11",
+    "available": true
+   }
+  },
+  "hikone-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://hikonecastle.com/",
+     "title": "【公式】 国宝 彦根城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hikonecastle.com/information.html",
+     "title": "観覧案内 | 国宝 彦根城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "城の近くに観光駐車場がいくつかある（乗用車は1日1,000円）",
+    "url": "https://hikonecastle.com/",
+    "title": "【公式】 国宝 彦根城",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "8:30〜17:00（彦根城・玄宮園の最終入場は16:30。天守などの建物は16:45に閉まる）",
+     "url": "https://hikonecastle.com/information.html",
+     "title": "観覧案内 | 国宝 彦根城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "彦根城（玄宮園を含む）は一般1,000円、小・中学生300円（2024年10月1日から）",
+     "url": "https://hikonecastle.com/information.html",
+     "title": "観覧案内 | 国宝 彦根城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "ドローンの飛行は禁止",
+     "url": "https://hikonecastle.com/",
+     "title": "【公式】 国宝 彦根城",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "nagoyajo": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.nagoyajo.city.nagoya.jp/",
+     "title": "名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nagoyajo.city.nagoya.jp/guide/",
+     "title": "観覧ガイド | 名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nagoyajo.city.nagoya.jp/access/",
+     "title": "アクセス | 名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nagoyajo.city.nagoya.jp/info/",
+     "title": "利用案内 | 名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nagoyajo.city.nagoya.jp/guide/nagoyajo/",
+     "title": "名古屋城 | 観覧ガイド | 名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nagoyajo.city.nagoya.jp/guide/honmarugoten/",
+     "title": "本丸御殿 | 観覧ガイド | 名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nagoyajo.city.nagoya.jp/guide/teien/",
+     "title": "名勝二之丸庭園 | 観覧ガイド | 名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nagoyajo.city.nagoya.jp/guide/sumiyagura/",
+     "title": "隅櫓 | 観覧ガイド | 名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.nagoyajo.city.nagoya.jp/guide/tenshu/",
+     "title": "天守閣 | 観覧ガイド | 名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "地下鉄名城線の名古屋城駅7番出口から歩いて5分",
+     "url": "https://www.nagoyajo.city.nagoya.jp/",
+     "title": "名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "なごや観光ルートバス「メーグル」の「名古屋城」で降りてすぐ",
+     "url": "https://www.nagoyajo.city.nagoya.jp/",
+     "title": "名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "正門前駐車場（普通車308台・有料）と二の丸東駐車場（普通車123台）がある",
+    "url": "https://www.nagoyajo.city.nagoya.jp/access/",
+    "title": "アクセス | 名古屋城公式ウェブサイト",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "9:00〜16:30（本丸御殿・西の丸御蔵城宝館への入場は16:00まで）。休みは12月29日〜1月1日",
+     "url": "https://www.nagoyajo.city.nagoya.jp/",
+     "title": "名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人1,000円、中学生以下は無料",
+     "url": "https://www.nagoyajo.city.nagoya.jp/",
+     "title": "名古屋城公式ウェブサイト",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "nijojo": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/",
+     "title": "世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/",
+     "title": "ご利用案内 | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/annai/",
+     "title": "開城時間・休城日等 | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/admission/",
+     "title": "料金・チケット | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/faq/",
+     "title": "よくある質問 | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/map/",
+     "title": "ガイドマップ | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/pamphlet/",
+     "title": "パンフレット | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/model_course/",
+     "title": "観覧モデルコース | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/caution/",
+     "title": "ご観覧にあたっての注意事項 | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "入城の受付は8:45〜16:00（17:00に閉城）。本丸御殿の観覧は事前予約制",
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/annai/",
+     "title": "開城時間・休城日等 | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "tripod": {
+     "text": "一脚・三脚は使わないよう求めている（団体写真の場所の案内の中で）",
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/faq/",
+     "title": "よくある質問 | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "selfieStick": {
+     "text": "障壁画展示収蔵館では、伸ばした自撮り棒・一脚・三脚・フラッシュは禁止（撮影そのものはできる）",
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/faq/",
+     "title": "よくある質問 | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11",
+     "status": "conditional"
+    },
+    "drone": {
+     "text": "ドローンの使用は禁止（城内の主な禁止事項）",
+     "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/annai/",
+     "title": "開城時間・休城日等 | 世界遺産・元離宮二条城",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "notes": [
+     {
+      "text": "二の丸御殿と本丸御殿の中は撮影禁止",
+      "url": "https://nijo-jocastle.city.kyoto.lg.jp/guide/faq/",
+      "title": "よくある質問 | 世界遺産・元離宮二条城",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "kinkakuji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.shokoku-ji.jp/kinkakuji/",
+     "title": "金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/kinkakuji/guide/",
+     "title": "境内案内 | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/kinkakuji/access/",
+     "title": "アクセス | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/kinkakuji/faq/",
+     "title": "よくある質問 | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/kinkakuji/news/%e3%80%90%e9%87%8d%e8%a6%81%e3%81%aa%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b%e3%80%91%e9%a7%90%e8%bb%8a%e6%96%99%e9%87%91%e6%94%b9%e5%ae%9a%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b/",
+     "title": "【重要なお知らせ】駐車料金改定のお知らせ | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/kinkakuji/news/%e3%80%90%e9%87%8d%e8%a6%81%e3%81%aa%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b%e3%80%91%e5%8f%82%e6%8b%9d%e5%bf%97%e7%b4%8d%e6%96%99%e6%94%b9%e5%ae%9a%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b/",
+     "title": "【重要なお知らせ】参拝志納料改定のお知らせ | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/kinkakuji/news/%e3%83%9a%e3%83%83%e3%83%88%e3%82%92%e9%80%a3%e3%82%8c%e3%81%a6%e3%81%ae%e3%81%94%e5%8f%82%e6%8b%9d%e3%81%ab%e3%81%a4%e3%81%84%e3%81%a6/",
+     "title": "ペットを連れてのご参拝について | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/kinkakuji/about/",
+     "title": "金閣寺について | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "京都市バスの「金閣寺道」で降りる",
+     "url": "https://www.shokoku-ji.jp/kinkakuji/access/",
+     "title": "アクセス | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "参拝者用の駐車場あり（第1〜第3で250台、8:40〜17:10、乗用車は有料）",
+    "url": "https://www.shokoku-ji.jp/kinkakuji/access/",
+    "title": "アクセス | 金閣寺 | 臨済宗相国寺派",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "9:00〜17:00、年中無休",
+     "url": "https://www.shokoku-ji.jp/kinkakuji/access/",
+     "title": "アクセス | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11",
+     "opens": "09:00",
+     "closes": "17:00"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人（高校生以上）500円、小・中学生300円",
+     "url": "https://www.shokoku-ji.jp/kinkakuji/access/",
+     "title": "アクセス | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "ドローンの飛行は禁止",
+     "url": "https://www.shokoku-ji.jp/kinkakuji/faq/",
+     "title": "よくある質問 | 金閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "notes": [
+     {
+      "text": "境内の撮影は、個人で楽しむための小型カメラでのスナップに限る。SNSなどで人に見せる目的の撮影と営利目的の撮影は断っている",
+      "url": "https://www.shokoku-ji.jp/kinkakuji/faq/",
+      "title": "よくある質問 | 金閣寺 | 臨済宗相国寺派",
+      "readAt": "2026-11-11"
+     },
+     {
+      "text": "団体写真の撮影と動画の配信も禁止",
+      "url": "https://www.shokoku-ji.jp/kinkakuji/faq/",
+      "title": "よくある質問 | 金閣寺 | 臨済宗相国寺派",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "nikko-toshogu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://toshogu.jp/",
+     "title": "日光東照宮ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toshogu.jp/pages/31/",
+     "title": "境内のご案内｜日光東照宮ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toshogu.jp/pages/32/",
+     "title": "施設のご案内｜日光東照宮ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toshogu.jp/pages/26/",
+     "title": "アクセス・駐車場｜日光東照宮ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://toshogu.jp/pages/25/",
+     "title": "拝観時間・料金｜日光東照宮ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "日光宇都宮道路の日光ICから2km",
+     "url": "https://toshogu.jp/pages/26/",
+     "title": "アクセス・駐車場｜日光東照宮ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "東照宮大駐車場（普通車200台・普通車1回600円）",
+    "url": "https://toshogu.jp/pages/26/",
+    "title": "アクセス・駐車場｜日光東照宮ホームページ",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "4月1日〜10月31日は9:00〜17:00、11月1日〜3月31日は9:00〜16:00（受付は閉門30分前まで）",
+     "url": "https://toshogu.jp/pages/25/",
+     "title": "拝観時間・料金｜日光東照宮ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人・高校生1,600円、小・中学生550円",
+     "url": "https://toshogu.jp/pages/25/",
+     "title": "拝観時間・料金｜日光東照宮ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kiyomizudera": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kiyomizudera.or.jp/",
+     "title": "音羽山 清水寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kiyomizudera.or.jp/access.php",
+     "title": "交通 | 音羽山 清水寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kiyomizudera.or.jp/faq.php",
+     "title": "よくあるご質問 | 音羽山 清水寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kiyomizudera.or.jp/news/open-hour.php",
+     "title": "拝観時間のご案内 / open hours - 便り | 音羽山 清水寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kiyomizudera.or.jp/news/yakan-haikanautumn.php",
+     "title": "2026.11/21-11/30実施 秋の夜間特別拝観 - 便り | 音羽山 清水寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kiyomizudera.or.jp/read/%e3%81%93%e3%82%8c%e3%81%be%e3%81%a7%e3%81%ae400%e5%b9%b4%e3%80%81%e3%81%93%e3%82%8c%e3%81%8b%e3%82%89%e3%81%ae400%e5%b9%b4%e3%80%82",
+     "title": "これまでの400年、これからの400年。 - 清水寺の読み物 | 音羽山 清水寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kiyomizudera.or.jp/read/%e9%81%8e%e5%8e%bb%e3%81%a8%e7%8f%be%e5%9c%a8%e3%81%8c%e6%b7%b7%e5%9c%a8%e3%81%99%e3%82%8b%e4%bf%ae%e7%90%86",
+     "title": "過去と現在が混在する修理 - 清水寺の読み物 | 音羽山 清水寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kiyomizudera.or.jp/event/",
+     "title": "行事 | 音羽山 清水寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kiyomizudera.or.jp/map.php",
+     "title": "巡る | 音羽山 清水寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR京都駅から市バス206系統・100系統で「五条坂」へ。降りて歩いて10分",
+     "url": "https://www.kiyomizudera.or.jp/access.php",
+     "title": "交通 | 音羽山 清水寺",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    },
+    {
+     "text": "京阪電鉄の清水五条駅から歩いて約25分",
+     "url": "https://www.kiyomizudera.or.jp/access.php",
+     "title": "交通 | 音羽山 清水寺",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "parking": {
+    "text": "境内に駐車場は無い。近くに京都市の市営駐車場や一時預かりの駐車場がある",
+    "url": "https://www.kiyomizudera.or.jp/access.php",
+    "title": "交通 | 音羽山 清水寺",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "開門は一年を通して6:00。閉門は18:00（7月〜8月は18:30）。春（3月27日〜4月5日）・夏（8月14日〜16日）・秋（11月21日〜30日）の夜間特別拝観の間は21:30（2026年の案内）",
+     "url": "https://www.kiyomizudera.or.jp/access.php",
+     "title": "交通 | 音羽山 清水寺",
+     "readAt": "2026-11-11",
+     "validUntil": "2026-12-31"
+    }
+   ],
+   "photoRules": {
+    "tripod": {
+     "text": "一脚・三脚を使った撮影はできない",
+     "url": "https://www.kiyomizudera.or.jp/faq.php",
+     "title": "よくあるご質問 | 音羽山 清水寺",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "drone": {
+     "text": "ドローンを使った撮影はできない",
+     "url": "https://www.kiyomizudera.or.jp/faq.php",
+     "title": "よくあるご質問 | 音羽山 清水寺",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "notes": [
+     {
+      "text": "ウエディング・コスプレ・モデルを使った撮影と、営利につながる作品の撮影（生配信・ロケなど）は断っている",
+      "url": "https://www.kiyomizudera.or.jp/faq.php",
+      "title": "よくあるご質問 | 音羽山 清水寺",
+      "readAt": "2026-11-11"
+     },
+     {
+      "text": "座り込みや、長い時間同じ場所で撮り続けて参拝者の通行をふさぐことはやめるよう求めている",
+      "url": "https://www.kiyomizudera.or.jp/faq.php",
+      "title": "よくあるご質問 | 音羽山 清水寺",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "itsukushima-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.itsukushimajinja.jp/",
+     "title": "国宝・世界遺産 嚴島神社 【公式サイト】",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.itsukushimajinja.jp/jp/history.html",
+     "title": "御由緒 拝観 嚴島神社【公式サイト】国宝・世界文化遺産",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.itsukushimajinja.jp/jp/admission.html",
+     "title": "拝観施設及び料金 嚴島神社【公式サイト】国宝・世界文化遺産",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.itsukushimajinja.jp/jp/route.html",
+     "title": "参拝順路 拝観 嚴島神社【公式サイト】国宝・世界文化遺産",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.itsukushimajinja.jp/jp/otherevent.html",
+     "title": "行事のご案内及びお知らせ 嚴島神社【公式サイト】国宝・世界文化遺産",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.itsukushimajinja.jp/jp/access.html",
+     "title": "アクセス 嚴島神社【公式サイト】国宝・世界文化遺産",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR西日本の宮島口駅が最寄り（宮島へはフェリーで渡る）",
+     "url": "https://www.itsukushimajinja.jp/jp/access.html",
+     "title": "アクセス 嚴島神社【公式サイト】国宝・世界文化遺産",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "山陽自動車道の廿日市IC・大野ICから宮島口まで約15分",
+     "url": "https://www.itsukushimajinja.jp/jp/access.html",
+     "title": "アクセス 嚴島神社【公式サイト】国宝・世界文化遺産",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "嚴島神社に駐車場は無い",
+    "url": "https://www.itsukushimajinja.jp/jp/access.html",
+    "title": "アクセス 嚴島神社【公式サイト】国宝・世界文化遺産",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "年中無休。開門は6:30、閉門は3月1日〜10月14日が18:00、10月15日〜11月30日と1月4日〜2月末が17:30、12月が17:00",
+     "url": "https://www.itsukushimajinja.jp/jp/admission.html",
+     "title": "拝観施設及び料金 嚴島神社【公式サイト】国宝・世界文化遺産",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "昇殿料は大人300円、高校生200円、小・中学生100円",
+     "url": "https://www.itsukushimajinja.jp/jp/admission.html",
+     "title": "拝観施設及び料金 嚴島神社【公式サイト】国宝・世界文化遺産",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "inuyama-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://inuyama-castle.jp/",
+     "title": "国宝犬山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inuyama-castle.jp/guidance/",
+     "title": "観覧案内 | 国宝犬山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inuyama-castle.jp/access/",
+     "title": "交通案内 | 国宝犬山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inuyama-castle.jp/faq/",
+     "title": "国宝犬山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://inuyama-castle.jp/gallery/",
+     "title": "フォト・映像ギャラリー | 国宝犬山城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "名古屋駅から名鉄の電車（直通）で犬山駅まで約25分",
+     "url": "https://inuyama-castle.jp/",
+     "title": "国宝犬山城",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9:00〜17:00（最終入場16:30）。休みは12月29日〜31日",
+     "url": "https://inuyama-castle.jp/",
+     "title": "国宝犬山城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "一般1,000円、小・中学生200円",
+     "url": "https://inuyama-castle.jp/",
+     "title": "国宝犬山城",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "azuchi-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.azuchi-nobunaga.com/",
+     "title": "織田信長の安土城址と摠見寺 – 信長の安土城址と摠見寺の公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.azuchi-nobunaga.com/guide",
+     "title": "拝観案内 – 織田信長の安土城址と摠見寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.azuchi-nobunaga.com/archives/news/%e6%8b%9d%e8%a6%b3%e6%96%99%e6%94%b9%e5%ae%9a%e3%81%a8%e5%b1%b1%e5%86%85%e3%83%88%e3%82%a4%e3%83%ac%e6%96%b0%e8%a8%ad%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b",
+     "title": "城址めぐり入山料改定と山内トイレ新設のお知らせ – 織田信長の安土城址と摠見寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.azuchi-nobunaga.com/archives/news/%e6%91%a0%e8%a6%8b%e5%af%ba%e6%9c%ac%e5%a0%82%e7%89%b9%e5%88%a5%e6%8b%9d%e8%a6%b3",
+     "title": "摠見寺本堂特別拝観 – 織田信長の安土城址と摠見寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.azuchi-nobunaga.com/temple",
+     "title": "摠見寺（臨済宗妙心寺派） – 織田信長の安土城址と摠見寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR琵琶湖線の安土駅から歩いて約20分（安土駅に新快速は止まらない）",
+     "url": "https://www.azuchi-nobunaga.com/guide",
+     "title": "拝観案内 – 織田信長の安土城址と摠見寺",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "名神高速道路の蒲生スマートICから約20分、八日市ICから約25分",
+     "url": "https://www.azuchi-nobunaga.com/guide",
+     "title": "拝観案内 – 織田信長の安土城址と摠見寺",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "城址の下に大きな無料駐車場あり（大型バスも可）",
+    "url": "https://www.azuchi-nobunaga.com/guide",
+    "title": "拝観案内 – 織田信長の安土城址と摠見寺",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "年中無休で8:30〜17:00（入場の受付は16:00まで。季節で変わることがある）",
+     "url": "https://www.azuchi-nobunaga.com/guide",
+     "title": "拝観案内 – 織田信長の安土城址と摠見寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人700円、高校生以下200円",
+     "url": "https://www.azuchi-nobunaga.com/guide",
+     "title": "拝観案内 – 織田信長の安土城址と摠見寺",
+     "readAt": "2026-11-11",
+     "validUntil": "2026-12-31"
+    },
+    {
+     "text": "2027年からは、城址めぐりの入山料が1人1,000円になると案内している",
+     "url": "https://www.azuchi-nobunaga.com/archives/news/%e6%8b%9d%e8%a6%b3%e6%96%99%e6%94%b9%e5%ae%9a%e3%81%a8%e5%b1%b1%e5%86%85%e3%83%88%e3%82%a4%e3%83%ac%e6%96%b0%e8%a8%ad%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b",
+     "title": "城址めぐり入山料改定と山内トイレ新設のお知らせ – 織田信長の安土城址と摠見寺",
+     "readAt": "2026-11-11",
+     "validUntil": "2026-12-31"
+    }
+   ]
+  },
+  "suwa-taisha": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://suwataisha.or.jp/",
+     "title": "信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://suwataisha.or.jp/visiting/",
+     "title": "御参拝のご案内 - 信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://suwataisha.or.jp/access/",
+     "title": "交通アクセス - 信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://suwataisha.or.jp/faq/",
+     "title": "よくあるご質問 - 信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://suwataisha.or.jp/trademark_right/",
+     "title": "商標および撮影・画像使用の各種申請について - 信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://suwataisha.or.jp/visiting/calendar/",
+     "title": "諏訪大社の一年間 - 信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://suwataisha.or.jp/visiting/first/",
+     "title": "はじめての諏訪大社 - 信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://suwataisha.or.jp/%e5%b9%b4%e6%9c%ab%e5%b9%b4%e5%a7%8b%e3%81%94%e5%a5%89%e4%bb%95%e3%82%a2%e3%83%ab%e3%83%90%e3%82%a4%e3%83%88%e3%81%ae%e5%8b%9f%e9%9b%86%e3%81%ab%e3%81%a4%e3%81%84%e3%81%a6%ef%bc%88%e7%94%b7%e6%80%a7/",
+     "title": "年末年始ご奉仕アルバイトの募集について（男性・女性） - 信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://suwataisha.or.jp/%e4%b8%83%e4%ba%94%e4%b8%89%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85-2/",
+     "title": "七五三のご案内 - 信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "各宮は門を閉めないので、いつでも参拝できる（授与所・宝物殿は受付時間あり）",
+     "url": "https://suwataisha.or.jp/visiting/",
+     "title": "御参拝のご案内 - 信濃國一之宮 諏訪大社",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "goryokaku": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.hakodate-jts-kosya.jp/park/goryokaku/",
+     "title": "五稜郭公園 | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hakodate-jts-kosya.jp/housing_work/housing/",
+     "title": "公営住宅等募集案内 | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hakodate-jts-kosya.jp/housing_work/housing/information/",
+     "title": "公営住宅等について | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hakodate-jts-kosya.jp/nyusatsu/information/",
+     "title": "公告中の工事・入札結果情報 | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hakodate-jts-kosya.jp/itaku/information/",
+     "title": "公告中の委託業務・入札結果情報 | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hakodate-jts-kosya.jp/work/information/",
+     "title": "情報公開 | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hakodate-jts-kosya.jp/housing_work/housing/news_housing_index/",
+     "title": "公営住宅等募集案内のお知らせ | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "函館市電の「五稜郭公園前」で降りて歩いて15分",
+     "url": "https://www.hakodate-jts-kosya.jp/park/goryokaku/",
+     "title": "五稜郭公園 | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "函館駅前から函館バスで「五稜郭公園入口」へ。降りて歩いて10分",
+     "url": "https://www.hakodate-jts-kosya.jp/park/goryokaku/",
+     "title": "五稜郭公園 | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "公園の駐車場は無い。近くに函館市五稜郭観光駐車場（有料・97台）がある",
+    "url": "https://www.hakodate-jts-kosya.jp/park/goryokaku/",
+    "title": "五稜郭公園 | 一般財団法人 函館市住宅都市施設公社",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "郭内（堀の内側）は4月〜10月が5:00〜19:00、11月〜3月が5:00〜18:00",
+     "url": "https://www.hakodate-jts-kosya.jp/park/goryokaku/",
+     "title": "五稜郭公園 | 一般財団法人 函館市住宅都市施設公社",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "eiheiji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://daihonzan-eiheiji.com/",
+     "title": "【公式サイト】大本山永平寺ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daihonzan-eiheiji.com/sanpai.html",
+     "title": "参拝について 永平寺を歩く～参拝時間・参観料のご案内～",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daihonzan-eiheiji.com/taiken.html",
+     "title": "個人参禅 団体研修 朝課 のご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daihonzan-eiheiji.com/question.html",
+     "title": "よくあるご質問",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daihonzan-eiheiji.com/news41.html",
+     "title": "新着情報",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daihonzan-eiheiji.com/news35.html",
+     "title": "新着情報",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daihonzan-eiheiji.com/news34.html",
+     "title": "新着情報",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daihonzan-eiheiji.com/dantai.html",
+     "title": "団体研修のご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daihonzan-eiheiji.com/news30.html",
+     "title": "新着情報",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "福井駅から永平寺門前まで直行バス「永平寺ライナー」が毎日走り、約30分",
+     "url": "https://daihonzan-eiheiji.com/",
+     "title": "【公式サイト】大本山永平寺ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    },
+    {
+     "text": "中部縦貫自動車道の永平寺参道ICから約5km、約10分",
+     "url": "https://daihonzan-eiheiji.com/",
+     "title": "【公式サイト】大本山永平寺ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "永平寺の半杓橋のすぐ近くのコインパーキングを使うよう案内している",
+    "url": "https://daihonzan-eiheiji.com/",
+    "title": "【公式サイト】大本山永平寺ホームページ",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "開門8:30、閉門16:30（16:00までに来るよう案内）",
+     "url": "https://daihonzan-eiheiji.com/sanpai.html",
+     "title": "参拝について 永平寺を歩く～参拝時間・参観料のご案内～",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "odawara-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://odawaracastle.com/",
+     "title": "【公式】小田原城 難攻不落の城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://odawaracastle.com/info/",
+     "title": "ご利用案内 | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://odawaracastle.com/access/",
+     "title": "交通アクセス | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://odawaracastle.com/bus_parking/yuenchi-news.html",
+     "title": "こども遊園地休園のお知らせ | バス駐車場 | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://odawaracastle.com/news/chui-kanki.html",
+     "title": "小田原城址公園における器物損壊（施設の破損）の発生と注意喚起について | お知らせ | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://odawaracastle.com/event/info.html",
+     "title": "城址公園内で撮影イベント等を企画している方へ | イベント情報 | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://odawaracastle.com/info/shirophoto/",
+     "title": "ご利用案内-フォトスポット | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://odawaracastle.com/bus_parking/",
+     "title": "バス駐車場 | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://odawaracastle.com/info/sampo/",
+     "title": "ご利用案内-まち歩きアプリ「小田原さんぽ」 | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "小田原駅から歩いて10分",
+     "url": "https://odawaracastle.com/access/",
+     "title": "交通アクセス | 小田原城【公式】",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "西湘バイパスの小田原ICから約5分、小田原厚木道路の荻窪ICから約10分",
+     "url": "https://odawaracastle.com/access/",
+     "title": "交通アクセス | 小田原城【公式】",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "城址公園に一般の駐車場は無い。周りの有料駐車場を使う",
+    "url": "https://odawaracastle.com/access/",
+    "title": "交通アクセス | 小田原城【公式】",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "天守閣は9:00〜17:00（入館は16:30まで）",
+     "url": "https://odawaracastle.com/info/",
+     "title": "ご利用案内 | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "天守閣は大人1,000円、小・中学生300円",
+     "url": "https://odawaracastle.com/info/",
+     "title": "ご利用案内 | 小田原城【公式】",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kanda-myojin": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kandamyoujin.or.jp/",
+     "title": "Home｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kandamyoujin.or.jp/infoblog/",
+     "title": "お知らせ一覧｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kandamyoujin.or.jp/access/",
+     "title": "アクセス｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kandamyoujin.or.jp/infoblog/detail/?pid=127",
+     "title": "お知らせ詳細｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kandamyoujin.or.jp/infoblog/detail/?pid=116",
+     "title": "お知らせ詳細｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kandamyoujin.or.jp/infoblog/",
+     "title": "お知らせ一覧｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kandamyoujin.or.jp/bunka/detail/?id=15",
+     "title": "文化事業｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kandamyoujin.or.jp/faq/",
+     "title": "よくある質問｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kandamyoujin.or.jp/faq/",
+     "title": "よくある質問｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR中央線・総武線の御茶ノ水駅（聖橋口）から歩いて5分、JR秋葉原駅（電気街口）から歩いて7分",
+     "url": "https://www.kandamyoujin.or.jp/access/",
+     "title": "アクセス｜江戸総鎮守 神田明神",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "parking": {
+    "text": "参拝者用の駐車場が少しある（随神門の右の脇門から入る）",
+    "url": "https://www.kandamyoujin.or.jp/access/",
+    "title": "アクセス｜江戸総鎮守 神田明神",
+    "readAt": "2026-11-11",
+    "available": true
+   }
+  },
+  "kumamoto-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://castle.kumamoto-guide.jp/",
+     "title": "【公式】熊本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://castle.kumamoto-guide.jp/info/",
+     "title": "観光案内 | 【公式】熊本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://castle.kumamoto-guide.jp/access/",
+     "title": "アクセス・駐車場・周辺マップ | 【公式】熊本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://castle.kumamoto-guide.jp/news/detail/1486",
+     "title": "夜間開園の再開について | 【公式】熊本城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://castle.kumamoto-guide.jp/news/detail/1485",
+     "title": "10月26日（月）の開園について | 【公式】熊本城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9月〜翌6月は9:00〜17:00（最終入園16:00）、7月〜8月は9:00〜19:00（最終入園18:00）",
+     "url": "https://castle.kumamoto-guide.jp/info/",
+     "title": "観光案内 | 【公式】熊本城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "高校生以上800円、小・中学生300円、未就学児は無料",
+     "url": "https://castle.kumamoto-guide.jp/info/",
+     "title": "観光案内 | 【公式】熊本城",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "shutoken-gaikaku-hosuiro": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.ktr.mlit.go.jp/edogawa/gaikaku/index.html",
+     "title": "首都圏外郭放水路",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ktr.mlit.go.jp/edogawa/",
+     "title": "江戸川河川事務所 | 国土交通省 関東地方整備局",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ktr.mlit.go.jp/edogawa/edogawa00165.html",
+     "title": "アクセスマップ | 江戸川河川事務所 | 国土交通省 関東地方整備局",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ktr.mlit.go.jp/edogawa/edogawa00158.html",
+     "title": "取材・撮影・施設利用について | 江戸川河川事務所 | 国土交通省 関東地方整備局",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ktr.mlit.go.jp/guide/privacy.html",
+     "title": "プライバシーポリシー | 国土交通省 関東地方整備局",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "東武野田線の南桜井駅北口から歩いて25〜30分（約2.3km）",
+     "url": "https://www.ktr.mlit.go.jp/edogawa/edogawa00165.html",
+     "title": "アクセスマップ | 江戸川河川事務所 | 国土交通省 関東地方整備局",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "圏央道の幸手IC・五霞ICから約30分",
+     "url": "https://www.ktr.mlit.go.jp/edogawa/edogawa00165.html",
+     "title": "アクセスマップ | 江戸川河川事務所 | 国土交通省 関東地方整備局",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "ロケ撮影やイベントで施設を使うときは、受付事務局への申し込みが要る",
+      "url": "https://www.ktr.mlit.go.jp/edogawa/edogawa00158.html",
+      "title": "取材・撮影・施設利用について | 江戸川河川事務所 | 国土交通省 関東地方整備局",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "hiroshima-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://hiroshimacastle.jp/",
+     "title": "広島城 | 広島城は、太田川河口の三角州に、毛利輝元が築いた典型的な平城です。",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiroshimacastle.jp/cruiseline",
+     "title": "遊覧船の利用案内 | 広島城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiroshimacastle.jp/castle",
+     "title": "広島城跡案内 | 広島城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiroshimacastle.jp/access",
+     "title": "アクセス | 広島城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiroshimacastle.jp/faq",
+     "title": "よくあるご質問 | 広島城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiroshimacastle.jp/news/news-3155/",
+     "title": "日没時間変更に伴う広島城遊覧船減便のお知らせ | 広島城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiroshimacastle.jp/information",
+     "title": "広島城址公園利用案内 | 広島城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "山陽自動車道の広島ICから約20分",
+     "url": "https://hiroshimacastle.jp/access",
+     "title": "アクセス | 広島城",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "城跡の中に駐車場は無い。城南通り北側の広島城三の丸駐車場（有料）から天守まで歩いて約5分",
+    "url": "https://hiroshimacastle.jp/access",
+    "title": "アクセス | 広島城",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "二の丸の復元建物は4月〜9月が9:00〜17:30、10月〜3月が9:00〜16:30（入館は閉館30分前まで・無料）",
+     "url": "https://hiroshimacastle.jp/",
+     "title": "広島城 | 広島城は、太田川河口の三角州に、毛利輝元が築いた典型的な平城です。",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "shokasonjuku": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://showin-jinja.or.jp/about/syokasonjuku/",
+     "title": "松下村塾（世界遺産）｜松下村塾｜御由緒・松下村塾｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://showin-jinja.or.jp/guide/",
+     "title": "ご案内・ご祈願｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://showin-jinja.or.jp/guide/nenju-gyoji/",
+     "title": "年中行事｜ご案内・ご祈願｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://showin-jinja.or.jp/guide/kigan-sai/",
+     "title": "祈願祭｜ご案内・ご祈願｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://showin-jinja.or.jp/guide/shutcho-sai/",
+     "title": "出張祭｜ご案内・ご祈願｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://showin-jinja.or.jp/guide/wedding/",
+     "title": "結婚式｜ご案内・ご祈願｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://showin-jinja.or.jp/guide-map/",
+     "title": "境内散策（マップ）｜境内散策｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://showin-jinja.or.jp/guide-map/rekishikan/",
+     "title": "歴史館｜境内散策｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://showin-jinja.or.jp/guide-map/risshiden/",
+     "title": "立志殿｜境内散策｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "松陰神社の境内は自由に拝観できる",
+     "url": "https://showin-jinja.or.jp/about/syokasonjuku/",
+     "title": "松下村塾（世界遺産）｜松下村塾｜御由緒・松下村塾｜【公式】松陰神社｜山口県萩市鎮座 明治維新胎動之地",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "marugame-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.marugame.lg.jp/site/castle/",
+     "title": "丸亀城 - 丸亀市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.marugame.lg.jp/site/userguide/8962.html",
+     "title": "外国語への対応（Foreign Language） - はじめての方へ - 丸亀市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.marugame.lg.jp/site/castle/26457.html",
+     "title": "大手一の門やぐら内スペースのご使用案内 - 丸亀城 - 丸亀市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.marugame.lg.jp/site/castle/list16-171.html",
+     "title": "城内観光案内所 - 丸亀城 - 丸亀市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.marugame.lg.jp/site/castle/2916.html",
+     "title": "交通アクセス - 丸亀城 - 丸亀市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.marugame.lg.jp/site/castle/8645.html",
+     "title": "よくあるご質問について - 丸亀城 - 丸亀市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.marugame.lg.jp/site/castle/2862.html",
+     "title": "丸亀城内で行事・撮影などをするとき - 丸亀城 - 丸亀市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.marugame.lg.jp/site/userguide/1685.html",
+     "title": "ホームページの個人情報の保護 - はじめての方へ - 丸亀市公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR予讃線の丸亀駅から歩いて約15分",
+     "url": "https://www.city.marugame.lg.jp/site/castle/2916.html",
+     "title": "交通アクセス - 丸亀城 - 丸亀市公式ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "parking": {
+    "text": "城内資料館の南側に無料駐車場（約50台・6:00〜19:00）があり、周りに市営の有料駐車場もある",
+    "url": "https://www.city.marugame.lg.jp/site/castle/2916.html",
+    "title": "交通アクセス - 丸亀城 - 丸亀市公式ホームページ",
+    "readAt": "2026-11-11",
+    "available": true
+   }
+  },
+  "sensoji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.senso-ji.jp/",
+     "title": "聖観音宗 あさくさかんのん 浅草寺 公式サイト - 浅草寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.senso-ji.jp/info/",
+     "title": "お知らせ - 浅草寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.senso-ji.jp/info/monthly.html",
+     "title": "今月のお知らせ - 浅草寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.senso-ji.jp/info/news.html",
+     "title": "ニュース一覧 - 浅草寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.senso-ji.jp/info/koue.html",
+     "title": "各会講のおすすめ - 浅草寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.senso-ji.jp/info/shakyo.html",
+     "title": "百萬巻観音経写経のおすすめ - 浅草寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.senso-ji.jp/info/publication.html",
+     "title": "刊行物のご案内 - 浅草寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.senso-ji.jp/info/lightup.html",
+     "title": "ライトアップのお知らせ - 浅草寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.senso-ji.jp/info/butubun.html",
+     "title": "仏教文化講座のおしらせ - 浅草寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "東京メトロ銀座線・東武スカイツリーライン・つくばエクスプレスの浅草駅から歩いて5分",
+     "url": "https://www.senso-ji.jp/",
+     "title": "聖観音宗 あさくさかんのん 浅草寺 公式サイト - 浅草寺",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "parking": {
+    "text": "浅草寺に駐車場は無い。台東区雷門地下駐車場など周りの駐車場を使う",
+    "url": "https://www.senso-ji.jp/",
+    "title": "聖観音宗 あさくさかんのん 浅草寺 公式サイト - 浅草寺",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "本堂は6:00〜17:00（10月〜3月は6:30から）",
+     "url": "https://www.senso-ji.jp/",
+     "title": "聖観音宗 あさくさかんのん 浅草寺 公式サイト - 浅草寺",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "matsue-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.matsue-castle.jp/",
+     "title": "国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsue-castle.jp/userguide/index",
+     "title": "料金・営業時間｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsue-castle.jp/access/index",
+     "title": "松江城の行き方｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsue-castle.jp/faq/index",
+     "title": "よくある質問｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsue-castle.jp/notice/index",
+     "title": "亀さんと学ぶ松江城での禁止事項｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsue-castle.jp/buratto/index",
+     "title": "ぶらっと松江観光案内所｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsue-castle.jp/photo/index",
+     "title": "撮影について｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsue-castle.jp/news/archives/170",
+     "title": "「国宝松江城・令和の大修理」寄付のお願い｜松江城｜かわら版｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "天守は4月1日〜9月30日が8:30〜18:00、10月1日〜3月31日が8:30〜17:00（受付は閉まる30分前まで）",
+     "url": "https://www.matsue-castle.jp/userguide/index",
+     "title": "料金・営業時間｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "本丸の門は8:00に開く（本丸は入場無料）",
+     "url": "https://www.matsue-castle.jp/userguide/index",
+     "title": "料金・営業時間｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "天守の入場料は大人1,200円。小・中学生は無料（2026年7月1日の改定から）",
+     "url": "https://www.matsue-castle.jp/userguide/index",
+     "title": "料金・営業時間｜国宝 松江城ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "byodoin": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.byodoin.or.jp/",
+     "title": "世界遺産 平等院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.byodoin.or.jp/guide/",
+     "title": "拝観案内 ｜ 世界遺産平等院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.byodoin.or.jp/guide/access/",
+     "title": "アクセス ｜ 世界遺産平等院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.byodoin.or.jp/guide/goshuin/",
+     "title": "ご集印について ｜ 世界遺産平等院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.byodoin.or.jp/guide/internal-view/",
+     "title": "内部拝観について ｜ 世界遺産平等院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.byodoin.or.jp/faq/public/",
+     "title": "Q&A－一般拝観 ｜ 世界遺産平等院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.byodoin.or.jp/location/",
+     "title": "周辺案内 ｜ 世界遺産平等院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.byodoin.or.jp/news/cat23/2022-1/",
+     "title": "【重要】2026年11月13日(金)～12月6日(日) 秋の紅葉シーズンの拝観について｜お知らせ｜お知らせ｜世界遺産 平等院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.byodoin.or.jp/news/cat23/post-90/",
+     "title": "院内での撮影について｜お知らせ｜お知らせ｜世界遺産 平等院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.byodoin.or.jp/news/1/post/",
+     "title": "ドローンの飛行は禁止されています｜お願い｜お知らせ｜世界遺産 平等院",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "平等院の専用駐車場は無い。近くのコインパーキングや、南門前の民営「宇治駐車場」を使う",
+    "url": "https://www.byodoin.or.jp/guide/access/",
+    "title": "アクセス ｜ 世界遺産平等院",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "庭園は8:45〜17:30（受付は17:15まで）。鳳凰堂の内部拝観は9:30〜16:10で、各回35人まで（先着順）",
+     "url": "https://www.byodoin.or.jp/guide/",
+     "title": "拝観案内 ｜ 世界遺産平等院",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人700円、中高生400円、小学生300円（鳳凰堂の内部拝観は別に1人300円）",
+     "url": "https://www.byodoin.or.jp/guide/",
+     "title": "拝観案内 ｜ 世界遺産平等院",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "境内と門前広場の上空でドローンを飛ばすことは禁止",
+     "url": "https://www.byodoin.or.jp/news/1/post/",
+     "title": "ドローンの飛行は禁止されています｜お願い｜お知らせ｜世界遺産 平等院",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "notes": [
+     {
+      "text": "鳳凰堂の中・ミュージアム鳳翔館の中・集印所では撮影できない。そのほかの場所は個人で楽しむための撮影に限って許可している",
+      "url": "https://www.byodoin.or.jp/news/cat23/post-90/",
+      "title": "院内での撮影について｜お知らせ｜お知らせ｜世界遺産 平等院",
+      "readAt": "2026-11-11"
+     },
+     {
+      "text": "大きな撮影機材の使用、長い時間場所を占める・拝観路をふさぐ撮影、七五三や成人式などの撮影を目的とした拝観は禁止",
+      "url": "https://www.byodoin.or.jp/news/cat23/post-90/",
+      "title": "院内での撮影について｜お知らせ｜お知らせ｜世界遺産 平等院",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "kasuga-taisha": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kasugataisha.or.jp/",
+     "title": "春日大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kasugataisha.or.jp/news/2026/16926/",
+     "title": "１１月２日（月）御本殿特別参拝について | 春日大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kasugataisha.or.jp/events/2026/16847/",
+     "title": "令和８年度秋・冬 ⑦夜間参拝と回廊釣燈籠への献灯体験（神職や御巫等の案内付） | 春日大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kasugataisha.or.jp/events/2026/16853/",
+     "title": "令和８年度秋・冬 ⑧幻想的な節分万燈籠を体験（神職や御巫等の案内付） | 春日大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kasugataisha.or.jp/guidance/",
+     "title": "境内のご案内 | 春日大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kasugataisha.or.jp/about/basic/",
+     "title": "基本情報 | 春日大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kasugataisha.or.jp/sitepolicy/",
+     "title": "ご利用条件 | 春日大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR奈良駅・近鉄奈良駅から奈良交通バス（市内循環・外回り）で「春日大社表参道」へ。降りて歩いて10分",
+     "url": "https://www.kasugataisha.or.jp/",
+     "title": "春日大社",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "hours": [
+    {
+     "text": "御本社（大宮）の参拝所は、3月〜10月が6:30〜17:30、11月〜2月が7:00〜17:00",
+     "url": "https://www.kasugataisha.or.jp/about/basic/",
+     "title": "基本情報 | 春日大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "御本殿特別参拝は700円",
+     "url": "https://www.kasugataisha.or.jp/about/basic/",
+     "title": "基本情報 | 春日大社",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "ginkakuji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.shokoku-ji.jp/ginkakuji/",
+     "title": "銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/ginkakuji/guide/",
+     "title": "境内案内 | 銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/ginkakuji/access/",
+     "title": "アクセス | 銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/ginkakuji/faq/",
+     "title": "よくある質問 | 銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/ginkakuji/event/",
+     "title": "行事 | 銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/ginkakuji/news/%e3%80%90%e9%87%8d%e8%a6%81%e3%80%91%e3%80%80%e5%8f%82%e6%8b%9d%e5%bf%97%e7%b4%8d%e6%96%99%e6%94%b9%e5%ae%9a%e3%81%ae%e3%81%8a%e7%9f%a5%e3%82%89%e3%81%9b2026%e5%b9%b44%e6%9c%881%e6%97%a5%e3%82%88/",
+     "title": "【重要】 参拝志納料改定のお知らせ(2026年4月1日より) | 銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shokoku-ji.jp/ginkakuji/about/",
+     "title": "銀閣寺について | 銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "京都市バスの「銀閣寺道」か「銀閣寺前」で降りる",
+     "url": "https://www.shokoku-ji.jp/ginkakuji/access/",
+     "title": "アクセス | 銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "寺に駐車場は無い。京都市銀閣寺観光駐車場（普通車40台）かコインパーキングを使う。混む時期は市営駐車場がマイカーを断ることがある",
+    "url": "https://www.shokoku-ji.jp/ginkakuji/access/",
+    "title": "アクセス | 銀閣寺 | 臨済宗相国寺派",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "3月1日〜11月30日は8:30〜17:00、12月1日〜2月末は9:00〜16:30",
+     "url": "https://www.shokoku-ji.jp/ginkakuji/access/",
+     "title": "アクセス | 銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人（高校生以上）1,000円、小・中学生500円",
+     "url": "https://www.shokoku-ji.jp/ginkakuji/access/",
+     "title": "アクセス | 銀閣寺 | 臨済宗相国寺派",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "omiya-hikawa": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://musashiichinomiya-hikawa.or.jp/",
+     "title": "武蔵一宮 氷川神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://musashiichinomiya-hikawa.or.jp/access/",
+     "title": "アクセス | 武蔵一宮 氷川神社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR大宮駅の東口から歩いて約15分",
+     "url": "https://musashiichinomiya-hikawa.or.jp/access/",
+     "title": "アクセス | 武蔵一宮 氷川神社",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "首都高のさいたま新都心西ICから約15分",
+     "url": "https://musashiichinomiya-hikawa.or.jp/access/",
+     "title": "アクセス | 武蔵一宮 氷川神社",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "参拝者用の駐車場が3か所（第一約40台・第二約20台・西約120台）。12月10日と1月1日〜3日は閉鎖",
+    "url": "https://musashiichinomiya-hikawa.or.jp/access/",
+    "title": "アクセス | 武蔵一宮 氷川神社",
+    "readAt": "2026-11-11",
+    "available": true
+   }
+  },
+  "mitsumine-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.mitsuminejinja.or.jp/",
+     "title": "秩父 三峯神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mitsuminejinja.or.jp/kitou/",
+     "title": "ご祈祷案内 | 三峯神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mitsuminejinja.or.jp/keidai/",
+     "title": "境内案内 | 三峯神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mitsuminejinja.or.jp/koutsu/",
+     "title": "交通案内 | 三峯神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mitsuminejinja.or.jp/info/",
+     "title": "お知らせ | 三峯神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mitsuminejinja.or.jp/info/2026/09/939/",
+     "title": "【お知らせ】登竜橋 橋梁補修工事の実施について | 三峯神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mitsuminejinja.or.jp/info/2026/06/927/",
+     "title": "熊の目撃情報について（注意喚起） | 三峯神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mitsuminejinja.or.jp/info/2021/07/504/",
+     "title": "【ご注意ください】初穂料について | 三峯神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.mitsuminejinja.or.jp/info/2019/12/111/",
+     "title": "境内での写真・動画の撮影について | 三峯神社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "西武秩父駅から西武観光バスの急行便で三峯神社まで約80分",
+     "url": "https://www.mitsuminejinja.or.jp/koutsu/",
+     "title": "交通案内 | 三峯神社",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "車で来るときは秩父市営の三峰駐車場を使う",
+    "url": "https://www.mitsuminejinja.or.jp/koutsu/",
+    "title": "交通案内 | 三峯神社",
+    "readAt": "2026-11-11",
+    "available": true
+   }
+  },
+  "meiji-jingu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.meijijingu.or.jp/",
+     "title": "明治神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijijingu.or.jp/sanpai/",
+     "title": "ご参拝・ご祈願のご案内｜明治神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijijingu.or.jp/access/",
+     "title": "アクセス｜明治神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijijingu.or.jp/faq/",
+     "title": "全て｜Q&A｜明治神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijijingu.or.jp/books/",
+     "title": "刊行物のご案内｜明治神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijijingu.or.jp/guide/",
+     "title": "境内地図｜明治神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijijingu.or.jp/news/?id=1793341977-150290",
+     "title": "令和9年『明治神宮 新年初祈願祭』のご案内（団体・法人）|最新情報｜明治神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijijingu.or.jp/news/?id=1783927525-164294",
+     "title": "明治神宮外苑創建百年記念「聖徳記念絵画館の巨大壁画にせまる」 展覧会および関連催事のご案内|最新情報｜明治神宮",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "入口は3か所。どの入口からも御本殿まで歩いて約10分",
+     "url": "https://www.meijijingu.or.jp/access/",
+     "title": "アクセス｜明治神宮",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "hours": [
+    {
+     "text": "開門・閉門の時刻は、日の出・日の入りに合わせて毎月変わる",
+     "url": "https://www.meijijingu.or.jp/",
+     "title": "明治神宮",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kotohiragu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.konpira.or.jp/",
+     "title": "金刀比羅宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.konpira.or.jp/articles_2023/20231130_KOTOHIRA-Gu_Official-Guide_in_English/article.html",
+     "title": "KOTOHIRA-Gu Official Guide in English",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.konpira.or.jp/articles_2026/20260101_price-change-notification/article.html",
+     "title": "金刀比羅宮 | 神前結婚式初穂料 改定のお知らせ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.konpira.or.jp/articles_2026/20260331_about-changes-to-the-rules/article.html",
+     "title": "金刀比羅宮 | 博物館施設内での写真撮影の許可について",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.konpira.or.jp/asahi/general-information/article.html",
+     "title": "金刀比羅宮 | 旭社 令和の大改修プロジェクト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.konpira.or.jp/articles/20200616_guide/article.htm",
+     "title": "金刀比羅宮 | 参拝ガイド 御本宮編",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.konpira.or.jp/articles/20200616_guide_inner-shrine/article.htm",
+     "title": "金刀比羅宮 | 参拝ガイド 奥社編",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.konpira.or.jp/articles/20210816_guide-map/guide-map_v11.html",
+     "title": "guide-map_v11",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "石段の1段目から御本宮（785段目）まで、歩いて片道約1時間",
+     "url": "https://www.konpira.or.jp/",
+     "title": "金刀比羅宮",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "parking": {
+    "text": "金刀比羅宮に駐車場は無い。町内の駐車場に止めて歩いて参拝する",
+    "url": "https://www.konpira.or.jp/",
+    "title": "金刀比羅宮",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "photoRules": {
+    "notes": [
+     {
+      "text": "境内では、ほかの参拝者の妨げになる撮影はしないよう求めている",
+      "url": "https://www.konpira.or.jp/",
+      "title": "金刀比羅宮",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "ginzan-onsen": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.ginzanonsen.jp/",
+     "title": "銀山温泉 公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ginzanonsen.jp/access/",
+     "title": "銀山温泉 公式サイト | 交通アクセス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ginzanonsen.jp/blog/",
+     "title": "銀山温泉 公式サイト | 銀山温泉組合バスツアーのご案内（2026-2027）",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "東北中央道の尾花沢ICから約30分",
+     "url": "https://www.ginzanonsen.jp/access/",
+     "title": "銀山温泉 公式サイト | 交通アクセス",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    },
+    {
+     "text": "山形新幹線の大石田駅からバスで尾花沢へ行き、乗り換えて約40分",
+     "url": "https://www.ginzanonsen.jp/access/",
+     "title": "銀山温泉 公式サイト | 交通アクセス",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ]
+  },
+  "okayama-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://okayama-castle.jp/",
+     "title": "【公式】岡山城ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okayama-castle.jp/guide/",
+     "title": "利用案内 | 【公式】岡山城ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okayama-castle.jp/faq/",
+     "title": "よくある質問 | 【公式】岡山城ウェブサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okayama-castle.jp/5836/",
+     "title": "（※終了しました）11月3日はどなたも入館無料！ | 【公式】岡山城ウェブサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR岡山駅から路面電車（東山行き）で約5分の「城下」で降り、歩いて約10分",
+     "url": "https://okayama-castle.jp/guide/",
+     "title": "利用案内 | 【公式】岡山城ウェブサイト",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "山陽自動車道の岡山ICから東へ約20分",
+     "url": "https://okayama-castle.jp/guide/",
+     "title": "利用案内 | 【公式】岡山城ウェブサイト",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "天守閣の専用駐車場は無い。近くの烏城公園駐車場を案内している",
+    "url": "https://okayama-castle.jp/guide/",
+    "title": "利用案内 | 【公式】岡山城ウェブサイト",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "9:00〜17:30（最終入場17:00）",
+     "url": "https://okayama-castle.jp/guide/",
+     "title": "利用案内 | 【公式】岡山城ウェブサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人（15歳以上）500円、中学生以下は無料",
+     "url": "https://okayama-castle.jp/guide/",
+     "title": "利用案内 | 【公式】岡山城ウェブサイト",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "otsuka-museum": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://o-museum.or.jp/",
+     "title": "大塚国際美術館｜徳島県鳴門市にある陶板名画美術館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://o-museum.or.jp/pages/824/",
+     "title": "アクセス｜大塚国際美術館｜徳島県鳴門市にある陶板名画美術館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://o-museum.or.jp/pages/30/",
+     "title": "開館カレンダー｜ご利用案内｜大塚国際美術館 - 四国 ・ 徳島県の美術館 観光施設 -",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://o-museum.or.jp/pages/1371/",
+     "title": "地下3階ミュージアムショップ営業時間変更のお知らせ｜大塚国際美術館｜徳島県鳴門市にある陶板名画美術館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://o-museum.or.jp/pages/31/",
+     "title": "Q&A",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "いちばん近いインターは神戸淡路鳴門自動車道の鳴門北IC。淡路島南ICからは約10分",
+     "url": "https://o-museum.or.jp/",
+     "title": "大塚国際美術館｜徳島県鳴門市にある陶板名画美術館",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    },
+    {
+     "text": "新神戸駅・三宮から直通の高速バスがある（三宮から約1時間30分）",
+     "url": "https://o-museum.or.jp/pages/824/",
+     "title": "アクセス｜大塚国際美術館｜徳島県鳴門市にある陶板名画美術館",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9:30〜17:00（入館券の販売は16:00まで）。月曜休館（祝日なら翌日）",
+     "url": "https://o-museum.or.jp/",
+     "title": "大塚国際美術館｜徳島県鳴門市にある陶板名画美術館",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "takeda-castle-ruins": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/",
+     "title": "竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/list14.html",
+     "title": "ご利用案内 - 竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/27510.html",
+     "title": "一部登山道の閉鎖継続およびご来城時の注意について - 竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/27378.html",
+     "title": "【山城の郷】バスの駐車は予約が必要です！ - 竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/17618.html",
+     "title": "雲海シーズンの登城方法及び駐車場についてのご案内 - 竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/3088.html",
+     "title": "登城時の注意事項（城跡は全面禁煙です） - 竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/3090.html",
+     "title": "観覧時間について - 竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/3086.html",
+     "title": "竹田城跡へお越しの皆さんへ - 竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/3095.html",
+     "title": "一般、料金、見学のルールなど - 竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR播但線の竹田駅が最寄り。登山道を歩いて約40分",
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/",
+     "title": "竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "北近畿豊岡自動車道・播但連絡自動車道の和田山ICから約10分で各駐車場",
+     "url": "https://www.city.asago.hyogo.jp/site/takeda/",
+     "title": "竹田城跡公式ホームページ - 朝来市公式ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "登山道の一部が閉鎖されている。西登山道・南登山道（タクシーやバスが通る道）を使うよう案内している",
+      "url": "https://www.city.asago.hyogo.jp/site/takeda/27510.html",
+      "title": "一部登山道の閉鎖継続およびご来城時の注意について - 竹田城跡公式ホームページ - 朝来市公式ホームページ",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "matsuyama-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.matsuyamajo.jp/",
+     "title": "四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsuyamajo.jp/guide/",
+     "title": "松山城の観覧ガイド | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsuyamajo.jp/guide/enjoy.html",
+     "title": "松山城を楽しむ | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsuyamajo.jp/guide/matsuyamacastle.html",
+     "title": "松山城の紹介 | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsuyamajo.jp/guide/ninomaru.html",
+     "title": "二之丸史跡庭園の紹介 | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsuyamajo.jp/guide/horinouchi.html",
+     "title": "城山公園堀之内地区の紹介 | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsuyamajo.jp/guide/ar.html",
+     "title": "松山城オリジナルARアプリとVR | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsuyamajo.jp/guide/character.html",
+     "title": "よしあきくんプロフィール | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.matsuyamajo.jp/guide/qa.html",
+     "title": "よくある質問 | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "天守・二之丸史跡庭園は9:00〜17:00（8月は17:30まで、12月〜1月は16:30まで。天守の入場は終了30分前まで）。休みは12月の第3水曜日",
+     "url": "https://www.matsuyamajo.jp/guide/",
+     "title": "松山城の観覧ガイド | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "ロープウェイは8:30〜17:30。東雲口駅舎から天守のきっぷ売り場まで約30分かかる",
+     "url": "https://www.matsuyamajo.jp/guide/",
+     "title": "松山城の観覧ガイド | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "天守の観覧は大人520円、小学生160円",
+     "url": "https://www.matsuyamajo.jp/guide/",
+     "title": "松山城の観覧ガイド | 観覧ガイド | 四国・愛媛の松山城",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "tomioka-silk-mill": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tomioka-silk.jp/_tomioka-silk-mill/",
+     "title": "富岡製糸場 | しるくるとみおか 富岡製糸場 富岡市観光 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tomioka-silk.jp/_tomioka-silk-mill/visit/",
+     "title": "ご利用案内（ガイドツアー） | しるくるとみおか 富岡製糸場 富岡市観光 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tomioka-silk.jp/_tomioka-silk-mill/access/",
+     "title": "富岡市へのアクセス | しるくるとみおか 富岡製糸場 富岡市観光 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tomioka-silk.jp/_faq/",
+     "title": "よくあるご質問一覧 | しるくるとみおか 富岡製糸場 富岡市観光 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tomioka-silk.jp/_experience/detail/id=8162",
+     "title": "富岡製糸場もご案内！富岡まち歩き90分プレミアムガイドツアー（日本語・英語・中国語対応可能） | しるくるとみおか 富岡製糸場 富岡市観光 公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9:00〜17:00（最終入場16:30）",
+     "url": "https://www.tomioka-silk.jp/_tomioka-silk-mill/visit/",
+     "title": "ご利用案内（ガイドツアー） | しるくるとみおか 富岡製糸場 富岡市観光 公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人1,000円、高校生・大学生250円、小・中学生150円、未就学児は無料",
+     "url": "https://www.tomioka-silk.jp/_tomioka-silk-mill/visit/",
+     "title": "ご利用案内（ガイドツアー） | しるくるとみおか 富岡製糸場 富岡市観光 公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "個人の記念のスナップ撮影や、SNS・ブログへの掲載は申請なしでよい。商業目的で使うときは事前の申請が要る",
+      "url": "https://www.tomioka-silk.jp/_tomioka-silk-mill/visit/",
+      "title": "ご利用案内（ガイドツアー） | しるくるとみおか 富岡製糸場 富岡市観光 公式ホームページ",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "tokyo-tower": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tokyotower.co.jp/",
+     "title": "東京タワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyotower.co.jp/guidance/",
+     "title": "東京タワー施設案内 | 東京タワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyotower.co.jp/fee/",
+     "title": "料金・営業時間 | 東京タワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyotower.co.jp/access/",
+     "title": "アクセス | 東京タワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyotower.co.jp/fee/agency/",
+     "title": "団体のお客様へのご案内 | 東京タワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyotower.co.jp/inquiry/interview/",
+     "title": "撮影・取材について | 東京タワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyotower.co.jp/inquiry/event/",
+     "title": "イベントスペースのご利用について | 東京タワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyotower.co.jp/access/barrierfree/",
+     "title": "バリアフリー情報 | 東京タワー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyotower.co.jp/access/child/",
+     "title": "小さなお子様をお連れのお客様へ | 東京タワー",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "メインデッキ（150m）は9:00〜23:00（最終入場22:30）",
+     "url": "https://www.tokyotower.co.jp/fee/",
+     "title": "料金・営業時間 | 東京タワー",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "メインデッキは大人1,500円（ほかの年齢の料金は公式の表を見る）",
+     "url": "https://www.tokyotower.co.jp/fee/",
+     "title": "料金・営業時間 | 東京タワー",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "todaiji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.todaiji.or.jp/",
+     "title": "東大寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.todaiji.or.jp/information/haikan/",
+     "title": "拝観時間・拝観料 - 東大寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.todaiji.or.jp/faq/",
+     "title": "よくある質問 - 東大寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.todaiji.or.jp/information/",
+     "title": "参拝のご案内 - 東大寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.todaiji.or.jp/information/keidai/",
+     "title": "境内案内図 - 東大寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.todaiji.or.jp/information/daibutsuden/",
+     "title": "大仏殿 - 東大寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.todaiji.or.jp/information/hokkedo/",
+     "title": "法華堂（三月堂） - 東大寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.todaiji.or.jp/information/kaidando/",
+     "title": "戒壇院戒壇堂 - 東大寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.todaiji.or.jp/information/museum/",
+     "title": "東大寺ミュージアム - 東大寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "乗用車・観光バスの専用駐車場は無い。近くの駐車場を使う",
+    "url": "https://www.todaiji.or.jp/",
+    "title": "東大寺",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "大仏殿は4月〜10月が7:30〜17:30、11月〜3月が8:00〜17:00。特別な行事などが無い限り無休",
+     "url": "https://www.todaiji.or.jp/information/haikan/",
+     "title": "拝観時間・拝観料 - 東大寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大仏殿の入堂料は大人（大学生以上）・高校生・中学生が800円、小学生400円（現金のみ）",
+     "url": "https://www.todaiji.or.jp/information/haikan/",
+     "title": "拝観時間・拝観料 - 東大寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "ドローンでの撮影は禁止",
+     "url": "https://www.todaiji.or.jp/",
+     "title": "東大寺",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "zenkoji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.zenkoji.jp/",
+     "title": "善光寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.zenkoji.jp/meguru/sanpai/",
+     "title": "参拝券のご案内｜善光寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.zenkoji.jp/meguru/wheelchair/",
+     "title": "車椅子での参拝について｜善光寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.zenkoji.jp/kuyo/ippan/",
+     "title": "法要の種類・料金｜善光寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.zenkoji.jp/shukubo/",
+     "title": "宿坊のご案内｜善光寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.zenkoji.jp/access/",
+     "title": "アクセス｜善光寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.zenkoji.jp/2026/11/05/18479/",
+     "title": "11月度 境内無料案内実施のお知らせ｜善光寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.zenkoji.jp/event/",
+     "title": "日々の法要｜善光寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.zenkoji.jp/annual/",
+     "title": "年中行事｜善光寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "善光寺の駐車場がある（第1・第3・第4駐車場など）",
+    "url": "https://www.zenkoji.jp/",
+    "title": "善光寺",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "本堂内陣は朝のお勤め（お朝事）の1時間前から開き、閉まるのは4月〜10月が16:30、3月・11月が16:15、12月〜2月が16:00",
+     "url": "https://www.zenkoji.jp/meguru/sanpai/",
+     "title": "参拝券のご案内｜善光寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "本堂内陣・お戒壇巡り・山門・経蔵・史料館をまとめた参拝券は一般1,500円、中高生600円、小学生200円",
+     "url": "https://www.zenkoji.jp/meguru/sanpai/",
+     "title": "参拝券のご案内｜善光寺",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "ushiku-daibutsu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://daibutu.net/",
+     "title": "牛久大仏",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daibutu.net/ryokin.html",
+     "title": "拝観料金・開園時間|牛久大仏",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daibutu.net/koutu.html",
+     "title": "交通アクセス|牛久大仏",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://daibutu.net/cgi/news/index.cgi",
+     "title": "NEWS・お知らせ|牛久大仏",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR常磐線の牛久駅東口か荒川沖駅東口からバスで約15分",
+     "url": "https://daibutu.net/koutu.html",
+     "title": "交通アクセス|牛久大仏",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "無料の駐車場あり（820台）",
+    "url": "https://daibutu.net/",
+    "title": "牛久大仏",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "9:30から。年中無休で、閉まる時刻は平日・土日祝と季節で変わる（土日祝は最も遅くて17:30）",
+     "url": "https://daibutu.net/ryokin.html",
+     "title": "拝観料金・開園時間|牛久大仏",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大仏の胎内を含む拝観は大人（中学生以上）900円、4歳〜小学生500円。庭園だけなら大人600円",
+     "url": "https://daibutu.net/ryokin.html",
+     "title": "拝観料金・開園時間|牛久大仏",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kashihara-jingu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kashiharajingu.or.jp/",
+     "title": "橿原神宮 – 橿原神宮の公式ホームページです。橿原神宮は、奈良県橿原市にあり、御祭神として日本の初代天皇・神武天皇（じんむてんのう）と媛蹈鞴五十鈴媛皇后（ひめたたらいすずひめこうごう）をお祀りしております。ホームページでは、当宮の御由緒、歴",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kashiharajingu.or.jp/pray",
+     "title": "御参拝・御祈祷 / 出張祭典 – 橿原神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kashiharajingu.or.jp/access",
+     "title": "アクセス – 橿原神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kashiharajingu.or.jp/faq",
+     "title": "よくある質問 – 橿原神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kashiharajingu.or.jp/news/%e9%a7%90%e8%bb%8a%e5%a0%b4%e6%83%85%e5%a0%b1/14606.html",
+     "title": "【11/22・23】駐車場利用についてのお願い – 橿原神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kashiharajingu.or.jp/pray",
+     "title": "御参拝・御祈祷 / 出張祭典 – 橿原神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kashiharajingu.or.jp/pray/formal",
+     "title": "正式参拝 – 橿原神宮",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kashiharajingu.or.jp/pray/visit",
+     "title": "出張祭典 – 橿原神宮",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "近鉄の橿原神宮前駅の中央口から歩いて約10分",
+     "url": "https://kashiharajingu.or.jp/access",
+     "title": "アクセス – 橿原神宮",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "parking": {
+    "text": "約800台の駐車場あり（普通車は1日500円）",
+    "url": "https://kashiharajingu.or.jp/access",
+    "title": "アクセス – 橿原神宮",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "開門・閉門は月で変わる（10・11月は6:30〜17:30、6・7月は5:30〜18:00など）。12月31日〜1月7日は別",
+     "url": "https://kashiharajingu.or.jp/",
+     "title": "橿原神宮 – 橿原神宮の公式ホームページです。橿原神宮は、奈良県橿原市にあり、御祭神として日本の初代天皇・神武天皇（じんむてんのう）と媛蹈鞴五十鈴媛皇后（ひめたたらいすずひめこうごう）をお祀りしております。ホームページでは、当宮の御由緒、歴",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "oyamazumi-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://oomishimagu.jp/",
+     "title": "【公式】大山祇神社 愛媛県今治市大三島町",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomishimagu.jp/worship/",
+     "title": "ご参拝・ご祈祷 | 【公式】大山祇神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomishimagu.jp/worship/worship01/",
+     "title": "ご参拝・ご祈祷のご案内 | 【公式】大山祇神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomishimagu.jp/club/",
+     "title": "大三島大社講のご案内 | 【公式】大山祇神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomishimagu.jp/access/",
+     "title": "アクセス | 【公式】大山祇神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomishimagu.jp/category/information/",
+     "title": "お知らせ | 【公式】大山祇神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomishimagu.jp/information/post-154/",
+     "title": "宝物館における拝観時間のお知らせ | 【公式】大山祇神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomishimagu.jp/information/post-695/",
+     "title": "社報第221号の発行について | 【公式】大山祇神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oomishimagu.jp/information/post-328/",
+     "title": "１２月のお知らせ | 【公式】大山祇神社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "しまなみ海道（西瀬戸自動車道）の大三島ICから7km",
+     "url": "https://oomishimagu.jp/access/",
+     "title": "アクセス | 【公式】大山祇神社",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    },
+    {
+     "text": "JR今治駅前からバス（特急・急行）で約65分",
+     "url": "https://oomishimagu.jp/access/",
+     "title": "アクセス | 【公式】大山祇神社",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "鳥居の脇に13台。ほかに大三島藤公園の駐車場なども使える",
+    "url": "https://oomishimagu.jp/access/",
+    "title": "アクセス | 【公式】大山祇神社",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "門が開くのは日の出のころから17:00まで",
+     "url": "https://oomishimagu.jp/worship/worship01/",
+     "title": "ご参拝・ご祈祷のご案内 | 【公式】大山祇神社",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "sumiyoshi-taisha": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://sumiyoshitaisha.net/",
+     "title": "住吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sumiyoshitaisha.net/worship/",
+     "title": "参拝・祈祷 | 住吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sumiyoshitaisha.net/worship/info.html",
+     "title": "祈祷の種類 | 参拝・祈祷 | 住吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sumiyoshitaisha.net/access/",
+     "title": "アクセス | 住吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sumiyoshitaisha.net/news/detail.php?seq=210",
+     "title": "住吉祭（夏祭）期間の駐車場料金について | お知らせ | 住吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sumiyoshitaisha.net/news/detail.php?seq=167",
+     "title": "令和8年 住吉大社セミナーのご案内 | お知らせ | 住吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sumiyoshitaisha.net/faq/",
+     "title": "よくある質問 | 住吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sumiyoshitaisha.net/grounds/powerspot.html",
+     "title": "参拝の作法 | 境内をめぐる | 住吉大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "開門は4月〜9月が6:00、10月〜3月が6:30。閉門は外周の門が16:00、御垣内が17:00（正月・夏祭りの期間は別）",
+     "url": "https://sumiyoshitaisha.net/access/",
+     "title": "アクセス | 住吉大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "祈祷のあいだの写真撮影はやめるよう求めている",
+      "url": "https://sumiyoshitaisha.net/worship/info.html",
+      "title": "祈祷の種類 | 参拝・祈祷 | 住吉大社",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "dejima": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://nagasakidejima.jp/",
+     "title": "【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nagasakidejima.jp/about/",
+     "title": "ご利用情報｜ 【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nagasakidejima.jp/guide-to-dejima/",
+     "title": "建物の紹介｜ 【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nagasakidejima.jp/information/",
+     "title": "お知らせ｜ 【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nagasakidejima.jp/faq/",
+     "title": "よくある質問｜ 【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nagasakidejima.jp/7062/",
+     "title": "【営業時間】朝8時～夜9時(最終入場は夜8時40分まで)｜ 【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nagasakidejima.jp/6738/",
+     "title": "【ご注意ください】2026年4月1日から入場料が変わります｜ 【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nagasakidejima.jp/6604/",
+     "title": "【観光ルートバス】再開！ クレジットタッチ決済もご利用可｜ 【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://nagasakidejima.jp/6560/",
+     "title": "【FAX番号変更のお知らせ】出島総合案内所のFAX｜ 【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "8:00〜21:00（最終入場20:40）。出入口は表門橋と水門の2か所（水門は18:00まで）",
+     "url": "https://nagasakidejima.jp/",
+     "title": "【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人1,100円、小・中学生・高校生550円（2026年4月1日からの料金）",
+     "url": "https://nagasakidejima.jp/",
+     "title": "【公式】出島〜dejima〜",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "fukuyama-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://fukuyamajo.jp/",
+     "title": "福山城博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://fukuyamajo.jp/siru/floor/",
+     "title": "フロア案内 - 福山城博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://fukuyamajo.jp/information/",
+     "title": "新着情報 – 福山城博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://fukuyamajo.jp/access/",
+     "title": "アクセス - 福山城博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://fukuyamajo.jp/guide/",
+     "title": "ご利用案内 - 福山城博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://fukuyamajo.jp/guide/group/",
+     "title": "団体利用・学校関係者の方へ - 福山城博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://fukuyamajo.jp/guide/reserve/",
+     "title": "事前予約の仕方 - 福山城博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://fukuyamajo.jp/guide/barrier-free/",
+     "title": "バリアフリー案内 - 福山城博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://fukuyamajo.jp/guide/catalog/",
+     "title": "展覧会図録 - 福山城博物館",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR福山駅の北口（福山城口）から歩いて約5分",
+     "url": "https://fukuyamajo.jp/access/",
+     "title": "アクセス - 福山城博物館",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "parking": {
+    "text": "福山城博物館の駐車場（普通車29台・有料）のほか、近くの美術館などの有料駐車場がある",
+    "url": "https://fukuyamajo.jp/access/",
+    "title": "アクセス - 福山城博物館",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "福山城博物館（天守）は9:00〜17:00（最終入館16:30）",
+     "url": "https://fukuyamajo.jp/",
+     "title": "福山城博物館",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "一般500円（特別展のときは変わる）。高校生以下は無料の対象",
+     "url": "https://fukuyamajo.jp/",
+     "title": "福山城博物館",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kanazawa-castle-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/",
+     "title": "金沢城公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/",
+     "title": "利用案内 | 金沢城公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/open.php",
+     "title": "公園の開園時間等 | 金沢城公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/fee.php",
+     "title": "園内施設の開館時間・料金等 | 金沢城公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/exhibition.php",
+     "title": "重要文化財の特別公開 | 金沢城公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/night.php",
+     "title": "夜間開園・ライトアップ | 金沢城公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/guide.php",
+     "title": "ガイドサービス | 金沢城公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/barrier-free.php",
+     "title": "バリアフリー対応 | 金沢城公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/request.php",
+     "title": "公園利用にあたってのお願い | 金沢城公園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "開園は3月1日〜10月15日が7:00〜18:00、10月16日〜2月末が8:00〜17:00。年中無休",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/open.php",
+     "title": "公園の開園時間等 | 金沢城公園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "早朝開園があり、4月〜8月は4:00から、11月〜2月は6:00から入れる",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/open.php",
+     "title": "公園の開園時間等 | 金沢城公園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "公園は無料。菱櫓・五十間長屋・橋爪門続櫓は大人320円、6〜18歳未満100円（9:00〜16:30）",
+     "url": "https://shiro-niwa.pref.ishikawa.lg.jp/kanazawa-castle/info/fee.php",
+     "title": "園内施設の開館時間・料金等 | 金沢城公園",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kochi-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kochipark.jp/kochijyo/",
+     "title": "高知城 公式ホームページ | Kochi Castle Official Website | Kochi Castle Official Website",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kochipark.jp/kochijyo/access/",
+     "title": "交通アクセス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kochipark.jp/kochijyo/usage-fee/",
+     "title": "利用料金・開館時間",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kochipark.jp/kochijyo/notes/",
+     "title": "公園利用時の注意事項",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kochipark.jp/kochijyo/volunteer/",
+     "title": "ボランティアガイドツアー",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kochipark.jp/kochijyo/movie/",
+     "title": "動画・写真撮影等について",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kochipark.jp/kochijyo/faq/",
+     "title": "よくある質問",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kochipark.jp/kochijyo/flowering-info/",
+     "title": "開花情報",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "高知自動車道の高知ICから約15分",
+     "url": "https://kochipark.jp/kochijyo/access/",
+     "title": "交通アクセス",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "高知公園駐車場（普通車65台・有料・7:30〜18:30）",
+    "url": "https://kochipark.jp/kochijyo/",
+    "title": "高知城 公式ホームページ | Kochi Castle Official Website | Kochi Castle Official Website",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "天守・懐徳館は9:00〜17:00（最終入館16:30）。12月26日〜1月1日は休み",
+     "url": "https://kochipark.jp/kochijyo/",
+     "title": "高知城 公式ホームページ | Kochi Castle Official Website | Kochi Castle Official Website",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "天守・懐徳館などは18歳以上500円",
+     "url": "https://kochipark.jp/kochijyo/",
+     "title": "高知城 公式ホームページ | Kochi Castle Official Website | Kochi Castle Official Website",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "公園の中でドローンなどを使うことは禁止",
+     "url": "https://kochipark.jp/kochijyo/notes/",
+     "title": "公園利用時の注意事項",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "kamakura-daibutsu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kotoku-in.jp/",
+     "title": "鎌倉大仏殿高徳院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kotoku-in.jp/grounds_info.html",
+     "title": "鎌倉大仏殿高徳院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kotoku-in.jp/application.html",
+     "title": "鎌倉大仏殿高徳院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kotoku-in.jp/site/faq",
+     "title": "よくあるご質問 | 鎌倉大仏殿高徳院",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kotoku-in.jp/site/faq/",
+     "title": "よくあるご質問 | 鎌倉大仏殿高徳院",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR鎌倉駅で江ノ島電鉄（藤沢方面）に乗り換え、長谷駅から歩いて約7分",
+     "url": "https://www.kotoku-in.jp/",
+     "title": "鎌倉大仏殿高徳院",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "横浜横須賀道路の朝比奈ICから県道204号線で鎌倉方面へ",
+     "url": "https://www.kotoku-in.jp/",
+     "title": "鎌倉大仏殿高徳院",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ]
+  },
+  "imabari-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.imabari.ehime.jp/museum/imabarijo/",
+     "title": "今治城 | 今治市 文化振興課",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.imabari.ehime.jp/museum/imabarijo/info/",
+     "title": "今治城 | ご利用案内 | 今治市 文化振興課",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.imabari.ehime.jp/museum/imabarijo/access/",
+     "title": "今治城 | 交通アクセス | 今治市 文化振興課",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.imabari.ehime.jp/museum/imabarijo/event/oshirase.html?p=2094",
+     "title": "今治城 | イベント・展覧会 | 今治市 文化振興課",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "第1駐車場（66台・24時間・1時間100円）",
+    "url": "https://www.city.imabari.ehime.jp/museum/imabarijo/info/",
+    "title": "今治城 | ご利用案内 | 今治市 文化振興課",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "天守などは9:00〜17:00（入館は16:30まで）。史跡公園（吹揚公園）は24時間・年中無休・無料",
+     "url": "https://www.city.imabari.ehime.jp/museum/imabarijo/info/",
+     "title": "今治城 | ご利用案内 | 今治市 文化振興課",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "一般520円、学生260円、高校生以下か18歳未満は無料（天守・御金櫓・山里櫓などの共通料金）",
+     "url": "https://www.city.imabari.ehime.jp/museum/imabarijo/info/",
+     "title": "今治城 | ご利用案内 | 今治市 文化振興課",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "umeda-sky-building": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.skybldg.co.jp/",
+     "title": "【公式】梅田スカイビル・空中庭園展望台",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.skybldg.co.jp/guidetour/",
+     "title": "ガイドツアーのご紹介｜梅田スカイビル・空中庭園展望台",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "空中庭園展望台は9:30〜22:30（最終入場22:00）",
+     "url": "https://www.skybldg.co.jp/",
+     "title": "【公式】梅田スカイビル・空中庭園展望台",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "taiyo-no-to": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://taiyounotou-expo70.jp/",
+     "title": "「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://taiyounotou-expo70.jp/guide/",
+     "title": "ご利用案内 – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://taiyounotou-expo70.jp/guide/hours/",
+     "title": "開館時間・休館日・アクセス – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://taiyounotou-expo70.jp/guide/fee/",
+     "title": "入館料 – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://taiyounotou-expo70.jp/reserve/",
+     "title": "入館予約について – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://taiyounotou-expo70.jp/reserve/terms/",
+     "title": "WEB予約・サイトのご利用規約 – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://taiyounotou-expo70.jp/news/1115/",
+     "title": "塔内撮影用のスマホケースのレンタルサービスについて（※2026年7月27日更新） – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://taiyounotou-expo70.jp/news/1400/",
+     "title": "太陽の塔 セットチケット料金改定のお知らせ – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "tripod": {
+     "text": "塔の中では、一脚（自撮り棒を含む）・三脚などの補助機材は使えない",
+     "url": "https://taiyounotou-expo70.jp/guide/",
+     "title": "ご利用案内 – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "selfieStick": {
+     "text": "塔の中では、自撮り棒も使えない",
+     "url": "https://taiyounotou-expo70.jp/guide/",
+     "title": "ご利用案内 – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "notes": [
+     {
+      "text": "塔の中で撮影できるのは1階（地底の太陽ゾーンと生命の樹の1階）だけ。上の階へ行くときはスマートフォンなどをかばんにしまう",
+      "url": "https://taiyounotou-expo70.jp/guide/",
+      "title": "ご利用案内 – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+      "readAt": "2026-11-11"
+     },
+     {
+      "text": "フラッシュ撮影と、撮った写真の商業利用はできない",
+      "url": "https://taiyounotou-expo70.jp/guide/",
+      "title": "ご利用案内 – 「太陽の塔」オフィシャルサイト（大阪府日本万国博覧会記念公園事務所）",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "sannai-maruyama": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://sannaimaruyama.pref.aomori.jp/",
+     "title": "特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sannaimaruyama.pref.aomori.jp/faq/",
+     "title": "よくある質問 | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sannaimaruyama.pref.aomori.jp/information/facility/",
+     "title": "ご利用案内 | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sannaimaruyama.pref.aomori.jp/information/access/",
+     "title": "交通アクセス | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sannaimaruyama.pref.aomori.jp/information/facility-info/",
+     "title": "施設のご案内 | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sannaimaruyama.pref.aomori.jp/information/facility-info/",
+     "title": "施設のご案内 | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sannaimaruyama.pref.aomori.jp/information/restaurant/",
+     "title": "レストラン・売店 | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sannaimaruyama.pref.aomori.jp/information/museum/",
+     "title": "さんまるミュージアム | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://sannaimaruyama.pref.aomori.jp/information/welcome/",
+     "title": "三内丸山遺跡センターについて | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9:00〜17:00（ゴールデンウィークと6月1日〜9月30日は18:00まで。入場は閉館30分前まで）",
+     "url": "https://sannaimaruyama.pref.aomori.jp/information/facility/",
+     "title": "ご利用案内 | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "遺跡を含む常設展は一般500円、大学生等250円、高校生以下は無料",
+     "url": "https://sannaimaruyama.pref.aomori.jp/faq/",
+     "title": "よくある質問 | 特別史跡「三内丸山遺跡」",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "撮影は自由。出版物などに使うときは事前に問い合わせる。フラッシュ撮影はやめるよう求めている",
+      "url": "https://sannaimaruyama.pref.aomori.jp/faq/",
+      "title": "よくある質問 | 特別史跡「三内丸山遺跡」",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "naritasan": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.naritasan.or.jp/",
+     "title": "大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.naritasan.or.jp/monthly/",
+     "title": "行事案内 | 大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.naritasan.or.jp/monthly/gyoji/",
+     "title": "行事案内 | 大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.naritasan.or.jp/about/howto/",
+     "title": "知っておきたい参拝の仕方 | 大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.naritasan.or.jp/pray/ogoma_shurui/",
+     "title": "お願いごと・祈祷時間など | 大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.naritasan.or.jp/pray/kotsu/",
+     "title": "交通安全祈祷 | 大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.naritasan.or.jp/tour/",
+     "title": "境内案内 | 大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.naritasan.or.jp/tour/hall/",
+     "title": "各御堂のご案内 | 大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.naritasan.or.jp/tour/other/",
+     "title": "成田山公園・書道美術館のご案内 | 大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "成田山公園の紅葉まつりは11月14日〜29日（2026年）",
+     "url": "https://www.naritasan.or.jp/",
+     "title": "大本山成田山新勝寺",
+     "readAt": "2026-11-11",
+     "subject": "紅葉",
+     "validUntil": "2026-11-29"
+    }
+   ],
+   "hours": [
+    {
+     "text": "朝の御護摩は4月〜9月が5:30、10月〜3月が6:00から（毎日）",
+     "url": "https://www.naritasan.or.jp/pray/ogoma_shurui/",
+     "title": "お願いごと・祈祷時間など | 大本山成田山新勝寺",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "asahidake": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://asahidake.hokkaido.jp/ja/",
+     "title": "大雪山旭岳ロープウェイ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://asahidake.hokkaido.jp/archives/blog/26554",
+     "title": "&#x1f6a0;１１月１５日まで行ける！ | 大雪山旭岳ロープウェイ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://asahidake.hokkaido.jp/archives/blog/26502",
+     "title": "&#x2603; 冬？の１１月のご案内 &#x1f6a0; | 大雪山旭岳ロープウェイ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://asahidake.hokkaido.jp/archives/blog/26444",
+     "title": "&#x1f6a0;営業時間変更のお知らせ&#x23f0;10/21より | 大雪山旭岳ロープウェイ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "旭岳ロープウェイは10月21日から9:00〜16:00（上りの最終15:40）、20分おきに運行",
+     "url": "https://asahidake.hokkaido.jp/ja/",
+     "title": "大雪山旭岳ロープウェイ",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "rikugien": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tokyo-park.or.jp/park/rikugien/",
+     "title": "六義園｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/faq/",
+     "title": "よくあるご質問｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/rikugien/news/2026/park_info_50.html",
+     "title": "【六義園】染井門開門日のお知らせ｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/rikugien/news/2026/10_2.html",
+     "title": "【六義園】10月1日（木）「都民の日」は無料入園日です｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/rikugien/news/2026/9_22_9.html",
+     "title": "9月22日(火・休)都立9庭園は開園いたします｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/event_search/9_2_2.html",
+     "title": "【都立9庭園】紅葉めぐりスタンプラリー2026｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/special/teienshukaijo/index.html",
+     "title": "都立文化財庭園の集会施設ご利用について｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/rikugien/faq/",
+     "title": "よくあるご質問｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR山手線・東京メトロ南北線の駒込駅から歩いて7分",
+     "url": "https://www.tokyo-park.or.jp/park/rikugien/",
+     "title": "六義園｜公園へ行こう！",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "parking": {
+    "text": "駐車場は無い",
+    "url": "https://www.tokyo-park.or.jp/park/rikugien/",
+    "title": "六義園｜公園へ行こう！",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "9:00〜17:00（入園は16:30まで）。イベントの期間は延びることがある",
+     "url": "https://www.tokyo-park.or.jp/park/rikugien/",
+     "title": "六義園｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "一般300円、65歳以上150円、小学生以下と都内在住・在学の中学生は無料",
+     "url": "https://www.tokyo-park.or.jp/park/rikugien/",
+     "title": "六義園｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kunozan-toshogu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.toshogu.or.jp/",
+     "title": "久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.toshogu.or.jp/worship/",
+     "title": "ご参拝｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.toshogu.or.jp/prayer/",
+     "title": "ご祈祷｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.toshogu.or.jp/kt_museum/",
+     "title": "久能山東照宮博物館｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.toshogu.or.jp/access/",
+     "title": "交通案内｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.toshogu.or.jp/faq/",
+     "title": "よくあるご質問｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.toshogu.or.jp/news/_-irodori-_1.php",
+     "title": "久能山東照宮 夜間特別拝観「光彩-IRODORI-」開催のお知らせ｜お知らせ｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.toshogu.or.jp/worship/fees.php",
+     "title": "拝観料のご案内｜ご参拝｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.toshogu.or.jp/worship/rules.php",
+     "title": "参拝の作法｜ご参拝｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "日本平山頂から静岡鉄道の日本平ロープウェイで渡るか、久能山下から石段を歩いて登る",
+     "url": "https://www.toshogu.or.jp/access/",
+     "title": "交通案内｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    },
+    {
+     "text": "JR静岡駅からしずてつジャストライン日本平線で終点「日本平ロープウェイ」まで約45分",
+     "url": "https://www.toshogu.or.jp/access/",
+     "title": "交通案内｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "日本平山頂に無料駐車場（200台）。久能山下から歩くときは周りの民間駐車場を使う",
+    "url": "https://www.toshogu.or.jp/access/",
+    "title": "交通案内｜久能山東照宮｜静岡",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "fees": [
+    {
+     "text": "日本平ロープウェイの往復は大人1,250円、4〜12歳630円",
+     "url": "https://www.toshogu.or.jp/access/",
+     "title": "交通案内｜久能山東照宮｜静岡",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "shinjuku-gyoen": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/index.html",
+     "title": "新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/",
+     "title": "利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
+     "title": "入園案内｜利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/rule/",
+     "title": "園内ルール｜利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/access/",
+     "title": "アクセス｜利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/map/",
+     "title": "園内マップ｜利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/ud/",
+     "title": "ユニバーサルデザイン｜利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/event/guided_tour/",
+     "title": "ガイドウォーク｜行事｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/photography/",
+     "title": "撮影・アートギャラリー｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/photography/media_coverage/",
+     "title": "撮影ルール｜撮影・アートギャラリー｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/photography/image_capture/",
+     "title": "機材を用いる撮影｜撮影・アートギャラリー｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9:00〜18:00（10月1日〜3月14日は16:30まで、6月11日〜7月31日は19:00まで。入園は閉園30分前まで）。月曜休園（休日なら翌平日）と年末年始は休み",
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
+     "title": "入園案内｜利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "桜の開花期間（3月25日〜4月24日）と菊花壇展（11月1日〜15日）の間は、月曜も開園する",
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
+     "title": "入園案内｜利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "一般500円、65歳以上と学生（高校生以上）250円、中学生以下は無料",
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/guide/information/",
+     "title": "入園案内｜利用ガイド｜新宿御苑｜環境省",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "tripod": {
+     "text": "趣味の撮影は手続き不要。ただし桜の期間・菊花壇展の期間など混む時期は、三脚やレフ板など通行の妨げになる機材で人物などを撮ることを禁止している",
+     "url": "https://policies.env.go.jp/national-garden/shinjukugyoen/photography/image_capture/",
+     "title": "機材を用いる撮影｜撮影・アートギャラリー｜新宿御苑｜環境省",
+     "readAt": "2026-11-11",
+     "status": "conditional"
+    }
+   }
+  },
+  "kakegawa-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kakegawajo.com/",
+     "title": "掛川城｜静岡県掛川市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kakegawajo.com/user-guide/",
+     "title": "掛川城 ご利用案内｜静岡県掛川市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kakegawajo.com/access/",
+     "title": "掛川城 アクセス｜静岡県掛川市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kakegawajo.com/application/",
+     "title": "掛川城 各種撮影依頼｜静岡県掛川市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kakegawajo.com/news/2026/10/18/%e6%8e%9b%e5%b7%9d%e5%9f%8e%e3%80%81%e7%ab%b9%e3%81%ae%e4%b8%b8-%e5%96%b6%e6%a5%ad%e6%99%82%e9%96%93%e5%a4%89%e6%9b%b4%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85/",
+     "title": "掛川城｜静岡県掛川市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kakegawajo.com/news/2026/08/28/%e4%ba%8c%e3%81%ae%e4%b8%b8%e8%8c%b6%e5%ae%a4-%e5%96%b6%e6%a5%ad%e6%99%82%e9%96%93%e5%a4%89%e6%9b%b4%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85/",
+     "title": "掛川城｜静岡県掛川市",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR掛川駅から歩いて7分",
+     "url": "https://kakegawajo.com/access/",
+     "title": "掛川城 アクセス｜静岡県掛川市",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "東名高速道路の掛川ICから約10分",
+     "url": "https://kakegawajo.com/access/",
+     "title": "掛川城 アクセス｜静岡県掛川市",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "大手門駐車場（有料・約200台）",
+    "url": "https://kakegawajo.com/access/",
+    "title": "掛川城 アクセス｜静岡県掛川市",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "9:00〜17:00（入館は16:30まで）",
+     "url": "https://kakegawajo.com/user-guide/",
+     "title": "掛川城 ご利用案内｜静岡県掛川市",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人（高校生以上）410円、小・中学生150円",
+     "url": "https://kakegawajo.com/user-guide/",
+     "title": "掛川城 ご利用案内｜静岡県掛川市",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "hamarikyu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tokyo-park.or.jp/park/hama-rikyu/",
+     "title": "浜離宮恩賜庭園｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/faq/",
+     "title": "よくあるご質問｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/hama-rikyu/news/2026/park_info_32.html",
+     "title": "【開園80周年記念事業第三弾】松の御茶屋でお点前拝見(11月15日）｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/hama-rikyu/news/2026/park_info_28.html",
+     "title": "【西洋馬術導入の地、浜離宮】開催！｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/hama-rikyu/news/2024/rules_and_regulations_information_on_pho.html",
+     "title": "ご入園の際のお願い、園内ご利用ルール・撮影について Rules and Regulations, Information on Photography in the Garden, etc.｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/hama-rikyu/news/2026/80.html",
+     "title": "浜離宮恩賜庭園 開園80周年記念事業《第一弾》｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/hama-rikyu/news/2026/park_info_34.html",
+     "title": "夜間特別企画の実施に伴う園内作業等のお知らせ｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/park/hama-rikyu/news/2026/9_22_9.html",
+     "title": "9月22日(火・休)都立9庭園は開園いたします｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/event_search/9_2_2.html",
+     "title": "【都立9庭園】紅葉めぐりスタンプラリー2026｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "9:00〜17:00（入園は16:30まで）",
+     "url": "https://www.tokyo-park.or.jp/park/hama-rikyu/",
+     "title": "浜離宮恩賜庭園｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "一般300円、65歳以上150円、小学生以下と都内在住・在学の中学生は無料",
+     "url": "https://www.tokyo-park.or.jp/park/hama-rikyu/",
+     "title": "浜離宮恩賜庭園｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kaiyukan": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kaiyukan.com/",
+     "title": "世界最大級の水族館 海遊館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kaiyukan.com/info/",
+     "title": "ご利用案内 | 海遊館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kaiyukan.com/info/hours/",
+     "title": "営業時間・休館日 | ご利用案内 | 海遊館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kaiyukan.com/info/ticket/kaiyukan/",
+     "title": "海遊館チケット | 入館料・その他チケット | ご利用案内 | 海遊館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kaiyukan.com/info/access/",
+     "title": "交通アクセス・駐車場 | ご利用案内 | 海遊館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kaiyukan.com/info/area/",
+     "title": "館内情報 | ご利用案内 | 海遊館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kaiyukan.com/info/group/",
+     "title": "団体のお客様 | ご利用案内 | 海遊館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kaiyukan.com/info/faq/",
+     "title": "よくある質問・お問い合わせ | ご利用案内 | 海遊館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kaiyukan.com/program/guide_tour/",
+     "title": "海遊館ガイドツアー | ツアー・体験 | 海遊館",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "大阪メトロ中央線の大阪港駅（海遊館前）1番出口から歩いて約5分",
+     "url": "https://www.kaiyukan.com/info/access/",
+     "title": "交通アクセス・駐車場 | ご利用案内 | 海遊館",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "大阪シティバスの「天保山ハーバービレッジ」で降りてすぐ",
+     "url": "https://www.kaiyukan.com/info/access/",
+     "title": "交通アクセス・駐車場 | ご利用案内 | 海遊館",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入館料は日によって変わる（料金カレンダーで確かめる）。2歳以下は無料",
+     "url": "https://www.kaiyukan.com/info/ticket/kaiyukan/",
+     "title": "海遊館チケット | 入館料・その他チケット | ご利用案内 | 海遊館",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "shimogamo-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.shimogamo-jinja.or.jp/",
+     "title": "【公式】下鴨神社（賀茂御祖神社）｜京都・世界遺産の古社で心を整える参拝",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shimogamo-jinja.or.jp/about/special",
+     "title": "特別拝観について | 下鴨神社 |賀茂御祖神社（かもみおやじんじゃ）",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.shimogamo-jinja.or.jp/access",
+     "title": "アクセス・境内マップ | 下鴨神社 | 賀茂御祖神社（かもみおやじんじゃ）",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "楼門の内は6:30開門・17:00閉門、河合社は6:30〜16:30",
+     "url": "https://www.shimogamo-jinja.or.jp/",
+     "title": "【公式】下鴨神社（賀茂御祖神社）｜京都・世界遺産の古社で心を整える参拝",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kumano-hongu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.hongutaisha.jp/",
+     "title": "熊野本宮大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hongutaisha.jp/parking/",
+     "title": "駐車場のご案内 - 熊野本宮大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hongutaisha.jp/2026/06/12/fifa%e3%83%af%e3%83%bc%e3%83%ab%e3%83%89%e3%82%ab%e3%83%83%e3%83%972026%e3%80%80%e8%a8%98%e5%bf%b5%e6%8e%88%e4%b8%8e%e5%93%81%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85/",
+     "title": "FIFAワールドカップ2026 記念授与品のご案内 - 熊野本宮大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hongutaisha.jp/2026/06/12/%e6%8e%88%e4%b8%8e%e5%93%81%e5%88%9d%e7%a9%82%e6%96%99%e5%a4%89%e6%9b%b4%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85/",
+     "title": "授与品初穂料変更のご案内 - 熊野本宮大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hongutaisha.jp/2025/11/06/%e7%89%9b%e7%8e%8b%e7%a5%9e%e7%ac%a6%e3%81%ab%e9%96%a2%e3%81%99%e3%82%8b%e3%81%94%e6%a1%88%e5%86%85/",
+     "title": "牛王神符に関するご案内 - 熊野本宮大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hongutaisha.jp/wedding/",
+     "title": "ご婚礼 - 熊野本宮大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hongutaisha.jp/worship/",
+     "title": "参拝について - 熊野本宮大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "瑞鳳殿の隣と河原に無料駐車場がある",
+    "url": "https://www.hongutaisha.jp/parking/",
+    "title": "駐車場のご案内 - 熊野本宮大社",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "参拝は8:00〜17:00",
+     "url": "https://www.hongutaisha.jp/",
+     "title": "熊野本宮大社",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "tottori-sakyu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.pref.tottori.lg.jp/sakyujimusho/",
+     "title": "鳥取砂丘/砂丘事務所/生活環境部/とりネット/鳥取県公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.pref.tottori.lg.jp/rain/",
+     "title": "風水害に関する注意情報/とりネット/鳥取県公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.pref.tottori.lg.jp/netchuusyou/",
+     "title": "熱中症を防ぎましょう/とりネット/鳥取県公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.pref.tottori.lg.jp/314487.htm",
+     "title": "漂着したアザラシやオットセイなど海獣類にご注意/とりネット/鳥取県公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.pref.tottori.lg.jp/239260.htm",
+     "title": "夏の鳥取砂丘に関するご注意/とりネット/鳥取県公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.pref.tottori.lg.jp/306956.htm",
+     "title": "【緊急注意喚起】鳥取砂丘での熱中症が急増しています！！/とりネット/鳥取県公式サイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "鳥取砂丘ビジターセンターは年中無休で9:00〜17:00、入場無料",
+     "url": "https://www.pref.tottori.lg.jp/sakyujimusho/",
+     "title": "鳥取砂丘/砂丘事務所/生活環境部/とりネット/鳥取県公式サイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "鳥取砂丘での撮影行為は、事前に鳥取砂丘ビジターセンターに確かめるよう案内している",
+      "url": "https://www.pref.tottori.lg.jp/sakyujimusho/",
+      "title": "鳥取砂丘/砂丘事務所/生活環境部/とりネット/鳥取県公式サイト",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "kokura-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kokura-castle.jp/",
+     "title": "小倉城公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kokura-castle.jp/information/",
+     "title": "ご利用案内 — 小倉城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kokura-castle.jp/schedule/",
+     "title": "営業時間 — 小倉城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kokura-castle.jp/access/",
+     "title": "アクセス — 小倉城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "4月〜10月は9:00〜20:00、11月〜3月は9:00〜19:00（最終入場は閉城の30分前）。年中無休",
+     "url": "https://kokura-castle.jp/information/",
+     "title": "ご利用案内 — 小倉城",
+     "readAt": "2026-11-11"
+    },
+    {
+     "text": "天守閣のライトアップは年中無休で日没後〜22:00",
+     "url": "https://kokura-castle.jp/information/",
+     "title": "ご利用案内 — 小倉城",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "天守閣は一般500円（北九州市民400円）、中学生・高校生300円、小学生150円",
+     "url": "https://kokura-castle.jp/information/",
+     "title": "ご利用案内 — 小倉城",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "meijimura": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.meijimura.com/",
+     "title": "博物館明治村 | 愛知県犬山市の野外博物館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijimura.com/guide/open/",
+     "title": "開村時間・休村日 | 博物館明治村",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijimura.com/guide/price/",
+     "title": "チケット・料金 | 博物館明治村",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijimura.com/guide/group/school/",
+     "title": "団体向け情報(学校) - 博物館明治村",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijimura.com/guide/access/",
+     "title": "アクセス | 博物館明治村",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijimura.com/guide/",
+     "title": "総合案内 | 博物館明治村",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijimura.com/guide/around/",
+     "title": "周辺情報 | 愛知県犬山市の博物館明治村",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijimura.com/rental/",
+     "title": "建物貸し出しのご案内 | 博物館明治村",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.meijimura.com/guide/beginner/",
+     "title": "Q&A - よくあるご質問 | 博物館明治村",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "4月〜7月・9月・10月は9:30〜17:00、8月は10:00〜17:00、11月は9:30〜16:00（土休日は17:00まで）、12月〜2月は10:00〜16:00",
+     "url": "https://www.meijimura.com/guide/open/",
+     "title": "開村時間・休村日 | 博物館明治村",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入村料は大人2,500円、高校生1,500円、中学生700円",
+     "url": "https://www.meijimura.com/guide/price/",
+     "title": "チケット・料金 | 博物館明治村",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "tripod": {
+     "text": "建物の中では三脚は使えない",
+     "url": "https://www.meijimura.com/guide/open/",
+     "title": "開村時間・休村日 | 博物館明治村",
+     "readAt": "2026-11-11",
+     "status": "conditional"
+    },
+    "notes": [
+     {
+      "text": "山林に入っての撮影は禁止。乗り物の運転手にフラッシュを向けないよう求めている",
+      "url": "https://www.meijimura.com/guide/open/",
+      "title": "開村時間・休村日 | 博物館明治村",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "tanzan-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tanzan.or.jp/",
+     "title": "【公式】談山神社｜大和多武峰鎮座",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tanzan.or.jp/haikan.html",
+     "title": "拝観案内｜談山神社【公式】大和多武峰鎮座",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tanzan.or.jp/dantai.html",
+     "title": "団体参拝・観光業者様へ｜談山神社【公式】大和多武峰鎮座",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://tanzan.or.jp/info/jinja_news/",
+     "title": "【公式】大和多武峰鎮座｜談山神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tanzan.or.jp/keidai.html",
+     "title": "境内案内｜談山神社【公式】大和多武峰鎮座",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tanzan.or.jp/access.html",
+     "title": "交通案内｜談山神社【公式】大和多武峰鎮座",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tanzan.or.jp/gyouji.html",
+     "title": "年中行事｜談山神社【公式】大和多武峰鎮座",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "紅葉まつりは2026年10月1日〜12月6日",
+     "url": "https://www.tanzan.or.jp/",
+     "title": "【公式】談山神社｜大和多武峰鎮座",
+     "readAt": "2026-11-11",
+     "subject": "紅葉",
+     "validUntil": "2026-12-06"
+    }
+   ],
+   "hours": [
+    {
+     "text": "受付は8:30〜16:00、拝観は16:30まで",
+     "url": "https://www.tanzan.or.jp/haikan.html",
+     "title": "拝観案内｜談山神社【公式】大和多武峰鎮座",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人700円、小学生300円（2026年4月1日からの料金）",
+     "url": "https://www.tanzan.or.jp/haikan.html",
+     "title": "拝観案内｜談山神社【公式】大和多武峰鎮座",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "ogaki-castle": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.ogaki.lg.jp/0000000577.html",
+     "title": "大垣城 | 大垣市公式ホームページ／水の都おおがき",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ogaki.lg.jp/0000071105.html",
+     "title": "令和8年度「教育・文化週間」における文化施設の開館、入場料無料 | 大垣市公式ホームページ／水の都おおがき",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ogaki.lg.jp/0000052601.html",
+     "title": "市役所のご案内 | 大垣市公式ホームページ／水の都おおがき",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ogaki.lg.jp/0000051682.html",
+     "title": "市役所へのアクセス | 大垣市公式ホームページ／水の都おおがき",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR大垣駅の南口から歩いて7分",
+     "url": "https://www.city.ogaki.lg.jp/0000000577.html",
+     "title": "大垣城 | 大垣市公式ホームページ／水の都おおがき",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "名神高速道路の大垣ICから15分",
+     "url": "https://www.city.ogaki.lg.jp/0000000577.html",
+     "title": "大垣城 | 大垣市公式ホームページ／水の都おおがき",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "大垣城専用の駐車場は無い。市営の東外側駐車場（30分100円）などを使う",
+    "url": "https://www.city.ogaki.lg.jp/0000000577.html",
+    "title": "大垣城 | 大垣市公式ホームページ／水の都おおがき",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "9:00〜17:00（入館は16:30まで）。12月29日〜1月3日は休み",
+     "url": "https://www.city.ogaki.lg.jp/0000000577.html",
+     "title": "大垣城 | 大垣市公式ホームページ／水の都おおがき",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "郷土館と共通で200円。18歳未満は無料",
+     "url": "https://www.city.ogaki.lg.jp/0000000577.html",
+     "title": "大垣城 | 大垣市公式ホームページ／水の都おおがき",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "城内で商用などに使う撮影をするときは申請が要る",
+      "url": "https://www.city.ogaki.lg.jp/0000000577.html",
+      "title": "大垣城 | 大垣市公式ホームページ／水の都おおがき",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "ashikaga-gakko": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.ashikaga.tochigi.jp/education/000031/index.html",
+     "title": "史跡足利学校 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ashikaga.tochigi.jp/living/000020/index.html",
+     "title": "公共交通 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ashikaga.tochigi.jp/urban/000065/index.html",
+     "title": "道路・交通網 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ashikaga.tochigi.jp/environment/000074/index.html",
+     "title": "交通安全・防犯 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ashikaga.tochigi.jp/education/000031/000178/index.html",
+     "title": "参観案内 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ashikaga.tochigi.jp/goverment/000076/000963/p003796.html",
+     "title": "市役所の業務時間と所在地 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ashikaga.tochigi.jp/viewer/tag.html?id=6",
+     "title": "入園・入学 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.ashikaga.tochigi.jp/goverment/000083/000890/p003764.html",
+     "title": "公共施設案内 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "受付は4月〜9月が9:00〜16:30、10月〜3月が9:00〜16:00",
+     "url": "https://www.city.ashikaga.tochigi.jp/education/000031/index.html",
+     "title": "史跡足利学校 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "一般480円、高校生240円、市外の小・中学生120円、未就学児は無料",
+     "url": "https://www.city.ashikaga.tochigi.jp/education/000031/index.html",
+     "title": "史跡足利学校 | 足利市 公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kehi-jingu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kehijingu.jp/",
+     "title": "ご祈願、厄除け、神前結婚式なら、氣比神宮 -",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR敦賀駅から歩いて約15分（駅前からバスで約5分）",
+     "url": "https://kehijingu.jp/",
+     "title": "ご祈願、厄除け、神前結婚式なら、氣比神宮 -",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "北陸自動車道の敦賀ICから約10分",
+     "url": "https://kehijingu.jp/",
+     "title": "ご祈願、厄除け、神前結婚式なら、氣比神宮 -",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "無料駐車場（100台・大鳥居のわきと境内の東）",
+    "url": "https://kehijingu.jp/",
+    "title": "ご祈願、厄除け、神前結婚式なら、氣比神宮 -",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "門が開いているのは4月〜9月が5:00〜17:00、10月〜3月が6:00〜17:00",
+     "url": "https://kehijingu.jp/",
+     "title": "ご祈願、厄除け、神前結婚式なら、氣比神宮 -",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kuramadera": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kuramadera.or.jp/",
+     "title": "総本山 鞍馬寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kuramadera.or.jp/access.html",
+     "title": "交通地図 | 総本山 鞍馬寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "出町柳駅から叡山電車で鞍馬駅まで30分。駅から歩いて3分で山門",
+     "url": "https://www.kuramadera.or.jp/access.html",
+     "title": "交通地図 | 総本山 鞍馬寺",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "山門から九十九折参道を歩いて本殿金堂へ（由岐神社まで5分、そこから20分）",
+     "url": "https://www.kuramadera.or.jp/access.html",
+     "title": "交通地図 | 総本山 鞍馬寺",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "parking": {
+    "text": "鞍馬寺に駐車場は無い。周りに駐車場がある",
+    "url": "https://www.kuramadera.or.jp/access.html",
+    "title": "交通地図 | 総本山 鞍馬寺",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "本殿は9:00〜16:15に開いている。ケーブルは上りの始発8:40、下りの終発16:25",
+     "url": "https://www.kuramadera.or.jp/",
+     "title": "総本山 鞍馬寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "愛山費は500円",
+     "url": "https://www.kuramadera.or.jp/access.html",
+     "title": "交通地図 | 総本山 鞍馬寺",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "adachi-museum-garden": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.adachi-museum.or.jp/",
+     "title": "足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.adachi-museum.or.jp/faq",
+     "title": "よくある質問 | 足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.adachi-museum.or.jp/access",
+     "title": "アクセス | 足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.adachi-museum.or.jp/hours-admission",
+     "title": "開館時間・入館料 | 足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.adachi-museum.or.jp/access",
+     "title": "アクセス | 足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.adachi-museum.or.jp/shuttle-bus",
+     "title": "無料シャトルバス | 足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.adachi-museum.or.jp/archives/information",
+     "title": "お知らせ | 足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.adachi-museum.or.jp/travel-information",
+     "title": "旅行プラン・ツアー情報 | 足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.adachi-museum.or.jp/floor_guide",
+     "title": "フロアガイド | 足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "無料のシャトルバスが走っている（時刻表は公式サイト）",
+     "url": "https://www.adachi-museum.or.jp/",
+     "title": "足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "hours": [
+    {
+     "text": "4月〜9月は9:00〜17:30、10月〜3月は9:00〜17:00",
+     "url": "https://www.adachi-museum.or.jp/",
+     "title": "足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人2,500円、大学生2,000円、高校生1,000円、小・中学生500円",
+     "url": "https://www.adachi-museum.or.jp/",
+     "title": "足立美術館｜ADACHI MUSEUM OF ART",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "shiogama-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://shiogamajinja.jp/",
+     "title": "志波彦神社・鹽竈神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiogamajinja.jp/access/",
+     "title": "アクセスガイド – 志波彦神社・鹽竈神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://shiogamajinja.jp/2026/11/01/%e6%96%b0%e5%b9%b4%e7%a5%88%e7%a5%b7%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85/",
+     "title": "新年祈祷のご案内 – 志波彦神社・鹽竈神社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR仙石線の本塩釜駅から歩いて約15分（JR東北本線の塩釜駅からは約25分）",
+     "url": "https://shiogamajinja.jp/access/",
+     "title": "アクセスガイド – 志波彦神社・鹽竈神社",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "三陸自動車道の利府中IC・利府塩釜ICから約10分",
+     "url": "https://shiogamajinja.jp/access/",
+     "title": "アクセスガイド – 志波彦神社・鹽竈神社",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "境内の東側から北側に、参拝者専用の無料駐車場が4か所",
+    "url": "https://shiogamajinja.jp/access/",
+    "title": "アクセスガイド – 志波彦神社・鹽竈神社",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "鹽竈神社の門は3月〜10月が5:00〜18:00、11月〜2月が5:00〜17:00。閉門中も門の外の境内は自由にお参りできる",
+     "url": "https://shiogamajinja.jp/access/",
+     "title": "アクセスガイド – 志波彦神社・鹽竈神社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "境内でドローンなどを飛ばすことは禁止",
+     "url": "https://shiogamajinja.jp/",
+     "title": "志波彦神社・鹽竈神社",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    }
+   }
+  },
+  "ohara-museum": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.ohara.or.jp/",
+     "title": "大原美術館",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ohara.or.jp/visitor_info/",
+     "title": "入館案内大原美術館 |",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ohara.or.jp/access/",
+     "title": "アクセス情報大原美術館 |",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ohara.or.jp/shopinfo/",
+     "title": "ミュージアムショップ利用案内大原美術館 |",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ohara.or.jp/faq/",
+     "title": "よくある質問大原美術館 |",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ohara.or.jp/news/8970/",
+     "title": "大原美術館 再開館のお知らせ大原美術館 |",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ohara.or.jp/calendar/",
+     "title": "開館情報一覧大原美術館 |",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ohara.or.jp/news/30597/",
+     "title": "託児サービスのご案内（なんなんDAYS限定）大原美術館 |",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ohara.or.jp/visitor_info/",
+     "title": "入館案内大原美術館 |",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "3月〜11月は9:00〜17:00（最終入館16:30）、12月〜2月は9:00〜15:00（最終入館14:30）。月曜休館（祝日・振替休日は開館、8月は無休）",
+     "url": "https://www.ohara.or.jp/visitor_info/",
+     "title": "入館案内大原美術館 |",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "一般2,000円、18歳未満500円、未就学児は無料",
+     "url": "https://www.ohara.or.jp/visitor_info/",
+     "title": "入館案内大原美術館 |",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "館内での写真撮影はやめるよう求めている",
+      "url": "https://www.ohara.or.jp/visitor_info/",
+      "title": "入館案内大原美術館 |",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "ghibli-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://ghibli-park.jp/",
+     "title": "ジブリパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ghibli-park.jp/info/",
+     "title": "最新情報｜ジブリパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ghibli-park.jp/wait/",
+     "title": "待ち時間（運営状況）｜ジブリパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ghibli-park.jp/ticket/",
+     "title": "チケットの種類と料金｜ジブリパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ghibli-park.jp/calendar/",
+     "title": "営業時間とカレンダー｜ジブリパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ghibli-park.jp/access/",
+     "title": "アクセス｜ジブリパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ghibli-park.jp/guide/",
+     "title": "利用のご案内｜ジブリパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ghibli-park.jp/faq/",
+     "title": "よくあるご質問 ｜ジブリパーク",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ghibli-park.jp/access",
+     "title": "アクセス｜ジブリパーク",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "平日は10:00〜17:00、土・日・休日は9:00〜17:00",
+     "url": "https://ghibli-park.jp/",
+     "title": "ジブリパーク",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "oura-tenshudo": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://oura-church.jp/",
+     "title": "国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oura-church.jp/guide/",
+     "title": "拝観のご案内｜国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oura-church.jp/point/",
+     "title": "拝観の順路｜国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oura-church.jp/guide/",
+     "title": "拝観のご案内｜国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oura-church.jp/guide-en/",
+     "title": "General Information｜国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oura-church.jp/guide-kr/",
+     "title": "천주당 견학 안내｜国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oura-church.jp/guide-cn/",
+     "title": "参观须知｜国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://oura-church.jp/guide-fr/",
+     "title": "Guide de la visite｜国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "駐車場は無い",
+    "url": "https://oura-church.jp/guide/",
+    "title": "拝観のご案内｜国宝 大浦天主堂 公式サイト",
+    "readAt": "2026-11-11",
+    "available": false
+   },
+   "hours": [
+    {
+     "text": "3月〜10月は8:30〜18:00（最終入場17:30）、11月〜2月は8:30〜17:30（最終入場17:00）",
+     "url": "https://oura-church.jp/guide/",
+     "title": "拝観のご案内｜国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人1,000円、中・高生400円、小学生300円（キリシタン博物館の入場料を含む）",
+     "url": "https://oura-church.jp/guide/",
+     "title": "拝観のご案内｜国宝 大浦天主堂 公式サイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "天主堂の中の撮影はやめるよう求めている。外観は撮影できるが、拝観料を払う前に敷地内で撮るのはやめるよう求めている",
+      "url": "https://oura-church.jp/guide/",
+      "title": "拝観のご案内｜国宝 大浦天主堂 公式サイト",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "hiyoshi-taisha": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://hiyoshitaisha.jp/",
+     "title": "日吉大社 | 平安京の表鬼門鎮座 方除・厄除の大社 神仏霊場 滋賀県17番",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiyoshitaisha.jp/jugegu/index.html",
+     "title": "重要文化財 樹下宮拝殿修復奉賛 | 日吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiyoshitaisha.jp/news/2026/1005-1.html",
+     "title": "お知らせ | 日吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiyoshitaisha.jp/akatourou/index.html",
+     "title": "赤燈籠 | 日吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiyoshitaisha.jp/hiyoshichaen/index.html",
+     "title": "「日吉茶園」再築整備 | 日吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiyoshitaisha.jp/keidai/index.html",
+     "title": "境内案内 | 日吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiyoshitaisha.jp/access/index.html",
+     "title": "交通アクセス | 日吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiyoshitaisha.jp/faq/index.html",
+     "title": "よくあるご質問 | 日吉大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://hiyoshitaisha.jp/tsuitachi/index.html",
+     "title": "朔日参り | 日吉大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "約3,000本のもみじがあり、もみじまつりと夜のライトアップを行う",
+     "url": "https://hiyoshitaisha.jp/",
+     "title": "日吉大社 | 平安京の表鬼門鎮座 方除・厄除の大社 神仏霊場 滋賀県17番",
+     "readAt": "2026-11-11",
+     "subject": "紅葉"
+    }
+   ],
+   "access": [
+    {
+     "text": "京阪石山坂本線の坂本比叡山口駅から歩いて10分（JR湖西線の比叡山坂本駅からは20分）",
+     "url": "https://hiyoshitaisha.jp/access/index.html",
+     "title": "交通アクセス | 日吉大社",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "hours": [
+    {
+     "text": "参拝の受付は9:00〜16:00。西・東本宮の門は4月〜9月が6:00、10月〜3月が7:00に開く",
+     "url": "https://hiyoshitaisha.jp/",
+     "title": "日吉大社 | 平安京の表鬼門鎮座 方除・厄除の大社 神仏霊場 滋賀県17番",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人500円、中高生300円",
+     "url": "https://hiyoshitaisha.jp/",
+     "title": "日吉大社 | 平安京の表鬼門鎮座 方除・厄除の大社 神仏霊場 滋賀県17番",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "sarushima": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.city.yokosuka.kanagawa.jp/5560/sisetu/fc00000431.html",
+     "title": "猿島公園｜横須賀市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.yokosuka.kanagawa.jp/index.html",
+     "title": "横須賀市ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.yokosuka.kanagawa.jp/shisei/koho/goiken/feedback.html",
+     "title": "横須賀市へのお問い合わせ｜横須賀市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.yokosuka.kanagawa.jp/shisei/gaiyo/soshiki/index.html",
+     "title": "市の組織｜横須賀市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.yokosuka.kanagawa.jp/kinkyu/mail/emergency_information.html",
+     "title": "Emergency information｜横須賀市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.yokosuka.kanagawa.jp/shisei/gaiyo/shisetsu/annai/index.html",
+     "title": "施設案内｜横須賀市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.yokosuka.kanagawa.jp/0880/g_info/charity.html",
+     "title": "みどりのよこすかチャリティークリック｜横須賀市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.yokosuka.kanagawa.jp/5560/sarushima1.html",
+     "title": "猿島公園内の撮影について｜横須賀市",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.city.yokosuka.kanagawa.jp/shisei/gaiyo/access/index.html",
+     "title": "庁舎・アクセス｜横須賀市",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "京急の横須賀中央駅から歩いて15分の三笠桟橋から、船で10分",
+     "url": "https://www.city.yokosuka.kanagawa.jp/5560/sisetu/fc00000431.html",
+     "title": "猿島公園｜横須賀市",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    }
+   ],
+   "fees": [
+    {
+     "text": "入園料は市外在住の大人（15歳以上）500円、小・中学生250円（2026年4月1日改定。船代は別）",
+     "url": "https://www.city.yokosuka.kanagawa.jp/5560/sisetu/fc00000431.html",
+     "title": "猿島公園｜横須賀市",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "hasedera": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.hasedera.or.jp/",
+     "title": "奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hasedera.or.jp/information/",
+     "title": "ご案内｜奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hasedera.or.jp/free/?id=984",
+     "title": "Multilingual guide to Hasedera Temple｜奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hasedera.or.jp/free/?id=928",
+     "title": "五重宝塔 令和の大修復｜奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hasedera.or.jp/free/?id=275",
+     "title": "朝の勤行のご案内｜奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hasedera.or.jp/guide/rule.html",
+     "title": "入山案内｜奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.hasedera.or.jp/guide/access.html",
+     "title": "交通案内｜奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "parking": {
+    "text": "駐車場あり（普通車500円）",
+    "url": "https://www.hasedera.or.jp/",
+    "title": "奈良大和路の花の御寺 総本山 長谷寺",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "4月〜9月は8:30〜17:00、10月〜11月と3月は9:00〜17:00、12月〜2月は9:00〜16:30（牡丹まつりの期間などは延長あり）",
+     "url": "https://www.hasedera.or.jp/",
+     "title": "奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人・中高生500円、小学生250円",
+     "url": "https://www.hasedera.or.jp/",
+     "title": "奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "tripod": {
+     "text": "三脚・一脚・脚立は、境内のどこにも持ち込めない",
+     "url": "https://www.hasedera.or.jp/",
+     "title": "奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "drone": {
+     "text": "ドローン・ラジコンなどによる撮影と操作はやめるよう求めている",
+     "url": "https://www.hasedera.or.jp/",
+     "title": "奈良大和路の花の御寺 総本山 長谷寺",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "notes": [
+     {
+      "text": "仏像と僧侶を撮ることはやめるよう求めている",
+      "url": "https://www.hasedera.or.jp/",
+      "title": "奈良大和路の花の御寺 総本山 長谷寺",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "yahiko-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.yahiko-jinjya.or.jp/",
+     "title": "越後一宮 彌彦神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yahiko-jinjya.or.jp/visit/index.html",
+     "title": "御祈祷・ご参拝｜越後一宮 彌彦神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yahiko-jinjya.or.jp/access/index.html",
+     "title": "交通アクセス｜越後一宮 彌彦神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yahiko-jinjya.or.jp/visit/gokitou/index.html",
+     "title": "御祈祷（御祓）｜御祈祷・ご参拝｜越後一宮 彌彦神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yahiko-jinjya.or.jp/visit/gokitou/hatsumiya.html",
+     "title": "初宮詣・七五三詣｜御祈祷（御祓）｜御祈祷・ご参拝｜越後一宮 彌彦神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yahiko-jinjya.or.jp/visit/gokitou/traffic.html",
+     "title": "交通安全祈願｜御祈祷（御祓）｜御祈祷・ご参拝｜越後一宮 彌彦神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yahiko-jinjya.or.jp/visit/gosanpai/index.html",
+     "title": "ご参拝｜御祈祷・ご参拝｜越後一宮 彌彦神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yahiko-jinjya.or.jp/visit/wedding/index.html",
+     "title": "結婚式｜御祈祷・ご参拝｜越後一宮 彌彦神社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR弥彦線の終点・弥彦駅から神社まで約1km、歩いて15分ほど",
+     "url": "https://www.yahiko-jinjya.or.jp/access/index.html",
+     "title": "交通アクセス｜越後一宮 彌彦神社",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "北陸自動車道の三条燕ICから約13km・約30分",
+     "url": "https://www.yahiko-jinjya.or.jp/access/index.html",
+     "title": "交通アクセス｜越後一宮 彌彦神社",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "parking": {
+    "text": "神社の周りに無料の大駐車場がある（神社脇は普通車50台、村営第一は345台ほか）。菊まつりの間は一部有料",
+    "url": "https://www.yahiko-jinjya.or.jp/access/index.html",
+    "title": "交通アクセス｜越後一宮 彌彦神社",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "photoRules": {
+    "notes": [
+     {
+      "text": "拝殿の中での撮影と録音は断っている",
+      "url": "https://www.yahiko-jinjya.or.jp/visit/gokitou/index.html",
+      "title": "御祈祷（御祓）｜御祈祷・ご参拝｜越後一宮 彌彦神社",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "kenchoji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kenchoji.com/",
+     "title": "北鎌倉 鎌倉五山第一位「臨済宗建長寺派 大本山 建長寺」｜巨福山 建長寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kenchoji.com/access/",
+     "title": "拝観案内、アクセス、境内のご案内、御朱印、鎌倉散策 | 巨福山 建長寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR横須賀線の北鎌倉駅から歩いて約15分（江ノ電バスで「建長寺」まで5分）",
+     "url": "https://www.kenchoji.com/access/",
+     "title": "拝観案内、アクセス、境内のご案内、御朱印、鎌倉散策 | 巨福山 建長寺",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "parking": {
+    "text": "総門前に専用駐車場（乗用車20台・8:30〜16:30・最初の1時間600円）",
+    "url": "https://www.kenchoji.com/access/",
+    "title": "拝観案内、アクセス、境内のご案内、御朱印、鎌倉散策 | 巨福山 建長寺",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "8:30〜16:30",
+     "url": "https://www.kenchoji.com/access/",
+     "title": "拝観案内、アクセス、境内のご案内、御朱印、鎌倉散策 | 巨福山 建長寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人（高校生以上）500円、小・中学生200円（ハイキングで入る人も納める）",
+     "url": "https://www.kenchoji.com/access/",
+     "title": "拝観案内、アクセス、境内のご案内、御朱印、鎌倉散策 | 巨福山 建長寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "tripod": {
+     "text": "カメラの三脚・一脚は使えない",
+     "url": "https://www.kenchoji.com/access/",
+     "title": "拝観案内、アクセス、境内のご案内、御朱印、鎌倉散策 | 巨福山 建長寺",
+     "readAt": "2026-11-11",
+     "status": "prohibited"
+    },
+    "notes": [
+     {
+      "text": "商業利用の写真・動画の撮影は、事前の許可申請が要る",
+      "url": "https://www.kenchoji.com/access/",
+      "title": "拝観案内、アクセス、境内のご案内、御朱印、鎌倉散策 | 巨福山 建長寺",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "engakuji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.engakuji.or.jp/",
+     "title": "臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.engakuji.or.jp/access/",
+     "title": "拝観案内・アクセス | 臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.engakuji.or.jp/grounds/",
+     "title": "境内案内 | 臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.engakuji.or.jp/faq/",
+     "title": "Q&A | 臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.engakuji.or.jp/news/38648/",
+     "title": "夜の初心者向け坐禅会（11月11日）のご案内 | 臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.engakuji.or.jp/news/40425/",
+     "title": "【令和8年９月より】日曜説教会及び坐禅会時間変更のお知らせ | 臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.engakuji.or.jp/news/34198/",
+     "title": "季刊誌『円覚』購読のご案内 | 臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.engakuji.or.jp/news/39753/",
+     "title": "※注意喚起 円覚寺及び横田管長を騙った詐欺について | 臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.engakuji.or.jp/zazen/",
+     "title": "Zazen | 臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR横須賀線の北鎌倉駅から歩いて1分",
+     "url": "https://www.engakuji.or.jp/",
+     "title": "臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "hours": [
+    {
+     "text": "8:30〜16:30（12月〜2月は16:00まで）",
+     "url": "https://www.engakuji.or.jp/",
+     "title": "臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人（高校生以上）500円、小・中学生200円",
+     "url": "https://www.engakuji.or.jp/",
+     "title": "臨済宗大本山 円覚寺",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "yokohama-akarenga": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.yokohama-akarenga.jp/",
+     "title": "横浜赤レンガ倉庫｜横浜の観光、イベント、文化や歴史を楽しめる施設",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yokohama-akarenga.jp/brickguide/ultra-multiverse/index.html",
+     "title": "親子3世代で楽しめる！ウルトラマンの周遊型体験イベントが開催中｜ブリックガイド｜横浜赤レンガ倉庫",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yokohama-akarenga.jp/floorguide/",
+     "title": "フロアガイド｜横浜赤レンガ倉庫",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yokohama-akarenga.jp/access/",
+     "title": "アクセス｜横浜赤レンガ倉庫",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yokohama-akarenga.jp/brickguide/miffy/",
+     "title": "【開催中】11月6日（金）～12月8日（火）期間限定のグッズショップ『Flower Miffy Pop-Up Marche』オープン！｜ブリックガイド｜横浜赤レンガ倉庫",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yokohama-akarenga.jp/brickguide/f5f695200874149c06de1887e1bcbf95b7fc1d09/",
+     "title": "大切な人と味わいたい「クリスマスシーズン限定レストランコースメニュー」 ！｜ブリックガイド｜横浜赤レンガ倉庫",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yokohama-akarenga.jp/brickguide/%E2%85%BDhristmas_item/",
+     "title": "横浜赤レンガ倉庫 クリスマスメニュー＆グッズ情報｜ブリックガイド｜横浜赤レンガ倉庫",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yokohama-akarenga.jp/brickguide/brickguide_date/",
+     "title": "【カップルにおすすめ♥】クリスマスマーケットを楽しむロマンチックな王道コース特集｜ブリックガイド｜横浜赤レンガ倉庫",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.yokohama-akarenga.jp/brickguide/historyguide/",
+     "title": "赤レンガ倉庫に残る歴史をたどる無料の音声ガイドが登場！｜ブリックガイド｜横浜赤レンガ倉庫",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "1号館は10:00〜19:00、2号館は11:00〜20:00（カフェ・レストランなどは店で違う）",
+     "url": "https://www.yokohama-akarenga.jp/",
+     "title": "横浜赤レンガ倉庫｜横浜の観光、イベント、文化や歴史を楽しめる施設",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "taushubetsu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kamishihoro.jp/place/00000072",
+     "title": "タウシュベツ川橋梁｜施設ガイド｜北海道 上士幌町",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kamishihoro.jp/placeguide",
+     "title": "施設ガイド｜北海道 上士幌町",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kamishihoro.jp/placeguide/00000020/p-1",
+     "title": "旧国鉄士幌線アーチ橋梁群｜施設ガイド｜北海道 上士幌町",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "橋までの林道は許可車両以外は通れない。ぬかびら源泉郷から旭川方面へ8kmのタウシュベツ展望台から眺めるか、NPOの有料ツアー、道の駅かみしほろで林道ゲートの鍵を借りる方法がある",
+     "url": "https://www.kamishihoro.jp/place/00000072",
+     "title": "タウシュベツ川橋梁｜施設ガイド｜北海道 上士幌町",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    }
+   ],
+   "photoRules": {
+    "notes": [
+     {
+      "text": "冬は林道を除雪しないので立ち入れない。林道ではヒグマの目撃情報もある",
+      "url": "https://www.kamishihoro.jp/place/00000072",
+      "title": "タウシュベツ川橋梁｜施設ガイド｜北海道 上士幌町",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "ichijodani": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://ichijo-dani.com/",
+     "title": "ICHIJO-DANI 一乗谷朝倉氏遺跡公式ポータルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ichijo-dani.com/access/",
+     "title": "交通アクセス｜アクセス｜ICHIJO-DANI 一乗谷朝倉氏遺跡公式ポータルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ichijo-dani.com/information/",
+     "title": "お知らせ｜ICHIJO-DANI 一乗谷朝倉氏遺跡公式ポータルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ichijo-dani.com/events/archives/188",
+     "title": "一乗谷朝倉氏遺跡「戦国 馬さんぽ」｜イベント情報｜イベント・展示情報｜ICHIJO-DANI 一乗谷朝倉氏遺跡公式ポータルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ichijo-dani.com/information/archives/44",
+     "title": "クマによる人身被害防止について｜お知らせ｜お知らせ｜ICHIJO-DANI 一乗谷朝倉氏遺跡公式ポータルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ichijo-dani.com/information/archives/35",
+     "title": "書籍「春風亭昇太氏と語る一乗谷朝倉氏遺跡」を発刊しました。｜お知らせ｜お知らせ｜ICHIJO-DANI 一乗谷朝倉氏遺跡公式ポータルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ichijo-dani.com/information/archives/31",
+     "title": "一乗谷朝倉氏遺跡博物館（あさみゅー）の広報宣伝隊長「シシカゲ」が一乗谷の魅力をPRします！｜お知らせ｜お知らせ｜ICHIJO-DANI 一乗谷朝倉氏遺跡公式ポータルサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "福井駅からJR越美北線（九頭竜線）で15分の一乗谷駅で降り、歩いて3分",
+     "url": "https://ichijo-dani.com/access/",
+     "title": "交通アクセス｜アクセス｜ICHIJO-DANI 一乗谷朝倉氏遺跡公式ポータルサイト",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "北陸自動車道の福井ICから国道158号線を大野方面へ約10分",
+     "url": "https://ichijo-dani.com/access/",
+     "title": "交通アクセス｜アクセス｜ICHIJO-DANI 一乗谷朝倉氏遺跡公式ポータルサイト",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ]
+  },
+  "kifune-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kifunejinja.jp/",
+     "title": "貴布禰総本宮 貴船神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kifunejinja.jp/info/",
+     "title": "貴布禰総本宮 貴船神社 | 参拝のご案内",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kifunejinja.jp/access/",
+     "title": "貴布禰総本宮 貴船神社 | 交通・アクセス",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kifunejinja.jp/news/1716/",
+     "title": "貴布禰総本宮 貴船神社 | 本宮参拝時間について",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "紅葉のライトアップは2026年11月7日〜24日、日の入りから20:30まで",
+     "url": "https://kifunejinja.jp/",
+     "title": "貴布禰総本宮 貴船神社",
+     "readAt": "2026-11-11",
+     "subject": "紅葉",
+     "validUntil": "2026-11-24"
+    }
+   ],
+   "access": [
+    {
+     "text": "叡山電車の貴船口駅で京都バス（33系統）に乗り換え「貴船」へ。降りて歩いて約5分（貴船口駅から歩くと約30分・2km）",
+     "url": "https://kifunejinja.jp/",
+     "title": "貴布禰総本宮 貴船神社",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "本宮8台・奥宮10台の駐車場（2時間1,000円）。台数が少ないので公共交通機関を勧めている",
+    "url": "https://kifunejinja.jp/access/",
+    "title": "貴布禰総本宮 貴船神社 | 交通・アクセス",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "本宮の参拝は5月1日〜11月30日が6:00〜20:00。年中無休・参拝料無料",
+     "url": "https://kifunejinja.jp/info/",
+     "title": "貴布禰総本宮 貴船神社 | 参拝のご案内",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "ishiyamadera": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.ishiyamadera.or.jp/",
+     "title": "大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ishiyamadera.or.jp/info",
+     "title": "お知らせ一覧 | 大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ishiyamadera.or.jp/info/info-event",
+     "title": "行事案内 | 大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ishiyamadera.or.jp/info/info-flower",
+     "title": "四季の花だより | 大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ishiyamadera.or.jp/info/blog",
+     "title": "石山寺ブログ | 大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ishiyamadera.or.jp/info/houwa",
+     "title": "座主のお話 | 大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ishiyamadera.or.jp/info/news",
+     "title": "お知らせ | 大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ishiyamadera.or.jp/info/ouchi-ishiyamadera",
+     "title": "おうちで参拝 石山寺 | 大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.ishiyamadera.or.jp/about/shooting",
+     "title": "撮影申請について | 大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "紅葉のライトアップ「あたら夜もみじ」は2026年11月13日〜29日",
+     "url": "https://www.ishiyamadera.or.jp/",
+     "title": "大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11",
+     "subject": "紅葉",
+     "validUntil": "2026-11-29"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR京都駅からJR東海道本線の新快速と京阪電車で約30分",
+     "url": "https://www.ishiyamadera.or.jp/",
+     "title": "大本山 石山寺 公式ホームページ",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ]
+  },
+  "okayama-korakuen": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://okayama-korakuen.jp/",
+     "title": "ホーム／後楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okayama-korakuen.jp/goriyo/index.html",
+     "title": "ご利用案内／後楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okayama-korakuen.jp/goriyo/130.html",
+     "title": "アクセスについて／後楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okayama-korakuen.jp/goriyo/441.html",
+     "title": "入園案内／後楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okayama-korakuen.jp/daijina_oshirase/4552.html",
+     "title": "夜間特別開園「秋の幻想庭園」を開催します。【令和8年11月20日～29日】／後楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okayama-korakuen.jp/ibento/kaisaibi/2026_11/4358.html",
+     "title": "夜間特別開園「秋の幻想庭園」令和8年11月20日～29日／後楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://okayama-korakuen.jp/midokoro/496.html",
+     "title": "フォトギャラリー／後楽園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR岡山駅から歩いて25分",
+     "url": "https://okayama-korakuen.jp/",
+     "title": "ホーム／後楽園",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    },
+    {
+     "text": "JR岡山駅の後楽園口（東口）バスターミナル1番乗り場から岡電バスで10〜15分、「後楽園前」で降りてすぐ",
+     "url": "https://okayama-korakuen.jp/goriyo/130.html",
+     "title": "アクセスについて／後楽園",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    },
+    {
+     "text": "山陽自動車道の岡山ICから車で20分",
+     "url": "https://okayama-korakuen.jp/",
+     "title": "ホーム／後楽園",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ],
+   "hours": [
+    {
+     "text": "3月20日〜9月30日は7:30〜18:00（入園17:45まで）、10月1日〜3月19日は8:00〜17:00（入園16:45まで）",
+     "url": "https://okayama-korakuen.jp/",
+     "title": "ホーム／後楽園",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kodaiji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kodaiji.com/",
+     "title": "鷲峰山 高台寺",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kodaiji.com/houmon.html",
+     "title": "鷲峰山 高台寺：訪問",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kodaiji.com/haikan.html",
+     "title": "鷲峰山 高台寺：拝観",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kodaiji.com/saiji.html",
+     "title": "鷲峰山 高台寺：催事",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kodaiji.com/parking.html",
+     "title": "鷲峰山 高台寺：トピックス：バス駐車は事前予約が必要です（2024年10月22日）",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "京都駅から市バス206系統で約15分の「東山安井」で降り、東へ歩いて7分",
+     "url": "https://www.kodaiji.com/houmon.html",
+     "title": "鷲峰山 高台寺：訪問",
+     "readAt": "2026-11-11",
+     "mode": "bus"
+    }
+   ],
+   "parking": {
+    "text": "高台寺駐車場あり（乗用車は1時間まで600円）。バスは予約制",
+    "url": "https://www.kodaiji.com/houmon.html",
+    "title": "鷲峰山 高台寺：訪問",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "9:00〜17:30（受付は17:00まで）。夜間特別拝観の間は17:00の点灯から22:00まで（受付21:30まで）",
+     "url": "https://www.kodaiji.com/haikan.html",
+     "title": "鷲峰山 高台寺：拝観",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "大人800円、中高生400円。小学生以下は保護者同伴なら無料",
+     "url": "https://www.kodaiji.com/haikan.html",
+     "title": "鷲峰山 高台寺：拝観",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kairakuen": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://ibaraki-kairakuen.jp/",
+     "title": "日本三名園 偕楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ibaraki-kairakuen.jp/guide/",
+     "title": "ご利用案内｜日本三名園 偕楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ibaraki-kairakuen.jp/access/",
+     "title": "アクセス｜日本三名園 偕楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ibaraki-kairakuen.jp/extension/",
+     "title": "偕楽園周辺施設のご案内｜日本三名園 偕楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ibaraki-kairakuen.jp/news/detail?id=5827",
+     "title": "新着情報｜日本三名園 偕楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ibaraki-kairakuen.jp/news/detail?id=6022",
+     "title": "新着情報｜日本三名園 偕楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ibaraki-kairakuen.jp/news/detail?id=6095",
+     "title": "新着情報｜日本三名園 偕楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ibaraki-kairakuen.jp/news/detail?id=6069",
+     "title": "新着情報｜日本三名園 偕楽園",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://ibaraki-kairakuen.jp/news/detail?id=6053",
+     "title": "新着情報｜日本三名園 偕楽園",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "bestSeasons": [
+    {
+     "text": "拡張部の「もみじ谷」は紅葉の名所で、2026年11月7日〜29日にライトアップを行う",
+     "url": "https://ibaraki-kairakuen.jp/",
+     "title": "日本三名園 偕楽園",
+     "readAt": "2026-11-11",
+     "subject": "紅葉",
+     "validUntil": "2026-11-29"
+    }
+   ]
+  },
+  "kamigamo-jinja": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.kamigamojinja.jp/",
+     "title": "賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kamigamojinja.jp/sanpai/",
+     "title": "参拝・御祈祷のご案内 | 賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kamigamojinja.jp/access/",
+     "title": "アクセス | 賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kamigamojinja.jp/sanpai/tokubetsu/",
+     "title": "国宝本殿 特別参拝 | 賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kamigamojinja.jp/20210830120/",
+     "title": "境内での記念写真撮影について | 賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.kamigamojinja.jp/sanpai/keidai/",
+     "title": "境内案内 | 賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "二ノ鳥居は5:30開門・17:00閉門、楼門と授与所は8:00〜16:45",
+     "url": "https://www.kamigamojinja.jp/sanpai/",
+     "title": "参拝・御祈祷のご案内 | 賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "特別参拝は10:00〜16:00で、初穂料1人500円",
+     "url": "https://www.kamigamojinja.jp/sanpai/",
+     "title": "参拝・御祈祷のご案内 | 賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "photoRules": {
+    "drone": {
+     "text": "境内の上空でドローンを飛ばすときは、撮影かどうかに関わらず事前の許可が要る",
+     "url": "https://www.kamigamojinja.jp/",
+     "title": "賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+     "readAt": "2026-11-11",
+     "status": "conditional"
+    },
+    "notes": [
+     {
+      "text": "境内での撮影には事前の許可が要ると案内している（祭典のときもそれ以外も同じ）",
+      "url": "https://www.kamigamojinja.jp/",
+      "title": "賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+      "readAt": "2026-11-11"
+     },
+     {
+      "text": "初宮詣・七五三で、提携業者以外のプロのカメラマンによる記念写真は断っている",
+      "url": "https://www.kamigamojinja.jp/",
+      "title": "賀茂別雷神社（上賀茂神社：かみがもじんじゃ）公式Webサイト",
+      "readAt": "2026-11-11"
+     }
+    ]
+   }
+  },
+  "togakushi-chusha-hokosha": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.togakushi-jinja.jp/",
+     "title": "戸隠神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.togakushi-jinja.jp/access/",
+     "title": "アクセス｜戸隠神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.togakushi-jinja.jp/news/post-974.php",
+     "title": "お知らせ｜戸隠神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.togakushi-jinja.jp/news/post-972.php",
+     "title": "お知らせ｜戸隠神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.togakushi-jinja.jp/festival-news/post-973.php",
+     "title": "式年大祭ニュース｜戸隠神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.togakushi-jinja.jp/festival-news/post-888.php",
+     "title": "式年大祭ニュース｜戸隠神社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "長野駅前から路線バスかタクシー。車は上信越自動車道の長野ICか信濃町ICから",
+     "url": "https://www.togakushi-jinja.jp/access/",
+     "title": "アクセス｜戸隠神社",
+     "readAt": "2026-11-11",
+     "mode": "other"
+    },
+    {
+     "text": "奥社の参道（約2km）は一般の車が入れないので、奥社・九頭龍社へは歩いて参拝する",
+     "url": "https://www.togakushi-jinja.jp/access/",
+     "title": "アクセス｜戸隠神社",
+     "readAt": "2026-11-11",
+     "mode": "walk"
+    }
+   ],
+   "parking": {
+    "text": "奥社参道入口の近くに約200台、中社・宝光社にも駐車場がある。冬は雪で使えないことがある",
+    "url": "https://www.togakushi-jinja.jp/access/",
+    "title": "アクセス｜戸隠神社",
+    "readAt": "2026-11-11",
+    "available": true
+   }
+  },
+  "inokashira-park": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tokyo-park.or.jp/park/inokashira/",
+     "title": "井の頭恩賜公園｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tokyo-park.or.jp/faq/",
+     "title": "よくあるご質問｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "京王井の頭線の井の頭公園駅から歩いて1分、JR中央線の吉祥寺駅から歩いて5分",
+     "url": "https://www.tokyo-park.or.jp/park/inokashira/",
+     "title": "井の頭恩賜公園｜公園へ行こう！",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ],
+   "parking": {
+    "text": "有料駐車場あり（第一駐車場は24時間・普通車1時間400円）",
+    "url": "https://www.tokyo-park.or.jp/park/inokashira/",
+    "title": "井の頭恩賜公園｜公園へ行こう！",
+    "readAt": "2026-11-11",
+    "available": true
+   },
+   "hours": [
+    {
+     "text": "いつでも入れる（常時開園）。入園は無料（一部の施設は有料）",
+     "url": "https://www.tokyo-park.or.jp/park/inokashira/",
+     "title": "井の頭恩賜公園｜公園へ行こう！",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "kibitsu": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://kibitujinja.com/",
+     "title": "吉備津神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kibitujinja.com/prayer/",
+     "title": "ご祈祷案内｜吉備津神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kibitujinja.com/faq/",
+     "title": "よくあるご質問｜吉備津神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kibitujinja.com/traffic/",
+     "title": "アクセス｜吉備津神社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://kibitujinja.com/news/1189.html",
+     "title": "撮影について｜お知らせ｜吉備津神社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR岡山駅から吉備津駅まで約30分、駅から歩いて約10分",
+     "url": "https://kibitujinja.com/",
+     "title": "吉備津神社",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    },
+    {
+     "text": "山陽自動車道の岡山総社IC・岡山ICから車で15分",
+     "url": "https://kibitujinja.com/",
+     "title": "吉備津神社",
+     "readAt": "2026-11-11",
+     "mode": "car"
+    }
+   ]
+  },
+  "taga-taisha": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.tagataisya.or.jp/",
+     "title": "多賀大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tagataisya.or.jp/info/keidaizu.html",
+     "title": "境内図｜多賀大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tagataisya.or.jp/sukeikai/",
+     "title": "講社崇敬会のご案内｜多賀大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tagataisya.or.jp/faq/",
+     "title": "よくあるご質問・Q&A｜多賀大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tagataisya.or.jp/kitoinfo/",
+     "title": "ご祈祷｜多賀大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tagataisya.or.jp/kitoinfo/ofuda.html",
+     "title": "授与品 初穂料表 - ご祈祷｜多賀大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tagataisya.or.jp/info/map.html",
+     "title": "交通案内｜多賀大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tagataisya.or.jp/%e6%bb%8b%e8%b3%80%e3%83%87%e3%82%a3%e3%82%b9%e3%83%86%e3%82%a3%e3%83%8d%e3%83%bc%e3%82%b7%e3%83%a7%e3%83%b3%e3%82%ad%e3%83%a3%e3%83%b3%e3%83%9a%e3%83%bc%e3%83%b3%e7%a7%8b%e3%81%ae%e5%ae%9d%e7%89%a9/",
+     "title": "滋賀ディスティネーションキャンペーン秋の宝物特別公開のご案内 | 多賀大社",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.tagataisya.or.jp/%e5%a5%a5%e6%9b%b8%e9%99%a2%e5%ba%ad%e5%9c%92%e6%8b%9d%e8%a6%b3%e4%b8%ad%e6%ad%a2%e3%81%ae%e3%81%94%e6%a1%88%e5%86%85-6/",
+     "title": "奥書院庭園拝観中止のご案内 | 多賀大社",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "access": [
+    {
+     "text": "JR彦根駅で近江鉄道に乗り換え、多賀大社前駅から歩いて10分",
+     "url": "https://www.tagataisya.or.jp/info/map.html",
+     "title": "交通案内｜多賀大社",
+     "readAt": "2026-11-11",
+     "mode": "train"
+    }
+   ]
+  },
+  "rinnoji": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.rinnoji.or.jp/",
+     "title": "日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rinnoji.or.jp/information.html",
+     "title": "拝観のご案内 | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rinnoji.or.jp/access.html",
+     "title": "交通アクセス | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rinnoji.or.jp/news/20260914.html",
+     "title": "| 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    },
+    {
+     "url": "https://www.rinnoji.or.jp/history/temple/",
+     "title": "境内案内 | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "4月〜10月は8:00〜17:00、11月〜3月は8:00〜16:00（常行堂は9:00から。受付は閉門30分前まで）",
+     "url": "https://www.rinnoji.or.jp/information.html",
+     "title": "拝観のご案内 | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "三佛堂の拝観は大人400円、小・中学生200円",
+     "url": "https://www.rinnoji.or.jp/information.html",
+     "title": "拝観のご案内 | 日光山 輪王寺 オフィシャルサイト",
+     "readAt": "2026-11-11"
+    }
+   ]
+  },
+  "fukuroda-falls": {
+   "delegatedBy": "rymaruta",
+   "readPages": [
+    {
+     "url": "https://www.town.daigo.ibaraki.jp/page/page001474.html",
+     "title": "【国名勝】袋田の滝・生瀬滝 | 大子町公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "hours": [
+    {
+     "text": "観瀑施設（袋田の滝トンネル）は5月〜10月が8:00〜18:00、11月が8:00〜17:00、12月〜4月が9:00〜17:00",
+     "url": "https://www.town.daigo.ibaraki.jp/page/page001474.html",
+     "title": "【国名勝】袋田の滝・生瀬滝 | 大子町公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ],
+   "fees": [
+    {
+     "text": "観瀑施設の利用料は大人（15歳以上・中学生を除く）500円、子ども（小・中学生）300円（2025年7月1日から）",
+     "url": "https://www.town.daigo.ibaraki.jp/page/page001474.html",
+     "title": "【国名勝】袋田の滝・生瀬滝 | 大子町公式ホームページ",
+     "readAt": "2026-11-11"
+    }
+   ]
+  }
+ }
+}
