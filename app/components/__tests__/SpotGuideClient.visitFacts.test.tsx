@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import { ToastProvider } from "../../../lib/hooks/useToast";
 import type { Spot } from "@/lib/data/spots";
 import type { SpotVisitFacts } from "@/lib/data/spotVisitFacts";
@@ -15,6 +15,7 @@ vi.mock("../../../lib/utils/api", () => ({ userFetch: vi.fn(async () => ({ ok: t
 vi.mock("../GalleryGrid", () => ({ default: () => <div data-testid="grid" /> }));
 
 import SpotGuideClient from "../SpotGuideClient";
+import { VisitPhotoRules } from "../SpotVisitFacts";
 
 const SPOT: Spot = {
     spotId: "sp_000000000001",
@@ -85,6 +86,20 @@ describe("スポットの頁の事実の段", () => {
         expect(screen.queryByTestId("photo-rule-selfieStick")).toBeNull();
         expect(screen.getByTestId("spot-photo-rules").textContent).not.toContain("記載なし");
         expect(screen.getByTestId("photo-rule-drone-law").textContent).toContain("小型無人機等飛行禁止法");
+    });
+
+    it("海外のスポットには日本の法律名を出さない（その国・地域の法律と言う）。英語でも \"in Japan\" を出さない", () => {
+        view(FACTS, { ...SPOT, region: { country: "アメリカ", prefecture: "テキサス州", city: "サンアントニオ" } });
+        const law = screen.getByTestId("photo-rule-drone-law").textContent ?? "";
+        expect(law).toContain("その国・地域の法律");
+        expect(law).not.toContain("航空法");
+        expect(law).not.toContain("小型無人機等飛行禁止法");
+        cleanup();
+        render(<VisitPhotoRules facts={FACTS} isJa={false} head={(_id, t) => <h2>{t}</h2>} inJapan={false} />);
+        const en = screen.getByTestId("photo-rule-drone-law").textContent ?? "";
+        expect(en).not.toContain("in Japan");
+        expect(en).not.toContain("Civil Aeronautics Act");
+        expect(en).toContain("country or region");
     });
 
     it("道具の決まりが無く注記だけでも、段は出る（道具の行は無し）", () => {

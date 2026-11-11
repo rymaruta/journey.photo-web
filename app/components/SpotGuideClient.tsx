@@ -927,7 +927,7 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                         )}
 
                         {/* ── 撮影の決まり（三脚・自撮り棒・ドローン・撮影禁止の範囲）。公式の頁に書いてあることだけ ── */}
-                        {visit && <VisitPhotoRules facts={visit} isJa={isJa} head={headOf} />}
+                        {visit && <VisitPhotoRules facts={visit} isJa={isJa} head={headOf} inJapan={spot.region?.country === "日本"} />}
 
                         {light && <LightTable light={light} sky={sky} isJa={isJa} />}
                         {sky && <NightSky sky={sky} isJa={isJa} />}
