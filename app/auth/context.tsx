@@ -13,6 +13,7 @@ import { lookupSession } from "../../lib/auth/session";
 import { cognitoConfig } from "../../lib/auth/config";
 import { userFetch, NETWORK_UNREACHABLE_MESSAGE } from "../../lib/utils/api";
 import { log } from "../../lib/utils/log";
+import { reloadPage } from "../../lib/utils/reloadPage";
 import { resetFollowingCache } from "../../lib/hooks/useFollow";
 import { clearSharedPayload } from "../../lib/utils/shareStore";
 import { forgetUploadDraftOnSignOut } from "../../lib/utils/uploadDraft";
@@ -246,9 +247,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
      * 残り、いいね等が失敗していた（#12）。`persisted` のときだけ
      * （普通の読み込みでは上の effect が確かめる）。
      */
+    //
+    // **ログイン中の顔で止まっていた頁が、戻ってきたら未ログインだった → 読み直す**（2026-11-11 札 journey.photo-ios#527）。
+    // HTML を `no-store` で配るのをやめたので、Android・PC の Chrome でも bfcache が効くようになった。
+    // DM・通知・設定のようなログイン中だけの中身を出した頁を離れ、別の頁でログアウトしてから「戻る」と、
+    // 止まっていた画面（他人の DM・通知の一覧）が丸ごと戻る——共用の端末で次の人に見える。
+    // 状態を未ログインに合わせても、もう描いてある中身は消えないので、頁ごと読み直す。
+    // 止まる前が未ログインだった頁（検索から来た人の大半）は読み直さない＝bfcache の速さはそのまま。
+    // 確かめられなかった回（圏外・`null`）は読み直さない（前の状態を保つ判断と同じ）
     useEffect(() => {
         const onPageShow = (e: PageTransitionEvent) => {
-            if (e.persisted) void checkAuth();
+            if (!e.persisted) return;
+            const wasAuthenticated = resolvedRef.current?.authenticated === true;
+            void checkAuth().then((r) => {
+                if (wasAuthenticated && r && !r.authenticated) reloadPage();
+            });
         };
         window.addEventListener("pageshow", onPageShow);
         return () => window.removeEventListener("pageshow", onPageShow);

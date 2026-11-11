@@ -327,7 +327,7 @@ const GalleryItem = React.memo(function GalleryItem({
                 セグメントの `.txt` 数本**——静的書き出しなので RSC の口が無く、
                 文書そのものを取りに行く（重いのはHTMLの方で、実測でトップの
                 先読みの86%）。しかも **`deploy-static-site.js` はどちらも
-                `no-cache, no-store` で配る**（`isHtmlOrTxt`）——つまりカードが
+                `no-cache`（毎回たしかめる） で配る**（`isHtmlOrTxt`）——つまりカードが
                 画面に出入りするたびに**毎回落とし直す**。
 
                 実測（`out/` を手元に配り、往復80msを足して5回の中央値）:
@@ -347,7 +347,7 @@ const GalleryItem = React.memo(function GalleryItem({
 
                 ⚠️ **JS が減るのは初回訪問だけ。** `_next/**` は
                 `max-age=31536000, immutable` で配られ、Service Worker も
-                キャッシュ優先で持つ。毎回効くのは `no-store` の HTML と
+                キャッシュ優先で持つ。毎回効くのは `no-cache` の HTML と
                 `.txt` のぶん（写真ページで約1MB）。
 
                 ⚠️ **`prefetch={false}` は hover / touchstart の先読みも止める**

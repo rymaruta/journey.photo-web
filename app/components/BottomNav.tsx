@@ -278,7 +278,7 @@ function Tab({ item, active, here, cell, labelStyle, iconStyle }: {
             href={item.href}
             // **公開ページに常駐するので先読みしない**（`d8884430`）。
             // 静的書き出しなので先読みが引くのは行き先の HTML と `.txt` で、
-            // どちらも `no-store` で配る＝画面に出入りするたび落とし直す
+            // どちらも `no-cache` で配る＝画面に出入りするたび落とし直す
             prefetch={false}
             aria-current={here ? "page" : undefined}
             onClick={() => track("nav_click", { area: "tab", dest: item.dest })}

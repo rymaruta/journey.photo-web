@@ -3,8 +3,10 @@
 import { useSyncExternalStore } from "react";
 import { useLocale } from "../i18n/context";
 import { track, type AppStorePlacement } from "../../lib/utils/analytics";
+import { HIDE_ON_ANDROID_ATTR } from "../../lib/utils/androidHide";
 
 export const APP_STORE_URL = "https://apps.apple.com/jp/app/id6814335283";
+
 
 /**
  * **iOS アプリのご案内の札**（2026-11-06 owner「アプリのインストール推奨は目立つところに置きたい。
@@ -46,6 +48,7 @@ export default function AppInstallCard({ placement, className = "", compact = fa
             aria-label={en ? "iOS app" : "iOSアプリのご案内"}
             data-testid="app-install-card"
             data-placement={placement}
+            {...{ [HIDE_ON_ANDROID_ATTR]: "" }}
             className={`rounded-2xl bg-accent-soft ring-1 ring-line ${compact ? "p-3" : "p-5"} md:p-6 text-left ${className}`}
         >
             <div className={compact ? "flex flex-row items-center gap-3 md:gap-6" : "flex flex-col gap-4 md:flex-row md:items-center md:gap-6"}>

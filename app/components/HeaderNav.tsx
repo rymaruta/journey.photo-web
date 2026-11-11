@@ -11,9 +11,21 @@ import { useLocale } from "../i18n/context";
 import { log } from "../../lib/utils/log";
 import { track, type NavDest } from "../../lib/utils/analytics";
 import { ROUTES } from "../../lib/routes";
-import NotificationsBell from "./NotificationsBell";
+import dynamic from "next/dynamic";
 import { HEADER_ICON_BTN, HEADER_ICON_BTN_STYLE, HEADER_ICON_STYLE } from "./headerIcon";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
+
+/**
+ * **お知らせのベルは、ログインしている人のときだけ読み込む**（2026-11-11 判断・札 journey.photo-ios#527）。
+ * 描くのは `isAuthenticated` のときだけ（下）なのに、部品（約1,100行・一覧・タブ・フォロー返し）は全員の最初の JS に
+ * 入っていた。検索から来る人の大半はログインしていない。`ssr: false`——最初の HTML ではログインが分からず、もともと描かない
+ */
+//
+// **読み込みの間も 44px の席を取る**（`loading`）。席が無いと、ベルが届いた瞬間に隣の ☰ が左へ 44px 動く
+const NotificationsBell = dynamic(() => import("./NotificationsBell"), {
+    ssr: false,
+    loading: () => <span aria-hidden="true" data-testid="bell-placeholder" className="inline-block shrink-0" style={{ width: HEADER_ICON_BTN_STYLE.minWidth, height: HEADER_ICON_BTN_STYLE.minHeight }} />,
+});
 
 export default function HeaderNav({ className = "" }: { className?: string }) {
     const router = useRouter();

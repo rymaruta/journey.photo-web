@@ -103,13 +103,16 @@ describe("/today/<県>", () => {
         for (const p of PREFECTURES) {
             const md = await prefMeta.generateMetadata({ params: Promise.resolve({ pref: p.slug }) });
             const place = todayPlace(p.slug)!;
-            expect(md.title).toBe(todayPrefTitle(place));
-            titles.add(String(md.title));
-            expect(String(md.title)).not.toMatch(/Journey Photo/);
+            // 2026-11-11（札 journey.photo-ios#527）: template の長いサイト名を外し、短い名前を自分で付ける（60 字以内）
+            const t = (md.title as { absolute: string }).absolute;
+            expect(t).toBe(`${todayPrefTitle(place)} | Journey Photo`);
+            expect([...t].length, t).toBeLessThanOrEqual(60);
+            expect(md.openGraph?.title).toBe(todayPrefTitle(place));
+            titles.add(t);
             expect(md.alternates?.canonical).toBe(`${siteConfig.url}/today/${p.slug}`);
             expect(String(md.description)).toContain("開いた日の値を表示します");
             expect(String(md.description).length).toBeLessThan(200);
-            for (const w of BANNED) expect(String(md.title) + String(md.description)).not.toContain(w);
+            for (const w of BANNED) expect(t + String(md.description)).not.toContain(w);
         }
         expect(titles.size).toBe(47);
 

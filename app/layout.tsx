@@ -18,6 +18,7 @@ import { MusicProvider } from "./music/MusicContext";
 import MiniPlayer from "./components/MiniPlayer";
 import BottomNav from "./components/BottomNav";
 import { LocaleProvider } from "./i18n/context";
+import { ANDROID_FLAG_SCRIPT, ANDROID_HIDE_CSS } from "../lib/utils/androidHide";
 import { siteConfig, generateWebSiteStructuredData, generateOrganizationStructuredData, INDEXABLE_ROBOTS, FEED_ALTERNATE, shareOgImage, shareImageUrl } from "../lib/utils/seo";
 
 // Instagram IAB / iOS Safari でブラウザUIを除いた実際の表示領域を使う
@@ -130,7 +131,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // ページ遷移の位置合わせまでなめらかに流れる（実測: 508 → 65 を約430ms。
     // 新しいページの途中が見えてから上へ流れていく）。付けると、遷移の間だけ
     // Next が一時的に切る。ページ内のなめらかなスクロールはそのまま。
-    <html lang="ja" data-scroll-behavior="smooth">
+    <html lang="ja" data-scroll-behavior="smooth" suppressHydrationWarning>
       <head>
         {/*
           CSS が届かなかったときの最低限の下地。
@@ -138,7 +139,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           見えてしまう。下の自己修復が効くまでの数百ミリ秒を、せめて紺の下地で見せる。
           本体CSS（globals.css）が同じ値を指定するので、正常時の見た目は変わらない。
         */}
-        <style dangerouslySetInnerHTML={{ __html: "html,body{background:#000000;color:#fff;margin:0}" }} />
+        <style dangerouslySetInnerHTML={{ __html: `html,body{background:#000000;color:#fff;margin:0}${ANDROID_HIDE_CSS}` }} />
+        {/* Android ではアプリの札を最初の描画から隠す（水和のあとで消すと下が跳ねる・`lib/utils/androidHide.ts`）。
+            `<html>` に印を足すので、`<html>` は水和の食い違いの警告を出さない（suppressHydrationWarning は自分の属性だけに効く） */}
+        <script dangerouslySetInnerHTML={{ __html: ANDROID_FLAG_SCRIPT }} />
         {/* **画像配信元への事前接続はもう出さない。**
             以前はここで CloudFront の既定ドメインへ preconnect / dns-prefetch を
             張っていた。「最初の画像の DNS+TLS 待ちを削る」ためだが、

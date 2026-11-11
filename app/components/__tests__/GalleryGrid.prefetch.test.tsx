@@ -8,7 +8,7 @@ import type { Photo } from "@/lib/data/photos";
  *
  * Next の `<Link>` は既定で「画面に入ったら先読み」。一覧はカードが30枚あり、
  * 静的書き出しなので先読みの中身は `/photo/<id>.txt`（RSC の控え）で、
- * `deploy-static-site.js` はこれを `no-cache, no-store` で配る
+ * `deploy-static-site.js` はこれを `no-cache`（毎回たしかめる） で配る
  * ——**カードが画面に出入りするたびに毎回落とし直す**。
  *
  * 実測（`out/` を手元に配り、往復80msを足して5回の中央値）:

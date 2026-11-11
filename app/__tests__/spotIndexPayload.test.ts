@@ -33,7 +33,7 @@ import { visibleSpots } from "../../lib/utils/spotGuide";
  * **県が増えても1ページの大きさは増えない**のが、分けたことの効き目。
  *
  * `scripts/deploy-static-site.js` は HTML と `.txt` を
- * **`no-cache, no-store`** で配る（`isHtmlOrTxt`）ので、ここは
+ * **`no-cache`（毎回たしかめる）** で配る（`isHtmlOrTxt`）ので、ここは
  * **訪問のたびに落ちるバイト**になる。`CLAUDE.md` の優先度は
  * 「SEO・表示速度・安定性」で、表示速度に直接当たる。
  */
@@ -122,7 +122,7 @@ describe("撮影スポット索引のペイロード", () => {
      *     name + slug だけ  28,294 バイト   → **68,749 バイト（71%）が余分**
      *
      * 画面が読むのは `name`（項目の見出し）と `slug`（保存済みの行きたい
-     * 場所との突き合わせ）の2つだけ。`/trips` の HTML も `no-store` で配る。
+     * 場所との突き合わせ）の2つだけ。`/trips` の HTML も `no-cache` で配る。
      */
     it("`/trips` は name と slug だけを渡している", () => {
         const tripsSrc = readFileSync(join(process.cwd(), "app", "trips", "page.tsx"), "utf8");

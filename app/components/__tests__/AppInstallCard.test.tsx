@@ -6,6 +6,7 @@ import userEvent from "@testing-library/user-event";
 vi.mock("../../i18n/context", () => ({ useLocale: () => ({ locale: "ja", labels: {} }) }));
 
 const AppInstallCard = (await import("../AppInstallCard")).default;
+const { ANDROID_FLAG_ATTR, ANDROID_FLAG_SCRIPT, ANDROID_HIDE_CSS } = await import("../../../lib/utils/androidHide");
 
 // アプリのご案内の札（2026-11-06 owner「アプリのインストール推奨は目立つところに置きたい」）。
 // ホーム・記事の終わり・フッターの先頭に同じ札を置く。計測は placement だけ（URL・端末の情報は送らない）
@@ -88,5 +89,43 @@ describe("AppInstallCard", () => {
         render(<AppInstallCard placement="article" />);
         expect(screen.getByTestId("app-install-card").className.split(/\s+/)).toContain("p-5");
         expect(screen.getByRole("link", { name: "App Storeで入手" }).className.split(/\s+/)).toContain("w-full");
+    });
+
+    // 2026-11-11（札 journey.photo-ios#527）: 水和のあとで消すと、Android ではホームの下の段が 120px 跳ねていた
+    // （本番の実測 CLS 0.0857 → 直しを本番の HTML に入れて測ると 0.0018）。最初の描画から隠す
+    it("Android は最初の描画から札を隠す: <head> の script が <html> に印を付け、CSS が札を display:none にする", async () => {
+        const run = (ua: string) => {
+            document.documentElement.removeAttribute(ANDROID_FLAG_ATTR);
+            const spy = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue(ua);
+            try { new Function(ANDROID_FLAG_SCRIPT)(); } finally { spy.mockRestore(); }
+            return document.documentElement.hasAttribute(ANDROID_FLAG_ATTR);
+        };
+        expect(run("Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 Chrome/120 Mobile Safari/537.36")).toBe(true);
+        expect(run("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148")).toBe(false);
+        expect(run("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36")).toBe(false);
+
+        // 水和の前（部品はまだ札を描いている）の状態を作る: 札が在り、<html> に印が在る
+        const style = document.createElement("style");
+        style.textContent = ANDROID_HIDE_CSS;
+        document.head.appendChild(style);
+        try {
+            // 印の無い <html>（iPhone・PC）では見える
+            const shown = render(<AppInstallCard placement="home" compact />);
+            expect(getComputedStyle(screen.getByTestId("app-install-card")).display).not.toBe("none");
+            shown.unmount();
+            // 印の在る <html>（Android）では描く前から隠れている（jsdom は計算した style を控えるので、描き直して測る）
+            document.documentElement.setAttribute(ANDROID_FLAG_ATTR, "");
+            render(<AppInstallCard placement="home" compact />);
+            expect(getComputedStyle(screen.getByTestId("app-install-card")).display).toBe("none");
+        } finally {
+            style.remove();
+            document.documentElement.removeAttribute(ANDROID_FLAG_ATTR);
+        }
+
+        // 全頁の <head> に入っている（ホームとフッターの札のどちらにも効く）
+        const fs = await import("node:fs");
+        const layout = fs.readFileSync(`${process.cwd()}/app/layout.tsx`, "utf8");
+        expect(layout).toMatch(/\$\{ANDROID_HIDE_CSS\}/);
+        expect(layout).toContain("__html: ANDROID_FLAG_SCRIPT");
     });
 });

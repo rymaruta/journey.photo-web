@@ -108,19 +108,22 @@ describe("HeaderNav - ロール別のメニュー表示", () => {
         expect(screen.getByRole("dialog")).toBeInTheDocument();
     });
 
-    it("ログイン中もヘッダーは お知らせ・メニュー の2つだけ（アバター・探すの虫眼鏡を出さない・束 0b C2）", () => {
+    it("ログイン中もヘッダーは お知らせ・メニュー の2つだけ（アバター・探すの虫眼鏡を出さない・束 0b C2）", async () => {
         // ラベルで引くと、別のラベルで戻ったアバターが素通りする。**並びごと**見る
         setRole("general");
         render(<HeaderNav />);
+        // ベルはログイン中だけ遅れて読み込む（`next/dynamic`・2026-11-11 札 #527）
+        await screen.findByRole("button", { name: "通知" });
         const nav = screen.getByRole("navigation", { name: "ヘッダー" });
         // `<a>`（Link）で戻ったアバターも数えるよう、リンクとボタンの両方を見る
         const controls = Array.from(nav.querySelectorAll("a, button"));
         expect(controls.map((b) => b.getAttribute("aria-label"))).toEqual(["通知", "メニューを開く"]);
     });
 
-    it("ヘッダーの押せるものはどれも箱を持たない丸い面（iOS v2: 44px 固定・アイコン17px・線1.6）", () => {
+    it("ヘッダーの押せるものはどれも箱を持たない丸い面（iOS v2: 44px 固定・アイコン17px・線1.6）", async () => {
         setRole("general");
         render(<HeaderNav />);
+        await screen.findByRole("button", { name: "通知" });
         const nav = screen.getByRole("navigation", { name: "ヘッダー" });
         const buttons = Array.from(nav.querySelectorAll("a, button")) as HTMLElement[];
         expect(buttons).toHaveLength(2);

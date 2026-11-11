@@ -127,7 +127,12 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     // 切り方と「題に入っていれば足さない」は `metaPlace.ts` に1つ置く。縛るのは
     // `metadataSearch.test.ts`・`metaPlace.test.ts`
     const tail = pageTitle.fromTitle ? titlePlaceTail(pageTitle.text, mp) : "";
-    const title = tail ? `${pageTitle.text}｜${tail}` : pageTitle.text;
+    // **題も撮影地も無い写真は「<投稿者>さんの写真」**（2026-11-11 判断・札 journey.photo-ios#527）。
+    // 本番の全頁を辿ると、題・撮影地・説明・カテゴリ・撮影日の無い写真の頁が `<title>` 「写真」で、
+    // description がトップと同じ（サイトの説明）だった。名前は頁にも構造化データ（creator）にも出ている公開の値
+    const credit = (photo.photographer || photo.displayName || "").toString().trim();
+    const bare = !pageTitle.fromTitle && !mp.head && !place;
+    const title = tail ? `${pageTitle.text}｜${tail}` : bare && credit ? `${credit}さんの写真` : pageTitle.text;
 
     // **説明に事実（撮影地・機材）を添える。**
     //
@@ -149,6 +154,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         && withFacts(ownDescription, [descriptionPlaceTail(ownDescription, mp) || undefined, camera]))
         || (place || year ? withFacts(`${where}${when}撮影した${what}`, [camera]) : "")
         || (categoryText ? withFacts(`${categoryText}の写真。`, [camera]) : "")
+        // 何も無くても投稿者は分かる。サイトの説明（トップと同じ文）を名乗らない
+        || (credit ? withFacts(`${credit}さんが Journey Photo に載せた写真。`, [camera]) : "")
         || siteConfig.description;
     
     // 出すURLはサイトのドメインに揃える（`publicImageUrl`）。同じ配信の
