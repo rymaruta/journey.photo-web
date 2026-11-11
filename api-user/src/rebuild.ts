@@ -63,12 +63,12 @@ type Claim =
  * 判定に失敗して素通しした（＝何も書いていない）呼び出しが、あとで
  * releaseRebuildSlot を呼び、**別の呼び出しが取った有効な印を消して**いた。
  */
-async function claimRebuildSlot(now: number): Promise<Claim> {
+async function claimRebuildSlot(now: number, id: string = LOCK_ID): Promise<Claim> {
     try {
         const { ddb, PHOTOS_TABLE, UpdateCommand } = await lockTable();
         await ddb.send(new UpdateCommand({
             TableName: PHOTOS_TABLE,
-            Key: { id: LOCK_ID },
+            Key: { id },
             UpdateExpression: "SET lastAt = :now",
             ConditionExpression: "attribute_not_exists(lastAt) OR lastAt < :cutoff",
             ExpressionAttributeValues: { ":now": now, ":cutoff": now - REBUILD_COOLDOWN_MS },
@@ -94,12 +94,12 @@ async function claimRebuildSlot(now: number): Promise<Claim> {
  * 実際にビルドを始めた別の呼び出しの印まで消していた
  * （＝ロックが無いより弱く、続けて2本走る）。
  */
-async function releaseRebuildSlot(stamp: number): Promise<void> {
+async function releaseRebuildSlot(stamp: number, id: string = LOCK_ID): Promise<void> {
     try {
         const { ddb, PHOTOS_TABLE, UpdateCommand } = await lockTable();
         await ddb.send(new UpdateCommand({
             TableName: PHOTOS_TABLE,
-            Key: { id: LOCK_ID },
+            Key: { id },
             UpdateExpression: "REMOVE lastAt",
             ConditionExpression: "lastAt = :mine",
             ExpressionAttributeValues: { ":mine": stamp },
@@ -269,6 +269,19 @@ type RebuildOptions = {
      * 削除・退会に付けてはいけない——その分の掃除が永久に落ちる。
      */
     coalesce?: boolean;
+    /**
+     * 急ぎの依頼（束ねない）を**この鍵ごとに 10 分に1本まで**通す（#526・確かめ役 2026-11-11）。
+     *
+     * 「検索エンジンに表示しない」をオンにした回は、束ねて見送られると後から実行されず、
+     * 隠したつもりの頁が索引に残る。かといって素通しにすると、オン／オフを API で繰り返すだけで
+     * 月の予算（`REBUILD_MONTHLY_MAX`）を数分で使い切れ、**全員の削除後の掃除が止まる**。
+     *
+     * そこで鍵（例 `hidden#<userId>`）ごとの印を `rebuild#<鍵>` の1行に、`rebuild#lock` と同じ
+     * 条件付き書き込みで持つ。この 10 分にその鍵で急ぎを出していなければ束ねずに通し、
+     * 出していれば `coalesce: true` と同じ扱いに回す。行は `src` を持たないので
+     * photos.json には出ない（`rebuild#lock` と同じ）。表の形・GSI・IAM は増やさない。
+     */
+    urgentKey?: string;
 };
 
 /** 呼び出し元を止めない。成否だけ返す（ログ用） */
@@ -279,7 +292,20 @@ export async function requestSiteRebuild(reason: string, options: RebuildOptions
         return false;
     }
     let stamp: number | null = null;
-    if (options.coalesce === true) {
+    let coalesce = options.coalesce === true;
+    // 急ぎの印（鍵ごと）。取れたら束ねず、取れなければ束ねる側へ
+    let urgent: { id: string; stamp: number } | null = null;
+    if (options.urgentKey) {
+        const id = `rebuild#${options.urgentKey}`;
+        const claim = await claimRebuildSlot(Date.now(), id);
+        if (claim.allowed) {
+            coalesce = false;
+            if (claim.stamp !== null) urgent = { id, stamp: claim.stamp };
+        } else {
+            coalesce = true;
+        }
+    }
+    if (coalesce) {
         const claim = await claimRebuildSlot(Date.now());
         if (!claim.allowed) {
             // 見送った分は**後から実行されない**。
@@ -311,6 +337,7 @@ export async function requestSiteRebuild(reason: string, options: RebuildOptions
             "静的ページの掃除が遅れます。Actions の枠を上げるか、Deploy Site を手で1回流してください。",
         );
         if (stamp !== null) await releaseRebuildSlot(stamp);
+        if (urgent) await releaseRebuildSlot(urgent.stamp, urgent.id);
         return false;
     }
     let lastError = "";
@@ -365,6 +392,7 @@ export async function requestSiteRebuild(reason: string, options: RebuildOptions
     // ここまで来てから殺されれば印と予算は残る（窓は狭まったが閉じていない）。
     // 閉じるには呼び出し元から残り時間を渡す形が要るので、別枠。
     if (stamp !== null) await releaseRebuildSlot(stamp);
+    if (urgent) await releaseRebuildSlot(urgent.stamp, urgent.id);
     if (budget.counted) await releaseMonthlyBudget(budgetAt);
     return false;
 }
