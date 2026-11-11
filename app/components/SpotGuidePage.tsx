@@ -27,6 +27,7 @@ import { generateBreadcrumbStructuredData } from "@/lib/utils/seo";
 import { lightCalendar } from "@/lib/utils/lightCalendar";
 import { spotSky } from "@/lib/utils/spotSky";
 import { topicLinksForSpot, spotCountryRef } from "@/lib/data/spotTopics";
+import { visitFactsFor, visitFactsStructuredData, visitView } from "@/lib/data/spotVisitFacts";
 
 /** JSON-LD を `<script>` に埋める形（`SpotPage.tsx` と同じ。`</script>` で閉じられないように） */
 const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
@@ -86,7 +87,12 @@ export default async function SpotGuidePage({ slug }: { slug: string }) {
     // 代表写真も確かめた作例も無いときは、このスポットに結ばれた利用者の公開写真（OGP と同じ1枚・2026-10-31 #432）。
     // サイトの固定の代表画像はここには入れない——観光地の `image` は「この場所の写真」として読まれる
     const linked = seoImage ? undefined : spotLinkedPhoto(spot, photos);
-    const placeData = isPublished(spot) ? spotStructuredData(spot, { image: coverImage ?? linked?.url, samples, lead }) : null;
+    // 行く前に知りたい事実（見頃・アクセス・時間と料金・撮影の決まり）。出典の揃った行だけ（札 #527 の案 2・2026-11-11）
+    const visit = visitFactsFor(spot.slug);
+    // 開いている時間は、毎日同じ時刻の事実があるときだけ観光地の構造化データに足す（`visitFactsStructuredData`）
+    const placeData = isPublished(spot)
+        ? { ...spotStructuredData(spot, { image: coverImage ?? linked?.url, samples, lead }), ...visitFactsStructuredData(visit) }
+        : null;
     // 海外のスポットは 海外 → 国 → スポット（区画の一覧は国の一覧になった・2026-10-11）
     const country = spotCountryRef(spot);
     const breadcrumbData = generateBreadcrumbStructuredData(spotBreadcrumb(spot, area, country));
@@ -115,6 +121,7 @@ export default async function SpotGuidePage({ slug }: { slug: string }) {
                 samples={samples}
                 topics={topicLinksForSpot(spot)}
                 country={country}
+                visit={visit ? visitView(visit) : null}
             />
         </>
     );
