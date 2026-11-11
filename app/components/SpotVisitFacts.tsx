@@ -4,7 +4,8 @@
 // 見頃・アクセス・開いている時間と料金・撮影の決まり。データは `lib/data/spotVisitFacts.ts`。
 //
 // - どの段も、**出典の揃った行が1つも無ければ出さない**（`cleanVisitFacts` が落とした後の値を受ける）
-// - 段ごとに出典の行を付ける。「（AI 照合 日付）」と名乗る——人が確かめたとは書かない
+// - 段ごとに出典の行を付ける。「（公式サイトより・〇月〇日確認）」と書く（journey.photo-ios#535・2026-11-11）。
+//   人が確かめたとは書かない（「運営」「確認済み」を名乗らない）
 //   （台帳の `aiCheck` の出典の行と同じ言い方・`SpotGuideClient`）
 // - 見た目は撮影スポットの頁の既存の段（アクセスの `dl`・撮影時の注意の札）と同じ字・色・余白
 import React from "react";
@@ -12,6 +13,15 @@ import type { SpotVisitFactsView as SpotVisitFacts, VisitFactSource, PhotoRule }
 import { sourcesOf } from "@/lib/data/spotVisitFactsCore";
 
 const LABEL = { fontSize: "12px" } as const;
+
+const MONTH_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+/** 読んだ日（ISO）→「11月11日」/「Nov 11」。形が崩れていれば、そのまま出す */
+export function checkedDay(iso: string, isJa: boolean): string {
+    const m = /^\d{4}-(\d{2})-(\d{2})$/.exec(iso);
+    if (!m) return iso;
+    const mo = Number(m[1]), d = Number(m[2]);
+    return isJa ? `${mo}月${d}日` : `${MONTH_EN[mo - 1]} ${d}`;
+}
 const BODY = { fontSize: "13px", lineHeight: "20px" } as const;
 
 /** 段の出典（同じ頁は1回）。**変わることがあるので、行く前に公式で確かめて**と添える */
@@ -28,7 +38,7 @@ export function VisitSources({ rows, isJa, testId }: { rows: ReadonlyArray<Visit
                        className="underline decoration-white/30 underline-offset-2 hover:text-white/80">
                         {s.title}
                     </a>
-                    <span>{isJa ? `（AI 照合 ${s.readAt}）` : ` (checked by AI, ${s.readAt})`}</span>
+                    <span>{isJa ? `（公式サイトより・${checkedDay(s.readAt, true)}確認）` : ` (from the official site, checked ${checkedDay(s.readAt, false)})`}</span>
                 </React.Fragment>
             ))}
         </p>
