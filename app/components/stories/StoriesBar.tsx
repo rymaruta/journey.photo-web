@@ -20,7 +20,7 @@ import { startFromPointer, clampStart } from "../../../lib/utils/songTrim";
 import { log } from "../../../lib/utils/log";
 import { readStoryArchive, writeStoryArchive } from "../../../lib/utils/storyArchivePref";
 import {
-    groupStories, hasUnseen, loadSeenStoryIds, markStorySeen, isSeenStoriesKey,
+    groupStories, hasUnseen, storyDeletePath, loadSeenStoryIds, markStorySeen, isSeenStoriesKey,
     type Story, type StoryGroup,
 } from "../../../lib/stories";
 import StoryViewer from "./StoryViewer";
@@ -1126,10 +1126,11 @@ export default function StoriesBar() {
         locale, showToast, loadStories, closeDraft, stopPreview]);
 
     // 自分のストーリーを削除
-    const handleDeleteStory = useCallback(async (storyId: string) => {
+    const handleDeleteStory = useCallback(async (storyId: string, withPhotoId?: string) => {
         try {
             const { userFetch, isGoneResponse, readApiError } = await import("../../../lib/utils/api");
-            const res = await userFetch(`/stories/${encodeURIComponent(storyId)}`, { method: "DELETE" });
+            // 「写真も一緒に消す」は写真の口へ（2026-11-11・`storyDeletePath`）
+            const res = await userFetch(storyDeletePath(storyId, withPhotoId), { method: "DELETE" });
             // 404 は成功として扱う（別タブで先に消した／24時間で期限切れ）。
             // 失敗と読んで throw していたので `loadStories()` に到達せず、
             // **もう存在しないストーリーがバーに残り続けた**（開くと画像が
