@@ -24,6 +24,7 @@ import { COUNTRY_SHARD_KEYS } from "./spotFeedShards";
 import { REGIONS, prefectureByName, OVERSEAS_SLUG, OVERSEAS_NAME, type RegionName } from "./prefectures";
 import { siteConfig, generateItemListStructuredData, generateBreadcrumbStructuredData, pageRobots, shareOgImage, shareImageUrl } from "../utils/seo";
 import { ROUTES } from "../routes";
+import { titleWidth } from "../utils/titleWidth";
 
 /**
  * テーマ・季節の地方別の頁を作る最小の件数。**これ未満の組は頁を作らない**
@@ -144,6 +145,11 @@ export type TopicCard = {
     region: string;
     summary?: string;
     /**
+     * 撮り方のこつ（台帳の `compositionTips` の1つ目）。**テーマの頁だけ**に入れる（2026-11-11・#527）。
+     * 「〈国〉 〈種類〉」で来た人に、一覧のまま撮り方の要点まで読めるようにする
+     */
+    tip?: string;
+    /**
      * 代表写真（`spotCoverImage`＝スポットの頁と同じ判断）。**サムネが在ればサムネ**
      * （短い辺 240px・`spotThumbs.ts`）。`credit` は表示が条件のとき（CC BY 系）の文字
      */
@@ -179,6 +185,15 @@ export type TopicView = {
     related: Array<{ heading: string; headingEn: string; links: TopicLink[] }>;
     /** 説明（`description`）に足す事実（導入文の後ろ・数えた件数だけ） */
     descriptionExtra?: string;
+    /**
+     * 頁ごとに組んだ題（サイト名の template を外した完全な形）。無ければ「見出し＋N選」（`topicTitle`）。
+     * 2026-11-11（#527）: テーマの頁だけが持つ（`themeTitle`）
+     */
+    title?: string;
+    /** 頁ごとに組んだ説明。無ければ導入文＋`descriptionExtra`（`topicDescription`）。テーマの頁だけが持つ（`themeDescription`） */
+    description?: string;
+    /** その地域の撮影スポットの一覧の頁（国・県）へのリンク。導入文のすぐ下に出す（テーマの頁・#527） */
+    placeLink?: TopicLink;
     /** OGP の画像（**元の大きさ**の代表写真・サムネではない）。クライアントへは渡さない */
     ogImage?: { src: string; alt: string; width?: number; height?: number };
     /** 検索に出すか */
@@ -488,12 +503,123 @@ export function countryIntro(t: CountryTopic, cards: readonly TopicCard[]): stri
         + (n > 1 ? `${names(cards)}${n > 3 ? "ほか" : ""}を載せています。` : "");
 }
 
-/** テーマの頁の導入文 */
+/**
+ * テーマの頁の内訳（多い順に3つ・**2件以上の所だけ**）。2026-11-11（#527）。
+ * 地方の頁は県ごと、県の頁は市区町村ごと。国の頁は市と州・県（台帳の `prefecture`）のうち、
+ * 上位3つで多くの件数を言える方（イタリアの教会は市「ローマ13件」、アメリカの火山は州「ハワイ州4件」）。
+ * 1件ずつしか無い所は「多い」と言えないので出さない
+ */
+export function themeBreakdown(t: Pick<ThemeTopic, "place" | "spots">): Array<[string, number]> {
+    const top = (key: (s: Spot) => string | undefined) => {
+        const m = new Map<string, number>();
+        for (const s of t.spots) {
+            const k = key(s)?.trim();
+            if (k) m.set(k, (m.get(k) ?? 0) + 1);
+        }
+        return [...m.entries()].filter(([, k]) => k >= 2)
+            .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja")).slice(0, 3);
+    };
+    const sum = (xs: Array<[string, number]>) => xs.reduce((n, [, k]) => n + k, 0);
+    if (t.place.kind === "region") return top((s) => s.region?.prefecture);
+    const byCity = top((s) => s.region?.city);
+    if (t.place.kind === "prefecture") return byCity;
+    const byState = top((s) => s.region?.prefecture);
+    return sum(byState) > sum(byCity) ? byState : byCity;
+}
+
+/** 季節の案内の件数（季節ごと）と「桜」「紅葉」「雪」の記述の件数。県の頁（`areaIntro`）とテーマの頁が同じ文を使う */
+function seasonFacts(spots: readonly Spot[]): string {
+    const seasons = SEASONS.map((se) => [se, spots.filter((s) => hasSeason(s, se)).length] as const).filter(([, k]) => k > 0);
+    const keywords = SEASONS.flatMap((se) => {
+        const kw = SEASON_KEYWORD[se];
+        const k = kw ? spots.filter((s) => hasSeasonKeyword(s, se)).length : 0;
+        return kw && k > 0 ? [[kw, k] as const] : [];
+    }).map(([kw, k], i) => i === 0 ? `「${kw}」の記述があるのは${k}件` : `「${kw}」は${k}件`);
+    return (seasons.length > 0 ? `季節ごとの撮影の案内があるのは${seasons.map(([se, k]) => `${SEASON_JA[se]}${k}件`).join("・")}です。` : "")
+        + (keywords.length > 0 ? `季節の案内に${keywords.join("、")}です。` : "");
+}
+
+const tipCount = (spots: readonly Spot[]) => spots.filter((s) => (s.compositionTips ?? []).some((x) => x?.trim())).length;
+const timeCount = (spots: readonly Spot[]) => spots.filter((s) => (s.timeOfDayGuide ?? []).length > 0).length;
+/** 紹介文（`summary`・`description`）に「世界遺産」とある件数。台帳の文に書いてあることだけを数える */
+const heritageCount = (spots: readonly Spot[]) => spots.filter((s) => /世界遺産/.test(`${s.summary ?? ""}${s.description ?? ""}`)).length;
+
+/**
+ * テーマの頁の導入文。**2026-11-11（#527）**: 以前は件数と先頭3件の名前・季節の案内の件数の2〜3文で、
+ * 「イタリア 教会」「スペイン 町並み」で 8〜13 位に出ていても頁の中身が並びと同じことしか言っていなかった。
+ * 県の頁（`areaIntro`）と同じ線で、**その組の台帳から数えた事実だけ**を足す: 多い市・州・県、季節ごとの案内の件数、
+ * 「桜」「紅葉」「雪」の記述、時間帯の案内・撮り方のこつ・「世界遺産」の記述の件数。数が無い項目は文ごと省く
+ */
 export function themeIntro(t: ThemeTopic, cards: readonly TopicCard[]): string {
     const n = t.spots.length;
-    const seasonal = seasonalCount(t.spots);
+    const b = themeBreakdown(t);
+    const tips = tipCount(t.spots);
+    const time = timeCount(t.spots);
+    const heritage = heritageCount(t.spots);
     return `${t.place.name}にある${t.category}の撮影スポットを${n}件まとめました。${names(cards)}など。`
-        + (seasonal > 0 ? `うち${seasonal}件は季節ごとの撮影の案内があります。` : "");
+        + (b.length > 0 ? `多いのは${b.map(([x, k]) => `${x}${k}件`).join("・")}です。` : "")
+        + seasonFacts(t.spots)
+        + (time > 0 ? `時間帯ごとの撮影の案内は${time}件にあります。` : "")
+        + (tips > 0 ? `撮り方のこつは${tips === n ? "全件" : `${tips}件`}に載せています。` : "")
+        + (heritage > 0 ? `紹介文に「世界遺産」とあるのは${heritage}件です。` : "");
+}
+
+/** テーマの頁の題の上限（全角換算）。撮影スポットの頁（`SPOT_TITLE_MAX`）と同じ 33 */
+export const THEME_TITLE_MAX = 33;
+
+/**
+ * テーマの頁の題（**サイト名の template を外した完全な形**・2026-11-11・#527）。
+ *
+ * GSC（過去3か月）で「イタリア 教会」128 表示・8.3 位・0 クリック、「ドイツ 宮殿」34 表示・9.8 位・0 クリック。
+ * 題は「イタリアの教会の撮影スポット54選 | Journey Photo 旅フォトギャラリー」で、何が載っているか（どの教会か）が
+ * 題から分からず、後ろの 17 字はサイト名（検索結果はサイト名を別の行に出す）だった。
+ * 撮影スポットの頁（`spotPageTitle`）と同じく template を外し、空いた字数に**載っている名所の名前**を置く:
+ *   1. 〈見出し〉N選｜A・Bほか
+ *   2. 〈見出し〉N選｜Aほか
+ *   3. 〈見出し〉N選
+ * 名前は並びの先頭（写真のあるものが先）から。全角換算 33 を超えない形を上から選ぶ
+ */
+export function themeTitle(heading: string, cards: readonly TopicCard[]): string {
+    const n = cards.length;
+    const head = n > 0 ? `${heading}${n}選` : heading;
+    const [a, b] = cards.map((c) => c.name);
+    const cands = [
+        ...(a && b && n > 2 ? [`${head}｜${a}・${b}ほか`] : []),
+        ...(a && b && n === 2 ? [`${head}｜${a}・${b}`] : []),
+        ...(a && n > 1 ? [`${head}｜${a}ほか`] : []),
+    ];
+    return cands.find((x) => titleWidth(x) <= THEME_TITLE_MAX) ?? head;
+}
+
+/** テーマの頁の説明の長さ（字）。撮影スポットの頁（`SPOT_DESCRIPTION_TARGET`）と同じ 120 */
+export const THEME_DESCRIPTION_MAX = 120;
+
+/**
+ * テーマの頁の説明（2026-11-11・#527）。**探した言葉（〈国〉 〈種類〉）に、載っている名所の名前で答える形。**
+ *
+ * 以前は導入文の頭（「イタリアにある教会の撮影スポットを54件まとめました。…」）に、全テーマ頁で同じ
+ * 「うちN件は季節ごとの撮影の案内があります。時間帯ごとの撮影の案内があるのはN件です。」を続けていた
+ * （2文目以降は数字だけが違う決まり文句）。名所の名前を頭に置き、続けてその組だけの事実
+ * （多い市・州・県、季節の案内と撮り方のこつの件数）を置く。収まらない文は入れない（**文の途中で切らない**）
+ */
+export function themeDescription(t: ThemeTopic, cards: readonly TopicCard[]): string {
+    const n = t.spots.length;
+    const nm = names(cards);
+    const lead = `${nm ? `${nm}${n > 3 ? "など" : ""}、` : ""}${t.place.name}の${t.category}の撮影スポット${n}か所。`;
+    const b = themeBreakdown(t);
+    const seasonal = seasonalCount(t.spots);
+    const tips = tipCount(t.spots);
+    const guides = [
+        ...(seasonal > 0 ? [`${seasonal === n ? "全か所" : `${seasonal}か所`}に季節ごとの撮影の案内`] : []),
+        ...(tips > 0 ? [`${tips === n ? "全か所" : `${tips}か所`}に撮り方のこつ`] : []),
+    ];
+    const parts = [
+        ...(b.length > 0 ? [`多いのは${b.map(([x, k]) => `${x}${k}か所`).join("・")}。`] : []),
+        ...(guides.length > 0 ? [`${guides.join("、")}。`] : []),
+    ];
+    let out = lead;
+    for (const p of parts) if ([...out].length + [...p].length <= THEME_DESCRIPTION_MAX) out += p;
+    return out;
 }
 
 /** 季節の頁の導入文 */
@@ -606,7 +732,12 @@ export function themeView(categorySlug: string, place: string, spots: readonly S
     const all = themeTopics(spots);
     const t = all.find((x) => x.categorySlug === categorySlug && x.place.slug === place);
     if (!t) return null;
-    const cards = topicCards(t.spots);
+    // 2026-11-11（#527）: テーマの頁のカードにだけ撮り方のこつ（`compositionTips` の1つ目）を添える
+    const bySlug = new Map(t.spots.map((s) => [s.slug, s]));
+    const cards = topicCards(t.spots).map((c) => {
+        const tip = bySlug.get(c.slug)?.compositionTips?.find((x) => x?.trim())?.trim();
+        return tip ? { ...c, tip } : c;
+    });
     // 上の段（県の一覧・国の一覧）。地方には一覧の頁が無いので飛ばす
     const parent = t.place.kind === "prefecture"
         ? [{ name: t.place.name, nameEn: placeEn(t.place), href: ROUTES.SPOT_AREA(t.place.areaSlug) }]
@@ -627,10 +758,26 @@ export function themeView(categorySlug: string, place: string, spots: readonly S
             { heading: `ほかの地域の${t.category}`, headingEn: `${categoryEn(t.categorySlug)} in other areas`, links: sameCategory.map(themeLink) },
         ].filter((g) => g.links.length > 0),
         indexable: true,
-        descriptionExtra: timeGuideNote(t.spots),
+        title: themeTitle(themeHeading(t), cards),
+        description: themeDescription(t, cards),
+        placeLink: themePlaceLink(t, spots),
         ogImage: ogImageOf(t.spots, cards),
         lastModified: latest(t.spots),
     };
+}
+
+/** テーマの頁から、その国・県の撮影スポットの一覧へ（地方には一覧の頁が無いので無し） */
+function themePlaceLink(t: ThemeTopic, spots: readonly Spot[]): TopicLink | undefined {
+    if (t.place.kind === "country") {
+        const c = countryTopics(spots).find((x) => x.code === t.place.slug);
+        return c ? { ...link(ROUTES.SPOT_COUNTRY(c.code), countryHeading(c), c.spots.length), labelEn: countryHeadingEn(c) } : undefined;
+    }
+    if (t.place.kind === "prefecture") {
+        const name = t.place.name;
+        const k = topicSpots(spots).filter((s) => isJapan(s) && s.region?.prefecture === name).length;
+        return { ...link(ROUTES.SPOT_AREA(t.place.areaSlug), `${name}の撮影スポット`, k), labelEn: `Photo spots in ${placeEn(t.place)}` };
+    }
+    return undefined;
 }
 
 /**
@@ -768,6 +915,7 @@ export function areaStructuredData(area: { slug: string; name: string }, spots: 
 
 /** 頁の題（`<title>`）。検索に出す頁は「N選」（県の頁 `/spots/area/<x>` と同じ言い方） */
 export function topicTitle(view: TopicView): string {
+    if (view.title) return view.title;
     const n = view.cards.length;
     return view.indexable && n > 0 ? `${view.heading}${n}選` : view.heading;
 }
@@ -778,6 +926,7 @@ export function topicTitle(view: TopicView): string {
  * 季節の案内は全体の約4分の1、時間帯は約2割の行にしか無い）。足すのは数えた事実だけ
  */
 export function topicDescription(view: TopicView): string {
+    if (view.description) return view.description;
     return `${view.intro}${view.descriptionExtra ?? ""}`.slice(0, 160);
 }
 
@@ -940,7 +1089,8 @@ export function topicMetadata(view: TopicView | null) {
     const og = view.ogImage;
     const image = og ? (og.src.startsWith("http") ? og.src : `${siteConfig.url}${og.src}`) : undefined;
     return {
-        title,
+        // 頁ごとに組んだ題（テーマの頁）はサイト名の template を付けない（`themeTitle`）
+        title: view.title ? { absolute: title } : title,
         description,
         alternates: { canonical: url },
         robots: pageRobots(view.indexable),
