@@ -343,12 +343,20 @@ function deletesImmediately(key) {
 // - 今回のビルドに含まれるキーは絶対に削除しない
 // - ビルドに無い HTML/txt・スポットの本文は即削除（`deletesImmediately`）
 // - ビルドに無いアセットは猶予期間内なら保持（古い HTML を持つ端末の 404 防止）
+/**
+ * **サーバーが書く置き場のファイル**（ビルドには無いが消さない）。
+ * - `app/data/spot-wants.json`: みんなの「行きたい」の数（`api-user` の `aggregateSpotWants` が毎日書く・2026-11-11）。
+ *   ビルドに無いので、デプロイの掃除に「古いアセット」と読まれて消えると、次の集計まで頁の数が消える
+ */
+const SERVER_OWNED_KEYS = new Set(["app/data/spot-wants.json"]);
+
 function classifyStaleObjects(localKeys, remoteObjects, now, graceMs) {
     const localSet = new Set(localKeys.map(k => k.split(path.sep).join("/")));
     const toDelete = [];
     let kept = 0;
     for (const obj of remoteObjects) {
         if (localSet.has(obj.key)) continue;
+        if (SERVER_OWNED_KEYS.has(obj.key)) { kept++; continue; }
         const immediate = deletesImmediately(obj.key);
         const age = obj.lastModified ? now - obj.lastModified.getTime() : Infinity;
         if (immediate || age > graceMs) {
