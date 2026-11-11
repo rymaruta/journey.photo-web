@@ -731,7 +731,9 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                     </div>
                 ) : (
                     /* eslint-disable-next-line @next/next/no-img-element */
-                    <img src={cover!.src} alt={cover!.alt}
+                    /* 一番上の写真は撮影スポットの頁の LCP（本番の実測で LCP の要素がこの画像・2026-11-11 札 #527）。
+                       先に取らせる（fetchpriority）。寸法は箱（aspect と max-height）が決めるので、画像が届いても動かない */
+                    <img src={cover!.src} alt={cover!.alt} fetchPriority="high"
                          className="absolute inset-0 w-full h-full object-cover" />
                 )}
             </div>
