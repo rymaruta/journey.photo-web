@@ -22,7 +22,8 @@
 
 export type WishTapParams = { signed_in: 0 | 1; kind: "spot" | "location" };
 export type SignUpParams = { method: "email"; from: SignupFrom };
-export type SignupFrom = "wish" | "other";
+/** `swipe` は撮影スポットを払う画面から（2026-11-11・`via=swipe`） */
+export type SignupFrom = "wish" | "swipe" | "other";
 
 type EventMap = { wish_tap: WishTapParams; sign_up: SignUpParams };
 
@@ -67,6 +68,10 @@ export function gaInitSnippet(gaId: string): string {
  * ログイン画面が新規登録へのリンクに運ぶ。それ以外は `other`
  */
 export const WISH_VIA = "wish";
+/** 撮影スポットを払う画面（`/swipe`）の挟む札・足元から来た（2026-11-11） */
+export const SWIPE_VIA = "swipe";
 export function signupFromVia(via: string | null | undefined): SignupFrom {
-    return via === WISH_VIA ? "wish" : "other";
+    if (via === WISH_VIA) return "wish";
+    if (via === SWIPE_VIA) return "swipe";
+    return "other";
 }

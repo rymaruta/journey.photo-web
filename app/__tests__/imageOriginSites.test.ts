@@ -142,6 +142,10 @@ const EXEMPT: Array<[string, string, string]> = [
      + "（`content/spots.json`）に書いたサイト内のパス（`/spots/x.jpg`）で、"
      + "CloudFront の写真URLではないので `publicImageUrl` を通す対象ではない。"
      + "外部へのホットリンクは型の規約で禁じている（`SpotCoverImage.src`）"],
+    ["app/swipe/SwipeClient.tsx", "current.src",
+     "撮影スポットを払う画面（2026-11-11）の写真。`/app/data/swipe.json`（`lib/data/swipeDeck.ts`）の `src`＝"
+     + "`spotCoverImage` の値（サイトに置いた `/images/spots/…`）。**利用者が上げた写真ではない**"],
+    ["app/swipe/SwipeClient.tsx", "upcoming.src", "同じ画面の次の札（下に重ねる・先に読む）。上と同じ値"],
     ["app/q/DailyQuizClient.tsx", "quiz.photo.url",
      "今日の一問の写真。公式ガイドの代表写真と同じ値（`spotFeed.ts` の `image.url`＝"
      + "サイトの `/images/spots/<slug>.jpg`）。**利用者が上げた写真ではない**ので"

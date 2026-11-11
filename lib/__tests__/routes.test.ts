@@ -92,6 +92,8 @@ describe("loginWithNext", () => {
     it("via を付けると、戻り先の後ろ（無ければ最初）に via=wish を添える", () => {
         expect(loginWithNext("/spots/a", "wish")).toBe(`${ROUTES.LOGIN}?next=${encodeURIComponent("/spots/a")}&via=wish`);
         expect(loginWithNext(null, "wish")).toBe(`${ROUTES.LOGIN}?via=wish`);
+        // 撮影スポットを払う画面の挟む札・足元（2026-11-11）
+        expect(loginWithNext(ROUTES.SWIPE, "swipe")).toBe("/login?next=%2Fswipe&via=swipe");
     });
 });
 
