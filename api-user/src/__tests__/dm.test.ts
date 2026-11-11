@@ -1291,6 +1291,56 @@ describe("会話の引用札（ストーリーへの返信から写した通・s
         expect(calls.some((c) => String(c.input.Key?.id ?? "").startsWith("story-")), "要らない読みをしている").toBe(false);
     });
 
+    describe("🔴 写真を紹介したストーリー（sharedPhotoId・#541）", () => {
+        const photo = (o: Row = {}) => ({ id: "p-shared", src: "https://cdn/p.jpg", userId: THIRD, ...o });
+        beforeEach(() => {
+            rows["story-1"] = storyRow({ sharedPhotoId: "p-shared" });
+            rows["p-shared"] = photo();
+            mockHidden.mockResolvedValue(new Set<string>());
+            mockDeleted.mockReturnValue({ deleted: new Set<string>(), unread: new Set<string>() });
+        });
+        afterEach(() => { mockHidden.mockReset().mockResolvedValue(new Set<string>()); });
+
+        it("紹介した写真が見られる間は live", async () => {
+            expect((await read(ME)).items[0].story.state).toBe("live");
+        });
+
+        const lost: [string, () => void][] = [
+            ["持ち主が非公開にした", () => { rows["p-shared"] = photo({ published: false }); }],
+            ["持ち主が範囲を絞った", () => { rows["p-shared"] = photo({ audience: "followers" }); }],
+            ["持ち主が消した", () => { delete rows["p-shared"]; }],
+            ["持ち主が退会した", () => { mockDeleted.mockReturnValue({ deleted: new Set([THIRD]), unread: new Set<string>() }); }],
+            ["見る人と持ち主のあいだにブロック", () => { mockHidden.mockResolvedValue(new Set([THIRD])); }],
+        ];
+        for (const [label, arrange] of lost) {
+            it(`${label}: 見る人には ended（紹介した本人には live）`, async () => {
+                vi.spyOn(console, "error").mockImplementation(() => undefined);
+                arrange();
+                expect((await read(ME)).items[0].story, "見られない写真を DM の札に出している").toEqual({ id: "story-1", state: "ended" });
+                expect((await read(PEER)).items[0].story.state, "紹介した本人に見せていない").toBe("live");
+                vi.restoreAllMocks();
+            });
+        }
+
+        it("見る人のブロック一覧は会話の読みで読んだものを使う（読み直さない）", async () => {
+            mockHidden.mockClear();
+            await read(ME);
+            expect(mockHidden).toHaveBeenCalledTimes(1);
+        });
+
+        it("紹介した写真が読めなければ ended", async () => {
+            vi.spyOn(console, "error").mockImplementation(() => undefined);
+            const real = mockSend.getMockImplementation()!;
+            mockSend.mockImplementation(async (c: { constructor: { name: string }; input: Record<string, any> }) => {   // eslint-disable-line @typescript-eslint/no-explicit-any
+                if (c.constructor.name === "GetCommand" && c.input.Key.id === "p-shared") throw new Error("boom");
+                return real(c);
+            });
+            expect((await read(ME)).items[0].story).toEqual({ id: "story-1", state: "ended" });
+            mockSend.mockImplementation(real);
+            vi.restoreAllMocks();
+        });
+    });
+
     it("since の読み直しは、返す通のぶんだけ引く", async () => {
         const b = bodyOf(await invoke(handler, ev("GET /dm/{id}", ME, { id: CONV, since: "2026-11-09T00:00:01.500Z" })));
         expect(b.items.map((m: { text: string }) => m.text)).toEqual(["ありがとう"]);
@@ -1457,6 +1507,43 @@ describe("ストーリーへの返信: 写った会話・お知らせの欄", ()
         });
         await reply({ text: "きれいですね" });
         expect(putBeforeNotif, "お知らせが写しより先に積まれている").toBe(true);
+    });
+});
+
+describe("🔴 同じ会話で、送った写真の札と、紹介のストーリーの引用の門が両方効く（#541 の ① と ③）", () => {
+    const FUTURE = () => new Date(Date.now() + 3600_000).toISOString();
+    const read = async (uid = ME) => bodyOf(await invoke(handler, ev("GET /dm/{id}", uid, { id: CONV })));
+    beforeEach(() => {
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER) });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME) });
+        rows["photo-1"] = { id: "photo-1", src: "https://cdn/p.jpg", thumbSrc: "https://cdn/p_t.webp", userId: THIRD };
+        rows["story-1"] = { id: "story-1", story: true, userId: PEER, src: "https://cdn/s.jpg", mediaType: "image", expiresAt: FUTURE(), sharedPhotoId: "p-shared" };
+        rows["p-shared"] = { id: "p-shared", src: "https://cdn/ps.jpg", userId: THIRD };
+        follows(PEER, ME);
+        rows[KEY] = convRow([
+            { ...msg(ME, "きれい", "2026-11-09T00:00:01.000Z", "m-story-01"), via: "story", storyId: "story-1" },
+            { ...msg(PEER, "", "2026-11-09T00:00:02.000Z", "m-photo-01"), photoId: "photo-1" },
+        ], { updatedAt: "2026-11-09T00:00:02.000Z" });
+    });
+
+    it("どちらも見られる間は両方 live", async () => {
+        const b = await read(ME);
+        expect(b.items[0].story.state).toBe("live");
+        expect(b.items[1].photo.state).toBe("live");
+    });
+
+    it("紹介した写真を非公開にした → 引用だけ ended（送った写真の札は live のまま）", async () => {
+        rows["p-shared"] = { ...(rows["p-shared"] as Row), published: false };
+        const b = await read(ME);
+        expect(b.items[0].story, "紹介の写真の門が効いていない").toEqual({ id: "story-1", state: "ended" });
+        expect(b.items[1].photo.state).toBe("live");
+    });
+
+    it("送った写真を非公開にした → 写真の札だけ gone（引用は live のまま）", async () => {
+        rows["photo-1"] = { ...(rows["photo-1"] as Row), published: false };
+        const b = await read(ME);
+        expect(b.items[0].story.state).toBe("live");
+        expect(b.items[1].photo, "送った写真の門が効いていない").toEqual({ id: "photo-1", state: "gone" });
     });
 });
 

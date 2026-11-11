@@ -9,8 +9,8 @@
  *     旅の道具              共同アルバム・旅行プラン
  *     公開範囲とプライバシー ブロックした人 → 下の画面・親しい友達 → 下の画面
  *     写真と撮影            いいねした写真・構図一覧
- *     ヘルプと規約          利用規約・プライバシーポリシー → 下の画面・問い合わせ（宛先があるときだけ）
- *     アカウント            メールアドレスを変える（Web だけ）・パスワードを変える → 下の画面
+ *     ヘルプと規約          利用規約・プライバシーポリシー → 下の画面・意見を送る（/feedback）・問い合わせ（宛先があるときだけ）
+ *     アカウント           メールアドレスを変える（Web だけ）・パスワードを変える → 下の画面
  *     （見出しなし）         ログアウト
  *     （見出しなし）         アカウントの削除（名前ごと danger・退会の窓を開く）
  *
@@ -143,6 +143,8 @@ export default function SettingsPage() {
 
             <SettingsGroup title={en ? "Help & terms" : "ヘルプと規約"}>
                 <SettingsRowLink href={SETTINGS_SUBPAGES.legal} title={en ? "Terms & Privacy" : "利用規約・プライバシーポリシー"} />
+                {/* 意見を送る（2026-11-11 札 #546・iOS の設定と同じ位置） */}
+                <SettingsRowLink href={ROUTES.FEEDBACK("settings")} title={en ? "Send feedback" : "意見を送る"} testId="settings-feedback" />
                 {/* **宛先が空なら行を描かない。** `NEXT_PUBLIC_CONTACT_EMAIL` は `deploy.yml` が直書きで渡していて
                     （`publicEnvWiring.test.ts` が見張る）本番では出るが、それを前提にして押しても何も起きない行を残さない */}
                 {siteConfig.contactEmail && (

@@ -6,6 +6,7 @@ import { requireEnv } from "./env";
 import { JSON_HEADERS, getUserId, jsonError } from "./http";
 import { displayNameOf, DEFAULT_NAME, DELETED_USER_NAME, deletedAmong, pushDmMessage } from "./notify";
 import { truncate, sanitizeText } from "./sanitize";
+import { cleanMultilineText, INVISIBLE } from "./textClean";
 import { isBlocked, hiddenUserIds } from "./blockCheck";
 import { isFollowing } from "./followCheck";
 import { readUserList } from "./userList";
@@ -129,23 +130,12 @@ const isCcf = (e: unknown) => (e as { name?: string })?.name === "ConditionalChe
 const errName = (e: unknown) => (e as { name?: string })?.name ?? "Error";
 
 /**
- * 本文の整え。**改行は残す**（`sanitizeText` は改行まで落とすので、段落が1行に潰れる）。
- * 見えない制御文字を落とし、行の前後と3つ以上の連続する空行をまとめ、上限で切る。
+ * 本文の整え。**改行は残す**・見えない字を落とす・上限で切る。中身は `textClean.ts`
+ * （2026-11-11、意見箱と共有するため切り出した。振る舞いは同じ）。
  */
 export function cleanDmText(v: unknown): string {
-    if (typeof v !== "string") return "";
-    const t = v
-        .replace(/\r\n?/g, "\n")
-        .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, "")
-        // ゼロ幅・方向制御・ソフトハイフン（URL 判定をすり抜ける・見た目の無い本文を作れる）
-        .replace(INVISIBLE, "")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim();
-    return t ? truncate(t, DM_TEXT_MAX) : "";
+    return cleanMultilineText(v, DM_TEXT_MAX);
 }
-
-/** U+200B-200F・202A-202E・2060・2066-2069・FEFF・00AD */
-const INVISIBLE = /[\u200B-\u200F\u202A-\u202E\u2060\u2066-\u2069\uFEFF\u00AD]/g;
 
 const TLDS = "com|net|org|jp|io|co|me|ly|gl|link|app|dev|xyz|info|biz|cc|tv|to|us|uk|ru|cn|site|online|shop|top|club"
     + "|gg|be|ee|asia|ink|page|live|store|tech";
@@ -737,7 +727,8 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
     const [peers, quotes, photos] = await Promise.all([
         peerInfos([peer]),
         // 返す通のうち、ストーリーへの返信から写した通だけ（無ければ読みに行かない）
-        storyQuotesFor(uid, [pair.lo, pair.hi], items.flatMap((m) => (m.storyId ? [m.storyId] : []))),
+        // 紹介した写真の門は、上で読んだ見る人のブロック一覧をそのまま使う（読み直さない）
+        storyQuotesFor(uid, [pair.lo, pair.hi], items.flatMap((m) => (m.storyId ? [m.storyId] : [])), hidden),
         // 送った写真の札（読む人の目で見せてよいか決め直す・無ければ読みに行かない）
         photoQuotesFor(uid, items.flatMap((m) => (m.photoId ? [m.photoId] : []))),
     ]);
