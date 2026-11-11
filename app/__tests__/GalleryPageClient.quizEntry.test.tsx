@@ -57,17 +57,17 @@ const order = () => [...cards().querySelectorAll("li")].map((li) =>
     (li.querySelector("[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry],[data-testid=home-learn-entry]") as HTMLElement).dataset.testid);
 
 describe("ホームの上段の札の眉（2026-11-09・9人のレビュー）", () => {
-    it("日本語の画面は日本語の眉（TODAY'S THEME 等の英字を出さない）", () => {
+    it("日本語の画面は日本語の眉（THIS WEEK 等の英字を出さない）", () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const text = cards().textContent ?? "";
-        for (const w of ["今日のテーマ", "今日の一問", "撮影スポット", "カメラ講座"]) expect(text, w).toContain(w);
-        for (const w of ["TODAY'S THEME", "DAILY QUIZ", "PHOTO SPOTS", "PHOTO GUIDES"]) expect(text, w).not.toContain(w);
+        for (const w of ["今週のお題", "今日の一問", "撮影スポット", "カメラ講座"]) expect(text, w).toContain(w);
+        for (const w of ["THIS WEEK", "DAILY QUIZ", "PHOTO SPOTS", "PHOTO GUIDES"]) expect(text, w).not.toContain(w);
     });
 });
 
 describe("ホームの上段の札", () => {
     // 2026-11-04: iOS と同じく「輪 → 上の札 → 切り替え」（`GalleryView.feed`）。以前はタブの直下だった
-    it("切り替えのすぐ上に札の並び（今日のテーマ → 今日の一問 → 撮影スポット）", async () => {
+    it("切り替えのすぐ上に札の並び（今週のお題 → 今日の一問 → 撮影スポット）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         await screen.findByTestId("home-top-cards");
         // 札の次は、切り替えの行の元の位置の目印（`StickyTabRow`）→ 留まる行
@@ -143,13 +143,13 @@ describe("ホームの撮影スポットの札", () => {
     });
 });
 
-// アプリの「今日のテーマ」（`DailyThemeCard`）: 眉の右に #タグ・題・一言・「参加する →」でタグ入りの投稿画面へ
-describe("ホームの今日のテーマの札", () => {
-    it("「参加する」はテーマのタグを入れた投稿画面へ", async () => {
+// アプリの「今週のお題」（`WeeklyThemeCard`・札 journey.photo-ios#537 案2）: 眉の右に #タグ・題・一言・「参加する →」でタグ入りの投稿画面へ
+describe("ホームの今週のお題の札", () => {
+    it("「参加する」はお題のタグを入れた投稿画面へ", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const entry = await screen.findByTestId("home-theme-entry");
-        const { dailyThemeFor } = await import("@/lib/utils/dailyTheme");
-        const tag = dailyThemeFor().tag;
+        const { weeklyThemeFor } = await import("@/lib/utils/weeklyTheme");
+        const tag = weeklyThemeFor().tag;
         await waitFor(() => expect(entry.getAttribute("href")).toBe(`/user/upload?tag=${encodeURIComponent(tag)}`));
         expect(entry.textContent).toContain("参加する");
         // 題の右の小さいボタン（見た目 36・当たりは上下 4 ずつ広げて 44）
@@ -159,7 +159,9 @@ describe("ホームの今日のテーマの札", () => {
         expect(title.parentElement!.contains(entry), "参加するは題の右（同じ行）").toBe(true);
         const card = screen.getByTestId("home-theme-card");
         expect(card.textContent).toContain(`#${tag}`);
-        expect(card.textContent).toContain("今日のテーマ");
+        expect(card.textContent).toContain("今週のお題");
+        // 今週の参加が無い週は一言のまま（みんなの参加の行は出さない）
+        expect(screen.queryByTestId("home-theme-participants")).toBeNull();
         expect(entry.getAttribute("data-prefetch") ?? "").not.toBe("true");
     });
 });
@@ -193,10 +195,10 @@ describe("今日の一問の札の写真と出典（その日のファイルが�
     });
 });
 
-describe("今日のテーマの参加済み（iOS の `DailyTheme.hasJoined`）", () => {
-    it("今日テーマのタグで投稿した人には、押せない「参加済み」を出す", async () => {
-        const { dailyThemeFor } = await import("@/lib/utils/dailyTheme");
-        const tag = dailyThemeFor().tag;
+describe("今週のお題の参加済み・みんなの参加（iOS の `WeeklyTheme.hasJoined`・`participants`）", () => {
+    it("今週お題のタグで投稿した人には、押せない「参加済み」を出す", async () => {
+        const { weeklyThemeFor } = await import("@/lib/utils/weeklyTheme");
+        const tag = weeklyThemeFor().tag;
         authState.current = { isAuthenticated: true, userId: "me", loading: false };
         photosState.current = [{ id: "m1", src: "https://cdn/m.jpg", userId: "me", tags: [tag], createdAt: new Date().toISOString(), date: "2026-10-31" }];
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
@@ -206,13 +208,27 @@ describe("今日のテーマの参加済み（iOS の `DailyTheme.hasJoined`）"
         expect(screen.queryByTestId("home-theme-entry")).toBeNull();
     });
 
-    it("昨日の投稿・ほかの人の投稿では参加済みにしない", async () => {
-        const { dailyThemeFor, hasJoinedTheme } = await import("@/lib/utils/dailyTheme");
+    it("先週の投稿・ほかのタグでは参加済みにしない", async () => {
+        const { weeklyThemeFor, hasJoinedTheme } = await import("@/lib/utils/weeklyTheme");
         const { tagKey } = await import("@/lib/utils/collections");
-        const theme = dailyThemeFor();
-        const yesterday = new Date(Date.now() - 86_400_000).toISOString();
-        expect(hasJoinedTheme(theme, [{ tags: [theme.tag], createdAt: yesterday }], tagKey)).toBe(false);
+        const theme = weeklyThemeFor();
+        const lastWeek = new Date(Date.now() - 8 * 86_400_000).toISOString();
+        expect(hasJoinedTheme(theme, [{ tags: [theme.tag], createdAt: lastWeek }], tagKey)).toBe(false);
         expect(hasJoinedTheme(theme, [{ tags: ["別のタグ"], createdAt: new Date().toISOString() }], tagKey)).toBe(false);
         expect(hasJoinedTheme(theme, [{ tags: [theme.tag], createdAt: new Date().toISOString() }], tagKey)).toBe(true);
+    });
+
+    it("今週ほかの人がお題で載せたら、一言の行を「みんなの参加」の行に替える（押すとお題のタグで絞ったさがす）", async () => {
+        const { weeklyThemeFor } = await import("@/lib/utils/weeklyTheme");
+        const tag = weeklyThemeFor().tag;
+        photosState.current = [{ id: "o1", src: "https://cdn/o.jpg", userId: "other", tags: [tag], createdAt: new Date().toISOString(), date: "2026-10-31" }];
+        render(<ToastProvider><GalleryPageClient /></ToastProvider>);
+        const row = await screen.findByTestId("home-theme-participants");
+        expect(row.getAttribute("href")).toBe(`/search?tags=${encodeURIComponent(tag)}`);
+        expect(row.textContent).toContain("今週 1件の投稿");
+        expect(row.textContent).toContain("みんなの参加");
+        // 見た目 24・当たりは上下 10 ずつ広げて 44
+        expect(row.style.height).toBe("24px");
+        expect(row.className).toContain("before:-inset-y-[10px]");
     });
 });
