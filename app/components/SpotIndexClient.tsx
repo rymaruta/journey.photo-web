@@ -4,7 +4,6 @@ import React from "react";
 import Link from "next/link";
 import type { SpotIndexItem } from "@/lib/data/spotLink";
 import { useLocale } from "@/app/i18n/context";
-import { ROUTES } from "@/lib/routes";
 import { CHIP_ON, CHIP_OFF, CHIP_SIZE, CHIP_HIT } from "./chipStyles";
 import { CreditMark, PhotoCredits, SpotPhoto, usePhotoFailed } from "./SpotPhotoParts";
 
@@ -104,15 +103,8 @@ export default function SpotIndexClient({ spots, area, children, intro }: Props)
 
     return (
         <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg mx-auto w-full max-w-5xl lg:max-w-6xl">
-            {/* **戻り道を必ず出す。** 区画のページは `/spots` からしか辿れない */}
-            <p className="m-0 mb-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
-                {/* 戻り道は当たり 44（押せる所の決まり・2026-10-31 束 2 P5）。以前は 13 の字の高さだけ */}
-                <Link href={ROUTES.SPOTS} prefetch={false}
-                      className="inline-flex items-center min-h-[44px] text-text-2 hover:text-white transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded"
-                      data-testid="spots-back">
-                    {isJa ? "← 撮影スポットをさがす" : "← Find a place to shoot"}
-                </Link>
-            </p>
+            {/* 2026-11-11 owner「撮影スポットを探すのとこいらない」: 頁の頭の「← 撮影スポットをさがす」は置かない。
+                上の「ホームの地図に戻る」（地図から来たとき）・頭のメニュー・足元の「撮影スポットの一覧」・ブラウザの戻るで戻れる */}
             <h1 className="font-serif text-4xl font-bold m-0 wrap-anywhere" data-testid="spots-title">
                 {area
                     ? (isJa ? `${area.name}の撮影スポット` : `Photo spots in ${area.nameEn}`)
