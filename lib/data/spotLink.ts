@@ -110,7 +110,7 @@ export function toSpotLink(spot: Spot): SpotLink {
  * import していないか」を見るが、**props で渡す経路は素通りする**。
  * この形が2つ目の抜け道だった。
  *
- * `deploy-static-site.js` は HTML を `no-cache, no-store` で配るので、
+ * `deploy-static-site.js` は HTML を `no-cache`（毎回たしかめる） で配るので、
  * ここは**訪問のたびに落ちるバイト**になる（`CLAUDE.md` の表示速度の節）。
  */
 export type SpotIndexItem = Omit<SpotLink, "cover" | "coords"> & {
@@ -223,7 +223,7 @@ export function spotLinksById(): Record<string, SpotLink> {
  *     spotLinksById()   97,043 バイト
  *     name + slug だけ  28,294 バイト   → **68,749 バイト（71%）が余分**
  *
- * `/trips` の HTML も `no-cache, no-store` で配る
+ * `/trips` の HTML も `no-cache`（毎回たしかめる） で配る
  * （`scripts/deploy-static-site.js` の `isHtmlOrTxt`）ので、この差は
  * **訪問のたびに落ちるバイト**になる。
  *
@@ -249,7 +249,7 @@ export function spotRefsById(): Record<string, SpotRef> {
  *     × 1,410件（各県30件）＝ **約2.4MB** が1枚のHTMLに乗る
  *     （2026-10-30 owner の目標は県ごとに100件＝約4,700件。1枚なら約8.5MB）
  *
- * HTML は `no-cache, no-store` で配る（`scripts/deploy-static-site.js` の
+ * HTML は `no-cache`（毎回たしかめる） で配る（`scripts/deploy-static-site.js` の
  * `isHtmlOrTxt`）ので、これは**訪問のたびに落ちるバイト**になる。
  *
  * だからこの関数が返すのは**県の名前と件数だけ**。1件あたり50バイト前後で、

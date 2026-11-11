@@ -12,7 +12,7 @@ export const dynamicParams = false;
  * **海外の国ごとの撮影スポット一覧**（`/spots/area/overseas/<国の2文字>`・2026-10-11）。
  *
  * それまで海外は `/spots/area/overseas` の1頁に814件（約1.3MB）を並べていた。
- * HTML は `no-cache, no-store` で配る（`scripts/deploy-static-site.js`）ので、訪問のたびに
+ * HTML は `no-cache`（毎回たしかめる） で配る（`scripts/deploy-static-site.js`）ので、訪問のたびに
  * 落ちる重さだった。`/spots/area/overseas` は国の一覧（件数つき）にし、スポットはここに分ける。
  *
  * 区画（`[area]`）は海外だけ。県（`/spots/area/kyoto`）の下には作らない。

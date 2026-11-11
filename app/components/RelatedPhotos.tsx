@@ -41,7 +41,7 @@ export default function RelatedPhotos({ title, photos, locale, fallbackAlt }: Pr
                     const named = relatedPhotoAlt(p, locale, fallbackAlt);
                     return (
                         // **先読みしない。** 一覧で何本も出るリンクなので、画面に入るたびに
-                        // 行き先の RSC の控え（`no-store` 配信）を落とし直す。理由と実測は
+                        // 行き先の RSC の控え（`no-cache` 配信）を落とし直す。理由と実測は
                         // `app/components/GalleryGrid.tsx` のカードのコメントに書いた
                         <Link
                             key={p.id}

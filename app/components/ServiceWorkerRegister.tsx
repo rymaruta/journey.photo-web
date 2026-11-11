@@ -19,7 +19,7 @@ export default function ServiceWorkerRegister() {
         // アプリは、iOS が破棄せずに再開させることが多く、画面の移動も
         // クライアント側の遷移だけ——ブラウザが自分で更新を確かめる機会が
         // ほとんど無く、sw.js を直してもなかなか届かなかった（#17）。
-        // 確かめるのは1時間に1回まで（sw.js は no-store なので毎回取りに行く）
+        // 確かめるのは1時間に1回まで（sw.js は no-cache なので毎回取りに行く）
         let lastCheck = Date.now();
         const onVisible = () => {
             if (document.visibilityState !== "visible" || !reg) return;
