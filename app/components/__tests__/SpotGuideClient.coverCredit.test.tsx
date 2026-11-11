@@ -47,3 +47,13 @@ describe("代表写真の出典の行", () => {
             .toBe("写真: 撮った人 / CC BY-SA 3.0 / Wikimedia Commons（一部を切り抜いて表示）");
     });
 });
+
+describe("一番上の写真（撮影スポットの頁の LCP・2026-11-11 札 #527）", () => {
+    it("先に取らせる（fetchpriority=high）・遅延読み込みにしない", () => {
+        const { container } = render(<ToastProvider><SpotGuideClient spot={SPOT} photos={[]} nearby={[]} locationPath={null} /></ToastProvider>);
+        const img = container.querySelector(`img[src="${COVER.src}"]`)!;
+        expect(img).toBeTruthy();
+        expect(img.getAttribute("fetchpriority")).toBe("high");
+        expect(img.getAttribute("loading")).not.toBe("lazy");
+    });
+});

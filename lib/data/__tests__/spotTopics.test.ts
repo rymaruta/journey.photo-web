@@ -168,6 +168,36 @@ describe("国", () => {
         expect(topicMetadata(big).alternates?.canonical).toBe(`${siteConfig.url}/spots/area/overseas/fr`);
     });
 
+    // 2026-11-11（札 journey.photo-ios#527）: 1件の国の頁は noindex なので、そこからしか張られていない
+    // スポットの頁が検索から見て孤立していた（本番の全 URL を辿って3件）。一覧から直にスポットへ張る
+    it("1件の国は、海外の一覧からその1件のスポットの頁へ直に張る（構造化データもスポットの名前）", () => {
+        const ones = countries.filter((c) => c.spots.length < MIN_INDEXABLE_COUNTRY);
+        expect(ones.length).toBeGreaterThan(0);
+        const v = overseasView();
+        const { itemList } = topicStructuredData(v);
+        for (const c of ones) {
+            const l = v.related[0].links.find((x) => x.label === c.name)!;
+            expect(l, c.code).toBeTruthy();
+            expect(l.href).toBe(`/spots/${c.spots[0].slug}`);
+            expect(l.count).toBe(1);
+            expect(itemList!.itemListElement.find((x) => x.url === `${siteConfig.url}/spots/${c.spots[0].slug}`)?.name).toBe(c.spots[0].name);
+        }
+        // 検索に出す国（2件以上）は今までどおり国の頁へ
+        const fr = v.related[0].links.find((x) => x.label === "フランス")!;
+        expect(fr.href).toBe("/spots/area/overseas/fr");
+        expect(itemList!.itemListElement.find((x) => x.url.endsWith("/spots/area/overseas/fr"))?.name).toBe("フランスの撮影スポット");
+        // 海外のスポットはどれも、検索に出る頁（海外の一覧か、2件以上の国の頁）から張られている
+        const indexableHrefs = new Set(v.related[0].links.map((x) => x.href));
+        for (const c of countries) {
+            for (const sp of c.spots) {
+                const reached = c.spots.length >= MIN_INDEXABLE_COUNTRY
+                    ? indexableHrefs.has(`/spots/area/overseas/${c.code}`) && countryView(c.code)!.cards.some((x) => x.slug === sp.slug)
+                    : indexableHrefs.has(`/spots/${sp.slug}`);
+                expect(reached, sp.slug).toBe(true);
+            }
+        }
+    });
+
     it("国の頁のパンくずは 海外 → 国", () => {
         const { breadcrumb } = topicStructuredData(countryView("fr")!);
         expect(breadcrumb.itemListElement.map((x) => x.name)).toEqual(["ホーム", "撮影スポット", "海外", "フランスの撮影スポット"]);

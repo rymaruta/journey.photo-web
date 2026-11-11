@@ -13,7 +13,7 @@ import SectionHead from "./SectionHead";
  * **公式撮影地ガイドの入口**（`/spots`）。**都道府県の一覧**を出す。
  *
  * 🔴 ここにスポットそのものを並べない。台帳が伸びるとページが重くなり、
- * HTML は `no-cache, no-store` で配るので**訪問のたびに**落ちる
+ * HTML は `no-cache`（毎回たしかめる） で配るので**訪問のたびに**落ちる
  * （実測は `lib/data/spotLink.ts` の `SpotArea` の注記）。
  *
  * 受け取るのは**県の名前と件数だけ**——47県でも3KBに満たない。

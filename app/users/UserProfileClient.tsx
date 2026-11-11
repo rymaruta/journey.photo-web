@@ -245,7 +245,7 @@ export function PhotoCard({ photo, locale, isOwner, onTogglePublish, pinned = fa
     return (
         <div className="relative overflow-hidden group" style={{ paddingTop: "125%" }}>
             {/* **先読みしない。** 一覧で何本も出るリンクなので、画面に入るたびに
-                行き先の RSC の控え（`no-store` 配信）を落とし直す。理由と実測は
+                行き先の RSC の控え（`no-cache` 配信）を落とし直す。理由と実測は
                 `app/components/GalleryGrid.tsx` のカードのコメントに書いた */}
             <Link
                 href={ROUTES.PHOTO(photo.id)}

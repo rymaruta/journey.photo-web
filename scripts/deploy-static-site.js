@@ -216,7 +216,7 @@ const NO_CACHE_KEYS = new Set([
 /**
  * 差し替えたときに CloudFront から消す必要があるか。
  *
- * - HTML/txt と `NO_CACHE_KEYS` は `no-store` で配るが、エッジには最大 minTTL の間残る
+ * - HTML/txt と `NO_CACHE_KEYS` は `no-cache` で配るが、エッジには最大 minTTL の間残る
  * - **固定名の資産**（`favicon.ico`・`icon-*.png`・`images/*`）は `max-age=3600` で
  *   配るので、差し替えても**最大1時間エッジに古いものが残る**。以前はここが
  *   無効化の対象に入っておらず、アイコンを差し替えた直後に `/favicon.ico` を
@@ -227,6 +227,26 @@ const NO_CACHE_KEYS = new Set([
 function isInvalidatable(key) {
     if (key.startsWith("_next/")) return false;
     return true;
+}
+
+/**
+ * 配るときの `Cache-Control`。
+ *
+ * **HTML・txt・サイトマップ・photos.json・sw.js は `no-cache`（毎回たしかめる・2026-11-11 札 journey.photo-ios#527）。**
+ * 以前は `no-cache, no-store, must-revalidate` だった。`no-store` があると Chrome は**戻る・進むの即時表示
+ * （bfcache）にページを入れない**（CDP の `Page.backForwardCacheNotUsed` が本番の撮影スポットの頁で
+ * `MainResourceHasCacheControlNoStore` と `JsNetworkRequestReceivedCacheControlNoStoreResource` を返した。
+ * `no-cache` だけの頁ではこの2つが消える）。さらに毎回まるごと落とし直す（ETag での 304 が使えない）。
+ * `no-cache` は「控えてよいが、使う前に必ず配信元にたしかめる」なので、**古い HTML を出さないのは今までと同じ**
+ * （ブラウザは毎回 If-None-Match を送り、変わっていなければ 304 で中身を送らない）。
+ * CloudFront は `no-store` でも `no-cache` でも最小 TTL（1 秒）だけ持つので、エッジの振る舞い・無効化・費用は変わらない
+ */
+function cacheControlFor(key) {
+    return isHtmlOrTxt(key) || NO_CACHE_KEYS.has(key)
+        ? "no-cache"
+        : key.startsWith("_next/")
+            ? "public, max-age=31536000, immutable"
+            : "public, max-age=3600";
 }
 
 async function uploadFile(filePath) {
@@ -242,11 +262,7 @@ async function uploadFile(filePath) {
     // ブラウザは再検証すらしないので新しいものが永久に届かない
     // （ホーム画面に追加した PWA のアイコンが変わらない）。
     // しかも無効化の対象からも外していたので、直す手段が無かった。
-    const cacheControl = isHtmlOrTxt(filePath) || NO_CACHE_KEYS.has(key)
-        ? "no-cache, no-store, must-revalidate"
-        : key.startsWith("_next/")
-            ? "public, max-age=31536000, immutable"
-            : "public, max-age=3600";
+    const cacheControl = cacheControlFor(key);
 
     await s3.send(new PutObjectCommand({
         Bucket: bucket,
@@ -285,7 +301,7 @@ const ASSET_GRACE_MS = 30 * 24 * 60 * 60 * 1000; // 30日（コスト僅少・�
 /**
  * ビルドに無くなったら**猶予なしで消す**キーか。
  *
- * - HTML/txt（no-store 配信・古いページが古いアセットを参照するだけ）
+ * - HTML/txt（no-cache 配信・古いページが古いアセットを参照するだけ）
  * - **アプリ向けの撮影スポットの本文**（`app/data/spots/<slug>.json`・2026-09-27）。
  *   下書きに戻した場所の本文が30日配られ続けると、Web のページは消えたのに
  *   アプリ（圏外の控えの索引から取りに行く）だけ確かめていない文を出す。
@@ -961,7 +977,7 @@ async function main() {
 module.exports = {
     verifyOgImage, splitImagesFirst,
     assertNoForbiddenContent, assertRobotsMatchesTarget, invalidationTargets,
-    FORBIDDEN_IN_OUTPUT, forbiddenPattern, shouldScan, classifyStaleObjects, deletesImmediately, isHtmlOrTxt, ASSET_GRACE_MS, invalidationPathsFor, changedKeys, isInvalidatable,
+    FORBIDDEN_IN_OUTPUT, forbiddenPattern, shouldScan, classifyStaleObjects, deletesImmediately, isHtmlOrTxt, ASSET_GRACE_MS, invalidationPathsFor, changedKeys, isInvalidatable, cacheControlFor,
     bulkDeleteGuard, BULK_DELETE_RATIO, BULK_DELETE_MIN, deleteStaleKeys,
     pageCheckTargets, runnerLooksReachable };
 

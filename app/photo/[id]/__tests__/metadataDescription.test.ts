@@ -73,6 +73,17 @@ describe("説明が無い写真の meta description", () => {
         expect(d).toContain("旅");
     });
 
+    // 2026-11-11（札 journey.photo-ios#527）: 本番で題・撮影地・説明・カテゴリ・撮影日の無い写真の頁が、
+    // トップと同じ description（サイトの説明）を持っていた。投稿者は分かるので、それで組む
+    it("材料が無くても投稿者が分かれば「<名前>さんが Journey Photo に載せた写真。」（サイトの説明を名乗らない）", async () => {
+        const d = await describeOf({ displayName: "luzhj" });
+        expect(d).toBe("luzhjさんが Journey Photo に載せた写真。");
+        const withCam = await describeOf({ displayName: "luzhj", exif: { camera: "SONY ILCE-7M3" } });
+        expect(withCam).toBe("luzhjさんが Journey Photo に載せた写真。（SONY ILCE-7M3）");
+        // 撮影地などの事実があればそちらが先（今までどおり）
+        expect(await describeOf({ displayName: "luzhj", location: "東京" })).toBe("東京で撮影した写真。");
+    });
+
     // 正常系: 自分の説明があればそちらを出す
     it("説明があればそれを出す", async () => {
         const d = await describeOf({ description: { ja: ["静かな朝だった。"] }, location: "東京" });
