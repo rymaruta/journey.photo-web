@@ -1107,7 +1107,8 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
      */
     const hasAudio = isVideo || !!item.song;
     /** 左下に出すチップ（撮影地・BGM）が1つでも在るか */
-    const hasBottomChips = (!!item.location && item.locationOnPhoto !== true) || !!item.song;
+    // 紹介した写真への「写真を見る」も、この段に出す（2026-11-11・#541）
+    const hasBottomChips = (!!item.location && item.locationOnPhoto !== true) || !!item.song || !!item.sharedPhotoId;
     const hasTexts = !!item.texts?.length || !!item.caption;
     /**
      * 下のひとことの欄を出すか。**文字の項目が在るときだけ隠す**——そのとき
@@ -1544,6 +1545,21 @@ export default function StoryViewer({ groups, initialGroupIndex, initialItemInde
                     {/* 閲覧者・返信・残す・キャプションの段（従来どおり横に並べ、
                         溢れたら折り返す） */}
                     <div className="w-full flex flex-wrap items-center gap-2">
+                    {/* **紹介した写真へ**（2026-11-11・journey.photo-ios#541 の ①）。写真を札にしたストーリーだけ。
+                        写真の上なので白（ガラス）。行き先は写真の頁（`ROUTES.PHOTO`・頁の無い写真は `/?photo=`） */}
+                    {item.sharedPhotoId && (
+                        <Link
+                            href={ROUTES.PHOTO(item.sharedPhotoId)}
+                            // 閉じてから移る（`/?photo=` は同じホームの頁なので、閉じないと上に残る）
+                            onClick={() => onClose()}
+                            className="pointer-events-auto flex-shrink-0 inline-flex items-center gap-1.5 min-h-11 px-4 rounded-full bg-black/55 border border-line backdrop-blur-md text-white text-sm font-semibold"
+                            style={{ touchAction: "manipulation" }}
+                        >
+                            <PhotoIcon className="w-4 h-4" aria-hidden="true" />
+                            {locale === "en" ? "View photo" : "写真を見る"}
+                            <span aria-hidden="true">›</span>
+                        </Link>
+                    )}
                     {/* アーカイブでは出さない——必ず 0 人で、押しても何も無い
                         ボタンを置かない（すぐ下の返信バッジと同じ線） */}
                     {isOwnStory && !item.archivedAt && (

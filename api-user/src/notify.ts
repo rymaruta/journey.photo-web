@@ -32,7 +32,19 @@ export type Notif = {
     // 作らない**（`storyMentions.ts`）。古いアプリは知らない `type` を `kind: nil` で
     // 読む（一覧は壊れない）。**端末への通知は `PUSH_READY_TYPES` に入れるまで送らない**
     // （下。鍵が無い古いアプリが `NOTIF_STORY_MENTION` の文字をそのまま出すため）。
-    type: "like" | "comment" | "follow" | "storyreply" | "badge" | "inspired" | "storymention";
+    //
+    // `storyshare`（2026-11-11・journey.photo-ios#541 の ①）は「あなたの写真をストーリーで紹介しました」。
+    // `photoId` / `photoSrc` は**紹介された自分の写真**（持ち主は紹介した人のストーリーを見られない
+    // ことがあるので、行き先は写真）。`byId` / `byName` は紹介した人（`stories.ts` の `createStory`）。
+    //
+    // `commentreply`（2026-11-11・同 ②）は「あなたのコメントに返信しました」。`photoId` はコメントの
+    // 付いた写真、`commentId` は**返信のコメント**（押すとそのコメントへ）。`comments.ts` の `postComment`。
+    // 返信の相手が写真の持ち主なら、持ち主には `comment` ではなくこちら1つだけを送る（二重にしない）。
+    //
+    // どちらも古いアプリは `kind: nil` で読み（一覧は壊れない）、**端末への通知は `PUSH_READY_TYPES`
+    // に入れるまで送らない**（`storymention` と同じ理由・下）
+    type: "like" | "comment" | "follow" | "storyreply" | "badge" | "inspired" | "storymention"
+        | "storyshare" | "commentreply";
     photoId: string;
     photoSrc: string;
     byName: string;
@@ -65,6 +77,8 @@ export type Notif = {
      * 端末のバッジ（`sendToDevices`）は、この行をベルの側で数えない（DM の未読で1回だけ数える）
      */
     dmConvId?: string;
+    /** `commentreply` だけ: 返信のコメントの id（押した先でそのコメントへ寄せる） */
+    commentId?: string;
     t: string;
 };
 
@@ -412,10 +426,15 @@ const LOC_KEYS: Record<Notif["type"] | "dm", string> = {
     inspired: "NOTIF_INSPIRED",
     // 引数は投稿者の名前。アプリの文面は「%@ がストーリーであなたをメンションしました」
     storymention: "NOTIF_STORY_MENTION",
+    // 引数は紹介した人の名前。アプリの文面は「%@ があなたの写真をストーリーで紹介しました」
+    storyshare: "NOTIF_STORY_SHARE",
+    // 引数は返信した人の名前。アプリの文面は「%@ があなたのコメントに返信しました」
+    commentreply: "NOTIF_COMMENT_REPLY",
 };
 
 /**
- * 端末へ送ってよい種類。**`storymention` は入れていない**（2026-11-09 判断）。
+ * 端末へ送ってよい種類。**`storymention`・`storyshare`・`commentreply` は入れていない**
+ * （2026-11-09・2026-11-11 判断）。
  *
  * 文面は端末の `Localizable.strings` の鍵で出す（上）。**鍵を持たない古い
  * アプリは、鍵の文字列そのもの（`NOTIF_STORY_MENTION`）を通知に出す**。
@@ -484,6 +503,8 @@ async function deliverPush(ownerId: string, notif: Notif, storedUnread?: unknown
             ...(notif.sourcePhotoId ? { sourcePhotoId: notif.sourcePhotoId } : {}),
             // ストーリーへの文字の返信が DM の受信箱に入った: 押した先に会話を選べるよう会話 ID を添える
             ...(notif.dmConvId ? { convId: notif.dmConvId } : {}),
+            // コメントへの返信: 押した先でそのコメントへ寄せる
+            ...(notif.commentId ? { commentId: notif.commentId } : {}),
         },
     });
 }
