@@ -27,14 +27,14 @@ describe("事実のファイル（content/spot-visit-facts.json）", () => {
         expect(visitFactProblems(FILE, TODAY)).toEqual([]);
     });
 
-    it("載せるのは公開済みの国内の撮影スポットだけ", () => {
-        const pub = new Map(publishableSpots(SPOTS).map((s) => [s.slug, s]));
-        const bad = visitFactSlugs().filter((slug) => pub.get(slug)?.region?.country !== "日本");
+    it("載せるのは公開済みの撮影スポットだけ（2 回目から海外も・2026-11-11）", () => {
+        const pub = new Set(publishableSpots(SPOTS).map((s) => s.slug));
+        const bad = visitFactSlugs().filter((slug) => !pub.has(slug));
         expect(bad).toEqual([]);
     });
 
-    it("1 回目は 100 件", () => {
-        expect(visitFactSlugs().length).toBe(100);
+    it("1 回目（国内 100 件）と 2 回目（Search Console の順位 8〜20 の頁 100 件）で 200 件", () => {
+        expect(visitFactSlugs().length).toBe(200);
     });
 
     it("画面の文に「撮りどき」を使わない（CLAUDE.md の言葉の好み）", () => {
