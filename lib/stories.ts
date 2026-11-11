@@ -41,6 +41,13 @@ export type Story = {
      * 固定の撮影地の札を**出さない**——写真の上の札と2度出る。`location` は残る
      */
     locationOnPhoto?: boolean;
+    /**
+     * **紹介した写真の id**（2026-11-11・journey.photo-ios#541 の ①）。アプリの「共有 → ストーリーに載せる」で
+     * 写真を札にした1枚に付く。見る画面は「写真を見る」でその写真へ送る。写真がもう見られない
+     * （非公開・範囲を絞った・消した・退会・ブロック）とき、サーバーは本人以外にその行ごと返さず、
+     * 本人にはこの欄を落として返す（`api-user/src/storyPhotoShare.ts`）
+     */
+    sharedPhotoId?: string;
     /** 画像ストーリーの表示秒数（投稿者が指定）。未指定なら既定の5秒 */
     durationSec?: number;
     /**

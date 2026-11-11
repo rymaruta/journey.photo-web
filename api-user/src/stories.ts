@@ -19,6 +19,7 @@ import { hasStoryTextItem, sanitizeStoryTexts, storyTextsCaption } from "./story
 import { storyAllowsReplies } from "./storyVisibility";
 import { parseStoryAudience, isCloseFriendsStory, canViewStoryAudience, closeFriendOwnersAmong } from "./storyAudience";
 import { resolveStoryMentions, maskDeletedMentions } from "./storyMentions";
+import { parseSharedPhotoId, checkSharedPhoto, unviewableSharedPhotos } from "./storyPhotoShare";
 
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
@@ -263,8 +264,21 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         const closeOf = closeOnly.length === 0
             ? new Set<string>()
             : await closeFriendOwnersAmong(userId, closeOnly.map((i) => String(i.userId ?? "")));
-        const visible = followed.filter((i) =>
+        const audienceOk = followed.filter((i) =>
             String(i.userId ?? "") === userId || !isCloseFriendsStory(i) || closeOf.has(String(i.userId ?? "")));
+
+        // 🔴 **紹介した写真がもう見られない行は、紹介した本人にしか出さない**
+        // （`storyPhotoShare.ts` の節・2026-11-11 判断）。絵に写真が写っているので、札の行き先を
+        // 消すだけでは写真が配られ続ける。本人の行は残して `sharedPhotoId` だけ落とす
+        // （押しても開けない）。紹介の行が無い一覧は写真を1枚も読まない
+        const lost = await unviewableSharedPhotos(audienceOk, hidden);
+        const visible = lost.size === 0 ? audienceOk : audienceOk.filter((i) => {
+            const shared = i.sharedPhotoId;
+            if (typeof shared !== "string" || !lost.has(shared)) return true;
+            if (String(i.userId ?? "") !== userId) return false;
+            delete i.sharedPhotoId;
+            return true;
+        });
 
         // **バッジの数も、返信一覧と同じふるいを通した数にする。**
         //
@@ -343,6 +357,7 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         location?: unknown; coords?: unknown; texts?: unknown;
         visibility?: unknown; allowReplies?: unknown; archive?: unknown;
         audience?: unknown;
+        sharedPhotoId?: unknown;
     };
     try {
         body = JSON.parse(event.body ?? "{}") as typeof body;
@@ -376,6 +391,13 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "不正なリクエスト" }) };
     }
     const audience = audienceIn.audience === "closeFriends" ? "closeFriends" as const : undefined;
+
+    // **紹介する写真**（`storyPhotoShare.ts`・2026-11-11）。形の違う値は断る（黙って紹介なしに
+    // 化けさせない）。紹介してよいかは、まだ何も書いていないうちに確かめる（下）
+    const sharedIn = parseSharedPhotoId(body.sharedPhotoId);
+    if (!sharedIn.ok) {
+        return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "不正なリクエスト" }) };
+    }
 
     const mediaType = body.mediaType === "video" ? "video" : "image";
     // 写真の上に置いた文字（何枚でも・それぞれ位置と見せ方を持つ）。
@@ -499,6 +521,19 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     if ("gone" in caller) return caller.gone;
     const displayName = displayNameOf(caller.row) ?? DEFAULT_NAME;
 
+    // 紹介してよい写真か（公開・ブロック無し・持ち主が退会していない）。断るときは「無い」と同じ 404
+    // （ブロックを教えない）。読めなければ下の catch ではなくここで 503——出してから消すより出さない
+    let shared: Awaited<ReturnType<typeof checkSharedPhoto>>;
+    if (sharedIn.photoId) {
+        try {
+            shared = await checkSharedPhoto(sharedIn.photoId, userId);
+        } catch (e) {
+            console.error("createStory: 紹介する写真を確かめられませんでした:", e);
+            return jsonError(503, "写真を確かめられませんでした。時間をおいてもう一度お試しください");
+        }
+        if (!shared) return jsonError(404, "写真が見つかりません");
+    }
+
     const now = Date.now();
     const story = {
         id: `story-${randomUUID()}`,
@@ -529,10 +564,14 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         // 既定は書かない（すぐ上の但し書き）。**`allowReplies` は `false` を
         // 書く**ので、`...(allowReplies ? ...)` では消える——値で分岐しない
         ...(allowReplies === false ? { allowReplies } : {}),
-        ...(archive ? { archive } : {}),
+        // **写真を紹介したストーリーは棚に残さない**（2026-11-11 判断・`storyPhotoShare.ts`）。残すと
+        // ハイライトから人の写真が出続け、持ち主が非公開にしても消えない（一覧のふるいは棚を通らない）
+        ...(archive && !shared ? { archive } : {}),
         // **親しい友達だけのときだけ書く**（既定は書かない。読む側は
         // `storyAudienceOf` が「無い＝全員」に均す）
         ...(audience ? { audience } : {}),
+        // 紹介した写真の id（紹介のときだけ書く・既存の行は何も変わらない）
+        ...(shared ? { sharedPhotoId: shared.photoId } : {}),
         userId,
         ...(displayName ? { displayName } : {}),
         createdAt: new Date(now).toISOString(),
@@ -561,6 +600,20 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
                 photoSrc: safeSrc,
                 byName: displayName,
                 byId: userId,
+                t: story.createdAt,
+            });
+        }
+        // **持ち主に知らせる**（自分の写真は除く）。`photoId` は**紹介された写真**——持ち主は
+        // 紹介した人をフォローしていないことがあり、ストーリーは開けないため。押すと自分の写真へ、
+        // 名前からは紹介した人へ。ブロックの再確認は `pushNotification` が持つ
+        if (shared && shared.ownerId !== userId) {
+            await pushNotification(shared.ownerId, {
+                type: "storyshare",
+                photoId: shared.photoId,
+                photoSrc: shared.thumb,
+                byName: displayName,
+                byId: userId,
+                ...(shared.location ? { atLocation: shared.location } : {}),
                 t: story.createdAt,
             });
         }

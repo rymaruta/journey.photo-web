@@ -20,7 +20,30 @@ export type Comment = {
     name: string;
     text: string;
     t: string;
+    /**
+     * **返信の相手**（2026-11-11 owner 承認・journey.photo-ios#541 の ②）。返信したときだけ持つ
+     * （既存のコメント・返信でないコメントは持たない＝古いアプリ・Web は読まずにふつうのコメントとして出す）。
+     * `name` は返信した時点の相手の表示名の写し（読むときに退会した人は伏せる）。
+     * 並びは今までどおり時刻順で、画面が「返信」として1段下げて出す
+     */
+    replyTo?: CommentReplyTo;
 };
+
+export type CommentReplyTo = { id: string; uid: string; name: string };
+
+/** 受け取った返信先の id の形（`uuidv4`）。形の違う値は断る */
+const COMMENT_ID_RE = /^[A-Za-z0-9_-]{1,64}$/;
+
+/**
+ * 返信の相手を決める。**相手のコメントがもう無い（消された・輪から落ちた）なら返信にしない**
+ * （本文はふつうのコメントとして残す。書いたものを捨てない・2026-11-11 判断）
+ */
+export function resolveReplyTo(existing: readonly Comment[], replyToId: string | undefined): CommentReplyTo | undefined {
+    if (!replyToId) return undefined;
+    const target = existing.find((c) => c.id === replyToId);
+    if (!target || typeof target.uid !== "string" || !target.uid) return undefined;
+    return { id: target.id, uid: target.uid, name: typeof target.name === "string" ? target.name : "" };
+}
 
 const COMMENTS_MAX = 200;   // 保持する上限（書き込み時に切り詰め・読み取りもこの数）
 /**
@@ -126,12 +149,20 @@ async function commentsResponse(photoId: string, viewerId: string | undefined, l
         // 載るので、sub は秘密ではない（userProfile.ts のコメント参照）。
         // 画面側は `deleted` を見てプロフィールへの導線を出さない。
         // コメントが無ければ引きに行かない
-        const gone = items.length === 0 ? new Set<string>() : withUnreadAsDeleted(await deletedAmong(items.map((c) => c.uid)));
+        // 返信の相手の名前（写し）も同じく伏せる（`replyTo.uid` も一緒に引く）
+        const gone = items.length === 0 ? new Set<string>() : withUnreadAsDeleted(await deletedAmong([
+            ...items.map((c) => c.uid),
+            ...items.map((c) => c.replyTo?.uid).filter((u): u is string => typeof u === "string"),
+        ]));
         const safeItems = gone.size === 0
             ? items
-            : items.map((c) => (gone.has(c.uid)
-                ? { ...c, name: DELETED_USER_NAME, deleted: true }
-                : c));
+            : items.map((c) => {
+                const replyTo = c.replyTo && gone.has(c.replyTo.uid)
+                    ? { ...c.replyTo, name: DELETED_USER_NAME, deleted: true }
+                    : c.replyTo;
+                const base = replyTo === c.replyTo ? c : { ...c, replyTo };
+                return gone.has(c.uid) ? { ...base, name: DELETED_USER_NAME, deleted: true } : base;
+            });
         return {
             statusCode: 200,
             // 未認証の口は誰に対しても同じ答えなので共有キャッシュに載せてよい。
@@ -177,7 +208,7 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     const photoId = event.pathParameters?.id;
     if (!uid || !photoId) return jsonError(400, "不正なリクエスト");
 
-    let body: { text?: unknown };
+    let body: { text?: unknown; replyTo?: unknown };
     try {
         body = JSON.parse(event.body ?? "{}") as typeof body;
     } catch {
@@ -185,6 +216,11 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     }
     const text = typeof body.text === "string" ? truncate(body.text.trim(), TEXT_MAX) : "";
     if (!text) return jsonError(400, "コメントを入力してください");
+    // 返信先（コメントの id）。無い・null は返信ではない。形の違う値は断る（黙ってふつうのコメントに化けさせない）
+    const replyToId = body.replyTo === undefined || body.replyTo === null || body.replyTo === ""
+        ? undefined
+        : (typeof body.replyTo === "string" && COMMENT_ID_RE.test(body.replyTo) ? body.replyTo : null);
+    if (replyToId === null) return jsonError(400, "不正なリクエスト");
 
     try {
         // 写真の存在確認（通知先とサムネ取得も兼ねる）
@@ -304,6 +340,11 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
                 if (existing.some((c) => c.id === comment.id)) {
                     storedItems = existing;
                     break;
+                }
+                // 返信の相手は**最初に読んだ一覧で1回だけ**決める（やり直しのたびに変えない）
+                if (attempt === 0) {
+                    const replyTo = resolveReplyTo(existing, replyToId);
+                    if (replyTo) comment.replyTo = replyTo;
                 }
                 // **免除するのは上限だけ。** オーナーは自分の写真に何件でも
                 // 返信できてよいが、それと「再送で2件入らないこと」は別の話
@@ -437,7 +478,23 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         // 投稿者のベルに何も来ない。本文は普通に出るので誰も気づけない）
         const ownerRaw = photo.userId ?? photo.uploadedBy;
         const owner = ownerRaw ? String(ownerRaw) : undefined;
-        if (owner && owner !== uid) {
+        // **返信の相手に知らせる**（2026-11-11・#541 の ②）。自分自身・ブロックのある相手（両向き）・
+        // 退会した人には送らない。相手が写真の持ち主なら、持ち主への「コメント」の知らせの代わりに
+        // こちら1つだけ（同じ1件で2つ届けない）
+        const replyTarget = await replyNotifyTarget(comment.replyTo, uid);
+        if (replyTarget) {
+            await pushNotification(replyTarget, {
+                type: "commentreply",
+                photoId,
+                photoSrc: String(photo.thumbSrc ?? photo.src),
+                byName: comment.name,
+                byId: uid,
+                commentId: comment.id,
+                ...(photo.location ? { atLocation: photo.location } : {}),
+                t: comment.t,
+            });
+        }
+        if (owner && owner !== uid && owner !== replyTarget) {
             await pushNotification(owner, {
                 type: "comment",
                 photoId,
@@ -455,6 +512,30 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         return jsonError(500, "投稿に失敗しました");
     }
 };
+
+/**
+ * 返信の知らせを送る相手。送らないなら undefined。
+ *
+ * ブロックは**両向き**で見る——`pushNotification` は「受け取る人が送った人をブロックしている」
+ * だけを止めるので、返信した本人が相手をブロックしている向きはここで止める。
+ * 読めなかったら送らない側（知らせは本体ではない）
+ */
+async function replyNotifyTarget(replyTo: CommentReplyTo | undefined, callerId: string): Promise<string | undefined> {
+    const target = replyTo?.uid;
+    if (!target || target === callerId) return undefined;
+    try {
+        const [a, b, gone] = await Promise.all([
+            isBlocked(target, callerId),
+            isBlocked(callerId, target),
+            deletedAmong([target]).then(withUnreadAsDeleted),
+        ]);
+        if (a || b || gone.has(target)) return undefined;
+        return target;
+    } catch (e) {
+        console.error("replyNotifyTarget: 相手を確かめられませんでした:", e);
+        return undefined;
+    }
+}
 
 // DELETE /photos/{id}/comments/{commentId} — 削除（投稿者本人 or 写真オーナー）
 export const deleteComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) => {
