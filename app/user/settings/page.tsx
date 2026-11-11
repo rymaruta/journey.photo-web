@@ -548,6 +548,16 @@ export default function SettingsPage() {
                             <span>{locale === "en" ? "Terms of use" : "利用規約"}</span>
                             <span aria-hidden="true" className="text-white/50">›</span>
                         </Link>
+                        {/* 意見を送る（2026-11-11 札 #546） */}
+                        <Link
+                            href={ROUTES.FEEDBACK("settings")}
+                            className={rowLinkClass}
+                            style={{ minHeight: "44px", touchAction: "manipulation" }}
+                            data-testid="settings-feedback"
+                        >
+                            <span>{locale === "en" ? "Send feedback" : "意見を送る"}</span>
+                            <span aria-hidden="true" className="text-white/50">›</span>
+                        </Link>
                     </div>
                 </section>
 
