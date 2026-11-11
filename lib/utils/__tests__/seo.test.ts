@@ -265,9 +265,9 @@ describe("generateOrganizationStructuredData", () => {
         expect(site.publisher).toEqual({ "@id": generateOrganizationStructuredData()["@id"] });
     });
 
-    it("App Store の頁は、画面のアプリの入口と同じ URL", async () => {
-        const { APP_STORE_URL } = await import("../../../app/components/AppInstallCard");
-        expect(generateOrganizationStructuredData().sameAs).toContain(APP_STORE_URL);
+    // develop にはアプリの入口の部品（`AppInstallCard`）がまだ無いので、App ID から見る
+    it("App Store の頁は siteConfig.iosAppId のアプリ", () => {
+        expect(generateOrganizationStructuredData().sameAs).toContain(`https://apps.apple.com/jp/app/id${siteConfig.iosAppId}`);
     });
 });
 
