@@ -13,7 +13,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ROUTES } from "@/lib/routes";
-import { siteConfig, generateItemListStructuredData } from "@/lib/utils/seo";
+import { siteConfig, generateItemListStructuredData, SITE_SHORT_NAME } from "@/lib/utils/seo";
 import { learnMetadata } from "@/lib/learn/seo";
 import { PREFECTURES } from "@/lib/data/prefectures";
 import { todayPlace, todayPrefTitle, nearbyForPlace, NEARBY_RADIUS_KM, NEARBY_LIMIT, type TodayPlace } from "@/lib/data/todayPlaces";
@@ -41,7 +41,11 @@ export async function generateMetadata({ params }: { params: Promise<{ pref: str
     const { pref } = await params;
     const place = todayPlace(pref);
     if (!place) return {};
-    return learnMetadata(ROUTES.TODAY_PREF(pref), todayPrefTitle(place), todayPrefDescription(place), "website");
+    // **題はサイト名を短い形で自分で付ける**（2026-11-11 札 journey.photo-ios#527）。全体の template
+    // （「 | Journey Photo 旅フォトギャラリー」）を足すと、本番で 47 県のうち 47 頁が 61〜62 字だった
+    // （サイトの全 4,344 頁で 60 字を超えるのは、ほかに利用者が題を付けた写真の頁 1 件だけ）。撮影スポットの頁と同じく template を外す
+    const md = learnMetadata(ROUTES.TODAY_PREF(pref), todayPrefTitle(place), todayPrefDescription(place), "website");
+    return { ...md, title: { absolute: `${todayPrefTitle(place)} | ${SITE_SHORT_NAME}` } };
 }
 
 const H2 = "m-0 mb-3 font-serif font-bold text-white";
