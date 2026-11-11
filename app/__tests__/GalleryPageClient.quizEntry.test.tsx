@@ -60,7 +60,9 @@ describe("ホームの上段の札の眉（2026-11-09・9人のレビュー）",
     it("日本語の画面は日本語の眉（THIS WEEK 等の英字を出さない）", () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const text = cards().textContent ?? "";
-        for (const w of ["写真を払う", "今週のお題", "今日の一問", "撮影スポット", "カメラ講座"]) expect(text, w).toContain(w);
+        // カメラ講座の札は 2026-11-12 に外した（≡ にある）
+        for (const w of ["写真を払う", "今週のお題", "今日の一問", "撮影スポット"]) expect(text, w).toContain(w);
+        expect(text, "カメラ講座の札が戻った").not.toContain("カメラ講座");
         for (const w of ["WHERE TO NEXT", "THIS WEEK", "DAILY QUIZ", "PHOTO SPOTS", "PHOTO GUIDES"]) expect(text, w).not.toContain(w);
     });
 });
@@ -75,13 +77,13 @@ describe("ホームの上段の札", () => {
         // 札の並び（今日のテーマ → 今日の一問 → 撮影スポット）の順序そのものは変えない
         const next = cards().nextElementSibling as HTMLElement;
         expect(next.getAttribute("data-testid")).toBe("app-install-card");
-        // その下に入口の帯（2026-11-09・撮影スポット・地図・探す・ログイン）。そのあとに切り替え
-        const band = next.nextElementSibling as HTMLElement;
-        expect(band).toBe(screen.getByTestId("home-entry-band"));
-        expect(band.nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
+        // 入口の帯（2026-11-09）は 2026-11-12 に外した（案 第10章・すぐ下の日本地図と重なる）。案内のすぐ下が切り替え
+        expect(screen.queryByTestId("home-entry-band")).toBeNull();
+        expect(next.nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
         expect(screen.getByTestId("home-feed-row")).toContainElement(screen.getByRole("tablist"));
         // 2026-11-11: 撮影スポットを払う入口がいつも1枚目（iOS と同じ）
-        expect(order()).toEqual(["home-swipe-entry", "home-theme-card", "home-quiz-entry", "home-spots-entry", "home-learn-entry"]);
+        // 2026-11-12: 教科書の札は外した（≡ にある・上の札は少なく）
+        expect(order()).toEqual(["home-swipe-entry", "home-theme-card", "home-quiz-entry", "home-spots-entry"]);
     });
 
     it("札の形は iOS と同じ（背 116・角 16・地 surface・白8% の縁・明朝 18 の題・眉は真鍮）", async () => {
@@ -98,11 +100,11 @@ describe("ホームの上段の札", () => {
         expect(quiz.querySelector(".eyebrow")!.className).toContain("text-accent");
     });
 
-    it("PC は 3 枚を並べ、電話は横にめくる（PC の幅の決まり W4）", async () => {
+    it("PC は 4 枚を1段に並べ、電話は横にめくる（PC の幅の決まり W4）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const ul = (await screen.findByTestId("home-top-cards")).querySelector("ul")!;
         expect(ul.className).toContain("overflow-x-auto");
-        expect(ul.className).toContain("lg:grid-cols-3");
+        expect(ul.className).toContain("lg:grid-cols-4");
         expect(ul.style.scrollSnapType).toBe("x mandatory");
         // 読み上げ用の字（sr-only・絶対配置）が並びの切り取りの外へ出て頁を横に広げない
         expect(ul.className.split(/\s+/)).toContain("relative");

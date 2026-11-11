@@ -25,16 +25,18 @@ import { readSwipeStarted, readSwipeWants } from "../../lib/utils/spotSwipe";
  *              12 text-2 の一行 → 出典 12 text-3 → ›。地 #0E0E0F・白8% の縁・角 16
  *     今日のテーマ: iOS の `DailyThemeCard` の形（眉の右に #タグ・題・一言・「参加する →」44・写真は右に 35% で薄く）
  *
- * 並び（iOS の `HomeTopCard.cards` のうち Web にあるもの）: 撮影スポットを払う（2026-11-11・いつも1枚目）→ 今日のテーマ → 今日の一問 → 撮影スポット（Web だけ・残す）→ 写真とカメラの教科書（Web だけ・2026-11-04 追加）。
+ * 並び（iOS の `HomeTopCard.cards` のうち Web にあるもの）: 撮影スポットを払う（2026-11-11・いつも1枚目）→ 今日のテーマ → 今日の一問 → 撮影スポット（Web だけ・残す）。
+ * 写真とカメラの教科書の札（2026-11-04 追加）は 2026-11-12 に外した（デザインの案 第10章「どこに何を置くか」: 上の札は
+ * 少なく・≡ メニューに同じ「写真とカメラの教科書」がある）。
  * 旅行プラン・旅の一冊・1年前・行きたい場所の季節の札は Web に無い機能（台帳の束 6）。
  *
  * **2026-10-31 iOS #422（#417 ③）に合わせ直した**: 札の背はどれも 116、題・一行・出典は1行ずつ（出典は
  * 真ん中を省き、末尾のライセンス名を残す）。今日のテーマの「参加する →」は題の右の小さいボタン（見た目 36・当たり 44）、
  * 今週もう参加した週は押せない「✓ 参加済み」（`hasJoinedTheme`・前は今日のテーマで「今日もう参加した日」）。
  *
- * **電話の幅は横にめくる**（左右 16・次の札を 24 見せる・1 枚ずつ止まる）。**PC（1024 以上）は 3 列に並べる**
- * （PC の幅の決まり W4: めくらずに並べる）。2026-11-11 に払う入口を足して 5 枚になったので、4 列（4＋1）から
- * 3 列（3＋2）にした——5 列は 1024px で札の字の幅が 80px を切り、題が読めない。背はいちばん高い札にそろえる。
+ * **電話の幅は横にめくる**（左右 16・次の札を 24 見せる・1 枚ずつ止まる）。**PC（1024 以上）は 4 列に並べる**
+ * （PC の幅の決まり W4: めくらずに並べる）。2026-11-11 に払う入口を足して 5 枚になり 3 列（3＋2）にしていたが、
+ * 2026-11-12 に教科書の札を外して 4 枚になったので 4 列（1 段）に戻した。背はいちばん高い札にそろえる。
  *
  * テーマと一問は**見ている端末の日付で決まる**ので、中身は載ったあとに入れる（静的 HTML に書き出した日の
  * テーマを焼かない・`ThemeEntry` の注記と同じ）。載るまでも札の形と行き先は出す（高さが変わらない）
@@ -101,7 +103,7 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
 
     return (
         <section aria-label={en ? "Today" : "今日の札"} className="mb-4 -mx-4 sm:mx-0" data-testid="home-top-cards">
-            <ul className="relative flex lg:grid lg:grid-cols-3 gap-2 overflow-x-auto lg:overflow-visible no-scrollbar m-0 px-4 sm:px-0 items-stretch"
+            <ul className="relative flex lg:grid lg:grid-cols-4 gap-2 overflow-x-auto lg:overflow-visible no-scrollbar m-0 px-4 sm:px-0 items-stretch"
                 // `relative`: 札の中の読み上げ用の字（`sr-only`・絶対配置）の基準をこの並びにする。無いと横に流れる並びの
                 // 切り取りの外に出て、電話の幅で頁ごと 796px に広がった（2026-10-31 実測）
                 style={{ listStyle: "none", scrollSnapType: "x mandatory", scrollPaddingLeft: "16px" }}>
@@ -153,18 +155,6 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                         line={en ? "Guides to photo spots" : "撮影スポットの案内"}
                         detail={spot ? credit(spot.credit) : undefined}
                         imageUrl={spot?.src}
-                    />
-                </li>
-                {/* 写真とカメラの教科書（2026-11-04 owner「カメラ講座の入口が無い」）: 入口がフッターの1か所だけだった。
-                    iOS には無い Web だけの入口。写真は付けない（札の形は同じ・出典の行も無い） */}
-                <li className={CARD_LI} style={CARD_LI_STYLE}>
-                    <TopCard
-                        href={ROUTES.LEARN}
-                        testId="home-learn-entry"
-                        eyebrow={en ? "PHOTO GUIDES" : "カメラ講座"}
-                        spoken={en ? "Photography guides" : "写真とカメラの教科書"}
-                        title={en ? "Photography guides" : "写真とカメラの教科書"}
-                        line={en ? "Camera basics, brands, composition" : "カメラの使い方・メーカー比較・構図"}
                     />
                 </li>
             </ul>
