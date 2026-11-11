@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { ChevronRightIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { ROUTES } from "../../lib/routes";
-import { dailyThemeFor, hasJoinedTheme, type DailyThemeEntry } from "../../lib/utils/dailyTheme";
+import { weeklyThemeFor, hasJoinedTheme, themeParticipants, participantsLine, type WeeklyThemeEntry } from "../../lib/utils/weeklyTheme";
 import { useAuth } from "../auth/context";
 import { CheckCircleIcon } from "@heroicons/react/24/solid";
 import { parseDailyQuiz, quizStorageKey, QUIZ_TIME_ZONE, type DailyQuiz } from "../../lib/utils/dailyQuiz";
@@ -29,7 +29,7 @@ import Thumb from "./Thumb";
  *
  * **2026-10-31 iOS #422（#417 ③）に合わせ直した**: 札の背はどれも 116、題・一行・出典は1行ずつ（出典は
  * 真ん中を省き、末尾のライセンス名を残す）。今日のテーマの「参加する →」は題の右の小さいボタン（見た目 36・当たり 44）、
- * 今日もう参加した日は押せない「✓ 参加済み」（`hasJoinedTheme`）。
+ * 今週もう参加した週は押せない「✓ 参加済み」（`hasJoinedTheme`・前は今日のテーマで「今日もう参加した日」）。
  *
  * **電話の幅は横にめくる**（左右 16・次の札を 24 見せる・1 枚ずつ止まる）。**PC（1024 以上）は 4 枚を並べる**
  * （PC の幅の決まり W4: めくらずに並べる）。背はいちばん高い札にそろえる。
@@ -39,18 +39,18 @@ import Thumb from "./Thumb";
  */
 export default function HomeTopCards({ locale, photos, seasonal = null }: {
     locale: "ja" | "en";
-    /** 今日のテーマの札の写真を選ぶ一覧（ホームの写真） */
+    /** 今週のお題の札の写真と、みんなの参加を選ぶ一覧（ホームの写真） */
     photos: readonly Photo[];
     /** 撮影スポットの札の写真（いまの季節の 1 件目）。無ければ写真なしの札 */
     seasonal?: HomeSeasonal | null;
 }) {
     const en = locale === "en";
     const { userId } = useAuth();
-    const [theme, setTheme] = React.useState<DailyThemeEntry | null>(null);
+    const [theme, setTheme] = React.useState<WeeklyThemeEntry | null>(null);
     const [quiz, setQuiz] = React.useState<{ quiz: DailyQuiz; answered: boolean } | null>(null);
 
     React.useEffect(() => {
-        setTheme(dailyThemeFor());
+        setTheme(weeklyThemeFor());
         const ymd = todayIn(QUIZ_TIME_ZONE);
         if (!ymd) return;
         let alive = true;
@@ -68,15 +68,20 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
         return () => { alive = false; };
     }, []);
 
-    // テーマのタグを持つ写真のうち、いちばんいいねの多い 1 枚（iOS の `DailyThemeCard.backdrop`）
+    // **みんなの参加**（今週お題のタグを付けて載せた公開の投稿・新しい順・iOS の `WeeklyTheme.participants`）。
+    // 端末の日付で決まるので、お題と同じく載ったあとに数える
+    const participants = React.useMemo(() => theme ? themeParticipants(theme, photos, tagKey) : [], [photos, theme]);
+
+    // 背景: 今週の参加があればその 1 枚目、無ければお題のタグを持つ写真でいちばんいいねの多い 1 枚（iOS の `WeeklyThemeCard.backdrop`）
     const themePhoto = React.useMemo(() => {
         if (!theme) return null;
+        if (participants.length > 0) return participants[0];
         const key = tagKey(theme.tag);
         const hits = photos.filter((p) => (p.tags ?? []).some((t) => typeof t === "string" && tagKey(t) === key));
         return hits.sort((a, b) => (Number(b.likes) || 0) - (Number(a.likes) || 0))[0] ?? null;
-    }, [photos, theme]);
+    }, [photos, theme, participants]);
 
-    // 今日もう参加したか（自分の写真のうち、今日投稿したテーマのタグの1枚）。描くのは載ったあと（端末の日付）
+    // 今週もう参加したか（自分の写真のうち、今週＝日本の時刻の月曜からお題のタグで投稿した1枚）。描くのは載ったあと（その時の日付）
     const joined = React.useMemo(() => !!theme && !!userId
         && hasJoinedTheme(theme, photos.filter((p) => p.userId === userId), tagKey), [theme, userId, photos]);
 
@@ -91,7 +96,7 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                 // 切り取りの外に出て、電話の幅で頁ごと 796px に広がった（2026-10-31 実測）
                 style={{ listStyle: "none", scrollSnapType: "x mandatory", scrollPaddingLeft: "16px" }}>
                 <li className={CARD_LI} style={CARD_LI_STYLE}>
-                    <ThemeCard theme={theme} photo={themePhoto} en={en} joined={joined} />
+                    <ThemeCard theme={theme} photo={themePhoto} en={en} joined={joined} participants={participants} />
                 </li>
                 <li className={CARD_LI} style={CARD_LI_STYLE}>
                     <TopCard
@@ -193,10 +198,15 @@ function TopCard({ href, testId, eyebrow, spoken, title, line, detail, imageUrl 
 }
 
 /**
- * 今日のテーマ（iOS の `DailyThemeCard`・#422）。眉の右に #タグ、題の右に「参加する →」（見た目 36・当たり 44・
- * 白の塗りに墨・テーマのタグを入れた投稿画面へ）、その下に一言（1行）。今日もう参加した日は押せない「✓ 参加済み」
+ * 今週のお題（iOS の `WeeklyThemeCard`・札 journey.photo-ios#537 案2・前は今日のテーマ・#422）。眉の右に #タグ、
+ * 題の右に「参加する →」（見た目 36・当たり 44・白の塗りに墨・お題のタグを入れた投稿画面へ）、その下に一言（1行）。
+ * 今週もう参加した週は押せない「✓ 参加済み」。
+ * **今週の参加があれば、一言の行を「みんなの参加」の行に替える**（24 の写真を最大 4 枚＋「今週 N件の投稿」・
+ * 押すとお題のタグで絞った「さがす」。当たりは上下に広げて 44）
  */
-function ThemeCard({ theme, photo, en, joined }: { theme: DailyThemeEntry | null; photo: Photo | null; en: boolean; joined: boolean }) {
+function ThemeCard({ theme, photo, en, joined, participants }: {
+    theme: WeeklyThemeEntry | null; photo: Photo | null; en: boolean; joined: boolean; participants: readonly Photo[];
+}) {
     const href = theme ? `${ROUTES.UPLOAD}?tag=${encodeURIComponent(theme.tag)}` : ROUTES.UPLOAD;
     const pill = "relative inline-flex items-center justify-center gap-1 rounded-full font-semibold whitespace-nowrap flex-shrink-0 px-[14px]";
     const pillStyle = { minHeight: "36px", fontSize: "13px", lineHeight: "18px" } as const;
@@ -210,7 +220,7 @@ function ThemeCard({ theme, photo, en, joined }: { theme: DailyThemeEntry | null
                 </span>
             )}
             <span className="relative flex flex-col gap-1 min-w-0">
-                <Eyebrow text={en ? "TODAY'S THEME" : "今日のテーマ"} spoken={en ? "Today's theme" : "今日のテーマ"} trailing={theme ? `#${theme.tag}` : undefined} />
+                <Eyebrow text={en ? "THIS WEEK" : "今週のお題"} spoken={en ? "This week's theme" : "今週のお題"} trailing={theme ? `#${theme.tag}` : undefined} />
                 <span className="flex items-center gap-2 min-w-0">
                     <span className="flex-1 min-w-0 font-serif font-bold truncate" style={{ fontSize: "18px", lineHeight: "24px" }}>
                         {theme ? (en ? theme.title.en : theme.title.ja) : "\u00a0"}
@@ -222,7 +232,7 @@ function ThemeCard({ theme, photo, en, joined }: { theme: DailyThemeEntry | null
                         </span>
                     ) : (
                         <Link href={href} prefetch={false} data-testid="home-theme-entry"
-                              aria-label={theme ? (en ? `Join today's theme #${theme.tag}` : `今日のテーマ #${theme.tag} に参加する`) : (en ? "Join today's theme" : "今日のテーマに参加する")}
+                              aria-label={theme ? (en ? `Join this week's theme #${theme.tag}` : `今週のお題 #${theme.tag} に参加する`) : (en ? "Join this week's theme" : "今週のお題に参加する")}
                               // 見た目 36・当たりは上下 4 ずつ広げて 44（`INLINE_BTN` と同じ形）
                               className={`${pill} bg-primary text-ink hover:brightness-110 transition before:absolute before:inset-x-0 before:-inset-y-[4px] before:content-[''] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent`}
                               style={{ ...pillStyle, touchAction: "manipulation" }}>
@@ -231,9 +241,29 @@ function ThemeCard({ theme, photo, en, joined }: { theme: DailyThemeEntry | null
                         </Link>
                     )}
                 </span>
-                <span className="text-text-2 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>
-                    {theme ? (en ? theme.prompt.en : theme.prompt.ja) : "\u00a0"}
-                </span>
+                {theme && participants.length > 0 ? (
+                    <Link href={`${ROUTES.SEARCH}?tags=${encodeURIComponent(theme.tag)}`} prefetch={false}
+                          data-testid="home-theme-participants"
+                          // 見た目は 24 の行、当たりは**下だけ** 20 広げて 44。上は広げない——上の「参加する」の当たり
+                          // （見た目 36 の下に 4）が行の間 4 を埋めて、ちょうどこの行の上端まで来ている（重ねない・札 #537 の確かめ役）
+                          className="relative flex items-center gap-1 min-w-0 self-start text-text-2 before:absolute before:inset-x-0 before:top-0 before:-bottom-[20px] before:content-[''] focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded"
+                          style={{ height: 24, touchAction: "manipulation" }}>
+                        <span className="sr-only">{en ? "Everyone's posts, " : "みんなの参加、"}</span>
+                        {participants.slice(0, 4).map((p) => (
+                            <span key={p.id} aria-hidden="true" className="relative flex-shrink-0 overflow-hidden bg-surface-2" style={{ width: 24, height: 24, borderRadius: 6 }}>
+                                <Thumb photo={p} alt="" sizes="24px" />
+                            </span>
+                        ))}
+                        <span className="truncate pl-1" style={{ fontSize: "12px", lineHeight: "16px" }}>
+                            {participantsLine(participants.length, en)}
+                        </span>
+                        <ChevronRightIcon aria-hidden="true" className="flex-shrink-0" style={{ width: 12, height: 12, strokeWidth: 2 }} />
+                    </Link>
+                ) : (
+                    <span className="text-text-2 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>
+                        {theme ? (en ? theme.prompt.en : theme.prompt.ja) : "\u00a0"}
+                    </span>
+                )}
             </span>
         </div>
     );
