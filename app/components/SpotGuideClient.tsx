@@ -24,6 +24,8 @@ import { lightCellText, lightLegend, type LightCalendar } from "../../lib/utils/
 import { LIGHT_MAX_OFFSET, direction, guideTimes, lightDateLabel, lightNote, lightSheet, lightZone, splitGuides, type LightBlock } from "../../lib/utils/spotLight";
 import { MILKY_WAY_MIN_ALTITUDE, directionSummary, milkyWaySummary, newMoonLabels, skyLead, type SpotSky } from "../../lib/utils/spotSky";
 import { takenMonthLine } from "../../lib/utils/takenMonth";
+import type { SpotVisitFactsView } from "@/lib/data/spotVisitFactsCore";
+import { VisitAccessRows, VisitHoursFees, VisitPhotoRules, VisitSeasons } from "./SpotVisitFacts";
 
 
 /**
@@ -103,6 +105,11 @@ type Props = {
      * 「すべて見る」の行き先（海外の区画は国の一覧になり、スポットは国の頁に並ぶ）
      */
     country?: { href: string; name: string; nameEn: string } | null;
+    /**
+     * 行く前に知りたい事実（見頃・アクセス・時間と料金・撮影の決まり）。**行ごとに出典つき**で、
+     * 出典の揃わない行は落とした後の値（`visitFactsFor`）。無ければ段を出さない（札 #527 の案 2・2026-11-11）
+     */
+    visit?: SpotVisitFactsView | null;
 };
 
 // 一覧の1行と、ほかのスポットの一覧は `SpotRows.tsx`（写真ページの「近くの撮影スポット」と共用・2026-10-22）
@@ -498,7 +505,7 @@ function Sources({ spot, field }: { spot: Spot; field: string }) {
     );
 }
 
-export default function SpotGuideClient({ spot, photos, autoNote = false, nearby, locationPath, area = null, sameArea = null, pageUrl, light = null, sky = null, samples = [], topics = [], country = null }: Props) {
+export default function SpotGuideClient({ spot, photos, autoNote = false, nearby, locationPath, area = null, sameArea = null, pageUrl, light = null, sky = null, samples = [], topics = [], country = null, visit = null }: Props) {
     const { locale } = useLocale();
     const { showToast } = useToast();
     const isJa = locale !== "en";
@@ -539,6 +546,11 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
     // 撮影ガイドの頭の1〜2文（計算の要約・2026-10-11）。**季節・時間帯の案内が台帳にある行はそちらが主役**なので出さない
     const guideLead = sky && (spot.seasonalGuide ?? []).length === 0 && (spot.timeOfDayGuide ?? []).length === 0
         ? skyLead(sky, isJa) : "";
+    // 事実の段の見出し（ほかの段と同じ `Head`）
+    const headOf = (id: string, title: string) => <Head id={id}>{title}</Head>;
+    // 公式の頁から読んだアクセスを出すか。**人が確かめたアクセス・駐車場を出す行では出さない**（二つの言い方を並べない）
+    const visitAccess = Boolean(visit && (visit.access || visit.parking)
+        && !(showsField(spot, "access") && spot.access) && !(showsField(spot, "parking") && spot.parking?.note));
     const mapHref = spot.coords ? `${ROUTES.MAP}#14/${spot.coords.lat}/${spot.coords.lng}` : ROUTES.MAP;
     // 「[都道府県] [市区町村] · N枚の写真」（iOS の `SpotScreen.subtitle`）。N は数えた値
     const photoCountLabel = isJa ? `${photos.length}枚の写真` : (photos.length === 1 ? "1 photo" : `${photos.length} photos`);
@@ -825,6 +837,9 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                             投稿が0枚の場所でも、どんな写真が撮れるかが分かるように。撮影ガイドの前 */}
                         {samples.length > 0 && <Samples samples={samples} isJa={isJa} spot={spot} />}
 
+                        {/* ── 見頃（公式の頁の事実・出典つき）── 撮影ガイド（運営のアドバイス）の前 */}
+                        {visit && <VisitSeasons facts={visit} isJa={isJa} head={headOf} />}
+
                         {/* ── 5. 撮影ガイド ──────────────────
                             **事実ではなく運営のアドバイス**なので、出典は求めない
                             （代わりに「撮影ガイド」という見出しで事実と分ける） */}
@@ -911,6 +926,9 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                             </section>
                         )}
 
+                        {/* ── 撮影の決まり（三脚・自撮り棒・ドローン・撮影禁止の範囲）。公式の頁に書いてあることだけ ── */}
+                        {visit && <VisitPhotoRules facts={visit} isJa={isJa} head={headOf} />}
+
                         {light && <LightTable light={light} sky={sky} isJa={isJa} />}
                         {sky && <NightSky sky={sky} isJa={isJa} />}
 
@@ -925,7 +943,7 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                         （1280×600 で実測済み・`app/GalleryPageClient.tsx` の注記） */}
                     <aside className="pt-8 lg:pt-6 lg:sticky lg:top-[calc(var(--header-h)_+_16px)] lg:max-h-[calc(100vh_-_var(--header-h)_-_var(--bottom-bar-h,84px)_-_32px)] lg:overflow-y-auto">
                         {/* ── 6. アクセス ── */}
-                        {(showsField(spot, "access") || showsField(spot, "parking") || spot.address) && (
+                        {(showsField(spot, "access") || showsField(spot, "parking") || spot.address || visitAccess) && (
                             <section className="mb-7" aria-labelledby="spot-access">
                                 <Head id="spot-access">{isJa ? "アクセス" : "Getting there"}</Head>
                                 {spot.address && (
@@ -963,8 +981,13 @@ export default function SpotGuideClient({ spot, photos, autoNote = false, nearby
                                         <Sources spot={spot} field="parking" />
                                     </div>
                                 )}
+                                {/* 公式の頁から読んだ行き方・駐車場（AI 照合・行ごとの出典）。人が確かめたアクセスがあればそちらだけ */}
+                                {visitAccess && <VisitAccessRows facts={visit!} isJa={isJa} />}
                             </section>
                         )}
+
+                        {/* ── 開いている時間と料金（公式の頁の事実・出典つき）── */}
+                        {visit && <VisitHoursFees facts={visit} isJa={isJa} head={headOf} />}
 
                         {/* ── 8. 地図（座標があるときだけ）── */}
                         {spot.coords && (
