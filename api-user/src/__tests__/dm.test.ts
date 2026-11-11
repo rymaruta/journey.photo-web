@@ -1539,6 +1539,46 @@ describe("写真を送る（photoId・札 #541・2026-11-11）", () => {
         expect((await read(ME)).items[0].photo).toEqual({ id: "photo-1", state: "gone" });
     });
 
+    it("🔴 公開範囲を絞った写真: 見せてよい人（フォロワー）にだけ live で、絵は署名つき URL。フォロワーでない受け手には gone", async () => {
+        const { generateKeyPairSync } = await import("node:crypto");
+        const { privateKey } = generateKeyPairSync("rsa", {
+            modulusLength: 2048,
+            privateKeyEncoding: { type: "pkcs8", format: "pem" },
+            publicKeyEncoding: { type: "spki", format: "pem" },
+        });
+        const saved = { id: process.env.CLOUDFRONT_KEY_PAIR_ID, key: process.env.CLOUDFRONT_PRIVATE_KEY };
+        process.env.CLOUDFRONT_KEY_PAIR_ID = "K1";
+        process.env.CLOUDFRONT_PRIVATE_KEY = privateKey;
+        try {
+            accepted();
+            rows["photo-1"] = photo({ audience: "followers", src: "https://cdn/private/p.jpg", thumbSrc: "https://cdn/private/p_t.webp" });
+            rows[KEY] = convRow([{ ...msg(ME, "", "2026-11-09T00:00:02.000Z", "m-photo-01"), photoId: "photo-1" }]);
+            follows(THIRD, ME);   // 送った人は持ち主のフォロワー・受け取った人は違う
+            const mine = await read(ME);
+            expect(mine.items[0].photo.state).toBe("live");
+            expect(mine.items[0].photo.src).toContain("https://cdn/private/p_t.webp?");
+            expect(mine.items[0].photo.src, "絞った写真の絵に署名が無い").toContain("Signature=");
+            expect((await read(PEER)).items[0].photo, "フォロワーでない受け手に絞った写真を見せている").toEqual({ id: "photo-1", state: "gone" });
+            // 公開の写真には署名しない（一覧と同じ URL）
+            rows["photo-1"] = photo();
+            expect((await read(ME)).items[0].photo.src).toBe("https://cdn/p_t.webp");
+        } finally {
+            if (saved.id === undefined) delete process.env.CLOUDFRONT_KEY_PAIR_ID; else process.env.CLOUDFRONT_KEY_PAIR_ID = saved.id;
+            if (saved.key === undefined) delete process.env.CLOUDFRONT_PRIVATE_KEY; else process.env.CLOUDFRONT_PRIVATE_KEY = saved.key;
+        }
+    });
+
+    it("🔴 同じ id の再送は、写真がその後に非公開になっても 404 にしない（入った1通をそのまま返す）", async () => {
+        accepted();
+        const first = await send("", ME, PEER, { photoId: "photo-1", id: "k-photo-0001" });
+        expect(first.statusCode).toBe(200);
+        // 1通目が本体に入った形にする（モックは書き込みを rows に写さないので、手で入れる）
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z"), { ...bodyOf(first).message, text: "", mine: undefined }]);
+        rows["photo-1"] = photo({ published: false });
+        const again = await send("", ME, PEER, { photoId: "photo-1", id: "k-photo-0001" });
+        expect(again.statusCode, "入った1通の再送を写真の判定で断っている").toBe(200);
+    });
+
     it("古い通（photoId なし）は今までどおり（photo・photoOnly の欄を作らない）", async () => {
         accepted();
         const b = await read(ME);
