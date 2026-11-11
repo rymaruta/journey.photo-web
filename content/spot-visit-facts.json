@@ -1,5 +1,5 @@
 {
- "_about": "撮影スポットの頁の「行く前に知りたい事実」（見頃・アクセス・開いている時間と料金・撮影の決まり）。札 rymaruta/journey.photo-ios#527 の案 2（2026-11-11）。AI が公式サイト（施設・自治体・観光協会）の頁を読み、事実の1行ごとに読んだ頁の URL・題・読んだ日（readAt）を付けた。出典の揃わない行は試験が落とし、画面も描かない。三脚・自撮り棒・ドローンは公式の頁に書いてあるときだけ（無ければ画面は『公式サイトに記載なし』）。readPages は読んだ頁の全部。形と規則は lib/data/spotVisitFacts.ts",
+ "_about": "撮影スポットの頁の「行く前に知りたい事実」（見頃・アクセス・開いている時間と料金・撮影の決まり）。札 rymaruta/journey.photo-ios#527 の案 2（2026-11-11）。AI が公式サイト（施設・自治体・観光協会）の頁を読み、事実の1行ごとに読んだ頁の URL・題・読んだ日（readAt）を付けた。出典の揃わない行は試験が落とし、画面も描かない。三脚・自撮り棒・ドローンは公式の頁に書いてあるときだけ（書いていない道具は行ごと出さず、可否を推さない）。readPages は読んだ頁の全部。形と規則は lib/data/spotVisitFacts.ts",
  "spots": {
   "fushimi-inari-taisha": {
    "delegatedBy": "rymaruta",
@@ -3944,17 +3944,17 @@
     },
     {
      "url": "https://asahidake.hokkaido.jp/archives/blog/26554",
-     "title": "&#x1f6a0;１１月１５日まで行ける！ | 大雪山旭岳ロープウェイ",
+     "title": "🚠１１月１５日まで行ける！ | 大雪山旭岳ロープウェイ",
      "readAt": "2026-11-11"
     },
     {
      "url": "https://asahidake.hokkaido.jp/archives/blog/26502",
-     "title": "&#x2603; 冬？の１１月のご案内 &#x1f6a0; | 大雪山旭岳ロープウェイ",
+     "title": "☃ 冬？の１１月のご案内 🚠 | 大雪山旭岳ロープウェイ",
      "readAt": "2026-11-11"
     },
     {
      "url": "https://asahidake.hokkaido.jp/archives/blog/26444",
-     "title": "&#x1f6a0;営業時間変更のお知らせ&#x23f0;10/21より | 大雪山旭岳ロープウェイ",
+     "title": "🚠営業時間変更のお知らせ⏰10/21より | 大雪山旭岳ロープウェイ",
      "readAt": "2026-11-11"
     }
    ],
@@ -7096,22 +7096,22 @@
    "readPages": [
     {
      "url": "https://www.postojnska-jama.eu/en/predjama-castle/",
-     "title": "Predjama Castle &raquo; Postojna Cave Park - Welcome to the official website",
+     "title": "Predjama Castle » Postojna Cave Park - Welcome to the official website",
      "readAt": "2026-11-11"
     },
     {
      "url": "https://www.postojnska-jama.eu/en/tickets/",
-     "title": "Postojna Cave Park Tickets &raquo; Postojna Cave Park - Welcome to the official website",
+     "title": "Postojna Cave Park Tickets » Postojna Cave Park - Welcome to the official website",
      "readAt": "2026-11-11"
     },
     {
      "url": "https://www.postojnska-jama.eu/en/information/",
-     "title": "Information &raquo; Postojna Cave Park - Welcome to the official website",
+     "title": "Information » Postojna Cave Park - Welcome to the official website",
      "readAt": "2026-11-11"
     },
     {
      "url": "https://www.postojnska-jama.eu/en/information/contact-details/",
-     "title": "Contact Details &raquo; Postojna Cave Park - Welcome to the official website",
+     "title": "Contact Details » Postojna Cave Park - Welcome to the official website",
      "readAt": "2026-11-11"
     }
    ],
@@ -7119,7 +7119,7 @@
     {
      "text": "休日や悪天候の日も含め、毎日開いている（時間は公式の頁で確かめる）",
      "url": "https://www.postojnska-jama.eu/en/predjama-castle/",
-     "title": "Predjama Castle &raquo; Postojna Cave Park - Welcome to the official website",
+     "title": "Predjama Castle » Postojna Cave Park - Welcome to the official website",
      "readAt": "2026-11-11"
     }
    ]
@@ -7879,7 +7879,7 @@
     },
     {
      "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/acces-et-plans",
-     "title": "Accès et plan - Se rendre à l&#x27;Aiguille du Midi - Chamonix",
+     "title": "Accès et plan - Se rendre à l'Aiguille du Midi - Chamonix",
      "readAt": "2026-11-11"
     },
     {
@@ -7906,7 +7906,7 @@
    "parking": {
     "text": "グレポンの有料駐車場がある",
     "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/acces-et-plans",
-    "title": "Accès et plan - Se rendre à l&#x27;Aiguille du Midi - Chamonix",
+    "title": "Accès et plan - Se rendre à l'Aiguille du Midi - Chamonix",
     "readAt": "2026-11-11",
     "available": true
    },
@@ -7914,7 +7914,7 @@
     "drone": {
      "text": "ドローンは禁止",
      "url": "https://aiguilledumidi.montblancnaturalresort.com/fr/acces-et-plans",
-     "title": "Accès et plan - Se rendre à l&#x27;Aiguille du Midi - Chamonix",
+     "title": "Accès et plan - Se rendre à l'Aiguille du Midi - Chamonix",
      "readAt": "2026-11-11",
      "status": "prohibited"
     }
@@ -8652,7 +8652,7 @@
    "readPages": [
     {
      "url": "https://www.indonesia.travel/gb/en/destination/bali-nusa-tenggara/bali/gunung-agung",
-     "title": "Mount Agung: Trek Bali&#x27;s Sacred Peak - Indonesia Travel",
+     "title": "Mount Agung: Trek Bali's Sacred Peak - Indonesia Travel",
      "readAt": "2026-11-11"
     },
     {
@@ -8680,7 +8680,7 @@
     {
      "text": "いちばん早く人気の登山道は南側のプラ・パサール・アグンから。南の火口の頂（2,907m）まで約3〜4時間",
      "url": "https://www.indonesia.travel/gb/en/destination/bali-nusa-tenggara/bali/gunung-agung",
-     "title": "Mount Agung: Trek Bali&#x27;s Sacred Peak - Indonesia Travel",
+     "title": "Mount Agung: Trek Bali's Sacred Peak - Indonesia Travel",
      "readAt": "2026-11-11",
      "mode": "walk"
     }
@@ -9832,6 +9832,12 @@
      "url": "https://heritageireland.ie/places-to-visit/sceilg-mhichil/",
      "title": "Sceilg Mhichíl UNESCO World Heritage Property | Heritage Ireland",
      "readAt": "2026-11-11"
+    },
+    {
+     "text": "島へ渡るボートの料金は別（島へは許可を持つボート会社の船でしか行けない）",
+     "url": "https://heritageireland.ie/places-to-visit/sceilg-mhichil/",
+     "title": "Sceilg Mhichíl UNESCO World Heritage Property | Heritage Ireland",
+     "readAt": "2026-11-11"
     }
    ]
   },
@@ -9902,7 +9908,7 @@
    ],
    "fees": [
     {
-     "text": "入場料は1人40元（2026年11月の案内。季節で変わる）",
+     "text": "入場料は1人40元（2026年11月の案内）",
      "url": "https://intl.dpm.org.cn/?l=jp",
      "title": "故宮博物院",
      "readAt": "2026-11-11",
@@ -11569,6 +11575,12 @@
    ],
    "fees": [
     {
+     "text": "入場料は外国人1,100ルピー、SAARC・BIMSTEC加盟国の人540ルピー、インド国民・OCIカード所持者50ルピー。霊廟の中に入るときは別に200ルピー（任意）",
+     "url": "https://www.tajmahal.gov.in/visiting-hours.aspx",
+     "title": "Visiting Hours",
+     "readAt": "2026-11-11"
+    },
+    {
      "text": "15歳未満は入場料が要らない（インド人・外国人とも）",
      "url": "https://www.tajmahal.gov.in/travel-information.aspx",
      "title": "Travel Information",
@@ -11631,7 +11643,7 @@
    "readPages": [
     {
      "url": "https://www.indonesia.travel/gb/en/destination/java/east-java/bromo-tengger-semeru-national-park---mount-bromo",
-     "title": "Mount Bromo: Indonesia&#x27;s Spectacular Peak - Indonesia Travel",
+     "title": "Mount Bromo: Indonesia's Spectacular Peak - Indonesia Travel",
      "readAt": "2026-11-11"
     },
     {
@@ -11659,7 +11671,7 @@
     {
      "text": "東ジャワの州都スラバヤから車で約4時間",
      "url": "https://www.indonesia.travel/gb/en/destination/java/east-java/bromo-tengger-semeru-national-park---mount-bromo",
-     "title": "Mount Bromo: Indonesia&#x27;s Spectacular Peak - Indonesia Travel",
+     "title": "Mount Bromo: Indonesia's Spectacular Peak - Indonesia Travel",
      "readAt": "2026-11-11",
      "mode": "car"
     }
