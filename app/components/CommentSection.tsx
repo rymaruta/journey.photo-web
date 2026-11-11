@@ -84,6 +84,30 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
         first?.scrollIntoView?.({ block: "nearest", behavior: reduced ? "auto" : "smooth" });
     }, [postedTick]);
 
+    // **返信の知らせから来たら、そのコメントの位置へ**（`#comment-<id>`・2026-11-11 #541）。
+    // 一覧を読み終えてから1回だけ送り、2秒だけ地を明るくして「これ」と分かるようにする。
+    // 消えたコメントなら何もしない（写真の先頭のまま）
+    const [jumpedTo, setJumpedTo] = useState<string | null>(null);
+    const jumpedRef = useRef(false);
+    useEffect(() => {
+        if (jumpedRef.current || loading || items.length === 0 || typeof window === "undefined") return;
+        const hash = window.location.hash;
+        if (!hash.startsWith("#comment-")) return;
+        jumpedRef.current = true;
+        let id = "";
+        try { id = decodeURIComponent(hash.slice("#comment-".length)); } catch { return; }
+        if (!items.some((c) => c.id === id)) return;
+        const el = document.getElementById(`comment-${id}`);
+        let reduced = false;
+        try { reduced = !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches; } catch { /* 動かす */ }
+        el?.scrollIntoView?.({ block: "center", behavior: reduced ? "auto" : "smooth" });
+        // 外（URL の `#`）を読み終えた一覧と突き合わせた結果を1回だけ映す（描画中には決められない）
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setJumpedTo(id);
+        const timer = setTimeout(() => setJumpedTo(null), 2000);
+        return () => clearTimeout(timer);
+    }, [loading, items]);
+
     const submit = async () => {
         const r = await add(text, replyingTo?.id);
         if (r.status === "ok") {
@@ -139,7 +163,9 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
                         const canDelete = isAuthenticated && (c.uid === userId || (photoOwnerId && photoOwnerId === userId));
                         // 返信は1段下げ、顔を小さく（iOS と同じ・2026-11-11）
                         return (
-                            <li key={c.id} className={`flex items-start gap-2.5${isReply ? " pl-9" : ""}`} data-reply={isReply ? "true" : undefined}>
+                            <li key={c.id} id={`comment-${c.id}`}
+                                className={`flex items-start gap-2.5 rounded-lg transition-colors duration-500${isReply ? " pl-9" : ""}${jumpedTo === c.id ? " bg-white/[0.08]" : ""}`}
+                                data-reply={isReply ? "true" : undefined} data-jumped={jumpedTo === c.id ? "true" : undefined}>
                                 {/* 退会した人のプロフィールはもう無い（墓石になり、
                                     公開APIは空を返す）。リンクを出すと「開いても
                                     何も無いページ」へ誘うので、名前とアイコンだけ出す。 */}

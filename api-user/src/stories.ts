@@ -167,10 +167,17 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         // **ストーリーの取得と同時に投げる。** 直列にしていたので、
         // 一覧が返ってくるまで待ってからブロックを引いていた＝往復が1回増えた。
         // 互いの結果に依存しないので並べてよい。
+        // ブロック一覧が読めなかった印。そのときは**紹介した写真のストーリーだけ**本人以外に出さない
+        // （紹介の門はブロックを見るので、空の集合で通すと「見せる」側に倒れる）
+        const blocks = { unread: false };
         const [items, hidden] = await Promise.all([
             queryStories("active"),
             hiddenUserIds(userId)
-                .catch((e) => { console.error("getStories: ブロック一覧を読めませんでした:", e); return new Set<string>(); }),
+                .catch((e) => {
+                    console.error("getStories: ブロック一覧を読めませんでした:", e);
+                    blocks.unread = true;
+                    return new Set<string>();
+                }),
         ]);
         for (const item of items) {
             // **「見た」印（`seen`）は、見た本人にだけ返す。** 札 #505 の C 案——
@@ -271,13 +278,16 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         // （`storyPhotoShare.ts` の節・2026-11-11 判断）。絵に写真が写っているので、札の行き先を
         // 消すだけでは写真が配られ続ける。本人の行は残して `sharedPhotoId` だけ落とす
         // （押しても開けない）。紹介の行が無い一覧は写真を1枚も読まない
+        // ブロック一覧が読めなかったときは、紹介の行を（本人のもの以外）全部落とす
         const lost = await unviewableSharedPhotos(audienceOk, hidden);
-        const visible = lost.size === 0 ? audienceOk : audienceOk.filter((i) => {
+        const visible = lost.size === 0 && !blocks.unread ? audienceOk : audienceOk.filter((i) => {
             const shared = i.sharedPhotoId;
-            if (typeof shared !== "string" || !lost.has(shared)) return true;
-            if (String(i.userId ?? "") !== userId) return false;
-            delete i.sharedPhotoId;
-            return true;
+            if (typeof shared !== "string" || !shared) return true;
+            if (String(i.userId ?? "") === userId) {
+                if (lost.has(shared)) delete i.sharedPhotoId;
+                return true;
+            }
+            return !blocks.unread && !lost.has(shared);
         });
 
         // **バッジの数も、返信一覧と同じふるいを通した数にする。**

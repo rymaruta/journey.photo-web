@@ -100,3 +100,41 @@ describe("threadComments", () => {
         expect(threadComments([c("x", "y"), c("y", "x")])).toHaveLength(2);
     });
 });
+
+describe("CommentSection: 返信の知らせから来たら、そのコメントの位置へ（#comment-<id>）", () => {
+    it("読み終えたらそのコメントへ送り、少しのあいだ印を付ける", async () => {
+        const spy = vi.fn();
+        const orig = Element.prototype.scrollIntoView;
+        Element.prototype.scrollIntoView = function (this: Element, ...a: unknown[]) { spy(this.id, ...a); } as typeof orig;
+        window.location.hash = "#comment-c3";
+        try {
+            render(<CommentSection photoId="p1" locale="ja" />);
+            await waitFor(() => expect(spy).toHaveBeenCalled());
+            expect(spy.mock.calls[0][0]).toBe("comment-c3");
+            expect(document.getElementById("comment-c3")?.getAttribute("data-jumped")).toBe("true");
+            expect(document.getElementById("comment-c1")?.getAttribute("data-jumped")).toBeNull();
+        } finally {
+            Element.prototype.scrollIntoView = orig;
+            window.location.hash = "";
+        }
+    });
+
+    it("もう無いコメントなら動かさない・印の無い URL では動かさない", async () => {
+        const spy = vi.fn();
+        const orig = Element.prototype.scrollIntoView;
+        Element.prototype.scrollIntoView = function (this: Element) { spy(this.id); } as typeof orig;
+        try {
+            window.location.hash = "#comment-gone";
+            const { unmount } = render(<CommentSection photoId="p1" locale="ja" />);
+            await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(3));
+            unmount();
+            window.location.hash = "";
+            render(<CommentSection photoId="p1" locale="ja" />);
+            await waitFor(() => expect(screen.getAllByRole("listitem")).toHaveLength(3));
+            expect(spy).not.toHaveBeenCalled();
+        } finally {
+            Element.prototype.scrollIntoView = orig;
+            window.location.hash = "";
+        }
+    });
+});

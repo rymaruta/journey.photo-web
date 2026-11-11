@@ -9,7 +9,7 @@ import { HeartIcon } from "@heroicons/react/24/solid";
 import { userFetch } from "../../lib/utils/api";
 import { useLocale } from "../i18n/context";
 import { useAuth } from "../auth/context";
-import { ROUTES } from "../../lib/routes";
+import { ROUTES, hasPhotoPage } from "../../lib/routes";
 import UserAvatar from "./UserAvatar";
 import { FollowAction } from "./FollowButton";
 import { CHIP_ON, CHIP_OFF, CHIP_SIZE, CHIP_HIT } from "./chipStyles";
@@ -57,6 +57,8 @@ type Notif = {
     tier?: number;
     /** `inspired` だけ: 元になった（自分の）写真 */
     sourcePhotoId?: string;
+    /** `commentreply` だけ: 返信のコメント（押すとそのコメントの位置へ） */
+    commentId?: string;
     t: string;
 };
 
@@ -151,6 +153,16 @@ const TAB_LABEL: Record<NotifTab, { ja: string; en: string }> = {
  * 知らない種別は「すべて」にだけ残る（本文は出ないが、行は数に入る）。
  * ここで弾くと、種別を足した人が**タブから消えたこと**に気づけない。
  */
+/**
+ * 返信の知らせの行き先。**写真の個別ページがあれば、そのコメントの位置**（`#comment-<id>`・
+ * `CommentSection` が読み終えたら送る）。個別ページが無い写真はモーダル（コメント欄が無い）なので写真だけ
+ */
+export function commentReplyHref(photoId: string, commentId: string | undefined): string {
+    const base = ROUTES.PHOTO(photoId);
+    if (!commentId || !hasPhotoPage(photoId)) return base;
+    return `${base}#comment-${encodeURIComponent(commentId)}`;
+}
+
 export function inTab(type: string, tab: NotifTab): boolean {
     if (tab === "all") return true;
     if (tab === "comment") return type === "comment" || type === "storyreply" || type === "storymention" || type === "commentreply";
@@ -999,7 +1011,8 @@ export default function NotificationsBell() {
                                         <Link
                                             href={n.type === "badge" && myId ? ROUTES.USER_PROFILE(myId)
                                                 : n.type === "follow" && n.targetUserId ? ROUTES.USER_PROFILE(n.targetUserId)
-                                                : n.type === "storymention" && byUser ? ROUTES.USER_PROFILE(byUser) : ROUTES.PHOTO(n.photoId)}
+                                                : n.type === "storymention" && byUser ? ROUTES.USER_PROFILE(byUser)
+                                                : n.type === "commentreply" ? commentReplyHref(n.photoId, n.commentId) : ROUTES.PHOTO(n.photoId)}
                                             onClick={closePanel}
                                             className="flex items-start gap-3 min-w-0 flex-1 active:opacity-80 transition"
                                             style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}

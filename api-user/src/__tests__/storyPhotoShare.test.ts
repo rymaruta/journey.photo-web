@@ -189,6 +189,33 @@ describe("getStories: 紹介した写真が見られなくなったら", () => {
         });
     }
 
+    it("🔴 紹介した写真が読めなかった（例外）: 本人以外には出さない", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        const real = mockDdbSend.getMockImplementation()!;
+        mockDdbSend.mockImplementation(async (cmd: Cmd) => {
+            if (cmd.constructor.name === "GetCommand" && String(cmd.input.Key?.id ?? "") === "p1") throw new Error("boom");
+            return real(cmd);
+        });
+        storyRows = [row()];
+        expect((await list("kenji")).map((i) => i.id), "読めなかった写真を「見られる」側に倒している").toEqual([]);
+        storyRows = [row()];
+        const mine = await list("sora");
+        expect(mine.map((i) => i.id)).toEqual(["story-1"]);
+        expect(mine[0].sharedPhotoId).toBeUndefined();
+        vi.restoreAllMocks();
+    });
+
+    it("🔴 見る人のブロック一覧が読めなかった: 紹介の行だけ本人以外に出さない（ふつうの行・本人の行は出す）", async () => {
+        vi.spyOn(console, "error").mockImplementation(() => undefined);
+        mockHidden.mockRejectedValue(new Error("boom"));
+        storyRows = [row(), row({ id: "story-2", sharedPhotoId: undefined })];
+        expect((await list("kenji")).map((i) => i.id), "ブロックを確かめずに紹介の行を出している").toEqual(["story-2"]);
+        storyRows = [row()];
+        const mine = await list("sora");
+        expect(mine.map((i) => [i.id, i.sharedPhotoId]), "本人の写真の id まで落としている").toEqual([["story-1", "p1"]]);
+        vi.restoreAllMocks();
+    });
+
     it("紹介の行が無い一覧は、写真を1枚も読まない", async () => {
         storyRows = [row({ sharedPhotoId: undefined })];
         await list("kenji");
