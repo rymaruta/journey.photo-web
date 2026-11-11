@@ -6,8 +6,9 @@
 import { FIELD } from "./fieldStyles";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { ChatBubbleOvalLeftIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { useComments } from "../../lib/hooks/useComments";
+import { ChatBubbleOvalLeftIcon, TrashIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import { useComments, type CommentItem } from "../../lib/hooks/useComments";
+import { threadComments } from "../../lib/utils/commentThreads";
 import { useAuth } from "../auth/context";
 import { useToast } from "../../lib/hooks/useToast";
 import { ROUTES } from "../../lib/routes";
@@ -21,6 +22,12 @@ type Props = {
     locale: "ja" | "en";
     initialCount?: number;
 };
+
+/** 「返信」の読み上げ（誰に返すか） */
+function replyLabel(c: CommentItem, locale: "ja" | "en"): string {
+    const who = c.name;
+    return locale === "en" ? `Reply to ${who}` : `${who}さんに返信`;
+}
 
 function timeAgo(iso: string, locale: "ja" | "en"): string {
     const t = Date.parse(iso);
@@ -48,6 +55,15 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
     const { showToast } = useToast();
     const { items, count, loading, loadError, reload, pending, add, remove } = useComments(photoId, isAuthenticated, initialCount, authLoading);
     const [text, setText] = useState("");
+    /**
+     * **返信している相手のコメント**（2026-11-11・journey.photo-ios#541 の ②）。コメントの下の「返信」で入り、
+     * 欄の上に「〇〇さんに返信中」と ×。送れたら外す。相手への知らせはサーバーが決める
+     * （自分自身・ブロックのある相手には送らない・`comments.ts`）
+     */
+    const [pickedReply, setReplyingTo] = useState<CommentItem | null>(null);
+    // 相手のコメントが一覧から消えたら（削除・読み直し）、返信中として扱わない（無い相手に「返信中」を出さない）
+    const replyingTo = pickedReply && items.some((c) => c.id === pickedReply.id) ? pickedReply : null;
+    const inputRef = useRef<HTMLTextAreaElement | null>(null);
     useEffect(() => { onCountChange?.(count); }, [count, onCountChange]);
 
     // **送ったコメントを見せる**（2026-10-21 判断）。並びは iOS と同じ新しい順（先頭）のまま——
@@ -69,9 +85,10 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
     }, [postedTick]);
 
     const submit = async () => {
-        const r = await add(text);
+        const r = await add(text, replyingTo?.id);
         if (r.status === "ok") {
             setText("");
+            setReplyingTo(null);
             setPostedTick((n) => n + 1);
         }
         else if (r.status === "auth-required") showToast(locale === "en" ? "Log in to comment" : "コメントするにはログインしてください", "info");
@@ -118,10 +135,11 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
                 />
             ) : (
                 <ul ref={listRef} className="space-y-3.5">
-                    {items.map((c) => {
+                    {threadComments(items).map(({ comment: c, isReply }) => {
                         const canDelete = isAuthenticated && (c.uid === userId || (photoOwnerId && photoOwnerId === userId));
+                        // 返信は1段下げ、顔を小さく（iOS と同じ・2026-11-11）
                         return (
-                            <li key={c.id} className="flex items-start gap-2.5">
+                            <li key={c.id} className={`flex items-start gap-2.5${isReply ? " pl-9" : ""}`} data-reply={isReply ? "true" : undefined}>
                                 {/* 退会した人のプロフィールはもう無い（墓石になり、
                                     公開APIは空を返す）。リンクを出すと「開いても
                                     何も無いページ」へ誘うので、名前とアイコンだけ出す。 */}
@@ -164,7 +182,29 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
                                             </button>
                                         )}
                                     </div>
-                                    <p className="text-sm text-white/80 whitespace-pre-wrap break-words leading-snug mt-0.5">{c.text}</p>
+                                    <p className="text-sm text-white/80 whitespace-pre-wrap break-words leading-snug mt-0.5">
+                                        {/* 返信の相手の名前（黒地の上の合図なので真鍮）。退会した相手はリンクにしない */}
+                                        {c.replyTo && (c.replyTo.deleted ? (
+                                            <span className="text-white/50 mr-1">@{c.replyTo.name}</span>
+                                        ) : (
+                                            <Link href={ROUTES.USER_PROFILE(c.replyTo.uid)} prefetch={false} className="text-accent underline underline-offset-2 mr-1">
+                                                @{c.replyTo.name}
+                                            </Link>
+                                        ))}
+                                        {c.text}
+                                    </p>
+                                    {/* 「返信」（12・灰・当たり 44）。ログインしていて、退会していない人のコメントだけ */}
+                                    {isAuthenticated && !c.deleted && (
+                                        <button
+                                            type="button"
+                                            onClick={() => { setReplyingTo(c); inputRef.current?.focus(); }}
+                                            aria-label={replyLabel(c, locale)}
+                                            className="-my-2.5 -ml-1 px-1 text-[12px] font-semibold text-white/60 hover:text-white"
+                                            style={{ minHeight: "44px", minWidth: "44px", touchAction: "manipulation" }}
+                                        >
+                                            {locale === "en" ? "Reply" : "返信"}
+                                        </button>
+                                    )}
                                 </div>
                             </li>
                         );
@@ -183,6 +223,22 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
                 className="sticky z-30 mt-4 -mx-4 px-4 lg:mx-0 lg:px-0 pt-2.5 pb-2.5 bg-bg/95 backdrop-blur border-t border-line"
                 style={{ bottom: "calc(var(--bottom-bar-h, calc(max(22px, env(safe-area-inset-bottom, 0px)) + 62px)) + var(--mini-player-h, 0px))" }}
             >
+            {isAuthenticated && replyingTo && (
+                <div className="flex items-center justify-between text-[12px] text-white/60 mb-1.5" data-testid="comment-replying">
+                    <span className="truncate">
+                        {locale === "en" ? `Replying to ${replyingTo.name}` : `${replyingTo.name}さんに返信中`}
+                    </span>
+                    <button
+                        type="button"
+                        onClick={() => setReplyingTo(null)}
+                        aria-label={locale === "en" ? "Cancel reply" : "返信をやめる"}
+                        className="flex items-center justify-end flex-shrink-0 text-white/60 hover:text-white"
+                        style={{ minHeight: "44px", minWidth: "44px", margin: "-8px 0", touchAction: "manipulation" }}
+                    >
+                        <XMarkIcon className="w-4 h-4" aria-hidden="true" />
+                    </button>
+                </div>
+            )}
             {isAuthenticated ? (
                 <div className="flex items-end gap-2">
                     {/* **Ctrl/Cmd+Enter に IME のガードは付けない。**
@@ -195,6 +251,7 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
                         一致しており、押した時点で見えている文字を送るのが正しい。
                         （一度ガードを付けて、レビューで実測されて外した） */}
                     <textarea
+                        ref={inputRef}
                         value={text}
                         onChange={(e) => setText(e.target.value)}
                         onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); void submit(); } }}

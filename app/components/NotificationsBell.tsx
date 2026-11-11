@@ -4,7 +4,7 @@ import { usableRows } from "../../lib/utils/apiRows";
 import React, { useEffect, useState, useCallback, useRef, useId } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
-import { BellIcon, ChatBubbleOvalLeftIcon, UserPlusIcon, XMarkIcon, CheckIcon, CameraIcon } from "@heroicons/react/24/outline";
+import { BellIcon, ChatBubbleOvalLeftIcon, UserPlusIcon, XMarkIcon, CheckIcon, CameraIcon, PhotoIcon } from "@heroicons/react/24/outline";
 import { HeartIcon } from "@heroicons/react/24/solid";
 import { userFetch } from "../../lib/utils/api";
 import { useLocale } from "../i18n/context";
@@ -33,7 +33,11 @@ type Notif = {
     // `badge` はメダル（誰かが起こしたものではない。`byId` も写真も無い）
     // `storymention`（札 #505）は「ストーリーであなたをメンションしました」。ストーリーは24時間で消え、
     // 静的書き出しに `ROUTES.PHOTO(story-…)` も無いので、押すと**投稿者（`byId`）のプロフィール**へ。サムネは出さない
-    type: "like" | "comment" | "follow" | "storyreply" | "badge" | "inspired" | "storymention";
+    // `storyshare`（2026-11-11・journey.photo-ios#541 の ①）は「あなたの写真をストーリーで紹介しました」。
+    // `photoId` / `photoSrc` は**紹介された自分の写真**（押すとそこへ）。タブは「すべて」だけ（`inspired` と同じ）。
+    // `commentreply`（同 ②）は「あなたのコメントに返信しました」。`photoId` はコメントの付いた写真。タブは「コメント」
+    type: "like" | "comment" | "follow" | "storyreply" | "badge" | "inspired" | "storymention"
+        | "storyshare" | "commentreply";
     photoId: string;
     photoSrc: string;
     byName: string;
@@ -149,7 +153,7 @@ const TAB_LABEL: Record<NotifTab, { ja: string; en: string }> = {
  */
 export function inTab(type: string, tab: NotifTab): boolean {
     if (tab === "all") return true;
-    if (tab === "comment") return type === "comment" || type === "storyreply" || type === "storymention";
+    if (tab === "comment") return type === "comment" || type === "storyreply" || type === "storymention" || type === "commentreply";
     return type === tab;
 }
 
@@ -903,6 +907,20 @@ export default function NotificationsBell() {
                                                     {locale === "en"
                                                         ? <><span className="font-semibold">{n.byName}</span> took a photo inspired by yours</>
                                                         : <><span className="font-semibold">{n.byName}</span> さんがあなたの写真を見て撮影しました</>}
+                                                </>
+                                            ) : n.type === "storyshare" ? (
+                                                <>
+                                                    <PhotoIcon className="w-3.5 h-3.5 text-accent inline -mt-0.5 mr-1" />
+                                                    {locale === "en"
+                                                        ? <><span className="font-semibold">{n.byName}</span> shared your photo in a story</>
+                                                        : <><span className="font-semibold">{n.byName}</span> さんがあなたの写真をストーリーで紹介しました</>}
+                                                </>
+                                            ) : n.type === "commentreply" ? (
+                                                <>
+                                                    <ChatBubbleOvalLeftIcon className="w-3.5 h-3.5 text-accent inline -mt-0.5 mr-1" />
+                                                    {locale === "en"
+                                                        ? <><span className="font-semibold">{n.byName}</span> replied to your comment</>
+                                                        : <><span className="font-semibold">{n.byName}</span> さんがあなたのコメントに返信しました</>}
                                                 </>
                                             ) : n.type === "comment" ? (
                                                 <>
