@@ -611,3 +611,42 @@ describe("撮影スポット台帳（content/spots.json）", () => {
         expect(bad).toEqual([]);
     });
 });
+
+/**
+ * 公式サイトの URL を外した施設（2026-11-11 の全件の見回り・PR #563）。
+ * 切れた・売りに出た・別の内容の URL を、`officialWebsiteUrl` からも AI 照合の出典からも外した。
+ * 外しても AI 照合の印（`hasAiCheck`）と公開の条件が崩れないこと、同じ URL が出典に戻らないことを見る。
+ */
+describe("公式サイトの URL を外した施設（#563）", () => {
+    const REMOVED: Record<string, string | null> = {
+        "udo-jingu": "https://www.udojingu.com/",
+        "cueva-de-las-manos": "https://cuevadelasmanos.org/",
+        "tanah-lot": "https://www.tanahlot.net",
+        "kek-lok-si": "https://kekloksitemple.com",
+        "puning-temple": "https://www.cdpns.com/",
+        "landmark-81": "https://landmark-vn.com",
+        "mount-papandayan": "https://www.indonesia.travel/gb/en/destination/java/west-java/gunung-papandayan/",
+        "nakanoshima-rose-garden": null,
+        "lencois-maranhenses-national-park": "https://www.gov.br/icmbio/pt-br/assuntos/biodiversidade/unidade-de-conservacao/unidades-de-biomas/marinho/lista-de-ucs/parna-dos-lencois-maranhenses",
+        "chapada-dos-veadeiros": "https://www.gov.br/icmbio/pt-br/assuntos/biodiversidade/unidade-de-conservacao/unidades-de-biomas/cerrado/lista-de-ucs/parna-da-chapada-dos-veadeiros",
+        "emas-national-park": "https://www.gov.br/icmbio/pt-br/assuntos/biodiversidade/unidade-de-conservacao/unidades-de-biomas/cerrado/lista-de-ucs/parna-das-emas",
+        aragijima: null, byobugaura: null, genbikei: null, "goishi-kaigan": null, jodogahama: null,
+        kanayamachi: null, "morioka-jozan": null, ogijima: null, "oshi-castle": null, "otaru-canal": null,
+        rokugozaki: null, "sakitsu-shuraku": null, "senba-ko": null, settsukyo: null,
+    };
+    const bySlug = new Map(SPOTS.map((s) => [s.slug, s]));
+
+    it.each(Object.keys(REMOVED))("%s: URL は無く、AI 照合の印と公開の条件は残る", (slug) => {
+        const s = bySlug.get(slug);
+        expect(s).toBeTruthy();
+        expect(s!.officialWebsiteUrl).toBeUndefined();
+        expect(hasAiCheck(s!)).toBe(true);
+        expect(publishBlockers(s!)).toEqual([]);
+    });
+
+    it("外した URL が AI 照合の出典に残っていない", () => {
+        const stale = Object.entries(REMOVED).flatMap(([slug, url]) =>
+            url ? (bySlug.get(slug)?.aiCheck?.sources ?? []).filter((x) => x.url === url).map(() => `${slug}: ${url}`) : []);
+        expect(stale).toEqual([]);
+    });
+});
