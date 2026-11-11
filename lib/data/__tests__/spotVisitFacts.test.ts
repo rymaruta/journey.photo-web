@@ -135,3 +135,37 @@ describe("構造化データ（openingHoursSpecification）", () => {
         expect(visitFactsStructuredData(null)).toEqual({});
     });
 });
+
+describe("頁への配線（SpotGuidePage を実際に呼ぶ）", () => {
+    type El = { type?: unknown; props?: Record<string, unknown> & { dangerouslySetInnerHTML?: { __html: string }; children?: unknown } };
+    const call = async (slug: string) => {
+        const { default: SpotGuidePage } = await import("../../../app/components/SpotGuidePage");
+        const el = (await SpotGuidePage({ slug })) as El;
+        const kids = (el.props?.children as El[]).filter(Boolean);
+        const place = kids.filter((c) => c.type === "script")
+            .map((c) => JSON.parse(c.props!.dangerouslySetInnerHTML!.__html))
+            .find((d) => d["@type"] === "TouristAttraction");
+        const client = kids.find((c) => c.type !== "script")!;
+        return { place, visit: client.props!.visit as Record<string, unknown> | null };
+    };
+
+    it("事実のあるスポットは、出典つきの事実を画面に渡す。読んだ頁の一覧と委任者は渡さない", async () => {
+        const { visit } = await call("kinkakuji");
+        expect(visit).not.toBeNull();
+        expect(visit!.readPages).toBeUndefined();
+        expect(visit!.delegatedBy).toBeUndefined();
+        expect((visit!.photoRules as { drone?: { status: string } }).drone?.status).toBe("prohibited");
+    }, 30_000);
+
+    it("毎日同じ時刻の事実があれば、観光地の構造化データに開いている時間を足す", async () => {
+        const { place } = await call("kinkakuji");
+        expect(place.openingHoursSpecification?.[0]).toMatchObject({ opens: "09:00", closes: "17:00" });
+    }, 30_000);
+
+    it("事実の無いスポットには何も渡さず、開いている時間も足さない", async () => {
+        const slug = publishableSpots(SPOTS).find((s) => s.region?.country === "日本" && !visitFactSlugs().includes(s.slug))!.slug;
+        const { place, visit } = await call(slug);
+        expect(visit).toBeNull();
+        expect(place?.openingHoursSpecification).toBeUndefined();
+    }, 30_000);
+});
