@@ -4,6 +4,7 @@
 // ※ Google は 2022 年以降 image:loc 以外の拡張を無視するが、Bing 等は解釈する。
 //    Google 向けの主目的は「全画像 URL の網羅提示」で、既存 sitemap.xml と併用する。
 
+import { metaPlace, descriptionPlaceTail } from "@/lib/utils/metaPlace";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { siteConfig, publicImageUrl } from "@/lib/utils/seo";
 import { getLocalizedParagraphs } from "@/lib/data/photos";
@@ -64,7 +65,11 @@ export function captionOf(p: Photo): string {
     // 1行に均す（`metaText` の説明を参照）。XML としては改行も通るが、
     // 読み手に出るのは1行の説明文なので、出口で揃える
     const text = metaText(getLocalizedParagraphs(p.description, "ja").join(" "));
-    const loc = p.location ? `（${p.location}）` : "";
+    // **撮影地は「名前、県市」まで・説明に入っている語は足さない**（2026-11-11 札 journey.photo-ios#527）。
+    // 写真の頁の description（`descriptionPlaceTail`・2026-11-09 の判断）と同じ切り方。本番の画像サイトマップは
+    // 地図の住所の全文（「月崎, 大多喜里見線, 月崎, 市原市, 千葉県, 290-0547, 日本」）を括弧で足していた
+    const tail = descriptionPlaceTail(text, metaPlace(p.location));
+    const loc = tail ? `（${tail}）` : "";
     // **撮影地は説明のあとに足すので、そのままだと真っ先に切れる。**
     // 撮影地はこの写真の固有名詞＝説明の末尾より情報が濃いので、
     // 先に席を取ってから説明を詰める。
