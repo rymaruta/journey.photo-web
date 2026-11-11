@@ -68,12 +68,21 @@ const EPOCH_ORDINAL = 719163;
 const MONDAY_ORDINAL = 719167;
 const DAY_MS = 86_400_000;
 
-/** 見ている端末の暦の今日の通し日数（土地の年月日を協定世界時の正午に置いて数える・iOS と同じ） */
+/**
+ * 🔴 **週の区切りは日本の時刻（Asia/Tokyo）に固定**（札 journey.photo-ios#537 の確かめ役・2026-11-11。今日の一問の
+ * `QUIZ_TIME_ZONE` と同じ考え・iOS の `WeeklyTheme.calendar` と同じ）。端末の時刻帯で区切ると、海外の人だけ
+ * 月曜の朝 9 時まで先週のお題になり、「今週の参加」の範囲も人によってずれる。
+ * 日本には夏時間が無いので、協定世界時に 9 時間足した暦の年月日が日本の年月日
+ */
+const TOKYO_OFFSET_MS = 9 * 3_600_000;
+
+/** 日本の暦の今日の通し日数（年月日を協定世界時の正午に置いて数える・iOS と同じ） */
 function dayOrdinal(now: Date): number {
-    return Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate(), 12) / DAY_MS) + EPOCH_ORDINAL;
+    const tokyo = new Date(now.getTime() + TOKYO_OFFSET_MS);
+    return Math.floor(Date.UTC(tokyo.getUTCFullYear(), tokyo.getUTCMonth(), tokyo.getUTCDate(), 12) / DAY_MS) + EPOCH_ORDINAL;
 }
 
-/** 週の通し番号（1970-01-05 の週が 0）。月曜の 0 時（土地）で替わる */
+/** 週の通し番号（1970-01-05 の週が 0）。月曜の 0 時（日本の時刻）で替わる */
 export function weekIndex(now: Date = new Date()): number {
     return Math.floor((dayOrdinal(now) - MONDAY_ORDINAL) / 7);
 }
@@ -98,15 +107,16 @@ export function themeOfWeek(week: number): WeeklyThemeEntry {
     return themes[((week % themes.length) + themes.length) % themes.length];
 }
 
-/** 今週のお題（見ている端末の暦の週） */
+/** 今週のお題（日本の時刻の週） */
 export function weeklyThemeFor(now: Date = new Date()): WeeklyThemeEntry {
     return themeOfWeek(weekIndex(now));
 }
 
-/** 今週（土地の月曜 0 時〜次の月曜 0 時）。ミリ秒の [start, end) */
+/** 今週（日本の時刻の月曜 0 時〜次の月曜 0 時）。ミリ秒の [start, end) */
 export function weekRange(now: Date = new Date()): { start: number; end: number } {
     const { y, m, d } = mondayOf(weekIndex(now));
-    return { start: new Date(y, m - 1, d).getTime(), end: new Date(y, m - 1, d + 7).getTime() };
+    const start = Date.UTC(y, m - 1, d) - TOKYO_OFFSET_MS;
+    return { start, end: start + 7 * DAY_MS };
 }
 
 /** 全部のお題のタグ（季節の順・重なりは除く） */

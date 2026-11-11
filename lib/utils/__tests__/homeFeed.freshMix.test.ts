@@ -75,4 +75,13 @@ describe("mixFresh（iOS の HomeFreshMix と同じ）", () => {
         expect([...firstPostPhotoIds(photos, NOW)].sort()).toEqual(["N1", "N4", "p1", "p2"]);
         expect(firstPostPhotoIds(photos, new Date(NOW.getTime() + 72 * 3600 * 1000)).size).toBe(0);
     });
+
+    it("はじめての投稿: 持ち主に createdAt の読めない写真が 1 枚でもあれば印を付けない（安全側・iOS と同じ）", () => {
+        const photos = [
+            p("new", 0, "2026-11-11T06:00:00.000Z", "u9"),
+            p("undated", 0, "2026-11-11", "u9"),
+            p("other", 0, "2026-11-11T07:00:00.000Z", "u8"),
+        ];
+        expect([...firstPostPhotoIds(photos, NOW)]).toEqual(["other"]);
+    });
 });
