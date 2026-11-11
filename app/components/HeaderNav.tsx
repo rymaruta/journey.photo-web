@@ -23,7 +23,7 @@ const NotificationsBell = dynamic(() => import("./NotificationsBell"), { ssr: fa
 
 export default function HeaderNav({ className = "" }: { className?: string }) {
     const router = useRouter();
-    const { isAuthenticated, isAdminUser, isGeneralUser, userId, logout, loading } = useAuth();
+    const { isAuthenticated, isAdminUser, isGeneralUser, logout, loading } = useAuth();
     const { locale, labels } = useLocale();
     const { favorites } = useFavorites();
 
@@ -210,12 +210,8 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                     >
                         <nav aria-label="メインメニュー">
                             <ul className="flex flex-col m-0 p-0 divide-y divide-white/5" style={{ listStyle: "none" }}>
-                                {/* 撮影地マップ: 公開の入口なので誰にでも出す */}
-                                <li style={{ margin: 0, padding: 0 }}>
-                                    <button onClick={() => handleNavigation(ROUTES.MAP)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
-                                        {navLabels.map || "Map"}
-                                    </button>
-                                </li>
+                                {/* 撮影地マップは 2026-11-12 に外した（デザインの案 第10章「どこに何を置くか」・iOS の ≡ と同じ）。
+                                    下の札（`BottomNav`・全ページ・全幅）の「マップ」と同じ所へ行く入口が2つあった。フッターの地図は残す */}
                                 {/* ユーザーを探す（2026-10-30 束 0b C2）: ヘッダーの虫眼鏡から移した。行き先は消さない */}
                                 <li style={{ margin: 0, padding: 0 }}>
                                     <button onClick={() => handleNavigation(ROUTES.USER_SEARCH)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
@@ -248,13 +244,8 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                                         </span>
                                     </li>
                                 )}
-                                {isAuthenticated && userId && (
-                                    <li style={{ margin: 0, padding: 0 }}>
-                                        <button onClick={() => handleNavigation(ROUTES.USER_PROFILE(userId))} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
-                                            {navLabels.mypage || "My Page"}
-                                        </button>
-                                    </li>
-                                )}
+                                {/* マイページ（自分のプロフィール）は 2026-11-12 に外した（案 第10章・iOS の ≡ と同じ）。
+                                    下の札の「マイページ」と同じ所へ行く入口が2つあった */}
                                 {/* 共同アルバム（案C）。**ログイン中だけ**——招待リンクを
                                     配る側の画面で、未ログインには行き先が無い。
                                     文言は他の項目と同じく `navLabels` から取る
