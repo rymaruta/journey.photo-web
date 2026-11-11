@@ -27,14 +27,30 @@ describe("事実のファイル（content/spot-visit-facts.json）", () => {
         expect(visitFactProblems(FILE, TODAY)).toEqual([]);
     });
 
-    it("載せるのは公開済みの国内の撮影スポットだけ", () => {
-        const pub = new Map(publishableSpots(SPOTS).map((s) => [s.slug, s]));
-        const bad = visitFactSlugs().filter((slug) => pub.get(slug)?.region?.country !== "日本");
+    it("載せるのは公開済みの撮影スポットだけ（2 回目から海外も・2026-11-11）", () => {
+        const pub = new Set(publishableSpots(SPOTS).map((s) => s.slug));
+        const bad = visitFactSlugs().filter((slug) => !pub.has(slug));
         expect(bad).toEqual([]);
     });
 
-    it("1 回目は 100 件", () => {
-        expect(visitFactSlugs().length).toBe(100);
+    it("1 回目（国内 100 件）と 2 回目（Search Console の順位 8〜20 の頁 100 件）で 200 件", () => {
+        expect(visitFactSlugs().length).toBe(200);
+    });
+
+    it("題・文に HTML の実体参照（&#x27; &amp; &quot; &raquo; など）を残さない（#559 の確かめ・2026-11-11）", () => {
+        const ENTITY = /&(#x?[0-9a-f]+|[a-z][a-z0-9]*);/i;
+        const bad: string[] = [];
+        const walk = (v: unknown, path: string) => {
+            if (typeof v === "string") { if (ENTITY.test(v)) bad.push(`${path}: ${v}`); return; }
+            if (Array.isArray(v)) { v.forEach((x, i) => walk(x, `${path}[${i}]`)); return; }
+            if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) walk(x, `${path}.${k}`);
+        };
+        walk(FILE, "file");
+        expect(bad).toEqual([]);
+    });
+
+    it("説明（_about）は今の作りどおり（書いていない道具は行ごと出さない。「記載なし」とは言わない）", () => {
+        expect((FILE as unknown as { _about: string })._about).not.toContain("記載なし");
     });
 
     it("画面の文に「撮りどき」を使わない（CLAUDE.md の言葉の好み）", () => {
