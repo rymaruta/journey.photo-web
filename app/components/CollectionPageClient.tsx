@@ -127,7 +127,7 @@ export default function CollectionPageClient({ photos, heading, description, bre
                     <ul className={CHIP_ROW} data-testid="collection-related">
                         {related.map((r) => (
                             // **先読みしない。** 一覧で何本も出るリンクなので、画面に入るたびに
-                            // 行き先の RSC の控え（`no-store` 配信）を落とし直す。理由と実測は
+                            // 行き先の RSC の控え（`no-cache` 配信）を落とし直す。理由と実測は
                             // `app/components/GalleryGrid.tsx` のカードのコメントに書いた
                             <li key={r.path} className="m-0 p-0">
                                 <Link
