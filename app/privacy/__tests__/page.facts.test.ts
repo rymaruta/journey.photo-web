@@ -75,6 +75,11 @@ describe("プライバシーポリシーの数が実装と合っている", () =
             "プッシュ通知にはメッセージの本文を載せず、送った方の名前だけを表示します",
             "通報した時点の直近",
             "会話はご自身の側だけ削除できます",
+            // 送信の取り消し（2026-11-12・`dm.ts` の `unsendMessage`）: 跡を残さず消す・通報の写しは残る
+            "いつでも送信を取り消せます",
+            "取り消したことを示す表示も残しません",
+            "通報の写しに含まれたメッセージが通報の記録として残ります",
+            "送信を取り消しても、退会しても消しません",
         ]) expect(s5, `5節に「${phrase}」が無い`).toContain(phrase);
         expect(sectionOf(2)).toContain("メッセージ（DM）の本文");
         expect(sectionOf(11)).toContain("メッセージ（DM）の受信箱と、ご自身の側の会話");
@@ -390,5 +395,15 @@ describe("撮影スポットを払う画面（/swipe・2026-11-11）", () => {
         expect(page).toContain("ログインしたときに、ご自身の「行きたい場所」としてサーバーへ移し");
         // 移す口は「行きたい場所」と同じ（POST /user/spots）
         expect(read("lib/utils/spotSwipe.ts")).toContain("POST /user/spots");
+    });
+
+    it("みんなの「行きたい」: 端末の番号を送る・10件以上だけ公開・順位は日本だけ、が実装と合う", () => {
+        const min = constOf("api-user/src/spotWants.ts", "MIN_SHOWN");
+        expect(page).toContain(`撮影スポットごとの月の数（${min}件以上のもの）`);
+        expect(page).toContain("端末ごとに作るでたらめな番号");
+        expect(page).toContain("IPアドレスそのものは保存せず");
+        expect(page).toContain("日本の撮影スポットの中の順位");
+        // 「localStorage はサーバーに送らない」と言い切らない（端末の番号は送る）
+        expect(page).toContain("「行きたい」の数を数えるための端末ごとの番号を除きます");
     });
 });

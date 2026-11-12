@@ -57,6 +57,43 @@ beforeEach(() => {
     mockS3Send.mockReset().mockResolvedValue({});
 });
 
+describe("deleteAccount: プロフィールの QR（札 journey.photo-ios#545）", () => {
+    // 合図の行（`qr#<合図>`）は `userId` を持たず索引の掃除に掛からない。今の合図を読んで2行とも消す
+    const TOKEN = "Q".repeat(32);
+    const stub = (qrOf: unknown) => mockDdbSend.mockImplementation((cmd: { constructor: { name: string }; input: Record<string, unknown> }) => {
+        const name = cmd.constructor.name;
+        if (name === "QueryCommand") return Promise.resolve({ Items: [] });
+        if (name === "GetCommand") {
+            const id = String((cmd.input.Key as { id?: string }).id ?? "");
+            if (id === "qrof#me") return qrOf instanceof Error ? Promise.reject(qrOf) : Promise.resolve({ Item: qrOf });
+            return Promise.resolve({ Item: undefined });
+        }
+        return Promise.resolve({});
+    });
+
+    it("今の合図の qr# と qrof# を消す", async () => {
+        stub({ id: "qrof#me", token: TOKEN, issuedAt: "x" });
+        const res = await invoke(deleteAccount, ev("me"));
+        expect(res.statusCode).toBe(200);
+        const ids = deletedDdbIds();
+        expect(ids).toContain(`qr#${TOKEN}`);
+        expect(ids).toContain("qrof#me");
+    });
+
+    it("合図を読めなくても qrof# は消し、退会は止めない", async () => {
+        stub(new Error("read failed"));
+        const res = await invoke(deleteAccount, ev("me"));
+        expect(res.statusCode).toBe(200);
+        expect(deletedDdbIds()).toContain("qrof#me");
+    });
+
+    it("形の悪い合図では qr# を消しに行かない", async () => {
+        stub({ id: "qrof#me", token: "../x" });
+        await invoke(deleteAccount, ev("me"));
+        expect(deletedDdbIds().filter((id) => id.startsWith("qr#"))).toEqual([]);
+    });
+});
+
 describe("deleteAccount", () => {
     it("認証なし（sub 欠落）は 401 で何も削除しない", async () => {
         const res = await invoke(deleteAccount, ev(undefined));

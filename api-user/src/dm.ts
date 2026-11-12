@@ -96,6 +96,11 @@ type DmConv = {
     /** この時刻より前のメッセージは、その人には見せない（自分の側を消した時刻） */
     loClearedAt?: string;
     hiClearedAt?: string;
+    /**
+     * 最後に送信を取り消した時刻（2026-11-12・送信取り消し）。`?since=` の読み直しがこれより前からなら、
+     * 差分ではなく全部を `full: true` で返す（差分だけでは「消えた1通」を相手の画面が知れない）
+     */
+    unsentAt?: string;
     updatedAt: string;
 };
 
@@ -182,6 +187,7 @@ function parseConv(item: Record<string, unknown> | undefined): DmConv | null {
         ...(item.direct === true ? { direct: true } : {}),
         ...(typeof item.loClearedAt === "string" ? { loClearedAt: item.loClearedAt } : {}),
         ...(typeof item.hiClearedAt === "string" ? { hiClearedAt: item.hiClearedAt } : {}),
+        ...(typeof item.unsentAt === "string" ? { unsentAt: item.unsentAt } : {}),
         updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : "",
     };
 }
@@ -508,7 +514,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     if (!after) return fail(409, "混み合っています。もう一度お試しください", "busy");
 
     // --- 受信箱（相手 → 自分）。**本体は入っているので、落ちたら 500 を返し、同じ id の再送で続きをやり直す** ---
-    const excerpt = truncate((text || DM_PHOTO_TEXT).replace(/\s+/g, " "), DM_EXCERPT_MAX);
+    const excerpt = excerptOf(message);
     const requestOpen = after.state === "request";
     // 受け取る側の置き場所だけが違う（直行ならリクエストの棚に置かず、プッシュも出す）
     const theirState: DmEntryState = requestOpen && !after.direct ? "request" : "inbox";
@@ -552,6 +558,9 @@ async function isCloseFriendOf(owner: string, who: string): Promise<boolean> {
         return false;
     }
 }
+
+/** 受信箱の行に出す抜粋（写真だけの通は「写真を送りました」・改行は空白） */
+const excerptOf = (m: DmMessage) => truncate((m.text || DM_PHOTO_TEXT).replace(/\s+/g, " "), DM_EXCERPT_MAX);
 
 /** 1日の歯止めを原子的に1つ進める。上限なら false（何も進まない） */
 async function reserveDaily(uid: string, isNewConv: boolean): Promise<boolean> {
@@ -610,9 +619,10 @@ export async function mirrorStoryReplyToDm(
 // 名前の解決（受信箱には名前を持たない。表示のたびに引く）
 // ---------------------------------------------------------------------------
 
-type PeerInfo = { name: string; username?: string; deleted?: true };
+export type PeerInfo = { name: string; username?: string; deleted?: true };
 
-async function peerInfos(ids: readonly string[]): Promise<Map<string, PeerInfo>> {
+/** 名前の解決。旅行プランの仲間（`tripShare.ts`）も同じ規則で引く（2026-11-12） */
+export async function peerInfos(ids: readonly string[]): Promise<Map<string, PeerInfo>> {
     const out = new Map<string, PeerInfo>();
     const uniq = [...new Set(ids)];
     for (let i = 0; i < uniq.length; i += 100) {
@@ -723,7 +733,10 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
     if (since && conv.updatedAt <= since) return okJson({ id: convId, unchanged: true, items: [] });
 
     const visible = visibleTo(conv, uid);
-    const items = since ? visible.filter((m) => m.t > since) : visible;
+    // **前に読んだ後に送信が取り消されていたら、差分ではなく全部を返す**（`full`・画面は置き換える）。
+    // 差分（since より後の通）だけでは、消えた1通を相手の画面が知れない（2026-11-12・送信取り消し）
+    const full = !!since && !!conv.unsentAt && conv.unsentAt > since;
+    const items = since && !full ? visible.filter((m) => m.t > since) : visible;
     const [peers, quotes, photos] = await Promise.all([
         peerInfos([peer]),
         // 返す通のうち、ストーリーへの返信から写した通だけ（無ければ読みに行かない）
@@ -745,6 +758,7 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
         canSend: !p.deleted && remaining !== 0,
         ...(remaining !== undefined ? { requestRemaining: remaining } : {}),
         t: conv.updatedAt,
+        ...(full ? { full: true } : {}),
         items: items.map((m) => shapeMessage(m, uid, quotes, photos)),
     });
 }
@@ -939,6 +953,151 @@ async function reportConversation(uid: string, convId: string | undefined, body:
 }
 
 // ---------------------------------------------------------------------------
+// 送信の取り消し（2026-11-12・owner「DM 送信取り消し必要だわ」「取り消しました。みたいなメッセージはいらない」）
+// ---------------------------------------------------------------------------
+
+/** 取り消す通の id の形（送るときの冪等の鍵・`uuidv4` の両方が通る形。任意の文字列を式に入れない） */
+const isMessageId = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(v);
+
+export type UnsendResult = { status: number; error?: string; code?: string };
+
+/**
+ * **自分が送った1通を取り消す。期限は無い。** 会話の本体（直近200通・40KB の形）から、その1通を
+ * **跡を残さず消す**（「取り消しました」の行も印も残さない）。相手の画面は次の読み直しで消える
+ * （本体の `unsentAt` が `?since=` より後なら、`getConversation` が全部を `full: true` で返す）。
+ *
+ *   - **取り消せるのは送った本人だけ**。他人の通・見えない通（自分の側を消す前の通）・無い会話は 404
+ *     （他人の通が在るかどうかも言わない）。ブロックの関係でも 404（会話を読むときと同じ）
+ *   - 本体の書き込みは「その位置の通の id がこの id」「`updatedAt` が読んだときのまま」を条件にする
+ *     （同時の送信・取り消しで別の1通を消さない）。外れたら読み直してやり直す
+ *   - もう無い通（応答が落ちて押し直した）は 200。受信箱の直しだけをもう一度やる（何度やっても同じ結果）
+ *   - 受信箱: 抜粋・時刻が消えた通を指していたら、残った最後の通に戻す。**相手の未読はその通が未読のうちなら1つ減らす**。
+ *     **相手に見える通が1つも残らなければ、相手の受信箱から会話ごと外す**（中身の無い会話を残さない）。
+ *     自分の行は残す（自分の画面で開いている会話を消さない）
+ *   - **通報の写し（`dmreport#`）は消さない**（運営の記録。プライバシー頁に明記）。プッシュで届いた知らせは
+ *     取り消せない（iOS の決まり。プッシュに本文は載せていない）
+ *   - 新しい関数・経路は足さない（部品の数が上限 500 に近い）。口は `POST /dm/{id}/messages` の本文 `{ unsend: <id> }`
+ *     ——**古いサーバーに届いても本文が空として 400 で断られる**（DELETE にすると、古いサーバーは会話ごと消してしまう）
+ */
+export async function unsendMessage(uid: string, convId: string | undefined, rawId: unknown): Promise<UnsendResult> {
+    const pair = parseConvId(convId);
+    if (!pair || (uid !== pair.lo && uid !== pair.hi)) return { status: 404, error: "会話が見つかりません", code: "notFound" };
+    if (!isMessageId(rawId)) return { status: 400, error: "不正なリクエスト", code: "badRequest" };
+    const peer = uid === pair.lo ? pair.hi : pair.lo;
+    if ((await hiddenFor(uid)).has(peer)) return { status: 404, error: "会話が見つかりません", code: "notFound" };
+
+    let removed: DmMessage | null = null;
+    /** 取り消した通が、送り主の通の中で後ろから何番目か（相手の未読に入っていたかの手がかり） */
+    let fromEnd = -1;
+    for (let attempt = 0; ; attempt++) {
+        if (attempt === WRITE_RETRIES) return { status: 409, error: "混み合っています。もう一度お試しください", code: "busy" };
+        const [box, conv] = await Promise.all([readDmInbox(uid, true), readConv(pair.lo, pair.hi)]);
+        if (!conv || !box.convs[convId!]) return { status: 404, error: "会話が見つかりません", code: "notFound" };
+        const index = conv.items.findIndex((m) => m.id === rawId);
+        if (index < 0) break;   // もう無い（取り消し済みの押し直し）。受信箱の直しだけやり直す
+        const target = conv.items[index];
+        // **他人の通・自分に見えていない通は取り消せない**（在ることも言わない）
+        if (target.from !== uid || target.t <= clearedAtOf(conv, uid)) {
+            return { status: 404, error: "メッセージが見つかりません", code: "notFound" };
+        }
+        const mine = conv.items.filter((m) => m.from === uid);
+        const now = new Date().toISOString();
+        try {
+            await ddb.send(new UpdateCommand({
+                TableName: PHOTOS_TABLE,
+                Key: { id: dmConvKey(pair.lo, pair.hi) },
+                // index は数（読んだ位置）。利用者の値は式に入れない
+                UpdateExpression: `REMOVE #items[${index}] SET updatedAt = :now, unsentAt = :now`,
+                ConditionExpression: `#items[${index}].#mid = :mid AND updatedAt = :prev`,
+                ExpressionAttributeNames: { "#items": "items", "#mid": "id" },
+                ExpressionAttributeValues: { ":now": now, ":mid": rawId, ":prev": conv.updatedAt },
+            }));
+        } catch (e) {
+            if (isCcf(e)) continue;   // 誰かが先に書いた。読み直してやり直す
+            throw e;
+        }
+        removed = target;
+        fromEnd = mine.length - 1 - mine.findIndex((m) => m.id === rawId);
+        break;
+    }
+
+    // 受信箱（相手 → 自分）。本体は消えているので、落ちたら 500 を返し、押し直しで直しをやり直す
+    const after = await readConv(pair.lo, pair.hi);
+    if (after) {
+        await fixEntryAfterUnsend(peer, convId!, after, removed ? fromEnd : -1, true);
+        await fixEntryAfterUnsend(uid, convId!, after, -1, false);
+    }
+    return { status: 200 };
+}
+
+/**
+ * 取り消しのあとの受信箱の1行。行が消えた通を指していたら（行の時刻が、見える最後の通より新しい）、
+ * 見える最後の通に戻す。`fromEnd` が未読の数より小さければ（相手がまだ読んでいない通）、未読を1つ減らす。
+ * 見える通が無くなったら、`dropWhenEmpty`（相手の側）のときだけ行を外す。
+ * 書き込みは「行の時刻と未読が読んだときのまま」を条件にする（同時の送信・既読で数を狂わせない）。
+ */
+async function fixEntryAfterUnsend(owner: string, convId: string, conv: DmConv, fromEnd: number, dropWhenEmpty: boolean): Promise<void> {
+    let current = conv;
+    for (let i = 0; i < WRITE_RETRIES; i++) {
+        const box = await readDmInbox(owner, true);
+        const e = box.convs[convId];
+        if (!e) return;
+        // 行を読んだあとに本体を読み直す（行に入っている通は、必ず本体に先に入っている——`sendDm` の順）
+        if (i > 0) current = (await readConv(conv.lo, conv.hi)) ?? current;
+        const visible = visibleTo(current, owner);
+        const last = visible[visible.length - 1];
+        const unread = fromEnd >= 0 && fromEnd < e.unread ? e.unread - 1 : e.unread;
+        const names = { "#c": convId, "#t": "t", "#u": "unread" };
+        try {
+            if (!last) {
+                if (!dropWhenEmpty) {
+                    if (e.excerpt === "" && unread === e.unread) return;
+                    await ddb.send(new UpdateCommand({
+                        TableName: PHOTOS_TABLE,
+                        Key: { id: dmInboxId(owner) },
+                        UpdateExpression: "SET convs.#c.#x = :x, convs.#c.#u = :u",
+                        ConditionExpression: "convs.#c.#t = :t0 AND convs.#c.#u = :u0",
+                        ExpressionAttributeNames: { ...names, "#x": "excerpt" },
+                        ExpressionAttributeValues: { ":x": "", ":u": unread, ":t0": e.t, ":u0": e.unread },
+                    }));
+                    return;
+                }
+                // 相手に見える通が無い: 中身の無い会話を残さない（跡を残さない）
+                await ddb.send(new UpdateCommand({
+                    TableName: PHOTOS_TABLE,
+                    Key: { id: dmInboxId(owner) },
+                    UpdateExpression: "REMOVE convs.#c",
+                    ConditionExpression: "convs.#c.#t = :t0 AND convs.#c.#u = :u0",
+                    ExpressionAttributeNames: names,
+                    ExpressionAttributeValues: { ":t0": e.t, ":u0": e.unread },
+                }));
+                return;
+            }
+            const stale = e.t > last.t;
+            if (!stale && unread === e.unread) return;
+            await ddb.send(new UpdateCommand({
+                TableName: PHOTOS_TABLE,
+                Key: { id: dmInboxId(owner) },
+                UpdateExpression: stale
+                    ? "SET convs.#c.#t = :t, convs.#c.#x = :x, convs.#c.#lid = :lid, convs.#c.#f = :from, convs.#c.#u = :u"
+                    : "SET convs.#c.#u = :u",
+                ConditionExpression: "convs.#c.#t = :t0 AND convs.#c.#u = :u0",
+                ExpressionAttributeNames: { ...names, ...(stale ? { "#x": "excerpt", "#lid": "lastId", "#f": "from" } : {}) },
+                ExpressionAttributeValues: {
+                    ":u": unread, ":t0": e.t, ":u0": e.unread,
+                    ...(stale ? { ":t": last.t, ":x": excerptOf(last), ":lid": last.id, ":from": last.from } : {}),
+                },
+            }));
+            return;
+        } catch (err) {
+            if (!isCcf(err)) throw err;
+            // 同時に送られた・読まれた。読み直してやり直す
+        }
+    }
+    throw new Error("dm inbox fix conflict");
+}
+
+// ---------------------------------------------------------------------------
 // 退会
 // ---------------------------------------------------------------------------
 
@@ -991,7 +1150,7 @@ const sendResult = (r: SendOk | SendFail) => r.ok
  * DM の全部の口。**関数を増やさない**（部品の数が上限 500 に近い——`trunk.handler` と同じ理由）。
  *
  *     POST   /dm                    会話の開始（相手 `to` と本文）。続きの送信にも使える
- *     POST   /dm/{id}/messages      会話の続きを送る
+ *     POST   /dm/{id}/messages      会話の続きを送る。本文が `{ unsend: <id> }` なら自分の1通を取り消す（2026-11-12）
  *     GET    /dm                    受信箱（リクエストも同じ一覧。`state` で分ける）
  *     GET    /dm/{id}?since=        会話を読む（変化なしは `{unchanged:true}`）
  *     PUT    /dm/{id}/read          既読
@@ -1037,6 +1196,11 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
                 me: uid, to: String(body.to ?? ""), text: body.text, id: typeof body.id === "string" ? body.id : undefined,
                 photoId: body.photoId, push: true, myName,
             }));
+        }
+        if (route === "POST /dm/{id}/messages" && body.unsend !== undefined) {
+            // 送信の取り消し（2026-11-12）。経路を足さず、この口の本文で分ける（`unsendMessage` の注記）
+            const r = await unsendMessage(uid, id, body.unsend);
+            return r.status === 200 ? okJson({ ok: true }) : jsonError(r.status, r.error ?? "失敗しました", r.code);
         }
         if (route === "POST /dm/{id}/messages") {
             const pair = parseConvId(id);

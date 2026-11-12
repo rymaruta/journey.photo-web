@@ -74,6 +74,7 @@ jobs:
       cognitoUserPoolId: ${{ steps.pick.outputs.cognitoUserPoolId }}
       cognitoClientId: ${{ steps.pick.outputs.cognitoClientId }}
       cognitoPoolName: ${{ steps.pick.outputs.cognitoPoolName }}
+      siteBucket: ${{ steps.pick.outputs.siteBucket }}
       # 退会・削除・非公開のあとに静的サイトの再ビルドを頼む先。
       # トークン（REBUILD_DISPATCH_TOKEN）が未設定なら「頼まない」だけで、
       # 削除そのものは成功する。本番だけ設定する（staging は検索避けなので不要）。
@@ -109,6 +110,8 @@ jobs:
               cognitoUserPoolId=ap-northeast-1_ZbuhDQsWz
               cognitoClientId=21cs4cd8dkttmg3snloj72u8mu
               cognitoPoolName=prod-journey-photo-client-spa
+              # みんなの「行きたい」の毎日の集計が書く Web の置き場（`api-user` の `aggregateSpotWants`・2026-11-11）
+              siteBucket=prod-journey-photo.com
               # プッシュ通知（APNs）。**鍵そのものは Secrets から渡す**——
               # ここに書くのは公開識別子だけ（Bundle ID・Key ID・Team ID）
               apnsTopic=com.journeyphoto.JourneyPhoto
@@ -155,6 +158,7 @@ jobs:
               cognitoUserPoolId=ap-northeast-1_DSQ16c6vO
               cognitoClientId=1qjl9c8gmqidigps55jhv4foi
               cognitoPoolName=staging-journey-photo-client-spa
+              siteBucket=staging-journey-photo.com
               # staging のアプリは Bundle ID が別（`Config/Staging.xcconfig`）。
               # Xcode から直接入れたビルドは **sandbox** の APNs
               apnsTopic=com.journeyphoto.JourneyPhoto.staging
@@ -177,7 +181,7 @@ jobs:
               ;;
           esac
           # rebuildRepo は staging で意図的に空にするため、この必須チェックには入れない
-          for k in photosTable usersTable uploadBucket cloudfrontUrl cloudfrontDistributionId cognitoUserPoolId cognitoClientId cognitoPoolName; do
+          for k in photosTable usersTable uploadBucket cloudfrontUrl cloudfrontDistributionId cognitoUserPoolId cognitoClientId cognitoPoolName siteBucket; do
             v="${!k}"
             if [ -z "$v" ]; then
               echo "::error::$envName の $k が未設定です。リポジトリの Variables を確認してください。"
@@ -266,6 +270,14 @@ jobs:
       - name: Run backend tests
         run: npx vitest run api api-user
 
+      # **配る前に、スタックの部品の数を数える**（札 journey.photo-ios#552 の①）。
+      # 2026-11-12 に user API が 503 個になり、配る段で CloudFormation に断られた（上限 500）。
+      # 450 を超えたら（すでに超えているスタックは決めた数から増えたら）ここで止め、
+      # 配るジョブ（admin・user とも）に進ませない。AWS には触らない（`scripts/lib/stackSize.mjs`）。
+      # 依存は上で入れてあるので、足すのは固める時間だけ（全設定で数十秒）
+      - name: スタックの部品の数を数える
+        run: node scripts/check-stack-size.mjs --stage ${{ steps.pick.outputs.envName }}
+
   deploy-admin-api:
     name: Deploy admin API (api/)
     needs: [config]
@@ -350,6 +362,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # みんなの「行きたい」（撮影スポットを払うの②）は**別のスタック**（`api-user/serverless.spot-wants.yml`）。
+      # user API のスタックの部品が上限 500 に近い（488）ので分けた（2026-11-12・本番の反映が 503 個で落ちた）。
+      # コード・依存は user API と同じなので、このジョブの中で続けて配る（ジョブを分けると分単位の切り上げが増える）。
+      # 🔴 **user API より先に配る。** 経路 `POST /spots/wants` はこのスタックが user API の HTTP API に足し、
+      #    user API の段はその経路に流量の設定（RouteSettings）を付けるので、経路が先に要る。
+      #    このスタックは user API のスタックが書き出す HttpApiId を取り込むので、user API のスタックは前から在ること
+      - name: Serverless deploy（みんなの「行きたい」・別スタック）
+        working-directory: api-user
+        run: |
+          set -euo pipefail
+          npx serverless@3 deploy --config serverless.spot-wants.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "siteBucket=${{ needs.config.outputs.siteBucket }}"
+
       - name: Serverless deploy
         working-directory: api-user
         env:
@@ -424,3 +450,44 @@ jobs:
             --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
             --param "cognitoClientId=${{ needs.config.outputs.cognitoClientId }}" \
             ${extra[@]+"${extra[@]}"}
+
+      # 旅行プランを仲間と使う口（2026-11-12・`api-user/src/tripShare.ts`）は**別のスタック**
+      # （`api-user/serverless.trip-share.yml`）。user API のスタックの部品が上限 500 に近い（488）ので分けた。
+      # 🔴 **user API の後に配る。** このスタックは user API のスタックが書き出す HttpApiId を取り込んで経路を足す
+      #    （口の URL は user API と同じ）。経路ごとの流量の設定は無いので、先に配る理由は無い。
+      #    プッシュの鍵は user API と同じ渡し方（無ければ旗ごと渡さない＝知らせは送らないだけ）
+      - name: Serverless deploy（旅行プランを仲間と使う口・別スタック）
+        working-directory: api-user
+        env:
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+          APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
+          APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
+          APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
+          APNS_HOST: ${{ needs.config.outputs.apnsHost }}
+        run: |
+          set -euo pipefail
+          extra=()
+          if [ -n "${APNS_PRIVATE_KEY:-}" ]; then
+            extra+=(--param "apnsPrivateKey=$APNS_PRIVATE_KEY")
+            extra+=(--param "apnsKeyId=$APNS_KEY_ID")
+            extra+=(--param "apnsTeamId=$APNS_TEAM_ID")
+            extra+=(--param "apnsTopic=$APNS_TOPIC")
+            extra+=(--param "apnsHost=$APNS_HOST")
+          fi
+          npx serverless@3 deploy --config serverless.trip-share.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
+            ${extra[@]+"${extra[@]}"}
+
+      # プロフィールの QR の口（札 journey.photo-ios#545・`api-user/serverless.profile-qr.yml`）は**別のスタック**。
+      # user API のスタックの部品が上限 500 に近い（488）ので分けた（2026-11-12）。
+      # コード・依存は user API と同じなので、このジョブの中で続けて配る。
+      # **user API の後に配る。** このスタックは user API が書き出す HttpApiId とログインの確かめ（認可）を
+      # 取り込んで経路を足すだけで、user API の側はこのスタックの何も参照しない
+      - name: Serverless deploy（プロフィールの QR・別スタック）
+        working-directory: api-user
+        run: |
+          set -euo pipefail
+          npx serverless@3 deploy --config serverless.profile-qr.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "usersTable=${{ needs.config.outputs.usersTable }}"
