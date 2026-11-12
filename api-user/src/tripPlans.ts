@@ -343,6 +343,24 @@ export const updateTrip: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         return jsonError(400, "タイトルを入力してください");
     }
 
+    // **共有の行（`trip#<planId>`）があれば、共有の方を直す**（2026-11-12 確かめ役の見直し3）。共有する途中で
+    // 落ちると本人だけの一覧にも古い写しが残り、先に本人だけの方を見ていたので、読む口が採る共有の方が直らなかった。
+    // 持ち主が直したら古い写しを片付けて、共有を終わらせる（`shareTrip` の続き）
+    if (isPlanId(planId)) {
+        try {
+            const shared = await readSharedTrip(planId, true);
+            if (shared && isTripMember(shared, userId)) {
+                const r = await updateSharedTrip(userId, planId, body);
+                if (r.kind === "ok" && shared.ownerId === userId) await dropOwnCopy(userId, planId);
+                return await sharedWriteResponse(userId, r);
+            }
+        } catch (e) {
+            if (e instanceof UserListError) return jsonError(503, "混み合っています。もう一度お試しください");
+            console.error("updateTrip(shared) error:", (e as { name?: string })?.name);
+            return jsonError(500, "保存に失敗しました");
+        }
+    }
+
     // **やり直し（CCF）のたびに見直す。** 立てっぱなしにすると、1回目に
     // 在って2回目に消えたプランへ 200 を返す
     let found = false;
@@ -368,17 +386,7 @@ export const updateTrip: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         return after;
     });
     if (found) return res;
-    // 共有したプラン（`trip#<planId>`）は仲間なら誰でも直せる。`rev` を送ってきたらその版の上にだけ書く
-    // （2026-11-12）。本人だけの一覧に無かったときにだけ見る
-    if (isPlanId(planId)) {
-        try {
-            if (await readSharedTrip(planId)) return await sharedWriteResponse(userId, await updateSharedTrip(userId, planId, body));
-        } catch (e) {
-            if (e instanceof UserListError) return jsonError(503, "混み合っています。もう一度お試しください");
-            console.error("updateTrip(shared) error:", (e as { name?: string })?.name);
-            return jsonError(500, "保存に失敗しました");
-        }
-    }
+    // 共有したプランで仲間でない人・無い ID（共有の行は上で先に見た）
     // **無い ID に 200 を返さない。** 返すと、消えたプランを直したつもりの
     // 画面が「保存しました」と出す
     return jsonError(404, "プランが見つかりません");
@@ -398,9 +406,10 @@ export const deleteTrip: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         // 既に無ければ書かない（冪等）
         return inOwn ? next : null;
     });
-    if (inOwn || !isPlanId(planId) || res.statusCode !== 200) return res;
+    if (!isPlanId(planId) || res.statusCode !== 200) return res;
     // 共有したプラン: **持ち主なら全員のプランを消す。仲間なら抜ける**（2026-11-12）。
-    // 本人だけの一覧に在るときは今までどおり（共有する途中で両方に在るときも、こちらが先）
+    // 本人だけの一覧から消したあとも見る（2026-11-12 確かめ役の見直し3: 共有する途中で両方に在ると、本人だけの
+    // 写しだけを消して共有の行が残り、一覧の口に出続けた）
     try {
         const shared = await readSharedTrip(planId, true);
         if (!shared || !isTripMember(shared, userId)) return res;
@@ -412,6 +421,14 @@ export const deleteTrip: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         return jsonError(500, "削除に失敗しました");
     }
 };
+
+/** 本人だけの一覧から、共有へ移ったプランの古い写しを外す（`shareTrip` の最後の段と同じ） */
+async function dropOwnCopy(uid: string, planId: string): Promise<void> {
+    await updateUserList<TripPlan>(tripsId(uid), uid, NO_TRUNCATE, (list) => {
+        const next = list.filter((p) => !(isStoredTripPlan(p) && p.planId === planId));
+        return next.length === list.length ? null : next;
+    });
+}
 
 /**
  * 書いたあとの一覧の応答（本人だけ＋共有）。**共有のぶんが読めなかったら `sharedFailed: true`** を添えて
@@ -439,6 +456,20 @@ export async function sharedWriteResponse(userId: string, r: SharedWrite) {
         case "notfound": return jsonError(404, "プランが見つかりません");
         case "badTitle": return jsonError(400, "タイトルを入力してください");
         case "limit": return jsonError(403, r.reason);
+        case "revRequired":
+            // **rev を送らない古いアプリは、読み直しても同じ断りになる**（2026-11-12 確かめ役の見直し1）。
+            // 「読み直してください」と言わず、アプリを新しくすれば直せることを言う。古いアプリ（main の iOS）は
+            // 409 の本文（`error`）を日本語の画面にそのまま出す（`APIError.description` の `displayableServerText`）。
+            // 新しいアプリは 409 を読み直して版を添えて送り直す（`TripAutosave.afterSave`）。今の姿も添える
+            return {
+                statusCode: 409,
+                headers: { ...JSON_HEADERS, "Cache-Control": "private, no-store" },
+                body: JSON.stringify({
+                    error: "このプランは仲間と共有しています。アプリを新しくすると日程を直せます（題と日付はこのまま直せます）",
+                    code: "revRequired",
+                    plan: sharedTripView(r.row),
+                }),
+            };
         case "conflict":
             // **ぶつかった時は今の姿を添える**（画面が読み直さずに重ね直せる）
             return {
@@ -697,7 +728,9 @@ export type SharedWrite =
     | { kind: "notfound" }
     | { kind: "conflict"; row: SharedTrip }
     | { kind: "limit"; reason: string }
-    | { kind: "badTitle" };
+    | { kind: "badTitle" }
+    /** 日程を `rev` 無しで送ってきた（共有を知らない古いアプリ）。読み直しても直らないので、別の言い分で断る */
+    | { kind: "revRequired"; row: SharedTrip };
 
 /** 書き込みの土台から外す欄（`updateUserRow` が付け直す） */
 function rowFields(row: SharedTrip): Record<string, unknown> {
@@ -725,7 +758,7 @@ export async function updateSharedTrip(uid: string, planId: string, body: Record
             // **日程を `rev` 無しで書かせない**（2026-11-12 確かめ役の指摘4）。`rev` を送らない画面（Web の古い版・
             // 共有を知らない古いアプリ）は、ほかの仲間が足した場所を知らないまま日程を丸ごと送ってくる＝上書きで消す。
             // 409 と今の姿を返し、画面に読み直させる（題・日付だけの直しは日程を消さないので今までどおり通す）
-            if (wantRev === undefined && "days" in body) { out = { kind: "conflict", row: item }; return null; }
+            if (wantRev === undefined && "days" in body) { out = { kind: "revRequired", row: item }; return null; }
             const attributed = "days" in body ? attributeItems(item.days, sanitizeDays(body.days), uid) : null;
             const next = {
                 ...rowFields(item),

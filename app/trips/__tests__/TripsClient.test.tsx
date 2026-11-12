@@ -15,6 +15,7 @@ import type { SpotLink } from "../../../lib/data/spotLink";
  *  5. **サーバーの言い分をそのまま出す**（上限・混雑を潰さない）
  */
 const hooks = vi.hoisted(() => ({
+    locale: "ja" as string,
     auth: { isAuthenticated: true, loading: false },
     trips: {
         plans: [] as unknown[],
@@ -26,7 +27,7 @@ const hooks = vi.hoisted(() => ({
 }));
 
 vi.mock("../../auth/context", () => ({ useAuth: () => hooks.auth }));
-vi.mock("../../i18n/context", () => ({ useLocale: () => ({ locale: "ja" }) }));
+vi.mock("../../i18n/context", () => ({ useLocale: () => ({ locale: hooks.locale }) }));
 vi.mock("../../../lib/hooks/useTripPlans", () => ({ useTripPlans: () => hooks.trips }));
 vi.mock("../../../lib/hooks/useSavedSpots", () => ({ useSavedSpots: () => hooks.saved }));
 vi.mock("../../../lib/hooks/usePhotos", () => ({ usePhotos: () => hooks.photos }));
@@ -45,6 +46,7 @@ const plan = (planId: string, over: Record<string, unknown> = {}) =>
 
 beforeEach(() => {
     cleanup();
+    hooks.locale = "ja";
     hooks.auth = { isAuthenticated: true, loading: false };
     hooks.trips = {
         plans: [], pending: false, failed: false, busy: null, error: null,
@@ -293,5 +295,15 @@ describe("仲間と共有したプラン（2026-11-12）", () => {
         expect(hooks.trips.remove).toHaveBeenCalledWith("a");
         fireEvent.click(screen.getByRole("button", { name: "「能登」を削除" }));
         expect(screen.getByText("仲間全員からこの旅行プランを削除しますか？")).toBeInTheDocument();
+    });
+});
+
+describe("英語の画面の共有の人数（2026-11-12 確かめ役の見直し4）", () => {
+    it("「Shared with N」と出す（by ではない）", () => {
+        hooks.locale = "en";
+        hooks.trips.plans = [plan("a", { title: "Kanazawa", shared: { ownerId: "other", memberCount: 2 } })];
+        draw();
+        expect(screen.getByText("Shared with 2")).toBeInTheDocument();
+        expect(screen.queryByText(/Shared by/)).toBeNull();
     });
 });

@@ -199,7 +199,7 @@ function PlanCard({ en, me, plan, spots, open, busy, onToggle, onUpdate, onRemov
                         {[
                             period(plan, en ? "en" : "ja"),
                             en ? `${count} place${count !== 1 ? "s" : ""}` : `${count} か所`,
-                            plan.shared ? (en ? `Shared by ${plan.shared.memberCount}` : `${plan.shared.memberCount}人で共有`) : "",
+                            plan.shared ? (en ? `Shared with ${plan.shared.memberCount}` : `${plan.shared.memberCount}人で共有`) : "",
                         ]
                             .filter(Boolean)
                             .map((part) => <span key={part}>{part}</span>)}
