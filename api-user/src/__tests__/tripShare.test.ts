@@ -69,7 +69,20 @@ function fakeSend(cmd: { constructor: { name: string }; input: Record<string, un
         }
         return { Responses: out };
     }
-    if (name === "UpdateCommand") return {};
+    if (name === "UpdateCommand") {
+        // 1日の歯止め（`dmday#<uid>#<日付>`・`dm.ts` の `reserveDaily` の形）だけ真似る。ほかは何もしない
+        const id = i.Key?.id ?? "";
+        if (id.startsWith("dmday#")) {
+            const cur = store.get(id) ?? { id };
+            const vals = i.ExpressionAttributeValues ?? {};
+            const expr = String((cmd.input as { UpdateExpression?: string }).UpdateExpression ?? "");
+            const field = /ADD (\w+) :one/.exec(expr)?.[1] ?? "sent";
+            const max = (vals[":maxTrip"] ?? vals[":maxSent"]) as number;
+            if (typeof cur[field] === "number" && (cur[field] as number) >= max) throw condFail();
+            store.set(id, { ...cur, [field]: ((cur[field] as number | undefined) ?? 0) + 1 });
+        }
+        return {};
+    }
     throw new Error(`知らない命令 ${name}`);
 }
 
@@ -388,5 +401,188 @@ describe("消す・抜ける・退会", () => {
         const items = (store.get(`trip#${P}`)!.days as Array<{ items: Array<Record<string, unknown>> }>)[0].items;
         expect(items.map((it) => it.by)).toEqual([undefined, undefined]);
         expect(memberIds()).toEqual([A]);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// 確かめ役の指摘（2026-11-12・札 journey.photo-ios#562）
+// ---------------------------------------------------------------------------
+
+/** A と C の DM の会話（承認済み）。持ち主が C を直接仲間に戻す試験で使う */
+function seedDmAC() {
+    const [lo, hi] = [A, C].sort();
+    store.set(`dm#${lo}#${hi}`, { id: `dm#${lo}#${hi}`, state: "inbox", initiator: A, items: [] });
+}
+
+describe("🔴 外した仲間は同じ招待リンクで戻れない（指摘1）", () => {
+    it("持ち主が外すと、前のリンクは使えず、新しいリンクでも外した人は入れない", async () => {
+        await sharedWithB();
+        const { token } = json(await api(A, "POST /trip-share/{planId}/invite"));
+        expect((await api(C, "POST /trip-invites/{token}/join", { token })).statusCode).toBe(200);
+        expect((await api(A, "DELETE /trip-share/{planId}/members/{uid}", { uid: C })).statusCode).toBe(200);
+        expect(memberIds()).toEqual([A, B]);
+        // 前のリンク
+        const again = await api(C, "POST /trip-invites/{token}/join", { token });
+        expect(again.statusCode).not.toBe(200);
+        expect(memberIds()).toEqual([A, B]);
+        // 仲間の手元には作り直したリンクが出る（前と違う）
+        const detail = json(await api(B, "GET /trip-share/{planId}"));
+        expect(detail.invite?.token).toBeDefined();
+        expect(detail.invite.token).not.toBe(token);
+        // 作り直したリンクでも、外した人は入れない（理由は言わない＝404）
+        const viaNew = await api(C, "POST /trip-invites/{token}/join", { token: detail.invite.token });
+        expect(viaNew.statusCode).toBe(404);
+        expect(memberIds()).toEqual([A, B]);
+        // ほかの人は作り直したリンクで入れる
+        const D = "dddddddd-0000-4000-8000-000000000004";
+        users.set(D, { userId: D, displayName: "みどり" });
+        expect((await api(D, "POST /trip-invites/{token}/join", { token: detail.invite.token })).statusCode).toBe(200);
+        expect(memberIds()).toEqual([A, B, D]);
+    });
+
+    it("リンクが無いときに外しても、新しいリンクは作らない（作り直すのは前のリンクが生きていたときだけ）", async () => {
+        await sharedWithB();
+        expect((await api(A, "DELETE /trip-share/{planId}/members/{uid}", { uid: B })).statusCode).toBe(200);
+        expect(json(await api(A, "GET /trip-share/{planId}")).invite).toBeUndefined();
+        expect([...store.keys()].filter((k) => k.startsWith("invite#"))).toEqual([]);
+    });
+
+    it("自分で抜けた人は、リンクでまた入れる（外されたのではない）", async () => {
+        await sharedWithB();
+        const { token } = json(await api(A, "POST /trip-share/{planId}/invite"));
+        expect((await api(B, "DELETE /trip-share/{planId}/members/{uid}", { uid: B })).statusCode).toBe(200);
+        expect((await api(B, "POST /trip-invites/{token}/join", { token })).statusCode).toBe(200);
+        expect(memberIds()).toEqual([A, B]);
+    });
+
+    it("持ち主が改めて直接共有すると、外した人も戻れる（外した印が消える）", async () => {
+        await sharedWithB();
+        seedDmAC();
+        expect((await api(A, "POST /trip-share/{planId}", {}, { withUserId: C })).statusCode).toBe(200);
+        expect((await api(A, "DELETE /trip-share/{planId}/members/{uid}", { uid: C })).statusCode).toBe(200);
+        expect(store.get(`trip#${P}`)!.removedIds).toEqual([C]);
+        expect((await api(A, "POST /trip-share/{planId}", {}, { withUserId: C })).statusCode).toBe(200);
+        expect(memberIds()).toEqual([A, B, C]);
+        expect(store.get(`trip#${P}`)!.removedIds ?? []).toEqual([]);
+    });
+});
+
+describe("一覧の口は、仲間でない行を落とす（指摘3）", () => {
+    it("一覧の行にプラン ID が残っていても、仲間から外れていれば返さない", async () => {
+        await sharedWithB();
+        // 外したときに一覧の行から消せなかった（落ちた）形を作る
+        store.set(`tripsjoined#${C}`, { id: `tripsjoined#${C}`, uid: C, rev: 1, list: [P], reads: {} });
+        expect(await myTrips(C)).toEqual([]);
+        // 仲間には出る
+        expect((await myTrips(B)).map((p) => p.planId)).toEqual([P]);
+    });
+});
+
+describe("🔴 共有プランの日程は rev が無ければ書かない（指摘4）", () => {
+    it("rev を送らない日程の書き込みは 409 で、今の姿を添える（丸ごと上書きしない）", async () => {
+        await sharedWithB();
+        const r = await putTrip(B, { days: [] });
+        expect(r.statusCode).toBe(409);
+        expect(json(r).code).toBe("conflict");
+        expect(json(r).plan.days).toHaveLength(1);
+        expect((store.get(`trip#${P}`)!.days as unknown[])).toHaveLength(1);
+    });
+
+    it("題だけなら rev が無くても書ける（日程を消さない）", async () => {
+        await sharedWithB();
+        expect((await putTrip(B, { title: "金沢" })).statusCode).toBe(200);
+        expect(store.get(`trip#${P}`)).toMatchObject({ title: "金沢" });
+        expect((store.get(`trip#${P}`)!.days as unknown[])).toHaveLength(1);
+    });
+
+    it("本人だけのプランは今までどおり rev 無しで書ける", async () => {
+        seedOwnPlan();
+        expect((await putTrip(A, { days: [] })).statusCode).toBe(200);
+    });
+});
+
+describe("🔴 退会で前に抜けた・外されたプランの自分の分も消える（指摘5）", () => {
+    it("抜けたあとに退会しても、そのプランの自分の通と足した人の印が消える", async () => {
+        await sharedWithB();
+        const rev = store.get(`trip#${P}`)!.rev as number;
+        await putTrip(B, { rev, days: [{ items: [{ kind: "spot", spotId: SPOT1 }, { kind: "spot", spotId: SPOT2 }] }] });
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "Bの文" });
+        await api(A, "POST /trip-share/{planId}/chat", {}, { text: "Aの文" });
+        expect((await api(B, "DELETE /trip-share/{planId}/members/{uid}", { uid: B })).statusCode).toBe(200);
+        await purgeTripSharesFor(B);
+        const items = (store.get(`trip#${P}`)!.days as Array<{ items: Array<Record<string, unknown>> }>)[0].items;
+        expect(items.map((it) => it.by)).toEqual([undefined, undefined]);
+        const chat = store.get(`tripchat#${P}`)!.items as Array<{ from: string }>;
+        expect(chat.filter((m) => m.from === B)).toEqual([]);
+        expect(chat.filter((m) => m.from === A)).toHaveLength(1);
+    });
+
+    it("外されたあとに退会しても同じ（外した印からも消える）", async () => {
+        await sharedWithB();
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "Bの文" });
+        expect((await api(A, "DELETE /trip-share/{planId}/members/{uid}", { uid: B })).statusCode).toBe(200);
+        await purgeTripSharesFor(B);
+        const chat = (store.get(`tripchat#${P}`)?.items ?? []) as Array<{ from: string }>;
+        expect(chat.filter((m) => m.from === B)).toEqual([]);
+        expect(store.get(`trip#${P}`)!.removedIds ?? []).not.toContain(B);
+    });
+
+    it("取り消した招待の行も、プランを消すと消える", async () => {
+        await sharedWithB();
+        const first = json(await api(A, "POST /trip-share/{planId}/invite")).token as string;
+        expect((await api(A, "DELETE /trip-share/{planId}/invite")).statusCode).toBe(200);
+        const second = json(await api(A, "POST /trip-share/{planId}/invite")).token as string;
+        expect(second).not.toBe(first);
+        expect(store.has(`invite#${first}`)).toBe(true);
+        await call(deleteTrip, ev(A, "DELETE /user/trips/{planId}", { planId: P }));
+        expect(store.has(`trip#${P}`)).toBe(false);
+        expect([...store.keys()].filter((k) => k.startsWith("invite#"))).toEqual([]);
+    });
+});
+
+describe("会話の歯止め（指摘6・10）", () => {
+    it("1日に送れる数を越えると 429 で、会話に置かない（DM の数とは別に数える）", async () => {
+        await sharedWithB();
+        const { TRIP_CHAT_DAILY_SENT } = await import("../dm");
+        expect((await api(A, "POST /trip-share/{planId}/chat", {}, { text: "1通目" })).statusCode).toBe(200);
+        const key = [...store.keys()].find((k) => k.startsWith(`dmday#${A}#`))!;
+        expect(key).toBeDefined();
+        expect(store.get(key)!.tripSent).toBe(1);
+        store.set(key, { ...store.get(key)!, tripSent: TRIP_CHAT_DAILY_SENT });
+        const r = await api(A, "POST /trip-share/{planId}/chat", {}, { text: "越えた" });
+        expect(r.statusCode).toBe(429);
+        expect((store.get(`tripchat#${P}`)!.items as unknown[])).toHaveLength(1);
+        expect(store.get(key)!.sent).toBeUndefined();
+    });
+
+    it("本文は TRIP_CHAT_TEXT_MAX 字で切る", async () => {
+        await sharedWithB();
+        const { TRIP_CHAT_TEXT_MAX } = await import("../tripChat");
+        await api(A, "POST /trip-share/{planId}/chat", {}, { text: "あ".repeat(TRIP_CHAT_TEXT_MAX + 50) });
+        const items = store.get(`tripchat#${P}`)!.items as Array<{ text: string }>;
+        expect([...items[0].text].length).toBe(TRIP_CHAT_TEXT_MAX);
+    });
+});
+
+describe("知らせは並べて送る（指摘7）", () => {
+    it("1人目の送信が終わる前に、2人目にも送り始める", async () => {
+        await sharedWithB();
+        const { token } = json(await api(A, "POST /trip-share/{planId}/invite"));
+        await api(C, "POST /trip-invites/{token}/join", { token });
+        let started = 0;
+        let release!: () => void;
+        const gate = new Promise<void>((r) => { release = r; });
+        mockPush.mockImplementation(async () => {
+            started += 1;
+            if (started >= 2) release();
+            // 順に送ると、ここで止まったまま2人目に進まない（1秒で諦める）
+            await Promise.race([gate, new Promise((r) => setTimeout(r, 1000))]);
+            return { sent: 1, invalid: [] as string[] };
+        });
+        const t0 = Date.now();
+        expect((await api(A, "POST /trip-share/{planId}/chat", {}, { text: "集合は8時" })).statusCode).toBe(200);
+        expect(started).toBe(2);
+        expect(Date.now() - t0).toBeLessThan(900);
+        mockPush.mockImplementation(async () => ({ sent: 1, invalid: [] as string[] }));
     });
 });
