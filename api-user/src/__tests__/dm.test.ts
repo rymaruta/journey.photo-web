@@ -733,6 +733,151 @@ describe("会話の削除", () => {
     });
 });
 
+describe("送信の取り消し（POST /dm/{id}/messages の { unsend }・2026-11-12）", () => {
+    const A = msg(PEER, "やあ", "2026-11-09T00:00:01.000Z", "m-peer-0001");
+    const B = msg(ME, "まちがい", "2026-11-09T00:00:02.000Z", "m-mine-0002");
+    const unsend = (id: unknown, sub = ME) => invoke(handler, ev("POST /dm/{id}/messages", sub, { id: CONV, body: { unsend: id } }));
+    const convUpdates = () => convWrites().filter((c) => String(c.input.UpdateExpression).startsWith("REMOVE #items["));
+    const inboxWrites = (uid: string) => writes().filter((c) => c.input.Key?.id === `dminbox#${uid}`);
+
+    beforeEach(() => {
+        rows[KEY] = convRow([A, B], { updatedAt: B.t });
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { t: B.t, excerpt: "まちがい", from: ME }) });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME, { t: B.t, excerpt: "まちがい", unread: 1, from: ME }) });
+        // 本体の取り消しを模型の行にも反映する（受信箱の直しは、取り消した後の本体を読む）
+        ccf = (cmd, input) => {
+            if (cmd === "UpdateCommand" && input.Key?.id === KEY && String(input.UpdateExpression).startsWith("REMOVE #items[")) {
+                const row = rows[KEY] as Row & { items: { id: string }[] };
+                const i = Number(/REMOVE #items\[(\d+)\]/.exec(String(input.UpdateExpression))![1]);
+                rows[KEY] = { ...row, items: row.items.filter((_, j) => j !== i), updatedAt: input.ExpressionAttributeValues[":now"], unsentAt: input.ExpressionAttributeValues[":now"] };
+            }
+            return false;
+        };
+    });
+
+    it("🔴 自分の1通を消す（その位置の id と updatedAt を条件に・跡を残さない）・本文を返さない", async () => {
+        const r = await unsend(B.id);
+        expect(r.statusCode).toBe(200);
+        expect(r.body).not.toContain("まちがい");
+        const [u] = convUpdates();
+        expect(u.input.UpdateExpression).toBe("REMOVE #items[1] SET updatedAt = :now, unsentAt = :now");
+        expect(u.input.ConditionExpression).toBe("#items[1].#mid = :mid AND updatedAt = :prev");
+        expect(u.input.ExpressionAttributeValues).toMatchObject({ ":mid": B.id, ":prev": B.t });
+        // 「取り消しました」の通も印も足さない（本体に残るのは相手の1通だけ）
+        expect((rows[KEY] as { items: unknown[] }).items).toEqual([A]);
+        expect(writes().some((c) => c.cmd === "PutCommand"), "取り消しの跡を書いている").toBe(false);
+    });
+
+    it("🔴 受信箱: 抜粋と時刻を残った最後の通に戻し、相手の未読を1つ減らす（自分の行の未読は触らない）", async () => {
+        await unsend(B.id);
+        const [peerW] = inboxWrites(PEER);
+        expect(peerW.input.ConditionExpression).toBe("convs.#c.#t = :t0 AND convs.#c.#u = :u0");
+        expect(peerW.input.ExpressionAttributeValues).toMatchObject({ ":t": A.t, ":x": "やあ", ":lid": A.id, ":from": PEER, ":u": 0, ":t0": B.t, ":u0": 1 });
+        const [meW] = inboxWrites(ME);
+        expect(meW.input.ExpressionAttributeValues).toMatchObject({ ":t": A.t, ":x": "やあ", ":u": 0 });
+    });
+
+    it("相手がもう読んだ通（未読 0）・未読より前の通では未読を減らさない", async () => {
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME, { t: B.t, unread: 0 }) });
+        await unsend(B.id);
+        expect(inboxWrites(PEER)[0].input.ExpressionAttributeValues[":u"]).toBe(0);
+
+        // 自分の通が2つ・相手の未読は1（新しい方だけ未読）。古い方を消しても未読はそのまま・抜粋も触らない
+        calls = [];
+        const C = msg(ME, "つづき", "2026-11-09T00:00:03.000Z", "m-mine-0003");
+        rows[KEY] = convRow([A, B, C], { updatedAt: C.t });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME, { t: C.t, unread: 1 }) });
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { t: C.t }) });
+        await unsend(B.id);
+        expect(inboxWrites(PEER), "読んだ通・最後でない通で受信箱を書き換えている").toHaveLength(0);
+        expect(inboxWrites(ME)).toHaveLength(0);
+    });
+
+    it("🔴 相手に見える通が無くなったら、相手の受信箱から会話ごと外す（自分の行は残し、抜粋を空に）", async () => {
+        rows[KEY] = convRow([B], { updatedAt: B.t, state: "request", initiator: ME, reqCount: 1 });
+        await unsend(B.id);
+        const [peerW] = inboxWrites(PEER);
+        expect(peerW.input.UpdateExpression).toBe("REMOVE convs.#c");
+        const [meW] = inboxWrites(ME);
+        expect(meW.input.UpdateExpression).toBe("SET convs.#c.#x = :x, convs.#c.#u = :u");
+        expect(meW.input.ExpressionAttributeValues[":x"]).toBe("");
+        // 本体は残す（承認前の通数 reqCount を消さない——取り消しで3通の歯止めを戻させない）
+        expect(writes().some((c) => c.cmd === "DeleteCommand"), "本体を消して通数の歯止めを戻している").toBe(false);
+    });
+
+    it("🔴 他人の通は取り消せない（404・何も書かない）・参加者でない人・形の違う id も同じ", async () => {
+        const other = await unsend(A.id);
+        expect(other.statusCode).toBe(404);
+        expect(writes(), "相手のメッセージを消している").toHaveLength(0);
+        expect((await unsend(B.id, THIRD)).statusCode).toBe(404);
+        expect((await unsend("x")).statusCode).toBe(400);
+        expect((await unsend("a b c d e f g")).statusCode).toBe(400);
+        expect((await unsend(123)).statusCode).toBe(400);
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("自分の側を消す前の通・自分の側を消した会話・ブロックの相手は 404（何も書かない）", async () => {
+        rows[KEY] = { ...(rows[KEY] as Row), loClearedAt: B.t };
+        expect((await unsend(B.id)).statusCode).toBe(404);
+        rows[KEY] = convRow([A, B], { updatedAt: B.t });
+        rows[`dminbox#${ME}`] = boxRow(ME, {});
+        expect((await unsend(B.id)).statusCode).toBe(404);
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER) });
+        mockHidden.mockResolvedValue(new Set([PEER]));
+        expect((await unsend(B.id)).statusCode).toBe(404);
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("もう無い通（押し直し）は 200・本体は書かず、受信箱の直しだけやり直す（未読は減らさない）", async () => {
+        rows[KEY] = convRow([A], { updatedAt: B.t });
+        const r = await unsend(B.id);
+        expect(r.statusCode).toBe(200);
+        expect(convUpdates()).toHaveLength(0);
+        expect(inboxWrites(PEER)[0].input.ExpressionAttributeValues).toMatchObject({ ":x": "やあ", ":u": 1 });
+    });
+
+    it("同時の書き込みで条件が外れたら読み直してやり直す・続けば 409", async () => {
+        let n = 0;
+        const apply = ccf;
+        ccf = (cmd, input) => {
+            if (cmd === "UpdateCommand" && input.Key?.id === KEY && n++ === 0) return true;
+            return apply(cmd, input);
+        };
+        expect((await unsend(B.id)).statusCode).toBe(200);
+        expect(convUpdates()).toHaveLength(2);
+
+        calls = [];
+        rows[KEY] = convRow([A, B], { updatedAt: B.t });
+        ccf = (cmd, input) => cmd === "UpdateCommand" && input.Key?.id === KEY;
+        expect((await unsend(B.id)).statusCode).toBe(409);
+    });
+
+    it("退会した本人は取り消せない（書く口として 410）", async () => {
+        mockReadLive.mockResolvedValueOnce({ gone: { statusCode: 410, body: "{}" } });
+        expect((await unsend(B.id)).statusCode).toBe(410);
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("🔴 相手の読み直し: since より後に取り消しがあれば、差分ではなく全部を full で返す（無ければ今までどおり差分）", async () => {
+        rows[KEY] = convRow([A], { updatedAt: "2026-11-09T00:00:05.000Z", unsentAt: "2026-11-09T00:00:05.000Z" });
+        const full = bodyOf(await invoke(handler, ev("GET /dm/{id}", PEER, { id: CONV, since: B.t })));
+        expect(full.full).toBe(true);
+        expect(full.items.map((m: { id: string }) => m.id)).toEqual([A.id]);
+        const after = bodyOf(await invoke(handler, ev("GET /dm/{id}", PEER, { id: CONV, since: "2026-11-09T00:00:05.000Z" })));
+        expect(after).toEqual({ id: CONV, unchanged: true, items: [] });
+        rows[KEY] = convRow([A, B], { updatedAt: B.t, unsentAt: "2026-11-09T00:00:00.500Z" });
+        const diff = bodyOf(await invoke(handler, ev("GET /dm/{id}", PEER, { id: CONV, since: A.t })));
+        expect(diff.full).toBeUndefined();
+        expect(diff.items.map((m: { id: string }) => m.id)).toEqual([B.id]);
+    });
+
+    it("通報の写しは取り消しで消さない（通報の行に触れない）", async () => {
+        rows[`dmreport#${CONV}#${PEER}`] = { id: `dmreport#${CONV}#${PEER}`, messages: [B] };
+        await unsend(B.id);
+        expect(writes().some((c) => String(c.input.Key?.id ?? "").startsWith("dmreport#")), "通報の写しを書き換えている").toBe(false);
+    });
+});
+
 describe("通報（POST /dm/{id}/report）", () => {
     const many = () => Array.from({ length: 25 }, (_, i) =>
         msg(i % 2 ? ME : PEER, `本文${i}`, `2026-11-09T00:00:${String(i).padStart(2, "0")}.000Z`, `rep-${String(i).padStart(4, "0")}`));
