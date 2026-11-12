@@ -52,7 +52,7 @@ export const FOCUS_AND_BLUR: Chapter = {
                     t: "callout",
                     kind: "tip",
                     title: "コツ",
-                    text: "F値を変えられないときは、「被写体に近づく」「背景から離れてもらう」だけでも背景はぼけます。スマートフォンでも同じです。花の撮影スポットの[牧野植物園](/spots/makino)や[栂池自然園](/spots/tsugaike)の頁でも、望遠で寄って背景をぼかす撮り方を案内しています。",
+                    text: "F値を変えられないときは、「被写体に近づく」「背景から離れてもらう」だけでも背景はぼけます。スマートフォンでも同じです。花の観光スポットの[牧野植物園](/spots/makino)や[栂池自然園](/spots/tsugaike)の頁でも、望遠で寄って背景をぼかす撮り方を案内しています。",
                 },
                 { t: "example", rule: "wide-aperture" },
                 { t: "example", rule: "narrow-aperture" },

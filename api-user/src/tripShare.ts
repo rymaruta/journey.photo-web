@@ -1,12 +1,13 @@
 import type { APIGatewayProxyHandlerV2, APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
-import { BatchGetCommand, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
+import { BatchGetCommand, DeleteCommand, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, PHOTOS_TABLE } from "./dynamodb";
 import { JSON_HEADERS, getUserId, jsonError } from "./http";
 import { assertLiveCaller } from "./liveCaller";
 import { hiddenUserIds, isBlocked } from "./blockCheck";
 import { isUserId } from "./userId";
 import { UserListError, updateUserRow } from "./userList";
-import { cleanDmText, convIdOf, dmConvKey, parseConvId, peerInfos } from "./dm";
+import { convIdOf, dmConvKey, parseConvId, peerInfos, reserveTripChatDaily } from "./dm";
+import { cleanMultilineText } from "./textClean";
 import { deviceTokens, forgetTokens } from "./devices";
 import { apnsConfigured, sendPush } from "./apns";
 import {
@@ -15,10 +16,11 @@ import {
 import {
     readSharedTrip, sharedTripView, shareTrip, addTripMember, removeTripMember, isTripMember, memberIdsOf,
     readJoined, markTripRead, listSharedTrips, isPlanId, tripKey, TRIP_MEMBERS_MAX, TRIPS_JOINED_MAX,
+    removedIdsOf, pastInviteTokensOf, forgetLeft, TRIP_PAST_INVITES_MAX,
     type SharedTrip,
 } from "./tripPlans";
 import {
-    appendTripChat, readTripChat, stripTripChatFrom, textMessage, tripChatKey,
+    appendTripChat, readTripChat, stripTripChatFrom, textMessage, tripChatKey, TRIP_CHAT_TEXT_MAX,
     type TripChatMessage, type TripChatLast,
 } from "./tripChat";
 
@@ -117,22 +119,25 @@ async function blockedEitherWay(a: string, b: string): Promise<boolean> {
 
 /**
  * 知らせを送る（文面・バッジは変えない）。**送れなくても本体の操作は成功のまま**（ログだけ）。
- * 受け取る人が送り主とブロックの間柄なら送らない
+ * 受け取る人が送り主とブロックの間柄なら送らない。
+ *
+ * **仲間ごとに並べて送る**（2026-11-12 確かめ役の指摘7）。1人ずつ待つと、20人のプランで APNs の往復が
+ * 積み重なり、関数の時間（`serverless.trip-share.yml` の `timeout`）を越えて送った本人に失敗と見せる
  */
 async function notify(to: readonly string[], fromUid: string, alert: { title: string; body: string }, data: Record<string, string>) {
     if (!apnsConfigured()) return;
-    for (const uid of to) {
+    await Promise.allSettled(to.filter((uid) => uid !== fromUid).map(async (uid) => {
         try {
-            if (uid === fromUid) continue;
-            if ((await hiddenUserIds(uid)).has(fromUid)) continue;
+            if ((await hiddenUserIds(uid)).has(fromUid)) return;
             const tokens = await deviceTokens(uid);
-            if (tokens.length === 0) continue;
+            if (tokens.length === 0) return;
             const result = await sendPush(tokens, { ...alert, data });
             if (result.invalid.length > 0) await forgetTokens(uid, result.invalid);
         } catch (e) {
-            console.error(`tripShare.notify: 送れませんでした（${uid}）:`, errName(e));
+            // **相手の uid は出さない**（数だけ・札 journey.photo-ios#585）。送った数は `sendPush summary` の行に出る
+            console.error("tripShare.notify: 1人に送れませんでした:", errName(e));
         }
-    }
+    }));
 }
 
 const nameOf = async (uid: string) => (await peerInfos([uid])).get(uid)?.name ?? "名前未設定さん";
@@ -157,7 +162,8 @@ async function share(me: string, planId: string, body: Record<string, unknown>) 
     if (shared.kind === "limit") return jsonError(403, shared.reason);
     if (shared.row.ownerId !== me) return notFound();
     if (typeof withUserId === "string") {
-        const r = await addTripMember(planId, withUserId);
+        // 持ち主が改めて直接共有した＝外した人でも戻す（外した印を消す・2026-11-12 指摘1）
+        const r = await addTripMember(planId, withUserId, { readmit: true });
         if (r === "full") return jsonError(403, `このプランは${TRIP_MEMBERS_MAX}人までです`);
         if (r === "joinedFull") return jsonError(403, "相手の旅行プランがいっぱいで共有できませんでした", "peerFull");
         if (r === "notfound") return notFound();
@@ -185,6 +191,12 @@ async function invite(me: string, planId: string) {
     if (!row || !isTripMember(row, me)) return notFound();
     const live = liveInvite(row);
     if (live) return ok(live);
+    const made = await issueInvite(me, planId);
+    return made ? ok(made) : jsonError(500, "招待リンクを作れませんでした。もう一度お試しください");
+}
+
+/** 招待リンクを作って本体に書き戻す。同時に別のリンクが書かれていればそれを返す。作れなければ null */
+async function issueInvite(me: string, planId: string): Promise<{ token: string; expiresAt: string } | null> {
     const token = newInviteToken();
     const now = Date.now();
     const expiresAt = inviteExpiryFrom(now);
@@ -210,12 +222,12 @@ async function invite(me: string, planId: string) {
         console.error(`tripShare.invite: 書き戻せませんでした（${planId}）:`, errName(e));
     }
     if (!written) {
-        await ddb.send(new PutCommand({ TableName: PHOTOS_TABLE, Item: { ...item, revoked: true } })).catch(() => undefined);
+        // 誰にも渡していないリンクなので、取り消しの印ではなく行ごと消す（プランを消しても残る行を作らない・指摘5）
+        await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: item.id } })).catch(() => undefined);
         const again = await readSharedTrip(planId, true);
-        const other = again && isTripMember(again, me) ? liveInvite(again) : undefined;
-        return other ? ok(other) : jsonError(500, "招待リンクを作れませんでした。もう一度お試しください");
+        return (again && isTripMember(again, me) ? liveInvite(again) : undefined) ?? null;
     }
-    return ok({ token, expiresAt });
+    return { token, expiresAt };
 }
 
 /** DELETE /trip-share/{planId}/invite — 招待リンクを取り消す（持ち主だけ） */
@@ -223,19 +235,40 @@ async function revokeInvite(me: string, planId: string) {
     const row = await readSharedTrip(planId, true);
     if (!row || !isTripMember(row, me)) return notFound();
     if (row.ownerId !== me) return jsonError(403, "招待リンクを取り消せるのは作った人だけです");
-    const token = row.inviteToken;
+    await retireInvite(planId);
+    return ok({ ok: true });
+}
+
+/**
+ * 本体のリンクを外し、招待の行に取り消しの印を付ける（リンクを開いた人には「取り消されています」）。
+ * 取り消したトークンは本体の `pastInviteTokens` に覚え、**プランを消すときに招待の行も消す**
+ * （2026-11-12 指摘5）。控えが `TRIP_PAST_INVITES_MAX` を越えたら、古い方の招待の行はその場で消す。
+ * 外したトークンを返す（無ければ undefined）
+ */
+async function retireInvite(planId: string): Promise<string | undefined> {
+    let token: string | undefined;
+    let dropped: string[] = [];
     await updateUserRow(tripKey(planId), planId, (cur) => {
         const r = cur as (SharedTrip & { id?: string; uid?: string }) | undefined;
+        token = undefined;
+        dropped = [];
         if (!r || !r.inviteToken) return null;
-        const { id: _i, uid: _u, rev: _r, updatedAt: _t, inviteToken: _k, inviteExpiresAt: _e, ...rest } = r;
-        void _i; void _u; void _r; void _t; void _k; void _e;
-        return rest;
+        token = r.inviteToken;
+        const past = [...pastInviteTokensOf(r).filter((t) => t !== token), ...(isValidInviteToken(token) ? [token] : [])];
+        dropped = past.slice(0, Math.max(0, past.length - TRIP_PAST_INVITES_MAX));
+        const { id: _i, uid: _u, rev: _r, updatedAt: _t, inviteToken: _k, inviteExpiresAt: _e, pastInviteTokens: _p, ...rest } = r;
+        void _i; void _u; void _r; void _t; void _k; void _e; void _p;
+        return { ...rest, pastInviteTokens: past.slice(dropped.length) };
     });
     if (token && isValidInviteToken(token)) {
         const res = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: inviteKey(token) } }));
         if (res.Item) await ddb.send(new PutCommand({ TableName: PHOTOS_TABLE, Item: { ...res.Item, revoked: true } }));
     }
-    return ok({ ok: true });
+    for (const old of dropped) {
+        await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: inviteKey(old) } }))
+            .catch((e) => console.error(`tripShare.retireInvite: 古い招待を消せませんでした（${planId}）:`, errName(e)));
+    }
+    return token;
 }
 
 /** DELETE /trip-share/{planId}/members/{uid} — 抜ける（自分）・外す（持ち主が他の人を） */
@@ -245,7 +278,16 @@ async function removeMember(me: string, planId: string, target: string | undefin
     if (!row || !isTripMember(row, me)) return notFound();
     if (target !== me && row.ownerId !== me) return jsonError(403, "仲間を外せるのはプランを作った人だけです");
     if (!isTripMember(row, target)) return ok({ ok: true });
-    await removeTripMember(planId, target);
+    const byOwner = target !== me;
+    await removeTripMember(planId, target, { byOwner });
+    // **持ち主が外したら、招待リンクを取り消して作り直す**（2026-11-12 確かめ役の指摘1: 外した人が手元に残った
+    // リンクで戻れた）。作り直すのは前のリンクが生きていたときだけ（無かったプランにリンクを増やさない）。
+    // 外した人は `removedIds` に入っているので、作り直したリンクが届いても入れない（`join`）
+    if (byOwner && liveInvite(row)) {
+        await retireInvite(planId);
+        await issueInvite(me, planId)
+            .catch((e) => console.error(`tripShare.removeMember: リンクを作り直せませんでした（${planId}）:`, errName(e)));
+    }
     return ok({ ok: true });
 }
 
@@ -271,10 +313,15 @@ async function readChat(me: string, planId: string) {
 
 /** POST /trip-share/{planId}/chat — 送る */
 async function sendChat(me: string, planId: string, body: Record<string, unknown>) {
-    const text = cleanDmText(body.text);
+    // 字数はプランの会話の上限（DM と同じ 500 字だが、DM の値に寄りかからない・2026-11-12 指摘10）
+    const text = cleanMultilineText(body.text, TRIP_CHAT_TEXT_MAX);
     if (!text) return jsonError(400, "メッセージを入力してください");
     const row = await readSharedTrip(planId, true);
     if (!row || !isTripMember(row, me)) return notFound();
+    // 1日に送れる数（DM の歯止めの仕組みを使い回す・2026-11-12 指摘6）。仲間かを見てから数える（外の人に数を進めさせない）
+    if (!await reserveTripChatDaily(me)) {
+        return jsonError(429, "今日はこれ以上送れません。明日またお試しください", "dailyLimit");
+    }
     const msg = textMessage(me, text);
     const seq = await appendTripChat(planId, [msg]);
     // 自分の通は読んだことにする（自分の送った通で未読を数えない）
@@ -354,6 +401,11 @@ async function join(me: string, token: string | undefined) {
         return jsonError(r.statusCode, r.error);
     }
     if (isTripMember(row, me)) return ok({ planId, joined: true, already: true });
+    // **持ち主が外した人は、リンクでは戻さない**（2026-11-12 指摘1・理由は言わない）
+    if (removedIdsOf(row).includes(me)) {
+        const r = inviteRejection("notfound");
+        return jsonError(r.statusCode, r.error);
+    }
     // ブロックの間柄の人が仲間に居れば参加させない（理由は言わない）
     const hidden = await hiddenUserIds(me);
     if (memberIdsOf(row).some((m) => hidden.has(m))) {
@@ -361,6 +413,10 @@ async function join(me: string, token: string | undefined) {
         return jsonError(r.statusCode, r.error);
     }
     const r = await addTripMember(planId, me);
+    if (r === "removed") {
+        const rj = inviteRejection("notfound");
+        return jsonError(rj.statusCode, rj.error);
+    }
     if (r === "full") return jsonError(403, `このプランは${TRIP_MEMBERS_MAX}人までです`);
     if (r === "joinedFull") return jsonError(403, `入れる旅行プランは${TRIPS_JOINED_MAX}個までです。使わないものから抜けてください`);
     if (r === "notfound") return notFound();
@@ -457,19 +513,22 @@ export const getTripInvite: APIGatewayProxyHandlerV2 = async (event) => {
 /**
  * 退会（`account.ts` から）。入っていた共有プランから抜け（持ち主なら残った人へ渡す・誰も残らなければ消す）、
  * 会話から本人の通を外し、日程の「足した人」から本人を外し、一覧の行を消す。
+ * **前に抜けた・外されたプラン（`left`）も同じく掃除する**（2026-11-12 確かめ役の指摘5: 今入っているプランしか
+ * 辿っておらず、抜けたプランに本人の通と印が残っていた）。外した印（`removedIds`）からも外す。
  * **1つのプランの失敗で止めない**（ほかの行の掃除を続ける。ログは残す）
  */
 export async function purgeTripSharesFor(uid: string): Promise<void> {
-    const { list } = await readJoined(uid);
-    for (const planId of list) {
+    const { list, left } = await readJoined(uid);
+    for (const planId of new Set([...list, ...left])) {
         try {
             await stripTripChatFrom(planId, uid);
-            const res = await removeTripMember(planId, uid);
+            const res = list.includes(planId) ? await removeTripMember(planId, uid, { purge: true }) : "ok";
             if (res === "ok") {
                 await updateUserRow(tripKey(planId), planId, (cur) => {
                     const r = cur as (SharedTrip & { id?: string; uid?: string }) | undefined;
                     if (!r || !Array.isArray(r.days)) return null;
-                    let touched = false;
+                    const removed = removedIdsOf(r);
+                    let touched = removed.includes(uid);
                     const days = r.days.map((d) => ({
                         ...d,
                         items: (Array.isArray(d.items) ? d.items : []).map((it) => {
@@ -481,11 +540,13 @@ export async function purgeTripSharesFor(uid: string): Promise<void> {
                         }),
                     }));
                     if (!touched) return null;
-                    const { id: _i, uid: _u, rev: _r, updatedAt: _t, ...rest } = r;
-                    void _i; void _u; void _r; void _t;
-                    return { ...rest, days };
+                    const { id: _i, uid: _u, rev: _r, updatedAt: _t, removedIds: _x, ...rest } = r;
+                    void _i; void _u; void _r; void _t; void _x;
+                    const keep = removed.filter((x) => x !== uid);
+                    return { ...rest, days, ...(keep.length > 0 ? { removedIds: keep } : {}) };
                 });
             }
+            if (!list.includes(planId)) await forgetLeft(uid, planId);
         } catch (e) {
             console.error(`purgeTripSharesFor: プランの掃除に失敗（${planId}）:`, errName(e));
         }

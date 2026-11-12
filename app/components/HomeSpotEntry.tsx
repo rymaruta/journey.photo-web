@@ -37,7 +37,7 @@ function Row({ href, name, count }: { href: string; name: string; count: number 
                 {/* 電話は「名前の」と「撮影スポット 件数」の2行・sm 以上は1行で件数は右端（`globals.css` の `home-spot-*`） */}
                 <span className="home-spot-text">
                     <span className="home-spot-name">{name}の</span>
-                    <span className="home-spot-noun">撮影スポット</span>
+                    <span className="home-spot-noun">観光スポット</span>
                 </span>
                 {" "}
                 <span className="home-spot-count">{count}件</span>
@@ -71,9 +71,9 @@ export default function HomeSpotEntry({ data }: { data: HomeSpotEntryData }) {
     })).filter((g) => g.items.length > 0);
     return (
         <section aria-labelledby={HEADING_ID} className="mx-auto w-full max-w-5xl lg:max-w-6xl px-4 sm:px-6 md:px-8 pt-8 pb-10 text-white" data-testid="home-spot-entry">
-            <SectionHead id={HEADING_ID} eyebrow="PHOTO SPOTS" title="撮影スポットを県から探す" className="mb-0" testId="home-spot-entry-head" />
+            <SectionHead id={HEADING_ID} eyebrow="PHOTO SPOTS" title="観光スポットを県から探す" className="mb-0" testId="home-spot-entry-head" />
             <p className="m-0 mt-2 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
-                県や国を選ぶと、その撮影スポットが一覧で見られます。右の数字は掲載している件数です。
+                県や国を選ぶと、その観光スポットが一覧で見られます。右の数字は掲載している件数です。
             </p>
             {/* id はホームの日本地図（`HomeJapanMap`）の「地図を飛ばして文字の一覧へ」「すべての県を文字で見る」の行き先 */}
             <nav aria-labelledby={HEADING_ID} id="home-spot-entry-list" className="scroll-mt-20">

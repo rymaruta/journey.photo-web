@@ -43,8 +43,8 @@ export default function SpotAutoNotice({ photoId, spotName, off, onChange, local
             }
             onChange(nextOff);
             showToast(nextOff
-                ? (isJa ? "外しました。撮影スポットの頁から外れるのは、サイトの更新が終わってからです" : "Removed. The spot page updates after the site is rebuilt.")
-                : (isJa ? "元に戻しました。サイトの更新が終わると、撮影スポットの頁に並びます" : "Restored. It will appear on the spot page after the site is rebuilt."),
+                ? (isJa ? "外しました。観光スポットの頁から外れるのは、サイトの更新が終わってからです" : "Removed. The spot page updates after the site is rebuilt.")
+                : (isJa ? "元に戻しました。サイトの更新が終わると、観光スポットの頁に並びます" : "Restored. It will appear on the spot page after the site is rebuilt."),
             "success");
         } catch (e) {
             showToast(sessionErrorMessage(e)
@@ -63,11 +63,11 @@ export default function SpotAutoNotice({ photoId, spotName, off, onChange, local
             <h2 id="photo-spot-auto" className="m-0 text-white font-semibold" style={{ fontSize: "16px", lineHeight: "22px" }}>
                 {off
                     ? (isJa ? `「${spotName}」への自動の結びつけを外しています` : `Automatic link to “${spotName}” removed`)
-                    : (isJa ? `撮影スポット「${spotName}」に結びました` : `Linked to the photo spot “${spotName}”`)}
+                    : (isJa ? `観光スポット「${spotName}」に結びました` : `Linked to the photo spot “${spotName}”`)}
             </h2>
             <p className="m-0 text-white/70" style={{ fontSize: "13px", lineHeight: "20px" }}>
                 {off
-                    ? (isJa ? "撮影スポットの頁には並びません。同じ場所なら元に戻せます。" : "It won’t appear on the spot page. Restore it if this is the same place.")
+                    ? (isJa ? "観光スポットの頁には並びません。同じ場所なら元に戻せます。" : "It won’t appear on the spot page. Restore it if this is the same place.")
                     : (isJa ? "撮影地の名前と写真の位置から、自動で結んでいます。違う場所なら外してください。"
                         : "Linked automatically by place name and location. Remove it if this is a different place.")}
             </p>

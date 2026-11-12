@@ -85,11 +85,11 @@ export function spotPageTitle(
     const n = spotSampleCount(facts);
     const fit = (cands: string[], last: string) => cands.find((t) => titleWidth(t) <= SPOT_TITLE_MAX) ?? last;
     if (!spotHasPhotos(facts)) {
-        const head = `${spot.name}の撮影スポット`;
+        const head = `${spot.name}の観光スポット情報`;
         return fit([...(where ? [`${head}（${where}）`] : []), head], head);
     }
     const pitch = n > 0 ? `作例${n}枚` : "";
-    const head = `${spot.name}の写真・撮影スポット`;
+    const head = `${spot.name}の写真と観光スポット情報`;
     return fit([
         ...(pitch && where ? [`${head}｜${pitch}（${where}）`] : []),
         ...(pitch ? [`${head}｜${pitch}`] : []),
@@ -154,7 +154,7 @@ export function spotPageDescription(
     const draft = isPublished(spot as Spot) ? "" : "【下書き・運営未確認】";
     // 2026-11-09（Web 入口ページ監査の案A）: 頭の言い方を「撮影地ガイド」から「撮影スポット」へ
     // （画面の呼び名の決め `PlaceTermWordingTests`・title の「の写真・撮影スポット」と同じ語）。URL・識別子は変えない
-    const lead = `${draft}${spotHasPhotos(facts) ? `${spot.name}の写真・撮影スポット。` : `${spot.name}の撮影スポット。`}`;
+    const lead = `${draft}${spotHasPhotos(facts) ? `${spot.name}の写真と観光スポット情報。` : `${spot.name}の観光スポット情報。`}`;
     const parts: string[] = [];
     const n = spotSampleCount(facts);
     if (n > 0) parts.push(`作例${n}枚`);

@@ -97,7 +97,7 @@ export default async function LearnPage() {
 
                 <p className="m-0 mt-10 text-text-2" style={{ fontSize: "14px", lineHeight: "22px" }}>
                     学んだら、旅先や日常で撮ってみましょう。次に行く場所は
-                    <TrackedLink contentType="spot" href={ROUTES.SPOTS} prefetch={false} className="inline-flex items-center min-h-[44px] mx-1 text-accent underline underline-offset-4 hover:text-accent-strong">撮影スポット</TrackedLink>
+                    <TrackedLink contentType="spot" href={ROUTES.SPOTS} prefetch={false} className="inline-flex items-center min-h-[44px] mx-1 text-accent underline underline-offset-4 hover:text-accent-strong">観光スポット</TrackedLink>
                     で探せます。
                 </p>
             </main>

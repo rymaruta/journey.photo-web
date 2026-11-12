@@ -210,7 +210,9 @@ describe("2枚目以降（extraImages）も画像サイトマップに載せる"
 });
 
 describe("撮影地ページの画像（2026-10-11）", () => {
-    it("代表写真と作例を、撮影地ページの <url> に載せる（ライセンスの欄は書かない）", async () => {
+    // 撮影地の台帳（約1,400件）ごと読み込むので、初めての読み込みは重い。全部の試験を並べて流した回で既定の 5 秒を
+    // 越えて落ちた（2026-11-12 実測: 5986ms で「Test timed out in 5000ms」・単独では通る）。待ちの上限だけを広げる
+    it("代表写真と作例を、撮影地ページの <url> に載せる（ライセンスの欄は書かない）", { timeout: 30_000 }, async () => {
         const { spotImageEntries } = await import("../sitemap-images.xml/route");
         const entries = spotImageEntries();
         expect(entries.length).toBeGreaterThan(0);

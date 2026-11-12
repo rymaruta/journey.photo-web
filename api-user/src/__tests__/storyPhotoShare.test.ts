@@ -84,54 +84,55 @@ const share = (sub: string, extra: Record<string, unknown> = {}) => invoke(creat
 }));
 const storyPut = () => puts.find((p) => p.story === true);
 
-describe("createStory: 写真を紹介する", () => {
-    it("人の公開写真を紹介できる。行に写真の id を書き、持ち主に知らせる", async () => {
-        const res = await share("sora");
+describe("createStory: 写真を紹介する（自分の写真だけ・2026-11-12 owner）", () => {
+    it("自分の公開写真を紹介できる。行に写真の id を書き、自分には知らせない", async () => {
+        const res = await share("mika");
         expect(res.statusCode).toBe(201);
         expect(storyPut()?.sharedPhotoId).toBe("p1");
-        expect(mockPush).toHaveBeenCalledTimes(1);
-        const [to, notif] = mockPush.mock.calls[0] as unknown as [string, Record<string, unknown>];
-        expect(to).toBe("mika");
-        expect(notif).toMatchObject({ type: "storyshare", photoId: "p1", byId: "sora", byName: "そら", photoSrc: "https://cdn.test/t/p1.webp", atLocation: "金沢" });
+        expect(mockPush).not.toHaveBeenCalled();
     });
 
-    it("自分の写真の紹介は、自分に知らせない", async () => {
-        expect((await share("mika")).statusCode).toBe(201);
-        expect(storyPut()?.sharedPhotoId).toBe("p1");
-        expect(mockPush.mock.calls.filter((c) => (c as unknown as [string, { type: string }])[1].type === "storyshare")).toEqual([]);
+    it("🔴 人の公開写真は 403「この写真はストーリーで紹介できません」。行も知らせも作らない", async () => {
+        const res = await share("sora");
+        expect(res.statusCode, "人の写真を自分のストーリーに載せ直せてしまう").toBe(403);
+        expect(JSON.parse(res.body).error).toBe("この写真はストーリーで紹介できません");
+        expect(storyPut()).toBeUndefined();
+        expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it("🔴 人の写真は、ブロック・退会・「検索に出さない」に関係なく 403（持ち主の関係を読みに行かない）", async () => {
+        photos.p1.searchHidden = true;
+        expect((await share("sora")).statusCode).toBe(403);
+        expect(mockIsBlocked).not.toHaveBeenCalled();
+        expect(mockDeleted).not.toHaveBeenCalled();
+        expect(storyPut()).toBeUndefined();
+    });
+
+    it("人の下書き・範囲を絞った写真は 404（403 で有無を教えない）", async () => {
+        photos.p1.published = false;
+        expect((await share("sora")).statusCode).toBe(404);
+        photos.p1.published = undefined;
+        photos.p1.audience = "followers";
+        expect((await share("sora")).statusCode).toBe(404);
+        expect(storyPut()).toBeUndefined();
     });
 
     const refused: [string, () => void][] = [
         ["下書き（非公開）", () => { photos.p1.published = false; }],
         ["フォロワー限定（公開範囲を絞った）", () => { photos.p1.audience = "followers"; }],
+        ["親しい友達だけ", () => { photos.p1.audience = "closeFriends"; }],
         ["ストーリーの行", () => { photos.p1.story = true; }],
         ["無い写真", () => { delete photos.p1; }],
-        ["持ち主が退会した", () => { mockDeleted.mockResolvedValue(new Set(["mika"])); }],
-        ["持ち主を読めなかった（退会の側に倒す）", () => { mockUnread.mockReturnValue(new Set(["mika"])); }],
-        ["持ち主にブロックされている", () => { mockIsBlocked.mockImplementation(async (a, b) => a === "mika" && b === "sora"); }],
-        ["自分が持ち主をブロックしている", () => { mockIsBlocked.mockImplementation(async (a, b) => a === "sora" && b === "mika"); }],
     ];
     for (const [label, arrange] of refused) {
-        it(`${label}の写真は 404 で、行も知らせも作らない`, async () => {
+        it(`自分の${label}の写真は 404 で、行も知らせも作らない`, async () => {
             arrange();
-            const res = await share("sora");
+            const res = await share("mika");
             expect(res.statusCode).toBe(404);
             expect(storyPut()).toBeUndefined();
             expect(mockPush).not.toHaveBeenCalled();
         });
     }
-
-    it("自分の写真でも、公開範囲を絞った写真は紹介できない（ストーリーの見る人と写真の見る人は別）", async () => {
-        photos.p1.audience = "closeFriends";
-        expect((await share("mika")).statusCode).toBe(404);
-        expect(storyPut()).toBeUndefined();
-    });
-
-    it("「検索に出さない」人の写真は紹介できる（あの設定は検索エンジンの頁だけ）", async () => {
-        photos.p1.searchHidden = true;
-        expect((await share("sora")).statusCode).toBe(201);
-        expect(storyPut()?.sharedPhotoId).toBe("p1");
-    });
 
     it("形の違う id は 400（黙って紹介なしにしない）", async () => {
         for (const bad of [12, "comments#p1", "story-abc", { id: "p1" }]) {
@@ -141,7 +142,7 @@ describe("createStory: 写真を紹介する", () => {
     });
 
     it("紹介のストーリーは棚に残さない（`archive` を書かない）", async () => {
-        expect((await share("sora", { archive: true })).statusCode).toBe(201);
+        expect((await share("mika", { archive: true })).statusCode).toBe(201);
         expect(storyPut()?.archive).toBeUndefined();
     });
 
@@ -159,7 +160,7 @@ describe("createStory: 写真を紹介する", () => {
 describe("getStories: 紹介した写真が見られなくなったら", () => {
     const now = Date.now();
     const row = (extra: Record<string, unknown> = {}) => ({
-        id: "story-1", story: true, userId: "sora", storyFeed: "1", sharedPhotoId: "p1",
+        id: "story-1", story: true, userId: "mika", storyFeed: "1", sharedPhotoId: "p1",
         createdAt: new Date(now - 60_000).toISOString(), expiresAt: new Date(now + 3_600_000).toISOString(), ...extra,
     });
     const list = async (viewer: string) => JSON.parse((await invoke(getStories, authed(viewer))).body) as Record<string, unknown>[];
@@ -175,15 +176,14 @@ describe("getStories: 紹介した写真が見られなくなったら", () => {
         ["持ち主が公開範囲を絞った", () => { photos.p1.audience = "followers"; }],
         ["持ち主が消した", () => { delete photos.p1; }],
         ["持ち主が退会した", () => { mockDeleted.mockResolvedValue(new Set(["mika"])); }],
-        ["見る人と持ち主のあいだにブロックができた", () => { mockHidden.mockResolvedValue(new Set(["mika"])); }],
-    ];
+            ];
     for (const [label, arrange] of lost) {
         it(`${label}: 本人以外には出さず、本人には写真の id を落として残す`, async () => {
             storyRows = [row()];
             arrange();
             expect((await list("kenji")).map((i) => i.id)).toEqual([]);
             storyRows = [row()];
-            const mine = await list("sora");
+            const mine = await list("mika");
             expect(mine.map((i) => i.id)).toEqual(["story-1"]);
             expect(mine[0].sharedPhotoId).toBeUndefined();
         });
@@ -199,7 +199,7 @@ describe("getStories: 紹介した写真が見られなくなったら", () => {
         storyRows = [row()];
         expect((await list("kenji")).map((i) => i.id), "読めなかった写真を「見られる」側に倒している").toEqual([]);
         storyRows = [row()];
-        const mine = await list("sora");
+        const mine = await list("mika");
         expect(mine.map((i) => i.id)).toEqual(["story-1"]);
         expect(mine[0].sharedPhotoId).toBeUndefined();
         vi.restoreAllMocks();
@@ -211,9 +211,31 @@ describe("getStories: 紹介した写真が見られなくなったら", () => {
         storyRows = [row(), row({ id: "story-2", sharedPhotoId: undefined })];
         expect((await list("kenji")).map((i) => i.id), "ブロックを確かめずに紹介の行を出している").toEqual(["story-2"]);
         storyRows = [row()];
-        const mine = await list("sora");
+        const mine = await list("mika");
         expect(mine.map((i) => [i.id, i.sharedPhotoId]), "本人の写真の id まで落としている").toEqual([["story-1", "p1"]]);
         vi.restoreAllMocks();
+    });
+
+    it("見る人と持ち主のあいだにブロックができた: 見る人には出さない", async () => {
+        storyRows = [row()];
+        mockHidden.mockResolvedValue(new Set(["mika"]));
+        // 見る人がブロックしている人のストーリーそのものが一覧から落ちる（紹介の門より手前）
+        expect((await list("kenji")).map((i) => i.id)).toEqual([]);
+    });
+
+    it("🔴 持ち主でない人が紹介した行（2026-11-12 より前に作られた）は、本人以外に出さず、本人には写真の id を落として残す", async () => {
+        storyRows = [row({ userId: "sora" })];
+        expect((await list("kenji")).map((i) => i.id), "人の写真の紹介が見る人に配られ続ける").toEqual([]);
+        expect((await list("mika")).map((i) => i.id), "写真の持ち主にも、人が載せ直した行は出さない").toEqual([]);
+        storyRows = [row({ userId: "sora" })];
+        const mine = await list("sora");
+        expect(mine.map((i) => i.id)).toEqual(["story-1"]);
+        expect(mine[0].sharedPhotoId).toBeUndefined();
+    });
+
+    it("同じ写真を持ち主と人の両方が紹介していても、持ち主の行は出す（行ごとに決める）", async () => {
+        storyRows = [row(), row({ id: "story-2", userId: "sora" })];
+        expect((await list("kenji")).map((i) => i.id)).toEqual(["story-1"]);
     });
 
     it("紹介の行が無い一覧は、写真を1枚も読まない", async () => {
@@ -227,8 +249,8 @@ describe("getStories: 紹介した写真が見られなくなったら", () => {
 
 describe("keepStory: 紹介のストーリーはギャラリーに残せない", () => {
     it("409 で断る（人の写真の写しを作らない）", async () => {
-        storyRows = [{ id: "story-1", story: true, userId: "sora", sharedPhotoId: "p1", src: "https://cdn.test/uploads/sora/card.jpg", key: "uploads/sora/card.jpg" }];
-        const res = await invoke(keepStory, authed("sora", { pathParameters: { id: "story-1" } }));
+        storyRows = [{ id: "story-1", story: true, userId: "mika", sharedPhotoId: "p1", src: "https://cdn.test/uploads/mika/card.jpg", key: "uploads/mika/card.jpg" }];
+        const res = await invoke(keepStory, authed("mika", { pathParameters: { id: "story-1" } }));
         expect(res.statusCode).toBe(409);
         expect(puts).toEqual([]);
     });

@@ -42,13 +42,13 @@ export default function SpotNext({ isJa, list, hasNearby, topics }: SpotNextProp
     return (
         <section aria-label={isJa ? "次に見る" : "Next"} data-testid="spot-next" className="max-w-3xl pt-5 pb-6 border-b border-line">
             {(hasRows || topics.length > 0) && (
-                <nav aria-label={isJa ? "撮影スポットの一覧" : "Photo spot lists"}>
+                <nav aria-label={isJa ? "観光スポットの一覧" : "Photo spot lists"}>
                     {hasRows && (
                         <ul className="m-0 p-0" style={{ listStyle: "none" }}>
                             {list && (
                                 <li>
                                     <TrackedLink href={list.href} navArea="spot_next" navDest="area" className={ROW} style={ROW_STYLE} data-testid="spot-next-list">
-                                        <span>{isJa ? `${list.name}の撮影スポットをすべて見る` : `See all spots in ${list.nameEn}`}</span>
+                                        <span>{isJa ? `${list.name}の観光スポットをすべて見る` : `See all spots in ${list.nameEn}`}</span>
                                         <ChevronRightIcon aria-hidden="true" className="shrink-0 text-text-2" style={{ width: 14, height: 14, strokeWidth: 2 }} />
                                     </TrackedLink>
                                 </li>
@@ -58,7 +58,7 @@ export default function SpotNext({ isJa, list, hasNearby, topics }: SpotNextProp
                                     {/* 頁内の移動（同じ頁の「近くの撮影スポット」へ）。新しい URL は増えない */}
                                     <Link href={`#${NEARBY_SECTION_ID}`} prefetch={false} className={ROW} style={ROW_STYLE} data-testid="spot-next-nearby"
                                        onClick={() => track("nav_click", { area: "spot_next", dest: "nearby" })}>
-                                        <span>{isJa ? "近くの撮影スポット" : "Nearby spots"}</span>
+                                        <span>{isJa ? "近くの観光スポット" : "Nearby spots"}</span>
                                         <ChevronRightIcon aria-hidden="true" className="shrink-0 text-text-2" style={{ width: 14, height: 14, strokeWidth: 2 }} />
                                     </Link>
                                 </li>
@@ -67,7 +67,7 @@ export default function SpotNext({ isJa, list, hasNearby, topics }: SpotNextProp
                     )}
                     {topics.length > 0 && (
                         <div className={hasRows ? "mt-4" : ""} data-testid="spot-topics">
-                            <SectionTitle id="spot-topics">{isJa ? "この撮影スポットが載っている一覧" : "Lists with this spot"}</SectionTitle>
+                            <SectionTitle id="spot-topics">{isJa ? "この観光スポットが載っている一覧" : "Lists with this spot"}</SectionTitle>
                             <ul className={CHIP_ROW} style={{ listStyle: "none" }}>
                                 {topics.map((t) => (
                                     <li key={t.href}>

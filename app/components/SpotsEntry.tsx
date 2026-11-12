@@ -47,14 +47,14 @@ export default function SpotsEntry({ locale, seasonal = null, showRow = true }: 
             {showRow && <HomeEntryRow
                 href={ROUTES.SPOTS}
                 testId="home-spots-entry"
-                eyebrow={en ? "Photo spots" : "撮影スポット"}
+                eyebrow={en ? "Photo spots" : "観光スポット"}
                 text={en ? "Guides to places worth shooting" : "撮りに行ける場所のガイド"}
             />}
             {seasonal && seasonal.spots.length > 0 && (
                 <section className="mb-3" aria-labelledby="home-season-spots" data-testid="home-season-spots">
                     {/* 見出しの行は置かない（高さを食う）。見出しは読み上げ用に残し、見た目は並びの先頭の札が兼ねる */}
                     <h2 id="home-season-spots" className="sr-only">
-                        {en ? `Photo spots for ${SEASON_LABEL[seasonal.season].en}` : `いまの季節（${SEASON_LABEL[seasonal.season].ja}）の撮影スポット`}
+                        {en ? `Photo spots for ${SEASON_LABEL[seasonal.season].en}` : `いまの季節（${SEASON_LABEL[seasonal.season].ja}）の観光スポット`}
                     </h2>
                     <ul className="flex gap-2 overflow-x-auto m-0 p-0 pb-1 -mx-1 px-1" style={{ listStyle: "none", scrollSnapType: "x proximity" }}>
                         <li className="shrink-0 w-[112px]" style={{ scrollSnapAlign: "start" }}>
@@ -67,7 +67,7 @@ export default function SpotsEntry({ locale, seasonal = null, showRow = true }: 
                                 </span>
                                 {/* 「秋の／撮影スポット」で折る（語の途中で折らない） */}
                                 <span className="font-serif font-bold text-white" style={{ fontSize: "13px", lineHeight: "16px", wordBreak: "keep-all" }}>
-                                    {en ? `${cap(SEASON_LABEL[seasonal.season].en)} spots` : <>{SEASON_LABEL[seasonal.season].ja}の<wbr />撮影スポット</>}
+                                    {en ? `${cap(SEASON_LABEL[seasonal.season].en)} spots` : <>{SEASON_LABEL[seasonal.season].ja}の<wbr />観光スポット</>}
                                 </span>
                                 <span className="text-white/60 whitespace-nowrap" style={{ fontSize: "12px", lineHeight: "16px" }}>
                                     {en ? `All ${seasonal.total}` : `すべて ${seasonal.total}件`}<span aria-hidden="true" className="ml-0.5">›</span>

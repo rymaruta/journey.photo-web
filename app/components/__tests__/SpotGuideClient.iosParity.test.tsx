@@ -67,10 +67,10 @@ beforeEach(() => {
 /** 小見出し（見出しの上の等幅の1行）。パンくずの「撮影スポット」と取り違えない */
 const eyebrow = () => document.querySelector("header p.eyebrow")?.textContent;
 
-describe("撮影スポットのページ（iOS の板 13 に揃えた形）", () => {
-    it("小見出しは公開なら「撮影スポット」、下書きなら「下書き・未確認」（下書きを撮影スポットと名乗らない）", () => {
+describe("観光スポットのページ（iOS の板 13 に揃えた形）", () => {
+    it("小見出しは公開なら「観光スポット」、下書きなら「下書き・未確認」（下書きを観光スポットと名乗らない）", () => {
         const { unmount } = view();
-        expect(eyebrow()).toBe("撮影スポット");
+        expect(eyebrow()).toBe("観光スポット");
         expect(document.querySelector("header p.eyebrow")!.className).toContain("text-accent");
         unmount();
         view({ ...SPOT, status: "review", verifiedBy: undefined, verifiedAt: undefined } as Spot);
@@ -128,7 +128,7 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
         const site = screen.getByRole("link", { name: /公式サイト/ });
         expect(row.contains(site), "公式サイトが行動の列に入っている").toBe(false);
         // 本文（この場所の魅力）の後ろ
-        expect(before(screen.getByRole("heading", { name: "この撮影スポットの魅力" }), site)).toBe(true);
+        expect(before(screen.getByRole("heading", { name: "この観光スポットの魅力" }), site)).toBe(true);
     });
 
     it("未ログインの「行きたい」も格子の直接の子（ログインへのリンク）", () => {
@@ -198,8 +198,8 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
 
     it("写真がある場所は写真の節が本文より先（写真が主役）", () => {
         view(SPOT, [PHOTO]);
-        const photos = screen.getByRole("heading", { name: "この撮影スポットの写真（1）" });
-        expect(before(photos, screen.getByRole("heading", { name: "この撮影スポットの魅力" }))).toBe(true);
+        const photos = screen.getByRole("heading", { name: "この観光スポットの写真（1）" });
+        expect(before(photos, screen.getByRole("heading", { name: "この観光スポットの魅力" }))).toBe(true);
     });
 
     // 2026-11-09（Web 入口ページ監査の案A）: 0枚の場所は「（0）」「まだ投稿されていません」を出さず、
@@ -207,12 +207,12 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
     it("写真が0枚の場所は、最初の1枚の誘いが「魅力」の直後・光の計算表より前に1か所だけ（「0」「まだ投稿されていません」を出さない）", () => {
         view();
         const invite = screen.getByRole("heading", { name: "最初の1枚を投稿しませんか" });
-        const charm = screen.getByRole("heading", { name: "この撮影スポットの魅力" });
+        const charm = screen.getByRole("heading", { name: "この観光スポットの魅力" });
         expect(before(charm, invite)).toBe(true);
         expect(screen.getAllByRole("heading", { level: 2 })[0]).not.toBe(invite);
         expect(screen.getAllByRole("link", { name: "ここで撮った写真を投稿する" })).toHaveLength(1);
         expect(document.body.textContent).not.toMatch(/まだ投稿されていません|写真（0）|0枚/);
-        expect(screen.getByTestId("spot-photos-invite").textContent).toContain("あなたの1枚が、この撮影スポットの最初の写真になります。");
+        expect(screen.getByTestId("spot-photos-invite").textContent).toContain("あなたの1枚が、この観光スポットの最初の写真になります。");
     });
 
     // iOS の `heroPhoto`: スマホは 4:3、出典は写真の下（写真に重ねて暗くしない）
@@ -251,7 +251,7 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
             </ToastProvider>,
         );
         // 見出しは節の見出しの部品（`SectionHead`・2026-10-31 束 2）の中なので、節から引く
-        const list = screen.getByRole("heading", { name: "香川県の撮影スポット" }).closest("section")!.querySelector("ul")!;
+        const list = screen.getByRole("heading", { name: "香川県の観光スポット" }).closest("section")!.querySelector("ul")!;
         expect(list.tagName).toBe("UL");
         expect(list.className.split(/\s+/)).toEqual(expect.arrayContaining(["bg-surface", "rounded-2xl", "ring-line"]));
         const rows = Array.from(list.querySelectorAll("a"));
@@ -271,7 +271,7 @@ describe("撮影スポットのページ（iOS の板 13 に揃えた形）", ()
 /**
  * **束 2（2026-10-31）で iOS の `OfficialSpotView` にそろえた所。** どれも直しを戻すと落ちる
  */
-describe("撮影スポットの頁の字と節（束 2）", () => {
+describe("観光スポットの頁の字と節（束 2）", () => {
     it("題は明朝 32（どの幅でも同じ・iOS の `JPFont.photoTitle`）", () => {
         view();
         const h1 = screen.getByRole("heading", { level: 1, name: "高屋神社" });
@@ -280,7 +280,7 @@ describe("撮影スポットの頁の字と節（束 2）", () => {
 
     it("節の見出しは眉＋明朝 22（iOS の `sectionHeader`）。眉は iOS と同じ節だけ", () => {
         view();
-        const about = screen.getByRole("heading", { level: 2, name: "この撮影スポットの魅力" });
+        const about = screen.getByRole("heading", { level: 2, name: "この観光スポットの魅力" });
         expect(about.style.fontSize).toBe("22px");
         const head = screen.getByTestId("head-spot-charm");
         expect(head.querySelector("p.eyebrow")!.textContent).toBe("ABOUT");
@@ -309,7 +309,7 @@ describe("撮影スポットの頁の字と節（束 2）", () => {
                     sameArea={{ label: "香川県", spots: [{ slug: "a", name: "父母ヶ浜" }] }} />
             </ToastProvider>,
         );
-        const more = screen.getByRole("link", { name: "香川県の撮影スポットをすべて見る" });
+        const more = screen.getByRole("link", { name: "香川県の観光スポットをすべて見る" });
         expect(more.className).toContain("min-h-[44px]");
         expect(more.getAttribute("href")).toBe("/spots/area/kagawa");
     });

@@ -161,8 +161,8 @@ export default function SavedSpotsClient({ spots, embedded = false }: { spots: R
                     title={en ? "No places yet" : "行きたい場所はまだありません"}
                     message={en
                         ? "Tap “Want to go” on a place to add it here."
-                        : "撮影スポットの画面で「行きたい」を押すと、ここに並びます"}
-                    action={{ label: en ? "Find photo spots" : "撮影スポットを探す", href: ROUTES.MAP }}
+                        : "観光スポットの画面で「行きたい」を押すと、ここに並びます"}
+                    action={{ label: en ? "Find photo spots" : "観光スポットを探す", href: ROUTES.MAP }}
                 />
             ) : (
                 <ul className="flex flex-col gap-2">
@@ -291,7 +291,7 @@ function Shell({ locale, count, children, embedded = false }: { locale: "ja" | "
                 <ListPageHeader
                     eyebrow="WANT TO GO"
                     title={en ? "Want to go" : "行きたい場所"}
-                    description={en ? "Spots you saved." : "保存した撮影スポット。"}
+                    description={en ? "Spots you saved." : "保存した観光スポット。"}
                 />
             )}
             {mapRow}

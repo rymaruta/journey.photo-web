@@ -16,7 +16,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("入口のリンク", () => {
-    it("フッターに、構図ガイドと撮影スポットの切り口（季節4つ・海外・一覧）がリンクとして出る", async () => {
+    it("フッターに、構図ガイドと観光スポットの切り口（季節4つ・海外・一覧）がリンクとして出る", async () => {
         const Footer = (await import("../components/Footer")).default;
         const { container } = render(<Footer />);
         const hrefs = [...container.querySelectorAll("a")].map((a) => a.getAttribute("href"));

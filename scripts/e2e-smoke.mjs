@@ -620,7 +620,7 @@ async function runChecks(browser, eng) {
         ? fs.readdirSync(locDir).filter((f) => f.endsWith(".html") && f !== "_none.html").sort()
         : [];
     if (locs.length > 0) {
-        console.log(`\n[${eng}][5b] 撮影スポット詳細`);
+        console.log(`\n[${eng}][5b] 観光スポット詳細`);
         const slug = locs[0].replace(/\.html$/, "");
         await gotoSettled(page, `http://localhost:${PORT}/location/${encodeURIComponent(slug)}`);
         check(`[${eng}] スポット詳細: ハイドレーション完了`, await waitForHydration(page));
@@ -767,7 +767,7 @@ async function runChecks(browser, eng) {
         const spotLink = await page
             .waitForSelector("[data-testid='search-spot-results'] a[href='/spots/ginzan-onsen']", { timeout: 10000 })
             .then(() => true).catch(() => false);
-        check(`[${eng}] さがす: 「銀山温泉」で撮影スポットの節からガイドへ行ける`, spotLink);
+        check(`[${eng}] さがす: 「銀山温泉」で観光スポットの節からガイドへ行ける`, spotLink);
 
         await gotoSettled(page, `http://localhost:${PORT}/spots/ginzan-onsen`);
         await waitForHydration(page);
@@ -806,9 +806,16 @@ async function runChecks(browser, eng) {
      */
     if (fs.existsSync(path.join(OUT, "q.html"))) {
         console.log(`\n[${eng}][5e] 今日の一問`);
+        // 2026-11-12（デザインの案 第10章）: 一問の札はホームの上の札から「さがす」の先頭へ移した（ホームの札は最大3枚）
         await gotoSettled(page, `http://localhost:${PORT}/`);
         await waitForHydration(page);
-        check(`[${eng}] 今日の一問: トップから入口で行ける`, !!(await page.$("[data-testid='home-quiz-entry'][href='/q']")));
+        check(`[${eng}] 今日の一問: トップの上の札に一問の札が無い（さがすへ移した）`, !(await page.$("[data-testid='home-quiz-entry']")));
+        await gotoSettled(page, `http://localhost:${PORT}/search`);
+        await waitForHydration(page);
+        const searchQuiz = await page
+            .waitForSelector("[data-testid='search-quiz-entry'][href='/q']", { timeout: 10000 })
+            .then(() => true).catch(() => false);
+        check(`[${eng}] 今日の一問: さがすの先頭の札から行ける`, searchQuiz);
         await gotoSettled(page, `http://localhost:${PORT}/q`);
         await waitForHydration(page);
         const choices = await page
@@ -823,6 +830,35 @@ async function runChecks(browser, eng) {
             // 形だけでなく、**行き先のページがビルドに在る**こと（404 のガイドへ送らない）
             const built = /^\/spots\/[a-z0-9-]+$/.test(guide) && fs.existsSync(path.join(OUT, `${guide.slice(1)}.html`));
             check(`[${eng}] 今日の一問: 答えると結果とガイドへのリンク（行き先が在る）`, result && built, guide);
+        }
+    }
+
+    /**
+     * **使い方（/help）**（2026-11-12・札 journey.photo-ios#517）。目次から全頁へ札で行け、
+     * 押すと頁が開き、絵1枚と3行が出る。電話の幅で横にはみ出さない（iOS のアプリの中の Safari で開く頁）
+     */
+    {
+        console.log(`\n[${eng}][5h] 使い方`);
+        await gotoSettled(page, `http://localhost:${PORT}/help`);
+        await waitForHydration(page);
+        const cards = await page.evaluate(() => [...document.querySelectorAll("[data-testid='help-card']")].map((a) => a.getAttribute("href")));
+        const built = cards.filter((h) => /^\/help\/[a-z-]+$/.test(h ?? "") && fs.existsSync(path.join(OUT, `${(h ?? "").slice(1)}.html`)));
+        check(`[${eng}] 使い方: 目次に札が並び、行き先の頁が全部ビルドに在る`, cards.length >= 4 && built.length === cards.length, JSON.stringify(cards));
+        const overflowIndex = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        check(`[${eng}] 使い方: 目次が電話の幅で横にはみ出さない`, overflowIndex <= 0, `はみ出し=${overflowIndex}px`);
+        if (cards.length > 0) {
+            await tapOrClick(page, `[data-testid='help-card'][href='${cards[0]}']`);
+            await page.waitForURL((u) => u.pathname.replace(/\.html$/, "") === cards[0], { timeout: 10000 }).catch(() => {});
+            await waitForHydration(page);
+            const shape = await page.evaluate(() => ({
+                h1: document.querySelector("h1")?.textContent ?? "",
+                figures: document.querySelectorAll("main > figure svg[role='img']").length,
+                lines: document.querySelectorAll("[data-testid='help-lines'] > li").length,
+                overflow: document.documentElement.scrollWidth - window.innerWidth,
+            }));
+            check(`[${eng}] 使い方: 札を押すと頁が開き、題・絵1枚・3行が出る`,
+                shape.h1.length > 0 && shape.figures === 1 && shape.lines === 3, JSON.stringify(shape));
+            check(`[${eng}] 使い方: 頁が電話の幅で横にはみ出さない`, shape.overflow <= 0, `はみ出し=${shape.overflow}px`);
         }
     }
 
@@ -928,7 +964,7 @@ function signedInApiBody(url, method, photos) {
     if (p === "/music/search") return { results: [] };
     // 光と天気の知らせ（Pro）。**1か所返す**——0件だと札（名前・押せる高さ）を一度も測らない
     if (p === "/user/light-forecast") return {
-        places: [{ key: "SPOT-smoke", slug: "smoke", name: "スモークの撮影スポット", timeZone: "Asia/Tokyo", forecast: true,
+        places: [{ key: "SPOT-smoke", slug: "smoke", name: "スモークの観光スポット", timeZone: "Asia/Tokyo", forecast: true,
             days: [{ date: "2099-12-31", sunrise: { at: "2099-12-30T20:42:00.000Z", clock: "05:42" }, sunset: null,
                 morningBlue: { start: null, end: null }, eveningBlue: { start: null, end: null },
                 morning: { weather: "clear", chance: "high" }, evening: null, night: null }] }],
@@ -1190,8 +1226,7 @@ async function runHomeMapChecks(browser, eng) {
     console.log(`\n[${eng}][1m] ホームの日本地図（スマホ・タッチ・案C: 地方 → 県）`);
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2, serviceWorkers: "block" });
     await sealContext(ctx);
-    // 初見の手がかり（輪が動く）を出さない端末にする（localStorage の旗）。出る側は別に確かめる
-    await ctx.addInitScript(() => { try { localStorage.setItem("jm-hint", JSON.stringify({ shown: 2, traced: true, visits: 5 })); } catch { /* 無視 */ } });
+    // 初めての端末のまま開く（2026-11-12 に初見の手がかりの動きをやめた。何も押さずに待っても選択に見える物が出ないことを下で確かめる）
     const page = await ctx.newPage();
     const bag = attachDiagnostics(page);
     const home = `http://localhost:${PORT}/`;
@@ -1235,13 +1270,39 @@ async function runHomeMapChecks(browser, eng) {
     check(`[${eng}] 地図: 眉が日本語（日本地図）`, base.eyebrow.includes("日本地図") && !base.eyebrow.includes("PHOTO SPOTS"), base.eyebrow);
     const sizes = await page.evaluate(() => [...document.querySelectorAll('.jm-rchip, [data-testid="home-japan-map-close"]')].map((e) => { const r = e.getBoundingClientRect(); return Math.min(r.width, r.height); }));
     check(`[${eng}] 地図: 地方チップが 44px 以上`, sizes.length >= 10 && sizes.every((s) => s >= 43.9), JSON.stringify(sizes));
+
+    // ── 何も押さずに待つ（2026-11-12 owner「なんも押してないのに県を選ぶというのわかりづらい」）──
+    // 以前は地図が見えて 1.2 秒で、初見の手がかりの動きが本物のなぞりと同じ輪・札・強調・「触れている」を 2.8 秒出していた
+    await toMapTop();
+    const idle = [];
+    for (let i = 0; i < 25; i++) {
+        idle.push(await page.evaluate(() => {
+            const f = document.querySelector(".jm-finger"), t = document.querySelector('[data-testid="home-japan-map-tip"]');
+            return {
+                finger: !!f && !f.hidden, tip: t && !t.hidden ? t.textContent : null,
+                lit: document.querySelectorAll("path.jm-hov, path.jm-hovr, path.jm-sel").length,
+                touching: (document.querySelector('[data-testid="home-japan-map-bar"]')?.textContent ?? "").includes("触れている"),
+                open: document.querySelector('[data-testid="home-japan-map-panel"]').getAttribute("data-open"),
+            };
+        }));
+        await page.waitForTimeout(200);
+    }
+    const shown = idle.filter((x) => x.finger || x.tip || x.lit || x.touching || x.open !== "false");
+    check(`[${eng}] 地図: 何も押さずに 5 秒待っても、選んでいる・触れているように見える物（輪・札・強調・「触れている」）が出ない`, shown.length === 0, JSON.stringify(shown[0] ?? {}));
+    const labels = await page.evaluate(() => [...document.querySelectorAll('[data-testid="home-japan-map-region"]')].map((b) => {
+        const r = b.getBoundingClientRect(), pre = getComputedStyle(b, "::before");
+        return { r: b.getAttribute("data-r"), w: r.width, hitH: r.height - parseFloat(pre.top) - parseFloat(pre.bottom) };
+    }));
+    check(`[${eng}] 地図: 地方名は押せる札で 9 つ・当たりは 44px 以上`, labels.length === 9 && labels.every((l) => l.w >= 43.9 && l.hitH >= 43.9), JSON.stringify(labels));
+    const panelIdle = await page.locator('[data-testid="home-japan-map-panel"] h3').textContent();
+    check(`[${eng}] 地図: 何も選んでいないときの帯は命令（県を選ぶ）ではない`, panelIdle === "県の観光スポット", panelIdle ?? "");
     await shot(page, "all", await map.boundingBox());
 
-    // ── ひと押し（タップ）: 全国で地方 → 拡大 → 県 ──
+    // ── ひと押し（タップ）: 全国で地方の札 → 拡大 → 県 ──
     await toMapTop();
     await page.waitForTimeout(200);
-    let p = await at(240, 252); // 関東
-    await page.touchscreen.tap(p.x, p.y);
+    let p;
+    await page.locator('[data-testid="home-japan-map-region"][data-r="関東"]').tap();
     await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") === "関東", null, { timeout: 5000 }).catch(() => {});
     await waitZoomStill(page);
     let s = await state();
@@ -1259,7 +1320,7 @@ async function runHomeMapChecks(browser, eng) {
     s = await state();
     check(`[${eng}] 地図: 拡大した地方で東京をひと押し → その場に帯が開く（URL は #pref=tokyo・頁は移動しない）`, opened && s.open === "true" && s.hash === "#pref=tokyo" && page.url() === `${home}#pref=tokyo`, JSON.stringify(s));
     const txt = (await panel.textContent()) ?? "";
-    check(`[${eng}] 地図: 帯に県名・件数・「すべて見る」が出る`, txt.includes("東京都") && /撮影スポット \d+件/.test(txt) && txt.includes("撮影スポットをすべて見る"), txt.slice(0, 80));
+    check(`[${eng}] 地図: 帯に県名・件数・「すべて見る」が出る`, txt.includes("東京都") && /観光スポット \d+件/.test(txt) && txt.includes("観光スポットをすべて見る"), txt.slice(0, 80));
     await page.waitForTimeout(400);
     const fit = await page.evaluate(() => {
         const r = document.querySelector('[data-testid="home-japan-map-panel"]').getBoundingClientRect();
@@ -1427,7 +1488,6 @@ async function runHomeMapChecks(browser, eng) {
     console.log(`\n[${eng}][1m] ホームの日本地図（PC・キーボード）`);
     const dctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block" });
     await sealContext(dctx);
-    await dctx.addInitScript(() => { try { localStorage.setItem("jm-hint", JSON.stringify({ shown: 2, traced: true, visits: 5 })); } catch { /* 無視 */ } });
     const dpage = await dctx.newPage();
     const dbag = attachDiagnostics(dpage);
     await gotoSettled(dpage, home);

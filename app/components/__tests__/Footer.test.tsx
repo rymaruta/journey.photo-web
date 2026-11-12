@@ -18,15 +18,15 @@ describe("フッターの導線", () => {
             ["App Storeで入手", "https://apps.apple.com/jp/app/id6814335283"],
             // さがす（10本）。2列で読むと対になる: 地図・一覧 → 桜・紅葉 → 雪景色・海外 → 春・夏 → 秋・冬
             ["撮影地マップ", ROUTES.MAP],
-            ["撮影スポットの一覧", ROUTES.SPOTS],
-            ["桜の撮影スポット", ROUTES.SPOT_SAKURA()],
-            ["紅葉の撮影スポット", ROUTES.SPOT_MOMIJI()],
-            ["雪景色の撮影スポット", ROUTES.SPOT_SNOW()],
-            ["海外の撮影スポット", ROUTES.SPOT_AREA("overseas")],
-            ["春の撮影スポット", ROUTES.SPOT_SEASON("spring")],
-            ["夏の撮影スポット", ROUTES.SPOT_SEASON("summer")],
-            ["秋の撮影スポット", ROUTES.SPOT_SEASON("autumn")],
-            ["冬の撮影スポット", ROUTES.SPOT_SEASON("winter")],
+            ["観光スポットの一覧", ROUTES.SPOTS],
+            ["桜の観光スポット", ROUTES.SPOT_SAKURA()],
+            ["紅葉の観光スポット", ROUTES.SPOT_MOMIJI()],
+            ["雪景色の観光スポット", ROUTES.SPOT_SNOW()],
+            ["海外の観光スポット", ROUTES.SPOT_AREA("overseas")],
+            ["春の観光スポット", ROUTES.SPOT_SEASON("spring")],
+            ["夏の観光スポット", ROUTES.SPOT_SEASON("summer")],
+            ["秋の観光スポット", ROUTES.SPOT_SEASON("autumn")],
+            ["冬の観光スポット", ROUTES.SPOT_SEASON("winter")],
             // まなぶ（3本）
             ["写真とカメラの教科書", ROUTES.LEARN],
             ["構図ガイド", ROUTES.COMPOSITION],
@@ -39,7 +39,7 @@ describe("フッターの導線", () => {
         ]);
     });
 
-    it("外したリンクを戻さない: 作品・サイトの組の撮影スポット（/spots の重複）・いいね・保存・行きたい場所", () => {
+    it("外したリンクを戻さない: 作品・サイトの組の観光スポット（/spots の重複）・いいね・保存・行きたい場所", () => {
         render(<Footer />);
         const anchors = screen.getAllByRole("link");
         const hrefs = anchors.map((a) => a.getAttribute("href"));
@@ -49,7 +49,7 @@ describe("フッターの導線", () => {
         expect(texts).not.toContain("作品");
         // /spots は「撮影スポットの一覧」の1本だけ
         expect(hrefs.filter((h) => h === ROUTES.SPOTS), "/spots が重複している").toHaveLength(1);
-        expect(texts).not.toContain("撮影スポット");
+        expect(texts).not.toContain("観光スポット");
         // 自分専用の頁（巡回を断っている・☰ のログイン中の組にある）
         for (const h of [ROUTES.FAVORITES, ROUTES.SAVES, ROUTES.SAVED_SPOTS]) expect(hrefs, h).not.toContain(h);
     });

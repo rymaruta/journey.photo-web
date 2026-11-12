@@ -227,7 +227,7 @@ export default function MapPageClient({ spots }: { spots: readonly SpotPin[] }) 
                                 <span>
                                     {en
                                         ? `This area · ${filtered.length} photo${filtered.length === 1 ? "" : "s"}${spots.length > 0 ? ` · ${shownSpots.length} spot${shownSpots.length === 1 ? "" : "s"}` : ""}`
-                                        : `このエリアの写真 ${filtered.length}件${spots.length > 0 ? `・撮影スポット ${shownSpots.length}か所` : ""}`}
+                                        : `このエリアの写真 ${filtered.length}件${spots.length > 0 ? `、観光スポット ${shownSpots.length}か所` : ""}`}
                                 </span>
                                 <button
                                     type="button"
@@ -293,8 +293,8 @@ export default function MapPageClient({ spots }: { spots: readonly SpotPin[] }) 
                             {spots.length > 0 && (
                                 <span className="block" data-testid="map-spot-count">
                                     {shownSpots.length === spots.length
-                                        ? (en ? `${spots.length} shooting spots` : `撮影スポット ${spots.length}か所`)
-                                        : (en ? `${shownSpots.length} of ${spots.length} spots shown` : `撮影スポット ${spots.length}か所中 ${shownSpots.length}か所を表示`)}
+                                        ? (en ? `${spots.length} shooting spots` : `観光スポット ${spots.length}か所`)
+                                        : (en ? `${shownSpots.length} of ${spots.length} spots shown` : `観光スポット ${spots.length}か所中 ${shownSpots.length}か所を表示`)}
                                 </span>
                             )}
                         </p>

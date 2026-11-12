@@ -78,7 +78,7 @@ describe("受ける鍵", () => {
 });
 
 describe("数える", () => {
-    it("回線の日の上限 → 回線・撮影スポットの日の上限 → 端末の日の上限 → 月1回 → 数を進める", async () => {
+    it("回線の日の上限 → 回線・観光スポットの日の上限 → 端末の日の上限 → 月1回 → 数を進める", async () => {
         ddbWith();
         const res = await run(ev({ device: DEVICE, slugs: [SLUG] }));
         expect(res.statusCode).toBe(200);
@@ -92,7 +92,7 @@ describe("数える", () => {
         expect(ups[4]).toBe(`spotwant#${month}#${SLUG}`);
     });
 
-    it("同じ端末・同じ撮影スポットはその月1回（数を進めない）", async () => {
+    it("同じ端末・同じ観光スポットはその月1回（数を進めない）", async () => {
         ddbWith((id) => id.startsWith("wantby#"));
         const res = await run(ev({ device: DEVICE, slugs: [SLUG, SLUG2] }));
         expect(JSON.parse(res.body)).toEqual({ counted: 0 });
@@ -115,7 +115,7 @@ describe("数える", () => {
         expect(calls().some((c) => idOf(c).startsWith("wantday#")), "上限のあとに端末の行を増やさない").toBe(false);
     });
 
-    it("同じ回線・同じ撮影スポットは1日20件まで（その撮影スポットだけ飛ばし、ほかは数える）", async () => {
+    it("同じ回線・同じ観光スポットは1日20件まで（その観光スポットだけ飛ばし、ほかは数える）", async () => {
         ddbWith((id) => id.endsWith(`#${SLUG}`) && id.startsWith("wantip#"));
         expect(JSON.parse((await run(ev({ device: DEVICE, slugs: [SLUG, SLUG2] }))).body)).toEqual({ counted: 1 });
         const spotCall = calls().find((c) => idOf(c).endsWith(`#${SLUG}`) && idOf(c).startsWith("wantip#"))!;
@@ -133,7 +133,7 @@ describe("数える", () => {
         expect(W.hashIp("2001:db8:1:2::1", "s")).not.toBe(W.hashIp("2001:db8:1:3::1", "s"));
     });
 
-    it("数える撮影スポットが無い要求は、塩も読まずにすぐ返す", async () => {
+    it("数える観光スポットが無い要求は、塩も読まずにすぐ返す", async () => {
         ddbWith();
         const res = await run(ev({ device: DEVICE, slugs: ["no-such-spot-xyz"] }));
         expect(res.statusCode).toBe(200);
@@ -161,7 +161,7 @@ describe("毎日の集計", () => {
         expect(f.spots.map(({ slug, n, rank }) => ({ slug, n, rank }))).toEqual([{ slug: a, n: 30, rank: 1 }, { slug: b, n: 12, rank: 2 }, { slug: c, n: 12, rank: 2 }]);
     });
 
-    it("順位は日本の撮影スポットの中だけ・海外は数だけ（2026-11-11 判断）", () => {
+    it("順位は日本の観光スポットの中だけ・海外は数だけ（2026-11-11 判断）", () => {
         expect(ABROAD.length).toBeGreaterThan(0);
         const f = W.rankWants(new Map([[ABROAD[0], 500], [JP[0], 40], [JP[1], 20]]), new Set(), "2026-11", new Date(0));
         expect(f.spots.map(({ slug, n, rank }) => ({ slug, n, rank }))).toEqual([
@@ -174,7 +174,7 @@ describe("毎日の集計", () => {
         expect(W.isSpike(0, 101)).toBe(true);
         expect(W.isSpike(100, 140)).toBe(false);
         expect(W.isSpike(150, 320)).toBe(true);
-        expect(W.isSpike(0, 300, 1000), "前の月に人気だった撮影スポットは月初めに多くても外さない").toBe(false);
+        expect(W.isSpike(0, 300, 1000), "前の月に人気だった観光スポットは月初めに多くても外さない").toBe(false);
         expect(W.isSpike(0, 29)).toBe(false);
     });
 

@@ -194,14 +194,15 @@ function PlanCard({ en, me, plan, spots, open, busy, onToggle, onUpdate, onRemov
                     style={{ touchAction: "manipulation", minHeight: 44 }}
                 >
                     <span className="block truncate text-sm font-semibold">{plan.title}</span>
-                    <span className="block text-xs text-white/60" style={{ marginTop: "2px" }}>
+                    {/* 期間・場所の数・共有の人数は余白で分ける（中黒で区切らない・2026-11-12 の決まり） */}
+                    <span className="flex flex-wrap gap-x-2 text-xs text-white/60" style={{ marginTop: "2px" }}>
                         {[
                             period(plan, en ? "en" : "ja"),
                             en ? `${count} place${count !== 1 ? "s" : ""}` : `${count} か所`,
-                            plan.shared ? (en ? `Shared · ${plan.shared.memberCount}` : `仲間と共有 · ${plan.shared.memberCount}人`) : "",
+                            plan.shared ? (en ? `Shared by ${plan.shared.memberCount}` : `${plan.shared.memberCount}人で共有`) : "",
                         ]
                             .filter(Boolean)
-                            .join(" ・ ")}
+                            .map((part) => <span key={part}>{part}</span>)}
                     </span>
                 </button>
                 <button
