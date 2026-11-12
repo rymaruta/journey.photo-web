@@ -2,7 +2,8 @@
 
 import React, { Suspense } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import { usePrivateLinkToken } from "../../lib/hooks/usePrivateLinkToken";
 import { userPublicFetch, sessionErrorMessage } from "../../lib/utils/api";
 import { ROUTES } from "../../lib/routes";
 import { LoadingState } from "../components/StateViews";
@@ -34,7 +35,8 @@ type View =
     | { kind: "failed"; message: string };
 
 function QrLanding() {
-    const token = useSearchParams().get("t") ?? "";
+    // 合図は state に持ち、URL からはすぐ外す（GA4・履歴に残さない・`usePrivateLinkToken`）
+    const token = usePrivateLinkToken();
     const router = useRouter();
     const [view, setView] = React.useState<View>({ kind: "loading" });
     const [attempt, setAttempt] = React.useState(0);
