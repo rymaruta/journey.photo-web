@@ -705,11 +705,12 @@ describe("getHighlight（開いたときの中身）", () => {
 // ────────────────────────────────
 // 4. 配線: 読む口は読み取り専用ロール
 // ────────────────────────────────
-describe("serverless.yml", () => {
-    const yml = fs.readFileSync(path.join(__dirname, "..", "..", "serverless.yml"), "utf8");
+// ハイライトの口は user API から別のスタック（`serverless.stories.yml`）へ移した（札 journey.photo-ios#552 ②）
+describe("serverless.stories.yml", () => {
+    const yml = fs.readFileSync(path.join(__dirname, "..", "..", "serverless.stories.yml"), "utf8");
     const block = (fn: string) => {
         const m = yml.match(new RegExp(`\\n  ${fn}:\\n([\\s\\S]*?)(?=\\n  \\w+:\\n|$)`));
-        expect(m, `${fn} が serverless.yml に無い`).toBeTruthy();
+        expect(m, `${fn} が serverless.stories.yml に無い`).toBeTruthy();
         return m![1];
     };
 
@@ -717,9 +718,9 @@ describe("serverless.yml", () => {
     // （`getStories`）は認証必須——「全員に公開」は**ログインした全員**の
     // 意味なので、未認証で開くと投稿者が選んだ範囲より広く配ることになる。
     // 一度そうして本番まで出した（`/highlights/{userId}` が誰でも読めた）
-    it("5つとも cognitoAuthorizer が要る（未認証で読める口を作らない）", () => {
+    it("5つとも user API の Cognito の認可が要る（未認証で読める口を作らない）", () => {
         for (const fn of ["getUserHighlights", "getHighlight", "createHighlight", "updateHighlight", "deleteHighlight"]) {
-            expect(block(fn), `${fn} が認可なし`).toContain("name: cognitoAuthorizer");
+            expect(block(fn), `${fn} が認可なし`).toContain("Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId");
         }
     });
 

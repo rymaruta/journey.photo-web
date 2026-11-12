@@ -86,19 +86,25 @@ function handlerBody(serviceDir: string, handler: string): string {
  * `applyToProfile` が付いたメダルの通知を積むので、それも数える
  */
 const sendsPush = (handler: string) =>
-    /\b(?:pushNotification|refreshBadges|refreshBadgesQuietly|applyToProfile|alertOne|notifyInspiredOnce|sendDm)\s*\(/.test(handlerBody("api-user", handler));
+    /\b(?:pushNotification|refreshBadges|refreshBadgesQuietly|applyToProfile|alertOne|notifyInspiredOnce|sendDm)\s*\(/.test(handlerBody("api-user", handler))
+    // 旅行プランの共有（`tripShare.ts`）は口が9つでも関数は1つ（`handler` が道で分ける）。知らせは中の `notify` が
+    // `sendPush` で直に送るので、`handler` の本文には出てこない。別のスタックまで見張りを広げたとき（#552）に足した
+    || (handler === "src/tripShare.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/tripShare.ts"), "utf8")));
 // `notifyInspiredOnce` は「この写真を見て撮影」の知らせ（`inspired.ts`）。写真の保存・更新が呼ぶ
 // `sendDm` は DM の送信（`dm.ts`。受け取った人の端末へ送る。リクエストには送らない）。
 // `alertOne` は光と天気の知らせ（`lightForecast.ts` の `sendLightAlerts`）。お知らせの一覧には
 // 積まず、`sendPush` で直に送る（文面そのもの・理由は `lightForecast.ts` の注記）
 
 describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
-    const yml = readFileSync(join(ROOT, "api-user", "serverless.yml"), "utf8");
-    const provider = yml.split(/\nfunctions:\n/)[0];
-    const fnSection = yml.split(/\nfunctions:\n/)[1].split(/\n(?=[a-zA-Z#])/)[0];
+    // user API（`serverless.yml`）と、そこから口を移した・口を足す別のスタック（`serverless.<機能>.yml`・札 #552）の全部。
+    // 移した関数もこの見張りから外さない（ストーリー・DM の知らせは別のスタックで送る）
+    const files = readdirSync(join(ROOT, "api-user")).filter((n) => /^serverless(\.[\w-]+)?\.yml$/.test(n)).sort();
+    const ymls = files.map((f) => readFileSync(join(ROOT, "api-user", f), "utf8"));
+    const providers = ymls.map((yml) => yml.split(/\nfunctions:\n/)[0]);
+    const provider = providers.join("\n");
 
     const fns = new Map<string, { handler: string; vars: string[] }>();
-    for (const part of ("\n" + fnSection).split(/\n(?=  \w+:\n)/)) {
+    for (const part of ymls.flatMap((yml) => ("\n" + yml.split(/\nfunctions:\n/)[1].split(/\n(?=[a-zA-Z#])/)[0]).split(/\n(?=  \w+:\n)/))) {
         const m = /^\n?  (\w+):/.exec(part);
         if (!m) continue;
         // **コメントを先に潰す。** 経緯を1行書いただけで落ちる守りは
@@ -106,6 +112,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
         const body = part.replace(/^\s*#.*$/gm, "");
         const h = /^\s{4}handler:\s*(\S+)\s*$/m.exec(body);
         if (!h) continue;
+        expect(fns.has(m[1]), `${m[1]} が2つの設定にある`).toBe(false);
         fns.set(m[1], { handler: h[1], vars: ALL_VARS.filter((v) => body.includes(v)) });
     }
 
@@ -147,7 +154,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
         const sending = [...fns].filter(([, v]) => sendsPush(v.handler)).map(([n]) => n).sort();
         expect(sending).toEqual([
             "answerStory", "appStoreNotification", "createStory", "dm", "followUser", "getMyBadges", "likePhoto", "postComment", "postStoryReply",
-            "recordPurchase", "savePhoto", "sendLightAlerts", "updatePhotoVisibility",
+            "recordPurchase", "savePhoto", "sendLightAlerts", "tripShare", "updatePhotoVisibility",
         ]);
     });
 
