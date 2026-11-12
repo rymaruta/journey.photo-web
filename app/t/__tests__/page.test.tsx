@@ -2,7 +2,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { tripInviteLine } from "../../../lib/utils/tripInvite";
+import { tripInviteParts } from "../../../lib/utils/tripInvite";
 
 // 旅行プランへのお誘い（`/t`・2026-11-12）。共同アルバムの招待（`/j`）と同じく:
 //   - **見るのはログイン不要**・参加はログイン（戻り先つき）
@@ -43,10 +43,12 @@ beforeEach(() => {
 });
 
 describe("旅行プランへのお誘い", () => {
-    it("未ログインでも題と「日付 · 人数 · 場所の数」が見え、ログインへ戻り先つきで送る", async () => {
+    it("未ログインでも題と日付・人数・場所の数が見え、ログインへ戻り先つきで送る", async () => {
         render(<Page />);
         expect(await screen.findByRole("heading", { name: "秋の金沢" })).toBeInTheDocument();
-        expect(screen.getByText("11月23日 〜 24日 · 2人 · 4か所")).toBeInTheDocument();
+        for (const part of ["11月23日 〜 24日", "2人", "4か所"]) expect(screen.getByText(part)).toBeInTheDocument();
+        // 中黒で区切らない（2026-11-12 の決まり）
+        expect(screen.getByText("2人").parentElement!.textContent).not.toMatch(/[·・]/);
         expect(mockUserPublicFetch).toHaveBeenCalledWith(`/trip-invites/${"a".repeat(32)}`);
         const login = screen.getByRole("link", { name: "ログインして参加する" });
         expect(login.getAttribute("href")).toBe(`/login?next=${encodeURIComponent(`/t?t=${"a".repeat(32)}`)}`);
@@ -67,8 +69,8 @@ describe("旅行プランへのお誘い", () => {
     });
 
     it("1行の組み立て", () => {
-        expect(tripInviteLine({ title: "", memberCount: 1, spotCount: 0 })).toBe("1人");
-        expect(tripInviteLine({ title: "", startDate: "2026-11-30", endDate: "2026-12-01", memberCount: 3, spotCount: 2 }))
-            .toBe("11月30日 〜 12月1日 · 3人 · 2か所");
+        expect(tripInviteParts({ title: "", memberCount: 1, spotCount: 0 })).toEqual(["1人"]);
+        expect(tripInviteParts({ title: "", startDate: "2026-11-30", endDate: "2026-12-01", memberCount: 3, spotCount: 2 }))
+            .toEqual(["11月30日 〜 12月1日", "3人", "2か所"]);
     });
 });

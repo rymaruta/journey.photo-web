@@ -898,3 +898,19 @@ body {
 }
 @media (min-width: 768px) { .jm-names-line { display: none; } }
 @media (prefers-reduced-motion: reduce) { .jm-sh, .jm-frame { transition: none; } .jm-prog.go circle { animation-duration: 1ms; } }
+
+/* **写真・動画を長押し・ドラッグで保存させない（2026-11-12 owner）。**
+   iOS Safari の長押しの「写真に保存」「画像を保存」は JS の contextmenu では止まらない。
+   `-webkit-touch-callout: none` で長押しのメニューを出さない。デスクトップの右クリックと
+   ドラッグは `DisableSave`（document の contextmenu・dragstart）で止める。
+   保存させたい所だけ `data-allow-save` の中に置く（今は無い・`lib/utils/saveGuard.ts`）。 */
+img,
+video {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+[data-allow-save] img,
+[data-allow-save] video {
+  -webkit-touch-callout: default;
+  -webkit-user-drag: auto;
+}

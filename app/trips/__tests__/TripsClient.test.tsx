@@ -120,7 +120,9 @@ describe("一覧と削除", () => {
         draw();
         expect(screen.getByText("冬のフィンランド")).toBeTruthy();
         // **サイトの他の画面と同じ形**（`2026-12-24` の生の値では出さない）
-        expect(screen.getByText("2026年12月24日 〜 2026年12月28日 ・ 2 か所")).toBeTruthy();
+        // 期間と場所の数は余白で分ける（中黒で区切らない・2026-11-12 の決まり）
+        expect(screen.getByText("2026年12月24日 〜 2026年12月28日")).toBeTruthy();
+        expect(screen.getByText("2 か所")).toBeTruthy();
         expect(screen.queryByText(/2026-12-24/), "保存されている生の値がそのまま出ている").toBeNull();
     });
 
@@ -146,7 +148,8 @@ describe("一覧と削除", () => {
     it("片方だけの日付は、その1つを出す", () => {
         hooks.trips.plans = [plan("a", { startDate: "2026-12-24" })];
         draw();
-        expect(screen.getByText("2026年12月24日 ・ 0 か所")).toBeTruthy();
+        expect(screen.getByText("2026年12月24日")).toBeTruthy();
+        expect(screen.getByText("0 か所")).toBeTruthy();
     });
 
     it("🔴 消す前に一度聞く（押しただけでは消えない）", () => {
@@ -281,7 +284,9 @@ describe("仲間と共有したプラン（2026-11-12）", () => {
             plan("b", { title: "能登", shared: { ownerId: "me", memberCount: 2 } }),
         ];
         draw();
-        expect(screen.getByText(/仲間と共有 · 3人/)).toBeInTheDocument();
+        expect(screen.getByText("3人で共有")).toBeInTheDocument();
+        // 中黒で区切らない（2026-11-12 の決まり）
+        expect(screen.getByText("3人で共有").parentElement!.textContent).not.toMatch(/[·・]/);
         fireEvent.click(screen.getByRole("button", { name: "「秋の金沢」から抜ける" }));
         expect(screen.getByText("この旅行プランから抜けますか？")).toBeInTheDocument();
         fireEvent.click(screen.getByRole("button", { name: "抜ける" }));

@@ -76,7 +76,8 @@ describe("撮影スポット詳細のパス", () => {
 
 describe("入口の文言の禁止語", () => {
     it("新しく書いた入口の部品に「撮りどき」「この場所」「注目スポット」を書かない", () => {
-        const files = ["HomeEntryBand.tsx", "SpotNext.tsx"].map((f) => readFileSync(resolve(__dirname, "../../../app/components", f), "utf8"));
+        // HomeEntryBand.tsx は 2026-11-12 に消した（ホームの入口の帯・デザインの案 第10章）
+        const files = ["SpotNext.tsx"].map((f) => readFileSync(resolve(__dirname, "../../../app/components", f), "utf8"));
         for (const src of files) {
             const strings = src.match(/"[^"\n]*[ぁ-んァ-ヶ一-龠][^"\n]*"/g) ?? [];
             for (const w of ["撮りどき", "この場所", "注目スポット"]) expect(strings.join("\n"), w).not.toContain(w);
