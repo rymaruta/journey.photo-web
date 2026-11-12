@@ -77,4 +77,14 @@ describe("E2E スモークが見る範囲", () => {
         expect(tagBlock).toContain("tags.length > 0");
         expect(tagBlock, "ディレクトリが無い環境で落ちる").toContain("fs.existsSync(tagDir)");
     });
+
+    // **今日の一問の札は「さがす」の先頭**（2026-11-12・デザインの案 第10章）。トップで一問の札を探すと本番のスモークで落ちる
+    it("一問の札は /search の search-quiz-entry で引き、実装がその目印を持つ", () => {
+        expect(script, "トップで一問の札を引いている").not.toContain("[data-testid='home-quiz-entry'][href='/q']");
+        expect(script).toContain("[data-testid='search-quiz-entry'][href='/q']");
+        const cards = read("app/components/HomeTopCards.tsx");
+        expect(cards).toContain('testId = "search-quiz-entry"');
+        expect(cards, "ホームの札に一問が戻った").not.toContain('testId="home-quiz-entry"');
+        expect(read("app/GalleryPageClient.tsx")).toContain("<QuizCard ");
+    });
 });

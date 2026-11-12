@@ -290,7 +290,7 @@ describe("レビューの直し（2026-10-11）", () => {
         const meta = await generateMetadata({ params: Promise.resolve({ slug: hit.spot.slug }) });
         if (n > 0) {
             expect(String(meta.description)).toContain(`作例${n}枚、`);
-            expect(String((meta.title as { absolute?: string })?.absolute ?? "")).toMatch(new RegExp(`作例${n}枚|の写真・撮影スポット`));
+            expect(String((meta.title as { absolute?: string })?.absolute ?? "")).toMatch(new RegExp(`作例${n}枚|の写真と観光スポット情報`));
         }
         expect(String(meta.description)).not.toContain(`作例${n + 1}枚`);
         const fs = await import("node:fs");

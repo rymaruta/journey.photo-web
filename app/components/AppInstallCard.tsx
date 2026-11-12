@@ -69,7 +69,7 @@ export default function AppInstallCard({ placement, className = "", compact = fa
                             {en
                                 ? "Save places you want to go and browse the photo-spot map."
                                 // 文節ごとにまとめて、折り返しが読点の後ろに来るようにする（「地図。」だけが次の行に落ちない）
-                                : <><span className="inline-block">行きたい場所の保存と、</span><span className="inline-block">撮影スポットの地図。</span></>}
+                                : <><span className="inline-block">行きたい場所の保存と、</span><span className="inline-block">観光スポットの地図。</span></>}
                         </p>
                     </div>
                 </div>

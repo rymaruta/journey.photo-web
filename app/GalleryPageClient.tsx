@@ -23,9 +23,8 @@ import { useAuth } from "./auth/context";
 import TimelineFeed from "./components/TimelineFeed";
 import HomeMosaic from "./components/HomeMosaic";
 import { EmptyState, ErrorState, LoadingState } from "./components/StateViews";
-import HomeTopCards from "./components/HomeTopCards";
+import HomeTopCards, { QuizCard } from "./components/HomeTopCards";
 import AppInstallCard from "./components/AppInstallCard";
-import HomeEntryBand from "./components/HomeEntryBand";
 import SpotsEntry from "./components/SpotsEntry";
 import dynamic from "next/dynamic";
 import StickyTabRow from "./components/StickyTabRow";
@@ -721,7 +720,8 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
       {/* アプリのご案内（2026-11-06 owner「目立つところに」）。上段の札のすぐ下＝最初の画面の続きで目に入る位置 */}
       {surface === "home" && <AppInstallCard placement="home" compact className="mb-4" />}
       {/* **入口の帯**（2026-11-09 owner「任せる」・提案書 4b の(a)）。アプリの札の下・切り替えの上に文字リンクを1行。写真の並びは動かさない */}
-      {surface === "home" && <HomeEntryBand className="mb-4" />}
+      {/* 入口の帯（撮影スポット・行きたい場所・2026-11-09）は 2026-11-12 に外した（デザインの案 第10章「どこに何を置くか」）。
+          すぐ下の日本地図と「撮影スポット」が重なり、行きたい場所は ≡ と払う札にある */}
       {/* 撮影スポットを地図から探す（2026-11-09）。写真のタブより上＝タブと写真の並びはこの下にそのまま残る */}
       {surface === "home" && entryMap}
 
@@ -916,6 +916,13 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
       {(searchScope === "all" || searchScope === "places") && <SpotSearchResults query={filters.query} locale={locale} />}
 
       {/* 発見の面（何も探していない間だけ・iOS の `isDiscovering`）。**絞り込みに連動させない**——「いま何があるか」を出す面 */}
+      {/* 今日の一問（2026-11-12・デザインの案 第10章: ホームの上の札は最大3枚・一問は「さがす」の先頭へ。iOS と同じ）。
+          何も探していない間だけ（発見の面と同じ） */}
+      {searchDiscovering && (
+        <div className="mb-4" data-testid="search-quiz-row">
+          <QuizCard locale={locale === "en" ? "en" : "ja"} />
+        </div>
+      )}
       {searchDiscovering && (
         <DiscoverSections photos={PHOTOS} locale={locale} categoryDisplayMap={categoryDisplayMap} onOpenPhoto={openById} />
       )}

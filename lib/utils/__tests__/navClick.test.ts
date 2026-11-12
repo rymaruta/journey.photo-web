@@ -57,7 +57,7 @@ describe("nav_click の仕様", () => {
     });
 });
 
-describe("撮影スポット詳細のパス", () => {
+describe("観光スポット詳細のパス", () => {
     beforeEach(() => {});
     it("/spots/<slug> だけが詳細。一覧・県・季節・テーマ・予約語は違う", () => {
         expect(isSpotDetailPath("/spots/goryokaku")).toBe(true);
@@ -76,7 +76,8 @@ describe("撮影スポット詳細のパス", () => {
 
 describe("入口の文言の禁止語", () => {
     it("新しく書いた入口の部品に「撮りどき」「この場所」「注目スポット」を書かない", () => {
-        const files = ["HomeEntryBand.tsx", "SpotNext.tsx"].map((f) => readFileSync(resolve(__dirname, "../../../app/components", f), "utf8"));
+        // HomeEntryBand.tsx は 2026-11-12 に消した（ホームの入口の帯・デザインの案 第10章）
+        const files = ["SpotNext.tsx"].map((f) => readFileSync(resolve(__dirname, "../../../app/components", f), "utf8"));
         for (const src of files) {
             const strings = src.match(/"[^"\n]*[ぁ-んァ-ヶ一-龠][^"\n]*"/g) ?? [];
             for (const w of ["撮りどき", "この場所", "注目スポット"]) expect(strings.join("\n"), w).not.toContain(w);
@@ -86,7 +87,7 @@ describe("入口の文言の禁止語", () => {
 
 // 2026-11-10 札 #515: 本文に自分のアプリの札がある頁（フッターの札を出さない頁）
 describe("pageHasOwnAppCard", () => {
-    it("ホーム・撮影スポット詳細・教科書の章だけ（一覧との一致は ownAppCardPages.test.ts）", () => {
+    it("ホーム・観光スポット詳細・教科書の章だけ（一覧との一致は ownAppCardPages.test.ts）", () => {
         for (const p of ["/", "/spots/goryokaku", "/spots/goryokaku/", "/learn/autumn-leaves"]) expect(pageHasOwnAppCard(p), p).toBe(true);
         for (const p of ["/spots", "/spots/sakura", "/spots/area/hokkaido", "/search", "/learn", "/learn/camera-basics", "/terms", "", null, undefined]) {
             expect(pageHasOwnAppCard(p), String(p)).toBe(false);
