@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act, within } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { ja } from "../i18n/labels";
 
 /**
@@ -19,7 +19,7 @@ vi.mock("../i18n/context", () => ({
 vi.mock("../../lib/hooks/useToast", () => ({ useToast: () => ({ showToast: vi.fn() }) }));
 vi.mock("../components/GalleryModal", () => ({ default: () => null }));
 vi.mock("../components/SearchParamWatcher", () => ({ default: () => null }));
-vi.mock("../components/HomeTopCards", () => ({ default: () => <section data-testid="home-top-cards" /> }));
+vi.mock("../components/HomeTopCards", () => ({ default: () => <section data-testid="home-top-cards" />, QuizCard: () => <a data-testid="search-quiz-entry" /> }));
 vi.mock("../components/TimelineFeed", () => ({ default: () => <div data-testid="timeline-feed" /> }));
 // 輪の列の中身（読み込み・投稿）は `StoriesBar` 自身のテストが見る。ここは置き場所だけ
 vi.mock("../components/stories/StoriesBar", () => ({ default: () => <div data-testid="stories-bar" /> }));
@@ -84,12 +84,11 @@ describe("ホームの並び（iOS と同じ）", () => {
         expect(follows(cards, app), "アプリの札が上の札より上").toBe(true);
     });
 
-    it("ホームのアプリの札は小さい形（compact）・最初の画面のチップに地図・探す・ログインが無い", () => {
+    it("ホームのアプリの札は小さい形（compact）・入口の帯は無い（2026-11-12・すぐ下の日本地図と重なる）", () => {
         render(<GalleryPageClient seasonalSpots={SEASONAL} />);
         const app = screen.getByTestId("app-install-card");
         expect(app.className.split(/\s+/), "ホームのアプリの札が大きい形").toContain("p-3");
-        const band = within(screen.getByTestId("home-entry-band")).getAllByRole("link").map((a) => a.textContent);
-        for (const w of ["地図", "探す", "ログイン"]) expect(band, w).not.toContain(w);
+        expect(screen.queryByTestId("home-entry-band"), "入口の帯が戻った").toBeNull();
     });
 
     it("「さがす」の面には輪の列を出さない", async () => {
@@ -130,7 +129,7 @@ describe("ホームの並び（iOS と同じ）", () => {
     });
 });
 
-describe("いまの季節の撮影スポットの段（iOS #417 ④）", () => {
+describe("いまの季節の観光スポットの段（iOS #417 ④）", () => {
     it("「おすすめ」では写真 5 枚の後ろ・6 枚目の前に出る", () => {
         render(<GalleryPageClient seasonalSpots={SEASONAL} />);
         fireEvent.click(screen.getByRole("tab", { name: "おすすめ" }));

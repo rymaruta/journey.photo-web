@@ -53,7 +53,7 @@ export default function SpotLinkCard({ spot, locale, heading, headingId = "photo
                  aria-label={heading === null ? spot.name : undefined}>
             {heading !== null && (
                 <h2 id={headingId} className="m-0 mb-2 text-white/60" style={{ fontSize: "12px", lineHeight: "16px" }}>
-                    {heading ?? (isJa ? "この写真の撮影スポット" : "Where this was taken")}
+                    {heading ?? (isJa ? "この写真の観光スポット" : "Where this was taken")}
                 </h2>
             )}
             <div className="rounded-2xl overflow-hidden bg-surface ring-1 ring-line">
@@ -93,7 +93,7 @@ export default function SpotLinkCard({ spot, locale, heading, headingId = "photo
                                   style={{ fontSize: "12px", lineHeight: "18px" }}>{spot.summary}</span>
                         )}
                         <span className="block mt-1.5 text-white/85" style={{ fontSize: "12px" }}>
-                            {isJa ? "撮影スポットを見る" : "See photo spot"} <span aria-hidden="true">›</span>
+                            {isJa ? "観光スポットを見る" : "See photo spot"} <span aria-hidden="true">›</span>
                         </span>
                     </span>
                 </Link>

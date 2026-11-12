@@ -7,7 +7,7 @@ import { INDEXABLE_ROBOTS, shareImageUrl, shareOgImage, siteConfig } from "../..
 // robots は手書きせず `INDEXABLE_ROBOTS` を引く（手書きすると親の googleBot の指定が消える・seo.ts の注記）
 const SWIPE_TITLE = "写真を払って、行きたい場所を探す";
 const SWIPE_DESCRIPTION =
-    "撮影スポットの写真を1枚ずつ見て、右へ払うと行きたい、左へ払うと見送る。ログインなしではじめられ、選んだ場所は地図と旅行プランで見られます。";
+    "観光スポットの写真を1枚ずつ見て、右へ払うと行きたい、左へ払うと見送る。ログインなしではじめられ、選んだ場所は地図と旅行プランで見られます。";
 const URL = `${siteConfig.url}${ROUTES.SWIPE}`;
 
 export const metadata: Metadata = {

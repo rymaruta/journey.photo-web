@@ -62,6 +62,11 @@ export type DmEntry = {
      * **この欄より前に書かれた行は持たない**（読み手は「分からない」として扱う）
      */
     from?: string;
+    /**
+     * 最後に直した送信取り消しの通の id（2026-11-12・確かめ役の指摘）。押し直しで未読を二重に減らさない印
+     * （`dm.ts` の `fixEntryAfterUnsend`）
+     */
+    unsentId?: string;
 };
 
 export const DM_EXCERPT_MAX = 40;
@@ -87,6 +92,7 @@ export function parseEntries(item: Record<string, unknown> | undefined): Record<
             unread: typeof e.unread === "number" && e.unread > 0 ? e.unread : 0,
             state: e.state as DmEntryState,
             ...(typeof e.from === "string" ? { from: e.from } : {}),
+            ...(typeof e.unsentId === "string" ? { unsentId: e.unsentId } : {}),
         };
     }
     return out;

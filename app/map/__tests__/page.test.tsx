@@ -530,7 +530,7 @@ describe("公式撮影地ガイドのピン", () => {
             ledger.pins = [];
             render(<MapPage />);
             expect(screen.queryByTestId("map-spot-list")).toBeNull();
-            expect(screen.queryByText("公式撮影スポット")).toBeNull();
+            expect(screen.queryByText("公式観光スポット")).toBeNull();
         });
 
         /// 数えていないものを出さない（owner の指示 2026-09-22）
@@ -608,7 +608,7 @@ describe("公式撮影地ガイドのピン", () => {
             ledger.pins = [PIN, GINZAN];
             render(<MapPage />);
             await typeQuery("銀山温泉");
-            expect(screen.getByTestId("map-spot-count").textContent).toBe("撮影スポット 2か所中 1か所を表示");
+            expect(screen.getByTestId("map-spot-count").textContent).toBe("観光スポット 2か所中 1か所を表示");
             expect(screen.getByTestId("map-count").textContent).toContain("1枚中 0枚を表示");
         });
 
@@ -618,7 +618,7 @@ describe("公式撮影地ガイドのピン", () => {
             render(<MapPage />);
             await typeQuery("銀山温泉");
             expect(mapProps.spotSlugs).toEqual([]);
-            expect(screen.getByTestId("map-spot-empty").textContent).toContain("検索語や範囲に当たる撮影スポットはありません");
+            expect(screen.getByTestId("map-spot-empty").textContent).toContain("検索語や範囲に当たる観光スポットはありません");
         });
 
         it("写真のカテゴリで絞っている間は、スポットを出さず、そう言う", () => {
@@ -636,7 +636,7 @@ describe("公式撮影地ガイドのピン", () => {
             render(<MapPage />);
             act(() => { mapProps.searchArea?.({ south: 38, west: 140, north: 39, east: 141 }); });
             expect(mapProps.spotSlugs).toEqual(["ginzan-onsen"]);
-            expect(screen.getByTestId("map-area-note").textContent).toContain("撮影スポット 1か所");
+            expect(screen.getByTestId("map-area-note").textContent).toContain("観光スポット 1か所");
         });
 
         it("位置情報のある写真が0枚でも、スポットがあれば地図を出す", () => {
@@ -699,7 +699,7 @@ describe("公式撮影地ガイドのピン", () => {
             expect([...mapProps.spotSlugs].sort()).toEqual(["ginzan-onsen", "takaya-jinja"]);
             expect(screen.getByTestId("map-spot-sheet")).toBeTruthy();
             expect(within(screen.getByTestId("map-spot-list")).queryByText("高屋神社")).toBeNull();
-            expect(screen.getByTestId("map-spot-count").textContent).toBe("撮影スポット 2か所中 1か所を表示");
+            expect(screen.getByTestId("map-spot-count").textContent).toBe("観光スポット 2か所中 1か所を表示");
         });
 
         it("カテゴリで絞っている間は、選んだピンだけ残し、一覧は理由を言う", async () => {
@@ -734,7 +734,7 @@ describe("公式撮影地ガイドのピン", () => {
             await typeQuery("ぎんざん");
             expect(screen.getByTestId("map-spot-empty").textContent).toContain("探しています");
             await act(async () => { release({ ok: false, json: async () => null }); await new Promise((r) => setTimeout(r, 20)); });
-            expect(screen.getByTestId("map-spot-empty").textContent).toContain("当たる撮影スポットはありません");
+            expect(screen.getByTestId("map-spot-empty").textContent).toContain("当たる観光スポットはありません");
         });
 
         afterEach(() => { vi.unstubAllGlobals(); photosState.loaded = true; });
@@ -775,7 +775,7 @@ describe("公式撮影地ガイドのピン", () => {
         expect(within(sheet).getByText("高屋神社")).toBeTruthy();
         expect(within(sheet).getByText("香川県 観音寺市")).toBeTruthy();
         // 眉は「撮影スポット」（iOS の札と同じ。「公式」は付けない・2026-10-31 束 2）
-        expect(within(sheet).getByText("撮影スポット")).toBeTruthy();
+        expect(within(sheet).getByText("観光スポット")).toBeTruthy();
     });
 
     /// 🔴 **「公式」と名乗るのは人が確かめた行だけ。** 運営未確認の下書きは
@@ -788,10 +788,10 @@ describe("公式撮影地ガイドのピン", () => {
         await act(async () => { mapProps.selectSpot?.("takaya-jinja"); });
         const sheet = screen.getByTestId("map-spot-sheet");
         expect(within(sheet).getByText("下書き・未確認")).toBeTruthy();
-        expect(within(sheet).queryByText("撮影スポット")).toBeNull();
-        expect(screen.queryByText("公式撮影スポット")).toBeNull();
+        expect(within(sheet).queryByText("観光スポット")).toBeNull();
+        expect(screen.queryByText("公式観光スポット")).toBeNull();
         // 一覧の行も同じ名乗り（2026-10-30・束 0a で「撮影地ガイド（下書き）」から札とそろえた）
-        expect(screen.getAllByText("撮影スポット（下書き）", { exact: false }).length).toBeGreaterThanOrEqual(2);
+        expect(screen.getAllByText("観光スポット（下書き）", { exact: false }).length).toBeGreaterThanOrEqual(2);
     });
 
     /// 🔴 **地図 → ガイド**（コアの鎖の次の輪）

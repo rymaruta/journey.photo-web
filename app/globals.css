@@ -818,8 +818,6 @@ body {
 .jm-frame.jm-frame-hov { stroke: #fff; stroke-dasharray: none; }
 .jm-names { pointer-events: none; }
 .jm-name { fill: #fff; pointer-events: none; paint-order: stroke; stroke: #000; stroke-width: var(--jm-sw, 3.5px); stroke-linejoin: round; font-size: var(--jm-fs, 14px); font-weight: 600; font-family: var(--font-sans, system-ui), sans-serif; text-anchor: middle; dominant-baseline: central; }
-.jm-rname { fill: #fff; pointer-events: none; paint-order: stroke; stroke: #000; stroke-width: var(--jm-sw, 3.5px); stroke-linejoin: round; font-size: var(--jm-rfs, 16px); font-weight: 700; font-family: var(--font-serif), serif; text-anchor: middle; dominant-baseline: central; }
-.jm-rname.jm-on { fill: var(--color-accent); }
 .jm-lab-sel .jm-name { stroke: var(--color-accent-deep); font-weight: 700; }
 .jm-ring { fill: none; stroke: var(--color-accent); pointer-events: none; }
 
@@ -839,13 +837,19 @@ body {
 /* 地図の上の固定欄（36px）: 触れている名前。字を 12px 以上に保つ */
 .jm-bar { height: 36px; display: flex; align-items: center; font-size: 13px; line-height: 18px; color: var(--color-text-2); white-space: nowrap; overflow: hidden; }
 .jm-bar b { color: #fff; font-weight: 600; }
-.jm-hint { position: absolute; left: 16px; right: 16px; top: 8px; z-index: 2; text-align: center; font-size: 12px; line-height: 16px; color: var(--color-text-2); pointer-events: none; }
-.jm-hint i { font-style: normal; display: inline-block; background: rgb(0 0 0 / 0.7); box-shadow: inset 0 0 0 1px var(--color-line); border-radius: 99px; padding: 4px 12px; }
+/* 全国の地方名の札（2026-11-12 owner「ガイドもないし」）。押せると見て分かる形: 黒い地の丸い札・真鍮の細い縁・明朝の白い名前・真鍮の `›`。
+   見える札は高さ 30px、当たりは上下に 7px 広げて 44px（`::before`）。黒い地の上なので真鍮を使える（板の決まり）。
+   触れている地方（なぞり・マウス）は名前も真鍮に。縦スクロールを奪わない（枠と同じ `touch-action`）。長押し・横になぞると、札の上からでも地図のなぞりになる */
+.jm-rlabels { position: absolute; inset: 0; pointer-events: none; }
+.jm-rlabel { position: absolute; transform: translate(-50%, -50%); pointer-events: auto; display: inline-flex; align-items: center; gap: 2px; height: 30px; min-width: 44px; padding: 0 8px 0 10px; border: 0; border-radius: 15px; background: rgb(0 0 0 / 0.78); box-shadow: inset 0 0 0 1px rgb(201 166 107 / 0.55), 0 2px 8px rgb(0 0 0 / 0.5); color: #fff; font-family: var(--font-serif), serif; font-size: 14px; line-height: 1; font-weight: 700; white-space: nowrap; cursor: pointer; touch-action: pan-y pinch-zoom; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent; }
+.jm-rlabel::before { content: ""; position: absolute; left: 0; right: 0; top: -7px; bottom: -7px; }
+.jm-rlabel span { font-family: var(--font-sans, system-ui), sans-serif; font-size: 15px; font-weight: 600; color: var(--color-accent); }
+.jm-rlabel:hover, .jm-rlabel.jm-on { color: var(--color-accent); box-shadow: inset 0 0 0 1.5px var(--color-accent), 0 2px 8px rgb(0 0 0 / 0.5); }
+.jm-rlabel:active { background: var(--color-accent-soft); }
 
 /* 指の輪・進み具合・名前の札（画面に固定・`document.body` の下）。**触れる・離すを邪魔しない**（`pointer-events: none`） */
 .jm-finger, .jm-prog { position: fixed; z-index: 60; width: 54px; height: 54px; margin: -27px 0 0 -27px; pointer-events: none; }
 .jm-finger { border-radius: 27px; background: rgb(255 255 255 / 0.18); box-shadow: inset 0 0 0 2px rgb(255 255 255 / 0.75); }
-.jm-finger.jm-ghost { background: rgb(201 166 107 / 0.18); box-shadow: inset 0 0 0 2px rgb(201 166 107 / 0.9); }
 .jm-prog circle { fill: none; stroke: var(--color-accent); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 158; stroke-dashoffset: 158; transform: rotate(-90deg); transform-origin: center; }
 .jm-prog.go circle { animation: jm-sweep 160ms linear 90ms forwards; }
 @keyframes jm-sweep { to { stroke-dashoffset: 0; } }
@@ -856,7 +860,6 @@ body {
 .jm-tip.jm-cancel { box-shadow: inset 0 0 0 1px rgb(240 86 90 / 0.7), 0 8px 24px rgb(0 0 0 / 0.6); }
 .jm-tip.jm-cancel b { font-size: 16px; line-height: 22px; }
 .jm-tip.jm-cancel span { color: var(--color-danger); }
-.jm-tip.jm-ghost { box-shadow: inset 0 0 0 1px rgb(201 166 107 / 0.8), 0 8px 24px rgb(0 0 0 / 0.6); }
 
 .jm-link { display: inline-flex; align-items: center; min-height: 44px; font-size: 13px; color: var(--color-text-2); text-decoration: underline; text-underline-offset: 3px; }
 .jm-link:hover { color: #fff; }
@@ -898,3 +901,19 @@ body {
 }
 @media (min-width: 768px) { .jm-names-line { display: none; } }
 @media (prefers-reduced-motion: reduce) { .jm-sh, .jm-frame { transition: none; } .jm-prog.go circle { animation-duration: 1ms; } }
+
+/* **写真・動画を長押し・ドラッグで保存させない（2026-11-12 owner）。**
+   iOS Safari の長押しの「写真に保存」「画像を保存」は JS の contextmenu では止まらない。
+   `-webkit-touch-callout: none` で長押しのメニューを出さない。デスクトップの右クリックと
+   ドラッグは `DisableSave`（document の contextmenu・dragstart）で止める。
+   保存させたい所だけ `data-allow-save` の中に置く（今は無い・`lib/utils/saveGuard.ts`）。 */
+img,
+video {
+  -webkit-touch-callout: none;
+  -webkit-user-drag: none;
+}
+[data-allow-save] img,
+[data-allow-save] video {
+  -webkit-touch-callout: default;
+  -webkit-user-drag: auto;
+}

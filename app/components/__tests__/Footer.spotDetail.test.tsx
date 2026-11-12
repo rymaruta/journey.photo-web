@@ -22,7 +22,7 @@ beforeEach(() => {
 });
 
 describe("フッターのアプリの札", () => {
-    it("撮影スポット詳細（/spots/<slug>）では出さない", () => {
+    it("観光スポット詳細（/spots/<slug>）では出さない", () => {
         for (const p of ["/spots/goryokaku", "/spots/goryokaku/"]) {
             path.current = p;
             const { unmount } = render(<Footer />);
@@ -62,15 +62,15 @@ describe("フッターのアプリの札", () => {
         }
     });
 
-    it("撮影スポットの行き先を押すと nav_click（area=footer・dest）", () => {
+    it("観光スポットの行き先を押すと nav_click（area=footer・dest）", () => {
         path.current = "/terms";
         render(<Footer />);
         const group = screen.getByTestId("footer-spot-links");
         const stop = (e: Event) => e.preventDefault();
         group.addEventListener("click", stop);
-        fireEvent.click(screen.getByRole("link", { name: "桜の撮影スポット" }));
-        fireEvent.click(screen.getByRole("link", { name: "海外の撮影スポット" }));
-        fireEvent.click(screen.getByRole("link", { name: "撮影スポットの一覧" }));
+        fireEvent.click(screen.getByRole("link", { name: "桜の観光スポット" }));
+        fireEvent.click(screen.getByRole("link", { name: "海外の観光スポット" }));
+        fireEvent.click(screen.getByRole("link", { name: "観光スポットの一覧" }));
         expect(gtag.mock.calls.filter((c) => c[1] === "nav_click").map((c) => c[2])).toEqual([
             expect.objectContaining({ area: "footer", dest: "topic" }),
             expect.objectContaining({ area: "footer", dest: "area" }),
@@ -78,13 +78,13 @@ describe("フッターのアプリの札", () => {
         ]);
     });
 
-    it("撮影スポットの9本は全部 nav_click を送る。地図とまなぶの組は以前どおり数えない", () => {
+    it("観光スポットの9本は全部 nav_click を送る。地図とまなぶの組は以前どおり数えない", () => {
         path.current = "/terms";
         render(<Footer />);
         const stop = (e: Event) => e.preventDefault();
         document.addEventListener("click", stop);
-        const spots = ["撮影スポットの一覧", "桜の撮影スポット", "紅葉の撮影スポット", "雪景色の撮影スポット", "海外の撮影スポット",
-            "春の撮影スポット", "夏の撮影スポット", "秋の撮影スポット", "冬の撮影スポット"];
+        const spots = ["観光スポットの一覧", "桜の観光スポット", "紅葉の観光スポット", "雪景色の観光スポット", "海外の観光スポット",
+            "春の観光スポット", "夏の観光スポット", "秋の観光スポット", "冬の観光スポット"];
         for (const name of spots) fireEvent.click(screen.getByRole("link", { name }));
         expect(gtag.mock.calls.filter((c) => c[1] === "nav_click")).toHaveLength(spots.length);
         gtag.mockReset();

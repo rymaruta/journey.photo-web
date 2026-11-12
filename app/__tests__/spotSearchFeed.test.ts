@@ -11,7 +11,7 @@ import * as route from "../app/data/spot-search.json/route";
  */
 const LEDGER = rawLedger as unknown as Spot[];
 
-describe("撮影スポットの名前の索引", () => {
+describe("観光スポットの名前の索引", () => {
     it("母集合は画面と同じ（visibleSpots）で、銀山温泉が入っている", () => {
         const rows = buildSpotSearchRows(LEDGER);
         expect(rows.map((r) => r.s)).toEqual(visibleSpots(LEDGER).map((s) => s.slug));

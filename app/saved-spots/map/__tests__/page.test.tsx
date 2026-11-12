@@ -42,13 +42,13 @@ beforeEach(() => {
 });
 
 describe("行きたい場所の地図", () => {
-    it("保存した撮影スポットのピンだけを地図に渡す", () => {
+    it("保存した観光スポットのピンだけを地図に渡す", () => {
         saved.slugs = ["SPOT-a"];
         render(<Client spots={[pin("a"), pin("b")] as never} />);
         expect(screen.getByTestId("photo-map")).toBeTruthy();
         expect(mapProps.last?.spots.map((s) => s.slug)).toEqual(["a"]);
         expect(screen.getByRole("heading", { level: 1 }).className).toContain("font-serif");
-        expect(screen.getByTestId("saved-map-count").textContent).toContain("撮影スポット 1か所");
+        expect(screen.getByTestId("saved-map-count").textContent).toContain("観光スポット 1か所");
     });
 
     it("読み込み中は地図も「ありません」も出さない", () => {

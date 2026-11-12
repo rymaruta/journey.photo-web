@@ -28,7 +28,7 @@ describe("placeParts", () => {
         expect(placeParts("金閣寺 (京都府)")).toEqual({ title: "金閣寺", context: "京都府", kind: "place" });
     });
 
-    it("地域と分からないものは「場所」——撮影スポットだとは名乗らない", () => {
+    it("地域と分からないものは「場所」——観光スポットだとは名乗らない", () => {
         expect(placeParts("山中湖")).toEqual({ title: "山中湖", context: "", kind: "place" });
         expect(areaKind("高屋神社")).toBe("place");
         expect(areaKind("観音寺市")).toBe("municipality");

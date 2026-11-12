@@ -50,7 +50,13 @@ export const QR_UNUSABLE_MESSAGE = "この QR コードは使えません";
 
 type QrOfRow = { id: string; token?: unknown; issuedAt?: unknown };
 
-const ok = (body: unknown) => ({ statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify(body) });
+/**
+ * **返事は控えさせない**（`Cache-Control: no-store`・2026-11-12 確かめ役の指摘）。合図は更新で替わり、前の合図は
+ * すぐ使えなくなる。端末や途中の控えが前の合図・前の答え（使える／使えない）を返すと、更新が効いて見えない
+ */
+export const NO_STORE_HEADERS = { ...JSON_HEADERS, "Cache-Control": "no-store" };
+const ok = (body: unknown) => ({ statusCode: 200, headers: NO_STORE_HEADERS, body: JSON.stringify(body) });
+const noStore = <T extends { headers?: Record<string, string> }>(res: T): T => ({ ...res, headers: { ...res.headers, ...NO_STORE_HEADERS } });
 
 async function readCurrent(userId: string): Promise<{ token: string; issuedAt: string } | null> {
     // 強い読み: 更新の直後に古い合図を返さない
@@ -151,9 +157,9 @@ export const rotateMyQr: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
  */
 export const resolveQr: APIGatewayProxyHandlerV2 = async (event) => {
     const token = event.pathParameters?.token;
-    if (!isValidQrToken(token)) return jsonError(404, QR_UNUSABLE_MESSAGE);
+    if (!isValidQrToken(token)) return noStore(jsonError(404, QR_UNUSABLE_MESSAGE));
     const res = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: qrKey(token) } }));
     const owner = (res.Item as { owner?: unknown } | undefined)?.owner;
-    if (typeof owner !== "string" || owner.length === 0) return jsonError(404, QR_UNUSABLE_MESSAGE);
+    if (typeof owner !== "string" || owner.length === 0) return noStore(jsonError(404, QR_UNUSABLE_MESSAGE));
     return ok({ userId: owner });
 };

@@ -562,8 +562,8 @@ describe("公式撮影地ガイドのピン", () => {
     /// 名前は読み上げにも届く（ピンの中身は印だけ＝文字を持たない）
     it("名前と「公式」を読み上げに渡す", async () => {
         await drawWithSpot([]);
-        expect(spotMarker()?.opts.title).toBe("高屋神社（撮影スポット）");
-        expect(spotMarker()?.opts.alt).toBe("高屋神社（撮影スポット）");
+        expect(spotMarker()?.opts.title).toBe("高屋神社（観光スポット）");
+        expect(spotMarker()?.opts.alt).toBe("高屋神社（観光スポット）");
         const html = (spotMarker()?.opts.icon as { html?: HTMLElement }).html;
         expect(html?.textContent, "ピンの中に文字を入れない").toBe("");
     });
@@ -572,7 +572,7 @@ describe("公式撮影地ガイドのピン", () => {
     it("下書きのピンは読み上げに「下書き」を渡す", async () => {
         render(<PhotoMap photos={[]} locale="ja" spots={[{ ...SPOT, stage: "review" }]} />);
         await waitFor(() => expect(state.markers.length).toBeGreaterThan(0));
-        expect(spotMarker()?.opts.title).toBe("高屋神社（撮影スポット・下書き）");
+        expect(spotMarker()?.opts.title).toBe("高屋神社（観光スポット、下書き）");
     });
 
     it("押すとスラッグが親へ渡る", async () => {
@@ -600,7 +600,7 @@ describe("公式撮影地ガイドのピン", () => {
         const near = { ...SPOT, slug: "near", name: "近くの場所", lat: 34.12, lng: 133.62 };
         render(<PhotoMap photos={[]} locale="ja" spots={[SPOT, near]} />);
         await waitFor(() => expect(state.markers.length).toBeGreaterThan(0));
-        const cluster = state.markers.find((m) => String(m.opts.title ?? "") === "撮影スポット 2か所");
+        const cluster = state.markers.find((m) => String(m.opts.title ?? "") === "観光スポット 2か所");
         expect(cluster, "束になっていない").toBeTruthy();
         expect((cluster!.opts.icon as { className?: string }).className).toBe("spot-map-cluster");
         expect(Number(cluster!.opts.zIndexOffset)).toBeLessThan(0);
@@ -639,9 +639,9 @@ describe("公式撮影地ガイドのピン", () => {
         const none: MapPhoto[] = [];
         const { rerender } = render(<PhotoMap photos={none} locale="ja" spots={spots} selectedSpotSlug="takaya-jinja" />);
         await waitFor(() => expect(spotMarker()).toBeTruthy());
-        expect(state.markers.some((m) => String(m.opts.title ?? "") === "撮影スポット 2か所")).toBe(false);
+        expect(state.markers.some((m) => String(m.opts.title ?? "") === "観光スポット 2か所")).toBe(false);
         rerender(<PhotoMap photos={none} locale="ja" spots={spots} selectedSpotSlug={null} />);
-        await waitFor(() => expect(state.markers.some((m) => String(m.opts.title ?? "") === "撮影スポット 2か所")).toBe(true));
+        await waitFor(() => expect(state.markers.some((m) => String(m.opts.title ?? "") === "観光スポット 2か所")).toBe(true));
         expect(spotMarker(), "外したのに単独のまま").toBeUndefined();
     });
 
@@ -703,7 +703,7 @@ describe("ピンの形（iOS にそろえた）", () => {
     const spotIcon = () => state.markers.find((m) => String(m.opts.title ?? "").includes("高屋神社"))!.opts.icon as
         { html: HTMLElement; iconSize: number[]; iconAnchor: number[] };
 
-    it("写真の無い撮影スポットは真鍮の丸 32 にカメラの印", async () => {
+    it("写真の無い観光スポットは真鍮の丸 32 にカメラの印", async () => {
         render(<PhotoMap photos={[]} locale="ja" spots={[SPOT]} />);
         await waitFor(() => expect(state.markers.length).toBeGreaterThan(0));
         const icon = spotIcon();
@@ -724,7 +724,7 @@ describe("ピンの形（iOS にそろえた）", () => {
         expect(icon.html.querySelector("img")!.getAttribute("src")).toBe("/images/spots/thumb/takaya.jpg");
     });
 
-    it("撮影スポットのピンの枠は、見た目の丸を真ん中に置く（Leaflet の display: block に負けない2クラス）", async () => {
+    it("観光スポットのピンの枠は、見た目の丸を真ん中に置く（Leaflet の display: block に負けない2クラス）", async () => {
         const { readFileSync } = await import("fs");
         const css = readFileSync(`${process.cwd()}/app/globals.css`, "utf8");
         const rule = css.slice(css.indexOf(".spot-map-pin-icon.leaflet-marker-icon"));
