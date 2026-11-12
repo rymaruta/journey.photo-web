@@ -7,7 +7,7 @@ import { join } from "node:path";
  *
  * user API のスタックは部品が 488/500。ここで縛ること:
  *  - 未認証の口は招待の下見（`getTripInvite`）だけで、役は招待とプランの本体を GetItem で読むだけ
- *  - ほかの口は全部このスタックの認可（`TripShareAuthorizer`）を通る
+ *  - ほかの口は全部 user API が書き出す認可（`CognitoAuthorizerId`）を通る
  *  - user API と同じ経路（方法＋道）を持たない（同じ経路を2つのスタックが持つと反映が落ちる）
  *  - `deploy-api.yml` は user API を配った**後**にこのスタックを配る（HttpApiId を取り込むため）
  */
@@ -48,11 +48,12 @@ describe("旅行プランの共有の別スタック", () => {
         expect(role).toMatch(/- invite#\*\n\s+- trip#\*\s*$/);
     });
 
-    it("認証の口は全部このスタックの認可を通る", () => {
+    it("認証の口は全部 user API が書き出す認可を通る（自分で認可を作らない・#552 ③）", () => {
         const b = blocks.get("tripShare")!;
         const events = b.split("- httpApi:").length - 1;
         expect(events).toBe(9);
-        expect(b.split("Ref: TripShareAuthorizer").length - 1).toBe(events);
+        expect(b.split("Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId").length - 1).toBe(events);
+        expect(yml).not.toMatch(/AWS::ApiGatewayV2::Authorizer/);
     });
 
     it("user API と同じ経路を持たない・HTTP API は取り込む（新しく作らない）", () => {
