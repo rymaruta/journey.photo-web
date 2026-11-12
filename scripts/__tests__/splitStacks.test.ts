@@ -39,6 +39,7 @@ const MOVED: Record<string, string[]> = {
     "serverless.notifications.yml": [
         "src/notifications.getNotifications", "src/notifications.readNotifications", "src/devices.registerDevice", "src/devices.unregisterDevice",
     ],
+    "serverless.trunk.yml": ["src/trunk.handler"],
 };
 
 const AUTH_IMPORT = "Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId";
