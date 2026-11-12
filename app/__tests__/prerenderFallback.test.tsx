@@ -36,6 +36,7 @@ const PAGES: ReadonlyArray<readonly [string, () => Promise<{ default: React.Comp
     ["/login", () => import("../login/page")],
     ["/signup", () => import("../signup/page")],
     ["/j", () => import("../j/page")],
+    ["/t", () => import("../t/page")],
     ["/qr", () => import("../qr/page")],
     ["/users", () => import("../users/page")],
     ["/users/trip", () => import("../users/trip/page")],

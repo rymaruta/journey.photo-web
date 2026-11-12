@@ -443,6 +443,36 @@ jobs:
             --param "cognitoClientId=${{ needs.config.outputs.cognitoClientId }}" \
             ${extra[@]+"${extra[@]}"}
 
+      # 旅行プランを仲間と使う口（2026-11-12・`api-user/src/tripShare.ts`）は**別のスタック**
+      # （`api-user/serverless.trip-share.yml`）。user API のスタックの部品が上限 500 に近い（488）ので分けた。
+      # 🔴 **user API の後に配る。** このスタックは user API のスタックが書き出す HttpApiId を取り込んで経路を足す
+      #    （口の URL は user API と同じ）。経路ごとの流量の設定は無いので、先に配る理由は無い。
+      #    プッシュの鍵は user API と同じ渡し方（無ければ旗ごと渡さない＝知らせは送らないだけ）
+      - name: Serverless deploy（旅行プランを仲間と使う口・別スタック）
+        working-directory: api-user
+        env:
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+          APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
+          APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
+          APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
+          APNS_HOST: ${{ needs.config.outputs.apnsHost }}
+        run: |
+          set -euo pipefail
+          extra=()
+          if [ -n "${APNS_PRIVATE_KEY:-}" ]; then
+            extra+=(--param "apnsPrivateKey=$APNS_PRIVATE_KEY")
+            extra+=(--param "apnsKeyId=$APNS_KEY_ID")
+            extra+=(--param "apnsTeamId=$APNS_TEAM_ID")
+            extra+=(--param "apnsTopic=$APNS_TOPIC")
+            extra+=(--param "apnsHost=$APNS_HOST")
+          fi
+          npx serverless@3 deploy --config serverless.trip-share.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
+            --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
+            --param "cognitoClientId=${{ needs.config.outputs.cognitoClientId }}" \
+            ${extra[@]+"${extra[@]}"}
+
       # プロフィールの QR の口（札 journey.photo-ios#545・`api-user/serverless.profile-qr.yml`）は**別のスタック**。
       # user API のスタックの部品が上限 500 に近い（488）ので分けた（2026-11-12）。
       # コード・依存は user API と同じなので、このジョブの中で続けて配る。

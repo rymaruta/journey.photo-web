@@ -610,9 +610,10 @@ export async function mirrorStoryReplyToDm(
 // 名前の解決（受信箱には名前を持たない。表示のたびに引く）
 // ---------------------------------------------------------------------------
 
-type PeerInfo = { name: string; username?: string; deleted?: true };
+export type PeerInfo = { name: string; username?: string; deleted?: true };
 
-async function peerInfos(ids: readonly string[]): Promise<Map<string, PeerInfo>> {
+/** 名前の解決。旅行プランの仲間（`tripShare.ts`）も同じ規則で引く（2026-11-12） */
+export async function peerInfos(ids: readonly string[]): Promise<Map<string, PeerInfo>> {
     const out = new Map<string, PeerInfo>();
     const uniq = [...new Set(ids)];
     for (let i = 0; i < uniq.length; i += 100) {
