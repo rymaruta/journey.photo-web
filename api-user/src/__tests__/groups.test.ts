@@ -37,8 +37,23 @@ vi.mock("../apns", async (orig) => ({
     sendPush: mockPush,
 }));
 
+/**
+ * 書く前に一度だけ割り込む（同時の書き込みを真似る）。`true` を返したら使い終わり。
+ * 例: 事前の確かめのあとで枠が埋まる場面（行を書き換えて `rev` を進めると、書き込みの条件が外れて読み直す）
+ */
+const hooks: Array<(name: string, input: Record<string, unknown>) => boolean> = [];
+/** 試験で実際に送った命令（最後の試験が、スタックの権限と突き合わせる） */
+const seen: Array<{ name: string; input: Record<string, unknown> }> = [];
+/** 行を書き換えて rev を進める（同時に別の人が書いた） */
+const bump = (id: string, patch: (cur: Row) => Row) => {
+    const cur = store.get(id) ?? { id };
+    store.set(id, { ...patch(cur), id, rev: ((cur.rev as number | undefined) ?? 0) + 1 });
+};
+
 function fakeSend(cmd: { constructor: { name: string }; input: Record<string, unknown> }) {
     const name = cmd.constructor.name;
+    seen.push({ name, input: cmd.input });
+    for (let k = 0; k < hooks.length; k++) if (hooks[k](name, cmd.input)) { hooks.splice(k, 1); break; }
     const i = cmd.input as {
         TableName?: string; Key?: { id?: string; userId?: string }; Item?: Row; ConditionExpression?: string; UpdateExpression?: string;
         ExpressionAttributeValues?: Record<string, unknown>; RequestItems?: Record<string, { Keys: Array<{ id?: string; userId?: string }> }>;
@@ -150,6 +165,7 @@ beforeEach(() => {
     mockSend.mockReset();
     mockSend.mockImplementation(async (cmd) => fakeSend(cmd));
     mockPush.mockClear();
+    hooks.length = 0;
 });
 afterEach(() => { vi.useRealTimers(); });
 
@@ -560,5 +576,276 @@ describe("退会", () => {
         expect(invited()).toEqual([]);
         expect((store.get(`groupmembers#${G}`)!.declined as string[])).toEqual([]);
         expect((await read(A)).messages.map((m) => m.text)).toContain("けんの通");
+    });
+});
+
+// ---------------------------------------------------------------------------
+// 2026-11-12 確かめ役の指摘（PR #630）
+// ---------------------------------------------------------------------------
+
+const day = () => new Date(clock + 9 * 3600 * 1000).toISOString().slice(0, 10);
+const putTo = (id: string, has?: (item: Row) => boolean) => (name: string, input: Record<string, unknown>) =>
+    name === "PutCommand" && (input.Item as Row).id === id && (!has || has(input.Item as Row));
+const fullBox = (state: string, n: number) => Object.fromEntries(Array.from({ length: n }, (_, k) =>
+    [`${String(k).padStart(8, "0")}-9999-4999-8999-999999999999`, { state, at: new Date(clock).toISOString() }]));
+
+describe("🔴 指摘1: 外された人に今のメンバーを見せない", () => {
+    it("中身・会話の人・受信箱に、外されたあとに入った人も自分をブロックした人も出ない（人数・自動の名前も）", async () => {
+        for (const x of [D, E]) follow(x, A);
+        await seedGroup([D]);
+        await say(B, "けんの通");
+        tick(1000);
+        await say(D, "そらの通");
+        tick(1000);
+        await api(A, "DELETE /groups/{gid}/members/{uid}", { uid: D });
+        tick(1000);
+        follow(A, E);
+        await api(A, "POST /groups/{gid}/members", {}, { userIds: [E] });
+        expect(members()).toContain(E);
+        block(B, D);
+        const d = json(await api(D, "GET /groups/{gid}"));
+        expect(d.group).toMatchObject({ state: "removed", title: "グループ", canSend: false });
+        expect(d.group).not.toHaveProperty("count");
+        expect(d.group).not.toHaveProperty("ownerId");
+        expect(d.members).toEqual([]);
+        expect(JSON.stringify(d)).not.toMatch(/はな|けん|ゆう/);
+        const r = json(await api(D, "GET /groups/{gid}/messages"));
+        // 見えている通の送り主だけ（自分をブロックした B の通は隠れ、外されたあとに入った E は出ない）
+        expect(Object.keys(r.people)).not.toContain(E);
+        expect(Object.keys(r.people)).not.toContain(B);
+        expect(Object.keys(r.people).sort()).toEqual([A, D].sort());
+        const box = (await inbox(D))[0];
+        expect(box).toMatchObject({ state: "removed", title: "グループ", faces: [] });
+        expect(box).not.toHaveProperty("count");
+        // 名前を付けたグループは名前だけ
+        await api(A, "PUT /groups/{gid}", {}, { name: "京都" });
+        expect((await inbox(D))[0].title).toBe("京都");
+    });
+});
+
+describe("🔴 指摘2: 消えたグループと同じ gid", () => {
+    it("作り直されたグループを、前のグループで外された人は読めない", async () => {
+        follow(D, A);
+        await seedGroup([D]);
+        await api(A, "DELETE /groups/{gid}/members/{uid}", { uid: D });
+        expect(entry(D)).toMatchObject({ state: "removed" });
+        await api(B, "DELETE /groups/{gid}/members/{uid}", { uid: B });
+        await api(A, "DELETE /groups/{gid}/members/{uid}", { uid: A });
+        expect(store.has(`groupmembers#${G}`)).toBe(false);
+        tick(1000);
+        follow(B, C); follow(B, E); follow(C, B);
+        expect((await api(B, "POST /groups", {}, { id: G, userIds: [C, E], name: "新しい" })).statusCode).toBe(200);
+        expect(entry(D)).toMatchObject({ state: "removed" });
+        for (const route of ["GET /groups/{gid}", "GET /groups/{gid}/messages"]) expect((await api(D, route)).statusCode).toBe(404);
+        expect(JSON.stringify(await inbox(D))).not.toContain("新しい");
+    });
+
+    it("使われている gid・片付けの残りがある gid では作れない（409）", async () => {
+        await seedGroup();
+        follow(D, B); follow(D, C);
+        const r = await api(D, "POST /groups", {}, { id: G, userIds: [B, C] });
+        expect(r.statusCode).toBe(409);
+        expect(json(r).code).toBe("idTaken");
+        const G2 = "22222222-2222-4333-8444-555555555555";
+        store.set(`groupchat#${G2}`, { id: `groupchat#${G2}`, gid: G2, items: [] });
+        expect((await api(D, "POST /groups", { gid: G2 }, { id: G2, userIds: [B, C] })).statusCode).toBe(409);
+        expect(store.has(`groupmembers#${G2}`)).toBe(false);
+    });
+});
+
+describe("🔴 指摘3: 名前の無いグループの知らせの題", () => {
+    it("「グループ」とだけ言い、受け取る人の名前を入れない。名前があれば名前", async () => {
+        await seedGroup();
+        await say(A, "やあ");
+        const msg = mockPush.mock.calls[0][1] as { title: string };
+        expect(msg.title).toBe("グループ");
+        expect(msg.title).not.toContain("けん");
+        await api(A, "PUT /groups/{gid}", {}, { name: "京都" });
+        tick(3 * 60 * 1000 + 1);
+        await say(A, "また");
+        expect((mockPush.mock.calls[1][1] as { title: string }).title).toBe("京都");
+    });
+});
+
+describe("🔴 知らせ: ブロックの間柄の人には送らない", () => {
+    it("送った人をブロックした人・送った人がブロックした人", async () => {
+        for (const x of [D, E]) follow(x, A);
+        await seedGroup([D, E]);
+        block(B, A);
+        block(A, D);
+        await say(A, "みんなへ");
+        expect(pushedTokens()).toEqual([[`tok-${E}`]]);
+    });
+});
+
+describe("🔴 1日に人を足す数（招待20人・そのまま100人）", () => {
+    it("そのまま入る人が100人を越えるなら断る（何も書かない）", async () => {
+        follow(D, A);
+        store.set(`groupsjoined#${A}`, { id: `groupsjoined#${A}`, rev: 1, groups: {}, quota: { day: day(), direct: 99, request: 0 } });
+        for (const x of [B, D]) follow(A, x);
+        follow(B, A);
+        const r = await api(A, "POST /groups", {}, { id: G, userIds: [B, D] });
+        expect(r.statusCode).toBe(429);
+        expect(store.has(`groupmembers#${G}`)).toBe(false);
+    });
+
+    it("招待が20人を越えるなら断る。日が変われば数え直す", async () => {
+        store.set(`groupsjoined#${A}`, { id: `groupsjoined#${A}`, rev: 1, groups: {}, quota: { day: day(), direct: 0, request: 19 } });
+        for (const x of [C, E]) follow(A, x);
+        expect((await api(A, "POST /groups", {}, { id: G, userIds: [C, E] })).statusCode).toBe(429);
+        tick(24 * 3600 * 1000);
+        expect((await api(A, "POST /groups", {}, { id: G, userIds: [C, E] })).statusCode).toBe(200);
+        expect(invited().sort()).toEqual([C, E].sort());
+    });
+});
+
+describe("🔴 書くときの守り（事前の確かめのあとで枠が埋まる）", () => {
+    it("30人の枠: 確かめたあとに埋まったら入れない", async () => {
+        await seedGroup();
+        follow(A, D); follow(D, A);
+        hooks.push((name, input) => {
+            if (!putTo(`groupmembers#${G}`, (it) => JSON.stringify(it).includes(D))(name, input)) return false;
+            bump(`groupmembers#${G}`, (cur) => ({ ...cur, invited: [...(cur.invited as unknown[]),
+                ...Array.from({ length: 27 }, (_, k) => ({ id: `${String(k).padStart(8, "0")}-3333-4333-8333-333333333333`, by: A, at: new Date(clock).toISOString() }))] }));
+            return true;
+        });
+        const r = json(await api(A, "POST /groups/{gid}/members", {}, { userIds: [D] }));
+        expect(r.added).toEqual([]);
+        expect(members()).not.toContain(D);
+        expect(entry(D)).toBeUndefined();
+    });
+
+    it("断った人: 確かめたあとに断っていたら入れない", async () => {
+        await seedGroup();
+        follow(A, D); follow(D, A);
+        hooks.push((name, input) => {
+            if (!putTo(`groupmembers#${G}`, (it) => JSON.stringify(it).includes(D))(name, input)) return false;
+            bump(`groupmembers#${G}`, (cur) => ({ ...cur, declined: [D] }));
+            return true;
+        });
+        expect(json(await api(A, "POST /groups/{gid}/members", {}, { userIds: [D] })).added).toEqual([]);
+        expect(members()).not.toContain(D);
+    });
+
+    it("招待の棚20: 確かめたあとに埋まったら、メンバーの行から戻す", async () => {
+        await seedGroup();
+        follow(A, D);
+        hooks.push((name, input) => {
+            if (!putTo(`groupsjoined#${D}`)(name, input)) return false;
+            bump(`groupsjoined#${D}`, (cur) => ({ ...cur, groups: fullBox("invited", 20) }));
+            return true;
+        });
+        expect(json(await api(A, "POST /groups/{gid}/members", {}, { userIds: [D] })).invited).toEqual([]);
+        expect(invited()).not.toContain(D);
+    });
+
+    it("50グループ: 確かめたあとに埋まったら、メンバーの行から戻す", async () => {
+        await seedGroup();
+        follow(A, D); follow(D, A);
+        hooks.push((name, input) => {
+            if (!putTo(`groupsjoined#${D}`)(name, input)) return false;
+            bump(`groupsjoined#${D}`, (cur) => ({ ...cur, groups: fullBox("member", 50) }));
+            return true;
+        });
+        expect(json(await api(A, "POST /groups/{gid}/members", {}, { userIds: [D] })).added).toEqual([]);
+        expect(members()).not.toContain(D);
+    });
+});
+
+describe("🔴 指摘5: その人の行を書けなかったときの戻し", () => {
+    it("入れる人の行が落ちたら、メンバーの行から戻す（グループは作る）", async () => {
+        for (const x of [B, C]) follow(A, x);
+        follow(B, A);
+        hooks.push((name, input) => {
+            if (!putTo(`groupsjoined#${B}`)(name, input)) return false;
+            throw Object.assign(new Error("boom"), { name: "InternalServerError" });
+        });
+        const r = await api(A, "POST /groups", {}, { id: G, userIds: [B, C] });
+        expect(r.statusCode).toBe(200);
+        expect(members()).toEqual([A]);
+        expect(invited()).toEqual([C]);
+        expect(json(r).skipped).toBe(1);
+    });
+
+    it("作る人の50グループが同時に埋まったら、作った行を消して断る", async () => {
+        for (const x of [B, C]) follow(A, x);
+        follow(B, A);
+        hooks.push((name, input) => {
+            if (!putTo(`groupsjoined#${A}`, (it) => JSON.stringify(it).includes(G))(name, input)) return false;
+            bump(`groupsjoined#${A}`, (cur) => ({ ...cur, groups: fullBox("member", 50) }));
+            return true;
+        });
+        const r = await api(A, "POST /groups", {}, { id: G, userIds: [B, C] });
+        expect(r.statusCode).toBe(403);
+        expect(json(r).code).toBe("selfFull");
+        for (const k of [`group#${G}`, `groupmembers#${G}`, `groupchat#${G}`]) expect(store.has(k)).toBe(false);
+        expect(entry(B)).toBeUndefined();
+    });
+});
+
+describe("🔴 指摘7: 退会の掃除", () => {
+    it("断った・外された控えから名を外し、送った招待を取り消す", async () => {
+        for (const x of [D, E]) follow(x, A);
+        await seedGroup([D, E]);
+        follow(A, C);
+        // C は断る・D は外される
+        await api(C, "DELETE /groups/{gid}/invite");
+        await api(A, "DELETE /groups/{gid}/members/{uid}", { uid: D });
+        expect(store.get(`groupmembers#${G}`)!.declined).toEqual([C]);
+        expect(store.get(`groupmembers#${G}`)!.kicked).toEqual([D]);
+        // D は自分で「外れました」の行を消しても、掃除で辿れる
+        await api(D, "DELETE /groups/{gid}/members/{uid}", { uid: D });
+        await purgeGroupsFor(C);
+        await purgeGroupsFor(D);
+        expect(store.get(`groupmembers#${G}`)!.declined).toEqual([]);
+        expect(store.get(`groupmembers#${G}`)!.kicked).toEqual([]);
+        // B が招待した人は、B の退会で取り消される
+        const F = "ffffffff-0000-4000-8000-000000000006";
+        users.set(F, { userId: F, displayName: "ふう" });
+        follow(B, F);
+        await api(B, "POST /groups/{gid}/members", {}, { userIds: [F] });
+        expect(invited()).toEqual([F]);
+        expect(entry(F)).toMatchObject({ state: "invited", by: B });
+        await purgeGroupsFor(B);
+        expect(invited()).toEqual([]);
+        expect(entry(F)).toBeUndefined();
+        expect(members()).not.toContain(B);
+    });
+});
+
+/**
+ * 🔴 試験で実際に読み書きした行が、スタックの権限（`serverless.groups.yml`）の中にあること（指摘4）。
+ * 鍵の頭で絞れない写真の行は、ProjectionExpression の欄が許した欄の中にあること。**AWS の上で効くかは確かめていない**
+ */
+describe("使う行はスタックの権限の中", () => {
+    it("この試験ファイルで送った命令を、権限の文と突き合わせる", async () => {
+        const { readFileSync } = await import("node:fs");
+        const { join } = await import("node:path");
+        const yml = readFileSync(join(__dirname, "..", "..", "serverless.groups.yml"), "utf8").replace(/^\s*#.*$/gm, "");
+        const body = yml.split(/\n {6}statements:\n/)[1].split(/\n(?=[a-zA-Z]|  [a-zA-Z])/)[0];
+        const sts = body.split(/\n(?= {8}- Effect:)/).filter((b) => b.includes("photosTable")).map((b) => ({
+            actions: [...b.matchAll(/^\s*-\s+dynamodb:([A-Za-z]+)\s*$/gm)].map((m) => m[1]),
+            keys: [...b.matchAll(/^\s*-\s+([a-z]+#)\*\s*$/gm)].map((m) => m[1]),
+            attrs: b.includes("dynamodb:Attributes:") ? b.split("dynamodb:Attributes:\n")[1].split(/\n\s+[A-Z']/)[0].match(/- (\w+)/g)!.map((x) => x.slice(2)) : null,
+        }));
+        const allows = (action: string, id: string, projected?: string[]) => sts.some((st) => st.actions.includes(action) && (
+            st.keys.length > 0 ? st.keys.some((k) => id.startsWith(k)) : !!st.attrs && !!projected && projected.every((a) => st.attrs!.includes(a))));
+        expect(seen.length).toBeGreaterThan(1000);
+        const bad = new Set<string>();
+        for (const { name, input } of seen) {
+            if (input.TableName !== undefined && input.TableName !== "photos-test" && !(input as { RequestItems?: object }).RequestItems) continue;
+            const action = name.replace(/Command$/, "Item");
+            if (name === "BatchGetCommand") {
+                const req = (input.RequestItems as Record<string, { Keys: Array<{ id?: string }> }>)["photos-test"];
+                for (const k of req?.Keys ?? []) if (!allows("BatchGetItem", k.id!)) bad.add(`BatchGetItem ${k.id}`);
+                continue;
+            }
+            const id = ((input.Key as { id?: string }) ?? (input.Item as { id?: string }))?.id ?? "";
+            const names = (input.ExpressionAttributeNames ?? {}) as Record<string, string>;
+            const projected = typeof input.ProjectionExpression === "string"
+                ? input.ProjectionExpression.split(",").map((x) => x.trim()).map((x) => names[x] ?? x) : undefined;
+            if (!allows(action, id, projected)) bad.add(`${action} ${id.replace(/[0-9a-f-]{36}/g, "<id>")}`);
+        }
+        expect([...bad]).toEqual([]);
     });
 });

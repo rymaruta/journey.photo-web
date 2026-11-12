@@ -36,13 +36,15 @@ provider:
   iam:
     role:
       statements:
+        # 🔴 **読む範囲も鍵の頭で絞る**（2026-11-12 確かめ役の指摘4: 前は表ぜんたいの GetItem・BatchGetItem を許していた）。
+        #    使う行は `api-user/src/__tests__/groups.test.ts` の最後の試験が、試験で実際に読み書きした鍵と突き合わせる。
+        #
         # グループの行（`groupChat.ts` の5つ）。読み書きは「読む → rev の条件で Put」（`updateUserRow`）と消すだけ
         - Effect: Allow
           Action:
             - dynamodb:GetItem
             - dynamodb:PutItem
             - dynamodb:DeleteItem
-            - dynamodb:BatchGetItem
           Resource:
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
           Condition:
@@ -53,6 +55,17 @@ provider:
                 - groupchat#*
                 - groupsjoined#*
                 - groupreport#*
+        # まとめて読むのは2つだけ: 受信箱の小さい行（`readHeads`）・端末の宛先（`deviceTokensOf`）
+        - Effect: Allow
+          Action:
+            - dynamodb:BatchGetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringLike:
+              dynamodb:LeadingKeys:
+                - group#*
+                - devices#*
         # 書く道が要るほかの行は1つずつ、UpdateItem だけ: 1日の歯止め（`dm.ts` の `reserveGroupDaily`・DM と同じ行の別の欄
         # `groupSent`・`groupNew`）・端末の宛先から届かない宛先を外す（`devices.ts` の `forgetTokens`）
         - Effect: Allow
@@ -65,14 +78,44 @@ provider:
               dynamodb:LeadingKeys:
                 - dmday#*
                 - devices#*
-        # **読むだけ**（鍵の頭で絞れない写真の行があるので表ぜんたい）: フォロー・親しい友達（入れる門）・ブロック・
-        # 端末の宛先（まとめて読む）・送る写真と写真の札（`photoVisibility.ts`・`dmPhotoQuote.ts`。写真の行の鍵は写真の ID）
+        # **読むだけ**の行: ブロック（印・自分の一覧・被ブロックの一覧）・フォローの印・親しい友達（入れる門と写真の範囲）
         - Effect: Allow
           Action:
             - dynamodb:GetItem
-            - dynamodb:BatchGetItem
           Resource:
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringLike:
+              dynamodb:LeadingKeys:
+                - block#*
+                - blocks#*
+                - blockedby#*
+                - follow#*
+                - closefriends#*
+        # 写真の行（送る写真・写真の札。`photoVisibility.ts` の `readVisiblePhoto`）。写真の行の鍵は写真の ID で頭が決まらないので、
+        # **読める欄を ProjectionExpression の欄だけに絞る**（欄の指定の無い読みは `Null` の条件で断る）
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringEquals:
+              dynamodb:Attributes:
+                - id
+                - src
+                - thumbSrc
+                - published
+                - story
+                - userId
+                - uploadedBy
+                - audience
+                - title
+                - location
+            StringEqualsIfExists:
+              dynamodb:Select: SPECIFIC_ATTRIBUTES
+            'Null':
+              dynamodb:Attributes: 'false'
         # 名前を引く・退会の確かめ（読むだけ）
         - Effect: Allow
           Action:

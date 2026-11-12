@@ -68,15 +68,38 @@ describe("グループの会話の別スタック", () => {
             expect(s.keys.length, writes.join(",")).toBeGreaterThan(0);
             for (const k of ["dm#*", "dminbox#*", "block#*", "blocks#*", "blockedby#*", "follow#*", "trip#*"]) expect(s.keys).not.toContain(k);
         }
-        const groupRows = photos.find((s) => s.keys.includes("group#*"))!;
+        const groupRows = photos.find((s) => s.keys.includes("group#*") && s.actions.includes("dynamodb:PutItem"))!;
         expect(groupRows.keys.sort()).toEqual(["group#*", "groupchat#*", "groupmembers#*", "groupreport#*", "groupsjoined#*"]);
-        expect(groupRows.actions.sort()).toEqual(["dynamodb:BatchGetItem", "dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem"]);
-        const others = photos.filter((s) => s !== groupRows && s.keys.length > 0);
-        expect(others.flatMap((s) => s.actions)).toEqual(["dynamodb:UpdateItem"]);
-        expect(others.flatMap((s) => s.keys).sort()).toEqual(["devices#*", "dmday#*"]);
+        expect(groupRows.actions.sort()).toEqual(["dynamodb:DeleteItem", "dynamodb:GetItem", "dynamodb:PutItem"]);
+        const updates = photos.filter((s) => s.actions.includes("dynamodb:UpdateItem"));
+        expect(updates.flatMap((s) => s.actions)).toEqual(["dynamodb:UpdateItem"]);
+        expect(updates.flatMap((s) => s.keys).sort()).toEqual(["devices#*", "dmday#*"]);
         // 利用者の表は読むだけ
         const usersSt = st.filter((s) => s.resources.some((r) => r.endsWith("table/${param:usersTable}")));
         expect(usersSt.flatMap((s) => s.actions).sort()).toEqual(["dynamodb:BatchGetItem", "dynamodb:GetItem"]);
+    });
+
+    // 2026-11-12 確かめ役の指摘4: 前は写真の表ぜんたいの GetItem・BatchGetItem を許していた
+    it("🔴 写真の表を読む範囲も絞る（BatchGet は2つの頭だけ・頭の無い読みは欄の条件つきだけ）", () => {
+        const body = src.split(/\n {6}statements:\n/)[1].split(/\n(?=[a-zA-Z]|  [a-zA-Z])/)[0];
+        const blocks = body.split(/\n(?= {8}- Effect:)/).filter((b) => b.includes("Effect:") && b.includes("table/${param:photosTable}"));
+        const batch = statements(src).filter((s) => s.resources.some((r) => r.endsWith("table/${param:photosTable}")) && s.actions.includes("dynamodb:BatchGetItem"));
+        expect(batch).toHaveLength(1);
+        expect(batch[0].actions).toEqual(["dynamodb:BatchGetItem"]);
+        expect(batch[0].keys.sort()).toEqual(["devices#*", "group#*"]);
+        const unkeyed = blocks.filter((b) => !b.includes("dynamodb:LeadingKeys"));
+        expect(unkeyed).toHaveLength(1);
+        const b = unkeyed[0];
+        expect([...b.matchAll(/^\s*-\s+(dynamodb:[A-Za-z]+)\s*$/gm)].map((m) => m[1])).toEqual(["dynamodb:GetItem"]);
+        expect(b).toMatch(/ForAllValues:StringEquals:\n\s+dynamodb:Attributes:\n/);
+        expect(b).toMatch(/StringEqualsIfExists:\n\s+dynamodb:Select: SPECIFIC_ATTRIBUTES/);
+        // 欄の指定の無い読み（ForAllValues は空の集合で真になる）を断る
+        expect(b).toMatch(/'Null':\n\s+dynamodb:Attributes: 'false'/);
+        const attrs = b.split("dynamodb:Attributes:\n")[1].split(/\n\s+[A-Z']/)[0].match(/- (\w+)/g)!.map((x) => x.slice(2));
+        // 写真を読む口（`photoVisibility.ts`）の ProjectionExpression の欄とそろう
+        const code = readFileSync(join(ROOT, "api-user/src/photoVisibility.ts"), "utf8");
+        const proj = /ProjectionExpression: "([^"]+)"/.exec(code)![1].split(",").map((x) => x.trim().replace("#id", "id").replace("#loc", "location"));
+        expect(attrs.sort()).toEqual(proj.sort());
     });
 
     it("知らせはこの関数の中で送る（APNs の鍵を5つ・15秒まで待つ）", () => {

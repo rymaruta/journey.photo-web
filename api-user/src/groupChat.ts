@@ -63,6 +63,8 @@ export const GROUP_PUSH_GAP_MS = 3 * 60 * 1000;
 export const GROUP_PREVIEW_IDS = 4;
 /** 取り消した通の番号の控え（未読を数え直すため・古い方から落とす） */
 export const GROUP_UNSENT_KEEP = 50;
+/** 退会の掃除のために覚えておくグループ（断った・外された・招待を送った）。古い方から落とす */
+export const GROUP_TRACE_MAX = 200;
 
 export const isGroupId = (v: unknown): v is string =>
     typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(v);
@@ -107,6 +109,11 @@ export type GroupMembers = {
     declined: string[];
     /** 作った人が外した人。**作った人がもう一度入れるまで戻れない** */
     kicked: string[];
+    /**
+     * この行を作った時刻（2026-11-12 確かめ役の指摘2）。消えたグループと同じ gid で作り直された行を、
+     * 前のグループで外された人の「外された会話」と取り違えない（`groups.ts` の `accessOf`）。古い行には無い
+     */
+    createdAt?: string;
 };
 
 export type GroupEvent =
@@ -158,6 +165,12 @@ export type GroupsJoined = {
      * （グループに人を足した日に DM が始められなくなる、を作らない）
      */
     quota?: { day: string; direct: number; request: number };
+    /**
+     * 退会の掃除で辿るグループ（2026-11-12 確かめ役の指摘7・判断: 本人の行に持たせる）。断った（`declined` に名がある）・
+     * 外された（`kicked` に名がある）・招待を送った（`invited` の `by` に名がある）グループ。受信箱の行が消えても残す。
+     * `GROUP_TRACE_MAX` まで（古い方から落とす）
+     */
+    trace?: string[];
 };
 
 // ---------------------------------------------------------------------------
@@ -197,7 +210,10 @@ export function parseMembers(item: Record<string, unknown> | undefined): GroupMe
     const invited = (Array.isArray(item.invited) ? item.invited as Partial<GroupInvite>[] : [])
         .filter((m): m is GroupInvite => !!m && typeof m.id === "string" && typeof m.by === "string" && typeof m.at === "string")
         .map((m) => ({ id: m.id, by: m.by, at: m.at }));
-    return { gid: item.gid, ownerId: item.ownerId, members, invited, declined: strs(item.declined), kicked: strs(item.kicked) };
+    return {
+        gid: item.gid, ownerId: item.ownerId, members, invited, declined: strs(item.declined), kicked: strs(item.kicked),
+        ...(typeof item.createdAt === "string" ? { createdAt: item.createdAt } : {}),
+    };
 }
 
 function isEvent(v: unknown): v is GroupEvent {
@@ -233,7 +249,8 @@ export function parseJoined(item: Record<string, unknown> | undefined): GroupsJo
     const q = item?.quota as GroupsJoined["quota"] | undefined;
     const quota = q && typeof q.day === "string" && typeof q.direct === "number" && typeof q.request === "number"
         ? { day: q.day, direct: q.direct, request: q.request } : undefined;
-    return { groups, ...(quota ? { quota } : {}) };
+    const trace = strs(item?.trace).filter((g) => isGroupId(g));
+    return { groups, ...(quota ? { quota } : {}), ...(trace.length > 0 ? { trace } : {}) };
 }
 
 // ---------------------------------------------------------------------------
@@ -449,6 +466,13 @@ export function withRemovedEntry(j: GroupsJoined, gid: string, until: string): G
     const removed = Object.entries(groups).filter(([, e]) => e.state === "removed").sort((a, b) => b[1].at.localeCompare(a[1].at));
     for (const [old] of removed.slice(GROUP_REMOVED_KEEP)) delete groups[old];
     return { ...j, groups };
+}
+
+/** 退会の掃除で辿るグループに足す（前にあれば先頭へ寄せる） */
+export function withTrace(j: GroupsJoined, gid: string): GroupsJoined | null {
+    const cur = j.trace ?? [];
+    if (cur[0] === gid) return null;
+    return { ...j, trace: [gid, ...cur.filter((g) => g !== gid)].slice(0, GROUP_TRACE_MAX) };
 }
 
 /** 1日に足せる人数の歯止め（その人の行の `quota`）。越えるなら null（何も進めない） */
