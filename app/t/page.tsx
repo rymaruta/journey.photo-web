@@ -8,7 +8,7 @@ import { useAuth } from "../auth/context";
 import { useToast } from "../../lib/hooks/useToast";
 import { ROUTES } from "../../lib/routes";
 import { LoadingState } from "../components/StateViews";
-import { tripInviteLine, type InviteTrip } from "../../lib/utils/tripInvite";
+import { tripInviteParts, type InviteTrip } from "../../lib/utils/tripInvite";
 
 /**
  * 旅行プランへのお誘い（`/t?t=<トークン>`・2026-11-12・資料「SNS をもっと SNS に」2b）。
@@ -112,7 +112,10 @@ function TripInviteView() {
             <div className="max-w-md mx-auto text-center">
                 <p className="text-[11px] tracking-widest text-accent">旅行プランへのお誘い</p>
                 <h1 className="font-serif text-2xl mt-2">{trip.title || "旅行プラン"}</h1>
-                <p className="text-sm text-white/70 mt-2 tabular-nums">{tripInviteLine(trip)}</p>
+                {/* 日付・人数・場所の数は余白で分ける（中黒で区切らない・2026-11-12） */}
+                <p className="text-sm text-white/70 mt-2 tabular-nums flex flex-wrap justify-center gap-x-2">
+                    {tripInviteParts(trip).map((part) => <span key={part}>{part}</span>)}
+                </p>
 
                 <div className="mt-8">
                     {joined ? (
