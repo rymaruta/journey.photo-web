@@ -71,3 +71,49 @@ describe("旅行プランの共有の別スタック", () => {
         expect(mine).toBeGreaterThan(user);
     });
 });
+
+/**
+ * 役の権限（2026-11-12 確かめ役の指摘2・7・8）。
+ *  - user API の役は写真の表を BatchGetItem で読める（`listSharedTrips`。無いと共有プランに入った人の一覧が 500）
+ *  - 共有の口の役は、DM の会話・ブロックを**読むだけ**（書けるのは端末の宛先の掃除と会話の1日の歯止めの UpdateItem だけ）
+ *  - 共有の口の関数は 15 秒まで待つ
+ */
+describe("旅行プランの共有の権限", () => {
+    /** provider の iam の文を1つずつ（Action・Resource・LeadingKeys） */
+    function statements(src: string): Array<{ actions: string[]; resources: string[]; keys: string[] }> {
+        const body = noComments(src).split(/\n {6}statements:\n/)[1].split(/\n(?=[a-zA-Z]|  [a-zA-Z])/)[0];
+        return body.split(/\n(?= {8}- Effect:)/).filter((b) => b.includes("Effect:")).map((b) => ({
+            actions: [...b.matchAll(/^\s*-\s+((?:dynamodb|s3|cloudfront):[A-Za-z]+)\s*$/gm)].map((m) => m[1]),
+            resources: [...b.matchAll(/^\s*-\s+(arn:\S+)\s*$/gm)].map((m) => m[1]),
+            keys: [...b.matchAll(/^\s*-\s+([a-z]+#\*)\s*$/gm)].map((m) => m[1]),
+        }));
+    }
+    const photos = (s: { resources: string[] }) => s.resources.some((r) => r.endsWith("table/${param:photosTable}"));
+
+    it("user API の役は写真の表を BatchGetItem で読める", () => {
+        const s = statements(userYml).filter(photos);
+        expect(s.length).toBeGreaterThan(0);
+        expect(s.some((x) => x.actions.includes("dynamodb:BatchGetItem"))).toBe(true);
+    });
+
+    it("共有の口の役は DM・ブロックの行に書けない（読むだけ）", () => {
+        const mine = statements(yml).filter(photos);
+        expect(mine.length).toBeGreaterThan(0);
+        for (const st of mine) {
+            const writes = st.actions.filter((a) => a !== "dynamodb:GetItem" && a !== "dynamodb:BatchGetItem");
+            if (writes.length === 0) continue;
+            for (const k of ["dm#*", "block#*", "blocks#*", "blockedby#*"]) expect(st.keys, `${k} に ${writes.join(",")}`).not.toContain(k);
+            // 鍵の頭で絞らない書く権限を持たない
+            expect(st.keys.length, writes.join(",")).toBeGreaterThan(0);
+        }
+        // 端末の宛先と1日の歯止めに書けるのは UpdateItem だけ
+        for (const k of ["devices#*", "dmday#*"]) {
+            const acts = mine.filter((st) => st.keys.includes(k)).flatMap((st) => st.actions).filter((a) => a !== "dynamodb:GetItem");
+            expect(acts.sort(), k).toEqual(["dynamodb:UpdateItem"]);
+        }
+    });
+
+    it("共有の口の関数は 15 秒まで待つ（知らせを送る間に切れない）", () => {
+        expect(functionBlocks(yml).get("tripShare")).toMatch(/^\s{4}timeout: 15\s*$/m);
+    });
+});

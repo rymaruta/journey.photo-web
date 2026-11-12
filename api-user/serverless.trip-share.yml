@@ -41,8 +41,7 @@ provider:
     role:
       statements:
         # 認証の口（`tripShare`）。読み書きする行の頭で絞る:
-        # 共有したプラン・一覧・会話・招待・本人だけのプラン（共有するときに移す）・DM の会話（直接共有の門）・
-        # ブロック・端末の宛先（知らせ）
+        # 共有したプラン・一覧・会話・招待・本人だけのプラン（共有するときに移す）
         - Effect: Allow
           Action:
             - dynamodb:GetItem
@@ -60,11 +59,33 @@ provider:
                 - tripsjoined#*
                 - tripchat#*
                 - invite#*
+        # **読むだけの行**（2026-11-12 確かめ役の指摘8: 前は DM の会話・ブロックにも書けた）。
+        # DM の会話（直接共有の門）・ブロック（3つの行）・端末の宛先（知らせ）
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringLike:
+              dynamodb:LeadingKeys:
                 - dm#*
                 - block#*
                 - blocks#*
                 - blockedby#*
                 - devices#*
+        # 書く道が要る行は1つずつ: 端末の宛先から届かない宛先を外す（`devices.ts` の `forgetTokens`）・
+        # 会話の1日の歯止め（`dm.ts` の `reserveTripChatDaily`・DM と同じ行の別の欄）
+        - Effect: Allow
+          Action:
+            - dynamodb:UpdateItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringLike:
+              dynamodb:LeadingKeys:
+                - devices#*
+                - dmday#*
         # 名前を引く・退会の確かめ（読むだけ）
         - Effect: Allow
           Action:
@@ -87,6 +108,9 @@ functions:
   # **口は8つでも関数は1つ**（`trunk` と同じ形）。道は `event.routeKey` で分ける
   tripShare:
     handler: src/tripShare.handler
+    # 既定の 6 秒では、仲間 20 人への知らせ（APNs）と行の読み書きが重なると足りない（2026-11-12 指摘7）。
+    # 知らせは並べて送る（`tripShare.ts` の `notify`）うえで余裕を見る。HTTP API の待ちの上限（30 秒）より短く
+    timeout: 15
     environment:
       # 知らせ（プッシュ）。**鍵は送る関数にだけ配る**（provider に置かない・IAM-2）。無ければ送らないだけ
       APNS_KEY_ID: ${param:apnsKeyId, ''}
