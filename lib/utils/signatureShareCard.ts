@@ -34,8 +34,8 @@ export type ShareCardStyle = "tate" | "instant" | "band";
 /** 選ぶ画面の見本の列の並び */
 export const SHARE_CARD_STYLES: readonly ShareCardStyle[] = ["tate", "instant", "band"];
 /**
- * 初めての人の型。2026-11-12 判断: 第8章の第一の推奨「縦書き」（写真を削らず、格子でも形で分かる）。
- * iOS の初めては「表紙」だが、Web には表紙が無いので、Web にある型の中で一番映えるものにした
+ * 初めての人の型。2026-11-12 秘書室の判断: **縦書き（落款つき）**で iOS とそろえる（`Style.firstChoice`）。
+ * 第8章「新しい型を出した後は縦書きに替えてよい」・縦書きは新しい型の第一の推奨（写真を削らず、格子でも形で分かる）
  */
 export const SHARE_CARD_FIRST_STYLE: ShareCardStyle = "tate";
 export const SHARE_CARD_STYLE_KEY = "signatureShare.style";
