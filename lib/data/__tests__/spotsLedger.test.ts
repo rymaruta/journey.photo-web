@@ -33,7 +33,7 @@ const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 /** 台帳の鍵。`sp_` ＋ 12桁の16進（`lib/data/spots.ts` の docstring） */
 const SPOT_ID_RE = /^sp_[0-9a-f]{12}$/;
 
-describe("撮影スポット台帳（content/spots.json）", () => {
+describe("観光スポット台帳（content/spots.json）", () => {
     it("空ではない（空だと /spots/* が1ページも建たない）", () => {
         expect(SPOTS.length, "台帳が空か、減りすぎている").toBeGreaterThanOrEqual(MIN_SPOTS);
     });

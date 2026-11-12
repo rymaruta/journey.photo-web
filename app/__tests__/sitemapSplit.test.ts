@@ -11,6 +11,7 @@ import { publishableSpots } from "../../lib/utils/spotGuide";
 import { spotAreas } from "../../lib/data/spotLink";
 import { spotTopicSitemapEntries } from "../../lib/data/spotTopics";
 import { PREFECTURES } from "../../lib/data/prefectures";
+import { HELP_PAGES } from "../../lib/data/helpPages";
 import { LEARN_ARTICLES } from "../../lib/data/learn/articles";
 import type { Photo } from "../../lib/data/photos";
 
@@ -62,7 +63,8 @@ describe("サイトマップを種類別に分ける", () => {
             spots.length + (spots.length >= 3 ? 1 : 0) + spotAreas().filter((a) => a.publishedCount >= 2).length +
             spotTopicSitemapEntries(base).length +
             1 + LEARN_ARTICLES.filter((a) => a.modified).length + 1 /* 教科書の一覧 と 構図ガイド */ +
-            1 + PREFECTURES.length /* 今日の日の出 */;
+            1 + PREFECTURES.length /* 今日の日の出 */ +
+            1 + HELP_PAGES.length /* 使い方の目次と各頁（2026-11-12） */;
         expect(urls.length).toBe(expected);
     }, T);
 

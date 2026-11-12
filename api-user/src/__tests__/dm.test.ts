@@ -760,7 +760,8 @@ describe("送信の取り消し（POST /dm/{id}/messages の { unsend }・2026-1
         expect(r.statusCode).toBe(200);
         expect(r.body).not.toContain("まちがい");
         const [u] = convUpdates();
-        expect(u.input.UpdateExpression).toBe("REMOVE #items[1] SET updatedAt = :now, unsentAt = :now");
+        expect(u.input.UpdateExpression).toBe("REMOVE #items[1] SET updatedAt = :now, unsentAt = :now, lastUnsent = :lu");
+        expect(u.input.ExpressionAttributeValues[":lu"], "押し直しで未読を直す手がかり").toEqual({ id: B.id, fromEnd: 0 });
         expect(u.input.ConditionExpression).toBe("#items[1].#mid = :mid AND updatedAt = :prev");
         expect(u.input.ExpressionAttributeValues).toMatchObject({ ":mid": B.id, ":prev": B.t });
         // 「取り消しました」の通も印も足さない（本体に残るのは相手の1通だけ）
@@ -797,9 +798,12 @@ describe("送信の取り消し（POST /dm/{id}/messages の { unsend }・2026-1
         rows[KEY] = convRow([B], { updatedAt: B.t, state: "request", initiator: ME, reqCount: 1 });
         await unsend(B.id);
         const [peerW] = inboxWrites(PEER);
-        expect(peerW.input.UpdateExpression).toBe("REMOVE convs.#c");
+        // 承認前の会話を受け取った側の行を外すときは、断った印を同じ書き込みで残す（取り消し → 削除で通数を戻させない）
+        expect(peerW.input.UpdateExpression).toBe("REMOVE convs.#c SET #dec = :n");
+        expect(peerW.input.ExpressionAttributeNames["#dec"]).toBe(`dec_${ME}`);
+        expect(peerW.input.ExpressionAttributeValues[":n"]).toBe(1);
         const [meW] = inboxWrites(ME);
-        expect(meW.input.UpdateExpression).toBe("SET convs.#c.#x = :x, convs.#c.#u = :u");
+        expect(meW.input.UpdateExpression).toBe("SET convs.#c.#x = :x, convs.#c.#u = :u, convs.#c.#uid = :mid REMOVE convs.#c.#f");
         expect(meW.input.ExpressionAttributeValues[":x"]).toBe("");
         // 本体は残す（承認前の通数 reqCount を消さない——取り消しで3通の歯止めを戻させない）
         expect(writes().some((c) => c.cmd === "DeleteCommand"), "本体を消して通数の歯止めを戻している").toBe(false);
@@ -828,12 +832,21 @@ describe("送信の取り消し（POST /dm/{id}/messages の { unsend }・2026-1
         expect(writes()).toHaveLength(0);
     });
 
-    it("もう無い通（押し直し）は 200・本体は書かず、受信箱の直しだけやり直す（未読は減らさない）", async () => {
-        rows[KEY] = convRow([A], { updatedAt: B.t });
+    it("自分が取り消した通の押し直しは 200・本体は書かず、受信箱の直しだけやり直す（覚えた位置で未読を1回だけ減らす）", async () => {
+        rows[KEY] = convRow([A], { updatedAt: B.t, lastUnsent: { id: B.id, fromEnd: 0 } });
         const r = await unsend(B.id);
         expect(r.statusCode).toBe(200);
         expect(convUpdates()).toHaveLength(0);
-        expect(inboxWrites(PEER)[0].input.ExpressionAttributeValues).toMatchObject({ ":x": "やあ", ":u": 1 });
+        expect(inboxWrites(PEER)[0].input.ExpressionAttributeValues).toMatchObject({ ":x": "やあ", ":u": 0, ":mid": B.id });
+    });
+
+    it("🔴 取り消した覚えの無い・もう無い通は、他人の通と同じ 404 messageNotFound（何も書かない）", async () => {
+        rows[KEY] = convRow([A], { updatedAt: B.t });
+        const gone = await unsend(B.id);
+        const other = await unsend(A.id);
+        expect([gone.statusCode, gone.body]).toEqual([other.statusCode, other.body]);
+        expect(bodyOf(gone).code).toBe("messageNotFound");
+        expect(writes()).toHaveLength(0);
     });
 
     it("同時の書き込みで条件が外れたら読み直してやり直す・続けば 409", async () => {
@@ -1437,7 +1450,8 @@ describe("会話の引用札（ストーリーへの返信から写した通・s
     });
 
     describe("🔴 写真を紹介したストーリー（sharedPhotoId・#541）", () => {
-        const photo = (o: Row = {}) => ({ id: "p-shared", src: "https://cdn/p.jpg", userId: THIRD, ...o });
+        // 紹介できるのは自分の写真だけ（2026-11-12）: 写真の持ち主は紹介した本人（PEER）
+        const photo = (o: Row = {}) => ({ id: "p-shared", src: "https://cdn/p.jpg", userId: PEER, ...o });
         beforeEach(() => {
             rows["story-1"] = storyRow({ sharedPhotoId: "p-shared" });
             rows["p-shared"] = photo();
@@ -1454,8 +1468,10 @@ describe("会話の引用札（ストーリーへの返信から写した通・s
             ["持ち主が非公開にした", () => { rows["p-shared"] = photo({ published: false }); }],
             ["持ち主が範囲を絞った", () => { rows["p-shared"] = photo({ audience: "followers" }); }],
             ["持ち主が消した", () => { delete rows["p-shared"]; }],
-            ["持ち主が退会した", () => { mockDeleted.mockReturnValue({ deleted: new Set([THIRD]), unread: new Set<string>() }); }],
-            ["見る人と持ち主のあいだにブロック", () => { mockHidden.mockResolvedValue(new Set([THIRD])); }],
+            ["持ち主が退会した", () => { mockDeleted.mockReturnValue({ deleted: new Set([PEER]), unread: new Set<string>() }); }],
+            // 見る人と持ち主（＝紹介した本人・会話の相手）のブロックは、会話ごと 404 になる（呼ぶ側の門）
+            // 🔴 2026-11-12 より前に作られた、人の写真の紹介（持ち主でない人が紹介した行）
+            ["人の写真の紹介（持ち主でない人が紹介した）", () => { rows["p-shared"] = photo({ userId: THIRD }); }],
         ];
         for (const [label, arrange] of lost) {
             it(`${label}: 見る人には ended（紹介した本人には live）`, async () => {
@@ -1663,7 +1679,7 @@ describe("🔴 同じ会話で、送った写真の札と、紹介のストー�
         rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME) });
         rows["photo-1"] = { id: "photo-1", src: "https://cdn/p.jpg", thumbSrc: "https://cdn/p_t.webp", userId: THIRD };
         rows["story-1"] = { id: "story-1", story: true, userId: PEER, src: "https://cdn/s.jpg", mediaType: "image", expiresAt: FUTURE(), sharedPhotoId: "p-shared" };
-        rows["p-shared"] = { id: "p-shared", src: "https://cdn/ps.jpg", userId: THIRD };
+        rows["p-shared"] = { id: "p-shared", src: "https://cdn/ps.jpg", userId: PEER };   // 自分の写真の紹介（2026-11-12）
         follows(PEER, ME);
         rows[KEY] = convRow([
             { ...msg(ME, "きれい", "2026-11-09T00:00:01.000Z", "m-story-01"), via: "story", storyId: "story-1" },

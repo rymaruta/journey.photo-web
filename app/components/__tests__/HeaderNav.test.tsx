@@ -32,6 +32,11 @@ vi.mock("next/navigation", () => ({
 import HeaderNav from "../HeaderNav";
 import { ROUTES } from "@/lib/routes";
 
+// ベルは `next/dynamic` で遅れて読み込むので、試験で初めて読むときは変換の時間がかかる。既定の待ち（1 秒）では、
+// 機械が混んでいると届く前に切れる（2026-11-12 実測: 手元で 138〜300ms。全部の試験を並べて流した回では 1 秒で切れて
+// 「通知」が見つからずに落ちた＝落ちた2件はどちらも 1013・1036ms で待ちの上限ちょうど）。中身ではなく待ちの上限を広げる
+const BELL_WAIT_MS = 5000;
+
 function setRole(role: "anonymous" | "general" | "admin") {
     authState.current = {
         isAuthenticated: role !== "anonymous",
@@ -68,12 +73,13 @@ describe("HeaderNav - ロール別のメニュー表示", () => {
         expect(items).not.toContain("Logout");
     });
 
-    it("一般ユーザー: マイページ・ログアウトは出るが管理は出ない", async () => {
+    it("一般ユーザー: ログアウトは出るが管理は出ない（マイページは下の札だけ・2026-11-12）", async () => {
         setRole("general");
         render(<HeaderNav />);
         await openMenu();
         const items = menuItems();
-        expect(items).toContain("My Page");
+        // マイページは下の札（`BottomNav`）と同じ所なので ≡ から外した（案 第10章）
+        expect(items).not.toContain("My Page");
         expect(items).toContain("Logout");
         expect(items).not.toContain("Manage");
         expect(items).not.toContain("Login");
@@ -90,16 +96,6 @@ describe("HeaderNav - ロール別のメニュー表示", () => {
         expect(menuItems()).toContain("Manage");
     });
 
-    it("マイページは自分の userId のプロフィールURLに遷移する", async () => {
-        setRole("general");
-        render(<HeaderNav />);
-        await openMenu();
-        fireEvent.click(screen.getByText("My Page"));
-        expect(mockPush).toHaveBeenCalledTimes(1);
-        const dest = mockPush.mock.calls[0][0] as string;
-        expect(dest === "/users/user-1" || dest === "/users?id=user-1").toBe(true);
-    });
-
     it("メニュー開閉が動作する", async () => {
         setRole("anonymous");
         render(<HeaderNav />);
@@ -113,7 +109,7 @@ describe("HeaderNav - ロール別のメニュー表示", () => {
         setRole("general");
         render(<HeaderNav />);
         // ベルはログイン中だけ遅れて読み込む（`next/dynamic`・2026-11-11 札 #527）
-        await screen.findByRole("button", { name: "通知" });
+        await screen.findByRole("button", { name: "通知" }, { timeout: BELL_WAIT_MS });
         const nav = screen.getByRole("navigation", { name: "ヘッダー" });
         // `<a>`（Link）で戻ったアバターも数えるよう、リンクとボタンの両方を見る
         const controls = Array.from(nav.querySelectorAll("a, button"));
@@ -123,7 +119,7 @@ describe("HeaderNav - ロール別のメニュー表示", () => {
     it("ヘッダーの押せるものはどれも箱を持たない丸い面（iOS v2: 44px 固定・アイコン17px・線1.6）", async () => {
         setRole("general");
         render(<HeaderNav />);
-        await screen.findByRole("button", { name: "通知" });
+        await screen.findByRole("button", { name: "通知" }, { timeout: BELL_WAIT_MS });
         const nav = screen.getByRole("navigation", { name: "ヘッダー" });
         const buttons = Array.from(nav.querySelectorAll("a, button")) as HTMLElement[];
         expect(buttons).toHaveLength(2);
@@ -273,7 +269,7 @@ describe("HeaderNav - 未ログインの「ログイン」", () => {
         link.addEventListener("click", (e) => e.preventDefault());
         fireEvent.click(link);
         fireEvent.click(screen.getByLabelText("メニューを開く"));
-        fireEvent.click(screen.getByRole("button", { name: "撮影スポット" }));
+        fireEvent.click(screen.getByRole("button", { name: "観光スポット" }));
         const navs = gtag.mock.calls.filter((c) => c[1] === "nav_click").map((c) => c[2]);
         expect(navs).toEqual([
             expect.objectContaining({ area: "header", dest: "login" }),
@@ -329,7 +325,7 @@ describe("HeaderNav - メニュー開閉の回帰ガード", () => {
         render(<HeaderNav />);
         fireEvent.click(screen.getByLabelText("メニューを開く"));
         const dialog = screen.getByRole("dialog");
-        fireEvent.click(within(dialog).getByText("My Page"));
+        fireEvent.click(within(dialog).getByText("観光スポット"));
         expect(mockPush).toHaveBeenCalledTimes(1);
         expect(screen.queryByRole("dialog")).toBeNull();
     });
@@ -506,17 +502,14 @@ describe("画面が変わったらメニューを閉じる", () => {
     });
 });
 
-// 撮影地マップ（/map）は**公開の入口**なので、ログイン状態に関係なく出す。
-// 他の項目はロールで出し分けているので、条件の書き間違いで
-// 「ログインした人にだけ地図が出る」形になっても他のテストは通る。
+// 撮影地マップ（/map）は 2026-11-12 に ≡ から外した（デザインの案 第10章「どこに何を置くか」）。
+// 下の札（`BottomNav`・全ページ・全幅）の「マップ」と同じ所。どのロールでも出さない
 describe("HeaderNav - 撮影地マップ", () => {
-    it.each(["anonymous", "general", "admin"] as const)("%s にも出て、/map へ移動する", async (role) => {
+    it.each(["anonymous", "general", "admin"] as const)("%s にも出さない（下の札にある）", async (role) => {
         setRole(role);
         render(<HeaderNav />);
         await openMenu();
-        expect(menuItems()).toContain("Map");
-        fireEvent.click(screen.getByRole("button", { name: "Map" }));
-        expect(mockPush).toHaveBeenCalledWith("/map");
+        expect(menuItems()).not.toContain("Map");
     });
 });
 

@@ -69,7 +69,7 @@ describe("出す", () => {
         expect(W.parseSpotWants({ nope: 1 })).toBeNull();
     });
 
-    it("撮影スポットの頁の題の下: 「今月の行きたい 1,284 · 全国1位」。数の無い撮影スポットは出さない", async () => {
+    it("観光スポットの頁の題の下: 「今月の行きたい 1,284 · 全国1位」。数の無い観光スポットは出さない", async () => {
         const { unmount } = render(<SpotWantsLine slug="shirakawago" />);
         const line = await screen.findByTestId("spot-wants-line");
         expect(line.textContent).toContain("今月の行きたい");
@@ -81,7 +81,7 @@ describe("出す", () => {
         expect(screen.queryByTestId("spot-wants-line")).toBeNull();
     });
 
-    it("県の一覧の頭: その県の撮影スポットから3つ", async () => {
+    it("県の一覧の頭: その県の観光スポットから3つ", async () => {
         render(<AreaWantsTop spots={[{ slug: "monet", name: "モネの池", city: "関市" }, { slug: "shirakawago", name: "白川郷" }, { slug: "nothing", name: "数なし" }]} />);
         const top = await screen.findByTestId("area-wants-top");
         const rows = [...top.querySelectorAll("li")].map((li) => li.textContent);
@@ -91,7 +91,7 @@ describe("出す", () => {
         expect(top.querySelector("a")!.getAttribute("href")).toBe("/spots/shirakawago");
     });
 
-    it("海外の撮影スポットは数だけ（順位を出さない）", async () => {
+    it("海外の観光スポットは数だけ（順位を出さない）", async () => {
         vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, json: async () => ({ month: "2026-11", updatedAt: "x",
             spots: [{ slug: "louvre", name: "ルーヴル", n: 800 }] }) })));
         render(<SpotWantsLine slug="louvre" />);

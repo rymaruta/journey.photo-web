@@ -75,17 +75,17 @@ describe("spotStructuredData", () => {
 });
 
 describe("spotBreadcrumb", () => {
-    it("ホーム ＞ 撮影スポット ＞ 県 ＞ スポット", () => {
+    it("ホーム ＞ 観光スポット ＞ 県 ＞ スポット", () => {
         const ginzan = bySlug("ginzan-onsen");
         const crumbs = spotBreadcrumb(ginzan, spotAreaOf(ginzan));
-        expect(crumbs.map((c) => c.name)).toEqual(["ホーム", "撮影スポット", "山形県", ginzan.name]);
+        expect(crumbs.map((c) => c.name)).toEqual(["ホーム", "観光スポット", "山形県", ginzan.name]);
         expect(crumbs[2].url).toBe(`${siteConfig.url}/spots/area/yamagata`);
         expect(crumbs[3].url).toBe(spotPageUrl(ginzan));
     });
 
     it("県が引けなければ県の段を飛ばす（在らないページを指さない）", () => {
         const ginzan = bySlug("ginzan-onsen");
-        expect(spotBreadcrumb(ginzan, null).map((c) => c.name)).toEqual(["ホーム", "撮影スポット", ginzan.name]);
+        expect(spotBreadcrumb(ginzan, null).map((c) => c.name)).toEqual(["ホーム", "観光スポット", ginzan.name]);
     });
 });
 

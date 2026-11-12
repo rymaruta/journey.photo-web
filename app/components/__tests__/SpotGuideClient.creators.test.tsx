@@ -40,7 +40,7 @@ beforeEach(() => {
     window.history.replaceState(null, "", "/spots/miyagi-zao-fox");
 });
 
-describe("撮影スポットの頁: 写真を載せた人", () => {
+describe("観光スポットの頁: 写真を載せた人", () => {
     it("プロフィールへのリンクで出す", () => {
         render(
             <ToastProvider>
@@ -64,7 +64,7 @@ describe("撮影スポットの頁: 写真を載せた人", () => {
 });
 
 // 配線: 受ける側だけ直しても、頁が渡さなければ1本も出ない（台帳でいちばん多い失敗の形）
-describe("撮影スポットの頁が、そのスポットの写真の投稿者を渡す", () => {
+describe("観光スポットの頁が、そのスポットの写真の投稿者を渡す", () => {
     it("SpotGuidePage は表示する写真（mine）から creators を組んで渡す", async () => {
         const fs = await import("node:fs");
         const src = fs.readFileSync(`${__dirname}/../SpotGuidePage.tsx`, "utf8");

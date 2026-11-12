@@ -12,7 +12,7 @@ import { PREFECTURES, prefectureByName } from "../prefectures";
 import { ROUTES } from "../../routes";
 
 /**
- * 2026-11-09: ホームの「撮影スポットを県から探す」（`app/components/HomeSpotEntry.tsx`・SEO の入口・案A）。
+ * 2026-11-09: ホームの「観光スポットを県から探す」（`app/components/HomeSpotEntry.tsx`・SEO の入口・案A）。
  * 県・国への文字リンクを**書き出しの HTML に最初から出す**。ホーム → 県（国）→ スポットの2クリックで全スポットに届く。
  * 台帳を読むので node 環境で流す（`renderToStaticMarkup` は書き出しと同じ描き方）
  */
@@ -34,11 +34,11 @@ describe("ホームの県から探す: リンクの集合", () => {
         expect(hrefs.filter((h) => h.startsWith("/spots/area/overseas/"))).toHaveLength(countryTopics().length);
     });
 
-    it("リンクの文字は「神奈川県の撮影スポット」のように全部書く（件数は別の span）", () => {
+    it("リンクの文字は「神奈川県の観光スポット」のように全部書く（件数は別の span）", () => {
         const labels = [...html.matchAll(/<a [^>]*>(.*?)<\/a>/g)].map((m) => m[1].replace(/<[^>]+>/g, ""));
         expect(labels).toHaveLength(hrefs.length);
-        for (const l of labels) expect(l).toMatch(/^.+の撮影スポット \d+件$/);
-        expect(labels).toContain("神奈川県の撮影スポット 46件".replace("46", String(spotAreas().find((a) => a.slug === "kanagawa")!.count)));
+        for (const l of labels) expect(l).toMatch(/^.+の観光スポット \d+件$/);
+        expect(labels).toContain("神奈川県の観光スポット 46件".replace("46", String(spotAreas().find((a) => a.slug === "kanagawa")!.count)));
     });
 
     it("最初から HTML に出る（折りたたまない・隠さない）", () => {
@@ -127,7 +127,7 @@ describe("ホームの県から探す: 作り・見た目の決まり", () => {
     it("名前つきの nav・節の見出し・地方ごとの見出し", () => {
         expect(html).toContain('<nav aria-labelledby="home-spot-entry-h"');
         expect(html).toContain('<section aria-labelledby="home-spot-entry-h"');
-        expect(html).toMatch(/<h2 id="home-spot-entry-h"[^>]*>撮影スポットを県から探す<\/h2>/);
+        expect(html).toMatch(/<h2 id="home-spot-entry-h"[^>]*>観光スポットを県から探す<\/h2>/);
         const h3 = [...html.matchAll(/<h3[^>]*>(.*?)<\/h3>/g)].map((m) => m[1]);
         expect(h3).toEqual([`国内（${data.areas.length}都道府県）`, `海外（${countryTopics().length}か国）`]);
         const h4 = [...html.matchAll(/<h4[^>]*>(.*?)<\/h4>/g)].map((m) => m[1].replace(/<[^>]+>/g, ""));
@@ -163,7 +163,7 @@ describe("ホームの県から探す: 作り・見た目の決まり", () => {
         expect(link).toMatch(/@media \(min-width: 640px\) \{[^}]*justify-content: space-between/);
     });
 
-    it("字は 12px 以上（名前 13・「撮影スポット」12→13・件数 12）", () => {
+    it("字は 12px 以上（名前 13・「観光スポット」12→13・件数 12）", () => {
         for (const n of ["home-spot-name", "home-spot-noun", "home-spot-count"]) {
             const sizes = [...utility(n).matchAll(/font-size:\s*(\d+)px/g)].map((m) => Number(m[1]));
             expect(sizes.length, n).toBeGreaterThan(0);

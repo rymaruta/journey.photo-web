@@ -128,7 +128,7 @@ function Result({ coords, hits }: { coords: { lat: number; lng: number }; hits: 
             <h2 className="m-0 mb-3 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "1.3" }}>現在地の今日の光</h2>
             <TodayLightPanel coords={coords} testId="today-here" />
 
-            <h2 className="m-0 mt-8 mb-3 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "1.3" }}>近くの撮影スポット</h2>
+            <h2 className="m-0 mt-8 mb-3 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "1.3" }}>近くの観光スポット</h2>
             {hits && hits.length > 0 ? (
                 <>
                     <ul className="m-0 p-0 list-none divide-y divide-line/60 rounded-2xl bg-surface ring-1 ring-line" data-testid="today-nearby">

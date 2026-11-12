@@ -123,9 +123,9 @@ describe("テーマ（カテゴリ × 地域）", () => {
     it("頁の題・導入文はデータの事実（件数と先頭のスポット名）", () => {
         const v = themeView("temples-shrines", "kyoto")!;
         const n = shown.filter((s) => s.category === "寺社" && s.region?.prefecture === "京都府").length;
-        expect(v.heading).toBe("京都府の寺社の撮影スポット");
+        expect(v.heading).toBe("京都府の寺社の観光スポット");
         // 2026-11-11（#527）: 題の後ろに載っている名所の名前（並びの先頭から・全角33以内）
-        expect(topicTitle(v).startsWith(`京都府の寺社の撮影スポット${n}選｜${v.cards[0].name}`)).toBe(true);
+        expect(topicTitle(v).startsWith(`京都府の寺社の観光スポット${n}選｜${v.cards[0].name}`)).toBe(true);
         expect(v.intro).toContain(`${n}件`);
         expect(v.intro).toContain(v.cards[0].name);
         // パンくずは県の一覧を通る
@@ -189,7 +189,7 @@ describe("国", () => {
         // 検索に出す国（2件以上）は今までどおり国の頁へ
         const fr = v.related[0].links.find((x) => x.label === "フランス")!;
         expect(fr.href).toBe("/spots/area/overseas/fr");
-        expect(itemList!.itemListElement.find((x) => x.url.endsWith("/spots/area/overseas/fr"))?.name).toBe("フランスの撮影スポット");
+        expect(itemList!.itemListElement.find((x) => x.url.endsWith("/spots/area/overseas/fr"))?.name).toBe("フランスの観光スポット");
         // 海外のスポットはどれも、検索に出る頁（海外の一覧か、2件以上の国の頁）から張られている
         const indexableHrefs = new Set(v.related[0].links.map((x) => x.href));
         for (const c of countries) {
@@ -204,7 +204,7 @@ describe("国", () => {
 
     it("国の頁のパンくずは 海外 → 国", () => {
         const { breadcrumb } = topicStructuredData(countryView("fr")!);
-        expect(breadcrumb.itemListElement.map((x) => x.name)).toEqual(["ホーム", "撮影スポット", "海外", "フランスの撮影スポット"]);
+        expect(breadcrumb.itemListElement.map((x) => x.name)).toEqual(["ホーム", "観光スポット", "海外", "フランスの観光スポット"]);
     });
 });
 
@@ -268,9 +268,9 @@ describe("季節", () => {
 
     it("秋の導入文は「紅葉」の記述の件数を数える（題には使わない）", () => {
         const v = seasonView("autumn", "kinki")!;
-        expect(v.heading).toBe("近畿地方（関西）の秋の撮影スポット");
+        expect(v.heading).toBe("近畿地方（関西）の秋の観光スポット");
         expect(v.intro).toMatch(/うち\d+件は秋の案内に「紅葉」の記述があります/);
-        expect(v.crumbs).toEqual([{ name: "秋の撮影スポット", nameEn: "Autumn photo spots", href: "/spots/season/autumn" }]);
+        expect(v.crumbs).toEqual([{ name: "秋の観光スポット", nameEn: "Autumn photo spots", href: "/spots/season/autumn" }]);
     });
 });
 
@@ -292,7 +292,7 @@ describe("説明（description）", () => {
     it("海外の区画の頁の題・説明は国の一覧のもの（814選と名乗らない）", async () => {
         const { generateMetadata } = await import("../../../app/spots/area/[area]/page");
         const m = await generateMetadata({ params: Promise.resolve({ area: "overseas" }) });
-        expect(m.title).toBe("海外の撮影スポット");
+        expect(m.title).toBe("海外の観光スポット");
         expect(String(m.description)).toContain("の国・地域に分けています");
     });
 });
@@ -346,7 +346,7 @@ describe("内部リンク（スポットの頁 → 切り口）", () => {
         const hrefs = topicLinksForSpot(kyotoTemple).map((l) => l.href);
         expect(hrefs).toEqual(expect.arrayContaining(["/spots/theme/temples-shrines/kyoto", "/spots/theme/temples-shrines/kinki"]));
         const fr = shown.find((s) => s.region?.country === "フランス")!;
-        expect(topicLinksForSpot(fr)[0]).toMatchObject({ href: "/spots/area/overseas/fr", label: "フランスの撮影スポット" });
+        expect(topicLinksForSpot(fr)[0]).toMatchObject({ href: "/spots/area/overseas/fr", label: "フランスの観光スポット" });
     });
 
     it("公開済みでない行には張らない", () => {
@@ -386,7 +386,7 @@ describe("`/spots` の入口・サイトマップ", () => {
     }, 30_000); // サイトマップは写真・台帳を全部読む（`mapMetadata.test.ts` は develop でも5秒前後）
 });
 
-describe("ホーム: いまの季節の撮影スポット", () => {
+describe("ホーム: いまの季節の観光スポット", () => {
     it("月で季節が決まる（日本時間）", () => {
         expect([1, 2, 3, 5, 6, 8, 9, 11, 12].map(seasonOfMonth)).toEqual(
             ["winter", "winter", "spring", "spring", "summer", "summer", "autumn", "autumn", "winter"]);
@@ -462,7 +462,7 @@ describe("市区町村の頁（2026-11-05）", () => {
     it("頁の題は「N選」・導入文はデータの事実・パンくずは県", () => {
         const t = cityTopics()[0];
         const v = cityView(t.prefSlug, t.city)!;
-        expect(v.heading).toBe(`${t.prefName}${t.city}の撮影スポット`);
+        expect(v.heading).toBe(`${t.prefName}${t.city}の観光スポット`);
         expect(topicTitle(v)).toBe(`${v.heading}${v.cards.length}選`);
         expect(v.intro).toContain(`${t.spots.length}件`);
         expect(v.crumbs[0].href).toBe(`/spots/area/${t.prefSlug}`);
@@ -491,11 +491,11 @@ describe("季節 × 種類の頁（2026-11-05）", () => {
         }
     });
 
-    it("題は「春の寺社の撮影スポットN選」の形・URL は季節/theme/カテゴリ・同じ頁が2枚にならない", () => {
+    it("題は「春の寺社の観光スポットN選」の形・URL は季節/theme/カテゴリ・同じ頁が2枚にならない", () => {
         const t = seasonThemeTopics()[0];
         const v = seasonThemeView(t.season, t.categorySlug)!;
         expect(v.path).toBe(`/spots/season/${t.season}/theme/${t.categorySlug}`);
-        expect(topicTitle(v)).toMatch(/^[春夏秋冬]の.+の撮影スポット\d+選$/);
+        expect(topicTitle(v)).toMatch(/^[春夏秋冬]の.+の観光スポット\d+選$/);
         const paths = seasonThemeTopics().map((x) => x.season + "/" + x.categorySlug);
         expect(new Set(paths).size).toBe(paths.length);
         expect(seasonThemeView("autumn", "zzz")).toBeNull();
@@ -545,10 +545,10 @@ describe("紅葉の頁（2026-11-06）", () => {
         for (const s of orphans) expect(shown.has(s.slug), s.slug).toBe(true);
     });
 
-    it("題は「…の紅葉の撮影スポットN選」・導入文は数えた事実・見頃の日付は書かない", () => {
+    it("題は「…の紅葉の観光スポットN選」・導入文は数えた事実・見頃の日付は書かない", () => {
         const v = momijiView(null)!;
-        expect(v.heading).toBe("紅葉の撮影スポット");
-        expect(topicTitle(v)).toBe(`紅葉の撮影スポット${v.cards.length}選`);
+        expect(v.heading).toBe("紅葉の観光スポット");
+        expect(topicTitle(v)).toBe(`紅葉の観光スポット${v.cards.length}選`);
         // まとめの頁は一部だけ並べる＝全体の数と、並べた数（題の「N選」）を分けて言う（2026-11-11・#527）
         const n = momijiTopics().find((t) => t.place === null)!.spots.length;
         expect(v.cards.length).toBeLessThan(n);
@@ -557,7 +557,7 @@ describe("紅葉の頁（2026-11-06）", () => {
         expect(v.intro + (v.descriptionExtra ?? "")).not.toMatch(/見頃|\d+月|例年/);
         const sub = momijiTopics().find((t) => t.place)!;
         const sv = momijiView(sub.place!.slug)!;
-        expect(sv.heading).toBe(`${sub.place!.name}の紅葉の撮影スポット`);
+        expect(sv.heading).toBe(`${sub.place!.name}の紅葉の観光スポット`);
         expect(sv.crumbs[0].href).toBe("/spots/momiji");
         expect(sv.cards.map((c) => c.slug).sort()).toEqual(sub.spots.map((s) => s.slug).sort());
         expect(momijiView("nowhere")).toBeNull();
@@ -572,9 +572,9 @@ describe("紅葉の頁（2026-11-06）", () => {
 
 // 桜（春）・雪景色（冬）は紅葉と同じ作り（2026-11-07）。紅葉の組み立てを共通にしたので、3つ全部に同じ決まりを掛ける
 describe.each([
-    ["sakura", "spring", "桜", "桜の撮影スポット", "/spots/sakura"],
-    ["snow", "winter", "雪", "雪景色の撮影スポット", "/spots/snow"],
-    ["momiji", "autumn", "紅葉", "紅葉の撮影スポット", "/spots/momiji"],
+    ["sakura", "spring", "桜", "桜の観光スポット", "/spots/sakura"],
+    ["snow", "winter", "雪", "雪景色の観光スポット", "/spots/snow"],
+    ["momiji", "autumn", "紅葉", "紅葉の観光スポット", "/spots/momiji"],
 ] as const)("見どころ別の頁: %s", (key, season, kw, hubHeading, hubPath) => {
     it("載るのは日本の、その季節の案内にその語があるスポットだけ。地方・県は MIN_TOPIC_SPOTS 件以上の部分集合", () => {
         expect(FEATURES[key].season).toBe(season);
@@ -742,8 +742,8 @@ describe("テーマの頁の題・説明・導入文（2026-11-11・#527 GSC: 8�
     it("題はサイト名を付けない完全な形（absolute）・全角33以内・載っている名所の名前を入れる", () => {
         const v = themeView("churches", "it")!;
         const m = topicMetadata(v);
-        // 以前は「イタリアの教会の撮影スポット54選 | Journey Photo 旅フォトギャラリー」（どの教会かが題に無い）
-        expect(m.title).toEqual({ absolute: `イタリアの教会の撮影スポット${v.cards.length}選｜${v.cards[0].name}ほか` });
+        // 以前は「イタリアの教会の観光スポット54選 | Journey Photo 旅フォトギャラリー」（どの教会かが題に無い）
+        expect(m.title).toEqual({ absolute: `イタリアの教会の観光スポット${v.cards.length}選｜${v.cards[0].name}ほか` });
         expect((m.openGraph as { title?: string }).title).toBe(topicTitle(v));
         for (const x of views) {
             const t = topicTitle(x);
@@ -760,7 +760,7 @@ describe("テーマの頁の題・説明・導入文（2026-11-11・#527 GSC: 8�
         const t = themes.find((x) => x.categorySlug === "churches" && x.place.slug === "it")!;
         const v = themeView("churches", "it")!;
         const d = topicMetadata(v).description as string;
-        expect(d.startsWith(`${v.cards[0].name}、${v.cards[1].name}、${v.cards[2].name}など、イタリアの教会の撮影スポット${t.spots.length}か所。`)).toBe(true);
+        expect(d.startsWith(`${v.cards[0].name}、${v.cards[1].name}、${v.cards[2].name}など、イタリアの教会の観光スポット${t.spots.length}か所。`)).toBe(true);
         const rome = t.spots.filter((s) => s.region?.city === "ローマ").length;
         expect(rome).toBeGreaterThanOrEqual(2);
         expect(d).toContain(`ローマ${rome}か所`);

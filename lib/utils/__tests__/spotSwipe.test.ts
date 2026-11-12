@@ -53,7 +53,7 @@ describe("札の山", () => {
     });
 });
 
-describe("端末の控え（撮影スポットの鍵だけ・最大40）", () => {
+describe("端末の控え（観光スポットの鍵だけ・最大40）", () => {
     it("足す・外す・上限で止める（黙って古いものを消さない）", () => {
         for (let i = 0; i < SWIPE_WANT_MAX; i++) expect(addSwipeWant(`s${i}`)).toBe(true);
         expect(addSwipeWant("over")).toBe(false);
@@ -64,7 +64,7 @@ describe("端末の控え（撮影スポットの鍵だけ・最大40）", () =>
         expect(readSwipeWants()).not.toContain("SPOT-s0");
     });
 
-    it("撮影スポットの鍵でない値・壊れた値は読まない", () => {
+    it("観光スポットの鍵でない値・壊れた値は読まない", () => {
         window.localStorage.setItem(SWIPE_WANTS_KEY, JSON.stringify(["SPOT-a", "パリ", 3, "SPOT-", "SPOT-a"]));
         expect(readSwipeWants()).toEqual(["SPOT-a"]);
         window.localStorage.setItem(SWIPE_WANTS_KEY, "{not json");

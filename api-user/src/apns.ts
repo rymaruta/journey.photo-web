@@ -215,11 +215,14 @@ export async function sendPush(
         ]).finally(() => { if (deadline) clearTimeout(deadline); });
         if (!results) {
             console.warn(`sendPush: ${DEADLINE_MS}ms で返らなかったので諦めました`);
+            console.log(pushSummaryLine(tokens.length, [], true));
             return { sent: 0, invalid: [] };
         }
+        console.log(pushSummaryLine(tokens.length, results, false));
         return aggregate(results);
     } catch (e) {
         console.error("sendPush error:", e);
+        console.log(pushSummaryLine(tokens.length, [], false, true));
         return { sent: 0, invalid: [] };
     } finally {
         // **セッションを跨いで使い回さない。** Lambda は呼び出しの間で
@@ -228,7 +231,36 @@ export async function sendPush(
     }
 }
 
-type OneResult = { token: string; ok: boolean; invalid: boolean };
+type OneResult = { token: string; ok: boolean; invalid: boolean; status?: number };
+
+/**
+ * 1回の送信の結果を**数だけ**で1行にする（札 journey.photo-ios#585）。
+ *
+ * それまでは送れた数がどこにも出ず、鍵が壊れて1通も届いていないことに気づけなかった。
+ * **ユーザーの id とトークンは出さない**——出すのは、送る相手の端末の数・送れた数・
+ * 断られた数（HTTP の状態ごと。0 は応答が来ずに切れたもの）・締め切りを過ぎたか・
+ * 送る前に落ちたか（鍵が読めないなど）だけ。CloudWatch で `sendPush summary` を探せば数えられる。
+ */
+export function pushSummaryLine(
+    devices: number,
+    results: readonly { ok: boolean; status?: number }[],
+    timedOut: boolean,
+    failed = false,
+): string {
+    const rejected: Record<string, number> = {};
+    for (const r of results) {
+        if (r.ok) continue;
+        const key = String(r.status ?? 0);
+        rejected[key] = (rejected[key] ?? 0) + 1;
+    }
+    return `sendPush summary ${JSON.stringify({
+        devices,
+        sent: results.filter((r) => r.ok).length,
+        rejected,
+        timedOut,
+        failed,
+    })}`;
+}
 
 function sendOne(
     client: http2.ClientHttp2Session,
@@ -243,7 +275,7 @@ function sendOne(
         request.on("response", (headers) => { status = Number(headers[":status"] ?? 0); });
         request.setEncoding("utf8");
         request.on("data", (chunk: string) => { payload += chunk; });
-        request.on("error", () => resolve({ token, ok: false, invalid: false }));
+        request.on("error", () => resolve({ token, ok: false, invalid: false, status: 0 }));
         request.on("end", () => {
             const verdict = classifyResponse(token, status, payload);
             // **断られた署名は捨てる。** 放っておくと、この温まった
@@ -254,7 +286,7 @@ function sendOne(
             if (status !== 200) {
                 console.warn(`APNs ${status} ${verdict.reason ?? ""}`.trim());
             }
-            resolve({ token: verdict.token, ok: verdict.ok, invalid: verdict.invalid });
+            resolve({ token: verdict.token, ok: verdict.ok, invalid: verdict.invalid, status });
         });
         request.end(body);
     });

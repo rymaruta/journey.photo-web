@@ -64,7 +64,7 @@ afterEach(() => { cleanup(); vi.unstubAllGlobals(); });
 describe("検索窓の見た目と静的HTML", () => {
     it("最上部に、名前（label）・44px・クリアボタン付きの検索窓がある", () => {
         render(<Page />);
-        const el = screen.getByRole("searchbox", { name: "撮影スポットを検索" });
+        const el = screen.getByRole("searchbox", { name: "観光スポットを検索" });
         expect(el).toBe(input());
         expect(input().style.minHeight).toBe("44px");
         expect(screen.getByRole("search")).toBeTruthy();
@@ -92,7 +92,7 @@ describe("絞り込み", () => {
     it("打つたびに絞る（Enter 不要）。結果は既存の一覧の行（リンク・地域・丸い印）で、件数を出す", async () => {
         const { container } = render(<Page />);
         type("ギンザン");
-        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の撮影スポットのうち 1件が当たりました。"));
+        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の観光スポットのうち 1件が当たりました。"));
         const results = screen.getByTestId("spots-search-results");
         const link = within(results).getByRole("link", { name: /銀山温泉/ });
         expect(link.getAttribute("href")).toBe("/spots/ginzan-onsen");
@@ -102,13 +102,13 @@ describe("絞り込み", () => {
         expect(fetch).toHaveBeenCalledTimes(1);
         expect(fetch).toHaveBeenCalledWith("/app/data/spot-search.json");
         type("ギンザンおんせん");
-        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の撮影スポットのうち 1件が当たりました。"));
+        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の観光スポットのうち 1件が当たりました。"));
     });
 
     it("県名で当たったとき、県の一覧へのリンクも出す。結果がある間は静的な一覧を隠す（DOM には残す）", async () => {
         render(<Page />);
         type("山形");
-        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の撮影スポットのうち 3件が当たりました。"));
+        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の観光スポットのうち 3件が当たりました。"));
         const areas = screen.getByTestId("spots-search-areas");
         expect(within(areas).getByRole("link", { name: /山形県/ }).getAttribute("href")).toBe("/spots/area/yamagata");
         const list = screen.getByTestId("spots-default-list");
@@ -162,7 +162,7 @@ describe("日本語入力（IME）", () => {
         expect(fetch).not.toHaveBeenCalled();
         type("銀山");
         fireEvent.compositionEnd(input());
-        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の撮影スポットのうち 1件が当たりました。"));
+        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の観光スポットのうち 1件が当たりました。"));
     });
 
     it("変換の確定の Enter ではキーボードを閉じない。ふつうの Enter では閉じる", () => {
@@ -191,7 +191,7 @@ describe("URL の ?q=", () => {
         window.history.replaceState(null, "", "/spots?q=%E5%B1%B1%E5%AF%BA");
         render(<Page />);
         await waitFor(() => expect(input().value).toBe("山寺"));
-        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の撮影スポットのうち 1件が当たりました。"));
+        await waitFor(() => expect(screen.getByTestId("spots-search-status").textContent).toBe("公開中の観光スポットのうち 1件が当たりました。"));
     });
 
     it("結果のリンクを押す直前に URL へ流す（250ms 待たずに離れても、戻ると復元される）", async () => {
@@ -283,7 +283,7 @@ describe("読み上げ欄・IME・フォーカス・ちらつき・計測", () =
         const before = screen.getByRole("status");
         expect(before.textContent).toBe("");
         type("ぎんざん");
-        await waitFor(() => expect(before.textContent).toBe("公開中の撮影スポットのうち 2件が当たりました。".replace("2件", "1件")));
+        await waitFor(() => expect(before.textContent).toBe("公開中の観光スポットのうち 2件が当たりました。".replace("2件", "1件")));
         expect(screen.getByRole("status")).toBe(before);   // 作り直していない
         type("");
         await waitFor(() => expect(before.textContent).toBe(""));

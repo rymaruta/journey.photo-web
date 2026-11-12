@@ -154,12 +154,12 @@ export default function LightForecastPage() {
                             {cards.length === 0 ? (
                                 <div className="text-center py-8">
                                     <p className="text-base font-semibold text-white">
-                                        {en ? "No photo spots on your wishlist yet" : "行きたい撮影スポットがまだありません"}
+                                        {en ? "No photo spots on your wishlist yet" : "行きたい観光スポットがまだありません"}
                                     </p>
                                     <p className="mt-2 text-sm text-white/60 leading-relaxed">
                                         {en
                                             ? "Save a photo spot with “Want to go”, and this week's light and weather will appear here. Places saved by name have no fixed location, so they can't be forecast."
-                                            : "撮影スポットの画面で「行きたい」を押すと、ここに今週の光と天気が並びます。地名で入れた「行きたい」は決まった位置が無いので、光を出せません。"}
+                                            : "観光スポットの画面で「行きたい」を押すと、ここに今週の光と天気が並びます。地名で入れた「行きたい」は決まった位置が無いので、光を出せません。"}
                                     </p>
                                 </div>
                             ) : (
