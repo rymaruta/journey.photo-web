@@ -77,4 +77,14 @@ describe("/qr", () => {
         await userEvent.click(screen.getByRole("button", { name: "もう一度" }));
         await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/users?id=u-9"));
     });
+
+    it("開いたらすぐ合図を URL から外し（GA4・履歴に残さない）、外したあとも合図で引く", async () => {
+        window.history.replaceState(null, "", `/qr?t=${"a".repeat(32)}`);
+        mockUserPublicFetch.mockResolvedValue(res(200, { userId: "u-1" }));
+        render(<QrPage />);
+        expect(window.location.search).toBe("");
+        await waitFor(() => expect(mockReplace).toHaveBeenCalledWith("/users?id=u-1"));
+        expect(mockUserPublicFetch).toHaveBeenCalledWith(`/qr/${"a".repeat(32)}`);
+        window.history.replaceState(null, "", "/");
+    });
 });

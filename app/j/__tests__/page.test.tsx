@@ -199,3 +199,14 @@ describe("招待ページ: 参加したアルバムを覚える", () => {
         expect(localStorage.getItem("journey:joined-albums:me-1")).toBeNull();
     });
 });
+
+describe("招待ページ: 合図を URL に残さない（2026-11-12・札 journey.photo-ios#545）", () => {
+    it("開いたらすぐ t を URL から外し、外したあとも招待を引く", async () => {
+        window.history.replaceState(null, "", `/j?t=${"a".repeat(32)}`);
+        render(<InvitePage />);
+        expect(window.location.search).toBe("");
+        expect(await screen.findByText("北欧の冬")).toBeInTheDocument();
+        expect(mockUserPublicFetch).toHaveBeenCalledWith(`/invites/${"a".repeat(32)}`);
+        window.history.replaceState(null, "", "/");
+    });
+});
