@@ -134,7 +134,8 @@ async function notify(to: readonly string[], fromUid: string, alert: { title: st
             const result = await sendPush(tokens, { ...alert, data });
             if (result.invalid.length > 0) await forgetTokens(uid, result.invalid);
         } catch (e) {
-            console.error(`tripShare.notify: 送れませんでした（${uid}）:`, errName(e));
+            // **相手の uid は出さない**（数だけ・札 journey.photo-ios#585）。送った数は `sendPush summary` の行に出る
+            console.error("tripShare.notify: 1人に送れませんでした:", errName(e));
         }
     }));
 }
