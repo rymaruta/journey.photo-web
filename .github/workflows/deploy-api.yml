@@ -354,6 +354,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ env.AWS_REGION }}
 
+      # みんなの「行きたい」（撮影スポットを払うの②）は**別のスタック**（`api-user/serverless.spot-wants.yml`）。
+      # user API のスタックの部品が上限 500 に近い（488）ので分けた（2026-11-12・本番の反映が 503 個で落ちた）。
+      # コード・依存は user API と同じなので、このジョブの中で続けて配る（ジョブを分けると分単位の切り上げが増える）。
+      # 🔴 **user API より先に配る。** 経路 `POST /spots/wants` はこのスタックが user API の HTTP API に足し、
+      #    user API の段はその経路に流量の設定（RouteSettings）を付けるので、経路が先に要る。
+      #    このスタックは user API のスタックが書き出す HttpApiId を取り込むので、user API のスタックは前から在ること
+      - name: Serverless deploy（みんなの「行きたい」・別スタック）
+        working-directory: api-user
+        run: |
+          set -euo pipefail
+          npx serverless@3 deploy --config serverless.spot-wants.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "siteBucket=${{ needs.config.outputs.siteBucket }}"
+
       - name: Serverless deploy
         working-directory: api-user
         env:
@@ -427,5 +441,4 @@ jobs:
             --param "cloudfrontDistributionId=${{ needs.config.outputs.cloudfrontDistributionId }}" \
             --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
             --param "cognitoClientId=${{ needs.config.outputs.cognitoClientId }}" \
-            --param "siteBucket=${{ needs.config.outputs.siteBucket }}" \
             ${extra[@]+"${extra[@]}"}
