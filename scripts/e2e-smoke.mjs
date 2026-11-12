@@ -1197,8 +1197,7 @@ async function runHomeMapChecks(browser, eng) {
     console.log(`\n[${eng}][1m] ホームの日本地図（スマホ・タッチ・案C: 地方 → 県）`);
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2, serviceWorkers: "block" });
     await sealContext(ctx);
-    // 初見の手がかり（輪が動く）を出さない端末にする（localStorage の旗）。出る側は別に確かめる
-    await ctx.addInitScript(() => { try { localStorage.setItem("jm-hint", JSON.stringify({ shown: 2, traced: true, visits: 5 })); } catch { /* 無視 */ } });
+    // 初めての端末のまま開く（2026-11-12 に初見の手がかりの動きをやめた。何も押さずに待っても選択に見える物が出ないことを下で確かめる）
     const page = await ctx.newPage();
     const bag = attachDiagnostics(page);
     const home = `http://localhost:${PORT}/`;
@@ -1242,13 +1241,39 @@ async function runHomeMapChecks(browser, eng) {
     check(`[${eng}] 地図: 眉が日本語（日本地図）`, base.eyebrow.includes("日本地図") && !base.eyebrow.includes("PHOTO SPOTS"), base.eyebrow);
     const sizes = await page.evaluate(() => [...document.querySelectorAll('.jm-rchip, [data-testid="home-japan-map-close"]')].map((e) => { const r = e.getBoundingClientRect(); return Math.min(r.width, r.height); }));
     check(`[${eng}] 地図: 地方チップが 44px 以上`, sizes.length >= 10 && sizes.every((s) => s >= 43.9), JSON.stringify(sizes));
+
+    // ── 何も押さずに待つ（2026-11-12 owner「なんも押してないのに県を選ぶというのわかりづらい」）──
+    // 以前は地図が見えて 1.2 秒で、初見の手がかりの動きが本物のなぞりと同じ輪・札・強調・「触れている」を 2.8 秒出していた
+    await toMapTop();
+    const idle = [];
+    for (let i = 0; i < 25; i++) {
+        idle.push(await page.evaluate(() => {
+            const f = document.querySelector(".jm-finger"), t = document.querySelector('[data-testid="home-japan-map-tip"]');
+            return {
+                finger: !!f && !f.hidden, tip: t && !t.hidden ? t.textContent : null,
+                lit: document.querySelectorAll("path.jm-hov, path.jm-hovr, path.jm-sel").length,
+                touching: (document.querySelector('[data-testid="home-japan-map-bar"]')?.textContent ?? "").includes("触れている"),
+                open: document.querySelector('[data-testid="home-japan-map-panel"]').getAttribute("data-open"),
+            };
+        }));
+        await page.waitForTimeout(200);
+    }
+    const shown = idle.filter((x) => x.finger || x.tip || x.lit || x.touching || x.open !== "false");
+    check(`[${eng}] 地図: 何も押さずに 5 秒待っても、選んでいる・触れているように見える物（輪・札・強調・「触れている」）が出ない`, shown.length === 0, JSON.stringify(shown[0] ?? {}));
+    const labels = await page.evaluate(() => [...document.querySelectorAll('[data-testid="home-japan-map-region"]')].map((b) => {
+        const r = b.getBoundingClientRect(), pre = getComputedStyle(b, "::before");
+        return { r: b.getAttribute("data-r"), w: r.width, hitH: r.height - parseFloat(pre.top) - parseFloat(pre.bottom) };
+    }));
+    check(`[${eng}] 地図: 地方名は押せる札で 9 つ・当たりは 44px 以上`, labels.length === 9 && labels.every((l) => l.w >= 43.9 && l.hitH >= 43.9), JSON.stringify(labels));
+    const panelIdle = await page.locator('[data-testid="home-japan-map-panel"] h3').textContent();
+    check(`[${eng}] 地図: 何も選んでいないときの帯は命令（県を選ぶ）ではない`, panelIdle === "県の観光スポット", panelIdle ?? "");
     await shot(page, "all", await map.boundingBox());
 
-    // ── ひと押し（タップ）: 全国で地方 → 拡大 → 県 ──
+    // ── ひと押し（タップ）: 全国で地方の札 → 拡大 → 県 ──
     await toMapTop();
     await page.waitForTimeout(200);
-    let p = await at(240, 252); // 関東
-    await page.touchscreen.tap(p.x, p.y);
+    let p;
+    await page.locator('[data-testid="home-japan-map-region"][data-r="関東"]').tap();
     await page.waitForFunction(() => document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") === "関東", null, { timeout: 5000 }).catch(() => {});
     await waitZoomStill(page);
     let s = await state();
@@ -1434,7 +1459,6 @@ async function runHomeMapChecks(browser, eng) {
     console.log(`\n[${eng}][1m] ホームの日本地図（PC・キーボード）`);
     const dctx = await browser.newContext({ viewport: { width: 1280, height: 800 }, serviceWorkers: "block" });
     await sealContext(dctx);
-    await dctx.addInitScript(() => { try { localStorage.setItem("jm-hint", JSON.stringify({ shown: 2, traced: true, visits: 5 })); } catch { /* 無視 */ } });
     const dpage = await dctx.newPage();
     const dbag = attachDiagnostics(dpage);
     await gotoSettled(dpage, home);
