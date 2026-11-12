@@ -18,9 +18,12 @@ import { createPrivateKey, generateKeyPairSync } from "node:crypto";
  */
 const ROOT = join(__dirname, "..", "..");
 const SCRIPT = join(ROOT, "scripts", "apns-key-param.sh");
-/** serverless v3（dashboard-plugin 7.2.3）の `--param` の読み方そのまま */
-const SLS_PARAM = /(?<key>[^=]+)=(?<value>.+)/;
-const slsParamValue = (item: string) => item.match(SLS_PARAM)!.groups!.value.trimEnd();
+/**
+ * serverless v3（dashboard-plugin 7.2.3）の `--param` の読み方そのまま。
+ * 本物は名前付きの組（`(?<key>[^=]+)=(?<value>.+)`）だが、ここの型の設定が古い書き方しか通さないので番号で読む（意味は同じ）
+ */
+const SLS_PARAM = /([^=]+)=(.+)/;
+const slsParamValue = (item: string) => item.match(SLS_PARAM)![2].trimEnd();
 /** `api-user/src/apns.ts` の `PRIVATE_KEY` と同じ戻し方 */
 const restore = (v: string) => v.replace(/\\n/g, "\n");
 
@@ -28,7 +31,7 @@ const { privateKey } = generateKeyPairSync("ec", { namedCurve: "P-256" });
 const PEM = privateKey.export({ type: "pkcs8", format: "pem" }).toString();
 
 function run(key: string) {
-    return spawnSync("bash", [SCRIPT], { env: { PATH: process.env.PATH, APNS_PRIVATE_KEY: key }, encoding: "utf8" });
+    return spawnSync("bash", [SCRIPT], { env: { ...process.env, APNS_PRIVATE_KEY: key }, encoding: "utf8" as const });
 }
 
 describe("鍵を --param に渡す1行にする", () => {
