@@ -131,7 +131,7 @@ describe("本文の約束が消えていない", () => {
     it("3節: iPhone アプリの新しい版の切り替えと、前の版の動きを両方書いてある", () => {
         const s3 = sectionOf(3);
         expect(s3).toContain("「撮影地の位置を付ける（約1kmに丸めて保存）」で切り替えられます（初期状態はオンです）");
-        expect(s3).toContain("投稿・ストーリー・写真の差し替えの画面");
+        expect(s3).toContain("投稿、ストーリー、写真の差し替えの画面");
         expect(s3).toContain("オフにすると写真の位置情報は送らず");
         expect(s3, "前の版の動きが抜けている（まだ切り替えの無い版が出回っている）").toContain("この切り替えの無い前の版では、上の条件のとおり送ります");
         expect(s3, "切り替えが入ったのに、無いと言っている").not.toContain("切り替えはありません");
@@ -392,10 +392,10 @@ describe("旅のトランクの節が、人のトランクの口と合ってい�
     });
 });
 
-describe("撮影スポットを払う画面（/swipe・2026-11-11）", () => {
+describe("観光スポットを払う画面（/swipe・2026-11-11）", () => {
     it("ログインせずに払った「行きたい」の端末の印は40件まで・ログインでサーバーへ移す、と本文に書いてある", () => {
         const n = constOf("lib/utils/spotSwipe.ts", "SWIPE_WANT_MAX");
-        expect(page).toContain("撮影スポットを払う画面（/swipe）");
+        expect(page).toContain("観光スポットを払う画面（/swipe）");
         expect(page, "本文の件数が実装と違う").toContain(`最大${n}件`);
         expect(page).toContain("ログインしたときに、ご自身の「行きたい場所」としてサーバーへ移し");
         // 移す口は「行きたい場所」と同じ（POST /user/spots）
@@ -404,10 +404,10 @@ describe("撮影スポットを払う画面（/swipe・2026-11-11）", () => {
 
     it("みんなの「行きたい」: 端末の番号を送る・10件以上だけ公開・順位は日本だけ、が実装と合う", () => {
         const min = constOf("api-user/src/spotWants.ts", "MIN_SHOWN");
-        expect(page).toContain(`撮影スポットごとの月の数（${min}件以上のもの）`);
+        expect(page).toContain(`観光スポットごとの月の数（${min}件以上のもの）`);
         expect(page).toContain("端末ごとに作るでたらめな番号");
         expect(page).toContain("IPアドレスそのものは保存せず");
-        expect(page).toContain("日本の撮影スポットの中の順位");
+        expect(page).toContain("日本の観光スポットの中の順位");
         // 「localStorage はサーバーに送らない」と言い切らない（端末の番号は送る）
         expect(page).toContain("「行きたい」の数を数えるための端末ごとの番号を除きます");
     });

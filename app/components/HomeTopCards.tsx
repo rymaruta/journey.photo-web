@@ -118,9 +118,9 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                         href={ROUTES.SPOTS}
                         testId="home-spots-entry"
                         eyebrow="PHOTO SPOTS"
-                        spoken={en ? "Photo spots" : "撮影スポット"}
+                        spoken={en ? "Photo spots" : "観光スポット"}
                         title={en ? "Places worth shooting" : "撮りに行ける場所"}
-                        line={en ? "Guides to photo spots" : "撮影スポットの案内"}
+                        line={en ? "Guides to photo spots" : "観光スポットの案内"}
                         detail={spot ? credit(spot.credit) : undefined}
                         imageUrl={spot?.src}
                     />

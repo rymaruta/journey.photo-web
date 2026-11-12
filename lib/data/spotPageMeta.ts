@@ -85,11 +85,11 @@ export function spotPageTitle(
     const n = spotSampleCount(facts);
     const fit = (cands: string[], last: string) => cands.find((t) => titleWidth(t) <= SPOT_TITLE_MAX) ?? last;
     if (!spotHasPhotos(facts)) {
-        const head = `${spot.name}の撮影スポット`;
+        const head = `${spot.name}の観光スポット情報`;
         return fit([...(where ? [`${head}（${where}）`] : []), head], head);
     }
     const pitch = n > 0 ? `作例${n}枚` : "";
-    const head = `${spot.name}の写真・撮影スポット`;
+    const head = `${spot.name}の写真と観光スポット情報`;
     return fit([
         ...(pitch && where ? [`${head}｜${pitch}（${where}）`] : []),
         ...(pitch ? [`${head}｜${pitch}`] : []),

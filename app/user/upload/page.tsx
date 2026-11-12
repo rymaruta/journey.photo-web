@@ -1604,7 +1604,7 @@ function UploadPageInner() {
     const spotSummary = (target: SpotUploadTarget): string => {
         const waiting = items.filter((i) => i.status !== "done");
         if (waiting.length === 0) {
-            return isJa ? "この撮影スポットの写真として投稿します" : "Your photos will be posted to this spot";
+            return isJa ? "この観光スポットの写真として投稿します" : "Your photos will be posted to this spot";
         }
         if (asOnePost && waiting.length > 1 && waiting.length <= PHOTO_IMAGES_MAX) {
             return spotIdToSend(target, waiting[0])
@@ -1743,7 +1743,7 @@ function UploadPageInner() {
                             {spot ? (
                                 <>
                                     <p className="m-0 text-white/60" style={{ fontSize: "12px" }}>
-                                        {isJa ? "撮影スポット" : "Shooting spot"}
+                                        {isJa ? "観光スポット" : "Shooting spot"}
                                     </p>
                                     <p className="m-0 font-medium truncate" style={{ fontSize: "15px" }}>{spot.name}</p>
                                     <p className="m-0 text-white/70" style={{ fontSize: "12px", lineHeight: "18px" }}>
@@ -1753,7 +1753,7 @@ function UploadPageInner() {
                             ) : (
                                 <p className="m-0 text-white/70" style={{ fontSize: "13px", lineHeight: "20px" }}>
                                     {isJa
-                                        ? "撮影スポットの情報を読み込めませんでした。このまま投稿すると、スポットには紐付きません。"
+                                        ? "観光スポットの情報を読み込めませんでした。このまま投稿すると、スポットには紐付きません。"
                                         : "Couldn't load the spot. Photos posted now won't be linked to it."}
                                 </p>
                             )}
@@ -1764,7 +1764,7 @@ function UploadPageInner() {
                             disabled={uploading}
                             className="shrink-0 rounded-full px-3 text-white/80 ring-1 ring-line hover:bg-white/10 disabled:opacity-40"
                             style={{ minHeight: "44px", fontSize: "13px" }}
-                            aria-label={spot ? (isJa ? `撮影スポット「${spot.name}」を外す` : `Unlink ${spot.name}`) : (isJa ? "閉じる" : "Dismiss")}
+                            aria-label={spot ? (isJa ? `観光スポット「${spot.name}」を外す` : `Unlink ${spot.name}`) : (isJa ? "閉じる" : "Dismiss")}
                         >
                             {spot ? (isJa ? "外す" : "Unlink") : (isJa ? "閉じる" : "Dismiss")}
                         </button>
@@ -2304,7 +2304,7 @@ function UploadPageInner() {
                                 <div className="mt-3 rounded-2xl bg-surface ring-1 ring-line px-3.5 py-3" data-testid="upload-auto-spot">
                                     <div className="flex items-center gap-3" style={{ minHeight: "44px" }}>
                                         <span id="upload-auto-spot-label" className="flex-1 min-w-0 text-white" style={{ fontSize: "15px", lineHeight: "21px" }}>
-                                            {isJa ? `撮影スポット「${editingAutoSpot.name}」に結ぶ` : `Link to “${editingAutoSpot.name}”`}
+                                            {isJa ? `観光スポット「${editingAutoSpot.name}」に結ぶ` : `Link to “${editingAutoSpot.name}”`}
                                         </span>
                                         {/* 切り替え（板 UploadIOS）。入りは真鍮の地（黒い札の上）・切りは灰。押せる所は 44pt */}
                                         <button
@@ -2326,9 +2326,9 @@ function UploadPageInner() {
                                     </div>
                                     <p className="m-0 mt-1 text-white/60" style={{ fontSize: "12px", lineHeight: "18px" }}>
                                         {editingAutoSpot.on
-                                            ? (isJa ? "撮影地の名前と写真の位置から、自動で選んであります。投稿のあと、撮影スポットの頁に並びます。ここで撮っていなければ外してください。"
+                                            ? (isJa ? "撮影地の名前と写真の位置から、自動で選んであります。投稿のあと、観光スポットの頁に並びます。ここで撮っていなければ外してください。"
                                                 : "Chosen automatically from the place name and photo location. It will appear on the spot page. Turn off if you didn’t take it here.")
-                                            : (isJa ? "撮影スポットには結ばずに投稿します。" : "This photo won’t be linked to the spot.")}
+                                            : (isJa ? "観光スポットには結ばずに投稿します。" : "This photo won’t be linked to the spot.")}
                                     </p>
                                 </div>
                             )}

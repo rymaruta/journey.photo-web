@@ -32,14 +32,14 @@ const t = (tag: string, titleJa: string, titleEn: string, promptJa: string, prom
 /** 季節ごとのお題。**隣り合う季節で同じタグを使わない**（季節の変わり目で同じお題が 2 週続かない）。順番に意味はある */
 export const THEMES_BY_SEASON: Readonly<Record<Season, readonly WeeklyThemeEntry[]>> = {
     spring: [
-        t("桜", "桜のころ", "Cherry blossom season", "桜の撮影スポットで、咲いている今を。", "Catch the blossoms at a photo spot."),
+        t("桜", "桜のころ", "Cherry blossom season", "桜の観光スポットで、咲いている今を。", "Catch the blossoms at a photo spot."),
         t("花", "足もとの色", "Color underfoot", "小さくても、目を引いた色を。", "Small things that caught your eye."),
         t("朝", "朝のはじまり", "First light", "一日の最初の色を撮ってみませんか。", "Catch the day's first color."),
         t("公園", "近くの公園", "The park nearby", "いつもの公園の、今週の景色を。", "This week's view of a park you know."),
         t("川", "川のある景色", "Along the river", "流れのそばで見つけた一枚を。", "A frame found by the water's flow."),
     ],
     summer: [
-        t("海", "水のある風景", "By the water", "海辺の撮影スポットで、水のある一枚を。", "A shot by the sea at a photo spot."),
+        t("海", "水のある風景", "By the water", "海辺の観光スポットで、水のある一枚を。", "A shot by the sea at a photo spot."),
         t("空", "夏の空", "Summer sky", "見上げた空の色を。", "The color of the sky above you."),
         t("夜", "夜のあかり", "Night lights", "暗くなってから見えてくるものを。", "What only appears after dark."),
         t("雨", "雨の日の景色", "Rainy days", "雨の日にしか撮れない一枚を。", "A shot only a rainy day can give."),
@@ -47,13 +47,13 @@ export const THEMES_BY_SEASON: Readonly<Record<Season, readonly WeeklyThemeEntry
     ],
     autumn: [
         t("夕焼け", "光と影", "Light and shadow", "光がつくる特別な瞬間を見つけよう。", "Find a moment shaped by light."),
-        t("紅葉", "色づく景色", "Autumn colors", "紅葉の撮影スポットで、今だけの色を。", "Autumn colors at a photo spot, only now."),
+        t("紅葉", "色づく景色", "Autumn colors", "紅葉の観光スポットで、今だけの色を。", "Autumn colors at a photo spot, only now."),
         t("神社", "その土地の場所", "Places of the land", "その土地にしかない場所を訪ねて。", "Somewhere only there."),
         t("森", "森を歩く", "Into the woods", "木々のあいだの光と影を。", "Light and shade between the trees."),
         t("湖", "湖のほとり", "By the lake", "静かな水面に映るものを。", "What the still water reflects."),
     ],
     winter: [
-        t("雪", "雪の景色", "Snowscapes", "雪の撮影スポットで、白い一枚を。", "A white frame at a snowy photo spot."),
+        t("雪", "雪の景色", "Snowscapes", "雪の観光スポットで、白い一枚を。", "A white frame at a snowy photo spot."),
         t("冬", "冬の光", "Winter light", "低い日差しがつくる、冬だけの色を。", "Colors only the low winter sun makes."),
         t("夜", "冬のあかり", "Winter lights", "暗くなってから見えてくるものを。", "What only appears after dark."),
         t("山", "冬の山", "Winter mountains", "澄んだ空気の中の山を。", "Mountains in the clear winter air."),

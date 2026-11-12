@@ -26,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const n = visibleSpots(SPOTS).length;
     const verified = publishableSpots(SPOTS).length;
     const areas = spotAreas().length;
-    const title = "撮影スポットをさがす";
+    const title = "観光スポットをさがす";
     const og = firstSpotOgImage(publishableSpots(SPOTS), title);
     // 件数に「運営が調べた」と読める形で数えるのは、人が確かめた行だけ
     const description = n > 0

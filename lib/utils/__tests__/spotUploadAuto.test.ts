@@ -13,7 +13,7 @@ const index = uploadSpotIndex(parseSpotMatchIndex({
 })!);
 
 describe("uploadSpotFields", () => {
-    it("撮影スポットの画面から来て付く写真は、そちらが先", () => {
+    it("観光スポットの画面から来て付く写真は、そちらが先", () => {
         expect(uploadSpotFields({ target: GINZAN, index, item: { location: "銀山温泉 蔵王キツネ村" } })).toEqual({ spotId: GINZAN.spotId });
     });
 
@@ -24,7 +24,7 @@ describe("uploadSpotFields", () => {
         expect(uploadSpotFields({ target: null, index, item, off: true })).toEqual({ spotAuto: "off" });
     });
 
-    it("撮影スポットの画面から来た投稿でも、付かない写真の自動の候補は書かない", () => {
+    it("観光スポットの画面から来た投稿でも、付かない写真の自動の候補は書かない", () => {
         expect(uploadSpotFields({ target: GINZAN, index, item: { location: "蔵王キツネ村" } })).toEqual({});
     });
 
@@ -46,9 +46,9 @@ describe("uploadSpotFields", () => {
     });
 });
 
-describe("autoOffFor（撮影スポットの帯の「外す」）", () => {
+describe("autoOffFor（観光スポットの帯の「外す」）", () => {
     const d = { spotId: GINZAN.spotId, itemId: "a" };
-    it("見ていた1枚で、候補が同じ撮影スポットなら切り", () => {
+    it("見ていた1枚で、候補が同じ観光スポットなら切り", () => {
         expect(autoOffFor(new Map(), d, "a", GINZAN.spotId)).toBe(true);
     });
     it("ほかの写真・ほかの候補・外していないときは触らない", () => {

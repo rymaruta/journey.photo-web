@@ -262,7 +262,7 @@ function Shell({ locale, count, children }: { locale: "ja" | "en"; count?: numbe
                 <p className="text-sm text-white/60 mt-1">
                     {/* **「まだ」と「0件」を混ぜない**（`/favorites` と同じ判断） */}
                     {count === null || count === undefined
-                        ? (en ? "Spots you saved." : "保存した撮影スポット。")
+                        ? (en ? "Spots you saved." : "保存した観光スポット。")
                         : en
                             ? `${count} spot${count !== 1 ? "s" : ""}`
                             : `保存した場所 ${count} 件`}

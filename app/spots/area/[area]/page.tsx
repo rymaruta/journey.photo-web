@@ -60,10 +60,10 @@ export async function generateMetadata({ params }: { params: Promise<{ area: str
     // （下書きを建てなくなった 2026-09-25 に、公開済み4県が全部これになった）
     // 「N選」「運営が調べた」に数えるのは**人が確かめた件数だけ**。下書きは別に数える
     const title = indexable
-        ? `${found.name}の撮影スポット${found.publishedCount}選`
+        ? `${found.name}の観光スポット${found.publishedCount}選`
         : drafts === 0
-            ? `${found.name}の撮影スポット（${found.publishedCount}件）`
-            : `${found.name}の撮影スポット（下書き・${found.count}件）`;
+            ? `${found.name}の観光スポット（${found.publishedCount}件）`
+            : `${found.name}の観光スポット（下書き、${found.count}件）`;
     const description = indexable || drafts === 0
         ? `${found.name}で写真を撮りに行ける場所のガイド（${found.publishedCount}件${drafts > 0 ? `・ほかに下書き${drafts}件` : ""}）。`
             // 2026-10-11: 「アクセスまで、運営が調べて」は実態と違った（アクセスは出典つきで数件・

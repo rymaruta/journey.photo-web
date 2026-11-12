@@ -5,7 +5,8 @@ import { join, relative } from "node:path";
 /**
  * **場所の呼び名をそろえる**（2026-10-11 owner 承認・iOS の `PlaceTermWordingTests` と同じ決まり）。
  *
- * - 公式の頁・一覧（`/spots`）→「撮影スポット」（狭いチップ・タブだけ「スポット」）
+ * - 公式の頁・一覧（`/spots`）→「観光スポット」（狭いチップ・タブだけ「スポット」）。
+ *   2026-11-12 owner 承認で「撮影スポット」から替えた（journey.photo-ios#564）。「撮影スポット」は画面の言葉・台帳の文に使わない
  * - 写真が撮られた所・写真から導く頁（`/location`）→「撮影地」
  * - 保存の機能 →「行きたい場所」
  *
@@ -16,7 +17,7 @@ import { join, relative } from "node:path";
  * 画面ではなく検索結果に出る文で、「撮影地ガイド」は検索語として残す（「撮りどき」と同じ扱い・2026-10-22 owner）
  */
 const ROOT = process.cwd();
-const REMOVED = ["撮影地ガイド", "撮影地のガイド", "注目スポット", "この場所", "ガイドを見る", "このスポット", "スポットのガイド"];
+const REMOVED = ["撮影スポット", "撮影地ガイド", "撮影地のガイド", "注目スポット", "この場所", "ガイドを見る", "このスポット", "スポットのガイド"];
 const EXEMPT_FILES = new Set(["lib/data/spotPageMeta.ts"]);
 
 function walk(dir: string, out: string[] = []): string[] {
@@ -50,10 +51,30 @@ describe("場所の呼び名（画面の言葉）", () => {
         expect(bad).toEqual([]);
     });
 
-    it("マップの一覧・地図の札・クイズは公式の頁を「撮影スポット」と呼ぶ", () => {
-        expect(readFileSync(join(ROOT, "app/map/MapSpotList.tsx"), "utf8")).toContain('"撮影スポット"');
+    it("台帳（content の JSON）の人が読む文に「撮影スポット」が無い", () => {
+        const bad: string[] = [];
+        for (const name of readdirSync(join(ROOT, "content"))) {
+            if (!name.endsWith(".json")) continue;
+            const walkJson = (v: unknown, where: string): void => {
+                if (typeof v === "string") { if (v.includes("撮影スポット")) bad.push(`content/${name} ${where} ${v.slice(0, 60)}`); return; }
+                if (Array.isArray(v)) { v.forEach((x, i) => walkJson(x, `${where}[${i}]`)); return; }
+                if (v && typeof v === "object") for (const [k, x] of Object.entries(v)) walkJson(x, `${where}.${k}`);
+            };
+            walkJson(JSON.parse(readFileSync(join(ROOT, "content", name), "utf8")), "");
+        }
+        expect(bad).toEqual([]);
+    });
+
+    it("API の断りの文（api-user）に「撮影スポット」が無い", () => {
+        const src = stripComments(readFileSync(join(ROOT, "api-user/src/photoUpdate.ts"), "utf8"));
+        expect(src).not.toContain("撮影スポット");
+        expect(src).toContain("観光スポットの指定が正しくありません");
+    });
+
+    it("マップの一覧・地図の札・クイズは公式の頁を「観光スポット」と呼ぶ", () => {
+        expect(readFileSync(join(ROOT, "app/map/MapSpotList.tsx"), "utf8")).toContain('"観光スポット"');
         for (const f of ["app/map/MapSpotSheet.tsx", "app/q/DailyQuizClient.tsx", "app/components/SpotLinkCard.tsx"]) {
-            expect(readFileSync(join(ROOT, f), "utf8")).toContain('"撮影スポットを見る"');
+            expect(readFileSync(join(ROOT, f), "utf8")).toContain('"観光スポットを見る"');
         }
     });
 

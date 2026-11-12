@@ -87,13 +87,13 @@ describe("写真ページ: 道しるべ", () => {
         expect(link.innerHTML).not.toMatch(/bg-black/);
     });
 
-    it("台帳の撮影スポットを指す写真は「撮影スポット · 名前 ›」の行も出す（撮影スポットの頁へ）", async () => {
+    it("台帳の観光スポットを指す写真は「観光スポット · 名前 ›」の行も出す（観光スポットの頁へ）", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={BASE}
                                 spotLink={{ slug: "ginzan-onsen", name: "銀山温泉", region: "山形県 尾花沢市" } as unknown as SpotLink} />);
         await screen.findByText("朝の湖");
         const row = screen.getByTestId("photo-spot-guide");
         expect(row.getAttribute("href")).toBe("/spots/ginzan-onsen");
-        expect(row.textContent).toContain("撮影スポット · 銀山温泉");
+        expect(row.textContent).toContain("観光スポット · 銀山温泉");
         // 2行の当たり（44 ずつ）を負の余白で重ねない（束 1 の確かめの直し）
         for (const a of [row, screen.getByTestId("photo-place-link")]) expect(a.className).not.toMatch(/-my-/);
     });

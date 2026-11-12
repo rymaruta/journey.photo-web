@@ -104,7 +104,7 @@ describe("C7 ボタン（主 50・副 44）と行動の札", () => {
         expect(STATE_RETRY_CLASS).toContain("min-h-[44px]");
         expect(STATE_RETRY_CLASS).toContain("ring-line-strong");
     });
-    it("撮影スポットの行動の札は iOS の actionLabel（64・角 14・印を字の上・13 semibold・白7%）", () => {
+    it("観光スポットの行動の札は iOS の actionLabel（64・角 14・印を字の上・13 semibold・白7%）", () => {
         expect(TILE_MIN_H).toBe(64);
         expect(TILE).toContain("flex-col");
         expect(TILE).not.toMatch(/min-\[390px\]:flex-row/);
