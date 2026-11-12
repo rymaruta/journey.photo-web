@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- 素の <img> に何も付けなくても止まることを見る試験 */
 import React from "react";
 import { describe, it, expect, afterEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
@@ -41,7 +42,7 @@ function mount() {
             </div>
             {/* 文字・入力欄の右クリック（コピー・貼り付け）は止めない */}
             <p data-testid="text">本文</p>
-            <a data-testid="link" href="/photo/1">リンク</a>
+            <a data-testid="link" href="https://example.com/">リンク</a>
             <input data-testid="input" />
             {/* 保存させたい所の逃げ道 */}
             <div data-allow-save>
