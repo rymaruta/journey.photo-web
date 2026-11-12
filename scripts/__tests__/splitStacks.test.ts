@@ -36,6 +36,9 @@ const MOVED: Record<string, string[]> = {
         "src/albums.createInvite", "src/albums.revokeInvite", "src/albums.joinAlbum", "src/albums.getInvite",
     ],
     "serverless.trips.yml": ["src/tripPlans.getMyTrips", "src/tripPlans.createTrip", "src/tripPlans.updateTrip", "src/tripPlans.deleteTrip"],
+    "serverless.notifications.yml": [
+        "src/notifications.getNotifications", "src/notifications.readNotifications", "src/devices.registerDevice", "src/devices.unregisterDevice",
+    ],
 };
 
 const AUTH_IMPORT = "Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId";
