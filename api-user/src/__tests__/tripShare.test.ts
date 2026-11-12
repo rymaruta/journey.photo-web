@@ -110,9 +110,9 @@ function seedOwnPlan() {
     });
 }
 /** A と B の DM の会話（承認済み） */
-function seedDm(state = "inbox") {
+function seedDm(state = "inbox", initiator = A) {
     const [lo, hi] = [A, B].sort();
-    store.set(`dm#${lo}#${hi}`, { id: `dm#${lo}#${hi}`, state, items: [] });
+    store.set(`dm#${lo}#${hi}`, { id: `dm#${lo}#${hi}`, state, initiator, items: [] });
 }
 /** ブロック（`block.ts` が書く3つ: 印・自分の一覧・相手の被ブロックの一覧） */
 function block(blocker: string, blocked: string) {
@@ -158,6 +158,13 @@ describe("共有する（POST /trip-share/{planId}）", () => {
         expect(r.statusCode).toBe(404);
         expect(json(r).code).toBe("cannotShare");
         expect(store.has(`trip#${P}`)).toBe(false);
+    });
+
+    it("相手から始めた会話なら、承認前でも共有できる（自分が始めたリクエストからはできない・上の試験）", async () => {
+        seedOwnPlan();
+        seedDm("request", B);
+        expect((await api(A, "POST /trip-share/{planId}", {}, { withUserId: B })).statusCode).toBe(200);
+        expect(memberIds()).toEqual([A, B]);
     });
 
     it("承認済みの DM の相手は仲間に入り、その人の一覧に出て、知らせが届く", async () => {
