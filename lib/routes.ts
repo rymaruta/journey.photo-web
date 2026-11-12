@@ -135,6 +135,12 @@ export const ROUTES = {
     PRIVACY: "/privacy",
     TERMS: "/terms",
     /**
+     * 使い方（2026-11-12・札 journey.photo-ios#517）。目次と、機能ごとの短い頁（台帳は `lib/data/helpPages.ts`）。
+     * iOS の入口は 設定 → ヘルプと規約 → 使い方 の1か所だけ（`HELP` を開く）
+     */
+    HELP: "/help",
+    HELP_PAGE: (slug: string) => `/help/${slug}`,
+    /**
      * 意見を送る（札 #546・2026-11-11）。ログインしていなくても送れる。入口はフッターと設定。
      * `?from=` でどこから来たかを渡す（`footer` | `settings`）。検索結果には出さない（`appPageMetadata`）
      */

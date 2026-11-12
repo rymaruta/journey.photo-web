@@ -45,7 +45,7 @@ describe("県ページの題と説明", () => {
     it("公開済み1件だけの県: 検索には出さないが、下書きとも名乗らない", async () => {
         ledger.spots = [spot("a")];
         const m = await meta();
-        expect(m.title).toBe("香川県の撮影スポット（1件）");
+        expect(m.title).toBe("香川県の観光スポット（1件）");
         expect(String(m.description)).not.toContain("下書き");
         expect(String(m.description)).not.toContain("確認していない");
         expect(m.robots).toEqual({ index: false, follow: true });
@@ -54,7 +54,7 @@ describe("県ページの題と説明", () => {
     it("公開済み2件の県: 「N選」で検索に出す", async () => {
         ledger.spots = [spot("a"), spot("b")];
         const m = await meta();
-        expect(m.title).toBe("香川県の撮影スポット2選");
+        expect(m.title).toBe("香川県の観光スポット2選");
         // 2026-10-22: undefined はレイアウトの googlebot の指定（max-image-preview: large）を消す
         expect(m.robots).toEqual(INDEXABLE_ROBOTS);
     });
@@ -71,7 +71,7 @@ describe("県ページの題と説明", () => {
  * 一番数の多い入口の県の頁（47頁）だけ構造化データが1つも無かった（実ビルドで数えた）。
  */
 describe("県の頁の構造化データ", () => {
-    it("パンくず（ホーム › 撮影スポット › 県）と、画面と同じ順のスポットの ItemList を埋める", async () => {
+    it("パンくず（ホーム › 観光スポット › 県）と、画面と同じ順のスポットの ItemList を埋める", async () => {
         ledger.spots = [spot("ritsurin-garden", { name: "栗林公園" }), spot("takaya-shrine", { name: "高屋神社" })];
         const { spotAreas } = await import("../../lib/data/spotLink");
         const area = spotAreas().find((a) => a.name === "香川県")!;
@@ -83,7 +83,7 @@ describe("県の頁の構造化データ", () => {
         const crumb = scripts.find((d) => d["@type"] === "BreadcrumbList");
         const list = scripts.find((d) => d["@type"] === "ItemList");
         expect(crumb, "パンくずが無い").toBeTruthy();
-        expect(crumb.itemListElement.map((x: { name: string }) => x.name)).toEqual(["ホーム", "撮影スポット", "香川県"]);
+        expect(crumb.itemListElement.map((x: { name: string }) => x.name)).toEqual(["ホーム", "観光スポット", "香川県"]);
         expect(crumb.itemListElement.at(-1).item).toBe(`https://journey-photo.com/spots/area/${area.slug}`);
         expect(list, "ItemList が無い").toBeTruthy();
         expect(list.itemListElement.map((x: { name: string }) => x.name)).toEqual(["栗林公園", "高屋神社"]);
@@ -93,7 +93,7 @@ describe("県の頁の構造化データ", () => {
 });
 
 // 共有したときに県の頁・撮影スポットの入口だけ絵が無かった（子の openGraph が親の画像を消す・2026-10-16）
-describe("県の頁と撮影スポットの入口の OGP の画像", () => {
+describe("県の頁と観光スポットの入口の OGP の画像", () => {
     const cover: Spot["coverImage"] = {
         src: "/spots/ritsurin.jpg", alt: "栗林公園", credit: "運営", license: "owner", checkedAt: "2026-10-01", verifiedPlace: true,
     };
@@ -105,7 +105,7 @@ describe("県の頁と撮影スポットの入口の OGP の画像", () => {
         expect(images?.[0]?.url).toBe("https://journey-photo.com/spots/ritsurin.jpg");
     });
 
-    it("撮影スポットの入口（/spots）も絵を渡す", async () => {
+    it("観光スポットの入口（/spots）も絵を渡す", async () => {
         ledger.spots = [spot("ritsurin-garden", { name: "栗林公園", coverImage: cover }), spot("takaya-shrine", { name: "高屋神社" })];
         const { generateMetadata: spotsMeta } = await import("../spots/page");
         const m = await spotsMeta();

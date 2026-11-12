@@ -249,7 +249,7 @@ describe("savePhoto: 自動の結びを外した印", () => {
 
 // **撮影スポットの紐付け**（本人がスポットの画面から選ぶ・2026-09-29）。
 // 形の違う値は書かない（名前などを入れても紐付かない）
-describe("savePhoto: 撮影スポット", () => {
+describe("savePhoto: 観光スポット", () => {
     it("形の合う spotId を保存する", async () => {
         await invoke(event("u1", { ...BASE, spotId: "sp_0123456789ab" }));
         expect(savedPhoto().spotId).toBe("sp_0123456789ab");

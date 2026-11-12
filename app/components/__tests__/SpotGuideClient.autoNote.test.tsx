@@ -43,10 +43,10 @@ beforeEach(() => {
     window.history.replaceState(null, "", "/spots/miyagi-zao-fox");
 });
 
-describe("撮影スポットの頁: 自動で結んだ写真の注記", () => {
+describe("観光スポットの頁: 自動で結んだ写真の注記", () => {
     it("自動で結んだ写真を含むときは注記を出す（数は自動の分も数える）", () => {
         view(true);
-        expect(screen.getByRole("heading", { name: "この撮影スポットの写真（1）" })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: "この観光スポットの写真（1）" })).toBeTruthy();
         expect(screen.getByTestId("spot-auto-note").textContent).toBe("撮影地の名前と位置から自動で結んだ写真を含みます。");
     });
 

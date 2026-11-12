@@ -30,7 +30,26 @@ const SPLIT = readdirSync(API_USER)
     .sort();
 
 /** 移した関数（スタックの設定ファイル → 関数の handler）。user API に残っていてはいけない */
-const MOVED: Record<string, string[]> = {};
+const MOVED: Record<string, string[]> = {
+    "serverless.albums.yml": [
+        "src/albums.createAlbum", "src/albums.listAlbums", "src/albums.renameAlbum", "src/albums.deleteAlbum",
+        "src/albums.createInvite", "src/albums.revokeInvite", "src/albums.joinAlbum", "src/albums.getInvite",
+    ],
+    "serverless.trips.yml": ["src/tripPlans.getMyTrips", "src/tripPlans.createTrip", "src/tripPlans.updateTrip", "src/tripPlans.deleteTrip"],
+    "serverless.notifications.yml": [
+        "src/notifications.getNotifications", "src/notifications.readNotifications", "src/devices.registerDevice", "src/devices.unregisterDevice",
+    ],
+    "serverless.trunk.yml": ["src/trunk.handler"],
+    "serverless.stories.yml": [
+        "src/stories.getStories", "src/stories.createStory", "src/stories.deleteStory", "src/stories.viewStory", "src/stories.getStoryViewers",
+        "src/storyReplies.postStoryReply", "src/storyReplies.getStoryReplies", "src/storyVotes.voteStory",
+        "src/storyAnswers.answerStory", "src/storyAnswers.getStoryAnswers", "src/storyAnswers.reportStoryAnswer",
+        "src/storyKeep.keepStory", "src/storyArchive.getStoryArchive", "src/stories.cleanupExpiredStories",
+        "src/highlights.createHighlight", "src/highlights.updateHighlight", "src/highlights.deleteHighlight",
+        "src/highlights.getUserHighlights", "src/highlights.getHighlight",
+    ],
+    "serverless.dm.yml": ["src/dm.handler"],
+};
 
 const AUTH_IMPORT = "Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId";
 
@@ -108,7 +127,10 @@ describe("別のスタック（api-user/serverless.*.yml）", () => {
                 const job = wf.indexOf("\n  deploy-user-api:");
                 expect(job).toBeGreaterThan(0);
                 const user = wf.indexOf("npx serverless@3 deploy --stage", job);
-                const mine = wf.indexOf(`--config ${file} `, job);
+                // 移した機能のまとまりは1つの段（`STACKS:` の一覧）でまとめて配る
+                const stacksLine = /^\s+STACKS: (.+)$/m.exec(wf.slice(job));
+                const listed = stacksLine?.[1].split(/\s+/).includes(file);
+                const mine = listed ? job + stacksLine!.index : wf.indexOf(`--config ${file} `, job);
                 expect(user).toBeGreaterThan(0);
                 expect(mine, `${file} を配る段が無い`).toBeGreaterThan(0);
                 if (file === "serverless.spot-wants.yml") expect(mine).toBeLessThan(user);
@@ -126,6 +148,38 @@ describe("別のスタック（api-user/serverless.*.yml）", () => {
             }
         }
         expect(seen.size).toBeGreaterThan(100);
+    });
+
+    it("移した機能のまとまりは user API の直後の段で配る（間に段を挟むと止まる時間が延びる）", () => {
+        const wf = readFileSync(join(ROOT, ".github/workflows/deploy-api.yml"), "utf8");
+        const job = wf.slice(wf.indexOf("\n  deploy-user-api:"));
+        const steps = job.split(/\n {6}- name: /).slice(1).map((st) => st.split("\n")[0]);
+        const user = steps.indexOf("Serverless deploy");
+        expect(user).toBeGreaterThan(0);
+        expect(steps[user + 1]).toBe("Serverless deploy（user API から移した機能・別スタック）");
+        const listed = /^\s+STACKS: (.+)$/m.exec(job)![1].split(/\s+/).sort();
+        expect(listed).toEqual(Object.keys(MOVED).sort());
+    });
+
+    it("移した機能のスタックは、環境変数と既定の役の権限が user API の provider と同じ（移す前と同じ環境で動く）", () => {
+        const providerOf = (src: string) => noComments(src).split(/\nfunctions:\n/)[0];
+        const envOf = (src: string) => providerOf(src).split(/\n {2}environment:\n/)[1].split(/\n {2}\w/)[0];
+        const iamOf = (src: string) => providerOf(src).split(/\n {6}statements:\n/)[1].split(/\n {0,2}\w/)[0];
+        const lines = (s: string) => s.split("\n").map((l) => l.trim()).filter(Boolean);
+        expect(lines(iamOf(USER_YML)).length).toBeGreaterThan(30);
+        for (const file of Object.keys(MOVED)) {
+            const src = read(file);
+            expect(lines(envOf(src)).sort(), file).toEqual(lines(envOf(USER_YML)).sort());
+            expect(lines(iamOf(src)), file).toEqual(lines(iamOf(USER_YML)));
+        }
+    });
+
+    it("使っていない資源の洗い出し（unused-resources.js）が別のスタックの関数を知っている", () => {
+        const js = readFileSync(join(ROOT, "scripts/unused-resources.js"), "utf8");
+        for (const file of SPLIT) {
+            const service = /^service: (\S+)$/m.exec(read(file))![1];
+            for (const stage of ["prod", "staging"]) expect(js, `${service}-${stage}-`).toContain(`"${service}-${stage}-"`);
+        }
     });
 
     it("移した関数は user API に残っていない", () => {

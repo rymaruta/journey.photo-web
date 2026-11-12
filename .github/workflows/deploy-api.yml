@@ -418,7 +418,11 @@ jobs:
           # **鍵が無いときは APNs の旗を1つも渡さない。** 中途半端に
           # Key ID だけ入ると「設定済みのつもりで送れない」になる
           if [ -n "${APNS_PRIVATE_KEY:-}" ]; then
-            extra+=(--param "apnsPrivateKey=$APNS_PRIVATE_KEY")
+            # 🔴 **改行のまま渡さない。** serverless v3 の --param は1行目しか読まず、
+            # 鍵が `-----BEGIN PRIVATE KEY-----`（27文字）で切れていた（札 journey.photo-ios#585）。
+            # 改行を `\n` にして渡し、`apns.ts` が戻す。壊れた鍵ならここで止まる
+            apns_key="$(bash ../scripts/apns-key-param.sh)"
+            extra+=(--param "apnsPrivateKey=$apns_key")
             extra+=(--param "apnsKeyId=$APNS_KEY_ID")
             extra+=(--param "apnsTeamId=$APNS_TEAM_ID")
             extra+=(--param "apnsTopic=$APNS_TOPIC")
@@ -451,6 +455,51 @@ jobs:
             --param "cognitoClientId=${{ needs.config.outputs.cognitoClientId }}" \
             ${extra[@]+"${extra[@]}"}
 
+      # **user API から移した機能のまとまり**（札 journey.photo-ios#552 ②・2026-11-12）。
+      # user API のスタックの部品が上限 500 に近い（488）ので、機能ごとの別スタック（`api-user/serverless.<機能>.yml`）へ移す。
+      # 環境変数と既定の役の権限は user API の provider と同じ（各スタックの provider・試験で突き合わせる）なので、渡す値も user API と同じ。
+      # 🔴 **user API の直後に配る。** 移す回は、user API の段の終わりに経路が消え、この段で作り直す
+      #    （同じ経路を2つのスタックが同時に持てない）。間に別の段を挟むと、口が止まる時間がその分延びる
+      # 🔴 新しいまとまりを足すときは `STACKS` に足す（`scripts/__tests__/splitStacks.test.ts` が突き合わせる）
+      - name: Serverless deploy（user API から移した機能・別スタック）
+        working-directory: api-user
+        env:
+          STACKS: serverless.albums.yml serverless.trips.yml serverless.notifications.yml serverless.trunk.yml serverless.stories.yml serverless.dm.yml
+          APPSTORE_ENVIRONMENTS: ${{ needs.config.outputs.appStoreEnvironments }}
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+          APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
+          APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
+          APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
+          APNS_HOST: ${{ needs.config.outputs.apnsHost }}
+        run: |
+          set -euo pipefail
+          extra=()
+          # 空なら旗ごと渡さない（serverless v3 は `--param "k="` を弾く。user API の段の注記と同じ）
+          if [ -n "${APPSTORE_ENVIRONMENTS:-}" ]; then extra+=(--param "appStoreEnvironments=$APPSTORE_ENVIRONMENTS"); fi
+          # プッシュの鍵は user API と同じ渡し方（無ければ旗ごと渡さない＝知らせは送らないだけ）。
+          # 鍵を読むのは、そのスタックで関数ごとに `${param:apns…}` を書いた関数だけ
+          if [ -n "${APNS_PRIVATE_KEY:-}" ]; then
+            # 🔴 改行のまま渡すと serverless の `--param` が1行目（27文字）で切る（札 journey.photo-ios#585）。
+            # 改行を `\n` にして渡し、`apns.ts` が戻す。壊れた鍵ならここで止まる
+            apns_key="$(bash ../scripts/apns-key-param.sh)"
+            extra+=(--param "apnsPrivateKey=$apns_key")
+            extra+=(--param "apnsKeyId=$APNS_KEY_ID")
+            extra+=(--param "apnsTeamId=$APNS_TEAM_ID")
+            extra+=(--param "apnsTopic=$APNS_TOPIC")
+            extra+=(--param "apnsHost=$APNS_HOST")
+          fi
+          for cfg in $STACKS; do
+            echo "::group::$cfg"
+            npx serverless@3 deploy --config "$cfg" --stage ${{ needs.config.outputs.envName }} \
+              --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+              --param "usersTable=${{ needs.config.outputs.usersTable }}" \
+              --param "uploadBucket=${{ needs.config.outputs.uploadBucket }}" \
+              --param "cloudfrontUrl=${{ needs.config.outputs.cloudfrontUrl }}" \
+              --param "cloudfrontDistributionId=${{ needs.config.outputs.cloudfrontDistributionId }}" \
+              ${extra[@]+"${extra[@]}"}
+            echo "::endgroup::"
+          done
+
       # 旅行プランを仲間と使う口（2026-11-12・`api-user/src/tripShare.ts`）は**別のスタック**
       # （`api-user/serverless.trip-share.yml`）。user API のスタックの部品が上限 500 に近い（488）ので分けた。
       # 🔴 **user API の後に配る。** このスタックは user API のスタックが書き出す HttpApiId を取り込んで経路を足す
@@ -468,7 +517,11 @@ jobs:
           set -euo pipefail
           extra=()
           if [ -n "${APNS_PRIVATE_KEY:-}" ]; then
-            extra+=(--param "apnsPrivateKey=$APNS_PRIVATE_KEY")
+            # 🔴 **改行のまま渡さない。** serverless v3 の --param は1行目しか読まず、
+            # 鍵が `-----BEGIN PRIVATE KEY-----`（27文字）で切れていた（札 journey.photo-ios#585）。
+            # 改行を `\n` にして渡し、`apns.ts` が戻す。壊れた鍵ならここで止まる
+            apns_key="$(bash ../scripts/apns-key-param.sh)"
+            extra+=(--param "apnsPrivateKey=$apns_key")
             extra+=(--param "apnsKeyId=$APNS_KEY_ID")
             extra+=(--param "apnsTeamId=$APNS_TEAM_ID")
             extra+=(--param "apnsTopic=$APNS_TOPIC")

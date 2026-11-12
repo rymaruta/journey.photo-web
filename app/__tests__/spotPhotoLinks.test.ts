@@ -26,7 +26,7 @@ describe("spot-photo-links.json", () => {
         expect(linksRoute.dynamic).toBe("force-static");
     });
 
-    it("形は {v:1, links:{写真 id: 撮影スポット id}}。本番の 48枚で 16件", async () => {
+    it("形は {v:1, links:{写真 id: 観光スポット id}}。本番の 48枚で 16件", async () => {
         photos.list = PROD48;
         const res = await linksRoute.GET();
         expect(res.headers.get("Content-Type")).toBe("application/json; charset=utf-8");

@@ -132,7 +132,7 @@ export async function storyQuotesFor(
         .map((id) => rows.get(id))
         .filter((r): r is StoryRow => !!r && typeof r.sharedPhotoId === "string" && r.sharedPhotoId.length > 0
             && String(r.userId ?? r.uploadedBy ?? "") !== viewer);
-    let lostShared: Set<string> | "unread" = new Set();
+    let lostShared: { has(row: Record<string, unknown>): boolean } | "unread" = { has: () => false };
     if (sharedRows.length > 0) {
         try {
             lostShared = await unviewableSharedPhotos(sharedRows as Record<string, unknown>[],
@@ -155,7 +155,7 @@ export async function storyQuotesFor(
             if (isCloseFriendsStory(row) && !await inCloseFriends(owner)) return;
             const shared = row.sharedPhotoId;
             if (typeof shared === "string" && shared.length > 0
-                && (lostShared === "unread" || lostShared.has(shared))) return;
+                && (lostShared === "unread" || lostShared.has(row as Record<string, unknown>))) return;
         }
         const mediaType = row.mediaType === "video" ? "video" : "image";
         const src = mediaType === "image" && typeof row.src === "string" && row.src ? row.src : undefined;

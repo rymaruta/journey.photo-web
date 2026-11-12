@@ -33,7 +33,7 @@ describe("SpotSearchResults", () => {
         renderWithLocale(<SpotSearchResults query="銀山温泉" locale="ja" />);
         const link = await screen.findByRole("link", { name: /銀山温泉/ });
         expect(link.getAttribute("href")).toBe("/spots/ginzan-onsen");
-        expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("撮影スポット（1か所）");
+        expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("観光スポット（1か所）");
         expect(fetchMock).toHaveBeenCalledWith("/app/data/spot-search.json");
     });
 

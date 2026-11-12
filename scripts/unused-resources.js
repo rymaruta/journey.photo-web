@@ -44,7 +44,19 @@ const KNOWN = {
     ],
     pools: ["prod-journey-photo-client-spa", "staging-journey-photo-client-spa"],
     /** serverless が作る関数の接頭辞 */
-    functionPrefixes: ["photo-gallery-api-prod-", "photo-gallery-api-staging-", "photo-gallery-user-api-prod-", "photo-gallery-user-api-staging-"],
+    functionPrefixes: [
+        "photo-gallery-api-prod-", "photo-gallery-api-staging-", "photo-gallery-user-api-prod-", "photo-gallery-user-api-staging-",
+        // user API の HTTP API に経路を足す別のスタック（`api-user/serverless.*.yml`・札 journey.photo-ios#552）
+        "photo-gallery-spot-wants-prod-", "photo-gallery-spot-wants-staging-",
+        "photo-gallery-trip-share-prod-", "photo-gallery-trip-share-staging-",
+        "photo-gallery-profile-qr-prod-", "photo-gallery-profile-qr-staging-",
+        "photo-gallery-albums-prod-", "photo-gallery-albums-staging-",
+        "photo-gallery-trips-prod-", "photo-gallery-trips-staging-",
+        "photo-gallery-notifications-prod-", "photo-gallery-notifications-staging-",
+        "photo-gallery-trunk-prod-", "photo-gallery-trunk-staging-",
+        "photo-gallery-stories-prod-", "photo-gallery-stories-staging-",
+        "photo-gallery-dm-prod-", "photo-gallery-dm-staging-",
+    ],
 };
 
 /**

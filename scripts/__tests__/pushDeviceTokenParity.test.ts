@@ -34,10 +34,11 @@ describe("端末トークン: サーバーと画面で同じ形", () => {
 
     // 口の綴り。変えたら画面が 404 を受ける（`userFetch` はそれを投げない）
     it("叩く先が `/user/devices` で一致する", () => {
-        const yml = readFileSync(join(ROOT, "api-user/serverless.yml"), "utf8");
+        // 端末の登録の口は user API から別のスタック（`serverless.notifications.yml`）へ移した（札 journey.photo-ios#552 ②）
+        const yml = readFileSync(join(ROOT, "api-user/serverless.notifications.yml"), "utf8");
         const client = readFileSync(join(ROOT, "lib/push/deviceToken.ts"), "utf8");
         for (const method of ["POST", "DELETE"]) {
-            expect(yml, `${method} /user/devices が serverless.yml に無い`)
+            expect(yml, `${method} /user/devices が serverless.notifications.yml に無い`)
                 .toMatch(new RegExp(`path: /user/devices\\n\\s+method: ${method}`));
         }
         expect((client.match(/"\/user\/devices"/g) ?? []).length,

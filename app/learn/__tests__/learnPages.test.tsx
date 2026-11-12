@@ -127,12 +127,12 @@ describe("記事内リンクの計測（select_content）", () => {
         (window as unknown as { gtag?: unknown }).gtag = gtag;
     });
 
-    it("一覧: 記事のカード → article、「撮影スポット」→ spot", async () => {
+    it("一覧: 記事のカード → article、「観光スポット」→ spot", async () => {
         render(await LearnPage());
         const card = screen.getAllByTestId("learn-card")[0];
         stay(card);
         fireEvent.click(card);
-        const spots = screen.getByRole("link", { name: "撮影スポット" });
+        const spots = screen.getByRole("link", { name: "観光スポット" });
         stay(spots);
         fireEvent.click(spots);
         expect(picks()).toEqual(["article", "spot"]);

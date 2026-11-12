@@ -33,8 +33,8 @@ describe("PhotoTripSection", () => {
         expect(screen.getByText("NEXT TRIP · 次の旅へ")).toBeTruthy();
         const wish = screen.getByTestId("wish");
         expect(wish.textContent).toBe("ginzan-onsen");
-        expect(wish.dataset.kind, "撮影スポットのページと同じ鍵（SPOT-…）で入れる").toBe("spot");
-        expect(wish.dataset.variant, "撮影スポットの頁の 64 の札ではなく、写真の「次の旅へ」の横の札").toBe("trip");
+        expect(wish.dataset.kind, "観光スポットのページと同じ鍵（SPOT-…）で入れる").toBe("spot");
+        expect(wish.dataset.variant, "観光スポットの頁の 64 の札ではなく、写真の「次の旅へ」の横の札").toBe("trip");
         const route = screen.getByTestId("photo-trip-directions");
         expect(route.getAttribute("href")).toBe("https://www.google.com/maps/dir/?api=1&destination=38.58,140.53");
         expect(route.getAttribute("target")).toBe("_blank");

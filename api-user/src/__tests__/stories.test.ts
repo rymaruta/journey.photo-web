@@ -1390,10 +1390,11 @@ describe("getStories: 生きているストーリーだけを引く", () => {
 // ので、期限切れのぶんだけを直接引ける＝1時間ごとに回せる。
 // スケジュールは serverless.yml にしか無いので、ここで固定する。
 describe("期限切れストーリーの掃除は1時間ごと", () => {
-    it("serverless.yml のスケジュールが毎時になっている", async () => {
+    it("serverless.stories.yml のスケジュールが毎時になっている", async () => {
         const { readFileSync } = await import("node:fs");
         const { join } = await import("node:path");
-        const yml = readFileSync(join(process.cwd(), "api-user/serverless.yml"), "utf8");
+        // ストーリーの口と掃除は user API から別のスタック（`serverless.stories.yml`）へ移した（札 journey.photo-ios#552 ②）
+        const yml = readFileSync(join(process.cwd(), "api-user/serverless.stories.yml"), "utf8");
         const code = yml.split("\n").filter((l) => !l.trim().startsWith("#")).join("\n");
         // **cleanupStories の節だけを見る。** 定期実行は他にもある（光と天気の知らせ・毎日 20:00）ので、
         // ファイルの最初の schedule を拾うと別の関数を見てしまう

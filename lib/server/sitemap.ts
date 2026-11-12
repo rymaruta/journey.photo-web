@@ -14,6 +14,7 @@ import RAW_PHOTOS from "@/lib/data/photos";
 import type { Photo } from "@/lib/data/photos";
 import { ROUTES } from "../routes";
 import { LEARN_ARTICLES } from "../data/learn/articles";
+import { HELP_PAGES, HELP_LAST_MODIFIED } from "../data/helpPages";
 import { PREFECTURES } from "../data/prefectures";
 
 /**
@@ -63,7 +64,7 @@ export const SITEMAP_KIND_LABEL: Record<SitemapKind, string> = {
     learn: "写真とカメラの教科書・構図ガイド",
     collections: "写真の集約（タグ・撮影地・カテゴリ・カメラとその索引）",
     photos: "写真の個別ページ（/photo/<id>）",
-    pages: "トップ・地図・規約・プロフィールなど",
+    pages: "トップ・地図・規約・使い方・プロフィールなど",
 };
 
 /** `lastModified` は日付が取れたときだけ付ける（取れなければ書かない） */
@@ -246,6 +247,19 @@ export async function sitemapGroups(): Promise<Record<SitemapKind, MetadataRoute
             changeFrequency: "weekly",
             priority: 0.5,
         },
+        // 使い方（2026-11-12・札 journey.photo-ios#517）。目次と全頁。本文を変えた日を出す（`HELP_LAST_MODIFIED`）
+        {
+            url: `${baseUrl}${ROUTES.HELP}`,
+            lastModified: HELP_LAST_MODIFIED,
+            changeFrequency: "monthly",
+            priority: 0.5,
+        },
+        ...HELP_PAGES.map((p) => ({
+            url: `${baseUrl}${ROUTES.HELP_PAGE(p.slug)}`,
+            lastModified: HELP_LAST_MODIFIED,
+            changeFrequency: "monthly" as const,
+            priority: 0.5,
+        })),
     ];
 
     return {

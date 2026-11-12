@@ -43,7 +43,7 @@ afterEach(() => {
 });
 
 describe("旅行プランの当日モード", () => {
-    it("前日: 明日（1日目）の撮影スポットの光の時刻と季節の案内", async () => {
+    it("前日: 明日（1日目）の観光スポットの光の時刻と季節の案内", async () => {
         // 端末の時刻帯（テストは UTC）で 2026-10-09
         vi.setSystemTime(new Date("2026-10-09T03:00:00Z"));
         render(<TripLightCard plans={[plan("2026-10-10", "2026-10-11", [["sp_g"], []])]} spots={SPOTS} en={false} />);
@@ -112,7 +112,7 @@ describe("旅行プランの当日モード", () => {
         expect(link.className).toContain("-my-[10px]");
     });
 
-    it("1件目が読めなければ次の撮影スポットへ", async () => {
+    it("1件目が読めなければ次の観光スポットへ", async () => {
         vi.setSystemTime(new Date("2026-10-10T03:00:00Z"));
         const spots = { ...SPOTS, sp_x: { slug: "missing", name: "無い" } };
         render(<TripLightCard plans={[plan("2026-10-10", "2026-10-10", [["sp_x", "sp_g"]])]} spots={spots} en={false} />);

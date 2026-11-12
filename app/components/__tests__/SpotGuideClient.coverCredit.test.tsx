@@ -48,7 +48,7 @@ describe("代表写真の出典の行", () => {
     });
 });
 
-describe("一番上の写真（撮影スポットの頁の LCP・2026-11-11 札 #527）", () => {
+describe("一番上の写真（観光スポットの頁の LCP・2026-11-11 札 #527）", () => {
     it("先に取らせる（fetchpriority=high）・遅延読み込みにしない", () => {
         const { container } = render(<ToastProvider><SpotGuideClient spot={SPOT} photos={[]} nearby={[]} locationPath={null} /></ToastProvider>);
         const img = container.querySelector(`img[src="${COVER.src}"]`)!;

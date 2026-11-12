@@ -68,11 +68,11 @@ export function shortPrefName(p: Prefecture): string {
 }
 
 /** ハブ（/today）の題。日付を入れない安定した文（サイト名は `title.template` が足す） */
-export const TODAY_HUB_TITLE = "今日の日の出・日の入り時刻｜ゴールデンアワーと近くの撮影スポット";
+export const TODAY_HUB_TITLE = "今日の日の出、日の入り時刻｜ゴールデンアワーと近くの観光スポット";
 
 /** 県の頁の題。日付を入れない安定した文 */
 export function todayPrefTitle(place: { shortName: string }): string {
-    return `${place.shortName}の今日の日の出・日の入り時刻｜ゴールデンアワーと近くの撮影スポット`;
+    return `${place.shortName}の今日の日の出、日の入り時刻｜ゴールデンアワーと近くの観光スポット`;
 }
 
 export type TodayPlaceBasis = "capital-spots" | "prefecture-centroid";
