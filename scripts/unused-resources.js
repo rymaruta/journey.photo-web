@@ -52,6 +52,7 @@ const KNOWN = {
         "photo-gallery-profile-qr-prod-", "photo-gallery-profile-qr-staging-",
         "photo-gallery-albums-prod-", "photo-gallery-albums-staging-",
         "photo-gallery-trips-prod-", "photo-gallery-trips-staging-",
+        "photo-gallery-notifications-prod-", "photo-gallery-notifications-staging-",
     ],
 };
 

@@ -1039,24 +1039,6 @@ functions:
           authorizer:
             name: cognitoAuthorizer
 
-  getNotifications:
-    handler: src/notifications.getNotifications
-    events:
-      - httpApi:
-          path: /user/notifications
-          method: GET
-          authorizer:
-            name: cognitoAuthorizer
-
-  readNotifications:
-    handler: src/notifications.readNotifications
-    events:
-      - httpApi:
-          path: /user/notifications
-          method: PUT
-          authorizer:
-            name: cognitoAuthorizer
-
   viewStory:
     handler: src/stories.viewStory
     events:
@@ -1260,24 +1242,6 @@ functions:
     events:
       - httpApi:
           path: /users/{id}/block
-          method: DELETE
-          authorizer:
-            name: cognitoAuthorizer
-
-  registerDevice:
-    handler: src/devices.registerDevice
-    events:
-      - httpApi:
-          path: /user/devices
-          method: POST
-          authorizer:
-            name: cognitoAuthorizer
-
-  unregisterDevice:
-    handler: src/devices.unregisterDevice
-    events:
-      - httpApi:
-          path: /user/devices
           method: DELETE
           authorizer:
             name: cognitoAuthorizer
