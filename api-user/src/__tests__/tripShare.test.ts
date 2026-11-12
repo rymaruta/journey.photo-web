@@ -483,7 +483,7 @@ describe("🔴 共有プランの日程は rev が無ければ書かない（指
         await sharedWithB();
         const r = await putTrip(B, { days: [] });
         expect(r.statusCode).toBe(409);
-        expect(json(r).code).toBe("conflict");
+        expect(json(r).code).toBe("revRequired");
         expect(json(r).plan.days).toHaveLength(1);
         expect((store.get(`trip#${P}`)!.days as unknown[])).toHaveLength(1);
     });
@@ -590,5 +590,61 @@ describe("知らせは並べて送る（指摘7）", () => {
         expect(started).toBe(2);
         expect(Date.now() - t0).toBeLessThan(900);
         mockPush.mockImplementation(async () => ({ sent: 1, invalid: [] as string[] }));
+    });
+});
+
+// ---------------------------------------------------------------------------
+// 確かめ役の見直し（2026-11-12・2回目）
+// ---------------------------------------------------------------------------
+
+describe("rev を送らない古いアプリへの断り（見直し1）", () => {
+    it("rev が無いことで断った回は code が revRequired で、アプリを新しくする文を返す（今の姿も添える）", async () => {
+        await sharedWithB();
+        const r = await putTrip(B, { days: [] });
+        expect(r.statusCode).toBe(409);
+        expect(json(r).code).toBe("revRequired");
+        expect(json(r).error).toContain("アプリを新しく");
+        expect(json(r).plan.planId).toBe(P);
+    });
+
+    it("rev が古い回は今までどおり conflict（読み直せば直る）", async () => {
+        await sharedWithB();
+        const rev = store.get(`trip#${P}`)!.rev as number;
+        await putTrip(A, { rev, title: "x" });
+        const r = await putTrip(B, { rev, days: [] });
+        expect(json(r).code).toBe("conflict");
+        expect(json(r).error).not.toContain("アプリを新しく");
+    });
+});
+
+/** 共有する途中で落ちた形: 共有の行（trip#）があるのに、本人だけの一覧（trips#）にも古い写しが残っている */
+async function halfShared() {
+    await sharedWithB();
+    seedOwnPlan();
+}
+
+describe("🔴 共有する途中で両方に行がある間（見直し3）", () => {
+    it("PUT は共有の行を直す（本人だけの古い写しを直さない）", async () => {
+        await halfShared();
+        const rev = store.get(`trip#${P}`)!.rev as number;
+        expect((await putTrip(A, { rev, title: "金沢と能登" })).statusCode).toBe(200);
+        expect(store.get(`trip#${P}`)!.title).toBe("金沢と能登");
+        // 一覧の口にも直した題が出る（共有の方が採られる）
+        expect((await myTrips(A)).find((p) => p.planId === P)!.title).toBe("金沢と能登");
+    });
+
+    it("持ち主が直したら、本人だけの古い写しを片付ける（共有を終わらせる）", async () => {
+        await halfShared();
+        const rev = store.get(`trip#${P}`)!.rev as number;
+        await putTrip(A, { rev, title: "金沢と能登" });
+        expect(((store.get(`trips#${A}`)!.list as Array<{ planId: string }>) ?? []).map((p) => p.planId)).not.toContain(P);
+    });
+
+    it("持ち主が消すと、共有の行も消える（本人だけの写しだけ消して共有が残る、をしない）", async () => {
+        await halfShared();
+        await call(deleteTrip, ev(A, "DELETE /user/trips/{planId}", { planId: P }));
+        expect(store.has(`trip#${P}`)).toBe(false);
+        expect((await myTrips(A)).map((p) => p.planId)).not.toContain(P);
+        expect((await myTrips(B)).map((p) => p.planId)).not.toContain(P);
     });
 });
