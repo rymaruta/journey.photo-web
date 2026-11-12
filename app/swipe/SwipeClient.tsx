@@ -16,6 +16,7 @@ import {
     SWIPE_WANT_MAX, type SwipeCard,
 } from "../../lib/utils/spotSwipe";
 import { TopicCreditLine } from "../components/SpotTopicLists";
+import { queueSpotWant, unqueueSpotWant, useFlushSpotWantsOnLeave } from "../../lib/utils/spotWants";
 import { BTN_FILL, BTN_LINE } from "../components/buttonStyles";
 
 /**
@@ -65,6 +66,7 @@ export default function SwipeClient() {
     /** ログインして戻った回に移した鍵（山と足元の数に足す）。移し終えるまで null・移すものが無ければ [] */
     const [movedKeys, setMovedKeys] = React.useState<string[] | null>(null);
     const reduceMotion = usePrefersReducedMotion();
+    useFlushSpotWantsOnLeave();
 
     // 札の山（ビルドで書き出した小さな JSON）
     React.useEffect(() => {
@@ -156,6 +158,8 @@ export default function SwipeClient() {
             }
             if (added) setWishCount((n) => n + 1);
         }
+        // みんなの「行きたい」に数える（②・端末のでたらめな ID と一緒にまとめて送る）。見送るは数えない
+        if (choice === "want") queueSpotWant(current.slug);
         addSwipeSeen(current.slug);
         setDecisions((d) => [...d, { card: current, choice, added }]);
         setSaid(choice === "want"
@@ -198,6 +202,7 @@ export default function SwipeClient() {
         setDecisions((d) => d.slice(0, -1));
         if (continuedAt !== null && decisions.length - 1 < continuedAt) setContinuedAt(null);
         removeSwipeSeen(last.card.slug);
+        if (last.choice === "want") unqueueSpotWant(last.card.slug);
         if (last.choice === "want" && last.added) {
             const key = spotSavedKey(last.card.slug);
             if (isAuthenticated) {
