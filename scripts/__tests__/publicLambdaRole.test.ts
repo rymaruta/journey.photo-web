@@ -37,7 +37,8 @@ function functionBlocks(yml: string): Map<string, string> {
 const services = [
     {
         name: "api-user", file: "api-user/serverless.yml",
-        // `getInvite` は共同アルバムの招待（案C）。**開いた瞬間にログインを
+        // `getInvite`（共同アルバムの招待）は別のスタック（`serverless.albums.yml`・#552 ②）へ移した。下の describe が見る。
+        // 以下はそのときの経緯: `getInvite` は共同アルバムの招待（案C）。**開いた瞬間にログインを
         // 求めると拡散の輪がそこで切れる**ので、閲覧だけ未認証で開ける。
         // 守りは「認証」ではなく**推測不能なトークン**（192ビット）で、
         // 読むのは招待の行とアルバムの行の GetItem 2回だけ
@@ -53,7 +54,7 @@ const services = [
         // **ログインした全員**の意味で、インターネット全体ではなかった。
         // 今はログインを要求したうえで、さらにフォローを見ている
         publicFns: [
-            "getPublicProfile", "searchUsers", "getLikeCount", "getComments", "getFollowStats", "getInvite", "getFeed",
+            "getPublicProfile", "searchUsers", "getLikeCount", "getComments", "getFollowStats", "getFeed",
             // App Store Server Notifications（Apple から・署名で確かめる。`purchases.ts`）
             "appStoreNotification",
             // 意見箱のログインしていない人の口（札 #546。`feedback.ts`・IP ごとの上限）
@@ -97,6 +98,33 @@ describe.each(services)("$name: 未認証の口は読み取り専用ロールで
             if (!b.includes("authorizer:")) continue;
             expect(b, `${name} に読み取り専用ロールが付いている`).not.toContain("role: PublicReadRole");
         }
+    });
+});
+
+// 共同アルバム（`api-user/serverless.albums.yml`・札 journey.photo-ios#552 ②で user API から移した）。
+// 未認証の口は招待リンクの下見（`getInvite`）だけ。**開いた瞬間にログインを求めると拡散の輪がそこで切れる**ので
+// 閲覧だけ未認証で開ける。守りは推測不能なトークン（192ビット）で、読むのは写真テーブルの GetItem だけ
+describe("albums: 未認証の口は読み取り専用の役で動く", () => {
+    const yml = readFileSync(join(ROOT, "api-user/serverless.albums.yml"), "utf8");
+    const blocks = functionBlocks(yml);
+
+    it("認可の無い httpApi の関数は getInvite だけ", () => {
+        const found = [...blocks].filter(([, b]) => b.includes("httpApi:") && !b.includes("authorizer:")).map(([n]) => n);
+        expect(found).toEqual(["getInvite"]);
+    });
+
+    it("getInvite は AlbumInviteReadRole で、ほかの関数は使わない", () => {
+        const users = [...blocks].filter(([, b]) => /^\s{4}role: AlbumInviteReadRole\s*$/m.test(b)).map(([n]) => n);
+        expect(users).toEqual(["getInvite"]);
+    });
+
+    it("AlbumInviteReadRole はログと写真テーブルの GetItem だけ", () => {
+        const role = yml.split(/\n {4}AlbumInviteReadRole:\n/)[1];
+        expect(role).toBeDefined();
+        const actions = [...role.replace(/^\s*#.*$/gm, "").matchAll(/^\s*-\s+([a-z0-9-]+:[A-Za-z]+)\s*$/gm)].map((m) => m[1]);
+        expect(actions.sort()).toEqual(["dynamodb:GetItem", "logs:CreateLogStream", "logs:PutLogEvents"]);
+        expect(role).not.toMatch(/usersTable|s3:|cloudfront:/);
+        expect(role).toContain("Service: lambda.amazonaws.com");
     });
 });
 
