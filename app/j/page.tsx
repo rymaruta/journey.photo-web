@@ -2,7 +2,7 @@
 
 import React, { Suspense } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { usePrivateLinkToken } from "../../lib/hooks/usePrivateLinkToken";
 import { userPublicFetch, userFetch, readApiError, sessionErrorMessage } from "../../lib/utils/api";
 import { useAuth } from "../auth/context";
 import { useToast } from "../../lib/hooks/useToast";
@@ -25,7 +25,8 @@ type InviteAlbum = { id: string; title: string; memberCount: number };
 type InvitePhoto = { id: string; src: string; thumbSrc?: string; blurDataURL?: string };
 
 function InviteView() {
-    const token = useSearchParams().get("t") ?? "";
+    // 合図は state に持ち、URL からはすぐ外す（GA4・履歴に残さない・`usePrivateLinkToken`）
+    const token = usePrivateLinkToken();
     const { isAuthenticated, loading: authLoading } = useAuth();
     const { showToast } = useToast();
 

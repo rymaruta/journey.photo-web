@@ -55,8 +55,19 @@ export function track<K extends keyof EventMap>(name: K, params: EventMap[K]): v
  * GA4 の初期化の行。`config` のあとに、読み込み前に積んだイベントを送る。
  * `Analytics.tsx` が `<Script>` の中身にそのまま入れる
  */
+/**
+ * **合図を URL に持つ私的な頁**（共同アルバムの招待 `/j?t=`・プロフィールの QR `/qr?t=`）。GA4 に送る頁の URL
+ * （`page_location`）から `t` を外す（2026-11-12 確かめ役の指摘・札 journey.photo-ios#545）。合図は推測できないことだけが
+ * 守りなので、解析の置き場（Google）に残さない。頁の側でも開いたらすぐ URL から外す（`usePrivateLinkToken`）が、
+ * 外す前に読まれた回のためにここでも外す
+ */
+export const PRIVATE_TOKEN_PATHS = ["/j", "/qr"] as const;
+
 export function gaInitSnippet(gaId: string): string {
-    return `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${gaId}');` +
+    const paths = JSON.stringify(PRIVATE_TOKEN_PATHS).replace(/"/g, "'");
+    return `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());` +
+        `(function(){var p=location.pathname.replace(/\\/+$/,'');if(${paths}.indexOf(p)>=0){var u=new URL(location.href);` +
+        `u.searchParams.delete('t');gtag('config','${gaId}',{page_location:u.toString()});}else{gtag('config','${gaId}');}})();` +
         `(window.${PENDING_QUEUE}||[]).forEach(function(e){gtag('event',e[0],e[1]);});window.${PENDING_QUEUE}=null;`;
 }
 
