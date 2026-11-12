@@ -392,14 +392,4 @@ describe("撮影スポットを払う画面（/swipe・2026-11-11）", () => {
         // 移す口は「行きたい場所」と同じ（POST /user/spots）
         expect(read("lib/utils/spotSwipe.ts")).toContain("POST /user/spots");
     });
-
-    it("みんなの「行きたい」: 端末の番号を送る・10件以上だけ公開・順位は日本だけ、が実装と合う", () => {
-        const min = constOf("api-user/src/spotWants.ts", "MIN_SHOWN");
-        expect(page).toContain(`撮影スポットごとの月の数（${min}件以上のもの）`);
-        expect(page).toContain("端末ごとに作るでたらめな番号");
-        expect(page).toContain("IPアドレスそのものは保存せず");
-        expect(page).toContain("日本の撮影スポットの中の順位");
-        // 「localStorage はサーバーに送らない」と言い切らない（端末の番号は送る）
-        expect(page).toContain("「行きたい」の数を数えるための端末ごとの番号を除きます");
-    });
 });

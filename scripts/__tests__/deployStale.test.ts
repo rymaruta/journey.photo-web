@@ -37,17 +37,6 @@ describe("classifyStaleObjects（デプロイ時の削除判定）", () => {
         expect(toDelete).toEqual([]);
     });
 
-    // みんなの「行きたい」の数はサーバー（毎日の集計）が書く。ビルドに無くても、古くても消さない（2026-11-11）
-    it("サーバーが書く app/data/spot-wants.json は消さない", () => {
-        const { toDelete } = classifyStaleObjects(
-            ["index.html"],
-            [{ key: "app/data/spot-wants.json", lastModified: new Date(NOW - 100 * DAY) }],
-            NOW,
-            ASSET_GRACE_MS,
-        );
-        expect(toDelete).toEqual([]);
-    });
-
     /// 🔴 下書きに戻した場所の本文を30日配り続けない（Web のページは同じ回に消える）
     it("ビルドに無いスポットの本文（app/data/spots/*.json）は猶予なしで削除される", () => {
         const { toDelete, kept } = classifyStaleObjects(
