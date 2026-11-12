@@ -40,6 +40,14 @@ const MOVED: Record<string, string[]> = {
         "src/notifications.getNotifications", "src/notifications.readNotifications", "src/devices.registerDevice", "src/devices.unregisterDevice",
     ],
     "serverless.trunk.yml": ["src/trunk.handler"],
+    "serverless.stories.yml": [
+        "src/stories.getStories", "src/stories.createStory", "src/stories.deleteStory", "src/stories.viewStory", "src/stories.getStoryViewers",
+        "src/storyReplies.postStoryReply", "src/storyReplies.getStoryReplies", "src/storyVotes.voteStory",
+        "src/storyAnswers.answerStory", "src/storyAnswers.getStoryAnswers", "src/storyAnswers.reportStoryAnswer",
+        "src/storyKeep.keepStory", "src/storyArchive.getStoryArchive", "src/stories.cleanupExpiredStories",
+        "src/highlights.createHighlight", "src/highlights.updateHighlight", "src/highlights.deleteHighlight",
+        "src/highlights.getUserHighlights", "src/highlights.getHighlight",
+    ],
 };
 
 const AUTH_IMPORT = "Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId";
