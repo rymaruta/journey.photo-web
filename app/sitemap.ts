@@ -10,6 +10,8 @@ import { spotAreas } from "../lib/data/spotLink";
 import { publishableSpots } from "../lib/utils/spotGuide";
 import { spotTopicSitemapEntries } from "../lib/data/spotTopics";
 import RAW_PHOTOS from "@/lib/data/photos";
+import { HELP_PAGES, HELP_LAST_MODIFIED } from "../lib/data/helpPages";
+import { ROUTES } from "../lib/routes";
 import type { Photo } from "@/lib/data/photos";
 
 export const dynamic = "force-static";
@@ -196,6 +198,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
             changeFrequency: "weekly",
             priority: 0.5,
         },
+        // 使い方（2026-11-12・札 journey.photo-ios#517）。目次と全頁。本文を変えた日を出す（`HELP_LAST_MODIFIED`）
+        {
+            url: `${baseUrl}${ROUTES.HELP}`,
+            lastModified: HELP_LAST_MODIFIED,
+            changeFrequency: "monthly",
+            priority: 0.5,
+        },
+        ...HELP_PAGES.map((p) => ({
+            url: `${baseUrl}${ROUTES.HELP_PAGE(p.slug)}`,
+            lastModified: HELP_LAST_MODIFIED,
+            changeFrequency: "monthly" as const,
+            priority: 0.5,
+        })),
         ...spotIndexUrls,
         ...spotAreaUrls,
         // 国・テーマ・季節の切り口の頁（2026-10-11・`lib/data/spotTopics.ts`）
