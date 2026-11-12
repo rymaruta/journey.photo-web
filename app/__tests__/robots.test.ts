@@ -163,6 +163,14 @@ describe("共同アルバムの招待", () => {
         const disallow = [(r.rules as { disallow?: string | string[] }).disallow ?? []].flat();
         expect(disallow, "招待ページがクロールされる").toContain("/j");
     });
+
+    // プロフィールの QR の着地点（札 journey.photo-ios#545）も私的なリンク。今日の一問の `/q` は外さない
+    it("/qr をクロール対象から外し、/q は外さない", async () => {
+        const r = await robotsFor("prod");
+        const disallow = [(r.rules as { disallow?: string | string[] }).disallow ?? []].flat();
+        expect(disallow).toContain("/qr");
+        expect(disallow).not.toContain("/q");
+    });
 });
 
 // **本人だけが見られる一覧は、まとめてクロール対象から外す。**
