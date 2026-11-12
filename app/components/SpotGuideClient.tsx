@@ -460,7 +460,7 @@ function Samples({ samples, isJa, spot }: { samples: SpotSample[]; isJa: boolean
             <p className="m-0 mb-3 text-white/60" style={{ fontSize: "12px", lineHeight: "18px" }}>
                 {isJa
                     ? [
-                        free.length > 0 ? `この撮影スポットの近くで撮られ、${free.join("・")} で自由なライセンスのもと公開されている写真です。` : "",
+                        free.length > 0 ? `この観光スポットの近くで撮られ、${free.join("・")} で自由なライセンスのもと公開されている写真です。` : "",
                         hosted.length > 0 ? `${hosted.join("・")}の写真は、提供元の利用規約に従って掲載しています。` : "",
                         "撮影者はこのサイトの利用者ではありません。",
                     ].join("")
@@ -638,7 +638,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
         <section className="pt-6" aria-labelledby="spot-photos">
             <Head id="spot-photos">
                 {photos.length > 0
-                    ? (isJa ? `この撮影スポットの写真（${photos.length}）` : `Photos here (${photos.length})`)
+                    ? (isJa ? `この観光スポットの写真（${photos.length}）` : `Photos here (${photos.length})`)
                     : (isJa ? "最初の1枚を投稿しませんか" : "Be the first to share a photo here")}
             </Head>
             {/* 投稿から戻ってきた（`?posted=1`）。**この一覧はビルド時の写真**なので、
@@ -690,7 +690,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                 <div className="rounded-xl bg-surface ring-1 ring-line p-5 text-center" data-testid="spot-photos-invite">
                     <p className="m-0 text-white/80" style={{ fontSize: "15px", lineHeight: "24px" }}>
                         {isJa
-                            ? "あなたの1枚が、この撮影スポットの最初の写真になります。"
+                            ? "あなたの1枚が、この観光スポットの最初の写真になります。"
                             : "Your photo could be the first one here."}
                     </p>
                     <Link href={uploadHref} prefetch={false}
@@ -778,7 +778,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                          style={{ fontSize: "12px", lineHeight: "18px" }}>
                         <Link href="/" prefetch={false} className={CRUMB}>{isJa ? "ホーム" : "Home"}</Link>
                         <span className="mx-1.5" aria-hidden>/</span>
-                        <Link href={ROUTES.SPOTS} prefetch={false} className={CRUMB}>{isJa ? "撮影スポット" : "Photo spots"}</Link>
+                        <Link href={ROUTES.SPOTS} prefetch={false} className={CRUMB}>{isJa ? "観光スポット" : "Photo spots"}</Link>
                         {area && (
                             <>
                                 <span className="mx-1.5" aria-hidden>/</span>
@@ -802,7 +802,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         「下書き・未確認」は意味を持つので読ませる */}
                     <p aria-hidden={verified ? true : undefined}
                        className={`m-0 mb-1.5 eyebrow ${verified ? "text-accent" : "text-white/60"}`}>
-                        {verified ? (isJa ? "撮影スポット" : "Photo spot") : (isJa ? "下書き・未確認" : "Draft · Unreviewed")}
+                        {verified ? (isJa ? "観光スポット" : "Photo spot") : (isJa ? "下書き・未確認" : "Draft · Unreviewed")}
                     </p>
                     {/* 題は iOS の `JPFont.photoTitle`（明朝 32・どの幅でも同じ＝PC の幅の決まり W2）。以前は clamp(24〜38) */}
                     <h1 className="m-0 font-serif font-bold text-white wrap-anywhere"
@@ -892,7 +892,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         {/* ── 4. この場所の魅力 ───────────────── */}
                         {(spot.description || (spot.highlights ?? []).length > 0) && (
                             <section className="pt-6" aria-labelledby="spot-charm">
-                                <Head id="spot-charm" eyebrow="ABOUT">{isJa ? "この撮影スポットの魅力" : "What makes it special"}</Head>
+                                <Head id="spot-charm" eyebrow="ABOUT">{isJa ? "この観光スポットの魅力" : "What makes it special"}</Head>
                                 {spot.description && (
                                     <p className="m-0 mb-3 text-white/85" style={{ fontSize: "15px", lineHeight: "26px" }}>
                                         {spot.description}
@@ -1088,7 +1088,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                                 <Link href={mapHref} prefetch={false} className={`${ROW_TALL} ${CARD}`} data-testid="spot-map-row">
                                     <span className={ROW_ICON_BOX}><MapIcon className={ROW_ICON} aria-hidden /></span>
                                     <span className="min-w-0 flex-1 py-2">
-                                        <span className={ROW_TITLE}>{isJa ? "撮影地マップでこの撮影スポットを開く" : "Open on the map"}</span>
+                                        <span className={ROW_TITLE}>{isJa ? "撮影地マップでこの観光スポットを開く" : "Open on the map"}</span>
                                         {/* **正確な GPS は出さない。** 台帳の座標は約1km に丸めてある */}
                                         <span className={ROW_SUB}>{isJa ? "位置はおおよそです（約1km）" : "Approximate location (~1km)"}</span>
                                     </span>
@@ -1100,7 +1100,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         {/* ── 9. 近くの撮影スポット（登録済みのみ）── */}
                         {nearby.length > 0 && (
                             <section className="mb-7" aria-labelledby="spot-nearby">
-                                <Head id={NEARBY_SECTION_ID}>{isJa ? "近くの撮影スポット" : "Nearby spots"}</Head>
+                                <Head id={NEARBY_SECTION_ID}>{isJa ? "近くの観光スポット" : "Nearby spots"}</Head>
                                 <SpotRows rows={nearby} isJa={isJa} />
                             </section>
                         )}
@@ -1109,7 +1109,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                             手で選んだ「近くの撮影スポット」とは別。見出しは関係を名乗らない */}
                         {sameArea && sameArea.spots.length > 0 && (
                             <section className="mb-7" aria-labelledby="spot-same-area">
-                                <Head id="spot-same-area">{isJa ? `${sameArea.label}の撮影スポット`
+                                <Head id="spot-same-area">{isJa ? `${sameArea.label}の観光スポット`
                                     // 英語の国名は台帳に無い（海外の区画名 Outside Japan では中身と合わない）
                                     : spot.region?.country === "日本" && area ? `More spots in ${area.nameEn}` : "More photo spots"}</Head>
                                 <SpotRows rows={sameArea.spots} isJa={isJa} />

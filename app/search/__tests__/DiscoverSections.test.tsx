@@ -43,7 +43,7 @@ vi.mock("../../components/GalleryGrid", () => ({
 }));
 
 // 2026-10-31 束 1 S4・S5・S7・S8: iOS の発見の面（撮影地 → おすすめ → 色 → 機材）
-describe("季節の撮影スポット導線", () => {
+describe("季節の観光スポット導線", () => {
     it("撮影地があるときは既存の季節SEOページ4件にリンクし、架空の写真件数を表示しない", () => {
         render1([photo("a", { location: "東京都 千代田区" })]);
         const section = screen.getByTestId("discover-seasons");
@@ -106,7 +106,7 @@ describe("さがす: 発見の節", () => {
         ]);
         const links = [...container.querySelectorAll('a[href*="/location/"]')].map((a) => a.textContent);
         expect(links[0], "枚数順になっていない").toContain("東京");
-        expect(container.textContent, "数えていない「人気」を名乗っている").not.toMatch(/人気|おすすめ撮影スポット/);
+        expect(container.textContent, "数えていない「人気」を名乗っている").not.toMatch(/人気|おすすめ観光スポット/);
         expect(screen.getByRole("link", { name: "地図で見る" }).getAttribute("href")).toBe("/map");
     });
 

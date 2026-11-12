@@ -32,7 +32,7 @@ export async function generateMetadata(): Promise<Metadata> {
     const n = visibleSpots(SPOTS).length;
     const verified = publishableSpots(SPOTS).length;
     const areas = spotAreas().length;
-    const title = "撮影スポットをさがす";
+    const title = "観光スポットをさがす";
     const og = firstSpotOgImage(publishableSpots(SPOTS), title);
     // 件数に「運営が調べた」と読める形で数えるのは、人が確かめた行だけ
     const description = n > 0
@@ -106,9 +106,9 @@ function SpotIndexTopicSections() {
     const { seasons, themes, seasonThemes, cities, momiji, sakura, snow } = spotIndexTopics();
     if (seasons.length === 0 && themes.length === 0) return null;
     const features: Array<{ id: string; title: ReactNode; links: TopicLink[] }> = [
-        { id: "spots-sakura", title: <Lang ja="桜の撮影スポット" en="Cherry blossom photo spots" />, links: sakura },
-        { id: "spots-momiji", title: <Lang ja="紅葉の撮影スポット" en="Autumn foliage photo spots" />, links: momiji },
-        { id: "spots-snow", title: <Lang ja="雪景色の撮影スポット" en="Snow scenery photo spots" />, links: snow },
+        { id: "spots-sakura", title: <Lang ja="桜の観光スポット" en="Cherry blossom photo spots" />, links: sakura },
+        { id: "spots-momiji", title: <Lang ja="紅葉の観光スポット" en="Autumn foliage photo spots" />, links: momiji },
+        { id: "spots-snow", title: <Lang ja="雪景色の観光スポット" en="Snow scenery photo spots" />, links: snow },
     ].filter((f) => f.links.length > 0);
     const featureCount = features.reduce((n, f) => n + f.links.length, 0);
     return (

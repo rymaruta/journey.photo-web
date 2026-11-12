@@ -134,14 +134,14 @@ async function typePlace(text: string) {
     await userEvent.type(input, text);
 }
 
-describe("アップロード画面: 撮影スポットを自動で選ぶ", () => {
-    it("撮影地に撮影スポットの名前があれば選んだ状態で見せるが、保存には spotId も外した印も載せない", async () => {
+describe("アップロード画面: 観光スポットを自動で選ぶ", () => {
+    it("撮影地に観光スポットの名前があれば選んだ状態で見せるが、保存には spotId も外した印も載せない", async () => {
         const { container } = render(<UploadPage />);
         await pick(container);
         await typePlace("蔵王キツネ村");
         const card = await screen.findByTestId("upload-auto-spot");
-        expect(card.textContent).toContain("撮影スポット「蔵王キツネ村」に結ぶ");
-        expect(screen.getByRole("switch", { name: "撮影スポット「蔵王キツネ村」に結ぶ" }).getAttribute("aria-checked")).toBe("true");
+        expect(card.textContent).toContain("観光スポット「蔵王キツネ村」に結ぶ");
+        expect(screen.getByRole("switch", { name: "観光スポット「蔵王キツネ村」に結ぶ" }).getAttribute("aria-checked")).toBe("true");
         await publish();
         expect("spotId" in savedBody()!).toBe(false);
         expect("spotAuto" in savedBody()!).toBe(false);
@@ -151,16 +151,16 @@ describe("アップロード画面: 撮影スポットを自動で選ぶ", () =>
         const { container } = render(<UploadPage />);
         await pick(container);
         await typePlace("蔵王キツネ村");
-        const sw = await screen.findByRole("switch", { name: "撮影スポット「蔵王キツネ村」に結ぶ" });
+        const sw = await screen.findByRole("switch", { name: "観光スポット「蔵王キツネ村」に結ぶ" });
         await userEvent.click(sw);
         expect(sw.getAttribute("aria-checked")).toBe("false");
-        expect(screen.getByTestId("upload-auto-spot").textContent).toContain("撮影スポットには結ばずに投稿します");
+        expect(screen.getByTestId("upload-auto-spot").textContent).toContain("観光スポットには結ばずに投稿します");
         await publish();
         expect("spotId" in savedBody()!).toBe(false);
         expect(savedBody()!.spotAuto).toBe("off");
     });
 
-    it("当たる撮影スポットが無ければ何も出さず、何も送らない", async () => {
+    it("当たる観光スポットが無ければ何も出さず、何も送らない", async () => {
         const { container } = render(<UploadPage />);
         await pick(container);
         await typePlace("東京");
@@ -196,7 +196,7 @@ describe("アップロード画面: 複数枚の投稿", () => {
         const { container } = render(<UploadPage />);
         const input = container.querySelector('input[type="file"]') as HTMLInputElement;
         await userEvent.upload(input, [new File(["x"], "a.jpg", { type: "image/jpeg" }), new File(["y"], "b.jpg", { type: "image/jpeg" })]);
-        const sw = await screen.findByRole("switch", { name: "撮影スポット「蔵王キツネ村」に結ぶ" }, { timeout: 4000 });
+        const sw = await screen.findByRole("switch", { name: "観光スポット「蔵王キツネ村」に結ぶ" }, { timeout: 4000 });
         await userEvent.click(sw);
         const btn = await screen.findByRole("button", { name: /投稿する/ }, { timeout: 4000 });
         await waitFor(() => expect(btn).not.toBeDisabled(), { timeout: 4000 });
@@ -212,19 +212,19 @@ describe("アップロード画面: 複数枚の投稿", () => {
     }, 15000);
 });
 
-describe("アップロード画面: 撮影スポットの帯で「外す」", () => {
+describe("アップロード画面: 観光スポットの帯で「外す」", () => {
     function savedBodies(): Record<string, unknown>[] {
         return mockUserFetch.mock.calls.filter((c) => c[0] === "/upload/save").map((c) => JSON.parse((c[1] as { body: string }).body));
     }
 
-    it("帯で外した撮影スポットと自動の候補が同じなら、見ていた1枚は「切り」で始め、外した印を書く", async () => {
+    it("帯で外した観光スポットと自動の候補が同じなら、見ていた1枚は「切り」で始め、外した印を書く", async () => {
         q.search = "spot=ginzan-onsen";
         const { container } = render(<UploadPage />);
         await screen.findByTestId("upload-spot-banner");
         await pick(container);
         await waitFor(() => expect(screen.getByTestId("upload-spot-banner").textContent).toContain("1枚をスポットに紐付けます"));
-        await userEvent.click(screen.getByRole("button", { name: "撮影スポット「銀山温泉」を外す" }));
-        const sw = await screen.findByRole("switch", { name: "撮影スポット「銀山温泉」に結ぶ" });
+        await userEvent.click(screen.getByRole("button", { name: "観光スポット「銀山温泉」を外す" }));
+        const sw = await screen.findByRole("switch", { name: "観光スポット「銀山温泉」に結ぶ" });
         expect(sw.getAttribute("aria-checked")).toBe("false");
         await publish();
         expect("spotId" in savedBody()!).toBe(false);
@@ -237,8 +237,8 @@ describe("アップロード画面: 撮影スポットの帯で「外す」", ()
         await screen.findByTestId("upload-spot-banner");
         await pick(container);
         await waitFor(() => expect(screen.getByTestId("upload-spot-banner").textContent).toContain("1枚をスポットに紐付けます"));
-        await userEvent.click(screen.getByRole("button", { name: "撮影スポット「銀山温泉」を外す" }));
-        await screen.findByRole("switch", { name: "撮影スポット「銀山温泉」に結ぶ" });
+        await userEvent.click(screen.getByRole("button", { name: "観光スポット「銀山温泉」を外す" }));
+        await screen.findByRole("switch", { name: "観光スポット「銀山温泉」に結ぶ" });
         const input = container.querySelector('input[type="file"]') as HTMLInputElement;
         await userEvent.upload(input, new File(["z"], "c.jpg", { type: "image/jpeg" }));
         // 2枚目にも同じ撮影地を書く（自動の候補は同じ銀山温泉）

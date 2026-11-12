@@ -64,7 +64,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
         <section aria-labelledby="search-spot-heading" className="mb-6" data-testid="search-spot-results">
             {/* アプリの探すの「撮影スポット（N か所）」と同じ眉＋消える線（iOS の `JPEyebrowLine`） */}
             <h2 id="search-spot-heading" className="m-0 mb-2.5 eyebrow eyebrow-line text-accent">
-                {en ? `Shooting spots (${hits.length})` : `撮影スポット（${hits.length}か所）`}
+                {en ? `Shooting spots (${hits.length})` : `観光スポット（${hits.length}か所）`}
             </h2>
             <ul className="list-none m-0 p-0 rounded-2xl bg-surface overflow-hidden">
                 {shown.map((s, i) => (
@@ -76,7 +76,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate font-semibold text-white" style={{ fontSize: "15px", lineHeight: "22px" }}>{s.n}</span>
                                 <span className="block truncate text-white/70" style={{ fontSize: "12px", lineHeight: "18px" }}>
-                                    {en ? "Photo spot" : "撮影スポット"}{s.g ? ` ・ ${s.g}` : ""}
+                                    {en ? "Photo spot" : "観光スポット"}{s.g ? ` ・ ${s.g}` : ""}
                                 </span>
                             </span>
                             <ChevronRightIcon aria-hidden="true" className="shrink-0 text-white/50" style={{ width: "18px", height: "18px" }} />

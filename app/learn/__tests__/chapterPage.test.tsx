@@ -46,7 +46,7 @@ describe("第1章（カメラの使い方 完全入門）も、他の章と同�
     });
 });
 
-describe("本文の中の撮影スポットへのリンク（2026-11-11・#527）", () => {
+describe("本文の中の観光スポットへのリンク（2026-11-11・#527）", () => {
     it("章の本文の [文字](/spots/…) はリンクとして出て、印の文字は画面に残らない（動きの章）", async () => {
         const { container } = render(await ChapterPage({ params: Promise.resolve({ slug: "motion" }) }));
         const a = container.querySelector('a[href="/spots/fukuroda-falls"]');
@@ -59,7 +59,7 @@ describe("本文の中の撮影スポットへのリンク（2026-11-11・#527�
     it("第1章の本文・撮影の手引きの中のリンクも出る", async () => {
         const { default: BasicsPage } = await import("../camera-basics/page");
         const { container } = render(await BasicsPage());
-        expect(container.querySelector('a[href="/spots/snow"]')?.textContent).toBe("雪景色の撮影スポット");
+        expect(container.querySelector('a[href="/spots/snow"]')?.textContent).toBe("雪景色の観光スポット");
         expect(container.querySelector('a[href="/spots/kegon-falls"]')?.textContent).toBe("華厳の滝");
         expect(container.textContent).not.toMatch(/\]\(\/spots/);
     });

@@ -132,9 +132,9 @@ export default function SpotListSearch({ areas, isJa, children }: {
             : !rows
                 ? (isJa ? "さがしています…" : "Searching…")
                 : empty
-                    ? (isJa ? `「${q}」の撮影スポットは見つかりません。` : `No photo spots found for "${q}".`)
-                    : (isJa ? `公開中の撮影スポットのうち ${hits.length}件が当たりました。` : `${hits.length} of the published photo spots matched.`);
-    const label = isJa ? "撮影スポットを検索" : "Search photo spots";
+                    ? (isJa ? `「${q}」の観光スポットは見つかりません。` : `No photo spots found for "${q}".`)
+                    : (isJa ? `公開中の観光スポットのうち ${hits.length}件が当たりました。` : `${hits.length} of the published photo spots matched.`);
+    const label = isJa ? "観光スポットを検索" : "Search photo spots";
 
     return (
         <>

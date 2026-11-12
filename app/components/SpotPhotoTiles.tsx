@@ -90,7 +90,7 @@ export function SeasonShelf({ seasonal }: { seasonal: SpotIndexPhotos["seasonal"
         <section className="mb-7" aria-labelledby="spots-season-shelf" data-testid="spots-season-shelf">
             <SectionHead id="spots-season-shelf"
                 eyebrow={`${name.en.toUpperCase()} · ${en ? "THIS SEASON" : "いまの季節"}`}
-                title={en ? `${name.en} photo spots` : `${name.ja}の撮影スポット`}
+                title={en ? `${name.en} photo spots` : `${name.ja}の観光スポット`}
                 href={seasonal.href} moreLabel={en ? `All ${seasonal.total}` : `すべて ${seasonal.total}`} />
             <ul className="flex gap-3 overflow-x-auto no-scrollbar m-0 p-0 -mx-4 px-4 scroll-px-4 sm:-mx-6 sm:px-6 sm:scroll-px-6 md:-mx-8 md:px-8 md:scroll-px-8 lg:mx-0 lg:px-0 lg:scroll-px-0"
                 style={{ listStyle: "none", scrollSnapType: "x proximity" }}>

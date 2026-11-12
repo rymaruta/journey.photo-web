@@ -114,7 +114,7 @@ async function publish() {
     await waitFor(() => expect(savedBody(), "保存に届いていない").not.toBeNull());
 }
 
-describe("アップロード画面: 撮影スポットから来た投稿", () => {
+describe("アップロード画面: 観光スポットから来た投稿", () => {
     it("スポット名を帯に出し、撮影地に入れ、保存に spotId を載せる", async () => {
         const { container } = render(<UploadPage />);
         expect((await screen.findByTestId("upload-spot-banner")).textContent).toContain("銀山温泉");

@@ -16,7 +16,7 @@ import { Breadcrumbs, JsonLd, LearnHeader, breadcrumbData } from "@/app/learn/_p
 import TodayHub from "./TodayHub";
 import PrefChips from "./PrefChips";
 
-const DESCRIPTION = "現在地または都道府県を選ぶと、今日の日の出・日の入り時刻、朝夕のゴールデンアワーとブルーアワー、近くの撮影スポットがわかります。座標と日付から計算した目安で、開いた日の値を表示します。";
+const DESCRIPTION = "現在地または都道府県を選ぶと、今日の日の出、日の入り時刻、朝夕のゴールデンアワーとブルーアワー、近くの観光スポットがわかります。座標と日付から計算した目安で、開いた日の値を表示します。";
 
 // 題はサイト名を足さない（ルートの `title.template` が足す。`pageTitles.test.ts` の決まり）
 export const metadata = learnMetadata(ROUTES.TODAY, TODAY_HUB_TITLE, DESCRIPTION, "website");
@@ -36,7 +36,7 @@ export default function TodayHubPage() {
                 <LearnHeader
                     eyebrow="TODAY · 日の出・日の入り"
                     title="今日の日の出・日の入り時刻"
-                    lead="日の出・日の入りの時刻と方位、朝夕のゴールデンアワーとブルーアワー、近くの撮影スポットを、今日の日付で調べられます。現在地で調べるか、県を選んでください。"
+                    lead="日の出、日の入りの時刻と方位、朝夕のゴールデンアワーとブルーアワー、近くの観光スポットを、今日の日付で調べられます。現在地で調べるか、県を選んでください。"
                 />
 
                 <section aria-labelledby="today-here-heading" className="mb-10">

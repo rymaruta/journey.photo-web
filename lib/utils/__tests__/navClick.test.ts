@@ -57,7 +57,7 @@ describe("nav_click の仕様", () => {
     });
 });
 
-describe("撮影スポット詳細のパス", () => {
+describe("観光スポット詳細のパス", () => {
     beforeEach(() => {});
     it("/spots/<slug> だけが詳細。一覧・県・季節・テーマ・予約語は違う", () => {
         expect(isSpotDetailPath("/spots/goryokaku")).toBe(true);
@@ -87,7 +87,7 @@ describe("入口の文言の禁止語", () => {
 
 // 2026-11-10 札 #515: 本文に自分のアプリの札がある頁（フッターの札を出さない頁）
 describe("pageHasOwnAppCard", () => {
-    it("ホーム・撮影スポット詳細・教科書の章だけ（一覧との一致は ownAppCardPages.test.ts）", () => {
+    it("ホーム・観光スポット詳細・教科書の章だけ（一覧との一致は ownAppCardPages.test.ts）", () => {
         for (const p of ["/", "/spots/goryokaku", "/spots/goryokaku/", "/learn/autumn-leaves"]) expect(pageHasOwnAppCard(p), p).toBe(true);
         for (const p of ["/spots", "/spots/sakura", "/spots/area/hokkaido", "/search", "/learn", "/learn/camera-basics", "/terms", "", null, undefined]) {
             expect(pageHasOwnAppCard(p), String(p)).toBe(false);
