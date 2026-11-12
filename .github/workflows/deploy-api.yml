@@ -521,6 +521,33 @@ jobs:
             --param "usersTable=${{ needs.config.outputs.usersTable }}" \
             ${extra[@]+"${extra[@]}"}
 
+      # グループの会話（みんなで話す DM・2026-11-12 札 journey.photo-ios#582・`api-user/src/groups.ts`）は**別のスタック**
+      # （`api-user/serverless.groups.yml`）。user API のスタックの部品が上限 500 に近い（488）ので分けた。
+      # 🔴 **user API の後に配る。** user API が書き出す HttpApiId と認可を取り込んで経路を足す（口の URL は user API と同じ）。
+      #    知らせもこの関数から送るので、プッシュの鍵は user API と同じ渡し方（無ければ旗ごと渡さない＝知らせは送らないだけ）
+      - name: Serverless deploy（グループの会話・別スタック）
+        working-directory: api-user
+        env:
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+          APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
+          APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
+          APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
+          APNS_HOST: ${{ needs.config.outputs.apnsHost }}
+        run: |
+          set -euo pipefail
+          extra=()
+          if [ -n "${APNS_PRIVATE_KEY:-}" ]; then
+            extra+=(--param "apnsPrivateKey=$APNS_PRIVATE_KEY")
+            extra+=(--param "apnsKeyId=$APNS_KEY_ID")
+            extra+=(--param "apnsTeamId=$APNS_TEAM_ID")
+            extra+=(--param "apnsTopic=$APNS_TOPIC")
+            extra+=(--param "apnsHost=$APNS_HOST")
+          fi
+          npx serverless@3 deploy --config serverless.groups.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
+            ${extra[@]+"${extra[@]}"}
+
       # プロフィールの QR の口（札 journey.photo-ios#545・`api-user/serverless.profile-qr.yml`）は**別のスタック**。
       # user API のスタックの部品が上限 500 に近い（488）ので分けた（2026-11-12）。
       # コード・依存は user API と同じなので、このジョブの中で続けて配る。

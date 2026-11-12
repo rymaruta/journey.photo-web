@@ -89,7 +89,9 @@ const sendsPush = (handler: string) =>
     /\b(?:pushNotification|refreshBadges|refreshBadgesQuietly|applyToProfile|alertOne|notifyInspiredOnce|sendDm)\s*\(/.test(handlerBody("api-user", handler))
     // 旅行プランの共有（`tripShare.ts`）は口が9つでも関数は1つ（`handler` が道で分ける）。知らせは中の `notify` が
     // `sendPush` で直に送るので、`handler` の本文には出てこない。別のスタックまで見張りを広げたとき（#552）に足した
-    || (handler === "src/tripShare.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/tripShare.ts"), "utf8")));
+    || (handler === "src/tripShare.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/tripShare.ts"), "utf8")))
+    // グループの会話（`groups.ts`・2026-11-12）も同じ形: 口は11でも関数は1つで、知らせは中の `pushTo` が `sendPush` で直に送る
+    || (handler === "src/groups.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/groups.ts"), "utf8")));
 // `notifyInspiredOnce` は「この写真を見て撮影」の知らせ（`inspired.ts`）。写真の保存・更新が呼ぶ
 // `sendDm` は DM の送信（`dm.ts`。受け取った人の端末へ送る。リクエストには送らない）。
 // `alertOne` は光と天気の知らせ（`lightForecast.ts` の `sendLightAlerts`）。お知らせの一覧には
@@ -153,7 +155,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
     it("通知を積む関数を1つ以上見つけている", () => {
         const sending = [...fns].filter(([, v]) => sendsPush(v.handler)).map(([n]) => n).sort();
         expect(sending).toEqual([
-            "answerStory", "appStoreNotification", "createStory", "dm", "followUser", "getMyBadges", "likePhoto", "postComment", "postStoryReply",
+            "answerStory", "appStoreNotification", "createStory", "dm", "followUser", "getMyBadges", "groups", "likePhoto", "postComment", "postStoryReply",
             "recordPurchase", "savePhoto", "sendLightAlerts", "tripShare", "updatePhotoVisibility",
         ]);
     });

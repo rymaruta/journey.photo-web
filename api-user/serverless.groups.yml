@@ -1,0 +1,228 @@
+# グループの会話（みんなで話す DM・最大30人。`src/groups.ts`・行は `src/groupChat.ts`）の口を、user API とは**別のスタック**で配る
+# （2026-11-12・札 journey.photo-ios#582・資料「みんなで話す DM」。owner 承認 2026-11-12: 行の種類を5つ・`dmday#` に欄を2つ・
+# このスタックを1つ。**新しい GSI・表・TTL・SQS は作らない**）。
+#
+# 🔴 なぜ分けたか: user API のスタック（`serverless.yml`）は部品が上限 500 に近い（488）。口を足すと越える。
+#    形は今の機能ごとのスタック（`serverless.trip-share.yml`・`serverless.dm.yml`）にそろえた: 置き場は api-user の中の
+#    別の設定ファイル（コード・依存・esbuild の設定を共有する）。
+#
+# 🔴 口の URL は今の user API と同じ（`<user API>/groups/...`）。新しい HTTP API は作らず、user API のスタックが書き出す
+#    HttpApiId を取り込んで**経路だけ**このスタックに置く。ログインの確かめは user API が書き出す認可（`CognitoAuthorizerId`）。
+#    このスタックを配るのは user API の**後**（`deploy-api.yml`）。経路ごとの流量の設定は無いので、先に配る理由は無い。
+#
+# 🔴 知らせ（プッシュ）も**この関数の中で送る**（別の Lambda・非同期の呼び出し・SQS は使わない・資料 8b章）。
+#    相手全員の端末をまとめて読み（`devices.ts` の `deviceTokensOf`）、`sendPush` を1回だけ呼んで APNs への接続1本で送る。
+service: photo-gallery-groups
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ap-northeast-1
+  # user API と同じ（`scripts/__tests__/logRetention.test.ts`）
+  logRetentionInDays: 90
+  versionFunctions: false
+  environment:
+    PHOTOS_TABLE: ${param:photosTable}
+    USERS_TABLE: ${param:usersTable}
+  httpApi:
+    # user API の HTTP API に経路を足す（新しい API は作らない）
+    id:
+      Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
+  iam:
+    role:
+      statements:
+        # 🔴 **読む範囲も鍵の頭で絞る**（2026-11-12 確かめ役の指摘4: 前は表ぜんたいの GetItem・BatchGetItem を許していた）。
+        #    使う行は `api-user/src/__tests__/groups.test.ts` の最後の試験が、試験で実際に読み書きした鍵と突き合わせる。
+        #
+        # グループの行（`groupChat.ts` の5つ）。読み書きは「読む → rev の条件で Put」（`updateUserRow`）と消すだけ
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:DeleteItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringLike:
+              dynamodb:LeadingKeys:
+                - group#*
+                - groupmembers#*
+                - groupchat#*
+                - groupsjoined#*
+                - groupreport#*
+        # まとめて読むのは2つだけ: 受信箱の小さい行（`readHeads`）・端末の宛先（`deviceTokensOf`）
+        - Effect: Allow
+          Action:
+            - dynamodb:BatchGetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringLike:
+              dynamodb:LeadingKeys:
+                - group#*
+                - devices#*
+        # 書く道が要るほかの行は1つずつ、UpdateItem だけ: 1日の歯止め（`dm.ts` の `reserveGroupDaily`・DM と同じ行の別の欄
+        # `groupSent`・`groupNew`）・端末の宛先から届かない宛先を外す（`devices.ts` の `forgetTokens`）
+        - Effect: Allow
+          Action:
+            - dynamodb:UpdateItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringLike:
+              dynamodb:LeadingKeys:
+                - dmday#*
+                - devices#*
+        # **読むだけ**の行: ブロック（印・自分の一覧・被ブロックの一覧）・フォローの印・親しい友達（入れる門と写真の範囲）
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringLike:
+              dynamodb:LeadingKeys:
+                - block#*
+                - blocks#*
+                - blockedby#*
+                - follow#*
+                - closefriends#*
+        # 写真の行（送る写真・写真の札。`photoVisibility.ts` の `readVisiblePhoto`）。写真の行の鍵は写真の ID で頭が決まらないので、
+        # **読める欄を ProjectionExpression の欄だけに絞る**（欄の指定の無い読みは `Null` の条件で断る）
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringEquals:
+              dynamodb:Attributes:
+                - id
+                - src
+                - thumbSrc
+                - published
+                - story
+                - userId
+                - uploadedBy
+                - audience
+                - title
+                - location
+            StringEqualsIfExists:
+              dynamodb:Select: SPECIFIC_ATTRIBUTES
+            'Null':
+              dynamodb:Attributes: 'false'
+        # 名前を引く・退会の確かめ（読むだけ）
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:BatchGetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node22
+    platform: node
+    exclude:
+      - '@aws-sdk/*'
+
+functions:
+  # **口は11でも関数は1つ**（`trunk`・`tripShare` と同じ形）。道は `event.routeKey` で分ける
+  groups:
+    handler: src/groups.handler
+    # 送信は「歯止め → 会話 → 小さい行 → 読んだ位置 → 知らせ（端末をまとめて読み、APNs は締め切り2秒）」と続けて書く。
+    # 既定の 6 秒では足りないことがある（`tripShare` と同じ 15 秒。HTTP API の待ちの上限 30 秒より短く）
+    timeout: 15
+    environment:
+      # 知らせ（プッシュ）。**鍵は送る関数にだけ配る**（provider に置かない・IAM-2）。無ければ送らないだけ
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
+      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
+      APNS_TOPIC: ${param:apnsTopic, ''}
+      APNS_HOST: ${param:apnsHost, ''}
+    events:
+      - httpApi:
+          path: /groups
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{gid}
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{gid}
+          method: PUT
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{gid}/messages
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{gid}/messages
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{gid}/members
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{gid}/members/{uid}
+          method: DELETE
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{gid}/join
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{gid}/invite
+          method: DELETE
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{gid}/report
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId

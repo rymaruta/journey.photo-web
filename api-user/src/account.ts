@@ -9,6 +9,7 @@ import { invalidateUploads } from "./cdnInvalidate";
 import { purgeBlocksFor } from "./block";
 import { purgeDmFor } from "./dm";
 import { purgeTripSharesFor } from "./tripShare";
+import { purgeGroupsFor } from "./groups";
 import { updateFollowersQuietly } from "./follow";
 import { requireEnv } from "./env";
 import { requestSiteRebuild } from "./rebuild";
@@ -789,6 +790,13 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         await purgeTripSharesFor(uid)
             .catch((e) => console.error(`deleteAccount: 共有した旅行プランの掃除に失敗（${uid}）:`, e));
         await ddbDelete(PHOTOS_TABLE, { id: `tripsjoined#${uid}` });
+        // グループの会話（`groups.ts`・2026-11-12 札 journey.photo-ios#582）。入っていたグループから抜け（作った人なら
+        // 次の人へ渡す・誰も残らなければグループと会話を消す）、招待は黙って外してから、本人の行を消す。過去の通は残す
+        // （名前は「退会したユーザー」・今の DM と同じ）。通報の写し（`groupreport#`）は運営の記録なので消さない。
+        // **失敗しても退会は止めない**
+        await purgeGroupsFor(uid)
+            .catch((e) => console.error(`deleteAccount: グループの会話の掃除に失敗（${uid}）:`, (e as { name?: string })?.name));
+        await ddbDelete(PHOTOS_TABLE, { id: `groupsjoined#${uid}` });
         // 親しい友達（`closeFriends.ts` の `closefriends#<uid>`）。同じ扱い。
         // 中身は**利用者IDの一覧**＝「誰を親しいと決めたか」で、
         // `spots#`（どこへ行きたかったか）と同じ性質の行動履歴。

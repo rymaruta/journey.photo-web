@@ -123,6 +123,11 @@ export type PushMessage = PushAlert & {
     badge?: number;
     /** 押したときの行き先を決めるための付帯情報 */
     data?: Record<string, string>;
+    /**
+     * 通知センターで束ねる鍵（APNs の `aps.thread-id`）。グループの会話の知らせを、グループごとに1つの束にまとめる
+     * （2026-11-12・資料「みんなで話す DM」2章）。**無ければ付けない**（今までの知らせの形は変えない）
+     */
+    threadId?: string;
 };
 
 /** 送信の結果。**無効だった宛先だけ**を返す（呼び出し側が外す） */
@@ -141,6 +146,7 @@ export function pushPayload(message: PushMessage): string {
                 : { title: message.title, body: message.body },
             sound: "default",
             ...(typeof message.badge === "number" ? { badge: message.badge } : {}),
+            ...(message.threadId ? { "thread-id": message.threadId } : {}),
         },
         ...(message.data ?? {}),
     });
