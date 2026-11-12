@@ -479,7 +479,9 @@ jobs:
           # プッシュの鍵は user API と同じ渡し方（無ければ旗ごと渡さない＝知らせは送らないだけ）。
           # 鍵を読むのは、そのスタックで関数ごとに `${param:apns…}` を書いた関数だけ
           if [ -n "${APNS_PRIVATE_KEY:-}" ]; then
-            extra+=(--param "apnsPrivateKey=$APNS_PRIVATE_KEY")
+            # 改行のまま渡すと1行目しか届かない（札 journey.photo-ios#585・上の注記）
+            apns_key="$(bash ../scripts/apns-key-param.sh)"
+            extra+=(--param "apnsPrivateKey=$apns_key")
             extra+=(--param "apnsKeyId=$APNS_KEY_ID")
             extra+=(--param "apnsTeamId=$APNS_TEAM_ID")
             extra+=(--param "apnsTopic=$APNS_TOPIC")
