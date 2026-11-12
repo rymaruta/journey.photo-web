@@ -56,14 +56,11 @@ const services = [
             "getPublicProfile", "searchUsers", "getLikeCount", "getComments", "getFollowStats", "getInvite", "getFeed",
             // App Store Server Notifications（Apple から・署名で確かめる。`purchases.ts`）
             "appStoreNotification",
-            // みんなの「行きたい」を数える口（2026-11-11・撮影スポットを払うの②）。未ログインでも払えるので未認証。
-            // 書くのは数の行だけ（専用ロール・鍵の頭 dynamodb:LeadingKeys で数の行に絞る・`spotWants.test.ts` が見る）
-            "recordSpotWants",
             // 意見箱のログインしていない人の口（札 #546。`feedback.ts`・IP ごとの上限）
             "sendFeedbackPublic",
         ],
         /** PublicReadRole ではなく専用ロールで動かす公開関数（関数名 → ロール名） */
-        ownRole: { getFeed: "PublicFeedRole", appStoreNotification: "AppStoreNotifyRole", recordSpotWants: "SpotWantsRecordRole", sendFeedbackPublic: "FeedbackRole" } as Record<string, string>,
+        ownRole: { getFeed: "PublicFeedRole", appStoreNotification: "AppStoreNotifyRole", sendFeedbackPublic: "FeedbackRole" } as Record<string, string>,
     },
     { name: "api", file: "api/serverless.yml", publicFns: ["getPhotos", "getPhoto"], ownRole: {} as Record<string, string> },
 ];
@@ -100,6 +97,30 @@ describe.each(services)("$name: 未認証の口は読み取り専用ロールで
             if (!b.includes("authorizer:")) continue;
             expect(b, `${name} に読み取り専用ロールが付いている`).not.toContain("role: PublicReadRole");
         }
+    });
+});
+
+// みんなの「行きたい」（撮影スポットを払うの②）は別のスタック（`api-user/serverless.spot-wants.yml`・2026-11-12）。
+// 未ログインでも払えるので口は未認証。共有ロールを作らせないよう、**全部の関数に専用ロール**を付ける
+// （ロールの中身は `api-user/src/__tests__/spotWants.test.ts` が見る）
+describe("spot-wants: 未認証の口は専用ロールで動く", () => {
+    const yml = readFileSync(join(ROOT, "api-user/serverless.spot-wants.yml"), "utf8");
+    const blocks = functionBlocks(yml);
+
+    it("認可の無い httpApi の関数は recordSpotWants だけ", () => {
+        const found = [...blocks].filter(([, b]) => b.includes("httpApi:") && !b.includes("authorizer:")).map(([n]) => n);
+        expect(found).toEqual(["recordSpotWants"]);
+    });
+
+    it("recordSpotWants は SpotWantsRecordRole で、ほかの関数は使わない", () => {
+        const users = [...blocks].filter(([, b]) => /^\s{4}role: SpotWantsRecordRole\s*$/m.test(b)).map(([n]) => n);
+        expect(users).toEqual(["recordSpotWants"]);
+    });
+
+    it("どの関数も role を持つ（serverless の共有ロールを作らせない）", () => {
+        expect(blocks.size).toBe(3);
+        for (const [name, b] of blocks) expect(b, `${name} に role が無い`).toMatch(/^\s{4}role: \w+\s*$/m);
+        expect(yml).not.toMatch(/^\s{2}iam:/m);
     });
 });
 

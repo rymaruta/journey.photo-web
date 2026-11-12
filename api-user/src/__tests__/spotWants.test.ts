@@ -180,8 +180,8 @@ describe("毎日の集計", () => {
 
     it("日の行・回線の行・塩は2日以内に消える（プライバシーポリシーの約束・確かめ役の指摘 B1）", () => {
         expect(W.maxDayRowLifetimeHours()).toBeLessThan(48);
-        // 掃除の時刻は serverless.yml の cron と同じ（19:47 UTC = 4:47 JST）
-        const yml = readFileSync(join(__dirname, "..", "..", "serverless.yml"), "utf-8");
+        // 掃除の時刻は serverless.spot-wants.yml の cron と同じ（19:47 UTC = 4:47 JST）
+        const yml = readFileSync(join(__dirname, "..", "..", "serverless.spot-wants.yml"), "utf-8");
         const m = /cleanupSpotWants:[\s\S]*?cron\((\d+) (\d+) /.exec(yml);
         expect(m, "cleanupSpotWants の cron が無い").not.toBeNull();
         const jst = (Number(m![2]) + 9) % 24 + Number(m![1]) / 60;
@@ -258,8 +258,11 @@ describe("毎日の集計", () => {
     });
 });
 
-describe("権限と流量（serverless.yml）", () => {
-    const yml = readFileSync(join(__dirname, "..", "..", "serverless.yml"), "utf-8");
+describe("権限と流量（serverless.spot-wants.yml・serverless.yml）", () => {
+    // ②は user API とは別のスタック（2026-11-12・user API のスタックの部品が 488/500 で、足すと 503 になり本番の反映が落ちた）
+    const yml = readFileSync(join(__dirname, "..", "..", "serverless.spot-wants.yml"), "utf-8");
+    const userYml = readFileSync(join(__dirname, "..", "..", "serverless.yml"), "utf-8");
+    const workflow = readFileSync(join(__dirname, "..", "..", "..", ".github", "workflows", "deploy-api.yml"), "utf-8");
     const block = (name: string) => yml.slice(yml.indexOf(`    ${name}:`), yml.indexOf("\n    # ", yml.indexOf(`    ${name}:`) + 10));
 
     it("受ける口と集計の役は、数の行の鍵の頭にだけ書ける（写真の行は消せない）", () => {
@@ -275,12 +278,30 @@ describe("権限と流量（serverless.yml）", () => {
         expect(block("SpotWantsRecordRole")).not.toContain("DeleteItem");
     });
 
-    it("この口だけ流量を絞る", () => {
-        expect(yml).toContain('"POST /spots/wants":');
-        // 段の経路ごとの設定は経路ができてから（論理名は sls package で確かめた）
-        expect(yml).toMatch(/HttpApiStage:\s*\n(?:\s*#.*\n)*\s*DependsOn:\s*\n\s*- HttpApiRoutePostSpotsWants/);
-        expect(yml).toMatch(/ThrottlingRateLimit: \d+/);
-        expect(yml).toMatch(/ThrottlingBurstLimit: \d+/);
-        expect(yml).toContain("cleanupSpotWants:");
+    it("口の URL は user API と同じ（新しい HTTP API を作らず、user API の HttpApiId を取り込んで経路だけ足す）", () => {
+        expect(yml).toMatch(/httpApi:\s*\n(?:\s*#.*\n)*\s*id:\s*\n\s*Fn::ImportValue: sls-photo-gallery-user-api-\$\{sls:stage\}-HttpApiId/);
+        expect(yml).toMatch(/path: \/spots\/wants\s*\n\s*method: POST/);
+        // 3つの関数は user API のスタックには置かない（部品の数を 488 のまま保つ）
+        for (const fn of ["recordSpotWants:", "aggregateSpotWants:", "cleanupSpotWants:"]) {
+            expect(yml).toContain(fn);
+            expect(userYml).not.toMatch(new RegExp(`^  ${fn}`, "m"));
+        }
+        expect(userYml).not.toContain("SpotWantsRecordRole:");
+    });
+
+    it("この口だけ流量を絞る（段を持つ user API 側）", () => {
+        expect(userYml).toContain('"POST /spots/wants":');
+        expect(userYml).toMatch(/ThrottlingRateLimit: \d+/);
+        expect(userYml).toMatch(/ThrottlingBurstLimit: \d+/);
+        // スタックをまたぐ DependsOn は書けない（経路は別のスタック）
+        expect(userYml).not.toContain("HttpApiRoutePostSpotsWants");
+    });
+
+    it("反映は別スタックを user API より先に配る（段の経路ごとの設定は経路ができてから）", () => {
+        const sw = workflow.indexOf("--config serverless.spot-wants.yml");
+        expect(sw, "deploy-api.yml に別スタックの段が無い").toBeGreaterThan(0);
+        const userDeploy = workflow.indexOf("npx serverless@3 deploy --stage", workflow.indexOf("deploy-user-api:"));
+        expect(sw).toBeGreaterThan(workflow.indexOf("deploy-user-api:"));
+        expect(sw).toBeLessThan(userDeploy);
     });
 });
