@@ -270,6 +270,14 @@ jobs:
       - name: Run backend tests
         run: npx vitest run api api-user
 
+      # **配る前に、スタックの部品の数を数える**（札 journey.photo-ios#552 の①）。
+      # 2026-11-12 に user API が 503 個になり、配る段で CloudFormation に断られた（上限 500）。
+      # 450 を超えたら（すでに超えているスタックは決めた数から増えたら）ここで止め、
+      # 配るジョブ（admin・user とも）に進ませない。AWS には触らない（`scripts/lib/stackSize.mjs`）。
+      # 依存は上で入れてあるので、足すのは固める時間だけ（全設定で数十秒）
+      - name: スタックの部品の数を数える
+        run: node scripts/check-stack-size.mjs --stage ${{ steps.pick.outputs.envName }}
+
   deploy-admin-api:
     name: Deploy admin API (api/)
     needs: [config]
