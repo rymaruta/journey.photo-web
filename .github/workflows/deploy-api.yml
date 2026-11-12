@@ -469,21 +469,17 @@ jobs:
           npx serverless@3 deploy --config serverless.trip-share.yml --stage ${{ needs.config.outputs.envName }} \
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "usersTable=${{ needs.config.outputs.usersTable }}" \
-            --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
-            --param "cognitoClientId=${{ needs.config.outputs.cognitoClientId }}" \
             ${extra[@]+"${extra[@]}"}
 
       # プロフィールの QR の口（札 journey.photo-ios#545・`api-user/serverless.profile-qr.yml`）は**別のスタック**。
       # user API のスタックの部品が上限 500 に近い（488）ので分けた（2026-11-12）。
       # コード・依存は user API と同じなので、このジョブの中で続けて配る。
-      # **user API の後に配る。** このスタックは user API が書き出す HttpApiId を取り込んで経路と
-      # ログインの確かめを足すだけで、user API の側はこのスタックの何も参照しない
+      # **user API の後に配る。** このスタックは user API が書き出す HttpApiId とログインの確かめ（認可）を
+      # 取り込んで経路を足すだけで、user API の側はこのスタックの何も参照しない
       - name: Serverless deploy（プロフィールの QR・別スタック）
         working-directory: api-user
         run: |
           set -euo pipefail
           npx serverless@3 deploy --config serverless.profile-qr.yml --stage ${{ needs.config.outputs.envName }} \
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
-            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
-            --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
-            --param "cognitoClientId=${{ needs.config.outputs.cognitoClientId }}"
+            --param "usersTable=${{ needs.config.outputs.usersTable }}"
