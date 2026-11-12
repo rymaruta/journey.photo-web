@@ -19,7 +19,7 @@ vi.mock("../i18n/context", () => ({
 vi.mock("../../lib/hooks/useToast", () => ({ useToast: () => ({ showToast: vi.fn() }) }));
 vi.mock("../components/GalleryModal", () => ({ default: () => null }));
 vi.mock("../components/SearchParamWatcher", () => ({ default: () => null }));
-vi.mock("../components/HomeTopCards", () => ({ default: () => <section data-testid="home-top-cards" /> }));
+vi.mock("../components/HomeTopCards", () => ({ default: () => <section data-testid="home-top-cards" />, QuizCard: () => <a data-testid="search-quiz-entry" /> }));
 vi.mock("../components/TimelineFeed", () => ({ default: () => <div data-testid="timeline-feed" /> }));
 // 輪の列の中身（読み込み・投稿）は `StoriesBar` 自身のテストが見る。ここは置き場所だけ
 vi.mock("../components/stories/StoriesBar", () => ({ default: () => <div data-testid="stories-bar" /> }));
