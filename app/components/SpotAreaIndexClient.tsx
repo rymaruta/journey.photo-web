@@ -108,7 +108,7 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
             {groups.length === 0 ? (
                 /* **架空の県で埋めない。** 0件なら0件と言う */
                 <p className="m-0 text-white/70" style={{ fontSize: "14px" }}>
-                    {isJa ? "公開中の撮影スポットはまだありません。" : "No published spots yet."}
+                    {isJa ? "公開中の観光スポットはまだありません。" : "No published spots yet."}
                 </p>
             ) : (
                 groups.map(({ key, label, labelEn, items }) => {
@@ -165,7 +165,7 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
     return (
         <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg mx-auto w-full max-w-5xl lg:max-w-6xl">
             <h1 className="font-serif text-4xl font-bold m-0 wrap-anywhere" data-testid="spots-title">
-                {isJa ? "撮影スポットをさがす" : "Find a place to shoot"}
+                {isJa ? "観光スポットをさがす" : "Find a place to shoot"}
             </h1>
             {/* 0件のときは下の「まだありません」だけを出す（「0件の下書きです」と並べない） */}
             {total > 0 && (
@@ -176,10 +176,10 @@ export default function SpotAreaIndexClient({ areas, total, draftCount, children
                     言い過ぎなので外した（確かめ方は各ページの出典の行と、索引の description が書く） */}
                 {draftCount >= total
                     ? (isJa
-                        ? `撮影スポットの下書きです（${total}件・運営未確認）。地域を選ぶと、その中のスポットが出ます。`
+                        ? `観光スポットの下書きです（${total}件・運営未確認）。地域を選ぶと、その中のスポットが出ます。`
                         : `Draft guides, not checked by us yet (${total}). Pick an area to see the spots in it.`)
                     : (isJa
-                        ? `撮影スポットの案内です（${total}件${draftCount > 0 ? `・うち下書き${draftCount}件` : ""}）。地域を選ぶと、その中のスポットが出ます。`
+                        ? `観光スポットの案内です（${total}件${draftCount > 0 ? `・うち下書き${draftCount}件` : ""}）。地域を選ぶと、その中のスポットが出ます。`
                         : `Photo spot guides (${total}${draftCount > 0 ? `, ${draftCount} drafts` : ""}). Pick an area to see the spots in it.`)}
             </p>
             )}

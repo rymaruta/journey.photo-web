@@ -54,7 +54,7 @@ describe("検索に出すページの種類ごとに googlebot の指定が残�
         expectIndexable(await spotMeta({ params: Promise.resolve({ slug: spot.slug }) }) as Meta, spot.slug);
     });
 
-    it("撮影スポットの一覧（/spots）", async () => {
+    it("観光スポットの一覧（/spots）", async () => {
         expectIndexable(await spotsIndexMeta() as Meta, "/spots");
     });
 

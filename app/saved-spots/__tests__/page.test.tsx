@@ -335,10 +335,10 @@ describe("行きたい場所の一覧", () => {
             expect(screen.queryByRole("link", { name: "行きたい場所を地図で見る" })).toBeNull();
         });
 
-        it("0件の一手は「撮影スポットを探す」（地図へ）", async () => {
+        it("0件の一手は「観光スポットを探す」（地図へ）", async () => {
             fetchMock.mockResolvedValue(ok([]));
             render(<SavedSpotsPage />);
-            const link = await screen.findByRole("link", { name: "撮影スポットを探す" });
+            const link = await screen.findByRole("link", { name: "観光スポットを探す" });
             expect(link.getAttribute("href")).toBe("/map");
         });
 

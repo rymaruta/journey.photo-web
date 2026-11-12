@@ -61,7 +61,7 @@ describe("ホームの上段の札の眉（2026-11-09・9人のレビュー）",
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const text = cards().textContent ?? "";
         // カメラ講座の札は 2026-11-12 に外した（≡ にある）
-        for (const w of ["写真を払う", "今週のお題", "撮影スポット"]) expect(text, w).toContain(w);
+        for (const w of ["写真を払う", "今週のお題", "観光スポット"]) expect(text, w).toContain(w);
         expect(text, "カメラ講座の札が戻った").not.toContain("カメラ講座");
         // 今日の一問は 2026-11-12 に「さがす」の先頭へ移した（ホームの札は最大3枚）
         expect(text, "今日の一問の札がホームに戻った").not.toContain("今日の一問");
@@ -71,7 +71,7 @@ describe("ホームの上段の札の眉（2026-11-09・9人のレビュー）",
 
 describe("ホームの上段の札", () => {
     // 2026-11-04: iOS と同じく「輪 → 上の札 → 切り替え」（`GalleryView.feed`）。以前はタブの直下だった
-    it("切り替えのすぐ上に札の並び（今週のお題 → 今日の一問 → 撮影スポット）", async () => {
+    it("切り替えのすぐ上に札の並び（今週のお題 → 今日の一問 → 観光スポット）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         await screen.findByTestId("home-top-cards");
         // 札の次は、切り替えの行の元の位置の目印（`StickyTabRow`）→ 留まる行
@@ -134,12 +134,12 @@ describe("「さがす」の今日の一問の札（2026-11-12・ホームの札
     });
 });
 
-describe("ホームの撮影スポットの札", () => {
+describe("ホームの観光スポットの札", () => {
     it("行き先は /spots", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const entry = await screen.findByTestId("home-spots-entry");
         expect(entry.getAttribute("href")).toBe("/spots");
-        expect(entry.textContent).toContain("撮影スポット");
+        expect(entry.textContent).toContain("観光スポット");
     });
 
     it("どのタブでも出る（タブを切り替えても位置が動かない）", async () => {
@@ -261,7 +261,7 @@ describe("ホームの写真のはじめての投稿の印", () => {
     });
 });
 
-describe("ホームの撮影スポットを払う札（2026-11-11）", () => {
+describe("ホームの観光スポットを払う札（2026-11-11）", () => {
     it("行き先は /swipe・未ログインは「ログインなしではじめる」・2回目から「続きから」", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const entry = await screen.findByTestId("home-swipe-entry");

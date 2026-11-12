@@ -280,3 +280,37 @@ describe("署名の作り直しの下限", () => {
         expect(providerToken(t0 + 51 * 60_000)).not.toBe(a);
     });
 });
+
+describe("送った数の1行（札 journey.photo-ios#585）", () => {
+    it("端末の数・送れた数・断られた数（状態ごと）・締め切りを数だけで出す", async () => {
+        const { pushSummaryLine } = await load({});
+        const line = pushSummaryLine(4, [
+            { ok: true, status: 200 },
+            { ok: false, status: 410 },
+            { ok: false, status: 403 },
+            { ok: false, status: 410 },
+        ], false);
+        expect(line).toBe('sendPush summary {"devices":4,"sent":1,"rejected":{"403":1,"410":2},"timedOut":false,"failed":false}');
+    });
+
+    it("トークンを渡しても、行には出さない", async () => {
+        const { pushSummaryLine } = await load({});
+        const results = [{ token: "SECRET-DEVICE-TOKEN", ok: true, invalid: false, status: 200 }];
+        expect(pushSummaryLine(1, results, false)).not.toContain("SECRET-DEVICE-TOKEN");
+    });
+
+    it("鍵が読めずに落ちた回も、1行出す（送れた数 0・failed）", async () => {
+        const spy = vi.spyOn(console, "log").mockImplementation(() => {});
+        const err = vi.spyOn(console, "error").mockImplementation(() => {});
+        const { sendPush } = await load({
+            APNS_KEY_ID: "K", APNS_TEAM_ID: "T", APNS_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----",
+            APNS_TOPIC: "t", APNS_HOST: "127.0.0.1:1",
+        });
+        const r = await sendPush(["tok-a", "tok-b"], { title: "x", body: "y" });
+        expect(r.sent).toBe(0);
+        const lines = spy.mock.calls.map((c) => String(c[0])).filter((l) => l.startsWith("sendPush summary"));
+        expect(lines).toEqual(['sendPush summary {"devices":2,"sent":0,"rejected":{},"timedOut":false,"failed":true}']);
+        expect(lines.join()).not.toContain("tok-a");
+        spy.mockRestore(); err.mockRestore();
+    });
+});

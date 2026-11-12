@@ -18,7 +18,7 @@ describe("swipeDeck", () => {
         expect(new Set(deck.map((c) => c.slug)).size).toBe(deck.length);
     });
 
-    it("写真の出典は撮影スポットの頁と同じ決まり（topicCardCover の出典そのまま）", () => {
+    it("写真の出典は観光スポットの頁と同じ決まり（topicCardCover の出典そのまま）", () => {
         const bySlug = new Map(SPOTS.map((s) => [s.slug, s]));
         for (const c of deck.slice(0, 50)) {
             expect(c.credit, c.slug).toEqual(topicCardCover(bySlug.get(c.slug)!)!.credit);
