@@ -171,3 +171,102 @@ describe("ログインして戻った", () => {
         expect(window.localStorage.getItem("jp-swipe-wants")).toBeNull();
     });
 });
+
+// 2026-11-12 owner「払っている所に次の写真が映る」。本番の実測（Playwright・Chromium と WebKit）では、
+// 札の箱を使い回していたので、飛ばした位置（tx=-600）のまま中身が次の写真に替わり、そこから真ん中へ戻ってきた。
+// 縦にスクロールすると pointercancel の (0,0) を距離と読んで「見送る」になっていた
+describe("払ったあとの札（動きあり）", () => {
+    beforeEach(() => {
+        vi.stubGlobal("matchMedia", () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
+    });
+    const card = () => screen.getByTestId("swipe-card");
+    const swipe = (el: HTMLElement, from: number, to: number) => {
+        fireEvent.pointerDown(el, { clientX: from, clientY: 300, pointerId: 1 });
+        fireEvent.pointerMove(el, { clientX: to, clientY: 300, pointerId: 1 });
+        fireEvent.pointerUp(el, { clientX: to, clientY: 300, pointerId: 1 });
+    };
+
+    it("飛んでいく途中は前の札のまま。次の写真は新しい札で、真ん中（tx=0）から動かずに出る", async () => {
+        show();
+        await screen.findByTestId("swipe-card");
+        const first = currentSlug();
+        const old = card();
+        swipe(old, 200, 0);
+        // 飛んでいる間: 前の札が前の写真のまま左へ
+        expect(old.getAttribute("data-slug")).toBe(first);
+        expect(old.style.transform).toContain("translateX(-600px)");
+        await waitFor(() => expect(currentSlug()).not.toBe(first));
+        const next = card();
+        expect(next, "次の写真は前の札の箱を使い回さない").not.toBe(old);
+        expect(old.getAttribute("data-slug"), "前の札の中身は飛んでいる途中で替わらない").toBe(first);
+        expect(next.style.transform).toBe("translateX(0px) rotate(0deg)");
+    });
+
+    it("ログイン中の行きたい: サーバーの答えを待たずに次へ。前の札が真ん中へ戻らない", async () => {
+        authState.current = { isAuthenticated: true, userId: "me", loading: false };
+        let answer: (v: { ok: boolean }) => void = () => {};
+        mockUserFetch.mockImplementation((_path: string, init?: RequestInit) => (init?.method === "POST"
+            ? new Promise((r) => { answer = r; })
+            : Promise.resolve({ ok: true, json: async () => ({ slugs: [] }) })));
+        show();
+        await screen.findByTestId("swipe-card");
+        const first = currentSlug();
+        const seen: Array<[string | null, string]> = [];
+        const watch = new MutationObserver(() => {
+            const c = screen.queryByTestId("swipe-card");
+            if (c) seen.push([c.getAttribute("data-slug"), c.style.transform]);
+        });
+        watch.observe(document.body, { subtree: true, attributes: true, childList: true });
+        swipe(card(), 0, 200);
+        await waitFor(() => expect(currentSlug()).not.toBe(first));
+        expect(card().style.transform).toBe("translateX(0px) rotate(0deg)");
+        expect(seen.filter(([s, t]) => s === first && t.startsWith("translateX(0px)")), "前の札が真ん中に戻って見えない").toEqual([]);
+        watch.disconnect();
+        await act(async () => { answer({ ok: true }); });
+        await waitFor(() => expect(screen.getByTestId("swipe-count").textContent).toBe("行きたい 1 か所"));
+    });
+
+    it("ログイン中、入れている途中でひとつ戻すと、答えを待ってから外す", async () => {
+        authState.current = { isAuthenticated: true, userId: "me", loading: false };
+        let answer: (v: { ok: boolean }) => void = () => {};
+        mockUserFetch.mockImplementation((_path: string, init?: RequestInit) => (init?.method === "POST"
+            ? new Promise((r) => { answer = r; })
+            : Promise.resolve({ ok: true, json: async () => ({ slugs: [] }) })));
+        show();
+        await screen.findByTestId("swipe-card");
+        const first = currentSlug();
+        swipe(card(), 0, 200);
+        await waitFor(() => expect(currentSlug()).not.toBe(first));
+        fireEvent.click(screen.getByTestId("swipe-undo"));
+        await waitFor(() => expect(currentSlug()).toBe(first));
+        await act(async () => { answer({ ok: true }); });
+        await waitFor(() => expect(mockUserFetch).toHaveBeenCalledWith(`/user/spots/${encodeURIComponent(`SPOT-${first}`)}`, { method: "DELETE" }));
+        await waitFor(() => expect(screen.getByTestId("swipe-count").textContent).toBe("行きたい 0 か所"));
+    });
+
+    it("pointercancel（縦のスクロールに切り替わった）では送らない。座標が (0,0) でも", async () => {
+        show();
+        await screen.findByTestId("swipe-card");
+        const first = currentSlug();
+        const el = card();
+        fireEvent.pointerDown(el, { clientX: 195, clientY: 346, pointerId: 1 });
+        fireEvent.pointerCancel(el, { clientX: 0, clientY: 0, pointerId: 1 });
+        await new Promise((r) => setTimeout(r, 400));
+        expect(currentSlug()).toBe(first);
+        expect(card().style.transform).toBe("translateX(0px) rotate(0deg)");
+    });
+
+    it("下に重ねた札は札ごとに新しい絵（前の写真を残さない）", async () => {
+        show();
+        await screen.findByTestId("swipe-card");
+        const under = screen.getByTestId("swipe-upcoming") as HTMLImageElement;
+        const nextSlug = under.getAttribute("src")!;
+        const first = currentSlug();
+        fireEvent.click(screen.getByTestId("swipe-pass"));
+        await waitFor(() => expect(currentSlug()).not.toBe(first));
+        const now = screen.getByTestId("swipe-upcoming") as HTMLImageElement;
+        expect(now, "src だけ差し替えない").not.toBe(under);
+        expect(under.isConnected).toBe(false);
+        expect(now.getAttribute("src")).not.toBe(nextSlug);
+    });
+});
