@@ -147,6 +147,13 @@ export const INVITE_LOOKUP_BUDGET = 60;
 /** 招待の項目（DynamoDB に入る形） */
 export type InviteItem = {
     id: string;
+    /**
+     * 招待の種類。**無ければ共有アルバム**（2026-11-12 より前の行）。旅行プランの招待は `"trip"`・`planId`
+     * （`tripShare.ts`）。アルバムの口（`inviteState`）は `albumId` を見るので、旅行プランの招待は
+     * アルバムの口では「見つかりません」になる（逆も `tripInviteState` が `kind` を見て断る）
+     */
+    kind?: "trip";
+    planId?: string;
     albumId?: string;
     createdBy?: string;
     createdAt?: string;
@@ -195,3 +202,16 @@ export function inviteRejection(state: Exclude<InviteState, "ok">): { statusCode
 
 /** 発行時の期限（ISO 文字列） */
 export const inviteExpiryFrom = (now: number) => new Date(now + INVITE_TTL_MS).toISOString();
+
+/**
+ * 旅行プランの招待（`kind: "trip"`）の状態。決め方は `inviteState` と同じ（取り消し → 形 → 期限）。
+ * **アルバムの招待は通さない**（`kind` が無い行は `broken`＝外には「見つかりません」）
+ */
+export function tripInviteState(item: InviteItem | null | undefined, now: number): InviteState {
+    if (!item) return "notfound";
+    if (item.revoked === true) return "revoked";
+    if (item.kind !== "trip" || typeof item.planId !== "string" || !item.planId) return "broken";
+    const exp = Date.parse(item.expiresAt ?? "");
+    if (!Number.isFinite(exp)) return "broken";
+    return exp > now ? "ok" : "expired";
+}
