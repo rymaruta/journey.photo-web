@@ -33,7 +33,7 @@ describe("verify-invalidate は staging にしか向かない", () => {
         expect(s).toMatch(/PHOTOS_TABLE:\s*staging-photo-gallery-photos/);
         // staging の配信ID（本番は EYRLTGCPOS9E4）
         expect(s).toMatch(/CLOUDFRONT_DISTRIBUTION_ID:\s*EF2TFEBBP24DL/);
-        expect(s).toMatch(/CLEANUP_FUNCTION:\s*photo-gallery-user-api-staging-cleanupStories/);
+        expect(s).toMatch(/CLEANUP_FUNCTION:\s*photo-gallery-stories-staging-cleanupStories/);
         // **api-user が動いても api の証拠にはならない**（別サービス＝別の
         // IAM・別の環境変数）。管理API側の関数も向けていることを固定する
         expect(s).toMatch(/ADMIN_DELETE_FUNCTION:\s*photo-gallery-api-staging-deletePhoto/);

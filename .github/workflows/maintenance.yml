@@ -370,7 +370,8 @@ jobs:
           UPLOAD_BUCKET: staging-journey-photo-upload
           PHOTOS_TABLE: staging-photo-gallery-photos
           CLOUDFRONT_DISTRIBUTION_ID: EF2TFEBBP24DL
-          CLEANUP_FUNCTION: photo-gallery-user-api-staging-cleanupStories
+          # ストーリーの掃除はストーリーの別スタック（`api-user/serverless.stories.yml`・札 journey.photo-ios#552 ②）
+          CLEANUP_FUNCTION: photo-gallery-stories-staging-cleanupStories
           # 管理API側（別サービス＝別の IAM・別の環境変数）も同じやり方で確かめる
           ADMIN_DELETE_FUNCTION: photo-gallery-api-staging-deletePhoto
 

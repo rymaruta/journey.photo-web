@@ -54,6 +54,7 @@ const KNOWN = {
         "photo-gallery-trips-prod-", "photo-gallery-trips-staging-",
         "photo-gallery-notifications-prod-", "photo-gallery-notifications-staging-",
         "photo-gallery-trunk-prod-", "photo-gallery-trunk-staging-",
+        "photo-gallery-stories-prod-", "photo-gallery-stories-staging-",
     ],
 };
 
