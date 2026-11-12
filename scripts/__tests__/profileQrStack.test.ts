@@ -51,19 +51,13 @@ describe("プロフィールの QR の別スタック", () => {
         expect(provider).not.toMatch(/authorizers:/);
     });
 
-    it("本人の口2つはこのスタックの JWT の確かめを通る", () => {
+    it("本人の口2つは user API が書き出す JWT の確かめを通る（自分で認可を作らない・#552 ③）", () => {
         for (const fn of ["getMyQr", "rotateMyQr"]) {
             const b = fnBlock(QR_YML, fn);
-            expect(b).toMatch(/authorizer:\n\s+type: jwt\n\s+id:\n\s+Ref: QrCognitoAuthorizer/);
+            expect(b).toMatch(/authorizer:\n\s+type: jwt\n\s+id:\n\s+Fn::ImportValue: sls-photo-gallery-user-api-\$\{sls:stage\}-CognitoAuthorizerId/);
             expect(b).toMatch(/role: QrOwnerRole/);
         }
-        const auth = resourceBlock(QR_YML, "QrCognitoAuthorizer");
-        expect(auth).toMatch(/AuthorizerType: JWT/);
-        expect(auth).toMatch(/Issuer: https:\/\/cognito-idp\.\$\{aws:region\}\.amazonaws\.com\/\$\{param:cognitoUserPoolId\}/);
-        expect(auth).toMatch(/- \$\{param:cognitoClientId\}/);
-        expect(auth).toMatch(/Fn::ImportValue: sls-photo-gallery-user-api-\$\{sls:stage\}-HttpApiId/);
-        // user API の確かめと同じ利用者プール・同じ書き方
-        expect(USER_YML).toMatch(/issuerUrl: https:\/\/cognito-idp\.\$\{aws:region\}\.amazonaws\.com\/\$\{param:cognitoUserPoolId\}/);
+        expect(QR_YML).not.toMatch(/AWS::ApiGatewayV2::Authorizer/);
     });
 
     it("本人の口は退会した本人を塞ぐ（書く口なので `assertLiveCaller`）", () => {
@@ -99,12 +93,13 @@ describe("プロフィールの QR の別スタック", () => {
     });
 
     it("反映の手順が別スタックを、要る値を渡して配る", () => {
-        const m = /- name: Serverless deploy（プロフィールの QR・別スタック）[\s\S]*?--param "cognitoClientId=[^\n]*/.exec(DEPLOY);
+        const m = /- name: Serverless deploy（プロフィールの QR・別スタック）[\s\S]*?--param "usersTable=[^\n]*/.exec(DEPLOY);
         expect(m).not.toBeNull();
         const step = m![0];
         expect(step).toMatch(/working-directory: api-user/);
         expect(step).toMatch(/--config serverless\.profile-qr\.yml/);
-        for (const p of ["photosTable", "usersTable", "cognitoUserPoolId", "cognitoClientId"]) {
+        // 認可は user API が書き出すものを取り込むので、Cognito の値は渡さない（#552 ③）
+        for (const p of ["photosTable", "usersTable"]) {
             expect(step).toContain(`--param "${p}=`);
             expect(QR_YML).toContain(`\${param:${p}}`);
         }
