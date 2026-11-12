@@ -831,6 +831,35 @@ async function runChecks(browser, eng) {
         }
     }
 
+    /**
+     * **使い方（/help）**（2026-11-12・札 journey.photo-ios#517）。目次から全頁へ札で行け、
+     * 押すと頁が開き、絵1枚と3行が出る。電話の幅で横にはみ出さない（iOS のアプリの中の Safari で開く頁）
+     */
+    {
+        console.log(`\n[${eng}][5h] 使い方`);
+        await gotoSettled(page, `http://localhost:${PORT}/help`);
+        await waitForHydration(page);
+        const cards = await page.evaluate(() => [...document.querySelectorAll("[data-testid='help-card']")].map((a) => a.getAttribute("href")));
+        const built = cards.filter((h) => /^\/help\/[a-z-]+$/.test(h ?? "") && fs.existsSync(path.join(OUT, `${(h ?? "").slice(1)}.html`)));
+        check(`[${eng}] 使い方: 目次に札が並び、行き先の頁が全部ビルドに在る`, cards.length >= 4 && built.length === cards.length, JSON.stringify(cards));
+        const overflowIndex = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        check(`[${eng}] 使い方: 目次が電話の幅で横にはみ出さない`, overflowIndex <= 0, `はみ出し=${overflowIndex}px`);
+        if (cards.length > 0) {
+            await tapOrClick(page, `[data-testid='help-card'][href='${cards[0]}']`);
+            await page.waitForURL((u) => u.pathname.replace(/\.html$/, "") === cards[0], { timeout: 10000 }).catch(() => {});
+            await waitForHydration(page);
+            const shape = await page.evaluate(() => ({
+                h1: document.querySelector("h1")?.textContent ?? "",
+                figures: document.querySelectorAll("main > figure svg[role='img']").length,
+                lines: document.querySelectorAll("[data-testid='help-lines'] > li").length,
+                overflow: document.documentElement.scrollWidth - window.innerWidth,
+            }));
+            check(`[${eng}] 使い方: 札を押すと頁が開き、題・絵1枚・3行が出る`,
+                shape.h1.length > 0 && shape.figures === 1 && shape.lines === 3, JSON.stringify(shape));
+            check(`[${eng}] 使い方: 頁が電話の幅で横にはみ出さない`, shape.overflow <= 0, `はみ出し=${shape.overflow}px`);
+        }
+    }
+
     const realErrors = bag.pageErrors.filter((m) => !isExpectedNetworkNoise(m));
     check(`[${eng}] 実行時のJSエラーがない`, realErrors.length === 0, realErrors.slice(0, 3).join(" / "));
     reportDiagnostics(`${eng}/mobile`, bag);
