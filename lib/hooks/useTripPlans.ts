@@ -48,7 +48,7 @@ export type TripPlan = {
      * 仲間と共有したプラン（2026-11-12・サーバーの `trip#<planId>`）。共有していないプランは持たない。
      * 日程の直しは同じ口（`PUT /user/trips/{planId}`）で効く。削除は、作った人なら全員から消え、仲間なら抜ける
      */
-    shared?: { ownerId: string; memberCount: number };
+    shared?: { ownerId: string; memberCount: number; rev?: number };
 };
 
 /** 応答の1件を、画面が描ける形に均す。読めなければ `null` */
@@ -79,7 +79,13 @@ export function usableTripPlan(x: unknown): TripPlan | null {
         ...(typeof p.createdAt === "string" ? { createdAt: p.createdAt } : {}),
         ...(typeof p.updatedAt === "string" ? { updatedAt: p.updatedAt } : {}),
         ...(p.shared === true && typeof p.ownerId === "string"
-            ? { shared: { ownerId: p.ownerId, memberCount: Array.isArray(p.memberIds) ? p.memberIds.length : 1 } }
+            ? {
+                shared: {
+                    ownerId: p.ownerId,
+                    memberCount: Array.isArray(p.memberIds) ? p.memberIds.length : 1,
+                    ...(typeof p.rev === "number" && Number.isInteger(p.rev) ? { rev: p.rev } : {}),
+                },
+            }
             : {}),
     };
 }
@@ -182,6 +188,19 @@ export function useTripPlans(isAuthenticated: boolean, authLoading: boolean): Tr
         setError(null);
         try {
             const res = await userFetch(path, init);
+            if (res.status === 409) {
+                // **共有したプランを、ほかの仲間が先に変えた**（2026-11-12）。サーバーは今の姿を添えて返すので、
+                // その1件を差し替えて見せ（読み直し）、言い分を出す。送った直しは重ねない（何が消えるか分からないため）
+                const data = await res.json().catch(() => null) as { error?: unknown; plan?: unknown } | null;
+                const now = usableTripPlan(data?.plan);
+                if (now) {
+                    setFetched((f) => (f && f.token === token
+                        ? { ...f, plans: f.plans.map((p) => (p.planId === now.planId ? now : p)) }
+                        : f));
+                }
+                setError(typeof data?.error === "string" && data.error ? data.error : fallback);
+                return null;
+            }
             if (!res.ok) {
                 setError(await readApiError(res, fallback));
                 return null;
@@ -216,13 +235,16 @@ export function useTripPlans(isAuthenticated: boolean, authLoading: boolean): Tr
         planId: string,
         patch: Partial<Pick<TripPlan, "title" | "startDate" | "endDate" | "days">>,
     ) => {
+        // **共有したプランは見ていた版（`rev`）を添える**（2026-11-12 確かめ役の指摘4）。添えないと、ほかの仲間が
+        // 足した場所を知らないまま日程を丸ごと送って消す。サーバーは `rev` の無い日程を 409 で断る
+        const rev = current?.plans.find((p) => p.planId === planId)?.shared?.rev;
         const list = await write(planId, `/user/trips/${encodeURIComponent(planId)}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(patch),
+            body: JSON.stringify(rev !== undefined ? { ...patch, rev } : patch),
         }, "保存に失敗しました");
         return list !== null;
-    }, [write]);
+    }, [write, current]);
 
     const remove = useCallback(async (planId: string) => {
         const list = await write(planId, `/user/trips/${encodeURIComponent(planId)}`, { method: "DELETE" }, "削除に失敗しました");

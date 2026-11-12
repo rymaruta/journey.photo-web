@@ -557,7 +557,29 @@ export type SharedTrip = Omit<TripPlan, "visibility"> & {
     rev: number;
     inviteToken?: string;
     inviteExpiresAt?: string;
+    /**
+     * 持ち主が外した人（2026-11-12 確かめ役の指摘1）。**招待リンクでは戻れない**（`join` が断る）。
+     * 持ち主が改めて直接共有したときだけ外す（`addTripMember` の `readmit`）。退会でも外す（`purgeTripSharesFor`）
+     */
+    removedIds?: string[];
+    /**
+     * 取り消した招待リンクのトークン（2026-11-12 指摘5）。招待の行（`invite#<token>`）は「取り消されています」と
+     * 言うために残すが、**プランを消すときに一緒に消す**（プライバシーポリシー「プランが削除されるまで」）
+     */
+    pastInviteTokens?: string[];
 };
+
+/** 外した人の印の上限。超えたら古い方から落とす（20人の旅で外し続けても届かない数・行の大きさを抑える） */
+export const TRIP_REMOVED_MAX = 200;
+/** 取り消したリンクの控えの上限。超えたら古い方の招待の行をその場で消す（`tripShare.ts` の `retireInvite`） */
+export const TRIP_PAST_INVITES_MAX = 20;
+
+export const removedIdsOf = (row: { removedIds?: unknown } | null | undefined): string[] =>
+    Array.isArray(row?.removedIds) ? (row!.removedIds as unknown[]).filter((v): v is string => typeof v === "string") : [];
+export const pastInviteTokensOf = (row: { pastInviteTokens?: unknown } | null | undefined): string[] =>
+    Array.isArray(row?.pastInviteTokens)
+        ? (row!.pastInviteTokens as unknown[]).filter((v): v is string => isValidInviteToken(v))
+        : [];
 
 /** プラン ID の形（`randomUUID`）。任意の文字列を行の鍵にさせない */
 export const isPlanId = (v: unknown): v is string =>
@@ -688,7 +710,8 @@ function rowFields(row: SharedTrip): Record<string, unknown> {
  * 共有したプランを直す（**仲間なら誰でも**）。送られた項目だけを差し替える（`updateTrip` と同じ）。
  *
  * **`rev` を送ってきたら、その版の上にだけ書く**（ぶつかりは 409 で返し、画面が読み直して重ね直す）。
- * 送ってこない古いアプリ・Web は、読んで書くまでの間だけ `rev` の CAS で守る（`updateUserRow`）。
+ * **日程（`days`）は `rev` が無ければ 409**（2026-11-12）。題・日付だけなら `rev` 無しでも書ける
+ * （読んで書くまでの間は `updateUserRow` の CAS で守る）。
  */
 export async function updateSharedTrip(uid: string, planId: string, body: Record<string, unknown>): Promise<SharedWrite> {
     if (!isPlanId(planId)) return { kind: "notfound" };
@@ -699,6 +722,10 @@ export async function updateSharedTrip(uid: string, planId: string, body: Record
         await updateUserRow(tripKey(planId), planId, (item) => {
             if (!isStoredSharedTrip(item) || !memberIdsOf(item).includes(uid)) { out = { kind: "notfound" }; return null; }
             if (wantRev !== undefined && item.rev !== wantRev) { out = { kind: "conflict", row: item }; return null; }
+            // **日程を `rev` 無しで書かせない**（2026-11-12 確かめ役の指摘4）。`rev` を送らない画面（Web の古い版・
+            // 共有を知らない古いアプリ）は、ほかの仲間が足した場所を知らないまま日程を丸ごと送ってくる＝上書きで消す。
+            // 409 と今の姿を返し、画面に読み直させる（題・日付だけの直しは日程を消さないので今までどおり通す）
+            if (wantRev === undefined && "days" in body) { out = { kind: "conflict", row: item }; return null; }
             const attributed = "days" in body ? attributeItems(item.days, sanitizeDays(body.days), uid) : null;
             const next = {
                 ...rowFields(item),
@@ -735,17 +762,28 @@ export async function updateSharedTrip(uid: string, planId: string, body: Record
  * **`updateUserList` は使わない**——あちらは `list` だけを書き戻すので `reads` が消える。同じ CAS の土台
  * （`updateUserRow`）で両方を書き戻す。**上限は数えて断る**（古い方を黙って落とさない）
  */
-function joinedFields(item: Record<string, unknown> | undefined): { list: string[]; reads: Record<string, number> } {
+type Joined = { list: string[]; reads: Record<string, number>; left: string[] };
+
+/**
+ * `left`: **抜けた・外されたプラン**（2026-11-12 確かめ役の指摘5）。退会のとき、そのプランに残った本人の通と
+ * 「足した人」の印も消すために覚えておく（今入っているプランは `list` で分かるが、前に抜けたプランは辿れない）。
+ * 上限 `TRIPS_LEFT_MAX`（古い方から落とす）。もう一度入ったら `left` から外す
+ */
+function joinedFields(item: Record<string, unknown> | undefined): Joined {
     const list = Array.isArray(item?.list) ? (item!.list as unknown[]).filter(isPlanId) : [];
+    const left = Array.isArray(item?.left) ? (item!.left as unknown[]).filter(isPlanId) : [];
     const raw = item?.reads;
     const reads: Record<string, number> = {};
     if (raw && typeof raw === "object" && !Array.isArray(raw)) {
         for (const [k, v] of Object.entries(raw as Record<string, unknown>)) if (isPlanId(k) && typeof v === "number") reads[k] = v;
     }
-    return { list, reads };
+    return { list, reads, left };
 }
 
-export async function readJoined(uid: string): Promise<{ list: string[]; reads: Record<string, number> }> {
+/** 抜けた・外されたプランの控えの上限（ID 36 字 × 500 ≒ 18KB。行の大きさを抑える） */
+export const TRIPS_LEFT_MAX = 500;
+
+export async function readJoined(uid: string): Promise<Joined> {
     const res = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: tripsJoinedKey(uid) }, ConsistentRead: true }));
     return joinedFields(res.Item as Record<string, unknown> | undefined);
 }
@@ -754,30 +792,45 @@ export async function joinIndexAdd(uid: string, planId: string): Promise<"ok" | 
     let full = false;
     await updateUserRow(tripsJoinedKey(uid), uid, (item) => {
         full = false;
-        const { list, reads } = joinedFields(item);
+        const { list, reads, left } = joinedFields(item);
         if (list.includes(planId)) return null;
         if (list.length >= TRIPS_JOINED_MAX) { full = true; return null; }
-        return { list: [planId, ...list], reads };
+        return { list: [planId, ...list], reads, left: left.filter((x) => x !== planId) };
     });
     return full ? "full" : "ok";
 }
 
-export async function joinIndexRemove(uid: string, planId: string): Promise<void> {
+/**
+ * 一覧の行から外す。`remember` なら `left` に覚える（抜けた・外された＝プランは残る。退会で辿るため）。
+ * プランごと消えたときと退会の掃除は覚えない
+ */
+export async function joinIndexRemove(uid: string, planId: string, remember = false): Promise<void> {
     await updateUserRow(tripsJoinedKey(uid), uid, (item) => {
-        const { list, reads } = joinedFields(item);
-        if (!list.includes(planId) && !(planId in reads)) return null;
+        const { list, reads, left } = joinedFields(item);
+        const nextLeft = remember ? [planId, ...left.filter((x) => x !== planId)].slice(0, TRIPS_LEFT_MAX) : left;
+        const changed = list.includes(planId) || planId in reads || (remember && left[0] !== planId);
+        if (!changed) return null;
         const { [planId]: _gone, ...rest } = reads;
         void _gone;
-        return { list: list.filter((x) => x !== planId), reads: rest };
+        return { list: list.filter((x) => x !== planId), reads: rest, left: nextLeft };
+    });
+}
+
+/** 退会の掃除: `left` から外す（行そのものは `account.ts` が消す） */
+export async function forgetLeft(uid: string, planId: string): Promise<void> {
+    await updateUserRow(tripsJoinedKey(uid), uid, (item) => {
+        const { list, reads, left } = joinedFields(item);
+        if (!left.includes(planId)) return null;
+        return { list, reads, left: left.filter((x) => x !== planId) };
     });
 }
 
 /** 会話をどこまで読んだか（通し番号）を置く。同じなら書かない */
 export async function markTripRead(uid: string, planId: string, seq: number): Promise<void> {
     await updateUserRow(tripsJoinedKey(uid), uid, (item) => {
-        const { list, reads } = joinedFields(item);
+        const { list, reads, left } = joinedFields(item);
         if (!list.includes(planId) || (reads[planId] ?? -1) >= seq) return null;
-        return { list, reads: { ...reads, [planId]: seq } };
+        return { list, reads: { ...reads, [planId]: seq }, left };
     });
 }
 
@@ -831,10 +884,14 @@ export async function shareTrip(uid: string, planId: string):
     return { kind: "ok", row };
 }
 
-/** 仲間に足す（直接・招待リンクの参加の両方）。既に居れば `already` */
-export async function addTripMember(planId: string, newUid: string):
-    Promise<"ok" | "already" | "full" | "joinedFull" | "notfound"> {
-    let result = "notfound" as "ok" | "already" | "full" | "notfound";
+/**
+ * 仲間に足す（直接・招待リンクの参加の両方）。既に居れば `already`。
+ * **持ち主が外した人は `removed`**（招待リンクでは戻さない・2026-11-12 指摘1）。`readmit` は持ち主が直接共有した
+ * ときだけ立て、外した印を消して戻す
+ */
+export async function addTripMember(planId: string, newUid: string, opts: { readmit?: boolean } = {}):
+    Promise<"ok" | "already" | "full" | "joinedFull" | "notfound" | "removed"> {
+    let result = "notfound" as "ok" | "already" | "full" | "notfound" | "removed";
     // 先に本人の一覧の枠を見る（仲間に入れてから一覧に入らない、を作らない）
     const joined = (await readJoined(newUid)).list;
     if (!joined.includes(planId) && joined.length >= TRIPS_JOINED_MAX) return "joinedFull";
@@ -842,9 +899,14 @@ export async function addTripMember(planId: string, newUid: string):
         if (!isStoredSharedTrip(item)) { result = "notfound"; return null; }
         const members = memberIdsOf(item);
         if (members.includes(newUid)) { result = "already"; return null; }
+        const removed = removedIdsOf(item);
+        if (removed.includes(newUid) && !opts.readmit) { result = "removed"; return null; }
         if (members.length >= TRIP_MEMBERS_MAX) { result = "full"; return null; }
         result = "ok";
-        return { ...rowFields(item), memberIds: [...members, newUid] };
+        const rest = removed.filter((x) => x !== newUid);
+        const { removedIds: _r, ...fields } = rowFields(item);
+        void _r;
+        return { ...fields, memberIds: [...members, newUid], ...(rest.length > 0 ? { removedIds: rest } : {}) };
     });
     if (result === "ok" || result === "already") {
         if (await joinIndexAdd(newUid, planId) === "full" && result === "ok") {
@@ -858,9 +920,13 @@ export async function addTripMember(planId: string, newUid: string):
 
 /**
  * 仲間から外す（抜ける・持ち主が外す・退会）。**持ち主が抜けたら、残った最初の人が持ち主になる。
- * 誰も残らなければプランを消す**（会話・招待リンクも）
+ * 誰も残らなければプランを消す**（会話・招待リンクも）。
+ *
+ * - `byOwner`: 持ち主が外した。`removedIds` に入れ、招待リンクで戻れなくする（2026-11-12 指摘1）
+ * - `purge`: 退会の掃除。本人の一覧の行に「抜けた」を覚えない（行ごと消す）
  */
-export async function removeTripMember(planId: string, uid: string): Promise<"ok" | "deleted" | "notmember"> {
+export async function removeTripMember(planId: string, uid: string, opts: { byOwner?: boolean; purge?: boolean } = {}):
+    Promise<"ok" | "deleted" | "notmember"> {
     let result = "notmember" as "ok" | "deleted" | "notmember";
     if (isPlanId(planId)) {
         await updateUserRow(tripKey(planId), planId, (item) => {
@@ -870,11 +936,19 @@ export async function removeTripMember(planId: string, uid: string): Promise<"ok
             const rest = members.filter((m) => m !== uid);
             if (rest.length === 0) { result = "deleted"; return null; }
             result = "ok";
-            return { ...rowFields(item), memberIds: rest, ownerId: item.ownerId === uid ? rest[0] : item.ownerId };
+            const removed = opts.byOwner
+                ? [...removedIdsOf(item).filter((x) => x !== uid), uid].slice(-TRIP_REMOVED_MAX)
+                : removedIdsOf(item);
+            const { removedIds: _r, ...fields } = rowFields(item);
+            void _r;
+            return {
+                ...fields, memberIds: rest, ownerId: item.ownerId === uid ? rest[0] : item.ownerId,
+                ...(removed.length > 0 ? { removedIds: removed } : {}),
+            };
         });
         if (result === "deleted") await deleteSharedTripRows(planId);
     }
-    await joinIndexRemove(uid, planId);
+    await joinIndexRemove(uid, planId, result === "ok" && !opts.purge);
     return result;
 }
 
@@ -883,8 +957,10 @@ export async function deleteSharedTripRows(planId: string): Promise<void> {
     const row = await readSharedTrip(planId, true);
     await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: tripKey(planId) } }));
     await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: tripChatKey(planId) } }));
-    if (row?.inviteToken && isValidInviteToken(row.inviteToken)) {
-        await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: inviteKey(row.inviteToken) } }))
+    // 生きているリンクと、取り消したリンク（2026-11-12 指摘5: 取り消した招待の行が残っていた）
+    const live = row?.inviteToken && isValidInviteToken(row.inviteToken) ? [row.inviteToken] : [];
+    for (const token of new Set([...live, ...pastInviteTokensOf(row)])) {
+        await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: inviteKey(token) } }))
             .catch((e) => console.error(`deleteSharedTripRows: 招待を消せませんでした（${planId}）:`, (e as { name?: string })?.name));
     }
     for (const m of memberIdsOf(row)) {

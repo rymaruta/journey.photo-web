@@ -585,6 +585,30 @@ async function reserveDaily(uid: string, isNewConv: boolean): Promise<boolean> {
 }
 
 /**
+ * 旅行プランの会話（`tripShare.ts`）の1日の歯止め（2026-11-12 確かめ役の指摘6・**DM の仕組みを使い回す**）。
+ * 行は DM と同じ `dmday#<uid>#<日付>`（退会で消える・`purgeDmFor`）で、数える欄は別の `tripSent`
+ * （2026-11-12 判断: プランの会話で話した日に DM が送れなくなる、を作らない）。上限なら false（何も進まない）
+ */
+export const TRIP_CHAT_DAILY_SENT = 300;
+
+export async function reserveTripChatDaily(uid: string): Promise<boolean> {
+    try {
+        await ddb.send(new UpdateCommand({
+            TableName: PHOTOS_TABLE,
+            Key: { id: dmDayKey(uid, dayOf()) },
+            UpdateExpression: "SET uid = :uid, #d = :day ADD tripSent :one",
+            ConditionExpression: "attribute_not_exists(tripSent) OR tripSent < :maxTrip",
+            ExpressionAttributeNames: { "#d": "day" },
+            ExpressionAttributeValues: { ":uid": uid, ":day": dayOf(), ":one": 1, ":maxTrip": TRIP_CHAT_DAILY_SENT },
+        }));
+        return true;
+    } catch (e) {
+        if (isCcf(e)) return false;
+        throw e;
+    }
+}
+
+/**
  * 写した結果。`mirrored` は会話 ID と、受け取った側の置き場所（**サーバーの中だけ**——返信した人への
  * 応答には会話 ID だけを出す。`SendOk.delivered` の注記）。写らなかったときは理由のコード
  * （`sendDm` の `code`。コードの無い失敗は `"error"`）。
