@@ -25,7 +25,7 @@ const STAGING = {
     UPLOAD_BUCKET: "staging-journey-photo-upload",
     PHOTOS_TABLE: "staging-photo-gallery-photos",
     CLOUDFRONT_DISTRIBUTION_ID: "EF2TFEBBP24DL",
-    CLEANUP_FUNCTION: "photo-gallery-user-api-staging-cleanupStories",
+    CLEANUP_FUNCTION: "photo-gallery-stories-staging-cleanupStories",
     ADMIN_DELETE_FUNCTION: "photo-gallery-api-staging-deletePhoto",
 };
 
@@ -38,7 +38,7 @@ describe("verify-invalidate を実際に起動する", () => {
         ["両方本番", { UPLOAD_BUCKET: "prod-journey-photo-upload", PHOTOS_TABLE: "prod-photo-gallery-photos" }, /staging 以外では実行しません/],
         // **invoke 先が本番**——ここが素通りしていた。`--apply` を付ければ
         // 本番の cleanupStories を叩く（本番の期限切れを実際に消す）
-        ["掃除の関数だけ本番", { CLEANUP_FUNCTION: "photo-gallery-user-api-prod-cleanupStories" }, /staging 以外の関数は叩きません/],
+        ["掃除の関数だけ本番", { CLEANUP_FUNCTION: "photo-gallery-stories-prod-cleanupStories" }, /staging 以外の関数は叩きません/],
         ["管理APIの関数だけ本番", { ADMIN_DELETE_FUNCTION: "photo-gallery-api-prod-deletePhoto" }, /staging 以外の関数は叩きません/],
     ])("%s なら、AWS に触る前に中止する", (_name, override, expected) => {
         const { out, code } = run({ ...STAGING, ...override });

@@ -62,12 +62,14 @@ describe("ホームの上段の札", () => {
         await screen.findByTestId("home-top-cards");
         expect(screen.getByRole("tablist").nextElementSibling).toBe(cards());
         // 2026-11-11: 撮影スポットを払う入口がいつも1枚目（iOS と同じ）
-        expect(order()).toEqual(["home-swipe-entry", "home-theme-card", "home-quiz-entry", "home-spots-entry"]);
+        // 2026-11-12（案 第10章）: 札は最大3枚。今日の一問は「さがす」の先頭へ
+        expect(order()).toEqual(["home-swipe-entry", "home-theme-card", "home-spots-entry"]);
+        expect(screen.queryByTestId("home-quiz-entry")).toBeNull();
     });
 
     it("札の形は iOS と同じ（背 116・角 16・地 surface・白8% の縁・明朝 18 の題・眉は真鍮）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
-        const quiz = await screen.findByTestId("home-quiz-entry");
+        const quiz = await screen.findByTestId("home-spots-entry");
         // 背はどれも 116（iOS #422・2行に伸びて並びの背が 156 にならない）
         for (const c of ["h-[116px]", "rounded-2xl", "bg-surface", "ring-line"]) expect(quiz.className.split(/\s+/)).toContain(c);
         // 「以上 116」ではなく「116」（min-h だと2行に伸びて並びの背が上がる）
@@ -79,11 +81,12 @@ describe("ホームの上段の札", () => {
         expect(quiz.querySelector(".eyebrow")!.className).toContain("text-accent");
     });
 
-    it("PC は 4 枚を並べ、電話は横にめくる（PC の幅の決まり W4）", async () => {
+    it("PC は 3 枚を1段に並べ、電話は横にめくる（PC の幅の決まり W4）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const ul = (await screen.findByTestId("home-top-cards")).querySelector("ul")!;
         expect(ul.className).toContain("overflow-x-auto");
-        expect(ul.className).toContain("lg:grid-cols-4");
+        expect(ul.className).toContain("lg:grid-cols-3");
+        expect(ul.querySelectorAll(":scope > li").length, "札は最大3枚").toBeLessThanOrEqual(3);
         expect(ul.style.scrollSnapType).toBe("x mandatory");
         // 読み上げ用の字（sr-only・絶対配置）が並びの切り取りの外へ出て頁を横に広げない
         expect(ul.className.split(/\s+/)).toContain("relative");
@@ -96,10 +99,13 @@ describe("ホームの上段の札", () => {
     });
 });
 
-describe("ホームの今日の一問の札", () => {
-    it("行き先は /q・先読みしない", async () => {
-        render(<ToastProvider><GalleryPageClient /></ToastProvider>);
-        const entry = await screen.findByTestId("home-quiz-entry");
+describe("「さがす」の今日の一問の札（2026-11-12・ホームの札から移した）", () => {
+    it("何も探していない間、さがすの先頭に出る。行き先は /q・先読みしない", async () => {
+        render(<ToastProvider><GalleryPageClient surface="search" /></ToastProvider>);
+        const entry = await screen.findByTestId("search-quiz-entry");
+        // 形はホームの札と同じ（背 116・真鍮の眉）
+        expect(entry.className.split(/\s+/)).toContain("h-[116px]");
+        expect(entry.querySelector(".eyebrow")!.className).toContain("text-accent");
         expect(entry.getAttribute("href")).toBe("/q");
         expect(entry.textContent).toContain("この写真はどこ？");
         expect(entry.textContent).toContain("今日の一問");
@@ -161,8 +167,8 @@ describe("今日の一問の札の写真と出典（その日のファイルが�
         vi.stubGlobal("fetch", vi.fn(async () => ({ ok: true, status: 200, json: async () => quiz })));
         window.localStorage.setItem(`journey-photo:quiz:${ymd}`, "a");
         try {
-            render(<ToastProvider><GalleryPageClient /></ToastProvider>);
-            const entry = await screen.findByTestId("home-quiz-entry");
+            render(<ToastProvider><GalleryPageClient surface="search" /></ToastProvider>);
+            const entry = await screen.findByTestId("search-quiz-entry");
             await waitFor(() => expect(entry.querySelector("img")?.getAttribute("src")).toBe("https://upload.wikimedia.org/a.jpg"));
             expect(entry.textContent).toContain("写真: Taro / CC BY 4.0");
             // 出典は1行で、**真ん中を省く**（作者を切り、ライセンス名は切らない）

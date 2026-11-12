@@ -804,9 +804,16 @@ async function runChecks(browser, eng) {
      */
     if (fs.existsSync(path.join(OUT, "q.html"))) {
         console.log(`\n[${eng}][5e] 今日の一問`);
+        // 2026-11-12（デザインの案 第10章）: 一問の札はホームの上の札から「さがす」の先頭へ移した（ホームの札は最大3枚）
         await gotoSettled(page, `http://localhost:${PORT}/`);
         await waitForHydration(page);
-        check(`[${eng}] 今日の一問: トップから入口で行ける`, !!(await page.$("[data-testid='home-quiz-entry'][href='/q']")));
+        check(`[${eng}] 今日の一問: トップの上の札に一問の札が無い（さがすへ移した）`, !(await page.$("[data-testid='home-quiz-entry']")));
+        await gotoSettled(page, `http://localhost:${PORT}/search`);
+        await waitForHydration(page);
+        const searchQuiz = await page
+            .waitForSelector("[data-testid='search-quiz-entry'][href='/q']", { timeout: 10000 })
+            .then(() => true).catch(() => false);
+        check(`[${eng}] 今日の一問: さがすの先頭の札から行ける`, searchQuiz);
         await gotoSettled(page, `http://localhost:${PORT}/q`);
         await waitForHydration(page);
         const choices = await page
