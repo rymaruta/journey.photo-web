@@ -208,8 +208,11 @@ async function planAdds(me: string, targets: readonly string[], present: readonl
 async function applyAdds(me: string, gid: string, plan: Plan, now: string, seq: number): Promise<{ direct: string[]; request: string[]; skipped: number }> {
     const done = { direct: [] as string[], request: [] as string[], skipped: plan.skipped };
     let accepted: Plan = { direct: [], request: [], skipped: 0 };
+    // 作った人が入れ直して `kicked` から外した人（戻すときに `kicked` へ返す・E2）
+    let wasKicked: string[] = [];
     await writeMembers(gid, (m) => {
         accepted = { direct: [], request: [], skipped: 0 };
+        wasKicked = [];
         if (!m || !m.members.some((x) => x.id === me)) return null;
         let free = GROUP_MEMBERS_MAX - seatsUsed(m);
         const taken = new Set([...m.members.map((x) => x.id), ...liveInvites(m).map((x) => x.id)]);
@@ -217,6 +220,7 @@ async function applyAdds(me: string, gid: string, plan: Plan, now: string, seq: 
         for (const t of plan.request) if (!taken.has(t) && !m.declined.includes(t) && free > 0) { accepted.request.push(t); free--; }
         if (accepted.direct.length + accepted.request.length === 0) return null;
         const readmitted = new Set([...accepted.direct, ...accepted.request]);
+        wasKicked = m.kicked.filter((x) => readmitted.has(x));
         return {
             ...m,
             members: [...m.members, ...accepted.direct.map((id) => ({ id, joinedAt: now, addedBy: me }))],
@@ -252,8 +256,11 @@ async function applyAdds(me: string, gid: string, plan: Plan, now: string, seq: 
     }
     if (undo.length > 0) {
         // 同時に枠が埋まった人を戻す（受信箱に無いグループのメンバーにしない）
+        // **入れ直しの途中で落ちた人は、外した控え（`kicked`）にも戻す**（E2: 戻さないと、外された人が招待なしの別の道で戻れた）
+        const back = wasKicked.filter((x) => undo.includes(x));
         await writeMembers(gid, (m) => m ? {
             ...m, members: m.members.filter((x) => !undo.includes(x.id)), invited: m.invited.filter((x) => !undo.includes(x.id)),
+            kicked: [...m.kicked.filter((x) => !back.includes(x)), ...back].slice(-GROUP_KICKED_MAX),
         } : null);
         done.skipped += undo.length;
     }
@@ -384,6 +391,7 @@ async function detail(me: string, gid: string, extra: Record<string, unknown> = 
     // **外された人には今のメンバーを見せない**（2026-11-12 確かめ役の指摘1: 外されたあとに入った人・自分をブロックした人の
     // 名前・ユーザー名・人数まで見えていた）。名前の無いグループは「グループ」とだけ言う
     const removed = a.role === "removed";
+    const shownName = removed ? a.box.groups[gid]?.name : head.name;
     const memberIds = removed ? [] : a.m.members.map((x) => x.id);
     const invited = a.role === "member" ? liveInvites(a.m) : [];
     const [names, mine] = await Promise.all([
@@ -398,8 +406,9 @@ async function detail(me: string, gid: string, extra: Record<string, unknown> = 
     return ok({
         group: {
             id: gid,
-            ...(head.name ? { name: head.name } : {}),
-            title: removed ? head.name || "グループ" : titleFor(head, memberIds, names, me),
+            // 外された人には、外された時点の名前だけ（今の名前・外したあとの改名は見せない・E1）
+            ...(shownName ? { name: shownName } : {}),
+            title: removed ? shownName || "グループ" : titleFor(head, memberIds, names, me),
             ...(removed ? {} : { ownerId: a.m.ownerId, isOwner: a.m.ownerId === me, count: memberIds.length }),
             max: GROUP_MEMBERS_MAX,
             state: a.role,
@@ -624,6 +633,8 @@ async function removeMember(me: string, gid: string, target: string | undefined)
     if (t === me) return ok(await leave(me, gid));
     if (a.m.ownerId !== me) return jsonError(403, "メンバーを外せるのはグループを作った人だけです", "notOwner");
     const now = new Date().toISOString();
+    // 外された時点の名前を本人の行に写す（外したあとの改名を見せない・E1）
+    const nameAtKick = (await readHead(gid, true))?.name;
     let kind = null as "member" | "invited" | null;
     await writeMembers(gid, (m) => {
         kind = null;
@@ -640,7 +651,7 @@ async function removeMember(me: string, gid: string, target: string | undefined)
     });
     if (kind === "member") {
         // 外された人の行に「外された会話」を置き、退会の掃除のために gid を覚える（指摘7）
-        await writeJoined(t, (j) => { const r = withRemovedEntry(j, gid, now) ?? j; return withTrace(r, gid) ?? (r === j ? null : r); });
+        await writeJoined(t, (j) => { const r = withRemovedEntry(j, gid, now, nameAtKick) ?? j; return withTrace(r, gid) ?? (r === j ? null : r); });
         await appendEvent(gid, me, { type: "removed", target: t }, new Date(now));
     } else if (kind === "invited") {
         await writeJoined(t, (j) => (j.groups[gid]?.state === "invited" ? dropEntry(j, gid) : null));
@@ -808,11 +819,13 @@ async function inbox(me: string) {
         const last = h.last && !hidden.has(h.last.from) && e.state !== "invited" && (!e.until || h.last.t <= e.until) && (!e.since || h.last.t >= e.since) ? h.last : undefined;
         // 外された人には今のメンバー（顔・人数・自動の名前）を見せない（指摘1）
         const removed = e.state === "removed";
+        // 外された人には、外された時点の名前だけ（E1）
+        const groupName = removed ? e.name : h.name;
         const faces = removed ? [] : h.previewIds.filter((x) => x !== me && !hidden.has(x)).slice(0, 2);
         return [{
             id: gid,
-            ...(h.name ? { name: h.name } : {}),
-            title: h.name || (removed ? "グループ" : autoName(h.previewIds, names, me, h.count - (e.state === "member" ? 1 : 0))),
+            ...(groupName ? { name: groupName } : {}),
+            title: groupName || (removed ? "グループ" : autoName(h.previewIds, names, me, h.count - (e.state === "member" ? 1 : 0))),
             ...(removed ? {} : { count: h.count }),
             faces: faces.map((x) => ({ id: x, name: nameOf(x) })),
             state: e.state,

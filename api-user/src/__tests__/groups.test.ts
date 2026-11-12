@@ -617,9 +617,9 @@ describe("🔴 指摘1: 外された人に今のメンバーを見せない", ()
         const box = (await inbox(D))[0];
         expect(box).toMatchObject({ state: "removed", title: "グループ", faces: [] });
         expect(box).not.toHaveProperty("count");
-        // 名前を付けたグループは名前だけ
+        // 外したあとに付けた名前も見せない（E1・外された時点の名前だけ）
         await api(A, "PUT /groups/{gid}", {}, { name: "京都" });
-        expect((await inbox(D))[0].title).toBe("京都");
+        expect((await inbox(D))[0].title).toBe("グループ");
     });
 });
 
@@ -847,5 +847,45 @@ describe("使う行はスタックの権限の中", () => {
             if (!allows(action, id, projected)) bad.add(`${action} ${id.replace(/[0-9a-f-]{36}/g, "<id>")}`);
         }
         expect([...bad]).toEqual([]);
+    });
+});
+
+describe("2026-11-12 見直しの E1・E2", () => {
+    it("🔴 E1: 外された人には、外された時点の名前だけ（外したあとの改名は見せない）", async () => {
+        follow(D, A);
+        await seedGroup([D]);
+        await api(A, "PUT /groups/{gid}", {}, { name: "京都" });
+        await api(A, "DELETE /groups/{gid}/members/{uid}", { uid: D });
+        await api(A, "PUT /groups/{gid}", {}, { name: "ひみつの新しい名前" });
+        const d = json(await api(D, "GET /groups/{gid}"));
+        expect(d.group).toMatchObject({ name: "京都", title: "京都" });
+        const box = (await inbox(D))[0];
+        expect(box).toMatchObject({ name: "京都", title: "京都" });
+        expect(JSON.stringify([d, box])).not.toContain("ひみつの新しい名前");
+        // 名前の無いときに外された人は「グループ」のまま（あとで付いた名前も見せない）
+        follow(E, A); follow(A, E);
+        await api(A, "POST /groups/{gid}/members", {}, { userIds: [E] });
+        await api(A, "PUT /groups/{gid}", {}, { name: "" });
+        await api(A, "DELETE /groups/{gid}/members/{uid}", { uid: E });
+        await api(A, "PUT /groups/{gid}", {}, { name: "あとの名前" });
+        expect(json(await api(E, "GET /groups/{gid}")).group.title).toBe("グループ");
+        expect((await inbox(E))[0].title).toBe("グループ");
+    });
+
+    it("🔴 E2: 外した人を入れ直す途中で落ちたら、外した控え（kicked）にも戻す", async () => {
+        follow(D, A);
+        await seedGroup([D]);
+        await api(A, "DELETE /groups/{gid}/members/{uid}", { uid: D });
+        expect(store.get(`groupmembers#${G}`)!.kicked).toEqual([D]);
+        hooks.push((name, input) => {
+            if (!putTo(`groupsjoined#${D}`, (it) => JSON.stringify(it).includes("\"member\""))(name, input)) return false;
+            throw Object.assign(new Error("boom"), { name: "InternalServerError" });
+        });
+        expect(json(await api(A, "POST /groups/{gid}/members", {}, { userIds: [D] })).added).toEqual([]);
+        expect(members()).not.toContain(D);
+        expect(store.get(`groupmembers#${G}`)!.kicked).toEqual([D]);
+        // 作った人以外は、まだ入れられない
+        follow(B, D); follow(D, B);
+        expect(json(await api(B, "POST /groups/{gid}/members", {}, { userIds: [D] })).added).toEqual([]);
     });
 });

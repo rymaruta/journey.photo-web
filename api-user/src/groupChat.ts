@@ -153,6 +153,11 @@ export type JoinedEntry = {
     by?: string;
     /** 知らせを止めたか（`groupmembers#` の写し・受信箱に出すため） */
     muted?: true;
+    /**
+     * 外された会話: **外された時点のグループの名前**（2026-11-12 確かめ役の E1・判断: 「グループ」に落とすより、
+     * 本人が見ていた名前を残す方が受信箱で見分けられる）。外したあとの改名は見せない。名前が無かったときは持たない
+     */
+    name?: string;
 };
 
 /** `groupsjoined#<uid>` */
@@ -243,6 +248,7 @@ export function parseJoined(item: Record<string, unknown> | undefined): GroupsJo
                 ...(typeof e.read === "number" ? { read: e.read } : {}),
                 ...(typeof e.by === "string" ? { by: e.by } : {}),
                 ...(e.muted === true ? { muted: true } : {}),
+                ...(typeof e.name === "string" && e.name ? { name: e.name } : {}),
             };
         }
     }
@@ -459,10 +465,10 @@ export function withInviteEntry(j: GroupsJoined, gid: string, by: string, at: st
 }
 
 /** 外された会話として残す（読める範囲は入った時刻〜外された時刻）。控えは `GROUP_REMOVED_KEEP` まで */
-export function withRemovedEntry(j: GroupsJoined, gid: string, until: string): GroupsJoined | null {
+export function withRemovedEntry(j: GroupsJoined, gid: string, until: string, name?: string): GroupsJoined | null {
     const cur = j.groups[gid];
     if (!cur || cur.state !== "member") return null;
-    const groups = { ...j.groups, [gid]: { state: "removed" as const, at: until, since: cur.since ?? cur.at, until, ...(cur.read !== undefined ? { read: cur.read } : {}) } };
+    const groups = { ...j.groups, [gid]: { state: "removed" as const, at: until, since: cur.since ?? cur.at, until, ...(cur.read !== undefined ? { read: cur.read } : {}), ...(name ? { name } : {}) } };
     const removed = Object.entries(groups).filter(([, e]) => e.state === "removed").sort((a, b) => b[1].at.localeCompare(a[1].at));
     for (const [old] of removed.slice(GROUP_REMOVED_KEEP)) delete groups[old];
     return { ...j, groups };
