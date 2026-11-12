@@ -1,0 +1,211 @@
+# 旅行プランを仲間と使う口（2026-11-12・`src/tripShare.ts`・資料「SNS をもっと SNS に」2b）を、
+# user API とは**別のスタック**で配る。owner 承認（2026-11-12「DB の変更してもいいけどね」）。
+#
+# 🔴 なぜ分けたか: user API のスタック（`serverless.yml`）は部品が 488 個で、上限 500 まで 12 個しかない
+#    （2026-11-12 撮影スポットを払う②で 503 個になって本番の反映が落ちた）。ここに分ければ user API は増えない。
+#    分け方は撮影スポットを払う②（`serverless.spot-wants.yml`・journey.photo-web#583）にそろえた:
+#    置き場は api-user の中の別の設定ファイル（コード・依存・esbuild の設定を共有する）。
+#    ②とは**1つのスタックにまとめない**（2026-11-12 判断）: あちらは未認証の口と定期実行だけで、こちらは
+#    認証の口と自前の認可。反映・取り消しを別々にできる方を採った。部品はどちらも 20 個に届かない。
+#
+# 🔴 口の URL は今の user API と同じ（`<user API>/trip-share/...`・`/trip-invites/...`）。新しい HTTP API は作らず、
+#    user API のスタックが書き出す HttpApiId を取り込んで**経路だけ**このスタックに置く。Web とアプリの呼び先の
+#    土台は変わらない。認可は user API と同じ Cognito の JWT を、このスタックの認可（`TripShareAuthorizer`）で見る
+#    （user API の認可の ID は書き出されていない。書き出すと user API を先に配る順番が要る）。
+#    このスタックを配るのは user API のスタックが在ってから（`deploy-api.yml` で user API の**後**）。
+#    経路ごとの流量の設定は無い（段の既定の絞りが効く）ので、②と違って先に配る必要は無い。
+#
+# 日程を直す・プランを消す（抜ける）は今の口（`PUT/DELETE /user/trips/{planId}`・user API）がそのまま効く。
+service: photo-gallery-trip-share
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ap-northeast-1
+  # user API と同じ（`scripts/__tests__/logRetention.test.ts`）
+  logRetentionInDays: 90
+  versionFunctions: false
+  environment:
+    PHOTOS_TABLE: ${param:photosTable}
+    USERS_TABLE: ${param:usersTable}
+  httpApi:
+    # user API の HTTP API に経路を足す（新しい API は作らない）
+    id:
+      Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
+  iam:
+    role:
+      statements:
+        # 認証の口（`tripShare`）。読み書きする行の頭で絞る:
+        # 共有したプラン・一覧・会話・招待・本人だけのプラン（共有するときに移す）・DM の会話（直接共有の門）・
+        # ブロック・端末の宛先（知らせ）
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+            - dynamodb:BatchGetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+          Condition:
+            ForAllValues:StringLike:
+              dynamodb:LeadingKeys:
+                - trip#*
+                - trips#*
+                - tripsjoined#*
+                - tripchat#*
+                - invite#*
+                - dm#*
+                - block#*
+                - blocks#*
+                - blockedby#*
+                - devices#*
+        # 名前を引く・退会の確かめ（読むだけ）
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:BatchGetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node22
+    platform: node
+    exclude:
+      - '@aws-sdk/*'
+
+functions:
+  # **口は8つでも関数は1つ**（`trunk` と同じ形）。道は `event.routeKey` で分ける
+  tripShare:
+    handler: src/tripShare.handler
+    environment:
+      # 知らせ（プッシュ）。**鍵は送る関数にだけ配る**（provider に置かない・IAM-2）。無ければ送らないだけ
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
+      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
+      APNS_TOPIC: ${param:apnsTopic, ''}
+      APNS_HOST: ${param:apnsHost, ''}
+    events:
+      - httpApi:
+          path: /trip-share/inbox
+          method: GET
+          authorizer:
+            id:
+              Ref: TripShareAuthorizer
+      - httpApi:
+          path: /trip-share/{planId}
+          method: GET
+          authorizer:
+            id:
+              Ref: TripShareAuthorizer
+      - httpApi:
+          path: /trip-share/{planId}
+          method: POST
+          authorizer:
+            id:
+              Ref: TripShareAuthorizer
+      - httpApi:
+          path: /trip-share/{planId}/invite
+          method: POST
+          authorizer:
+            id:
+              Ref: TripShareAuthorizer
+      - httpApi:
+          path: /trip-share/{planId}/invite
+          method: DELETE
+          authorizer:
+            id:
+              Ref: TripShareAuthorizer
+      - httpApi:
+          path: /trip-share/{planId}/members/{uid}
+          method: DELETE
+          authorizer:
+            id:
+              Ref: TripShareAuthorizer
+      - httpApi:
+          path: /trip-share/{planId}/chat
+          method: GET
+          authorizer:
+            id:
+              Ref: TripShareAuthorizer
+      - httpApi:
+          path: /trip-share/{planId}/chat
+          method: POST
+          authorizer:
+            id:
+              Ref: TripShareAuthorizer
+      - httpApi:
+          path: /trip-invites/{token}/join
+          method: POST
+          authorizer:
+            id:
+              Ref: TripShareAuthorizer
+
+  # **未認証で読める口**（招待リンクの下見。アプリが無い人も Web で見る）。題・日付・人数・場所の数だけを返す。
+  # 役は招待とプランの本体の行を GetItem で読むだけ（鍵の頭で絞る）
+  getTripInvite:
+    handler: src/tripShare.getTripInvite
+    role: TripInviteReadRole
+    events:
+      - httpApi:
+          path: /trip-invites/{token}
+          method: GET
+
+resources:
+  Resources:
+    # user API と同じ Cognito の JWT を見る認可（このスタックの経路だけが使う）
+    TripShareAuthorizer:
+      Type: AWS::ApiGatewayV2::Authorizer
+      Properties:
+        ApiId:
+          Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
+        AuthorizerType: JWT
+        Name: tripShareCognito
+        IdentitySource:
+          - $request.header.Authorization
+        JwtConfiguration:
+          Issuer: https://cognito-idp.${aws:region}.amazonaws.com/${param:cognitoUserPoolId}
+          Audience:
+            - ${param:cognitoClientId}
+
+    TripInviteReadRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-inviteRead
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: tripInviteRead
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - invite#*
+                        - trip#*

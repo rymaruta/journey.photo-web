@@ -1542,6 +1542,9 @@ functions:
       # 期限切れのぶんだけを直接引ける。1時間ごとでも読む量は小さい。
       - schedule: cron(5 * * * ? *)
 
+  # みんなの「行きたい」（`src/spotWants.ts`）の3つの関数は **別のスタック**（`serverless.spot-wants.yml`）。
+  # このスタックの部品が上限 500 に近い（488）ため（2026-11-12）。口の URL は同じ（この HTTP API に経路だけ足す）
+
 # ---------------------------------------------------------------------------
 # 未認証で呼べる5つの口だけ、専用の最小ロールに分ける（IAM-1）
 #
@@ -1820,3 +1823,17 @@ resources:
                     - dynamodb:BatchGetItem
                   Resource:
                     - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+
+  # API Gateway（HTTP API）の段の設定に足す（serverless が作る `HttpApiStage` に重ねる）。
+  # **みんなの「行きたい」の口だけ流量を絞る**（2026-11-11 確かめ役の指摘 5）。ほかの口は今のまま
+  # 秒 10 件・瞬間 20 件を越えた分は API Gateway が 429 で断る（Lambda も DB も動かない）
+  # 🔴 経路 `POST /spots/wants` は別のスタック（`serverless.spot-wants.yml`）が足す。
+  #    段の経路ごとの設定は経路ができてからでないと付けられないので、`deploy-api.yml` は
+  #    あちらを先に配る（スタックをまたぐ DependsOn は書けない）
+  extensions:
+    HttpApiStage:
+      Properties:
+        RouteSettings:
+          "POST /spots/wants":
+            ThrottlingRateLimit: 10
+            ThrottlingBurstLimit: 20
