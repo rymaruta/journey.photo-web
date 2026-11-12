@@ -21,11 +21,17 @@
 //   - **当たり判定は自前**（`japanMapHit.ts`）: 形の中は必ずその県・形の外は輪郭から 16px 以内で最も近い県・触れている県を優先する粘り
 //   - 各県は本物のリンク（行き先は県の頁・`ROUTES.SPOT_AREA`）。JS が効く前・新しいタブ・読み上げの「リンク」はそのまま県の頁へ行く。
 //     JS が効いたあと、押す・Enter は頁を移動せず、その場に一覧（下の帯）を出す
-//   - 帯は**常設の枠**（スマホで 164px・押し出さない・地図の高さは変えない）。選んでいないときは「県を選ぶ」と一覧への近道
-//   - 県名: 全国は地方名（16px 明朝）・拡大した地方は県の中に 14px（`prefectureRegionLabels.ts`・引き出し線は廃止）
+//   - 帯は**常設の枠**（スマホで 164px・押し出さない・地図の高さは変えない）。選んでいないときは、押すと何が出るかの一言と一覧への近道
+//     （2026-11-12 owner「なんも押してないのに県を選ぶというのわかりづらい」: 命令の見出し「県を選ぶ」をやめた）
+//   - 県名: 全国は**地方名の札（押せるボタン・当たり 44px・`›` つき）**・拡大した地方は県の中に 14px（`prefectureRegionLabels.ts`・引き出し線は廃止）。
+//     2026-11-12 owner「ガイドもないし」: 地方名がただの字で、押せると分からなかった。札にして、1回押せばその地方が開く。
+//     札は指で押す近道なので読み上げ・Tab からは外す（同じ操作は上の地方チップが実ボタンで持つ。二重に読ませない）
 //   - **全機能がタップ・キーボード・一覧で可能**（WCAG 2.5.1・2.5.7）: なぞりは上乗せ。地方チップ（実ボタン）・県の一覧チップ（地図の強調と連動）・
 //     矢印キー（全国は地方、拡大した地方は県）・Enter・Esc。なぞり中の名前は読み上げず、確定したときだけ aria-live で読む
-//   - 初見の手がかり: 常設の一言「長押ししてなぞる」＋初回だけ輪が地方をなぞる動き（`japanMapHint.ts`）
+//   - 初見の手がかりの動き（輪が地方をなぞる見本・常設の一言「長押ししてなぞる」）は **2026-11-12 にやめた**。
+//     本番を何も押さずに開いて記録すると、地図が見えて約 0.8 秒後から 2.8 秒、真鍮の輪・名前の札（「中部 9県」）・地方の強調・
+//     固定欄の「触れている 中部」が、本物のなぞりと同じ見た目で出ていた（owner「なんも押してないのに県を選ぶ」）。
+//     地方名を押せる札にしたので、見本で教えなくても押せば開く。なぞりは知っている人の近道として残す
 //   - 安全策: なぞり判定・拡大の途中で例外が出ても、タップ（click）と一覧チップで県に必ず行ける
 //
 // URL・戻る（`#pref=kanagawa`）: 県を選んで帯を開くとき履歴を1件積む（戻る＝閉じる）・切り替えは差し替え・
@@ -52,10 +58,6 @@ import {
 import { hitAt, pickHit, regionHit, sameHit, type Hit, type HitContext } from "@/lib/utils/japanMapHit";
 import { TraceGesture, type TraceWhy } from "@/lib/utils/traceGesture";
 import { TIP_H, placeTip, type TipMode } from "@/lib/utils/japanMapTip";
-import {
-    HINT_IDLE_MS, HINT_PATH, HINT_VISIBLE_RATIO, ghostAt, ghostPlayed, countVisit, readHint, shouldPlayGhost, shouldShowCaption, tracedOnce, writeHint,
-    type HintState,
-} from "@/lib/utils/japanMapHint";
 import { withNextHistoryState } from "@/lib/utils/historyState";
 import { clearMapReturn, readMapReturn, saveMapReturn } from "@/lib/utils/mapReturn";
 import { ROUTES } from "@/lib/routes";
@@ -85,6 +87,17 @@ const ARROWS: Record<string, readonly [number, number]> = {
 
 /** 地方の色（全国の画面で、隣り合う地方が同じ色にならない 3 色の繰り返し） */
 const TINT_OF = new Map<RegionName, "a" | "b" | "c">(REGION_ORDER.map((r, i) => [r, (["a", "b", "c"] as const)[i % 3]]));
+
+/**
+ * 全国の画面の地方名の札を置く位置（viewBox の単位）。字の位置（`REGION_POS`・提案書 v4）に、札どうしの当たり（44px）が
+ * 重ならないよう、中国を 4 上・四国を 4 下へずらす（中国と四国は縦に 40 しか離れていない）
+ */
+const LABEL_NUDGE: Partial<Record<RegionName, readonly [number, number]>> = { 中国: [0, -4], 四国: [0, 4] };
+function regionLabelAt(r: RegionName): readonly [number, number] {
+    const [x, y] = r === "沖縄" ? OKINAWA_CENTER : REGION_POS[r];
+    const d = LABEL_NUDGE[r] ?? [0, 0];
+    return [x + d[0], y + d[1]];
+}
 
 /** 地方チップ */
 const CHIPS = ["全国", ...REGION_ORDER] as const;
@@ -127,8 +140,6 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     const [hov, setHovState] = useState<Hit | null>(null);
     const [tracing, setTracing] = useState(false);
     const [outside, setOutside] = useState(false);
-    const [ghost, setGhost] = useState(false);
-    const [caption, setCaption] = useState(true);
     const [foc, setFoc] = useState<string | null>(null);
     /** 止まり先の県（roving tabindex）。JS が効くまで null＝47本とも普通のリンク */
     const [rove, setRove] = useState<string | null>(null);
@@ -168,17 +179,10 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     const lastCommitRef = useRef(0);
     const brokenRef = useRef(false);
     const animRef = useRef<number | null>(null);
-    const hintRef = useRef<HintState | null>(null);
-    const ghostRafRef = useRef<number | null>(null);
-    const ghostTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const ghostOnRef = useRef(false);
-    const idleRef = useRef(true);
     /** 押して開いた直後に、県が覆われないよう頁を寄せる対象（URL から戻したときは動かさない） */
     const revealPending = useRef<string | null>(null);
     /** 開いたのがキーボード・一覧チップなら、一覧（帯）へ焦点を移す（Esc で県へ戻す） */
     const focusSheetPending = useRef(false);
-    /** 初回の手がかり（輪の動き）を止める。地方の拡大・県の選択の頭で呼ぶ（止める関数は下で定義するので ref 越し） */
-    const stopGhostRef = useRef<() => void>(() => {});
 
     const s = wpx / view.w; // 画面の px / 単位
 
@@ -218,7 +222,6 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
 
     /** 画面を替える。拡大が壊れても（例外）、即時に切り替えて県へは行ける */
     const gotoStage = useCallback((r: RegionName | null, instant = false) => {
-        stopGhostRef.current(); // 2026-11-09: 地方ボタン・一覧で操作したら、輪の動きが強調と札を書き続けない
         setStageBoth(r);
         guard("camTo", () => camTo(viewFor(r), instant), () => setView(viewFor(r)));
     }, [camTo, setStageBoth, setView]);
@@ -251,7 +254,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         setSel(null);
         revealPending.current = null;
         clearMapReturn();
-        setAnnounce("撮影スポットの一覧を閉じました。");
+        setAnnounce("観光スポットの一覧を閉じました。");
         if (refocus) svgRef.current?.querySelector<SVGAElement>(`a[data-s="${cur}"]`)?.focus({ preventScroll: true });
         try {
             const st = window.history.state as Record<string, unknown> | null;
@@ -263,14 +266,13 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
 
     /** 県を選ぶ（地図・一覧チップ・近くの県・リンクの Enter）。同じ県をもう一度選んでも変化なし。閉じるのは ✕・Esc・海のタップ */
     const selectPref = useCallback((slug: string, byKey = false) => {
-        stopGhostRef.current();
         if (!among.has(slug)) return;
         const cur = selRef.current;
         if (cur === slug) { if (byKey) sheetRef.current?.focus({ preventScroll: true }); return; }
         track("nav_click", { area: "home_entry", dest: "map_pref_select" });
         setSel(slug);
         setRove(slug);
-        setAnnounce(`${NAME.get(slug)}を選びました。撮影スポット ${counts.get(slug) ?? 0}件。`);
+        setAnnounce(`${NAME.get(slug)}を選びました。観光スポット ${counts.get(slug) ?? 0}件。`);
         const target = regionForSelection(slug);
         if (target !== stageRef.current) gotoStage(target);
         revealPending.current = slug;
@@ -433,14 +435,6 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         if (!prefersReducedMotion()) p.classList.add("go");
     };
 
-    const stopGhost = useCallback(() => {
-        if (ghostRafRef.current !== null) cancelAnimationFrame(ghostRafRef.current);
-        if (ghostTimerRef.current !== null) clearTimeout(ghostTimerRef.current);
-        ghostRafRef.current = ghostTimerRef.current = null;
-        if (ghostOnRef.current) { ghostOnRef.current = false; setGhost(false); setHov(null); fingerRef.current = null; }
-    }, [setHov]);
-    stopGhostRef.current = stopGhost;
-
     const updateTrace = useCallback((x: number, y: number) => {
         fingerRef.current = { x, y };
         const m = toMap(x, y);
@@ -473,8 +467,8 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     }, [closeSheet, goRegion, selectPref]);
 
     /** なぞりの機械は最初の 1 回だけ作る。中から読む関数は毎回の描画の最新（`latest`）を呼ぶ */
-    const latest = useRef({ updateTrace, endTrace, commit, ctxFor, toMap, layoutFinger, stopGhost });
-    latest.current = { updateTrace, endTrace, commit, ctxFor, toMap, layoutFinger, stopGhost };
+    const latest = useRef({ updateTrace, endTrace, commit, ctxFor, toMap, layoutFinger });
+    latest.current = { updateTrace, endTrace, commit, ctxFor, toMap, layoutFinger };
     const gestureRef = useRef<TraceGesture | null>(null);
     if (gestureRef.current === null) {
         gestureRef.current = new TraceGesture({
@@ -484,13 +478,10 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                 // 長押しのタイマーから呼ばれるので、ここで例外が出ても握る（なぞりだけ止めて、タップ・一覧チップは生かす）
                 guardedRef.current("begin", () => {
                 const L = latest.current;
-                L.stopGhost();
                 tracingRef.current = true;
                 setTracing(true);
                 try { wrapRef.current?.setPointerCapture(id); } catch { /* 取れなくても、地図の外は座標で判定する */ }
                 if (why === "dwell") { try { navigator.vibrate?.(10); } catch { /* 触覚: iOS の Web は不可 */ } } // 長押し成立の合図（対応する端末だけ）
-                if (hintRef.current) { hintRef.current = tracedOnce(hintRef.current); writeHint(hintRef.current); }
-                setCaption(false);
                 const m = L.toMap(x, y);
                 outsideRef.current = !m.inside;
                 setOutside(!m.inside);
@@ -522,8 +513,6 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     const pointerIn = (e: React.PointerEvent) => ({ id: e.pointerId, x: e.clientX, y: e.clientY, type: e.pointerType, button: e.button, primary: e.isPrimary });
 
     const onPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-        stopGhost();
-        setCaption(false);
         tapRef.current = null;
         if (e.pointerType === "mouse" && (e.ctrlKey || e.metaKey || e.shiftKey || e.altKey)) return; // 修飾キーつきは click で新しいタブへ
         guardedRef.current("down", () => gestureRef.current!.down(pointerIn(e)));
@@ -675,53 +664,6 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         else if (stageRef.current !== null) { e.preventDefault(); goAll(); wrapRef.current?.focus({ preventScroll: true }); }
     };
 
-    // ---- 初見の手がかり ----
-    useEffect(() => {
-        const st = countVisit(readHint());
-        hintRef.current = st;
-        writeHint(st);
-        setCaption(shouldShowCaption(st));
-        const el = wrapRef.current;
-        if (!el || !shouldPlayGhost(st) || prefersReducedMotion() || typeof IntersectionObserver === "undefined") return;
-        let visible = false;
-        const arm = () => {
-            if (ghostTimerRef.current !== null) clearTimeout(ghostTimerRef.current);
-            ghostTimerRef.current = null;
-            if (!visible || !idleRef.current || !hintRef.current || !shouldPlayGhost(hintRef.current)) return;
-            ghostTimerRef.current = setTimeout(() => {
-                if (visible && idleRef.current && stageRef.current === null && !selRef.current && hintRef.current && shouldPlayGhost(hintRef.current)) playGhost();
-            }, HINT_IDLE_MS);
-        };
-        const io = new IntersectionObserver((es) => { visible = (es[0]?.intersectionRatio ?? 0) >= HINT_VISIBLE_RATIO; arm(); }, { threshold: [0, HINT_VISIBLE_RATIO, 1] });
-        io.observe(el);
-        return () => { io.disconnect(); stopGhost(); };
-        // マウントのときだけ
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-    idleRef.current = !tracing && !ghost;
-
-    /** 輪が 東北 → 関東 → 中部 → 近畿 をなぞる（1 回・2.8 秒）。触れたら消える */
-    const playGhost = () => {
-        if (hintRef.current) { hintRef.current = ghostPlayed(hintRef.current); writeHint(hintRef.current); }
-        ghostOnRef.current = true;
-        setGhost(true);
-        const t0 = performance.now();
-        const frame = (now: number) => {
-            const g = ghostAt(Math.max(0, now - t0)); // rAF の時刻が t0 より僅かに前になっても落とさない
-            const svg = svgRef.current;
-            if (!g || !svg) { stopGhost(); return; }
-            const r = svg.getBoundingClientRect();
-            const pa = REGION_POS[HINT_PATH[g.from] as Exclude<RegionName, "沖縄">], pb = REGION_POS[HINT_PATH[g.to] as Exclude<RegionName, "沖縄">];
-            const ux = pa[0] + (pb[0] - pa[0]) * g.u, uy = pa[1] + (pb[1] - pa[1]) * g.u;
-            fingerRef.current = { x: r.left + (ux / MAP_W) * r.width, y: r.top + (uy / MAP_H) * r.height };
-            const h = hitAt(ux, uy, { region: null, s: r.width / MAP_W, among }).best;
-            if (!sameHit(h, hovRef.current)) setHov(h);
-            layoutFinger();
-            ghostRafRef.current = requestAnimationFrame(frame);
-        };
-        ghostRafRef.current = requestAnimationFrame(frame);
-    };
-
     // ---- 描画に使う値 ----
     /** 県の形を描く順（触れた・選んだ県は最後）と、その class */
     const drawOrder = PREFECTURE_SHAPES.map((sh) => {
@@ -749,7 +691,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     ];
     const LEGEND_FILL = ["#1e1a12", "#3b301d", "#6b5937", "#a8864f"];
 
-    /** 札の文字（名前・小さい字）。なぞり中・マウス・ゴースト・キーボード */
+    /** 札の文字（名前・小さい字）。なぞり中・マウス・キーボード */
     const tip = (() => {
         if (outside) return { n: "離すと取り消し", sub: "地図の中に戻すと続けられます", cancel: true };
         if (!hov) return null;
@@ -767,8 +709,8 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         if (hov?.k === "region") return <span>触れている　<b>{hov.region}</b></span>;
         if (hov) return <span>触れている　<b>{stage !== null ? `${regionOf(hov.slug)}　›　` : ""}{NAME.get(hov.slug)}</b></span>;
         if (tracing) return <span>触れている　<span className="text-text-3">（どの県にも当たっていません）</span></span>;
-        if (stage !== null) return <span><b>{stage}</b> を表示中　県を選びます</span>;
-        return <span>全国　長押ししてなぞる・ひと押しでも選べます</span>;
+        if (stage !== null) return <span><b>{stage}</b> を表示中</span>;
+        return <span>全国　地方を押すと開きます</span>;
     })();
 
     const tabIdx = (slug: string): number | undefined => (rove === null ? undefined : tabStop === slug ? 0 : -1);
@@ -780,10 +722,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
             data-testid="home-japan-map"
             onKeyDown={onSectionKeyDown}
         >
-            <SectionHead id={HEADING_ID} eyebrow="日本地図" title="撮影スポットを地図から探す" className="mb-0" testId="home-japan-map-head" />
-            <p className="m-0 mt-2 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
-                地方を選んで拡大し、県を選ぶと、撮影スポットが枠に出ます。「すべて見る」でその県の一覧へ進みます。数字は掲載している件数です。
-            </p>
+            <SectionHead id={HEADING_ID} eyebrow="日本地図" title="観光スポットを地図から探す" className="mb-0" testId="home-japan-map-head" />
             <Link href={`#${SPOT_LIST_ID}`} prefetch={false} className="sr-only focus:not-sr-only focus:inline-flex focus:items-center focus:min-h-[44px] focus:text-text-2 focus:underline focus:underline-offset-4 jm-skip" data-testid="home-japan-map-skip">
                 地図を飛ばして文字の一覧へ
             </Link>
@@ -848,7 +787,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                                         key={sh[0]}
                                         href={ROUTES.SPOT_AREA(sh[0])}
                                         prefetch={false}
-                                        aria-label={`${NAME.get(sh[0])}の撮影スポット、${counts.get(sh[0])}件`}
+                                        aria-label={`${NAME.get(sh[0])}の観光スポット、${counts.get(sh[0])}件`}
                                         data-s={sh[0]}
                                         aria-expanded={rove === null ? undefined : sel === sh[0]}
                                         aria-controls={sel === sh[0] ? SHEET_ID : undefined}
@@ -863,16 +802,9 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                             <g
                                 aria-hidden="true"
                                 className="jm-names"
-                                style={{ "--jm-fs": `${REGION_LABEL_PX / s}px`, "--jm-rfs": `${16 / s}px`, "--jm-sw": `${3.5 / s}px` } as React.CSSProperties}
+                                style={{ "--jm-fs": `${REGION_LABEL_PX / s}px`, "--jm-sw": `${3.5 / s}px` } as React.CSSProperties}
                             >
-                                {stage === null ? (
-                                    <>
-                                        {(Object.keys(REGION_POS) as (keyof typeof REGION_POS)[]).map((r) => (
-                                            <text key={r} className={`jm-rname${hovRegion === r || (hovSlug && regionOf(hovSlug) === r) ? " jm-on" : ""}`} x={REGION_POS[r][0]} y={REGION_POS[r][1]} data-r={r}>{r}</text>
-                                        ))}
-                                        <text className={`jm-rname${hovSlug === "okinawa" ? " jm-on" : ""}`} x={OKINAWA_CENTER[0]} y={OKINAWA_CENTER[1]} data-r="沖縄">沖縄県</text>
-                                    </>
-                                ) : (
+                                {stage !== null && (
                                     members.map((slug) => {
                                         const l = LABEL_BY_SLUG.get(slug);
                                         if (!l) return null;
@@ -896,8 +828,38 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                                 </g>
                             )}
                         </svg>
-                        {caption && stage === null && !sel && !tracing && (
-                            <div className="jm-hint" aria-hidden="true" data-testid="home-japan-map-hint"><i>長押ししてなぞる</i></div>
+                        {/*
+                          * 全国の地方名は押せる札（2026-11-12）。1回押せばその地方が開く（北海道・沖縄は県を選ぶ）。
+                          * 長押し・横になぞると、札の上から始めても地図のなぞりになる（`pointerdown` は枠へ届く）。
+                          * 読み上げ・Tab は上の地方チップ（実ボタン）が持つので、ここは指とマウスの近道（aria-hidden・tabIndex -1）。
+                          * 拡大・縮小の動きの途中は出さない（札が動きの途中の地図とずれる）
+                          */}
+                        {stage === null && !moving && (
+                            <div className="jm-rlabels" aria-hidden="true" data-testid="home-japan-map-regions">
+                                {REGION_ORDER.map((r) => {
+                                    const [x, y] = regionLabelAt(r);
+                                    const on = hovRegion === r || (hovSlug !== null && regionOf(hovSlug) === r);
+                                    return (
+                                        <button
+                                            key={r}
+                                            type="button"
+                                            tabIndex={-1}
+                                            className={`jm-rlabel${on ? " jm-on" : ""}`}
+                                            style={{ left: `${(x / MAP_W) * 100}%`, top: `${(y / MAP_H) * 100}%` }}
+                                            data-r={r}
+                                            data-testid="home-japan-map-region"
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // 枠の click（地図のタップ）で二重に開かない
+                                                tapRef.current = null;
+                                                if (tracingRef.current || Date.now() - lastCommitRef.current < 400) return; // なぞって離した直後の click は、なぞりの結果を優先
+                                                goRegion(r);
+                                            }}
+                                        >
+                                            {r === "沖縄" ? "沖縄県" : r}<span aria-hidden="true">›</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         )}
                     </div>
                 </div>
@@ -908,7 +870,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                     ref={sheetRef}
                     tabIndex={-1}
                     role="region"
-                    aria-label={selName ? `${selName}の撮影スポット` : "撮影スポットの一覧"}
+                    aria-label={selName ? `${selName}の観光スポット` : "観光スポットの一覧"}
                     data-open={sel ? "true" : "false"}
                     className="jm-sheet md:mt-0 md:sticky md:top-20"
                     data-testid="home-japan-map-panel"
@@ -918,13 +880,13 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                             <div className="flex items-start justify-between gap-2">
                                 <div className="min-w-0">
                                     <h3 className="m-0 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "28px" }}>{selName}</h3>
-                                    <p className="m-0 mt-0.5 text-text-2 tabular-nums" style={{ fontSize: "13px", lineHeight: "18px" }}>撮影スポット {selCount}件</p>
+                                    <p className="m-0 mt-0.5 text-text-2 tabular-nums" style={{ fontSize: "13px", lineHeight: "18px" }}>観光スポット {selCount}件</p>
                                 </div>
-                                <button type="button" className="jm-close" aria-label="撮影スポットの一覧を閉じる" data-testid="home-japan-map-close" onClick={() => closeSheet(true)}>
+                                <button type="button" className="jm-close" aria-label="観光スポットの一覧を閉じる" data-testid="home-japan-map-close" onClick={() => closeSheet(true)}>
                                     <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
                                 </button>
                             </div>
-                            {selCount === 0 && <p className="m-0 mt-1 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>この県の撮影スポットは、まだ登録がありません。近くの県を見る</p>}
+                            {selCount === 0 && <p className="m-0 mt-1 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>この県の観光スポットは、まだ登録がありません。近くの県を見る</p>}
                             {selTops.length > 0 && (
                                 <p className="jm-names-line m-0 mt-1 truncate text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>{selTops.map((t) => t[1]).join("・")} ほか</p>
                             )}
@@ -945,7 +907,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                             )}
                             {selCount > 0 && (
                                 <TrackedLink href={ROUTES.SPOT_AREA(sel)} className="jm-open" data-testid="home-japan-map-open" navArea="home_entry" navDest="map_pref" onClick={rememberMap}>
-                                    <span>{selName}の撮影スポットをすべて見る</span><span aria-hidden="true">›</span>
+                                    <span>{selName}の観光スポットをすべて見る</span><span aria-hidden="true">›</span>
                                 </TrackedLink>
                             )}
                             <div className={`jm-near${selCount === 0 ? " jm-near-keep" : ""}`}>
@@ -959,9 +921,10 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                         </>
                     ) : (
                         <>
-                            <h3 className="m-0 font-serif font-bold text-white" style={{ fontSize: "20px", lineHeight: "26px" }}>{stage ? `${stage}の県` : "県を選ぶ"}</h3>
-                            <p className="m-0 mt-0.5 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>
-                                {stage ? "地図をなぞるか、ひと押しで選びます" : "地図に指を置き、そのままなぞると名前が出ます"}
+                            {/* 何も選んでいないとき: 命令（「県を選ぶ」）ではなく、押すとここに何が出るか（2026-11-12 owner） */}
+                            <h3 className="m-0 font-serif font-bold text-white" style={{ fontSize: "20px", lineHeight: "26px" }}>{stage ? `${stage}の県` : "県の観光スポット"}</h3>
+                            <p className="m-0 mt-0.5 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }} data-testid="home-japan-map-panel-note">
+                                {stage ? "県を押すと、ここに観光スポットが出ます" : "地方を押し、県を押すと、ここに出ます"}
                             </p>
                             <button
                                 ref={listBtnRef}
@@ -1016,9 +979,6 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                             </div>
                         ))}
                     </div>
-                    <p className="m-0 mt-1 text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>
-                        長押ししてなぞらなくても、ひと押しや地方のボタン、県の一覧から選べます。
-                    </p>
                     <Link href={`#${SPOT_LIST_ID}`} prefetch={false} className="jm-link" data-testid="home-japan-map-textlink">すべての県を文字で見る ›</Link>
                     <label className="jm-dens-label flex items-center gap-2 min-h-[44px] text-text-2" style={{ fontSize: "13px" }}>
                         <input type="checkbox" className="w-5 h-5 m-0" style={{ accentColor: "#b8955a" }} checked={dens} onChange={(e) => setDens(e.target.checked)} />
@@ -1039,11 +999,11 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                     <div ref={progRef} className="jm-prog" hidden aria-hidden="true">
                         <svg width="54" height="54" viewBox="0 0 54 54"><circle cx="27" cy="27" r="25" /></svg>
                     </div>
-                    <div ref={ringRef} className={`jm-finger${ghost ? " jm-ghost" : ""}`} hidden={!(tracing || ghost)} aria-hidden="true" />
+                    <div ref={ringRef} className="jm-finger" hidden={!tracing} aria-hidden="true" />
                     <div
                         ref={tipRef}
-                        className={`jm-tip${tip?.cancel ? " jm-cancel" : ""}${ghost ? " jm-ghost" : ""}`}
-                        hidden={!tip || !(tracing || ghost || mouseOn)}
+                        className={`jm-tip${tip?.cancel ? " jm-cancel" : ""}`}
+                        hidden={!tip || !(tracing || mouseOn)}
                         aria-hidden="true"
                         data-testid="home-japan-map-tip"
                     >

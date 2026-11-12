@@ -35,7 +35,7 @@ export default function SpotTopicPage({ view, eyebrow }: { view: TopicView; eyeb
                 <nav aria-label="パンくずリスト" className="mb-2 text-white/60" style={{ fontSize: "12px", lineHeight: "18px" }}>
                     <Link href="/" prefetch={false} className="hover:text-white/90"><Lang ja="ホーム" en="Home" /></Link>
                     <span className="mx-1.5" aria-hidden>/</span>
-                    <Link href={ROUTES.SPOTS} prefetch={false} className="hover:text-white/90"><Lang ja="撮影スポット" en="Photo spots" /></Link>
+                    <Link href={ROUTES.SPOTS} prefetch={false} className="hover:text-white/90"><Lang ja="観光スポット" en="Photo spots" /></Link>
                     {view.crumbs.map((c) => (
                         <React.Fragment key={c.href}>
                             <span className="mx-1.5" aria-hidden>/</span>

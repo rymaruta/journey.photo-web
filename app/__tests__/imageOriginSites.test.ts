@@ -118,18 +118,18 @@ const EXEMPT: Array<[string, string, string]> = [
      + "CloudFront の写真URLではないので `publicImageUrl` を通す対象ではない。"
      + "権利の判断はサーバー側（`lib/data/spotLink.ts` の `toSpotLink`）で済ませてある"],
     ["app/components/SpotThumbMark.tsx", "src",
-     "撮影スポットの一覧の行の丸い印（地図の下の一覧 `MapSpotList`・近くの撮影スポット `SpotRows`・2026-11-04）。"
+     "観光スポットの一覧の行の丸い印（地図の下の一覧 `MapSpotList`・近くの観光スポット `SpotRows`・2026-11-04）。"
      + "渡されるのは台帳の代表写真（`SpotPin.cover`）か、サイトに同梱した小さい版（`spotRowThumbPath(slug)`＝`/images/spots/thumb/<slug>.jpg`）だけ。"
      + "**利用者が上げた写真ではない**。出してよいかの判断はサーバー側（`lib/data/spotThumbs.ts` の `hasSpotRowThumb`）で済ませてある"],
     ["app/components/SpotPhotoParts.tsx", "src",
-     "撮影スポットの写真の札（2026-11-10・案A）。県の頁（`/spots/area/<県>`）のカードと、`/spots` の県・国・いまの季節の札の代表写真。"
+     "観光スポットの写真の札（2026-11-10・案A）。県の頁（`/spots/area/<県>`）のカードと、`/spots` の県・国・いまの季節の札の代表写真。"
      + "季節・テーマの頁と同じ値（`topicCardCover`＝`spotCoverImage` のサイト内のパスかそのサムネ・2026-10-22）。"
      + "利用者が上げた写真ではない。台帳をクライアントに載せないため"
      + "サーバー側（`lib/data/spotLink.ts` の `spotIndexItemsForArea`・`lib/data/spotIndexPhotos.ts`）で解いた形から受け取る"],
     ["app/components/SpotPhotoParts.tsx", "img.currentSrc || img.src",
      "上の札の写真が水和の前に壊れて見えたときの読み直し（2026-11-10）。いま描いている `<img>` と同じ場所をもう1回読むだけで、新しい URL は作らない"],
     ["app/components/PhotoMap.tsx", "coverSrc",
-     "地図の撮影スポットのピンの写真の丸（iOS の `SpotMapMarker`・2026-10-31 束 2）。`MapSpotList` の行と同じ値"
+     "地図の観光スポットのピンの写真の丸（iOS の `SpotMapMarker`・2026-10-31 束 2）。`MapSpotList` の行と同じ値"
      + "（`SpotPin.cover.src`）で、利用者が上げた写真ではない。サーバー側（`lib/data/spotLink.ts` の `spotPins`）で解いた形から受け取る"],
     ["app/components/SpotTopicLists.tsx", "c.cover.src",
      "切り口の頁（国・テーマ・季節・2026-10-11）のカードの代表写真。`SpotGuideClient` と同じ値"
@@ -137,10 +137,10 @@ const EXEMPT: Array<[string, string, string]> = [
      + "利用者が上げた写真ではない。サーバー側（`lib/data/spotTopics.ts`）で解いた形から受け取る"],
     ["app/components/HomeTopCards.tsx", "imageUrl",
      "ホームの上段の札（2026-10-31 束 1 H2）の写真。今日の一問の写真（`quiz.photo.thumbUrl`／`url`＝下の "
-     + "`DailyQuizClient` と同じ値）と、いまの季節の撮影スポットの1件目（`SpotsEntry` の `s.src` と同じ値）だけ。"
+     + "`DailyQuizClient` と同じ値）と、いまの季節の観光スポットの1件目（`SpotsEntry` の `s.src` と同じ値）だけ。"
      + "**利用者が上げた写真ではない**（テーマの札の写真は `Thumb` を通す）"],
     ["app/components/SpotsEntry.tsx", "s.src",
-     "ホームの「いまの季節の撮影スポット」の写真。上と同じ値（`homeSeasonalSpots`）で、"
+     "ホームの「いまの季節の観光スポット」の写真。上と同じ値（`homeSeasonalSpots`）で、"
      + "ビルド時にサーバーが選んで props で渡す。利用者が上げた写真ではない"],
     ["app/components/SpotGuideClient.tsx", "cover!.src",
      "公式撮影地ガイドの代表写真。**利用者が上げた写真ではない**——運営が台帳"
@@ -148,7 +148,7 @@ const EXEMPT: Array<[string, string, string]> = [
      + "CloudFront の写真URLではないので `publicImageUrl` を通す対象ではない。"
      + "外部へのホットリンクは型の規約で禁じている（`SpotCoverImage.src`）"],
     ["app/swipe/SwipeClient.tsx", "current.src",
-     "撮影スポットを払う画面（2026-11-11）の写真。`/app/data/swipe.json`（`lib/data/swipeDeck.ts`）の `src`＝"
+     "観光スポットを払う画面（2026-11-11）の写真。`/app/data/swipe.json`（`lib/data/swipeDeck.ts`）の `src`＝"
      + "`spotCoverImage` の値（サイトに置いた `/images/spots/…`）。**利用者が上げた写真ではない**"],
     ["app/swipe/SwipeClient.tsx", "upcoming.src", "同じ画面の次の札（下に重ねる・先に読む）。上と同じ値"],
     ["app/q/DailyQuizClient.tsx", "quiz.photo.url",
@@ -173,7 +173,7 @@ const EXEMPT: Array<[string, string, string]> = [
     // (a2) 自分のサイトに置いた固定の資産（写真ではない）
     ["app/components/Footer.tsx", '"/logo-aperture.png"', "フッターとiOSアプリ案内の固定ロゴ。public/配下のサイト相対パスなので配信ドメインの変換は不要"],
     ["app/components/AppInstallCard.tsx", '"/logo-aperture.png"', "iOSアプリのご案内の札の固定ロゴ（2026-11-06・ホーム・記事・フッターに置く）。同じサイト相対パス"],
-    ["app/search/SpotSearchResults.tsx", "src", "公式撮影スポットの検索用サムネイル。spot-search.jsonのimage.srcはサイト内の固定画像パスで、利用者の投稿画像ではない"],
+    ["app/search/SpotSearchResults.tsx", "src", "公式観光スポットの検索用サムネイル。spot-search.jsonのimage.srcはサイト内の固定画像パスで、利用者の投稿画像ではない"],
     ["app/components/AuthPhotoBand.tsx", '"/logo-aperture.png"', "ログイン・登録の画面の固定ロゴ（public/配下のサイト相対パス）"],
     ["app/layout.tsx", '"/logo-aperture.png"', "ヘッダーのロゴ（`public/` に置いた固定の絵。相対パスなので既にサイトのドメイン）"],
     ["app/components/ProfileNameMarks.tsx", "proMarkImage(style, size)", "Pro の印（`public/badges/` に置いた固定の SVG。相対パス）"],

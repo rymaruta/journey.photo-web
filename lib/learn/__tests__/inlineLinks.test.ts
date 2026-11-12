@@ -45,7 +45,7 @@ describe("本文のリンクの書き方（inlineSegments）", () => {
     });
 });
 
-describe("教科書から撮影スポットへのリンク", () => {
+describe("教科書から観光スポットへのリンク", () => {
     const texts = articleTexts();
     const spotSlugs = new Set(visibleSpots(SPOTS).filter(isPublished).map((s) => s.slug));
     const topicPaths = new Set(spotTopicSitemapEntries("").map((e) => e.url));

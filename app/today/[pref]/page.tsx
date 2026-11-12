@@ -34,7 +34,7 @@ export function generateStaticParams() {
 }
 
 function todayPrefDescription(place: TodayPlace): string {
-    return `${place.shortName}（${place.capital}付近）の今日の日の出・日の入り時刻、朝夕のゴールデンアワーとブルーアワー、月ごとの時刻表、近くの撮影スポット。座標と日付から計算した目安で、開いた日の値を表示します。`;
+    return `${place.shortName}（${place.capital}付近）の今日の日の出、日の入り時刻、朝夕のゴールデンアワーとブルーアワー、月ごとの時刻表、近くの観光スポット。座標と日付から計算した目安で、開いた日の値を表示します。`;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ pref: string }> }): Promise<Metadata> {
@@ -67,12 +67,12 @@ export default async function TodayPrefPage({ params }: { params: Promise<{ pref
         { name: place.shortName, href: ROUTES.TODAY_PREF(pref) },
     ];
     const itemList = near.items.length > 0
-        ? generateItemListStructuredData(`${place.shortName}の近くの撮影スポット`, near.items.map((i) => ({ name: i.name, url: `${siteConfig.url}/spots/${i.slug}` })))
+        ? generateItemListStructuredData(`${place.shortName}の近くの観光スポット`, near.items.map((i) => ({ name: i.name, url: `${siteConfig.url}/spots/${i.slug}` })))
         : null;
 
     const basisNote = place.basis === "capital-spots"
-        ? `計算に使う座標は、このサイトに載せている${place.capital}の撮影スポット${place.sampleCount}件の座標の平均です。`
-        : `${place.capital}に載せている撮影スポットが無いため、${place.pref.name}内の撮影スポット${place.sampleCount}件の座標の平均（県の中ほど）で計算しています。県庁所在地からは離れていることがあります。`;
+        ? `計算に使う座標は、このサイトに載せている${place.capital}の観光スポット${place.sampleCount}件の座標の平均です。`
+        : `${place.capital}に載せている観光スポットが無いため、${place.pref.name}内の観光スポット${place.sampleCount}件の座標の平均（県の中ほど）で計算しています。県庁所在地からは離れていることがあります。`;
 
     return (
         <>
@@ -83,7 +83,7 @@ export default async function TodayPrefPage({ params }: { params: Promise<{ pref
                 <LearnHeader
                     eyebrow="TODAY · 日の出・日の入り"
                     title={`${place.shortName}の今日の日の出・日の入り時刻`}
-                    lead={`${place.pref.name}（${place.capital}付近）の今日の日の出・日の入りの時刻と方位、朝夕のゴールデンアワー・ブルーアワー、月ごとの時刻表、近くの撮影スポットをまとめました。`}
+                    lead={`${place.pref.name}（${place.capital}付近）の今日の日の出、日の入りの時刻と方位、朝夕のゴールデンアワー・ブルーアワー、月ごとの時刻表、近くの観光スポットをまとめました。`}
                 />
 
                 <section aria-labelledby="today-now-heading" className="mb-10" data-testid="today-now">
@@ -132,7 +132,7 @@ export default async function TodayPrefPage({ params }: { params: Promise<{ pref
                 )}
 
                 <section aria-labelledby="today-nearby-heading" className="mb-10" data-testid="today-nearby-section">
-                    <h2 id="today-nearby-heading" className={H2} style={H2_STYLE}>{place.shortName}の近くの撮影スポット</h2>
+                    <h2 id="today-nearby-heading" className={H2} style={H2_STYLE}>{place.shortName}の近くの観光スポット</h2>
                     <p className="m-0 mb-3 max-w-3xl text-text-2" style={{ fontSize: "13px", lineHeight: "20px" }}>
                         {near.filledFromPrefecture
                             ? `${place.capital}付近から${NEARBY_RADIUS_KM}km 以内のスポットは${near.withinRadius}件でした。足りないぶんは、${place.pref.name}内のスポットを近い順に加えています（最大${NEARBY_LIMIT}件）。`
@@ -157,11 +157,11 @@ export default async function TodayPrefPage({ params }: { params: Promise<{ pref
                             ))}
                         </ul>
                     ) : (
-                        <p className="m-0 text-text-2" style={BODY}>近くに載せている撮影スポットはまだありません。</p>
+                        <p className="m-0 text-text-2" style={BODY}>近くに載せている観光スポットはまだありません。</p>
                     )}
                     <p className="m-0 mt-3">
                         <Link href={ROUTES.SPOT_AREA(pref)} prefetch={false} className="inline-flex min-h-[44px] items-center text-text-2 hover:text-white" style={{ fontSize: "13px" }}>
-                            {place.pref.name}の撮影スポットをすべて見る<span aria-hidden="true" className="ml-1">›</span>
+                            {place.pref.name}の観光スポットをすべて見る<span aria-hidden="true" className="ml-1">›</span>
                         </Link>
                     </p>
                 </section>

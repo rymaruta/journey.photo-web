@@ -50,8 +50,8 @@ const AREA = { slug: "hokkaido", name: "北海道", nameEn: "Hokkaido" };
 const NEARBY = [{ slug: "hakodate-yama", name: "函館山" }, { slug: "komagatake", name: "北海道駒ヶ岳" }];
 const SAME = { label: "北海道", spots: [{ slug: "otaru-unga", name: "小樽運河" }] };
 const TOPICS = [
-    { href: "/spots/season/spring", label: "春の撮影スポット", count: 120 },
-    { href: "/spots/season/winter", label: "冬の撮影スポット", count: 90 },
+    { href: "/spots/season/spring", label: "春の観光スポット", count: 120 },
+    { href: "/spots/season/winter", label: "冬の観光スポット", count: 90 },
     { href: "/spots/theme/castle/hokkaido", label: "北海道の城", count: 4 },
 ];
 
@@ -71,7 +71,7 @@ const before = (a: Element, b: Element) => !!(a.compareDocumentPosition(b) & Nod
  */
 const BASELINE_HREFS: string[] = ["/", "/location/hakodate", "/map#14/41.79/140.75", "/spots", "/spots/area/hokkaido", "/spots/hakodate-yama", "/spots/komagatake", "/spots/otaru-unga", "/spots/season/spring", "/spots/season/winter", "/spots/theme/castle/hokkaido", "/user/upload"];
 
-describe("撮影スポット詳細の「次へ」", () => {
+describe("観光スポット詳細の「次へ」", () => {
     it("説明文（summary）の下・行動3つの下・写真・魅力・近くの節より前にある", () => {
         const { container } = view();
         const next = screen.getByTestId("spot-next");
@@ -101,8 +101,8 @@ describe("撮影スポット詳細の「次へ」", () => {
     it("県の一覧・近くの節への行き・季節などの一覧・アプリの札が、すべてこの中にある", () => {
         view();
         const next = screen.getByTestId("spot-next");
-        expect(within(next).getByRole("link", { name: /北海道の撮影スポットをすべて見る/ }).getAttribute("href")).toBe("/spots/area/hokkaido");
-        expect(within(next).getByRole("link", { name: "近くの撮影スポット" }).getAttribute("href")).toBe("#spot-nearby");
+        expect(within(next).getByRole("link", { name: /北海道の観光スポットをすべて見る/ }).getAttribute("href")).toBe("/spots/area/hokkaido");
+        expect(within(next).getByRole("link", { name: "近くの観光スポット" }).getAttribute("href")).toBe("#spot-nearby");
         for (const t of TOPICS) expect(within(next).getByRole("link", { name: new RegExp(t.label) }).getAttribute("href")).toBe(t.href);
         expect(within(next).getByTestId("app-install-card").getAttribute("data-placement")).toBe("spot_detail");
     });
@@ -120,13 +120,13 @@ describe("撮影スポット詳細の「次へ」", () => {
         const all = hrefs(container);
         for (const t of TOPICS) expect(all.filter((h) => h === t.href), t.href).toHaveLength(1);
         expect(container.querySelectorAll('[data-testid="spot-topics"]')).toHaveLength(1);
-        expect(screen.getAllByRole("link", { name: /北海道の撮影スポットをすべて見る/ })).toHaveLength(1);
+        expect(screen.getAllByRole("link", { name: /北海道の観光スポットをすべて見る/ })).toHaveLength(1);
         expect(container.querySelectorAll('[data-testid="app-install-card"]')).toHaveLength(1);
     });
 
     it("近くの節の ID と、行の頁内リンクの行き先が一致する（空振りしない）", () => {
         const { container } = view();
-        const target = within(screen.getByTestId("spot-next")).getByRole("link", { name: "近くの撮影スポット" }).getAttribute("href")!.slice(1);
+        const target = within(screen.getByTestId("spot-next")).getByRole("link", { name: "近くの観光スポット" }).getAttribute("href")!.slice(1);
         expect(container.querySelector(`#${target}`)).not.toBeNull();
     });
 
@@ -139,7 +139,7 @@ describe("撮影スポット詳細の「次へ」", () => {
 
     it("海外は国の一覧へ", () => {
         view({ area: { slug: "overseas", name: "海外", nameEn: "Outside Japan" }, country: { href: "/spots/area/overseas/fr", name: "フランス", nameEn: "France" } });
-        expect(within(screen.getByTestId("spot-next")).getByRole("link", { name: /フランスの撮影スポットをすべて見る/ }).getAttribute("href")).toBe("/spots/area/overseas/fr");
+        expect(within(screen.getByTestId("spot-next")).getByRole("link", { name: /フランスの観光スポットをすべて見る/ }).getAttribute("href")).toBe("/spots/area/overseas/fr");
     });
 
     it("パンくずのリンクは押せる高さ（44px）", () => {
@@ -154,9 +154,9 @@ describe("撮影スポット詳細の「次へ」", () => {
         const next = screen.getByTestId("spot-next");
         const stop = (e: Event) => e.preventDefault();
         next.addEventListener("click", stop);
-        fireEvent.click(within(next).getByRole("link", { name: /北海道の撮影スポットをすべて見る/ }));
-        fireEvent.click(within(next).getByRole("link", { name: "近くの撮影スポット" }));
-        fireEvent.click(within(next).getByRole("link", { name: /春の撮影スポット/ }));
+        fireEvent.click(within(next).getByRole("link", { name: /北海道の観光スポットをすべて見る/ }));
+        fireEvent.click(within(next).getByRole("link", { name: "近くの観光スポット" }));
+        fireEvent.click(within(next).getByRole("link", { name: /春の観光スポット/ }));
         expect(events("nav_click")).toEqual([
             expect.objectContaining({ area: "spot_next", dest: "area" }),
             expect.objectContaining({ area: "spot_next", dest: "nearby" }),

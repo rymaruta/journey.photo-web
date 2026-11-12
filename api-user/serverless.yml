@@ -82,6 +82,10 @@ provider:
             # `storyVotes.ts` が「行がまだ在ること」をこれで確かめる。
             # 無いと AccessDeniedException で**全部の票が 500** になる
             - dynamodb:ConditionCheckItem
+            # 共有した旅行プランの本体をまとめて読む（`tripPlans.ts` の `listSharedTrips`・2026-11-12）。
+            # 無いと共有プランに入った人の `GET /user/trips` が AccessDenied で**必ず 500**
+            # （2026-11-12 確かめ役の指摘2。本番のロールで `simulate-principal-policy` が implicitDeny を返した）
+            - dynamodb:BatchGetItem
           Resource:
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}/index/*

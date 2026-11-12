@@ -116,7 +116,7 @@ export default function SavedSpotsMapClient({ spots }: { spots: readonly SpotPin
                     />
                 )}
                 <p className="text-text-3 mt-3" style={{ fontSize: "12px" }} data-testid="saved-map-count">
-                    {en ? `${pins.length} spots · ${geo.length} photos on the map` : `撮影スポット ${pins.length}か所・写真 ${geo.length}枚を地図に出しています`}
+                    {en ? `${pins.length} spots · ${geo.length} photos on the map` : `観光スポット ${pins.length}か所・写真 ${geo.length}枚を地図に出しています`}
                 </p>
             </>
         );
@@ -129,7 +129,7 @@ export default function SavedSpotsMapClient({ spots }: { spots: readonly SpotPin
                 titleId="site-title"
                 eyebrow="WANT TO GO"
                 title={en ? "Want to go, on the map" : "行きたい場所を地図で"}
-                description={en ? "Spots you saved, on one map." : "保存した撮影スポットと撮影地を、ひとつの地図で。"}
+                description={en ? "Spots you saved, on one map." : "保存した観光スポットと撮影地を、ひとつの地図で。"}
             />
             {body}
         </main>

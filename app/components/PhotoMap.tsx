@@ -414,8 +414,8 @@ export default function PhotoMap({
                     spotElsRef.current.set(sp.slug, el);
                     // 「公式」は人が確かめた行だけ（`stage`）。下書きはそう名乗る
                     const label = sp.stage === "published"
-                        ? (en ? `${sp.name} (photo spot)` : `${sp.name}（撮影スポット）`)
-                        : (en ? `${sp.name} (spot, draft)` : `${sp.name}（撮影スポット・下書き）`);
+                        ? (en ? `${sp.name} (photo spot)` : `${sp.name}（観光スポット）`)
+                        : (en ? `${sp.name} (spot, draft)` : `${sp.name}（観光スポット、下書き）`);
                     const marker = L.marker([sp.lat, sp.lng], {
                         icon: L.divIcon({
                             html: el,
@@ -453,7 +453,7 @@ export default function PhotoMap({
                             className: "spot-map-cluster",
                             iconSize: [36, 36],
                         }),
-                        title: en ? `${n} shooting spots` : `撮影スポット ${n}か所`,
+                        title: en ? `${n} shooting spots` : `観光スポット ${n}か所`,
                         keyboard: true,
                         // **写真のピンより奥に置く**（写真が主役。束の丸は大きいので、上に
                         // 置くと写真の束を覆う）。単独のスポットのピンは小さいので手前のまま

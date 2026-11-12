@@ -171,3 +171,31 @@ describe("GET /qr/{token}（ログイン不要）", () => {
         },
     );
 });
+
+describe("返事を控えさせない（Cache-Control: no-store）", () => {
+    const noStore = (r: Result & { headers?: Record<string, string> }) => r.headers?.["Cache-Control"];
+
+    it("GET /user/qr は今の合図でも作った合図でも no-store", async () => {
+        mockSend.mockResolvedValueOnce({ Item: { id: "qrof#u1", token: OLD, issuedAt: "x" } });
+        expect(noStore(await call(getMyQr, authed("u1")))).toBe("no-store");
+        mockSend.mockReset().mockResolvedValue({});
+        expect(noStore(await call(getMyQr, authed("u1")))).toBe("no-store");
+    });
+
+    it("POST /user/qr/rotate は no-store", async () => {
+        mockSend.mockResolvedValueOnce({ Item: { id: "qrof#u1", token: OLD } });
+        expect(noStore(await call(rotateMyQr, authed("u1")))).toBe("no-store");
+    });
+
+    it("GET /qr/{token} は使える答えも使えない答え（404）も no-store", async () => {
+        mockSend.mockResolvedValueOnce({ Item: { id: `qr#${OLD}`, owner: "u1" } });
+        expect(noStore(await call(resolveQr, pub(OLD)))).toBe("no-store");
+        mockSend.mockResolvedValueOnce({});
+        const gone = await call(resolveQr, pub(OLD));
+        expect(gone.statusCode).toBe(404);
+        expect(noStore(gone)).toBe("no-store");
+        const bad = await call(resolveQr, pub("bad"));
+        expect(noStore(bad)).toBe("no-store");
+        expect(JSON.parse(bad.body).error).toBe(QR_UNUSABLE_MESSAGE);
+    });
+});
