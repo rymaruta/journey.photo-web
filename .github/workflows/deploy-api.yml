@@ -460,7 +460,7 @@ jobs:
       - name: Serverless deploy（user API から移した機能・別スタック）
         working-directory: api-user
         env:
-          STACKS: serverless.albums.yml serverless.trips.yml serverless.notifications.yml serverless.trunk.yml serverless.stories.yml
+          STACKS: serverless.albums.yml serverless.trips.yml serverless.notifications.yml serverless.trunk.yml serverless.stories.yml serverless.dm.yml
           APPSTORE_ENVIRONMENTS: ${{ needs.config.outputs.appStoreEnvironments }}
           APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
           APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
