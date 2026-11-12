@@ -86,7 +86,7 @@ describe("さがすの対象のチップ（S1）", () => {
         expect(grid.ids.sort(), "見えないタグで絞られたまま").toEqual(["p1", "p3"]);
     });
 
-    it("「撮影地」は撮影地のある写真だけ・撮影スポットの結果も出す。「写真」は撮影スポットの結果を出さない", () => {
+    it("「撮影地」は撮影地のある写真だけ・観光スポットの結果も出す。「写真」は観光スポットの結果を出さない", () => {
         render(<GalleryPageClient surface="search" />);
         fireEvent.click(screen.getByRole("button", { name: "撮影地" }));
         expect(grid.ids.sort()).toEqual(["p1", "p3"]);

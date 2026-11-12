@@ -262,7 +262,7 @@ export default function SwipeClient() {
     const stamp = (dir: 1 | -1) => Math.max(0, Math.min(1, (dx * dir) / THRESHOLD));
 
     return (
-        <section aria-label={en ? "Swipe photo spots" : "撮影スポットを払う"} className="mt-4" data-testid="swipe">
+        <section aria-label={en ? "Swipe photo spots" : "観光スポットを払う"} className="mt-4" data-testid="swipe">
             {moved !== null && (
                 <div className="mb-4 rounded-2xl bg-accent-soft px-4 py-3 flex items-center gap-3" role="status" data-testid="swipe-moved">
                     <p className="m-0 flex-1 text-white" style={{ fontSize: "14px", lineHeight: "20px" }}>
@@ -279,7 +279,7 @@ export default function SwipeClient() {
 
             {load.state === "failed" ? (
                 <div className="rounded-2xl bg-surface py-12 px-6 flex flex-col items-center text-center gap-3">
-                    <p role="alert" className="m-0 text-white/70" style={{ fontSize: "14px" }}>{en ? "Couldn't load photo spots." : "撮影スポットを読み込めませんでした。"}</p>
+                    <p role="alert" className="m-0 text-white/70" style={{ fontSize: "14px" }}>{en ? "Couldn't load photo spots." : "観光スポットを読み込めませんでした。"}</p>
                     <button type="button" onClick={() => { setLoad({ state: "loading" }); setAttempt((n) => n + 1); }}
                             className={`${BTN_LINE}`} style={{ touchAction: "manipulation" }}>
                         {en ? "Try again" : "もう一度読み込む"}

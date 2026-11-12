@@ -269,7 +269,7 @@ describe("HeaderNav - 未ログインの「ログイン」", () => {
         link.addEventListener("click", (e) => e.preventDefault());
         fireEvent.click(link);
         fireEvent.click(screen.getByLabelText("メニューを開く"));
-        fireEvent.click(screen.getByRole("button", { name: "撮影スポット" }));
+        fireEvent.click(screen.getByRole("button", { name: "観光スポット" }));
         const navs = gtag.mock.calls.filter((c) => c[1] === "nav_click").map((c) => c[2]);
         expect(navs).toEqual([
             expect.objectContaining({ area: "header", dest: "login" }),
@@ -325,7 +325,7 @@ describe("HeaderNav - メニュー開閉の回帰ガード", () => {
         render(<HeaderNav />);
         fireEvent.click(screen.getByLabelText("メニューを開く"));
         const dialog = screen.getByRole("dialog");
-        fireEvent.click(within(dialog).getByText("撮影スポット"));
+        fireEvent.click(within(dialog).getByText("観光スポット"));
         expect(mockPush).toHaveBeenCalledTimes(1);
         expect(screen.queryByRole("dialog")).toBeNull();
     });

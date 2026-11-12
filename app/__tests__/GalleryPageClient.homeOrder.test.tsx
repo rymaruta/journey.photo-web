@@ -129,7 +129,7 @@ describe("ホームの並び（iOS と同じ）", () => {
     });
 });
 
-describe("いまの季節の撮影スポットの段（iOS #417 ④）", () => {
+describe("いまの季節の観光スポットの段（iOS #417 ④）", () => {
     it("「おすすめ」では写真 5 枚の後ろ・6 枚目の前に出る", () => {
         render(<GalleryPageClient seasonalSpots={SEASONAL} />);
         fireEvent.click(screen.getByRole("tab", { name: "おすすめ" }));

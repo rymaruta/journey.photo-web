@@ -82,7 +82,7 @@ export default function MapSpotSheet({
                             「撮影スポット」と名乗るのは人が確かめたものだけ（`stage`）。下書きは「下書き・未確認」 */}
                         <p className="m-0 eyebrow text-white/70">
                             {spot.stage === "published"
-                                ? (en ? "Photo spot" : "撮影スポット")
+                                ? (en ? "Photo spot" : "観光スポット")
                                 : (en ? "Draft · Unreviewed" : "下書き・未確認")}
                         </p>
                         <p className="m-0 mt-1 font-serif font-bold text-white wrap-anywhere line-clamp-2"
@@ -124,7 +124,7 @@ export default function MapSpotSheet({
                         data-testid="map-spot-guide-link"
                     >
                         <MapPinIcon className="w-[18px] h-[18px]" aria-hidden="true" />
-                        {en ? "See photo spot" : "撮影スポットを見る"}
+                        {en ? "See photo spot" : "観光スポットを見る"}
                     </Link>
                     {/* 保存の鍵の形は `lib/utils/savedSpotKey.ts` が1か所で持つ
                         （ここで組み立てない）。`kind="spot"` を渡すだけ */}

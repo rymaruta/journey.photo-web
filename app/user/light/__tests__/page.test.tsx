@@ -85,7 +85,7 @@ describe("光と天気の知らせ: 一覧", () => {
     it("場所の札・注記・Apple Weather の出典（真鍮のリンク・新しいタブ）を出す", async () => {
         respond(200, {
             places: [{
-                key: "SPOT-a", slug: "a", name: "撮影スポットA", timeZone: "Asia/Tokyo", forecast: true,
+                key: "SPOT-a", slug: "a", name: "観光スポットA", timeZone: "Asia/Tokyo", forecast: true,
                 days: [day("2099-12-31", { morning: { weather: "clear", chance: "high" } })],
             }],
             note: "天気は外部の予報から。光の時刻はアプリで計算。見込みは目安で、外れることがあります。",
@@ -93,7 +93,7 @@ describe("光と天気の知らせ: 一覧", () => {
         });
         render(<Page />);
         const card = await screen.findByTestId("light-card");
-        expect(card.textContent).toContain("撮影スポットA");
+        expect(card.textContent).toContain("観光スポットA");
         expect(card.textContent).toContain("晴れ");
         expect(card.textContent).toContain("朝焼け 見込み高");
         expect(card.getAttribute("data-best")).toBe("true");
@@ -111,7 +111,7 @@ describe("光と天気の知らせ: 一覧", () => {
     it("0件でも出典は出す（空の案内と一緒に）", async () => {
         respond(200, { places: [], attribution: ATTR });
         render(<Page />);
-        expect(await screen.findByText("行きたい撮影スポットがまだありません")).toBeTruthy();
+        expect(await screen.findByText("行きたい観光スポットがまだありません")).toBeTruthy();
         expect(screen.getByTestId("light-attribution").getAttribute("href")).toBe(ATTR.legalUrl);
     });
 

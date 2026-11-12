@@ -148,7 +148,7 @@ function spot(id: number, over: Partial<Spot> = {}): Spot {
     return {
         spotId: `sp_${String(id).padStart(12, "0")}`,
         slug: `spot-${id}`,
-        name: `撮影スポット${id}`,
+        name: `観光スポット${id}`,
         summary: "あ".repeat(SUMMARY_MIN),
         region: { country: "日本", prefecture: "宮城県", city: "白石市" },
         coords: { lat: 38.02, lng: 140.55 },
@@ -256,7 +256,7 @@ describe("決まり", () => {
         expect(mm.match({ title: "蔵王キツネ村" })).toBe(FOX.spotId);
     });
 
-    it("当たる撮影スポットが2つ以上なら結ばない", () => {
+    it("当たる観光スポットが2つ以上なら結ばない", () => {
         const other = spot(5, { name: "白石城" });
         expect(m([FOX, other]).match({ title: "蔵王キツネ村から白石城へ" })).toBeNull();
     });
@@ -269,7 +269,7 @@ describe("決まり", () => {
         expect(m([FOX, c]).match({ location: "蔵王キツネ村" })).toBeNull();
     });
 
-    it("公開済みの撮影スポットだけ（運営の下書きには結ばない）", () => {
+    it("公開済みの観光スポットだけ（運営の下書きには結ばない）", () => {
         expect(m([{ ...FOX, status: "review" }]).match({ title: "蔵王キツネ村" })).toBeNull();
     });
 
@@ -294,7 +294,7 @@ describe("決まり", () => {
         expect(JSON.stringify(table)).toBe(JSON.stringify({ a: FOX.spotId, b: FOX.spotId }));
     });
 
-    it("撮影スポットの写真は spotId と自動の結びの両方（非公開は出さない）", () => {
+    it("観光スポットの写真は spotId と自動の結びの両方（非公開は出さない）", () => {
         const photos = [
             { id: "a", spotId: FOX.spotId },
             { id: "b" },

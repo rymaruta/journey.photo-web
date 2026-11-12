@@ -31,15 +31,15 @@ export default function Footer() {
     // 撮影スポットの行き先は nav_click（area=footer）を数える。地図は以前どおり数えない
     const findLinks: Array<{ href: string; label: string; dest?: NavDest }> = [
         { href: ROUTES.MAP, label: navLabels.map || (en ? "Map" : "撮影地マップ") },
-        { dest: "spots", href: ROUTES.SPOTS, label: en ? "All photo spots" : "撮影スポットの一覧" },
-        { dest: "topic", href: ROUTES.SPOT_SAKURA(), label: en ? "Cherry blossoms" : "桜の撮影スポット" },
-        { dest: "topic", href: ROUTES.SPOT_MOMIJI(), label: en ? "Autumn foliage" : "紅葉の撮影スポット" },
-        { dest: "topic", href: ROUTES.SPOT_SNOW(), label: en ? "Snow scenery" : "雪景色の撮影スポット" },
-        { dest: "area", href: ROUTES.SPOT_AREA(OVERSEAS_SLUG), label: en ? "Outside Japan" : "海外の撮影スポット" },
-        { dest: "topic", href: ROUTES.SPOT_SEASON("spring"), label: en ? "Spring" : "春の撮影スポット" },
-        { dest: "topic", href: ROUTES.SPOT_SEASON("summer"), label: en ? "Summer" : "夏の撮影スポット" },
-        { dest: "topic", href: ROUTES.SPOT_SEASON("autumn"), label: en ? "Autumn" : "秋の撮影スポット" },
-        { dest: "topic", href: ROUTES.SPOT_SEASON("winter"), label: en ? "Winter" : "冬の撮影スポット" },
+        { dest: "spots", href: ROUTES.SPOTS, label: en ? "All photo spots" : "観光スポットの一覧" },
+        { dest: "topic", href: ROUTES.SPOT_SAKURA(), label: en ? "Cherry blossoms" : "桜の観光スポット" },
+        { dest: "topic", href: ROUTES.SPOT_MOMIJI(), label: en ? "Autumn foliage" : "紅葉の観光スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SNOW(), label: en ? "Snow scenery" : "雪景色の観光スポット" },
+        { dest: "area", href: ROUTES.SPOT_AREA(OVERSEAS_SLUG), label: en ? "Outside Japan" : "海外の観光スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SEASON("spring"), label: en ? "Spring" : "春の観光スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SEASON("summer"), label: en ? "Summer" : "夏の観光スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SEASON("autumn"), label: en ? "Autumn" : "秋の観光スポット" },
+        { dest: "topic", href: ROUTES.SPOT_SEASON("winter"), label: en ? "Winter" : "冬の観光スポット" },
     ];
     // まなぶ。撮りに行く前に読む・見る頁
     const learnLinks = [

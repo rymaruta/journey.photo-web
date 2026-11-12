@@ -262,7 +262,7 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                                 {/* 撮影スポット（2026-11-05 owner「WEB版をもっと認知してもらいたい」）: 3,000 件超の入口がメニューに無かった。公開の頁なので誰にでも出す */}
                                 <li style={{ margin: 0, padding: 0 }}>
                                     <button onClick={() => handleNavigation(ROUTES.SPOTS)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
-                                        {locale === "en" ? "Photo spots" : "撮影スポット"}
+                                        {locale === "en" ? "Photo spots" : "観光スポット"}
                                     </button>
                                 </li>
                                 {/* ユーザーを探す（2026-10-30 束 0b C2）: ヘッダーの虫眼鏡から移した。行き先は消さない */}

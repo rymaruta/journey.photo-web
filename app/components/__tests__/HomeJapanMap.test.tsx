@@ -53,10 +53,10 @@ describe("日本地図: 47県のリンクは頁側と一致", () => {
         expect([...hrefs].sort()).toEqual(spotAreas().filter((a) => a.region !== null).map((a) => ROUTES.SPOT_AREA(a.slug)).sort());
     });
 
-    it("読み上げの名前は「神奈川県の撮影スポット、N件」で、N は県の頁が並べる件数", () => {
+    it("読み上げの名前は「神奈川県の観光スポット、N件」で、N は県の頁が並べる件数", () => {
         for (const [slug, n] of data.areas) {
             const l = links.find((x) => x.slug === slug)!;
-            expect(l.attrs, slug).toContain(`aria-label="${NAME.get(slug)}の撮影スポット、${n}件"`);
+            expect(l.attrs, slug).toContain(`aria-label="${NAME.get(slug)}の観光スポット、${n}件"`);
             expect(n, slug).toBe(spotIndexItemsForArea(slug).length);
         }
     }, 120_000);
@@ -773,12 +773,12 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
             expect(calls()).toEqual(["map_pref_select", "map_pref_select", "map_pref_select"]);
         });
 
-        it("県を選ぶと「神奈川県を選びました。撮影スポット N件。」を読み上げ、表示する件数と同じ N", () => {
+        it("県を選ぶと「神奈川県を選びました。観光スポット N件。」を読み上げ、表示する件数と同じ N", () => {
             mountFresh();
             fireEvent.click(link("kanagawa"), { detail: 1 });
             const n = data.areas.find((a) => a[0] === "kanagawa")![1];
-            expect(screen.getByTestId("home-japan-map-status").textContent).toBe(`神奈川県を選びました。撮影スポット ${n}件。`);
-            expect(panelEl().textContent).toContain(`撮影スポット ${n}件`);
+            expect(screen.getByTestId("home-japan-map-status").textContent).toBe(`神奈川県を選びました。観光スポット ${n}件。`);
+            expect(panelEl().textContent).toContain(`観光スポット ${n}件`);
         });
     });
 

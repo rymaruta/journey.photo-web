@@ -31,7 +31,7 @@ describe("今日と明日の候補", () => {
         expect(c.map((x) => [x.isTomorrow, x.spotIds[0]])).toEqual([[false, "sp_a"], [true, "sp_b"]]);
     });
 
-    it("撮影スポットの無い日は入れない・撮影地（location）は数えない", () => {
+    it("観光スポットの無い日は入れない・撮影地（location）は数えない", () => {
         const p: TripPlan = { planId: "p", title: "", startDate: "2026-10-10", endDate: "2026-10-11",
             days: [{ items: [{ kind: "location", slug: "パリ" }] }, { items: [{ kind: "spot", spotId: "sp_b" }] }] };
         expect(tripLightCandidates(p, "2026-10-10").map((x) => x.spotIds)).toEqual([["sp_b"]]);

@@ -75,7 +75,7 @@ describe("/spots の一覧の構造化データ（ItemList）", () => {
             .toEqual(areas.map((a) => `${siteConfig.url}/spots/area/${encodeURIComponent(a.slug)}`));
         // 並びは画面と同じ（北海道 → 香川県 → 海外）
         expect(list.itemListElement.map((i: { name: string }) => i.name))
-            .toEqual(["北海道の撮影スポット", "香川県の撮影スポット", `${areas[2].name}の撮影スポット`]);
+            .toEqual(["北海道の観光スポット", "香川県の観光スポット", `${areas[2].name}の観光スポット`]);
         // 画面の本体も消えていない
         expect(container.querySelector('[data-testid="area-index"]')).toBeTruthy();
     });
@@ -104,7 +104,7 @@ describe("スポットのページの OGP 画像", () => {
         // 台帳の座標（北緯34°・東経134°・香川県）。2026-11-11（#527）: 名前の次に紹介文の最初の1文、
         // 押す理由（ページに在るもの）と計算の要約はその後ろ（`spotPageDescription`）
         // 写真が1枚も無いスポットなので「写真」と名乗らない
-        expect(m.description).toBe(`skyの撮影スポット。${summary}月ごとの日の出・日の入り・ゴールデンアワー。`
+        expect(m.description).toBe(`skyの観光スポット情報。${summary}月ごとの日の出・日の入り・ゴールデンアワー。`
             + "日の入りは6月が西北西寄り、12月が西南西寄り。天の川の中心は2〜10月の夜。");
         expect((m.openGraph as { description?: string }).description).toBe(m.description);
     });

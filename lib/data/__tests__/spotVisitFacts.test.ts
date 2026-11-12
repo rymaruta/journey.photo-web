@@ -27,7 +27,7 @@ describe("事実のファイル（content/spot-visit-facts.json）", () => {
         expect(visitFactProblems(FILE, TODAY)).toEqual([]);
     });
 
-    it("載せるのは公開済みの撮影スポットだけ（2 回目から海外も・2026-11-11）", () => {
+    it("載せるのは公開済みの観光スポットだけ（2 回目から海外も・2026-11-11）", () => {
         const pub = new Set(publishableSpots(SPOTS).map((s) => s.slug));
         const bad = visitFactSlugs().filter((slug) => !pub.has(slug));
         expect(bad).toEqual([]);
