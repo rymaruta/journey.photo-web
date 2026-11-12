@@ -55,6 +55,11 @@ describe("プライバシーポリシーの数が実装と合っている", () =
         const s5 = sectionOf(5);
         expect(s5, "会話の保存数が実装（DM_MESSAGES_MAX）と違う").toContain(`新しい${constOf("api-user/src/dm.ts", "DM_MESSAGES_MAX")}通まで、または1会話あたりの保存容量の上限まで`);
         expect(s5, "通報の写しの通数が実装（DM_REPORT_LAST）と違う").toContain(`直近${constOf("api-user/src/dm.ts", "DM_REPORT_LAST")}通の写し`);
+        // 押し直しの通報は前の写しを残して重ねる（2026-11-12・`reportConversation`）。上限は DM_REPORT_KEEP_MAX
+        expect(s5, "押し直しで写しを重ねる上限が実装（DM_REPORT_KEEP_MAX）と違う")
+            .toContain(`前の写しも残して新しい直近${constOf("api-user/src/dm.ts", "DM_REPORT_LAST")}通と合わせ、最大${constOf("api-user/src/dm.ts", "DM_REPORT_KEEP_MAX")}通まで保存します`);
+        expect(sectionOf(11), "退会後に残るものの通報の写しの通数が実装と違う")
+            .toContain(`写し（直近${constOf("api-user/src/dm.ts", "DM_REPORT_LAST")}通。もう一度通報したときは前の写しと合わせて最大${constOf("api-user/src/dm.ts", "DM_REPORT_KEEP_MAX")}通）`);
         expect(s5, "リクエストの通数が実装（DM_REQUEST_MAX）と違う").toContain(`文字${constOf("api-user/src/dm.ts", "DM_REQUEST_MAX")}通まで`);
         // 会話数の上限は本文では言わない（言うなら実装と同じ数）。実装の定数が読めること自体は見る
         expect(constOf("api-user/src/dmInbox.ts", "DM_CONVS_MAX")).toBeGreaterThan(0);
