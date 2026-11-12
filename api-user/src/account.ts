@@ -8,6 +8,7 @@ import { s3DeleteMany } from "./s3Delete";
 import { invalidateUploads } from "./cdnInvalidate";
 import { purgeBlocksFor } from "./block";
 import { purgeDmFor } from "./dm";
+import { purgeTripSharesFor } from "./tripShare";
 import { updateFollowersQuietly } from "./follow";
 import { requireEnv } from "./env";
 import { requestSiteRebuild } from "./rebuild";
@@ -782,6 +783,12 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         // 手書きで、新しい入れ物を足したときに誰も突き合わせていなかった
         // ——下の `accountCleanupRows.test.ts` がその見張り
         await ddbDelete(PHOTOS_TABLE, { id: `trips#${uid}` });
+        // 共有した旅行プラン（`tripShare.ts`・2026-11-12）。入っていたプランから抜け（持ち主なら残った人へ渡す・
+        // 誰も残らなければプランと会話を消す）、会話の本人の通と日程の「足した人」を外してから、一覧の行を消す。
+        // **失敗しても退会は止めない**（ブロックの掃除と同じ扱い）
+        await purgeTripSharesFor(uid)
+            .catch((e) => console.error(`deleteAccount: 共有した旅行プランの掃除に失敗（${uid}）:`, e));
+        await ddbDelete(PHOTOS_TABLE, { id: `tripsjoined#${uid}` });
         // 親しい友達（`closeFriends.ts` の `closefriends#<uid>`）。同じ扱い。
         // 中身は**利用者IDの一覧**＝「誰を親しいと決めたか」で、
         // `spots#`（どこへ行きたかったか）と同じ性質の行動履歴。

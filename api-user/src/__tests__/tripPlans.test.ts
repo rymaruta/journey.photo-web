@@ -63,7 +63,9 @@ const plan = (planId: string, over: Record<string, unknown> = {}) => ({
 
 const SPOT = "sp_0123456789ab";
 
-beforeEach(() => { mockDdbSend.mockReset(); });
+// 共有したプラン（`tripsjoined#<uid>`・2026-11-12）を合わせて読むようになった。ここで決めていない読みは
+// 「行が無い」（共有したプランは無い）として返す。共有したプランの振る舞いは `tripShare.test.ts` が見る
+beforeEach(() => { mockDdbSend.mockReset(); mockDdbSend.mockResolvedValue({}); });
 
 describe("一覧（GET /user/trips）", () => {
     it("自分の行だけを読む（他人の ID を渡す口が無い）", async () => {
@@ -308,7 +310,8 @@ describe("直す（PUT /user/trips/{planId}）", () => {
         mockDdbSend.mockResolvedValueOnce({ Item: { list: [existing()], rev: 1 } });
         const res = await run(updateTrip, ev("u1", { pathParameters: { planId: "よそ" }, body: JSON.stringify({ title: "t" }) }));
         expect(res.statusCode).toBe(404);
-        expect(mockDdbSend).toHaveBeenCalledTimes(1);
+        // 書き込みは1回も出さない（共有したプランの一覧の読みは数えない・2026-11-12）
+        expect(mockDdbSend.mock.calls.filter((c) => (c[0] as { constructor: { name: string } }).constructor.name !== "GetCommand")).toHaveLength(0);
     });
 
     it("他人の行は触れない（読むのは自分の行）", async () => {
@@ -332,7 +335,8 @@ describe("消す（DELETE /user/trips/{planId}）", () => {
         mockDdbSend.mockResolvedValueOnce({ Item: { list: [plan("b")], rev: 1 } });
         const res = await run(deleteTrip, ev("u1", { pathParameters: { planId: "a" } }));
         expect(res.statusCode).toBe(200);
-        expect(mockDdbSend).toHaveBeenCalledTimes(1);
+        // 書き込みは1回も出さない（共有したプランの一覧の読みは数えない・2026-11-12）
+        expect(mockDdbSend.mock.calls.filter((c) => (c[0] as { constructor: { name: string } }).constructor.name !== "GetCommand")).toHaveLength(0);
     });
 
     it("🔴 上限を超えて入っている行でも、消す操作で他が巻き添えにならない", async () => {

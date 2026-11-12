@@ -1,0 +1,385 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+/**
+ * 旅行プランを仲間と使う（2026-11-12・`tripShare.ts`・`tripPlans.ts` の「共有したプラン」・`tripChat.ts`）。
+ *
+ * ここで縛ること:
+ *  1. **仲間でない人は読めない・書けない**（プランの有無も教えない＝404）。日程・会話・招待・抜ける、どの口も
+ *  2. 共有すると本人だけの一覧から `trip#<planId>` へ移り、一覧の口（`GET /user/trips`）に**1回だけ**出る
+ *  3. 直接の共有は **DM の会話が承認済みの相手だけ**。**ブロックの間柄なら招待できない**（直接・リンクの両方）
+ *  4. 日程は仲間が足せる。**`rev` が古ければ 409 で書かない**。足した人（`by`）はサーバーが付ける
+ *  5. 会話の未読は通し番号。読むと 0
+ *  6. **退会で行が消える**（本人の通・足した人の印・一覧の行。最後の1人ならプランと会話も）
+ *
+ * DynamoDB は手元の表（`store`）で真似る。条件つきの書き込み（`attribute_not_exists(id)`・`rev = :rev`）も真似る
+ */
+
+type Row = Record<string, unknown>;
+const store = vi.hoisted(() => new Map<string, Row>());
+const users = vi.hoisted(() => new Map<string, Row>());
+const condFail = () => Object.assign(new Error("cond"), { name: "ConditionalCheckFailedException" });
+
+const mockSend = vi.hoisted(() => vi.fn());
+vi.mock("../dynamodb", () => ({ ddb: { send: mockSend }, PHOTOS_TABLE: "photos-test", USER_INDEX: "userId-createdAt-index" }));
+vi.mock("../liveCaller", async (orig) => ({
+    ...(await orig<typeof import("../liveCaller")>()),
+    assertLiveCaller: async () => null,
+    readLiveCaller: async () => ({ row: undefined }),
+}));
+const mockPush = vi.hoisted(() => vi.fn(async () => ({ sent: 1, invalid: [] as string[] })));
+vi.mock("../apns", async (orig) => ({
+    ...(await orig<typeof import("../apns")>()),
+    apnsConfigured: () => true,
+    sendPush: mockPush,
+}));
+vi.mock("../devices", async (orig) => ({
+    ...(await orig<typeof import("../devices")>()),
+    deviceTokens: async (uid: string) => [`tok-${uid}`],
+    forgetTokens: async () => undefined,
+}));
+
+function fakeSend(cmd: { constructor: { name: string }; input: Record<string, unknown> }) {
+    const name = cmd.constructor.name;
+    const i = cmd.input as {
+        TableName?: string; Key?: { id?: string; userId?: string }; Item?: Row; ConditionExpression?: string;
+        ExpressionAttributeValues?: Record<string, unknown>; RequestItems?: Record<string, { Keys: Array<{ id?: string; userId?: string }> }>;
+    };
+    const clone = <T,>(v: T): T => (v === undefined ? v : JSON.parse(JSON.stringify(v)));
+    if (name === "GetCommand") {
+        if (i.TableName === "photos-test") return { Item: clone(store.get(i.Key!.id!)) };
+        return { Item: clone(users.get(i.Key!.userId!)) };
+    }
+    if (name === "PutCommand") {
+        const id = i.Item!.id as string;
+        const cur = store.get(id);
+        const c = i.ConditionExpression;
+        if (c === "attribute_not_exists(id)" && cur) throw condFail();
+        if (c === "rev = :rev" && (!cur || cur.rev !== i.ExpressionAttributeValues![":rev"])) throw condFail();
+        if (c?.startsWith("attribute_not_exists(id) OR attribute_not_exists(rev)") && cur && cur.rev !== undefined
+            && cur.rev !== i.ExpressionAttributeValues![":rev"]) throw condFail();
+        store.set(id, clone(i.Item!));
+        return {};
+    }
+    if (name === "DeleteCommand") { store.delete(i.Key!.id!); return {}; }
+    if (name === "BatchGetCommand") {
+        const out: Record<string, Row[]> = {};
+        for (const [table, req] of Object.entries(i.RequestItems!)) {
+            out[table] = req.Keys.map((k) => (table === "photos-test" ? store.get(k.id!) : users.get(k.userId!)))
+                .filter((x): x is Row => !!x).map(clone);
+        }
+        return { Responses: out };
+    }
+    if (name === "UpdateCommand") return {};
+    throw new Error(`知らない命令 ${name}`);
+}
+
+const { handler, getTripInvite, purgeTripSharesFor } = await import("../tripShare");
+const { getMyTrips, updateTrip, deleteTrip } = await import("../tripPlans");
+const { getInvite: getAlbumInvite } = await import("../albums");
+
+const A = "aaaaaaaa-0000-4000-8000-000000000001";
+const B = "bbbbbbbb-0000-4000-8000-000000000002";
+const C = "cccccccc-0000-4000-8000-000000000003";
+const P = "11111111-2222-4333-8444-555555555555";
+const SPOT1 = "sp_0123456789ab";
+const SPOT2 = "sp_0123456789ac";
+
+type Res = { statusCode: number; body: string };
+const ev = (sub: string | null, routeKey: string, path: Record<string, string> = {}, body?: unknown) =>
+    ({
+        routeKey,
+        requestContext: { authorizer: sub ? { jwt: { claims: { sub } } } : undefined, http: { method: routeKey.split(" ")[0] } },
+        pathParameters: path,
+        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    }) as never;
+const call = async (h: unknown, e: unknown) => (await (h as (e: unknown, c: unknown, cb: unknown) => Promise<Res>)(e, {}, () => undefined));
+const json = (r: Res) => JSON.parse(r.body);
+
+const api = (sub: string, routeKey: string, path: Record<string, string> = {}, body?: unknown) =>
+    call(handler, ev(sub, routeKey, { planId: P, ...path }, body ?? (routeKey.startsWith("GET") ? undefined : {})));
+const myTrips = async (sub: string) => json(await call(getMyTrips, ev(sub, "GET /user/trips"))).plans as Array<Record<string, unknown>>;
+const putTrip = (sub: string, body: unknown) => call(updateTrip, ev(sub, "PUT /user/trips/{planId}", { planId: P }, body));
+
+/** A が本人だけのプランを1つ持っている */
+function seedOwnPlan() {
+    store.set(`trips#${A}`, {
+        id: `trips#${A}`, uid: A, rev: 1,
+        list: [{ planId: P, ownerId: A, title: "秋の金沢", startDate: "2026-11-23", endDate: "2026-11-24",
+            days: [{ items: [{ kind: "spot", spotId: SPOT1 }] }], visibility: "private",
+            createdAt: "2026-11-01T00:00:00.000Z", updatedAt: "2026-11-01T00:00:00.000Z" }],
+    });
+}
+/** A と B の DM の会話（承認済み） */
+function seedDm(state = "inbox") {
+    const [lo, hi] = [A, B].sort();
+    store.set(`dm#${lo}#${hi}`, { id: `dm#${lo}#${hi}`, state, items: [] });
+}
+/** ブロック（`block.ts` が書く3つ: 印・自分の一覧・相手の被ブロックの一覧） */
+function block(blocker: string, blocked: string) {
+    store.set(`block#${blocker}#${blocked}`, { id: `block#${blocker}#${blocked}` });
+    store.set(`blocks#${blocker}`, { id: `blocks#${blocker}`, blockedIds: [blocked] });
+    store.set(`blockedby#${blocked}`, { id: `blockedby#${blocked}`, blockerIds: [blocker] });
+}
+
+beforeEach(() => {
+    store.clear();
+    users.clear();
+    for (const [id, name] of [[A, "あお"], [B, "べに"], [C, "しろ"]]) users.set(id, { userId: id, displayName: name });
+    mockSend.mockReset();
+    mockSend.mockImplementation(async (cmd) => fakeSend(cmd));
+    mockPush.mockClear();
+});
+
+describe("共有する（POST /trip-share/{planId}）", () => {
+    it("本人だけの一覧から trip# へ移り、一覧の口に1回だけ出る", async () => {
+        seedOwnPlan();
+        const r = await api(A, "POST /trip-share/{planId}");
+        expect(r.statusCode).toBe(200);
+        expect(store.get(`trip#${P}`)).toMatchObject({ ownerId: A, memberIds: [A], visibility: "shared", title: "秋の金沢" });
+        expect((store.get(`trips#${A}`)!.list as unknown[])).toHaveLength(0);
+        const plans = await myTrips(A);
+        expect(plans.map((p) => p.planId)).toEqual([P]);
+        expect(plans[0]).toMatchObject({ shared: true, memberIds: [A] });
+        expect(typeof plans[0].rev).toBe("number");
+        // 🔴 行に `userId` を持たせない（`userId-createdAt-index` に載る）
+        expect(store.get(`trip#${P}`)).not.toHaveProperty("userId");
+    });
+
+    it("持ち主でない人は共有できない（プランの有無も教えない）", async () => {
+        seedOwnPlan();
+        expect((await api(B, "POST /trip-share/{planId}")).statusCode).toBe(404);
+        expect(store.has(`trip#${P}`)).toBe(false);
+    });
+
+    it("🔴 直接の共有は DM の会話が承認済みの相手だけ", async () => {
+        seedOwnPlan();
+        seedDm("request");
+        const r = await api(A, "POST /trip-share/{planId}", {}, { withUserId: B });
+        expect(r.statusCode).toBe(404);
+        expect(json(r).code).toBe("cannotShare");
+        expect(store.has(`trip#${P}`)).toBe(false);
+    });
+
+    it("承認済みの DM の相手は仲間に入り、その人の一覧に出て、知らせが届く", async () => {
+        seedOwnPlan();
+        seedDm();
+        const r = await api(A, "POST /trip-share/{planId}", {}, { withUserId: B });
+        expect(r.statusCode).toBe(200);
+        expect(json(r).members.map((m: { id: string }) => m.id)).toEqual([A, B]);
+        expect((await myTrips(B)).map((p) => p.planId)).toEqual([P]);
+        expect(mockPush).toHaveBeenCalledTimes(1);
+        expect((mockPush.mock.calls[0] as unknown[])[0]).toEqual([`tok-${B}`]);
+        // 本文は載せない（名前と題だけ）
+        expect(JSON.stringify(mockPush.mock.calls[0])).toContain("あお が旅行プランを共有しました");
+    });
+
+    it("🔴 ブロックの間柄なら直接共有できない（どちら向きでも）", async () => {
+        for (const [x, y] of [[A, B], [B, A]]) {
+            store.clear();
+            seedOwnPlan();
+            seedDm();
+            block(x, y);
+            const r = await api(A, "POST /trip-share/{planId}", {}, { withUserId: B });
+            expect(r.statusCode).toBe(404);
+            expect(memberIds()).not.toContain(B);
+        }
+    });
+});
+
+const memberIds = () => ((store.get(`trip#${P}`)?.memberIds as string[] | undefined) ?? []);
+
+/** A が共有し、B が仲間 */
+async function sharedWithB() {
+    seedOwnPlan();
+    seedDm();
+    await api(A, "POST /trip-share/{planId}", {}, { withUserId: B });
+}
+
+describe("🔴 仲間でない人は読めない・書けない", () => {
+    it("詳細・会話・送る・招待・抜ける・日程を直す・消す、どれも 404 で行は変わらない", async () => {
+        await sharedWithB();
+        const before = JSON.stringify([...store.entries()]);
+        for (const [route, path, body] of [
+            ["GET /trip-share/{planId}", {}, undefined],
+            ["GET /trip-share/{planId}/chat", {}, undefined],
+            ["POST /trip-share/{planId}/chat", {}, { text: "こんにちは" }],
+            ["POST /trip-share/{planId}/invite", {}, {}],
+            ["DELETE /trip-share/{planId}/invite", {}, {}],
+            ["DELETE /trip-share/{planId}/members/{uid}", { uid: B }, {}],
+            ["POST /trip-share/{planId}", {}, {}],
+        ] as Array<[string, Record<string, string>, unknown]>) {
+            const r = await api(C, route, path, body);
+            expect(r.statusCode, route).toBe(404);
+        }
+        expect((await putTrip(C, { title: "乗っ取り", days: [] })).statusCode).toBe(404);
+        await call(deleteTrip, ev(C, "DELETE /user/trips/{planId}", { planId: P }));
+        // C 自身の空の一覧の行（読んだだけで作られる行は無い）以外、何も変わっていない
+        expect(JSON.stringify([...store.entries()].filter(([k]) => !k.endsWith(C)))).toBe(before);
+        expect(await myTrips(C)).toEqual([]);
+    });
+
+    it("仲間から外れた人は読めなくなる", async () => {
+        await sharedWithB();
+        expect((await api(B, "DELETE /trip-share/{planId}/members/{uid}", { uid: B })).statusCode).toBe(200);
+        expect((await api(B, "GET /trip-share/{planId}")).statusCode).toBe(404);
+        expect(await myTrips(B)).toEqual([]);
+        expect(memberIds()).toEqual([A]);
+    });
+
+    it("仲間でない人を外すのは持ち主だけ", async () => {
+        await sharedWithB();
+        expect((await api(B, "DELETE /trip-share/{planId}/members/{uid}", { uid: A })).statusCode).toBe(403);
+        expect(memberIds()).toEqual([A, B]);
+    });
+});
+
+describe("日程を仲間で直す（PUT /user/trips/{planId}）", () => {
+    it("仲間が足すと `by` が付き、会話に「日程に足しました」の通が置かれる", async () => {
+        await sharedWithB();
+        const rev = store.get(`trip#${P}`)!.rev as number;
+        const r = await putTrip(B, {
+            rev,
+            days: [{ items: [{ kind: "spot", spotId: SPOT1 }, { kind: "spot", spotId: SPOT2, by: A }] }],
+        });
+        expect(r.statusCode).toBe(200);
+        const items = (store.get(`trip#${P}`)!.days as Array<{ items: Array<Record<string, unknown>> }>)[0].items;
+        // 前から在った項目は `by` 無しのまま。新しい項目は書いた人（本文の `by` は効かない）
+        expect(items[0].by).toBeUndefined();
+        expect(items[1].by).toBe(B);
+        const chat = store.get(`tripchat#${P}`)!.items as Array<Record<string, unknown>>;
+        expect(chat).toHaveLength(1);
+        expect(chat[0]).toMatchObject({ from: B, event: { type: "added", item: { kind: "spot", spotId: SPOT2 }, day: 0 } });
+        // 応答は一覧（GET と同じ形）
+        expect(json(r).plans[0]).toMatchObject({ planId: P, shared: true });
+    });
+
+    it("🔴 `rev` が古ければ 409 で書かず、今の姿を添える", async () => {
+        await sharedWithB();
+        const rev = store.get(`trip#${P}`)!.rev as number;
+        expect((await putTrip(A, { rev, title: "金沢と能登" })).statusCode).toBe(200);
+        const r = await putTrip(B, { rev, days: [] });
+        expect(r.statusCode).toBe(409);
+        expect(json(r).code).toBe("conflict");
+        expect(json(r).plan.title).toBe("金沢と能登");
+        expect((store.get(`trip#${P}`)!.days as unknown[])).toHaveLength(1);
+    });
+
+    it("持ち主・仲間・公開範囲は本文から動かない", async () => {
+        await sharedWithB();
+        await putTrip(B, { ownerId: B, memberIds: [B, C], visibility: "public", title: "x" });
+        expect(store.get(`trip#${P}`)).toMatchObject({ ownerId: A, memberIds: [A, B], visibility: "shared" });
+    });
+});
+
+describe("招待リンク", () => {
+    it("作る → 未認証の下見は題・日付・人数・場所の数だけ → 参加すると仲間 → 2回目は already", async () => {
+        await sharedWithB();
+        const inv = json(await api(B, "POST /trip-share/{planId}/invite"));
+        expect(inv.token).toMatch(/^[A-Za-z0-9_-]{32}$/);
+        // 仲間の誰が押しても同じリンク（プランに1本）
+        expect(json(await api(A, "POST /trip-share/{planId}/invite")).token).toBe(inv.token);
+        const preview = await call(getTripInvite, ev(null, "GET /trip-invites/{token}", { token: inv.token }));
+        expect(preview.statusCode).toBe(200);
+        expect(json(preview)).toEqual({ trip: { title: "秋の金沢", startDate: "2026-11-23", endDate: "2026-11-24", memberCount: 2, spotCount: 1 } });
+        expect(preview.body).not.toContain(A);
+        const j = await api(C, "POST /trip-invites/{token}/join", { token: inv.token });
+        expect(j.statusCode).toBe(200);
+        expect(memberIds()).toEqual([A, B, C]);
+        expect(json(await api(C, "POST /trip-invites/{token}/join", { token: inv.token })).already).toBe(true);
+        expect(memberIds()).toEqual([A, B, C]);
+    });
+
+    it("🔴 仲間の誰かとブロックの間柄なら参加できない", async () => {
+        await sharedWithB();
+        const { token } = json(await api(A, "POST /trip-share/{planId}/invite"));
+        block(B, C);
+        const r = await api(C, "POST /trip-invites/{token}/join", { token });
+        expect(r.statusCode).toBe(404);
+        expect(memberIds()).not.toContain(C);
+    });
+
+    it("取り消したリンクでは参加できない（取り消せるのは持ち主だけ）", async () => {
+        await sharedWithB();
+        const { token } = json(await api(A, "POST /trip-share/{planId}/invite"));
+        expect((await api(B, "DELETE /trip-share/{planId}/invite")).statusCode).toBe(403);
+        expect((await api(A, "DELETE /trip-share/{planId}/invite")).statusCode).toBe(200);
+        expect((await api(C, "POST /trip-invites/{token}/join", { token })).statusCode).toBe(410);
+        expect((await call(getTripInvite, ev(null, "GET /trip-invites/{token}", { token }))).statusCode).toBe(410);
+    });
+
+    it("旅行プランの招待はアルバムの口では開けない", async () => {
+        await sharedWithB();
+        const { token } = json(await api(A, "POST /trip-share/{planId}/invite"));
+        expect((await call(getAlbumInvite, ev(null, "GET /invites/{token}", { token }))).statusCode).toBe(404);
+    });
+});
+
+describe("会話と受信箱", () => {
+    it("送ると相手の受信箱に未読1、読むと0。自分の通では未読にならない", async () => {
+        await sharedWithB();
+        expect((await api(A, "POST /trip-share/{planId}/chat", {}, { text: "朝の兼六園、雪吊りが見頃らしい" })).statusCode).toBe(200);
+        const inboxB = json(await call(handler, ev(B, "GET /trip-share/inbox"))).trips;
+        expect(inboxB[0]).toMatchObject({ planId: P, unread: 1, last: { excerpt: "朝の兼六園、雪吊りが見頃らしい", fromName: "あお" } });
+        expect(json(await call(handler, ev(A, "GET /trip-share/inbox"))).trips[0].unread).toBe(0);
+        const chat = json(await api(B, "GET /trip-share/{planId}/chat"));
+        expect(chat.messages.map((m: { text: string }) => m.text)).toEqual(["朝の兼六園、雪吊りが見頃らしい"]);
+        expect(json(await call(handler, ev(B, "GET /trip-share/inbox"))).trips[0].unread).toBe(0);
+        // 知らせは相手にだけ・本文は載せない
+        expect(mockPush.mock.calls.at(-1)![0]).toEqual([`tok-${B}`]);
+        expect(JSON.stringify(mockPush.mock.calls.at(-1))).not.toContain("雪吊り");
+    });
+
+    it("ブロックの間柄の人の通は、見る人の会話から外れる（消さない）", async () => {
+        await sharedWithB();
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "いいね" });
+        block(A, B);
+        expect(json(await api(A, "GET /trip-share/{planId}/chat")).messages).toEqual([]);
+        expect((store.get(`tripchat#${P}`)!.items as unknown[])).toHaveLength(1);
+    });
+});
+
+describe("消す・抜ける・退会", () => {
+    it("持ち主が消すと全員のプランと会話が消える。仲間が消すと抜けるだけ", async () => {
+        await sharedWithB();
+        await api(A, "POST /trip-share/{planId}/chat", {}, { text: "x" });
+        await call(deleteTrip, ev(B, "DELETE /user/trips/{planId}", { planId: P }));
+        expect(memberIds()).toEqual([A]);
+        await call(deleteTrip, ev(A, "DELETE /user/trips/{planId}", { planId: P }));
+        expect(store.has(`trip#${P}`)).toBe(false);
+        expect(store.has(`tripchat#${P}`)).toBe(false);
+        expect(await myTrips(A)).toEqual([]);
+    });
+
+    it("🔴 退会: 持ち主は残った人へ渡り、本人の通と足した人の印が消える", async () => {
+        await sharedWithB();
+        const rev = store.get(`trip#${P}`)!.rev as number;
+        await putTrip(B, { rev, days: [{ items: [{ kind: "spot", spotId: SPOT1 }, { kind: "spot", spotId: SPOT2 }] }] });
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "Bの文" });
+        await api(A, "POST /trip-share/{planId}/chat", {}, { text: "Aの文" });
+        await purgeTripSharesFor(A);
+        await purgeTripSharesFor(B);
+        // 最後の1人が抜けたのでプランと会話が消える
+        expect(store.has(`trip#${P}`)).toBe(false);
+        expect(store.has(`tripchat#${P}`)).toBe(false);
+    });
+
+    it("退会したのが持ち主だけなら、プランは残った仲間のもの・本人の通は消える", async () => {
+        await sharedWithB();
+        await api(A, "POST /trip-share/{planId}/chat", {}, { text: "Aの文" });
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "Bの文" });
+        await purgeTripSharesFor(A);
+        expect(store.get(`trip#${P}`)).toMatchObject({ ownerId: B, memberIds: [B] });
+        expect((store.get(`tripchat#${P}`)!.items as Array<{ text: string }>).map((m) => m.text)).toEqual(["Bの文"]);
+        expect(memberIds()).not.toContain(A);
+    });
+
+    it("仲間が退会すると、その人が足した場所の印が外れる", async () => {
+        await sharedWithB();
+        const rev = store.get(`trip#${P}`)!.rev as number;
+        await putTrip(B, { rev, days: [{ items: [{ kind: "spot", spotId: SPOT1 }, { kind: "spot", spotId: SPOT2 }] }] });
+        await purgeTripSharesFor(B);
+        const items = (store.get(`trip#${P}`)!.days as Array<{ items: Array<Record<string, unknown>> }>)[0].items;
+        expect(items.map((it) => it.by)).toEqual([undefined, undefined]);
+        expect(memberIds()).toEqual([A]);
+    });
+});

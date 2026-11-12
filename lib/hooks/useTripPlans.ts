@@ -44,6 +44,11 @@ export type TripPlan = {
     days: TripDay[];
     createdAt?: string;
     updatedAt?: string;
+    /**
+     * 仲間と共有したプラン（2026-11-12・サーバーの `trip#<planId>`）。共有していないプランは持たない。
+     * 日程の直しは同じ口（`PUT /user/trips/{planId}`）で効く。削除は、作った人なら全員から消え、仲間なら抜ける
+     */
+    shared?: { ownerId: string; memberCount: number };
 };
 
 /** 応答の1件を、画面が描ける形に均す。読めなければ `null` */
@@ -73,6 +78,9 @@ export function usableTripPlan(x: unknown): TripPlan | null {
         days,
         ...(typeof p.createdAt === "string" ? { createdAt: p.createdAt } : {}),
         ...(typeof p.updatedAt === "string" ? { updatedAt: p.updatedAt } : {}),
+        ...(p.shared === true && typeof p.ownerId === "string"
+            ? { shared: { ownerId: p.ownerId, memberCount: Array.isArray(p.memberIds) ? p.memberIds.length : 1 } }
+            : {}),
     };
 }
 

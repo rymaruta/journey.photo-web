@@ -1,5 +1,6 @@
 "use client";
 
+import { AreaWantsTop } from "./SpotWants";
 import React from "react";
 import Link from "next/link";
 import type { SpotIndexItem } from "@/lib/data/spotLink";
@@ -83,6 +84,9 @@ export default function SpotIndexClient({ spots, area }: Props) {
                         : `Photo spot guides (${spots.length}${draftCount > 0 ? `, ${draftCount} drafts` : ""}). Places with no photos yet are listed too.`)}
             </p>
             )}
+
+            {/* 今月いちばん行きたい（2026-11-11・撮影スポットを払うの②）。県の頁だけ・並びの既定は変えない */}
+            {area && <AreaWantsTop spots={spots.map((s) => ({ slug: s.slug, name: s.name, city: s.region.split(" ").slice(-1)[0] || undefined }))} />}
 
             {/* 旅のテーマ＝**台帳に在るカテゴリだけ**。0件のテーマは作らない */}
             {themes.length > 0 && (
