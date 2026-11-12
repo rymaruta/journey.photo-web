@@ -1,6 +1,5 @@
 "use client";
 
-import { flushSpotWants, queueSpotWant } from "../../lib/utils/spotWants";
 import React from "react";
 import Link from "next/link";
 import { BookmarkIcon as BookmarkOutline } from "@heroicons/react/24/outline";
@@ -120,17 +119,10 @@ export default function SaveSpotButton({
     const onClick = async () => {
         // 数えるのは「保存する」側だけ（外すのは行きたいの合図ではない）。送るのは種別だけで slug は送らない
         if (saved === false) track("wish_tap", { signed_in: 1, kind });
-        const adding = saved === false;
         const ok = await toggle(key);
         if (!ok) {
             showToast(en ? "Couldn't update. Please try again." : "更新できませんでした。もう一度お試しください。", "error");
             return;
-        }
-        // みんなの「行きたい」に数える（2026-11-11・撮影スポットを払うの②）。撮影スポットだけ・入れたときだけ。
-        // 頁で1回押すだけなのでその場で送る（端末のでたらめな ID・利用者の ID は送らない）
-        if (adding && kind === "spot") {
-            queueSpotWant(slug);
-            void flushSpotWants();
         }
         showToast(
             saved

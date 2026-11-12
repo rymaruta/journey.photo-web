@@ -1,6 +1,5 @@
 "use client";
 
-import { AreaWantsTop } from "./SpotWants";
 import React from "react";
 import Link from "next/link";
 import type { SpotIndexItem } from "@/lib/data/spotLink";
@@ -127,9 +126,6 @@ export default function SpotIndexClient({ spots, area, children, intro }: Props)
                 {isJa && intro}
             </p>
             )}
-
-            {/* 今月いちばん行きたい（2026-11-11・撮影スポットを払うの②）。県の頁だけ・並びの既定は変えない */}
-            {area && <AreaWantsTop spots={spots.map((s) => ({ slug: s.slug, name: s.name, city: s.region.split(" ").slice(-1)[0] || undefined }))} />}
 
             {/* 旅のテーマ＝**台帳に在るカテゴリだけ**。0件のテーマは作らない。
                 **2026-11-09（Web 入口ページ監査の案A）: スマホは横に流す1行**。青森県は21個の札が
