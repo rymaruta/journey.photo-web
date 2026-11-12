@@ -26,7 +26,8 @@ export default function robots(): MetadataRoute.Robots {
             // 出しているので、必ずクロールされる。`/favorites` と同じ扱いに揃える
             // `/saves` は写真の「保存」。行きたい場所と同じく本人だけの棚
             // `/trips` は旅行プラン。**本人だけが見られる中身**（同上）
-            disallow: ["/api/", "/admin", "/user/", "/login", "/signup", "/favorites", "/saves", "/saved-spots", "/trips", "/history", "/j"],
+            // `/qr` はプロフィールの QR の着地点（札 journey.photo-ios#545）。招待の `/j` と同じ私的なリンク
+            disallow: ["/api/", "/admin", "/user/", "/login", "/signup", "/favorites", "/saves", "/saved-spots", "/trips", "/history", "/j", "/qr"],
         },
         sitemap: [
             `${siteConfig.url}/sitemap.xml`,
