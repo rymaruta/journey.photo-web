@@ -94,12 +94,19 @@ function liveInvite(row: SharedTrip): { token: string; expiresAt: string } | und
     return Date.parse(row.inviteExpiresAt) > Date.now() ? { token: row.inviteToken, expiresAt: row.inviteExpiresAt } : undefined;
 }
 
-/** DM の会話が成り立っている（承認済みの受信箱の会話）か。直接仲間に入れる門 */
+/**
+ * DM の会話が成り立っているか。直接仲間に入れる門。
+ *
+ * - 承認済みの会話（`state: "inbox"`）
+ * - または、**相手が始めた会話**（相手から話しかけてきた＝相手は自分と話すつもりがある）。フォロー返しの相手からの
+ *   会話は承認前でも受け取った人の受信箱に直接入る（`dm.ts` の `direct`）ので、その画面からも共有できるようにする
+ * 自分が始めて相手がまだ承認していない会話（リクエストの段階）からは共有させない（知らない人に送りつけさせない）
+ */
 export async function canShareDirectly(me: string, other: string): Promise<boolean> {
     const parsed = parseConvId(convIdOf(me, other));
     if (!parsed) return false;
     const res = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: dmConvKey(parsed.lo, parsed.hi) }, ConsistentRead: true }));
-    return res.Item?.state === "inbox";
+    return res.Item?.state === "inbox" || (res.Item !== undefined && res.Item.initiator === other);
 }
 
 /** 2人がブロックの間柄か（どちら向きでも） */
