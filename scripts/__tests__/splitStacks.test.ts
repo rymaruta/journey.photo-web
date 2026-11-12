@@ -48,6 +48,7 @@ const MOVED: Record<string, string[]> = {
         "src/highlights.createHighlight", "src/highlights.updateHighlight", "src/highlights.deleteHighlight",
         "src/highlights.getUserHighlights", "src/highlights.getHighlight",
     ],
+    "serverless.dm.yml": ["src/dm.handler"],
 };
 
 const AUTH_IMPORT = "Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId";
