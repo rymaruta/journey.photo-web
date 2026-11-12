@@ -187,3 +187,12 @@ describe("応答の均し（`usableTripPlan` / `readPlans`）", () => {
         expect(readPlans({ plans: [] }), "本当の0件は配列で来る").toEqual([]);
     });
 });
+
+describe("共有したプランを読む（2026-11-12）", () => {
+    it("`shared: true` の行は作った人と人数を持ち、共有していない行は持たない", async () => {
+        const { usableTripPlan } = await import("../useTripPlans");
+        expect(usableTripPlan({ planId: "a", title: "x", days: [], shared: true, ownerId: "u1", memberIds: ["u1", "u2"] })?.shared)
+            .toEqual({ ownerId: "u1", memberCount: 2 });
+        expect(usableTripPlan({ planId: "b", title: "x", days: [] })?.shared).toBeUndefined();
+    });
+});

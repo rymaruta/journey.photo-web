@@ -272,3 +272,21 @@ describe("道具の自己確認", () => {
         expect(itemLabel({ kind: "location", slug: "%" }, SPOTS), "壊れた % は素のまま").toBe("%");
     });
 });
+
+describe("仲間と共有したプラン（2026-11-12）", () => {
+    it("共有の印と人数が出る。仲間は「抜ける」、作った人は全員から削除", async () => {
+        (hooks.auth as Record<string, unknown>).userId = "me";
+        hooks.trips.plans = [
+            plan("a", { title: "秋の金沢", shared: { ownerId: "other", memberCount: 3 } }),
+            plan("b", { title: "能登", shared: { ownerId: "me", memberCount: 2 } }),
+        ];
+        draw();
+        expect(screen.getByText(/仲間と共有 · 3人/)).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "「秋の金沢」から抜ける" }));
+        expect(screen.getByText("この旅行プランから抜けますか？")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "抜ける" }));
+        expect(hooks.trips.remove).toHaveBeenCalledWith("a");
+        fireEvent.click(screen.getByRole("button", { name: "「能登」を削除" }));
+        expect(screen.getByText("仲間全員からこの旅行プランを削除しますか？")).toBeInTheDocument();
+    });
+});
