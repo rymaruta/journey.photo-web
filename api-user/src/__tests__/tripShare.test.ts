@@ -509,7 +509,13 @@ describe("🔴 退会で前に抜けた・外されたプランの自分の分�
         await api(B, "POST /trip-share/{planId}/chat", {}, { text: "Bの文" });
         await api(A, "POST /trip-share/{planId}/chat", {}, { text: "Aの文" });
         expect((await api(B, "DELETE /trip-share/{planId}/members/{uid}", { uid: B })).statusCode).toBe(200);
+        expect(store.get(`tripsjoined#${B}`)!.left).toEqual([P]);
+        const errors = vi.spyOn(console, "error");
         await purgeTripSharesFor(B);
+        // 掃除の途中で投げていない（投げても止めずにログだけ出すので、ログで見る）
+        expect(errors.mock.calls.filter((c) => String(c[0]).startsWith("purgeTripSharesFor"))).toEqual([]);
+        errors.mockRestore();
+        expect(store.get(`tripsjoined#${B}`)!.left).toEqual([]);
         const items = (store.get(`trip#${P}`)!.days as Array<{ items: Array<Record<string, unknown>> }>)[0].items;
         expect(items.map((it) => it.by)).toEqual([undefined, undefined]);
         const chat = store.get(`tripchat#${P}`)!.items as Array<{ from: string }>;

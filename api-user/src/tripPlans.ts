@@ -816,6 +816,15 @@ export async function joinIndexRemove(uid: string, planId: string, remember = fa
     });
 }
 
+/** 退会の掃除: `left` から外す（行そのものは `account.ts` が消す） */
+export async function forgetLeft(uid: string, planId: string): Promise<void> {
+    await updateUserRow(tripsJoinedKey(uid), uid, (item) => {
+        const { list, reads, left } = joinedFields(item);
+        if (!left.includes(planId)) return null;
+        return { list, reads, left: left.filter((x) => x !== planId) };
+    });
+}
+
 /** 会話をどこまで読んだか（通し番号）を置く。同じなら書かない */
 export async function markTripRead(uid: string, planId: string, seq: number): Promise<void> {
     await updateUserRow(tripsJoinedKey(uid), uid, (item) => {
