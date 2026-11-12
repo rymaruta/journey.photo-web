@@ -1,4 +1,4 @@
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
+import { BatchGetCommand, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, PHOTOS_TABLE } from "./dynamodb";
 import { getUserId, jsonError, JSON_HEADERS, type AuthedEvent } from "./http";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
@@ -82,6 +82,44 @@ export async function deviceTokens(uid: string, consistent = false): Promise<str
         console.error(`deviceTokens: 端末を引けませんでした（${uid}）:`, e);
         return [];
     }
+}
+
+/**
+ * 何人もの端末トークンを**まとめて**読む（`BatchGet`・100人ずつ）。グループの会話の知らせ（`groups.ts`）が、
+ * 相手全員の端末を1回で読み、`sendPush` を1回だけ呼んで APNs への接続1本で送るために使う
+ * （2026-11-12・資料「みんなで話す DM」8b章）。返すのは「人 → その人のトークン」で、端末の無い人は入らない。
+ * 読み残し（`UnprocessedKeys`）は1回だけ読み直し、それでも残れば送らないだけ（知らせは best-effort）
+ */
+export async function deviceTokensOf(uids: readonly string[]): Promise<Map<string, string[]>> {
+    const out = new Map<string, string[]>();
+    const uniq = [...new Set(uids)];
+    const take = (rows: Record<string, unknown>[]) => {
+        for (const row of rows) {
+            const id = typeof row.id === "string" ? row.id : "";
+            if (!id.startsWith("devices#")) continue;
+            const t = row.tokens;
+            const list = t instanceof Set ? [...t].map(String) : Array.isArray(t) ? t.map(String) : [];
+            if (list.length > 0) out.set(id.slice("devices#".length), list);
+        }
+    };
+    for (let i = 0; i < uniq.length; i += 100) {
+        let keys: Record<string, unknown>[] = uniq.slice(i, i + 100).map((uid) => ({ id: devicesId(uid) }));
+        for (let round = 0; round < 2 && keys.length > 0; round++) {
+            try {
+                const res = await ddb.send(new BatchGetCommand({
+                    RequestItems: {
+                        [PHOTOS_TABLE]: { Keys: keys, ProjectionExpression: "#i, #t", ExpressionAttributeNames: { "#i": "id", "#t": "tokens" } },
+                    },
+                }));
+                take((res.Responses?.[PHOTOS_TABLE] ?? []) as Record<string, unknown>[]);
+                keys = (res.UnprocessedKeys?.[PHOTOS_TABLE]?.Keys ?? []) as Record<string, unknown>[];
+            } catch (e) {
+                console.error("deviceTokensOf: 端末をまとめて引けませんでした:", (e as { name?: string })?.name);
+                break;
+            }
+        }
+    }
+    return out;
 }
 
 /**

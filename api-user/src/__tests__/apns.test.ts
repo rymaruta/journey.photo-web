@@ -92,6 +92,17 @@ describe("送る中身と、宛先を捨てる判断", () => {
         expect(JSON.stringify(payload)).not.toContain("いいね");
     });
 
+    // グループの会話の知らせ（`groups.ts`・2026-11-12）はグループごとに1つの束（`aps.thread-id`）。無ければ付けない
+    it("束ねる鍵（thread-id）は渡したときだけ aps に載せる", async () => {
+        const { pushPayload } = await load({
+            APNS_KEY_ID: "K", APNS_TEAM_ID: "T", APNS_PRIVATE_KEY: PEM, APNS_TOPIC: "t",
+        });
+        const withThread = JSON.parse(pushPayload({ title: "京都", body: "ゆうからメッセージが届きました。", threadId: "group-g1", data: { type: "groupchat" } }));
+        expect(withThread.aps["thread-id"]).toBe("group-g1");
+        expect(withThread.threadId).toBeUndefined();
+        expect(JSON.parse(pushPayload({ locKey: "NOTIF_LIKE", locArgs: ["a"] })).aps).not.toHaveProperty("thread-id");
+    });
+
     it("バッジが無ければ載せない（0 と「無し」を混ぜない）", async () => {
         const { pushPayload } = await load({
             APNS_KEY_ID: "K", APNS_TEAM_ID: "T", APNS_PRIVATE_KEY: PEM, APNS_TOPIC: "t",

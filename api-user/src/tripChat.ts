@@ -55,8 +55,11 @@ export function chatItemsOf(item: Record<string, unknown> | undefined): TripChat
 const seqOf = (item: Record<string, unknown> | undefined) =>
     typeof item?.seq === "number" && item.seq > 0 ? item.seq : 0;
 
-/** 輪に収める（通数と行の大きさ）。**古い方から落とす**（DM の本体と同じ） */
-export function trimChat(items: TripChatMessage[]): TripChatMessage[] {
+/**
+ * 輪に収める（通数と行の大きさ）。**古い方から落とす**（DM の本体と同じ）。
+ * グループの会話（`groupChat.ts`）も同じ 200 通・40KB の輪なので、通の形を問わずに使う（2026-11-12）
+ */
+export function trimChat<T>(items: T[]): T[] {
     let out = items.slice(-TRIP_CHAT_MAX);
     while (out.length > 1 && Buffer.byteLength(JSON.stringify(out), "utf8") > TRIP_CHAT_BUDGET_BYTES) out = out.slice(1);
     return out;

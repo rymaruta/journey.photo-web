@@ -136,7 +136,7 @@ const sideOf = (c: { lo: string }, uid: string) => (uid === c.lo ? "lo" : "hi") 
 const clearedAtOf = (c: DmConv, uid: string): string => (sideOf(c, uid) === "lo" ? c.loClearedAt : c.hiClearedAt) ?? "";
 
 /** JST の日付（日の区切りは日本の0時） */
-const dayOf = (ms = Date.now()) => new Date(ms + 9 * 3600 * 1000).toISOString().slice(0, 10);
+export const dayOf = (ms = Date.now()) => new Date(ms + 9 * 3600 * 1000).toISOString().slice(0, 10);
 
 const isCcf = (e: unknown) => (e as { name?: string })?.name === "ConditionalCheckFailedException";
 /** ログに出すのは名前だけ（本文・利用者の値が入りうるメッセージは出さない） */
@@ -574,8 +574,11 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     return { ok: true, convId, message, state: myState, delivered: theirState };
 }
 
-/** 相手（`owner`）の親しい友達に `who` が居るか。**読めなければ居ない扱い**（リクエストに倒す＝厳しい側） */
-async function isCloseFriendOf(owner: string, who: string): Promise<boolean> {
+/**
+ * 相手（`owner`）の親しい友達に `who` が居るか。**読めなければ居ない扱い**（リクエストに倒す＝厳しい側）。
+ * グループの会話（`groups.ts`）の「そのまま入るか、招待としてリクエストに入るか」も同じ門で決める（2026-11-12）
+ */
+export async function isCloseFriendOf(owner: string, who: string): Promise<boolean> {
     try {
         const list = await readUserList(closeFriendsId(owner), isCloseFriendId, `closefriends#${owner}`);
         return list.includes(who);
@@ -626,6 +629,33 @@ export async function reserveTripChatDaily(uid: string): Promise<boolean> {
             ConditionExpression: "attribute_not_exists(tripSent) OR tripSent < :maxTrip",
             ExpressionAttributeNames: { "#d": "day" },
             ExpressionAttributeValues: { ":uid": uid, ":day": dayOf(), ":one": 1, ":maxTrip": TRIP_CHAT_DAILY_SENT },
+        }));
+        return true;
+    } catch (e) {
+        if (isCcf(e)) return false;
+        throw e;
+    }
+}
+
+/**
+ * グループの会話（`groups.ts`・2026-11-12 資料「みんなで話す DM」8章）の1日の歯止め。**DM の仕組みを使い回す**:
+ * 行は DM と同じ `dmday#<uid>#<日付>`（退会で消える・`purgeDmFor`）で、数える欄は別の2つ（owner 承認の範囲）——
+ * `groupSent`（送った通・`GROUP_DAILY_SENT`）と `groupNew`（作ったグループ・`GROUP_DAILY_NEW`）。
+ * グループで話した日に DM が送れなくなる、を作らない（旅行プランの会話の `tripSent` と同じ判断）。上限なら false
+ */
+export const GROUP_DAILY_SENT = 300;
+export const GROUP_DAILY_NEW = 10;
+
+export async function reserveGroupDaily(uid: string, field: "groupSent" | "groupNew"): Promise<boolean> {
+    const max = field === "groupSent" ? GROUP_DAILY_SENT : GROUP_DAILY_NEW;
+    try {
+        await ddb.send(new UpdateCommand({
+            TableName: PHOTOS_TABLE,
+            Key: { id: dmDayKey(uid, dayOf()) },
+            UpdateExpression: `SET uid = :uid, #d = :day ADD ${field} :one`,
+            ConditionExpression: `attribute_not_exists(${field}) OR ${field} < :maxGroup`,
+            ExpressionAttributeNames: { "#d": "day" },
+            ExpressionAttributeValues: { ":uid": uid, ":day": dayOf(), ":one": 1, ":maxGroup": max },
         }));
         return true;
     } catch (e) {
@@ -984,9 +1014,22 @@ async function removeAllRequests(uid: string) {
     return okJson({ ok: true, removed });
 }
 
-type ReportCopy = { id: string; from?: string; text?: string; t: string; photoId?: string };
+export type ReportCopy = { id: string; from?: string; text?: string; t: string; photoId?: string };
 /** 押し直しで写しを重ねたときの上限（1行 400KB を守る。500字×100通でも 150KB） */
 export const DM_REPORT_KEEP_MAX = 100;
+
+/**
+ * 通報の写しを重ねる。**押し直しでも、前の写しの通は残す**（2026-11-12・確かめ役の指摘: 通報 → 相手が取り消し →
+ * 押し直しで、写しから取り消された通が消えていた）。前の写し（`prev`・行の `messages`）と今の直近を id で合わせ、
+ * 時刻の順に。多すぎれば古い方から。グループの会話の通報（`groups.ts`）も同じ形で重ねる（2026-11-12）
+ */
+export function mergeReportCopies(prev: unknown, fresh: readonly ReportCopy[]): ReportCopy[] {
+    const kept = Array.isArray(prev) ? (prev as { id?: unknown; t?: unknown }[])
+        .filter((m): m is ReportCopy => typeof m?.id === "string" && typeof m?.t === "string") : [];
+    const byId = new Map<string, ReportCopy>(kept.map((m) => [m.id, m]));
+    for (const m of fresh) byId.set(m.id, m);
+    return [...byId.values()].sort((a, b) => a.t.localeCompare(b.t)).slice(-DM_REPORT_KEEP_MAX);
+}
 
 async function reportConversation(uid: string, convId: string | undefined, body: { reason?: unknown; note?: unknown }) {
     const pair = parseConvId(convId);
@@ -1000,15 +1043,10 @@ async function reportConversation(uid: string, convId: string | undefined, body:
     // 自分に見えているぶんだけ（自分の側を消す前のものは写さない）
     const last = visibleTo(conv, uid).slice(-DM_REPORT_LAST);
     const note = sanitizeText(body.note, REPORT_NOTE_MAX);
-    // **押し直しでも、前の写しの通は残す**（2026-11-12・確かめ役の指摘: 通報 → 相手が取り消し → 押し直しで、
-    // 写しから取り消された通が消えていた）。前の写しと今の直近を id で合わせ、時刻の順に。多すぎれば古い方から
+    // **押し直しでも、前の写しの通は残す**（`mergeReportCopies`）
     const prev = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: dmReportKey(convId!, uid) }, ConsistentRead: true }));
-    const kept = Array.isArray(prev.Item?.messages) ? (prev.Item!.messages as { id?: unknown; t?: unknown }[])
-        .filter((m): m is ReportCopy => typeof m?.id === "string" && typeof m?.t === "string") : [];
     const fresh: ReportCopy[] = last.map((m) => ({ id: m.id, from: m.from, text: m.text, t: m.t, ...(m.photoId ? { photoId: m.photoId } : {}) }));
-    const byId = new Map<string, ReportCopy>(kept.map((m) => [m.id, m]));
-    for (const m of fresh) byId.set(m.id, m);
-    const messages = [...byId.values()].sort((a, b) => a.t.localeCompare(b.t)).slice(-DM_REPORT_KEEP_MAX);
+    const messages = mergeReportCopies(prev.Item?.messages, fresh);
     await ddb.send(new PutCommand({
         TableName: PHOTOS_TABLE,
         Item: {
