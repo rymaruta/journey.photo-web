@@ -78,7 +78,7 @@ describe("さがす: 発見の節", () => {
         ]);
         const links = [...container.querySelectorAll('a[href*="/location/"]')].map((a) => a.textContent);
         expect(links[0], "枚数順になっていない").toContain("東京");
-        expect(container.textContent, "数えていない「人気」を名乗っている").not.toMatch(/人気|おすすめ撮影スポット/);
+        expect(container.textContent, "数えていない「人気」を名乗っている").not.toMatch(/人気|おすすめ観光スポット/);
         expect(screen.getByRole("link", { name: "地図で見る" }).getAttribute("href")).toBe("/map");
     });
 

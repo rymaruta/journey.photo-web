@@ -372,7 +372,7 @@ function buildSeasonTopics(spots: readonly Spot[]): SeasonTopic[] {
 // 題・道・導入文
 // ─────────────────────────────────────────────────────────────
 
-export const themeHeading = (t: Pick<ThemeTopic, "category" | "place">) => `${t.place.name}の${t.category}の撮影スポット`;
+export const themeHeading = (t: Pick<ThemeTopic, "category" | "place">) => `${t.place.name}の${t.category}の観光スポット`;
 
 /** 地域の英語名（県・地方・国） */
 export function placeEn(p: TopicPlace): string {
@@ -391,8 +391,8 @@ export const seasonHeadingEn = (t: Pick<SeasonTopic, "season" | "area">) =>
     `${SEASON_EN[t.season]} photo spots${t.area ? ` ${seasonAreaEn(t.area)}` : ""}`;
 export const countryHeadingEn = (t: Pick<CountryTopic, "code">) => `Photo spots in ${countryEn(t.code)}`;
 export const seasonHeading = (t: Pick<SeasonTopic, "season" | "areaName">) =>
-    `${t.areaName ? `${t.areaName}の` : ""}${SEASON_JA[t.season]}の撮影スポット`;
-export const countryHeading = (t: Pick<CountryTopic, "name">) => `${t.name}の撮影スポット`;
+    `${t.areaName ? `${t.areaName}の` : ""}${SEASON_JA[t.season]}の観光スポット`;
+export const countryHeading = (t: Pick<CountryTopic, "name">) => `${t.name}の観光スポット`;
 
 export const themePath = (t: Pick<ThemeTopic, "categorySlug" | "place">) => ROUTES.SPOT_THEME(t.categorySlug, t.place.slug);
 export const seasonPath = (t: Pick<SeasonTopic, "season" | "area">) => ROUTES.SPOT_SEASON(t.season, t.area ?? undefined);
@@ -498,7 +498,7 @@ const latest = (spots: readonly Spot[]) => spots.map((s) => s.updatedAt).filter(
 export function countryIntro(t: CountryTopic, cards: readonly TopicCard[]): string {
     const n = t.spots.length;
     const kinds = categoryBreakdown(t.spots);
-    return `${t.name}の撮影スポットを${n}件まとめました。`
+    return `${t.name}の観光スポットを${n}件まとめました。`
         + (kinds ? `種類は${kinds}など。` : "")
         + (n > 1 ? `${names(cards)}${n > 3 ? "ほか" : ""}を載せています。` : "");
 }
@@ -556,7 +556,7 @@ export function themeIntro(t: ThemeTopic, cards: readonly TopicCard[]): string {
     const tips = tipCount(t.spots);
     const time = timeCount(t.spots);
     const heritage = heritageCount(t.spots);
-    return `${t.place.name}にある${t.category}の撮影スポットを${n}件まとめました。${names(cards)}など。`
+    return `${t.place.name}にある${t.category}の観光スポットを${n}件まとめました。${names(cards)}など。`
         + (b.length > 0 ? `多いのは${b.map(([x, k]) => `${x}${k}件`).join("・")}です。` : "")
         + seasonFacts(t.spots)
         + (time > 0 ? `時間帯ごとの撮影の案内は${time}件にあります。` : "")
@@ -605,7 +605,7 @@ export const THEME_DESCRIPTION_MAX = 120;
 export function themeDescription(t: ThemeTopic, cards: readonly TopicCard[]): string {
     const n = t.spots.length;
     const nm = names(cards);
-    const lead = `${nm ? `${nm}${n > 3 ? "など" : ""}、` : ""}${t.place.name}の${t.category}の撮影スポット${n}か所。`;
+    const lead = `${nm ? `${nm}${n > 3 ? "など" : ""}、` : ""}${t.place.name}の${t.category}の観光スポット${n}か所。`;
     const b = themeBreakdown(t);
     const seasonal = seasonalCount(t.spots);
     const tips = tipCount(t.spots);
@@ -658,7 +658,7 @@ const themeLink = (t: ThemeTopic): TopicLink => ({
     labelEn: `${categoryEn(t.categorySlug)} in ${placeEn(t.place)}`,
 });
 const seasonLink = (t: SeasonTopic): TopicLink => ({
-    ...link(seasonPath(t), seasonHeading(t).replace(/の撮影スポット$/, ""), t.spots.length),
+    ...link(seasonPath(t), seasonHeading(t).replace(/の観光スポット$/, ""), t.spots.length),
     labelEn: `${SEASON_EN[t.season]}${t.area ? ` ${seasonAreaEn(t.area)}` : ""}`,
 });
 /**
@@ -685,10 +685,10 @@ export function overseasView(spots: readonly Spot[] = SPOTS): TopicView {
     const top = countries.slice(0, 3).map((c) => `${c.name}${c.spots.length}件`).join("・");
     return {
         path: ROUTES.SPOT_AREA(OVERSEAS_SLUG),
-        heading: `${OVERSEAS_NAME}の撮影スポット`,
+        heading: `${OVERSEAS_NAME}の観光スポット`,
         headingEn: "Photo spots outside Japan",
         intro: total > 0
-            ? `海外の撮影スポット${total}件を、${countries.length}の国・地域に分けています。多いのは${top}です。`
+            ? `海外の観光スポット${total}件を、${countries.length}の国・地域に分けています。多いのは${top}です。`
             : "",
         crumbs: [],
         cards: [],
@@ -775,7 +775,7 @@ function themePlaceLink(t: ThemeTopic, spots: readonly Spot[]): TopicLink | unde
     if (t.place.kind === "prefecture") {
         const name = t.place.name;
         const k = topicSpots(spots).filter((s) => isJapan(s) && s.region?.prefecture === name).length;
-        return { ...link(ROUTES.SPOT_AREA(t.place.areaSlug), `${name}の撮影スポット`, k), labelEn: `Photo spots in ${placeEn(t.place)}` };
+        return { ...link(ROUTES.SPOT_AREA(t.place.areaSlug), `${name}の観光スポット`, k), labelEn: `Photo spots in ${placeEn(t.place)}` };
     }
     return undefined;
 }
@@ -853,14 +853,14 @@ export function topicStructuredData(view: TopicView) {
     const abs = (p: string) => `${siteConfig.url}${p}`;
     const breadcrumb = generateBreadcrumbStructuredData([
         { name: "ホーム", url: siteConfig.url },
-        { name: "撮影スポット", url: abs(ROUTES.SPOTS) },
+        { name: "観光スポット", url: abs(ROUTES.SPOTS) },
         ...view.crumbs.map((c) => ({ name: c.name, url: abs(c.href) })),
         { name: view.heading, url: abs(view.path) },
     ]);
     // カードの無い頁（海外の国の一覧）は、並べている国のリンクを ItemList にする
     const items = view.cards.length > 0
         ? view.cards.map((c) => ({ name: c.name, url: abs(`/spots/${c.slug}`) }))
-        : (view.related[0]?.links ?? []).map((l) => ({ name: l.itemName ?? `${l.label}の撮影スポット`, url: abs(l.href) }));
+        : (view.related[0]?.links ?? []).map((l) => ({ name: l.itemName ?? `${l.label}の観光スポット`, url: abs(l.href) }));
     const itemList = items.length > 0 ? generateItemListStructuredData(view.heading, items) : null;
     return { breadcrumb, itemList };
 }
@@ -894,10 +894,10 @@ export function firstSpotOgImage(
 export function areaStructuredData(area: { slug: string; name: string }, spots: readonly Spot[]) {
     const abs = (p: string) => `${siteConfig.url}${p}`;
     const path = `${ROUTES.SPOTS}/area/${area.slug}`;
-    const heading = `${area.name}の撮影スポット`;
+    const heading = `${area.name}の観光スポット`;
     const breadcrumb = generateBreadcrumbStructuredData([
         { name: "ホーム", url: siteConfig.url },
-        { name: "撮影スポット", url: abs(ROUTES.SPOTS) },
+        { name: "観光スポット", url: abs(ROUTES.SPOTS) },
         { name: area.name, url: abs(path) },
     ]);
     const items = spots.map((s) => ({ name: s.name, url: abs(`${ROUTES.SPOTS}/${s.slug}`) }));

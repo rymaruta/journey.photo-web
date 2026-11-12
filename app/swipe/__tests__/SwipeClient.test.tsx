@@ -41,7 +41,7 @@ const currentSlug = () => screen.getByTestId("swipe-card").getAttribute("data-sl
 const wantsInStorage = () => JSON.parse(window.localStorage.getItem("jp-swipe-wants") ?? "[]") as string[];
 
 describe("未ログインでも払える", () => {
-    it("行きたい・見送る・ひとつ戻す（ボタン）。行きたいは端末に撮影スポットの鍵だけ", async () => {
+    it("行きたい・見送る・ひとつ戻す（ボタン）。行きたいは端末に観光スポットの鍵だけ", async () => {
         show();
         await screen.findByTestId("swipe-card");
         const first = currentSlug();
@@ -73,7 +73,7 @@ describe("未ログインでも払える", () => {
         expect(wantsInStorage()).toEqual([`SPOT-${first}`]);
     });
 
-    it("写真の出典を写真と一緒に出す（撮影スポットの頁と同じ形）", async () => {
+    it("写真の出典を写真と一緒に出す（観光スポットの頁と同じ形）", async () => {
         show();
         await screen.findByTestId("swipe-card");
         expect(screen.getByTestId("topic-credit").textContent).toContain("CC BY-SA 4.0");

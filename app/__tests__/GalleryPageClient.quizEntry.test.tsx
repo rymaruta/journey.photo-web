@@ -57,7 +57,7 @@ const order = () => [...cards().querySelectorAll("li")].map((li) =>
     (li.querySelector("[data-testid=home-swipe-entry],[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry]") as HTMLElement).dataset.testid);
 
 describe("ホームの上段の札", () => {
-    it("タブの直下に札の並び（今週のお題 → 今日の一問 → 撮影スポット）", async () => {
+    it("タブの直下に札の並び（今週のお題 → 今日の一問 → 観光スポット）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         await screen.findByTestId("home-top-cards");
         expect(screen.getByRole("tablist").nextElementSibling).toBe(cards());
@@ -112,12 +112,12 @@ describe("「さがす」の今日の一問の札（2026-11-12・ホームの札
     });
 });
 
-describe("ホームの撮影スポットの札", () => {
+describe("ホームの観光スポットの札", () => {
     it("行き先は /spots", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const entry = await screen.findByTestId("home-spots-entry");
         expect(entry.getAttribute("href")).toBe("/spots");
-        expect(entry.textContent).toContain("撮影スポット");
+        expect(entry.textContent).toContain("観光スポット");
     });
 
     it("どのタブでも出る（タブを切り替えても位置が動かない）", async () => {
@@ -239,7 +239,7 @@ describe("ホームの写真のはじめての投稿の印", () => {
     });
 });
 
-describe("ホームの撮影スポットを払う札（2026-11-11）", () => {
+describe("ホームの観光スポットを払う札（2026-11-11）", () => {
     it("行き先は /swipe・未ログインは「ログインなしではじめる」", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const entry = await screen.findByTestId("home-swipe-entry");

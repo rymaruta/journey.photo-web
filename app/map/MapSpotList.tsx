@@ -56,15 +56,15 @@ export default function MapSpotList({ spots, total = spots.length, categoryActiv
             <section aria-labelledby="map-spot-list-heading" style={{ marginTop: "12px" }}>
                 <h2 id="map-spot-list-heading" className="m-0 font-serif font-bold text-white"
                     style={{ fontSize: "14px", lineHeight: "20px", marginBottom: "4px" }}>
-                    {en ? "Photo spots" : "撮影スポット"}
+                    {en ? "Photo spots" : "観光スポット"}
                 </h2>
                 <p className="m-0 text-white/70" style={{ fontSize: "13px", lineHeight: "20px" }} data-testid="map-spot-empty">
                     {categoryActive
                         ? (en ? "Categories filter photos only, so spots are hidden. Choose “All” to see spots."
-                            : "カテゴリは写真の分類なので、絞っている間は撮影スポットを出していません。「すべて」に戻すと出ます。")
+                            : "カテゴリは写真の分類なので、絞っている間は観光スポットを出していません。「すべて」に戻すと出ます。")
                         : searching
-                            ? (en ? "Searching spots…" : "撮影スポットを探しています…")
-                            : (en ? "No spots match the search or area." : "検索語や範囲に当たる撮影スポットはありません。")}
+                            ? (en ? "Searching spots…" : "観光スポットを探しています…")
+                            : (en ? "No spots match the search or area." : "検索語や範囲に当たる観光スポットはありません。")}
                 </p>
             </section>
         );
@@ -80,8 +80,8 @@ export default function MapSpotList({ spots, total = spots.length, categoryActiv
             >
                 {/* 全部が下書きなら見出しもそう名乗る（「公式」は人が確かめた行だけ） */}
                 {spots.every((s) => s.stage !== "published")
-                    ? (en ? "Shooting spots (drafts)" : "撮影スポット（下書き）")
-                    : (en ? "Photo spots" : "撮影スポット")}
+                    ? (en ? "Shooting spots (drafts)" : "観光スポット（下書き）")
+                    : (en ? "Photo spots" : "観光スポット")}
             </h2>
             {/* iOS の地図のリストの行（`PhotoMapView.spotRow`・板 MapList・2026-10-31 束 2 M1）:
                 札に入れず黒地に直に、行の下に白8%の線・高さ 64。左に地図のピンと同じ印（写真があれば写真の丸 40・
@@ -126,8 +126,8 @@ export default function MapSpotList({ spots, total = spots.length, categoryActiv
                                 </span>
                                 <span className="block truncate text-text-3 tabular-nums" style={{ fontSize: "12px", lineHeight: "16px", marginTop: "2px" }}>
                                     {s.stage === "published"
-                                        ? (en ? "Photo spot" : "撮影スポット")
-                                        : (en ? "Photo spot (draft)" : "撮影スポット（下書き）")}
+                                        ? (en ? "Photo spot" : "観光スポット")
+                                        : (en ? "Photo spot (draft)" : "観光スポット（下書き）")}
                                     {s.region ? ` ・ ${s.region}` : ""}
                                 </span>
                             </span>

@@ -75,7 +75,7 @@ describe("/spots の一覧の構造化データ（ItemList）", () => {
             .toEqual(areas.map((a) => `${siteConfig.url}/spots/area/${encodeURIComponent(a.slug)}`));
         // 並びは画面と同じ（北海道 → 香川県 → 海外）
         expect(list.itemListElement.map((i: { name: string }) => i.name))
-            .toEqual(["北海道の撮影スポット", "香川県の撮影スポット", `${areas[2].name}の撮影スポット`]);
+            .toEqual(["北海道の観光スポット", "香川県の観光スポット", `${areas[2].name}の観光スポット`]);
         // 画面の本体も消えていない
         expect(container.querySelector('[data-testid="area-index"]')).toBeTruthy();
     });

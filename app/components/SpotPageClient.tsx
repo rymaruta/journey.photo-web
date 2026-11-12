@@ -523,7 +523,7 @@ export default function SpotPageClient({
             {guides.map((g, i) => (
                 <div key={g.slug} className="mb-4" data-testid="spot-guide-link">
                     <SpotLinkCard spot={g} locale={locale} headingId={`location-guide-${i}`}
-                                  heading={i > 0 ? null : (en ? "Photo spot guide for these photos" : "この撮影地の写真が紐付いている撮影スポット")} />
+                                  heading={i > 0 ? null : (en ? "Photo spot guide for these photos" : "この撮影地の写真が紐付いている観光スポット")} />
                 </div>
             ))}
 

@@ -37,7 +37,7 @@ import { visibleSpots } from "../../lib/utils/spotGuide";
  * **訪問のたびに落ちるバイト**になる。`CLAUDE.md` の優先度は
  * 「SEO・表示速度・安定性」で、表示速度に直接当たる。
  */
-describe("撮影スポット索引のペイロード", () => {
+describe("観光スポット索引のペイロード", () => {
     const indexSrc = readFileSync(join(process.cwd(), "app", "spots", "page.tsx"), "utf8");
     const areaSrc = readFileSync(join(process.cwd(), "app", "spots", "area", "[area]", "page.tsx"), "utf8");
 

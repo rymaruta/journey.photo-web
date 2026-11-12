@@ -15,32 +15,32 @@ const base = ledger.find((s) => s.slug === "himeji-castle")!;
 describe("title（2026-10-22: 検索される型「〈名所〉 写真／撮影／撮影地」に合わせる）", () => {
     const himeji = { name: "姫路城", region: { country: "日本", prefecture: "兵庫県", city: "姫路市" } };
 
-    it("名前のすぐ後に「の写真・撮影スポット」、押す理由（作例の節の枚数）、収まれば地名。サイト名は付けない", () => {
+    it("名前のすぐ後に「の写真と観光スポット情報」、押す理由（作例の節の枚数）、収まれば地名。サイト名は付けない", () => {
         const t = spotPageTitle(himeji, { samples: 5, cover: true, light: true });
         // 🔴 作例は節に並ぶ5枚だけ（代表写真は数えない・2026-10-22 レビュー）
-        expect(t).toBe("姫路城の写真・撮影スポット｜作例5枚（兵庫県 姫路市）");
+        expect(t).toBe("姫路城の写真と観光スポット情報｜作例5枚（兵庫県 姫路市）");
         expect(t).not.toContain("Journey Photo");
         expect(titleWidth(t)).toBeLessThanOrEqual(SPOT_TITLE_MAX);
     });
 
     it("🔴 作例が0枚なら「作例」を書かない・写真が1枚も無ければ「写真」と名乗らない", () => {
-        expect(spotPageTitle(himeji, { samples: 0, cover: true, light: true })).toBe("姫路城の写真・撮影スポット（兵庫県 姫路市）");
-        expect(spotPageTitle(himeji, { samples: 2, cover: false })).toBe("姫路城の写真・撮影スポット｜作例2枚（兵庫県 姫路市）");
-        expect(spotPageTitle(himeji, { samples: 0, cover: false, light: true })).toBe("姫路城の撮影スポット（兵庫県 姫路市）");
-        expect(spotPageTitle(himeji, {})).toBe("姫路城の撮影スポット（兵庫県 姫路市）");
+        expect(spotPageTitle(himeji, { samples: 0, cover: true, light: true })).toBe("姫路城の写真と観光スポット情報（兵庫県 姫路市）");
+        expect(spotPageTitle(himeji, { samples: 2, cover: false })).toBe("姫路城の写真と観光スポット情報｜作例2枚（兵庫県 姫路市）");
+        expect(spotPageTitle(himeji, { samples: 0, cover: false, light: true })).toBe("姫路城の観光スポット情報（兵庫県 姫路市）");
+        expect(spotPageTitle(himeji, {})).toBe("姫路城の観光スポット情報（兵庫県 姫路市）");
     });
 
     it("短くする規則: 地域 → 作例の順に落とし、「の写真」は最後まで残す", () => {
         const abukuma = { name: "あぶくま洞", region: { country: "日本", prefecture: "福島県", city: "田村市" } };
-        expect(spotPageTitle(abukuma, { samples: 5, cover: true })).toBe("あぶくま洞の写真・撮影スポット｜作例5枚（福島県 田村市）");
+        expect(spotPageTitle(abukuma, { samples: 5, cover: true })).toBe("あぶくま洞の写真と観光スポット情報｜作例5枚（福島県 田村市）");
         const longer = { name: "国営ひたち海浜公園 みはらしの丘", region: { country: "日本", prefecture: "茨城県", city: "ひたちなか市" } };
         // 地名まで入れると 33 を超える → 地名を落とし、作例は残す
-        expect(spotPageTitle(longer, { samples: 5, cover: true })).toBe("国営ひたち海浜公園 みはらしの丘の写真・撮影スポット｜作例5枚");
+        expect(spotPageTitle(longer, { samples: 5, cover: true })).toBe("国営ひたち海浜公園 みはらしの丘の写真と観光スポット情報｜作例5枚");
         const opera = { name: "オペラ・ガルニエ（パレ・ガルニエ）", region: { country: "フランス", prefecture: "イル・ド・フランス", city: "パリ" } };
-        expect(spotPageTitle(opera, { cover: true })).toBe("オペラ・ガルニエ（パレ・ガルニエ）の写真・撮影スポット");
+        expect(spotPageTitle(opera, { cover: true })).toBe("オペラ・ガルニエ（パレ・ガルニエ）の写真と観光スポット情報");
         // 名前そのものが長い → 「〇〇の写真」（写真は落とさない）
         expect(spotPageTitle({ name: "あ".repeat(40), region: undefined }, { samples: 3 })).toBe(`${"あ".repeat(40)}の写真`);
-        expect(spotPageTitle({ name: "あ".repeat(40), region: undefined }, {})).toBe(`${"あ".repeat(40)}の撮影スポット`);
+        expect(spotPageTitle({ name: "あ".repeat(40), region: undefined }, {})).toBe(`${"あ".repeat(40)}の観光スポット情報`);
     });
 
     it("全角換算の長さ（半角は 0.5）", () => {

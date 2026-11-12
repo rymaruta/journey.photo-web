@@ -618,7 +618,7 @@ async function runChecks(browser, eng) {
         ? fs.readdirSync(locDir).filter((f) => f.endsWith(".html") && f !== "_none.html").sort()
         : [];
     if (locs.length > 0) {
-        console.log(`\n[${eng}][5b] 撮影スポット詳細`);
+        console.log(`\n[${eng}][5b] 観光スポット詳細`);
         const slug = locs[0].replace(/\.html$/, "");
         await gotoSettled(page, `http://localhost:${PORT}/location/${encodeURIComponent(slug)}`);
         check(`[${eng}] スポット詳細: ハイドレーション完了`, await waitForHydration(page));
@@ -765,7 +765,7 @@ async function runChecks(browser, eng) {
         const spotLink = await page
             .waitForSelector("[data-testid='search-spot-results'] a[href='/spots/ginzan-onsen']", { timeout: 10000 })
             .then(() => true).catch(() => false);
-        check(`[${eng}] さがす: 「銀山温泉」で撮影スポットの節からガイドへ行ける`, spotLink);
+        check(`[${eng}] さがす: 「銀山温泉」で観光スポットの節からガイドへ行ける`, spotLink);
 
         await gotoSettled(page, `http://localhost:${PORT}/spots/ginzan-onsen`);
         await waitForHydration(page);
@@ -962,7 +962,7 @@ function signedInApiBody(url, method, photos) {
     if (p === "/music/search") return { results: [] };
     // 光と天気の知らせ（Pro）。**1か所返す**——0件だと札（名前・押せる高さ）を一度も測らない
     if (p === "/user/light-forecast") return {
-        places: [{ key: "SPOT-smoke", slug: "smoke", name: "スモークの撮影スポット", timeZone: "Asia/Tokyo", forecast: true,
+        places: [{ key: "SPOT-smoke", slug: "smoke", name: "スモークの観光スポット", timeZone: "Asia/Tokyo", forecast: true,
             days: [{ date: "2099-12-31", sunrise: { at: "2099-12-30T20:42:00.000Z", clock: "05:42" }, sunset: null,
                 morningBlue: { start: null, end: null }, eveningBlue: { start: null, end: null },
                 morning: { weather: "clear", chance: "high" }, evening: null, night: null }] }],
