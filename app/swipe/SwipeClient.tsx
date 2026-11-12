@@ -133,39 +133,63 @@ export default function SwipeClient() {
     const paused = current !== null && showsSwipePause(decisions.length, wants, continuedAt);
     const mapHref = isAuthenticated ? ROUTES.SAVED_SPOTS : loginWithNext(ROUTES.SWIPE, "swipe");
 
-    const commit = React.useCallback(async (choice: "want" | "skip") => {
+    /**
+     * ログイン中の「行きたい」で、まだサーバーの答えを待っている札（slug → 入れられたか）。
+     * ひとつ戻すときは、この答えを待ってから外す
+     */
+    const pendingAdds = React.useRef(new Map<string, Promise<boolean>>());
+
+    /**
+     * 決める。**札は待たずにその場で次へ送る**（2026-11-12 owner「払っている所に次の写真が映る」）。
+     * 以前はログイン中の「行きたい」で `POST /user/spots` の答えを待ってから送っていたので、
+     * 飛ばした札がいったん真ん中へ戻り、答えが来てから次の写真に替わっていた。
+     * サーバーへ入れるのは裏で続け、答えが来たら `added` と足元の数を直す
+     */
+    const commit = React.useCallback((choice: "want" | "skip") => {
         if (!current) return;
+        const card = current;
         let added = false;
         if (choice === "want") {
-            const key = spotSavedKey(current.slug);
+            const key = spotSavedKey(card.slug);
             if (isAuthenticated) {
                 const already = saved.slugs.includes(key);
                 if (!already) {
-                    try {
-                        const res = await userFetch("/user/spots", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ slug: key }),
-                        });
-                        added = res.ok;
-                    } catch {
-                        added = false;
-                    }
-                    if (!added) showToast(en ? "Couldn't save. Check your connection." : "行きたい場所に入れられませんでした。通信を確かめてください。", "error");
+                    const request = (async () => {
+                        try {
+                            const res = await userFetch("/user/spots", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ slug: key }),
+                            });
+                            return res.ok;
+                        } catch {
+                            return false;
+                        }
+                    })();
+                    pendingAdds.current.set(card.slug, request);
+                    void request.then((ok) => {
+                        if (pendingAdds.current.get(card.slug) === request) pendingAdds.current.delete(card.slug);
+                        if (!ok) {
+                            showToast(en ? "Couldn't save. Check your connection." : "行きたい場所に入れられませんでした。通信を確かめてください。", "error");
+                            return;
+                        }
+                        setDecisions((d) => d.map((x) => (x.card.slug === card.slug && x.choice === "want" ? { ...x, added: true } : x)));
+                        setWishCount((n) => n + 1);
+                    });
                 }
             } else {
                 added = !readSwipeWants().includes(key);
-                addSwipeWant(current.slug);
+                addSwipeWant(card.slug);
+                if (added) setWishCount((n) => n + 1);
             }
-            if (added) setWishCount((n) => n + 1);
         }
         // みんなの「行きたい」に数える（②・端末のでたらめな ID と一緒にまとめて送る）。見送るは数えない
-        if (choice === "want") queueSpotWant(current.slug);
-        addSwipeSeen(current.slug);
-        setDecisions((d) => [...d, { card: current, choice, added }]);
+        if (choice === "want") queueSpotWant(card.slug);
+        addSwipeSeen(card.slug);
+        setDecisions((d) => [...d, { card, choice, added }]);
         setSaid(choice === "want"
-            ? (en ? `Saved: ${current.name}` : `行きたいに入れました: ${current.name}`)
-            : (en ? `Passed: ${current.name}` : `見送りました: ${current.name}`));
+            ? (en ? `Saved: ${card.name}` : `行きたいに入れました: ${card.name}`)
+            : (en ? `Passed: ${card.name}` : `見送りました: ${card.name}`));
     }, [current, isAuthenticated, saved.slugs, showToast, en]);
 
     /** 払う・押す・キーの3つがここに来る（飛ばしてから決める） */
@@ -187,12 +211,15 @@ export default function SwipeClient() {
                 : `選べるのは ${SWIPE_WANT_MAX} か所までです。ログインすると行きたい場所に移せます。`, "error");
             return;
         }
-        if (reduceMotion) { setDx(0); void commit(choice); return; }
+        if (reduceMotion) { setDx(0); commit(choice); return; }
         setFlying(true);
         setDx(choice === "want" ? 600 : -600);
+        // 飛び終えたら、決める・dx を 0 に戻す・飛ぶのをやめるを**同じ描画で**。札は `key` で作り直すので、
+        // 次の写真は真ん中に動かずに出る（同じ箱を使い回すと、次の写真が -600 から戻ってきていた）
         window.setTimeout(() => {
             setDx(0);
-            void commit(choice).finally(() => setFlying(false));
+            commit(choice);
+            setFlying(false);
         }, FLY_MS);
     }, [flying, current, paused, decisions.length, reduceMotion, isAuthenticated, showToast, en, commit]);
 
@@ -204,7 +231,10 @@ export default function SwipeClient() {
         if (continuedAt !== null && decisions.length - 1 < continuedAt) setContinuedAt(null);
         removeSwipeSeen(last.card.slug);
         if (last.choice === "want") unqueueSpotWant(last.card.slug);
-        if (last.choice === "want" && last.added) {
+        // ログイン中で、まだ入れている途中なら答えを待つ（入っていたら外す）
+        const pending = last.choice === "want" ? pendingAdds.current.get(last.card.slug) : undefined;
+        const added = pending ? await pending : last.added;
+        if (last.choice === "want" && added) {
             const key = spotSavedKey(last.card.slug);
             if (isAuthenticated) {
                 try {
@@ -241,6 +271,16 @@ export default function SwipeClient() {
     const onPointerMove = (e: React.PointerEvent) => {
         if (!start.current || flying) return;
         setDx(e.clientX - start.current.x);
+    };
+    /**
+     * 取り消された（ブラウザが縦のスクロールに切り替えた・着信など）ときは**送らずに戻すだけ**。
+     * `pointercancel` の座標は当てにならない（Chromium は (0,0) を返す・2026-11-12 本番の実測）ので、
+     * 距離として読むと、縦にスクロールしただけで「見送る」になっていた
+     */
+    const onPointerCancel = () => {
+        start.current = null;
+        setDragging(false);
+        if (!flying) setDx(0);
     };
     const onPointerEnd = (e: React.PointerEvent) => {
         const s = start.current;
@@ -305,13 +345,14 @@ export default function SwipeClient() {
                         {/* 次の札を下に重ねる（めくった先があると分かる・先に読み込ませる） */}
                         {upcoming && !paused && (
                             <div aria-hidden="true" className="absolute inset-0 rounded-2xl overflow-hidden bg-surface" style={{ transform: "scale(0.95)", opacity: 0.5 }}>
+                                {/* **札ごとに新しい `<img>`。** src だけ差し替えると、次の絵が届くまで前の絵（いま上に出た写真）が残っていた */}
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={upcoming.src} alt="" className="absolute inset-0 w-full h-full object-cover" decoding="async" />
+                                <img key={upcoming.slug} src={upcoming.src} alt="" className="absolute inset-0 w-full h-full object-cover" decoding="async" data-testid="swipe-upcoming" />
                             </div>
                         )}
                         {paused ? (
-                            <div className="absolute inset-0 rounded-2xl bg-surface ring-1 ring-inset ring-line p-6 flex flex-col justify-center gap-3 cursor-grab"
-                                 style={cardStyle} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}
+                            <div key={`pause-${decisions.length}`} className="absolute inset-0 rounded-2xl bg-surface ring-1 ring-inset ring-line p-6 flex flex-col justify-center gap-3 cursor-grab"
+                                 style={cardStyle} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerCancel}
                                  data-testid="swipe-pause">
                                 <MapIcon aria-hidden="true" className="text-accent" style={{ width: 28, height: 28 }} />
                                 <h2 className="m-0 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "30px" }}>
@@ -324,8 +365,9 @@ export default function SwipeClient() {
                                 </p>
                             </div>
                         ) : (
-                            <div className="absolute inset-0 rounded-2xl overflow-hidden bg-surface cursor-grab"
-                                 style={cardStyle} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerEnd}
+                            // **札ごとに新しい箱**（`key`）。使い回すと、飛ばした位置（±600）から次の写真が戻ってきた
+                            <div key={current.slug} className="absolute inset-0 rounded-2xl overflow-hidden bg-surface cursor-grab"
+                                 style={cardStyle} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerEnd} onPointerCancel={onPointerCancel}
                                  role="img" aria-label={current.region ? `${current.name}、${current.region}` : current.name}
                                  data-testid="swipe-card" data-slug={current.slug}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
