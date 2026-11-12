@@ -14,9 +14,9 @@
 #   - CORS は user API の HTTP API の設定（`cors: true`）がそのまま効く
 #
 # 🔴 ログインの確かめ: serverless は「外の HTTP API」に `provider.httpApi.authorizers` を置けない
-#    （EXTERNAL_HTTP_API_AUTHORIZERS_CONFIG）。user API と同じ Cognito の JWT の確かめを、このスタックの
-#    部品（`QrCognitoAuthorizer`）として user API の HTTP API に足し、経路から `id` で指す。
-#    user API のスタックには何も足さない（書き出しも増やさない）。
+#    （EXTERNAL_HTTP_API_AUTHORIZERS_CONFIG）。user API が書き出す Cognito の JWT の認可
+#    （`sls-photo-gallery-user-api-<stage>-CognitoAuthorizerId`）を取り込み、経路から `id` で指す
+#    （札 journey.photo-ios#552 ③・2026-11-12。以前はこのスタックに自分の認可 `QrCognitoAuthorizer` を作っていた）。
 service: photo-gallery-profile-qr
 
 frameworkVersion: '3'
@@ -62,7 +62,7 @@ functions:
           authorizer:
             type: jwt
             id:
-              Ref: QrCognitoAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
 
   # 新しい合図にして、前の QR とリンクを使えなくする。ログインの口
   rotateMyQr:
@@ -75,7 +75,7 @@ functions:
           authorizer:
             type: jwt
             id:
-              Ref: QrCognitoAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
 
   # **未認証で呼べる口。** 合図を人に引く。読み取り専用の役割で `qr#<合図>` の GetItem 1回だけ。
   # 守りは推測できない合図（192ビット）と、表を引く前の形の確かめ（`isValidQrToken`）
@@ -89,21 +89,6 @@ functions:
 
 resources:
   Resources:
-    # user API の `cognitoAuthorizer` と同じ確かめ（同じ利用者プール・同じアプリの ID）
-    QrCognitoAuthorizer:
-      Type: AWS::ApiGatewayV2::Authorizer
-      Properties:
-        ApiId:
-          Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
-        Name: profileQrCognitoAuthorizer
-        AuthorizerType: JWT
-        IdentitySource:
-          - $request.header.Authorization
-        JwtConfiguration:
-          Issuer: https://cognito-idp.${aws:region}.amazonaws.com/${param:cognitoUserPoolId}
-          Audience:
-            - ${param:cognitoClientId}
-
     # 本人の口（`getMyQr`・`rotateMyQr`）。QR の2種類の行の読み書き・消すだけ
     QrOwnerRole:
       Type: AWS::IAM::Role

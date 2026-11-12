@@ -10,8 +10,8 @@
 #
 # 🔴 口の URL は今の user API と同じ（`<user API>/trip-share/...`・`/trip-invites/...`）。新しい HTTP API は作らず、
 #    user API のスタックが書き出す HttpApiId を取り込んで**経路だけ**このスタックに置く。Web とアプリの呼び先の
-#    土台は変わらない。認可は user API と同じ Cognito の JWT を、このスタックの認可（`TripShareAuthorizer`）で見る
-#    （user API の認可の ID は書き出されていない。書き出すと user API を先に配る順番が要る）。
+#    土台は変わらない。認可は user API が書き出す Cognito の JWT の認可（`CognitoAuthorizerId`）を取り込む
+#    （札 journey.photo-ios#552 ③・2026-11-12。以前はこのスタックに自分の認可 `TripShareAuthorizer` を作っていた）。
 #    このスタックを配るのは user API のスタックが在ってから（`deploy-api.yml` で user API の**後**）。
 #    経路ごとの流量の設定は無い（段の既定の絞りが効く）ので、②と違って先に配る必要は無い。
 #
@@ -123,56 +123,65 @@ functions:
           path: /trip-share/inbox
           method: GET
           authorizer:
+            type: jwt
             id:
-              Ref: TripShareAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
       - httpApi:
           path: /trip-share/{planId}
           method: GET
           authorizer:
+            type: jwt
             id:
-              Ref: TripShareAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
       - httpApi:
           path: /trip-share/{planId}
           method: POST
           authorizer:
+            type: jwt
             id:
-              Ref: TripShareAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
       - httpApi:
           path: /trip-share/{planId}/invite
           method: POST
           authorizer:
+            type: jwt
             id:
-              Ref: TripShareAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
       - httpApi:
           path: /trip-share/{planId}/invite
           method: DELETE
           authorizer:
+            type: jwt
             id:
-              Ref: TripShareAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
       - httpApi:
           path: /trip-share/{planId}/members/{uid}
           method: DELETE
           authorizer:
+            type: jwt
             id:
-              Ref: TripShareAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
       - httpApi:
           path: /trip-share/{planId}/chat
           method: GET
           authorizer:
+            type: jwt
             id:
-              Ref: TripShareAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
       - httpApi:
           path: /trip-share/{planId}/chat
           method: POST
           authorizer:
+            type: jwt
             id:
-              Ref: TripShareAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
       - httpApi:
           path: /trip-invites/{token}/join
           method: POST
           authorizer:
+            type: jwt
             id:
-              Ref: TripShareAuthorizer
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
 
   # **未認証で読める口**（招待リンクの下見。アプリが無い人も Web で見る）。題・日付・人数・場所の数だけを返す。
   # 役は招待とプランの本体の行を GetItem で読むだけ（鍵の頭で絞る）
@@ -186,21 +195,6 @@ functions:
 
 resources:
   Resources:
-    # user API と同じ Cognito の JWT を見る認可（このスタックの経路だけが使う）
-    TripShareAuthorizer:
-      Type: AWS::ApiGatewayV2::Authorizer
-      Properties:
-        ApiId:
-          Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
-        AuthorizerType: JWT
-        Name: tripShareCognito
-        IdentitySource:
-          - $request.header.Authorization
-        JwtConfiguration:
-          Issuer: https://cognito-idp.${aws:region}.amazonaws.com/${param:cognitoUserPoolId}
-          Audience:
-            - ${param:cognitoClientId}
-
     TripInviteReadRole:
       Type: AWS::IAM::Role
       Properties:

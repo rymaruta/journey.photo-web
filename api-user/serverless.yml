@@ -1828,6 +1828,20 @@ resources:
                   Resource:
                     - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
 
+  # **ログインの確かめ（JWT の認可）を書き出す**（札 journey.photo-ios#552 ③・2026-11-12）。
+  # 別のスタック（`serverless.*.yml`）は自分で認可を作らず、これを取り込んで経路に付ける
+  # （`authorizer: { type: jwt, id: { Fn::ImportValue: sls-photo-gallery-user-api-<stage>-CognitoAuthorizerId } }`）。
+  # 1つの HTTP API に置ける認可は 10 個まで。スタックごとに作ると増える一方なので、ここ1つにまとめる。
+  # 🔴 取り込んでいるスタックがある間は、この認可を作り直す変更（名前の付け替えなど）は反映が落ちる。
+  #    変えるときは、先に取り込む側を外す
+  Outputs:
+    CognitoAuthorizerId:
+      Description: user API の Cognito の JWT の認可（別スタックの経路が使う）
+      Value:
+        Ref: HttpApiAuthorizerCognitoAuthorizer
+      Export:
+        Name: sls-${self:service}-${sls:stage}-CognitoAuthorizerId
+
   # API Gateway（HTTP API）の段の設定に足す（serverless が作る `HttpApiStage` に重ねる）。
   # **みんなの「行きたい」の口だけ流量を絞る**（2026-11-11 確かめ役の指摘 5）。ほかの口は今のまま
   # 秒 10 件・瞬間 20 件を越えた分は API Gateway が 429 で断る（Lambda も DB も動かない）
