@@ -71,6 +71,8 @@ provider:
             # `storyVotes.ts` が「行がまだ在ること」をこれで確かめる。
             # 無いと AccessDeniedException で**全部の票が 500** になる
             - dynamodb:ConditionCheckItem
+            # user API の provider と同じ（`splitStacks.test.ts`）。共有した旅行プランの本体をまとめて読む分（2026-11-12）
+            - dynamodb:BatchGetItem
           Resource:
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}/index/*
