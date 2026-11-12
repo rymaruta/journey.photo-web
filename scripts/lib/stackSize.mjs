@@ -40,8 +40,8 @@ export const WARN_ABOVE = 400;
  * **数を上げてはいけない**——上げるのは、上限 500 まで部品を足すのを認めることになる。
  */
 export const FROZEN_AT = Object.freeze({
-    // 2026-11-12 に数えた数（staging・prod とも 488）。分ける作業は札 journey.photo-ios#552
-    "api-user/serverless.yml": 488,
+    // 2026-11-12 に user API（api-user/serverless.yml）を 488 で載せた。共同アルバムを別スタックへ移して
+    // 448（450 以下）になったので外した（札 journey.photo-ios#552 ②）。今は載っているスタックは無い
 });
 
 /**
