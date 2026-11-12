@@ -18,7 +18,7 @@ import { hasStoryTextItem, sanitizeStoryTexts, storyTextsCaption } from "./story
 import { storyAllowsReplies } from "./storyVisibility";
 import { parseStoryAudience, isCloseFriendsStory, canViewStoryAudience, closeFriendOwnersAmong } from "./storyAudience";
 import { resolveStoryMentions, maskDeletedMentions } from "./storyMentions";
-import { parseSharedPhotoId, checkSharedPhoto, unviewableSharedPhotos } from "./storyPhotoShare";
+import { parseSharedPhotoId, checkSharedPhoto, unviewableSharedPhotos, NOT_OWN_PHOTO_MESSAGE } from "./storyPhotoShare";
 
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
@@ -272,15 +272,16 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         // 消すだけでは写真が配られ続ける。本人の行は残して `sharedPhotoId` だけ落とす
         // （押しても開けない）。紹介の行が無い一覧は写真を1枚も読まない
         // ブロック一覧が読めなかったときは、紹介の行を（本人のもの以外）全部落とす
+        // 持ち主でない人が紹介した行（2026-11-12 に止めた・`storyPhotoShare.ts`）も同じ扱い
         const lost = await unviewableSharedPhotos(audienceOk, hidden);
-        const visible = lost.size === 0 && !blocks.unread ? audienceOk : audienceOk.filter((i) => {
+        const visible = !lost.any && !blocks.unread ? audienceOk : audienceOk.filter((i) => {
             const shared = i.sharedPhotoId;
             if (typeof shared !== "string" || !shared) return true;
             if (String(i.userId ?? "") === userId) {
-                if (lost.has(shared)) delete i.sharedPhotoId;
+                if (lost.has(i)) delete i.sharedPhotoId;
                 return true;
             }
-            return !blocks.unread && !lost.has(shared);
+            return !blocks.unread && !lost.has(i);
         });
 
         // **バッジの数も、返信一覧と同じふるいを通した数にする。**
@@ -524,17 +525,21 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     if ("gone" in caller) return caller.gone;
     const displayName = displayNameOf(caller.row) ?? DEFAULT_NAME;
 
-    // 紹介してよい写真か（公開・ブロック無し・持ち主が退会していない）。断るときは「無い」と同じ 404
-    // （ブロックを教えない）。読めなければ下の catch ではなくここで 503——出してから消すより出さない
-    let shared: Awaited<ReturnType<typeof checkSharedPhoto>>;
+    // 紹介してよい写真か（**自分の**公開写真だけ・2026-11-12 owner の原則）。無い・公開でない写真は 404、
+    // **人の写真は 403**「この写真はストーリーで紹介できません」（1.1.82 のアプリはこの文をそのまま出す）。
+    // 読めなければ下の catch ではなくここで 503——出してから消すより出さない
+    let shared: Exclude<Awaited<ReturnType<typeof checkSharedPhoto>>, "notOwner">;
     if (sharedIn.photoId) {
+        let checked: Awaited<ReturnType<typeof checkSharedPhoto>>;
         try {
-            shared = await checkSharedPhoto(sharedIn.photoId, userId);
+            checked = await checkSharedPhoto(sharedIn.photoId, userId);
         } catch (e) {
             console.error("createStory: 紹介する写真を確かめられませんでした:", e);
             return jsonError(503, "写真を確かめられませんでした。時間をおいてもう一度お試しください");
         }
-        if (!shared) return jsonError(404, "写真が見つかりません");
+        if (checked === "notOwner") return jsonError(403, NOT_OWN_PHOTO_MESSAGE);
+        if (!checked) return jsonError(404, "写真が見つかりません");
+        shared = checked;
     }
 
     const now = Date.now();
@@ -602,20 +607,8 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
                 t: story.createdAt,
             });
         }
-        // **持ち主に知らせる**（自分の写真は除く）。`photoId` は**紹介された写真**——持ち主は
-        // 紹介した人をフォローしていないことがあり、ストーリーは開けないため。押すと自分の写真へ、
-        // 名前からは紹介した人へ。ブロックの再確認は `pushNotification` が持つ
-        if (shared && shared.ownerId !== userId) {
-            await pushNotification(shared.ownerId, {
-                type: "storyshare",
-                photoId: shared.photoId,
-                photoSrc: shared.thumb,
-                byName: displayName,
-                byId: userId,
-                ...(shared.location ? { atLocation: shared.location } : {}),
-                t: story.createdAt,
-            });
-        }
+        // 持ち主への知らせ（`storyshare`）は出さない: 紹介できるのは自分の写真だけになった
+        // （2026-11-12・`storyPhotoShare.ts`）。種類は前に届いた知らせを出すために画面に残す
         return { statusCode: 201, headers: JSON_HEADERS, body: JSON.stringify({ success: true, story }) };
     } catch (e) {
         console.error("createStory error:", e);
