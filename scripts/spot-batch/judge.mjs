@@ -17,6 +17,7 @@ const prefsOf = new Map(); for (const [p, items] of Object.entries(raw)) for (co
 const files = process.argv.slice(2).map((f) => path.resolve(DIR, f));
 const rows = files.flatMap((f) => JSON.parse(fs.readFileSync(f, "utf8")).rows.map((r) => ({ ...r, _file: f })));
 const SEASONS = new Set(["spring", "summer", "autumn", "winter"]), TIMES = new Set(["dawn", "morning", "day", "goldenHour", "dusk", "night"]);
+const LATEST_TRIGGER = /閉鎖|閉館|休館|休止|運休|規制|立入禁止|立ち入り禁止|通行止め|工事|再整備|更新事業|予約|拝観|開洞|開門|閉門|開館|開園|料金|有料|定休|廃止|休園|不定期|年現在|時点|現在/; // s21_add_latest_note.py と同じ語
 const DESIG = ["国宝", "重要文化財", "名勝", "天然記念物", "特別史跡", "史跡", "百選", "百景", "日本一", "最大", "最古", "最長", "最高", "唯一", "最も", "世界遺産", "日本三", "重要伝統的建造物群", "国立公園", "国定公園", "特別", "ラムサール", "ジオパーク", "随一", "屈指", "有数", "代表する", "知られ", "名所", "国指定", "県指定", "登録有形"];
 const BANNED = ["撮りどき", "撮影地", "この場所", "ガイド", "捨て", "**"];
 // 記事の題と名前が違うが、記事の中の呼び名と照らして同じ対象と確かめたもの
@@ -51,6 +52,8 @@ for (const r of rows) {
     for (const c of numericClaims(all)) if (!articleHasNumber(text, c)) p.push(`数「${c.raw}」が記事に無い`);
     for (const w of DESIG) if (all.includes(w) && !text.includes(w)) p.push(`語「${w}」が記事に無い`);
     for (const w of BANNED) if (all.includes(w)) p.push(`使わない語「${w}」`);
+    // 時期で変わる情報（閉鎖・休止・拝観・工事・予約・料金・開館時間・「〇年現在」など）がある行は、説明の末尾に「※最新の情報は〇〇でご確認ください。」を付ける（2026-11-13 owner）
+    if (LATEST_TRIGGER.test(all) && !(r.description ?? "").includes("※最新の情報は")) p.push("最新の情報の注記が無い（説明の末尾に「※最新の情報は〇〇でご確認ください。」）");
     if (/[A-Za-z]/.test(all)) p.push("本文に英字");
     if (r.officialWebsiteUrl && !/^https:\/\//.test(r.officialWebsiteUrl)) p.push("公式サイトが https でない");
     out.push({ r, p });
