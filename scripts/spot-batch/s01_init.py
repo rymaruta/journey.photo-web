@@ -27,6 +27,17 @@ def show(path):
 
 
 spots = show("content/spots.json")
+# main の台帳は、別の作業が develop より先に直接入れた行を持つことがある（2026-11-11: 生國魂神社・京都御所・西本願寺が重複した）。
+# develop に無い行を、重なりの確認（索引・近くの既存スポット）の材料に足す。
+try:
+    _main = json.loads(subprocess.run(["git", "-C", PG, "show", "origin/main:content/spots.json"],
+                                      capture_output=True, text=True, check=True).stdout)
+    _have = {s["spotId"] for s in spots}
+    _extra = [s for s in _main if s["spotId"] not in _have]
+    spots = spots + _extra
+    print("main にだけある行を重なりの材料に足した:", len(_extra))
+except Exception as e:  # main を読めなくても続ける（その旨を出す）
+    print("main の台帳を読めなかった（develop だけで進める）:", e)
 img = show("content/spot-images.json")
 save("ledger_base.json", spots, indent=None)
 
