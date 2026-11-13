@@ -170,6 +170,14 @@ describe("日本地図: 県名（全国は地方名・拡大した地方は県�
         expect(css).toMatch(/\.jm-rlabel::before \{[^}]*top:\s*-7px;\s*bottom:\s*-7px/);
     });
 
+    it("地方名の札の字は iOS（SpotMapLabelChip: システムの 12pt semibold）と同じ: 本文のシステムの字・12px・600。明朝にしない", () => {
+        const r = read("app/globals.css").match(/\.jm-rlabel \{([^}]*)\}/)?.[1] ?? "";
+        expect(r).toMatch(/font-family:\s*var\(--font-sans/);
+        expect(r).not.toMatch(/font-serif/);
+        expect(r).toMatch(/font-size:\s*12px/);
+        expect(r).toMatch(/font-weight:\s*600/);
+    });
+
     it("字は読み上げに出さない（県のリンクの名前が読まれる）: 名前の層は aria-hidden", () => {
         expect(html).toMatch(/<g aria-hidden="true" class="jm-names"/);
     });
