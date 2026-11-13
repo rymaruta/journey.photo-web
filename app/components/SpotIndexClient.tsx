@@ -1,5 +1,6 @@
 "use client";
 
+import { AreaWantsTop } from "./SpotWants";
 import React from "react";
 import Link from "next/link";
 import type { SpotIndexItem } from "@/lib/data/spotLink";
@@ -60,13 +61,13 @@ export default function SpotIndexClient({ spots, area }: Props) {
                 <Link href={ROUTES.SPOTS} prefetch={false}
                       className="inline-flex items-center min-h-[44px] text-text-2 hover:text-white transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded"
                       data-testid="spots-back">
-                    {isJa ? "← 撮影スポットをさがす" : "← Find a place to shoot"}
+                    {isJa ? "← 観光スポットをさがす" : "← Find a place to shoot"}
                 </Link>
             </p>
             <h1 className="font-serif text-4xl font-bold m-0 wrap-anywhere" data-testid="spots-title">
                 {area
-                    ? (isJa ? `${area.name}の撮影スポット` : `Photo spots in ${area.nameEn}`)
-                    : (isJa ? "撮影スポットをさがす" : "Find a place to shoot")}
+                    ? (isJa ? `${area.name}の観光スポット` : `Photo spots in ${area.nameEn}`)
+                    : (isJa ? "観光スポットをさがす" : "Find a place to shoot")}
             </h1>
             {spots.length > 0 && (
             <p className="m-0 mt-2 mb-5 text-text-2" style={{ fontSize: "15px", lineHeight: "24px" }}>
@@ -76,13 +77,16 @@ export default function SpotIndexClient({ spots, area }: Props) {
                     言い過ぎなので外した（確かめ方は各ページの出典の行と、索引の description が書く） */}
                 {draftCount >= spots.length
                     ? (isJa
-                        ? `撮影スポットの下書きです（${spots.length}件・運営未確認）。写真の投稿がまだ無い場所も載っています。`
+                        ? `観光スポットの下書きです（${spots.length}件・運営未確認）。写真の投稿がまだ無い場所も載っています。`
                         : `Draft guides, not checked by us yet (${spots.length}). Places with no photos yet are listed too.`)
                     : (isJa
-                        ? `撮影スポットの案内です（${spots.length}件${draftCount > 0 ? `・うち下書き${draftCount}件` : ""}）。写真の投稿がまだ無い場所も載っています。`
+                        ? `観光スポットの案内です（${spots.length}件${draftCount > 0 ? `・うち下書き${draftCount}件` : ""}）。写真の投稿がまだ無い場所も載っています。`
                         : `Photo spot guides (${spots.length}${draftCount > 0 ? `, ${draftCount} drafts` : ""}). Places with no photos yet are listed too.`)}
             </p>
             )}
+
+            {/* 今月いちばん行きたい（2026-11-11・撮影スポットを払うの②）。県の頁だけ・並びの既定は変えない */}
+            {area && <AreaWantsTop spots={spots.map((s) => ({ slug: s.slug, name: s.name, city: s.region.split(" ").slice(-1)[0] || undefined }))} />}
 
             {/* 旅のテーマ＝**台帳に在るカテゴリだけ**。0件のテーマは作らない */}
             {themes.length > 0 && (
@@ -115,7 +119,7 @@ export default function SpotIndexClient({ spots, area }: Props) {
             {shown.length === 0 ? (
                 /* **架空のスポットで埋めない。** 0件なら0件と言う */
                 <p className="m-0 text-white/70" style={{ fontSize: "14px" }}>
-                    {isJa ? "公開中の撮影スポットはまだありません。" : "No published spots yet."}
+                    {isJa ? "公開中の観光スポットはまだありません。" : "No published spots yet."}
                 </p>
             ) : (
                 <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 m-0 p-0" style={{ listStyle: "none" }}>

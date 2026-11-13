@@ -13,6 +13,7 @@ import { tagKey } from "../../lib/utils/collections";
 import type { HomeSeasonal } from "../../lib/data/spotTopics";
 import type { Photo } from "@/lib/data/photos";
 import Thumb from "./Thumb";
+import { readSwipeStarted, readSwipeWants } from "../../lib/utils/spotSwipe";
 
 /**
  * **ホームの上段のめくる札**（iOS の `HomeTopCardView`・`DailyThemeCard`・2026-10-31 束 1 H2）。
@@ -24,15 +25,17 @@ import Thumb from "./Thumb";
  *              12 text-2 の一行 → 出典 12 text-3 → ›。地 #0E0E0F・白8% の縁・角 16
  *     今日のテーマ: iOS の `DailyThemeCard` の形（眉の右に #タグ・題・一言・「参加する →」44・写真は右に 35% で薄く）
  *
- * 並び（iOS の `HomeTopCard.cards` のうち Web にあるもの）: 今日のテーマ → 今日の一問 → 撮影スポット（Web だけ・残す）。
+ * 並び（iOS の `HomeTopCard.cards` のうち Web にあるもの）: 撮影スポットを払う（いつも1枚目）→ 今週のお題 → 撮影スポット（Web だけ・残す）。
+ * **2026-11-12（デザインの案 第10章「どこに何を置くか」）: 札は iOS と同じく最大3枚。**
+ * 今日の一問の札は「さがす」の面の先頭へ移した（`QuizCard`・iOS も探すの段へ移した）。
  * 旅行プラン・旅の一冊・1年前・行きたい場所の季節の札は Web に無い機能（台帳の束 6）。
  *
  * **2026-10-31 iOS #422（#417 ③）に合わせ直した**: 札の背はどれも 116、題・一行・出典は1行ずつ（出典は
  * 真ん中を省き、末尾のライセンス名を残す）。今日のテーマの「参加する →」は題の右の小さいボタン（見た目 36・当たり 44）、
  * 今週もう参加した週は押せない「✓ 参加済み」（`hasJoinedTheme`・前は今日のテーマで「今日もう参加した日」）。
  *
- * **電話の幅は横にめくる**（左右 16・次の札を 24 見せる・1 枚ずつ止まる）。**PC（1024 以上）は 3 枚を並べる**
- * （PC の幅の決まり W4: めくらずに並べる）。背はいちばん高い札にそろえる。
+ * **電話の幅は横にめくる**（左右 16・次の札を 24 見せる・1 枚ずつ止まる）。**PC（1024 以上）は 3 列（1 段）に並べる**
+ * （PC の幅の決まり W4: めくらずに並べる）。2026-11-12 に一問の札を外して 3 枚になった。背はいちばん高い札にそろえる。
  *
  * テーマと一問は**見ている端末の日付で決まる**ので、中身は載ったあとに入れる（静的 HTML に書き出した日の
  * テーマを焼かない・`ThemeEntry` の注記と同じ）。載るまでも札の形と行き先は出す（高さが変わらない）
@@ -47,25 +50,15 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
     const en = locale === "en";
     const { userId } = useAuth();
     const [theme, setTheme] = React.useState<WeeklyThemeEntry | null>(null);
-    const [quiz, setQuiz] = React.useState<{ quiz: DailyQuiz; answered: boolean } | null>(null);
+
+    // 撮影スポットを払う入口の一行（2回目から「続きから」）。端末の控えなので載ったあとに読む
+    const [swipe, setSwipe] = React.useState<{ started: boolean; wants: number }>({ started: false, wants: 0 });
+    React.useEffect(() => {
+        setSwipe({ started: readSwipeStarted(), wants: readSwipeWants().length });
+    }, []);
 
     React.useEffect(() => {
         setTheme(weeklyThemeFor());
-        const ymd = todayIn(QUIZ_TIME_ZONE);
-        if (!ymd) return;
-        let alive = true;
-        (async () => {
-            try {
-                const res = await fetch(`/app/data/quiz/${ymd}.json`);
-                if (!res.ok) return;
-                const parsed = parseDailyQuiz(await res.json(), ymd);
-                if (!alive || !parsed) return;
-                let answered = false;
-                try { answered = !!window.localStorage.getItem(quizStorageKey(ymd)); } catch { /* 読めなければ未回答 */ }
-                setQuiz({ quiz: parsed, answered });
-            } catch { /* 取れない日は写真なしの札のまま（空き地は作らない） */ }
-        })();
-        return () => { alive = false; };
     }, []);
 
     // **みんなの参加**（今週お題のタグを付けて載せた公開の投稿・新しい順・iOS の `WeeklyTheme.participants`）。
@@ -86,8 +79,9 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
         && hasJoinedTheme(theme, photos.filter((p) => p.userId === userId), tagKey), [theme, userId, photos]);
 
     const spot = seasonal?.spots[0] ?? null;
-    const credit = (c: { author: string; license?: string; text?: string } | null | undefined): Credit | undefined =>
-        c ? { head: `${en ? "Photo: " : "写真: "}${c.text || c.author}`, tail: c.license ? ` / ${c.license}` : "" } : undefined;
+    // 払う入口の写真は、撮影スポットの札と別の1枚（いまの季節の2件目）
+    const swipeSpot = seasonal?.spots[1] ?? null;
+    const credit = (c: { author: string; license?: string; text?: string } | null | undefined) => creditOf(c, en);
 
     return (
         <section aria-label={en ? "Today" : "今日の札"} className="mb-4 -mx-4 sm:mx-0" data-testid="home-top-cards">
@@ -95,31 +89,38 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                 // `relative`: 札の中の読み上げ用の字（`sr-only`・絶対配置）の基準をこの並びにする。無いと横に流れる並びの
                 // 切り取りの外に出て、電話の幅で頁ごと 796px に広がった（2026-10-31 実測）
                 style={{ listStyle: "none", scrollSnapType: "x mandatory", scrollPaddingLeft: "16px" }}>
-                <li className={CARD_LI} style={CARD_LI_STYLE}>
-                    <ThemeCard theme={theme} photo={themePhoto} en={en} joined={joined} participants={participants} />
-                </li>
+                {/* 撮影スポットを払う（2026-11-11 owner の要望・iOS の札の1枚目と同じ）。**いつも1枚目**・新しい段は足さない。
+                    未ログインでも払える。2回目からは「続きから」 */}
                 <li className={CARD_LI} style={CARD_LI_STYLE}>
                     <TopCard
-                        href={ROUTES.QUIZ}
-                        testId="home-quiz-entry"
-                        eyebrow="DAILY QUIZ"
-                        spoken={en ? "Daily quiz" : "今日の一問"}
-                        title={en ? "Where is this?" : "この写真はどこ？"}
-                        line={quiz?.answered
-                            ? (en ? "Answered · A new photo tomorrow" : "答えました · 明日また新しい写真")
-                            : (en ? "Guess the spot from four choices" : "4つの中から撮影地を当てる")}
-                        detail={quiz ? credit({ author: quiz.quiz.photo.author, license: quiz.quiz.photo.license }) : undefined}
-                        imageUrl={quiz ? (quiz.quiz.photo.thumbUrl || quiz.quiz.photo.url) : undefined}
+                        href={ROUTES.SWIPE}
+                        testId="home-swipe-entry"
+                        eyebrow="WHERE TO NEXT"
+                        spoken={en ? "Swipe photos" : "写真を払う"}
+                        // 題・一行は札の幅で1行に収まる長さ（2026-11-11 Playwright・390 幅で「写真を払って、…」と切れた）
+                        title={en ? "Find where to go" : "行きたい場所を探す"}
+                        line={swipe.started
+                            ? (userId
+                                ? (en ? "Continue" : "続きから払う")
+                                : (en ? `${swipe.wants} saved · Continue` : `行きたい ${swipe.wants} か所 · 続きから`))
+                            : (userId
+                                ? (en ? "Swipe right to save" : "右へ払うと行きたい")
+                                : (en ? "No sign-in needed" : "ログインなしではじめる"))}
+                        detail={swipeSpot ? credit(swipeSpot.credit) : undefined}
+                        imageUrl={swipeSpot?.src}
                     />
+                </li>
+                <li className={CARD_LI} style={CARD_LI_STYLE}>
+                    <ThemeCard theme={theme} photo={themePhoto} en={en} joined={joined} participants={participants} />
                 </li>
                 <li className={CARD_LI} style={CARD_LI_STYLE}>
                     <TopCard
                         href={ROUTES.SPOTS}
                         testId="home-spots-entry"
                         eyebrow="PHOTO SPOTS"
-                        spoken={en ? "Photo spots" : "撮影スポット"}
+                        spoken={en ? "Photo spots" : "観光スポット"}
                         title={en ? "Places worth shooting" : "撮りに行ける場所"}
-                        line={en ? "Guides to photo spots" : "撮影スポットの案内"}
+                        line={en ? "Guides to photo spots" : "観光スポットの案内"}
                         detail={spot ? credit(spot.credit) : undefined}
                         imageUrl={spot?.src}
                     />
@@ -138,6 +139,51 @@ const CARD_LI_STYLE: React.CSSProperties = { scrollSnapAlign: "start" };
 
 /** 出典の1行。**真ん中を省く**——作者名（頭）を切り、ライセンス名（尾）は残す（iOS の `.truncationMode(.middle)`） */
 type Credit = { head: string; tail: string };
+
+function creditOf(c: { author: string; license?: string; text?: string } | null | undefined, en: boolean): Credit | undefined {
+    return c ? { head: `${en ? "Photo: " : "写真: "}${c.text || c.author}`, tail: c.license ? ` / ${c.license}` : "" } : undefined;
+}
+
+/**
+ * **今日の一問の札**（2026-11-12・デザインの案 第10章「どこに何を置くか」）。ホームの上の札から外し、「さがす」の面の先頭に置く
+ * （iOS も今日の一問を探すの段へ移した。ホームの札は最大3枚）。形はホームの札と同じ（背 116・写真 112・真鍮の眉）。
+ * 一問は**見ている端末の日付で決まる**ので、中身は載ったあとに入れる。取れない日は写真なしの札のまま（空き地は作らない）
+ */
+export function QuizCard({ locale, testId = "search-quiz-entry" }: { locale: "ja" | "en"; testId?: string }) {
+    const en = locale === "en";
+    const [quiz, setQuiz] = React.useState<{ quiz: DailyQuiz; answered: boolean } | null>(null);
+    React.useEffect(() => {
+        const ymd = todayIn(QUIZ_TIME_ZONE);
+        if (!ymd) return;
+        let alive = true;
+        (async () => {
+            try {
+                const res = await fetch(`/app/data/quiz/${ymd}.json`);
+                if (!res.ok) return;
+                const parsed = parseDailyQuiz(await res.json(), ymd);
+                if (!alive || !parsed) return;
+                let answered = false;
+                try { answered = !!window.localStorage.getItem(quizStorageKey(ymd)); } catch { /* 読めなければ未回答 */ }
+                setQuiz({ quiz: parsed, answered });
+            } catch { /* 取れない日は写真なしの札のまま（空き地は作らない） */ }
+        })();
+        return () => { alive = false; };
+    }, []);
+    return (
+        <TopCard
+            href={ROUTES.QUIZ}
+            testId={testId}
+            eyebrow="DAILY QUIZ"
+            spoken={en ? "Daily quiz" : "今日の一問"}
+            title={en ? "Where is this?" : "この写真はどこ？"}
+            line={quiz?.answered
+                ? (en ? "Answered · A new photo tomorrow" : "答えました · 明日また新しい写真")
+                : (en ? "Guess the spot from four choices" : "4つの中から撮影地を当てる")}
+            detail={quiz ? creditOf({ author: quiz.quiz.photo.author, license: quiz.quiz.photo.license }, en) : undefined}
+            imageUrl={quiz ? (quiz.quiz.photo.thumbUrl || quiz.quiz.photo.url) : undefined}
+        />
+    );
+}
 
 const CARD_FACE = "flex w-full h-[116px] rounded-2xl bg-surface ring-1 ring-inset ring-line overflow-hidden text-white hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent";
 

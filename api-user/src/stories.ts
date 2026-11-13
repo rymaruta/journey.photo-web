@@ -4,7 +4,6 @@ import { randomUUID } from "crypto";
 import { ddb, PHOTOS_TABLE, USER_INDEX, STORY_INDEX, STORY_FEED_KEY } from "./dynamodb";
 import { JSON_HEADERS, getUserId, jsonError, isAdmin } from "./http";
 import { displayNameOf, DEFAULT_NAME, deletedAmong, withUnreadAsDeleted, DELETED_USER_NAME, pushNotification } from "./notify";
-import { mediaKeys, deriveUploadKey } from "./mediaKeys";
 import { isOwnUploadUrlFromEnv as isOwnUploadUrl, keyFromUploadUrl, canonicalUploadUrl } from "./uploadPolicy";
 import { s3DeleteMany } from "./s3Delete";
 import { invalidateUploads } from "./cdnInvalidate";
@@ -19,9 +18,11 @@ import { hasStoryTextItem, sanitizeStoryTexts, storyTextsCaption } from "./story
 import { storyAllowsReplies } from "./storyVisibility";
 import { parseStoryAudience, isCloseFriendsStory, canViewStoryAudience, closeFriendOwnersAmong } from "./storyAudience";
 import { resolveStoryMentions, maskDeletedMentions } from "./storyMentions";
+import { parseSharedPhotoId, checkSharedPhoto, unviewableSharedPhotos, NOT_OWN_PHOTO_MESSAGE } from "./storyPhotoShare";
 
 import { isStoryExpired } from "./storyExpiry";
 import { readLiveCaller } from "./liveCaller";
+import { sharesKeptMedia, storyOwnMediaKeys } from "./storyKeptMedia";
 
 // バケット名の検証と S3 の削除は `s3Delete.ts` に寄せた（未設定なら
 // そちらの読み込みで止まる）。
@@ -29,15 +30,8 @@ const STORY_TTL_MS = 24 * 60 * 60 * 1000; // 24時間
 const STORY_DAILY_LIMIT = 20; // 1ユーザーが24時間に投稿できるストーリー数
 const STORY_DEFAULT_DURATION_SEC = 5; // 画像ストーリーの既定表示秒数（この値なら保存しない）
 
-// ストーリーレコードから S3 オブジェクトキーを導出する
-// （key フィールド優先、無ければ src の URL パスから）
-function deriveStoryKey(item: Record<string, unknown>): string {
-    // 判定は mediaKeys の deriveUploadKey に寄せる（デコードしてから見る）。
-    // ここだけ生のパスで見ていると、保存時の検証と食い違って
-    // 「作れるが消せない」オブジェクトができる。
-    if (typeof item.key === "string" && item.key) return deriveUploadKey(item.key);
-    return deriveUploadKey(item.src);
-}
+// ストーリーレコードから S3 オブジェクトキーを導出するのは `storyKeptMedia.ts` の
+// `storyOwnMediaKeys`（写真を消すときに元のストーリーも消す `photoUpdate.ts` と共有・2026-11-11）
 
 /**
  * ストーリー削除時に消すべき S3 キー。
@@ -55,11 +49,10 @@ function storyMediaKeys(item: Record<string, unknown>): string[] {
     // 個別ページにも壊れた枠が並ぶ。
     // 消すのは行だけ＝**24時間で消える約束は守られる**（残るのは本人が
     // 選んだ1枚で、それは「ストーリー」ではなく「写真」になっている）。
-    if (typeof item.keptAs === "string" && item.keptAs) return [];
-    const keys = new Set(mediaKeys(item));
-    const primary = deriveStoryKey(item);
-    if (primary) keys.add(primary);
-    return [...keys];
+    // **写して切り離したとき（`keptCopy`・自分用に残すストーリー）は共有していない**ので、
+    // ストーリーの画像は消す——写真は自分の画像（`kept-…`）を持つ（`storyKeptMedia.ts`）
+    if (sharesKeptMedia(item)) return [];
+    return storyOwnMediaKeys(item);
 }
 
 // 過去24時間にこのユーザーが投稿したストーリー数を数える（レート制限用）
@@ -166,10 +159,17 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         // **ストーリーの取得と同時に投げる。** 直列にしていたので、
         // 一覧が返ってくるまで待ってからブロックを引いていた＝往復が1回増えた。
         // 互いの結果に依存しないので並べてよい。
+        // ブロック一覧が読めなかった印。そのときは**紹介した写真のストーリーだけ**本人以外に出さない
+        // （紹介の門はブロックを見るので、空の集合で通すと「見せる」側に倒れる）
+        const blocks = { unread: false };
         const [items, hidden] = await Promise.all([
             queryStories("active"),
             hiddenUserIds(userId)
-                .catch((e) => { console.error("getStories: ブロック一覧を読めませんでした:", e); return new Set<string>(); }),
+                .catch((e) => {
+                    console.error("getStories: ブロック一覧を読めませんでした:", e);
+                    blocks.unread = true;
+                    return new Set<string>();
+                }),
         ]);
         for (const item of items) {
             // **「見た」印（`seen`）は、見た本人にだけ返す。** 札 #505 の C 案——
@@ -191,6 +191,7 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
                 // 「残した」印も本人だけ。画面は `isOwnStory` で守っているが、
                 // 応答に出す理由が無い（`viewers` と同じ扱い）
                 delete item.keptAs;
+                delete item.keptCopy;
                 // 「アーカイブに自動保存」の印も同じ——見る人に「この投稿は
                 // 24時間後も本人の手元に残る」と知らせる理由が無い
                 delete item.archive;
@@ -263,8 +264,25 @@ export const getStories: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
         const closeOf = closeOnly.length === 0
             ? new Set<string>()
             : await closeFriendOwnersAmong(userId, closeOnly.map((i) => String(i.userId ?? "")));
-        const visible = followed.filter((i) =>
+        const audienceOk = followed.filter((i) =>
             String(i.userId ?? "") === userId || !isCloseFriendsStory(i) || closeOf.has(String(i.userId ?? "")));
+
+        // 🔴 **紹介した写真がもう見られない行は、紹介した本人にしか出さない**
+        // （`storyPhotoShare.ts` の節・2026-11-11 判断）。絵に写真が写っているので、札の行き先を
+        // 消すだけでは写真が配られ続ける。本人の行は残して `sharedPhotoId` だけ落とす
+        // （押しても開けない）。紹介の行が無い一覧は写真を1枚も読まない
+        // ブロック一覧が読めなかったときは、紹介の行を（本人のもの以外）全部落とす
+        // 持ち主でない人が紹介した行（2026-11-12 に止めた・`storyPhotoShare.ts`）も同じ扱い
+        const lost = await unviewableSharedPhotos(audienceOk, hidden);
+        const visible = !lost.any && !blocks.unread ? audienceOk : audienceOk.filter((i) => {
+            const shared = i.sharedPhotoId;
+            if (typeof shared !== "string" || !shared) return true;
+            if (String(i.userId ?? "") === userId) {
+                if (lost.has(i)) delete i.sharedPhotoId;
+                return true;
+            }
+            return !blocks.unread && !lost.has(i);
+        });
 
         // **バッジの数も、返信一覧と同じふるいを通した数にする。**
         //
@@ -343,6 +361,7 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         location?: unknown; coords?: unknown; texts?: unknown;
         visibility?: unknown; allowReplies?: unknown; archive?: unknown;
         audience?: unknown;
+        sharedPhotoId?: unknown;
     };
     try {
         body = JSON.parse(event.body ?? "{}") as typeof body;
@@ -376,6 +395,13 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "不正なリクエスト" }) };
     }
     const audience = audienceIn.audience === "closeFriends" ? "closeFriends" as const : undefined;
+
+    // **紹介する写真**（`storyPhotoShare.ts`・2026-11-11）。形の違う値は断る（黙って紹介なしに
+    // 化けさせない）。紹介してよいかは、まだ何も書いていないうちに確かめる（下）
+    const sharedIn = parseSharedPhotoId(body.sharedPhotoId);
+    if (!sharedIn.ok) {
+        return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "不正なリクエスト" }) };
+    }
 
     const mediaType = body.mediaType === "video" ? "video" : "image";
     // 写真の上に置いた文字（何枚でも・それぞれ位置と見せ方を持つ）。
@@ -499,6 +525,23 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     if ("gone" in caller) return caller.gone;
     const displayName = displayNameOf(caller.row) ?? DEFAULT_NAME;
 
+    // 紹介してよい写真か（**自分の**公開写真だけ・2026-11-12 owner の原則）。無い・公開でない写真は 404、
+    // **人の写真は 403**「この写真はストーリーで紹介できません」（1.1.82 のアプリはこの文をそのまま出す）。
+    // 読めなければ下の catch ではなくここで 503——出してから消すより出さない
+    let shared: Exclude<Awaited<ReturnType<typeof checkSharedPhoto>>, "notOwner">;
+    if (sharedIn.photoId) {
+        let checked: Awaited<ReturnType<typeof checkSharedPhoto>>;
+        try {
+            checked = await checkSharedPhoto(sharedIn.photoId, userId);
+        } catch (e) {
+            console.error("createStory: 紹介する写真を確かめられませんでした:", e);
+            return jsonError(503, "写真を確かめられませんでした。時間をおいてもう一度お試しください");
+        }
+        if (checked === "notOwner") return jsonError(403, NOT_OWN_PHOTO_MESSAGE);
+        if (!checked) return jsonError(404, "写真が見つかりません");
+        shared = checked;
+    }
+
     const now = Date.now();
     const story = {
         id: `story-${randomUUID()}`,
@@ -525,10 +568,14 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         // 既定は書かない（すぐ上の但し書き）。**`allowReplies` は `false` を
         // 書く**ので、`...(allowReplies ? ...)` では消える——値で分岐しない
         ...(allowReplies === false ? { allowReplies } : {}),
-        ...(archive ? { archive } : {}),
+        // **写真を紹介したストーリーは棚に残さない**（2026-11-11 判断・`storyPhotoShare.ts`）。残すと
+        // ハイライトから人の写真が出続け、持ち主が非公開にしても消えない（一覧のふるいは棚を通らない）
+        ...(archive && !shared ? { archive } : {}),
         // **親しい友達だけのときだけ書く**（既定は書かない。読む側は
         // `storyAudienceOf` が「無い＝全員」に均す）
         ...(audience ? { audience } : {}),
+        // 紹介した写真の id（紹介のときだけ書く・既存の行は何も変わらない）
+        ...(shared ? { sharedPhotoId: shared.photoId } : {}),
         userId,
         ...(displayName ? { displayName } : {}),
         createdAt: new Date(now).toISOString(),
@@ -560,6 +607,8 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
                 t: story.createdAt,
             });
         }
+        // 持ち主への知らせ（`storyshare`）は出さない: 紹介できるのは自分の写真だけになった
+        // （2026-11-12・`storyPhotoShare.ts`）。種類は前に届いた知らせを出すために画面に残す
         return { statusCode: 201, headers: JSON_HEADERS, body: JSON.stringify({ success: true, story }) };
     } catch (e) {
         console.error("createStory error:", e);
@@ -815,7 +864,8 @@ export const deleteStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
         // **同じものを二度作らない。** 管理APIの写真削除
         // （`api/src/photosMutate.ts`）は上を全部やったうえで、`keptFrom` の
         // ストーリーと返信の文書まで消す。そちらを1回叩けば済む。
-        const keptPhotoId = typeof item.keptAs === "string" ? item.keptAs : "";
+        // 写して切り離した（`keptCopy`）なら共有していないので、管理者もそのまま消せる
+        const keptPhotoId = sharesKeptMedia(item) ? String(item.keptAs) : "";
         if (keptPhotoId && item.userId !== callerId) {
             // 印が死んだIDを指している場合まで断ると、管理者が**何もできなく
             // なる**。実在を確かめてから断る（この枝は管理者の削除だけ）。

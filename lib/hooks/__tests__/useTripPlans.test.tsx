@@ -187,3 +187,53 @@ describe("応答の均し（`usableTripPlan` / `readPlans`）", () => {
         expect(readPlans({ plans: [] }), "本当の0件は配列で来る").toEqual([]);
     });
 });
+
+describe("共有したプランを読む（2026-11-12）", () => {
+    it("`shared: true` の行は作った人と人数を持ち、共有していない行は持たない", async () => {
+        const { usableTripPlan } = await import("../useTripPlans");
+        expect(usableTripPlan({ planId: "a", title: "x", days: [], shared: true, ownerId: "u1", memberIds: ["u1", "u2"] })?.shared)
+            .toEqual({ ownerId: "u1", memberCount: 2 });
+        expect(usableTripPlan({ planId: "b", title: "x", days: [] })?.shared).toBeUndefined();
+    });
+});
+
+describe("共有したプランを直す（2026-11-12 確かめ役の指摘4）", () => {
+    const sharedPlan = (rev: number, over: Record<string, unknown> = {}) =>
+        P("s", { shared: true, ownerId: "u1", memberIds: ["u1", "u2"], rev, days: [{ items: [{ kind: "spot", spotId: "sp_0123456789ab" }] }], ...over });
+
+    it("🔴 共有したプランは見ていた版（rev）を添えて送る。本人だけのプランには添えない", async () => {
+        mockUserFetch.mockResolvedValueOnce(ok({ plans: [sharedPlan(4), P("a")] }));
+        const { result } = mount();
+        await waitFor(() => expect(result.current.pending).toBe(false));
+        mockUserFetch.mockResolvedValueOnce(ok({ plans: [sharedPlan(5), P("a")] }));
+        await act(async () => { await result.current.update("s", { days: [] }); });
+        expect(JSON.parse((mockUserFetch.mock.calls[1] as [string, RequestInit])[1].body as string)).toEqual({ days: [], rev: 4 });
+        // 書いたあとの版を持ち直す
+        expect(result.current.plans[0].shared?.rev).toBe(5);
+        mockUserFetch.mockResolvedValueOnce(ok({ plans: [sharedPlan(5), P("a")] }));
+        await act(async () => { await result.current.update("a", { days: [] }); });
+        expect(JSON.parse((mockUserFetch.mock.calls[2] as [string, RequestInit])[1].body as string)).toEqual({ days: [] });
+    });
+
+    it("🔴 409 なら今の姿に差し替え（読み直し）、言い分を出す", async () => {
+        mockUserFetch.mockResolvedValueOnce(ok({ plans: [sharedPlan(4), P("a")] }));
+        const { result } = mount();
+        await waitFor(() => expect(result.current.pending).toBe(false));
+        const now = sharedPlan(6, { title: "金沢と能登", days: [{ items: [{ kind: "spot", spotId: "sp_0123456789ab" }, { kind: "spot", spotId: "sp_0123456789ac" }] }] });
+        mockUserFetch.mockResolvedValueOnce({
+            ok: false, status: 409,
+            json: async () => ({ error: "ほかの仲間がこのプランを変えました。読み直してください", code: "conflict", plan: now }),
+        });
+        let saved: boolean | undefined;
+        await act(async () => { saved = await result.current.update("s", { days: [] }); });
+        expect(saved).toBe(false);
+        expect(result.current.error).toBe("ほかの仲間がこのプランを変えました。読み直してください");
+        expect(result.current.plans[0]).toMatchObject({ planId: "s", title: "金沢と能登", shared: { rev: 6 } });
+        expect(result.current.plans[0].days[0].items).toHaveLength(2);
+        expect(result.current.plans[1].planId).toBe("a");
+        // 次の直しは新しい版の上に送る
+        mockUserFetch.mockResolvedValueOnce(ok({ plans: [sharedPlan(7), P("a")] }));
+        await act(async () => { await result.current.update("s", { title: "x" }); });
+        expect(JSON.parse((mockUserFetch.mock.calls[2] as [string, RequestInit])[1].body as string)).toEqual({ title: "x", rev: 6 });
+    });
+});

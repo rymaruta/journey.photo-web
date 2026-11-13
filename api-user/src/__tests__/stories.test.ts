@@ -254,16 +254,25 @@ describe("getStories", () => {
 
     // 「残した」印も本人だけ（`viewers` と同じ扱い）
     it("keptAs も投稿者にだけ返す", async () => {
-        mockDdbSend.mockResolvedValueOnce({
-            Items: [
-                { id: "s1", userId: "me", createdAt: "1", keptAs: "p-1" },
-                { id: "s2", userId: "other", createdAt: "2", keptAs: "p-2" },
-            ],
+        // 相手をフォローしている世界にする（しないと相手の1本が返らず、何も見ない試験になる）
+        mockDdbSend.mockImplementation((cmd: { constructor: { name: string }; input: { Key?: { id?: string } } }) => {
+            if (cmd.constructor.name === "GetCommand") {
+                const id = String(cmd.input.Key?.id ?? "");
+                return Promise.resolve(id.startsWith("follow#") ? { Item: { id } } : {});
+            }
+            return Promise.resolve({ Items: [
+                { id: "s1", userId: "me", createdAt: "1", keptAs: "p-1", keptCopy: true },
+                { id: "s2", userId: "other", createdAt: "2", keptAs: "p-2", keptCopy: true },
+            ] });
         });
         const res = await invoke(getStories, authedEvent("me"));
-        const items = JSON.parse(res.body) as Array<{ id: string; keptAs?: string }>;
+        const items = JSON.parse(res.body) as Array<{ id: string; keptAs?: string; keptCopy?: boolean }>;
         expect(items.find((i) => i.id === "s1")?.keptAs, "自分の分まで消している").toBe("p-1");
         expect(items.find((i) => i.id === "s2")?.keptAs, "他人に「残した」印を返している").toBeUndefined();
+        // 「画像を写した」印も本人だけ（2026-11-11）。**相手の1本が返っていることも確かめる**
+        // （返っていなければ、何も見ていない試験になる）
+        expect(items.some((i) => i.id === "s2"), "前提: 他人の1本が返っていない").toBe(true);
+        expect("keptCopy" in (items.find((i) => i.id === "s2") ?? {}), "他人に「写した」印を返している").toBe(false);
     });
 
     it("ページネーション（LastEvaluatedKey）を辿って全件返す", async () => {
@@ -1381,10 +1390,11 @@ describe("getStories: 生きているストーリーだけを引く", () => {
 // ので、期限切れのぶんだけを直接引ける＝1時間ごとに回せる。
 // スケジュールは serverless.yml にしか無いので、ここで固定する。
 describe("期限切れストーリーの掃除は1時間ごと", () => {
-    it("serverless.yml のスケジュールが毎時になっている", async () => {
+    it("serverless.stories.yml のスケジュールが毎時になっている", async () => {
         const { readFileSync } = await import("node:fs");
         const { join } = await import("node:path");
-        const yml = readFileSync(join(process.cwd(), "api-user/serverless.yml"), "utf8");
+        // ストーリーの口と掃除は user API から別のスタック（`serverless.stories.yml`）へ移した（札 journey.photo-ios#552 ②）
+        const yml = readFileSync(join(process.cwd(), "api-user/serverless.stories.yml"), "utf8");
         const code = yml.split("\n").filter((l) => !l.trim().startsWith("#")).join("\n");
         // **cleanupStories の節だけを見る。** 定期実行は他にもある（光と天気の知らせ・毎日 20:00）ので、
         // ファイルの最初の schedule を拾うと別の関数を見てしまう

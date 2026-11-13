@@ -36,6 +36,14 @@ export type Story = {
      * 帯そのもの（音を出す／止めるボタン）は残す
      */
     songOnPhoto?: boolean;
+    /**
+     * **紹介した写真の id**（2026-11-11・journey.photo-ios#541 の ①）。アプリの「共有 → ストーリーに載せる」で
+     * 写真を札にした1枚に付く。紹介できるのは**自分の写真だけ**（2026-11-12 owner・人の写真は 403）。
+     * 見る画面は「写真を見る」でその写真へ送る。写真がもう見られない（非公開・範囲を絞った・消した・
+     * 退会・ブロック）とき、または持ち主でない人が紹介した行（止める前の版）は、サーバーは本人以外にその行ごと返さず、
+     * 本人にはこの欄を落として返す（`api-user/src/storyPhotoShare.ts`）
+     */
+    sharedPhotoId?: string;
     /** 画像ストーリーの表示秒数（投稿者が指定）。未指定なら既定の5秒 */
     durationSec?: number;
     /**
@@ -311,4 +319,57 @@ export function clearSeenStories(): void {
 
 export function hasUnseen(group: StoryGroup, seen: Set<string>): boolean {
     return group.items.some((s) => !seen.has(s.id));
+}
+
+/**
+ * ストーリーを消すときに叩く口（順に・2026-11-11 判断）。「写真も一緒に消す」は**写真の口**に
+ * `withStory=1` で頼む（写真を消すには再ビルドの依頼まで要り、その鍵は写真の口にしか無い・
+ * `api-user/src/storyKeptDelete.ts`）。**続けてストーリーの口も叩く**——写真がもう無い（404）と
+ * 写真の口はストーリーに触らないので、404 を「ストーリーも消えた」と扱うとストーリーが残る。
+ * 一緒に消えていればストーリーの口は 404（＝消せた）。呼ぶ側は 404 を成功として扱う
+ */
+export function storyDeletePaths(storyId: string, withPhotoId?: string): string[] {
+    const story = `/stories/${encodeURIComponent(storyId)}`;
+    return withPhotoId ? [`/photos/${encodeURIComponent(withPhotoId)}?withStory=1`, story] : [story];
+}
+
+/**
+ * 写真の元のストーリーの id（2026-11-11）。`keptFrom`＝画像を共有して残した／`fromStory`＝写して残した。
+ * どちらも本人の写真の一覧（`GET /user/photos`）にだけ入る（公開の一覧は落とす）
+ */
+export function sourceStoryIdOf(photo: unknown): string | null {
+    const p = (photo ?? {}) as { keptFrom?: unknown; fromStory?: unknown };
+    if (typeof p.keptFrom === "string" && p.keptFrom) return p.keptFrom;
+    if (typeof p.fromStory === "string" && p.fromStory) return p.fromStory;
+    return null;
+}
+
+/**
+ * 本人のストーリーを id で探す（いま出ているもの → 自分用に残した棚の順）。無ければ null。
+ * ストーリーを1件だけ引く口は無いので、一覧から探す。読めなければ null（札は文字だけになる）
+ */
+export async function findOwnStory(storyId: string): Promise<Story | null> {
+    const { userFetch } = await import("./utils/api");
+    for (const path of ["/stories", "/stories/archive"]) {
+        try {
+            const res = await userFetch(path);
+            if (!res.ok) continue;
+            const rows = await res.json() as unknown;
+            if (!Array.isArray(rows)) continue;
+            const found = (rows as Story[]).find((s) => s && s.id === storyId);
+            if (found) return found;
+        } catch { /* 次を見る */ }
+    }
+    return null;
+}
+
+/**
+ * 期限が切れた1本か（棚へ移った・ハイライトから開いた）。サーバーは期限切れを写真にできない
+ * （`api-user/src/storyKeep.ts` の `isStoryExpired`）ので、「残す」を出さない判定に使う。
+ * `archivedAt` は棚の一覧だけが持つ。無ければ期限の時刻で見る（同時刻は切れている・サーバーと同じ）
+ */
+export function isStoryShelved(story: { archivedAt?: string; expiresAt?: string }, now: number = Date.now()): boolean {
+    if (story.archivedAt) return true;
+    const t = story.expiresAt ? Date.parse(story.expiresAt) : NaN;
+    return Number.isFinite(t) && t <= now;
 }

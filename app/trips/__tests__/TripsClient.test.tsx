@@ -15,6 +15,7 @@ import type { SpotLink } from "../../../lib/data/spotLink";
  *  5. **サーバーの言い分をそのまま出す**（上限・混雑を潰さない）
  */
 const hooks = vi.hoisted(() => ({
+    locale: "ja" as string,
     auth: { isAuthenticated: true, loading: false },
     trips: {
         plans: [] as unknown[],
@@ -26,7 +27,7 @@ const hooks = vi.hoisted(() => ({
 }));
 
 vi.mock("../../auth/context", () => ({ useAuth: () => hooks.auth }));
-vi.mock("../../i18n/context", () => ({ useLocale: () => ({ locale: "ja" }) }));
+vi.mock("../../i18n/context", () => ({ useLocale: () => ({ locale: hooks.locale }) }));
 vi.mock("../../../lib/hooks/useTripPlans", () => ({ useTripPlans: () => hooks.trips }));
 vi.mock("../../../lib/hooks/useSavedSpots", () => ({ useSavedSpots: () => hooks.saved }));
 vi.mock("../../../lib/hooks/usePhotos", () => ({ usePhotos: () => hooks.photos }));
@@ -45,6 +46,7 @@ const plan = (planId: string, over: Record<string, unknown> = {}) =>
 
 beforeEach(() => {
     cleanup();
+    hooks.locale = "ja";
     hooks.auth = { isAuthenticated: true, loading: false };
     hooks.trips = {
         plans: [], pending: false, failed: false, busy: null, error: null,
@@ -120,7 +122,9 @@ describe("一覧と削除", () => {
         draw();
         expect(screen.getByText("冬のフィンランド")).toBeTruthy();
         // **サイトの他の画面と同じ形**（`2026-12-24` の生の値では出さない）
-        expect(screen.getByText("2026年12月24日 〜 2026年12月28日 ・ 2 か所")).toBeTruthy();
+        // 期間と場所の数は余白で分ける（中黒で区切らない・2026-11-12 の決まり）
+        expect(screen.getByText("2026年12月24日 〜 2026年12月28日")).toBeTruthy();
+        expect(screen.getByText("2 か所")).toBeTruthy();
         expect(screen.queryByText(/2026-12-24/), "保存されている生の値がそのまま出ている").toBeNull();
     });
 
@@ -146,7 +150,8 @@ describe("一覧と削除", () => {
     it("片方だけの日付は、その1つを出す", () => {
         hooks.trips.plans = [plan("a", { startDate: "2026-12-24" })];
         draw();
-        expect(screen.getByText("2026年12月24日 ・ 0 か所")).toBeTruthy();
+        expect(screen.getByText("2026年12月24日")).toBeTruthy();
+        expect(screen.getByText("0 か所")).toBeTruthy();
     });
 
     it("🔴 消す前に一度聞く（押しただけでは消えない）", () => {
@@ -270,5 +275,35 @@ describe("道具の自己確認", () => {
         expect(itemLabel({ kind: "spot", spotId: "sp_unknown00000" }, SPOTS)).toBe("sp_unknown00000");
         expect(itemLabel({ kind: "location", slug: "%E3%83%91%E3%83%AA" }, SPOTS)).toBe("パリ");
         expect(itemLabel({ kind: "location", slug: "%" }, SPOTS), "壊れた % は素のまま").toBe("%");
+    });
+});
+
+describe("仲間と共有したプラン（2026-11-12）", () => {
+    it("共有の印と人数が出る。仲間は「抜ける」、作った人は全員から削除", async () => {
+        (hooks.auth as Record<string, unknown>).userId = "me";
+        hooks.trips.plans = [
+            plan("a", { title: "秋の金沢", shared: { ownerId: "other", memberCount: 3 } }),
+            plan("b", { title: "能登", shared: { ownerId: "me", memberCount: 2 } }),
+        ];
+        draw();
+        expect(screen.getByText("3人で共有")).toBeInTheDocument();
+        // 中黒で区切らない（2026-11-12 の決まり）
+        expect(screen.getByText("3人で共有").parentElement!.textContent).not.toMatch(/[·・]/);
+        fireEvent.click(screen.getByRole("button", { name: "「秋の金沢」から抜ける" }));
+        expect(screen.getByText("この旅行プランから抜けますか？")).toBeInTheDocument();
+        fireEvent.click(screen.getByRole("button", { name: "抜ける" }));
+        expect(hooks.trips.remove).toHaveBeenCalledWith("a");
+        fireEvent.click(screen.getByRole("button", { name: "「能登」を削除" }));
+        expect(screen.getByText("仲間全員からこの旅行プランを削除しますか？")).toBeInTheDocument();
+    });
+});
+
+describe("英語の画面の共有の人数（2026-11-12 確かめ役の見直し4）", () => {
+    it("「Shared with N」と出す（by ではない）", () => {
+        hooks.locale = "en";
+        hooks.trips.plans = [plan("a", { title: "Kanazawa", shared: { ownerId: "other", memberCount: 2 } })];
+        draw();
+        expect(screen.getByText("Shared with 2")).toBeInTheDocument();
+        expect(screen.queryByText(/Shared by/)).toBeNull();
     });
 });

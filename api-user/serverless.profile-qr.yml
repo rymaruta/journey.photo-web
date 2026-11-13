@@ -1,0 +1,167 @@
+# プロフィールの QR を「更新」できるようにする口（札 journey.photo-ios#545・2026-11-12 owner 承認・`src/profileQr.ts`）を、
+# user API とは**別のスタック**で配る。
+#
+# 🔴 なぜ分けたか: user API のスタック（`serverless.yml`）は部品が 488 個あり、上限 500 に近い。
+#    2026-11-12 に撮影スポットを払う ② を足して 503 個になり、本番の反映が落ちた（Deploy API Lambdas 43124792781）。
+#    ここに置けば user API の部品は増えない。
+#
+# 作りは撮影スポットを払う ② の別スタック（`serverless.spot-wants.yml`）と同じ考え方:
+#   - 置き場は api-user の中の別の設定ファイル（関数のコード・依存・esbuild の設定を user API と共有する）。
+#     配るときは `--config serverless.profile-qr.yml`
+#   - 新しい HTTP API は作らず、user API のスタックが書き出す HttpApiId
+#     （`sls-photo-gallery-user-api-<stage>-HttpApiId`）を取り込んで**経路だけ**足す。
+#     口の URL は `<user API>/user/qr` などで、Web とアプリが叩く先は今の user API と同じ
+#   - CORS は user API の HTTP API の設定（`cors: true`）がそのまま効く
+#
+# 🔴 ログインの確かめ: serverless は「外の HTTP API」に `provider.httpApi.authorizers` を置けない
+#    （EXTERNAL_HTTP_API_AUTHORIZERS_CONFIG）。user API が書き出す Cognito の JWT の認可
+#    （`sls-photo-gallery-user-api-<stage>-CognitoAuthorizerId`）を取り込み、経路から `id` で指す
+#    （札 journey.photo-ios#552 ③・2026-11-12。以前はこのスタックに自分の認可 `QrCognitoAuthorizer` を作っていた）。
+service: photo-gallery-profile-qr
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ap-northeast-1
+  # user API と同じ（`scripts/__tests__/logRetention.test.ts`）
+  logRetentionInDays: 90
+  versionFunctions: false
+  environment:
+    PHOTOS_TABLE: ${param:photosTable}
+    # 退会した本人の書く口を塞ぐ確かめ（`liveCaller.ts`）が users の1行を読む
+    USERS_TABLE: ${param:usersTable}
+  httpApi:
+    # user API の HTTP API に経路を足す（新しい API は作らない）
+    id:
+      Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node22
+    platform: node
+    exclude:
+      - '@aws-sdk/*'
+
+functions:
+  # 今の合図を返す（無ければ作る）。ログインの口
+  getMyQr:
+    handler: src/profileQr.getMyQr
+    role: QrOwnerRole
+    events:
+      - httpApi:
+          path: /user/qr
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+
+  # 新しい合図にして、前の QR とリンクを使えなくする。ログインの口
+  rotateMyQr:
+    handler: src/profileQr.rotateMyQr
+    role: QrOwnerRole
+    events:
+      - httpApi:
+          path: /user/qr/rotate
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+
+  # **未認証で呼べる口。** 合図を人に引く。読み取り専用の役割で `qr#<合図>` の GetItem 1回だけ。
+  # 守りは推測できない合図（192ビット）と、表を引く前の形の確かめ（`isValidQrToken`）
+  resolveQr:
+    handler: src/profileQr.resolveQr
+    role: QrPublicRole
+    events:
+      - httpApi:
+          path: /qr/{token}
+          method: GET
+
+resources:
+  Resources:
+    # 本人の口（`getMyQr`・`rotateMyQr`）。QR の2種類の行の読み書き・消すだけ
+    QrOwnerRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-qrOwner
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: profileQrOwner
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # 鍵の頭 `qr#`・`qrof#` の行だけ。写真の行は読み書きできない。
+                # まとめ書き（TransactWriteItems）は中の Put・Delete の権限で通る
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:DeleteItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - qr#*
+                        - qrof#*
+                # 退会の墓石の確かめ（`liveCaller.ts`）。users の行を読むだけ
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+
+    # ログイン不要の口（`resolveQr`）。`qr#<合図>` を読むだけ
+    QrPublicRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-qrPublic
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: profileQrPublic
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - qr#*

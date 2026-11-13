@@ -20,6 +20,11 @@ export type CommentItem = {
      * 画面はこれを見て、もう無いプロフィールへの導線を出さない。
      */
     deleted?: boolean;
+    /**
+     * **返信の相手**（2026-11-11・journey.photo-ios#541 の ②）。返信のときだけ在る。`name` は返信した時点の
+     * 相手の名前の写しで、相手が退会していればサーバーが伏せて `deleted` を立てる（`comments.ts`）
+     */
+    replyTo?: { id: string; uid: string; name: string; deleted?: boolean };
 };
 
 /**
@@ -133,7 +138,8 @@ export function useComments(photoId: string, isAuthenticated: boolean, initialCo
  * だから理由は戻り値だけで渡す。
  */
     type AddResult = { status: "ok" | "auth-required" | "empty" | "error"; message?: string };
-    const add = useCallback(async (text: string): Promise<AddResult> => {
+    /** @param replyTo 返信するコメントの id。無ければふつうのコメント（相手への知らせはサーバーが決める） */
+    const add = useCallback(async (text: string, replyTo?: string): Promise<AddResult> => {
         const trimmed = text.trim().slice(0, 500);
         if (!trimmed) return { status: "empty" };
         if (!isAuthenticated) return { status: "auth-required" };
@@ -143,7 +149,7 @@ export function useComments(photoId: string, isAuthenticated: boolean, initialCo
         try {
             const res = await userFetch(`/photos/${encodeURIComponent(photoId)}/comments`, {
                 method: "POST",
-                body: JSON.stringify({ text: trimmed }),
+                body: JSON.stringify(replyTo ? { text: trimmed, replyTo } : { text: trimmed }),
             });
             if (!res.ok) {
                 const { readApiError } = await import("../utils/api");

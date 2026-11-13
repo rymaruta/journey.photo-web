@@ -26,8 +26,8 @@ import { sampleImageObject, type SpotSample, type coverImageObject } from "./spo
  */
 export function spotAreaItemList(areas: readonly Pick<SpotArea, "slug" | "name">[]) {
     return generateItemListStructuredData(
-        "撮影スポットの地域",
-        areas.map((a) => ({ name: `${a.name}の撮影スポット`, url: `${siteConfig.url}${ROUTES.SPOT_AREA(a.slug)}` })),
+        "観光スポットの地域",
+        areas.map((a) => ({ name: `${a.name}の観光スポット`, url: `${siteConfig.url}${ROUTES.SPOT_AREA(a.slug)}` })),
     );
 }
 
@@ -45,7 +45,7 @@ export function spotBreadcrumb(
 ): Array<{ name: string; url: string }> {
     return [
         { name: "ホーム", url: siteConfig.url },
-        { name: "撮影スポット", url: `${siteConfig.url}${ROUTES.SPOTS}` },
+        { name: "観光スポット", url: `${siteConfig.url}${ROUTES.SPOTS}` },
         ...(area ? [{ name: area.name, url: `${siteConfig.url}${ROUTES.SPOT_AREA(area.slug)}` }] : []),
         // 海外は国の頁を間に入れる（`/spots/area/overseas` は国の一覧で、スポットは国の頁にある・2026-10-11）
         ...(country ? [{ name: country.name, url: `${siteConfig.url}${country.href}` }] : []),

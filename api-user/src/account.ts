@@ -8,6 +8,7 @@ import { s3DeleteMany } from "./s3Delete";
 import { invalidateUploads } from "./cdnInvalidate";
 import { purgeBlocksFor } from "./block";
 import { purgeDmFor } from "./dm";
+import { purgeTripSharesFor } from "./tripShare";
 import { updateFollowersQuietly } from "./follow";
 import { requireEnv } from "./env";
 import { requestSiteRebuild } from "./rebuild";
@@ -20,6 +21,7 @@ import { sweepStoryVotes } from "./storyVotes";
 import { highlightKey, highlightsOfUserKey } from "./highlights";
 import { readUserList } from "./userList";
 import { forgetAppStoreLinks } from "./supporterStore";
+import { qrKey, qrOfKey, isValidQrToken } from "./profileQr";
 
 // 退会（アカウント削除）。DELETE /user/account、認証必須、呼び出し元の sub のみ対象。
 // 不可逆な破壊操作のため「確実に引ける範囲を確実に消す」方針:
@@ -781,6 +783,12 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         // 手書きで、新しい入れ物を足したときに誰も突き合わせていなかった
         // ——下の `accountCleanupRows.test.ts` がその見張り
         await ddbDelete(PHOTOS_TABLE, { id: `trips#${uid}` });
+        // 共有した旅行プラン（`tripShare.ts`・2026-11-12）。入っていたプランから抜け（持ち主なら残った人へ渡す・
+        // 誰も残らなければプランと会話を消す）、会話の本人の通と日程の「足した人」を外してから、一覧の行を消す。
+        // **失敗しても退会は止めない**（ブロックの掃除と同じ扱い）
+        await purgeTripSharesFor(uid)
+            .catch((e) => console.error(`deleteAccount: 共有した旅行プランの掃除に失敗（${uid}）:`, e));
+        await ddbDelete(PHOTOS_TABLE, { id: `tripsjoined#${uid}` });
         // 親しい友達（`closeFriends.ts` の `closefriends#<uid>`）。同じ扱い。
         // 中身は**利用者IDの一覧**＝「誰を親しいと決めたか」で、
         // `spots#`（どこへ行きたかったか）と同じ性質の行動履歴。
@@ -795,6 +803,19 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         await ddbDelete(PHOTOS_TABLE, { id: `trunkledger#${uid}` });
         // とおまわり号の「今日は数え直した」の印（`trunk.ts` の `camperday#<uid>`・2026-10-18）。日付だけの小さな行
         await ddbDelete(PHOTOS_TABLE, { id: `camperday#${uid}` });
+        // プロフィールの QR（`profileQr.ts`・札 journey.photo-ios#545・2026-11-12）。**2行とも消す。**
+        // 合図の行（`qr#<合図>` → 人）は `userId` を持たないので上の索引の掃除に掛からない。
+        // 残すと、退会した人の古い QR を読んだ人が「使える QR」として人の頁へ送られる。
+        // 先に今の合図を読む（`qrof#` を消したあとでは、どの `qr#` を消すか分からない）。
+        // 読めなくても `qrof#` は消す（**止めない**・端末の宛先と同じ扱い）
+        try {
+            const qrOf = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: qrOfKey(uid) }, ConsistentRead: true }));
+            const qrToken = qrOf.Item?.token;
+            if (isValidQrToken(qrToken)) await ddbDelete(PHOTOS_TABLE, { id: qrKey(qrToken) });
+        } catch (e) {
+            console.error(`deleteAccount: QR の合図を読めませんでした（${uid}）:`, e);
+        }
+        await ddbDelete(PHOTOS_TABLE, { id: `qrof#${uid}` });
         // 端末の宛先（`devices.ts` の `devices#<uid>`）。**プッシュ通知の
         // APNs トークンの集合。**
         //

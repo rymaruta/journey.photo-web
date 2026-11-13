@@ -11,8 +11,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  *      本人の実体（S3）と行は残る。印の無い行は今までどおり消える
  *   3. 一覧は本人の索引を「印あり ＋ 期限切れ」で引く（`archivedAt` では
  *      引かない——掃除が来るまでの1時間、どこにも無い時間を作らない）
- *   4. 「残す」は印のある投稿を断る（残した写真と実体を共有するので、
- *      写真を消すとアーカイブごと消える。切り離すまでは、どちらか一方）
+ *   4. 「残す」は印のある投稿の画像を写して切り離す（2026-11-11。前は断っていた）
  *   5. 期限が切れたら閲覧者も返信も読めない（掃除が来るまでの窓も含めて）
  *
  * **`archive` は DynamoDB の予約語。** 式に素で書くと ValidationException で、
@@ -37,6 +36,7 @@ vi.mock("@aws-sdk/client-s3", () => ({
     S3Client: class { send = mockS3Send; },
     DeleteObjectCommand: class { input: unknown; constructor(input: unknown) { this.input = input; } },
     DeleteObjectsCommand: class { input: unknown; constructor(input: unknown) { this.input = input; } },
+    CopyObjectCommand: class { input: unknown; constructor(input: unknown) { this.input = input; } },
 }));
 vi.mock("../cdnInvalidate", () => ({ invalidateUploads: (...a: unknown[]) => mockInvalidate(...(a as [])) }));
 vi.mock("../ddb-photos", () => ({ putPhoto: mockPutPhoto }));
@@ -390,9 +390,9 @@ describe("getStoryArchive", () => {
 });
 
 // ────────────────────────────────
-// 4. 「残す」は印のある投稿を断る
+// 4. 「残す」は印のある投稿の画像を写して切り離す（2026-11-11）
 // ────────────────────────────────
-describe("keepStory: アーカイブに自動保存の投稿は残せない", () => {
+describe("keepStory: アーカイブに自動保存の投稿は写して残す", () => {
     const KEY = `uploads/${ME}/3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f607.webp`;
     const base = {
         id: "story-1", story: true, userId: ME, mediaType: "image",
@@ -404,15 +404,18 @@ describe("keepStory: アーカイブに自動保存の投稿は残せない", ()
     };
     const keep = () => invoke(keepStory, ev(ME, { pathParameters: { id: "story-1" } }));
 
-    // 残した写真とストーリーは S3 の実体を共有する。写真を消すと
-    // `deleteMyPhoto` の `keptFrom` がストーリーの行ごと消すので、アーカイブに
-    // 残すつもりのものが黙って消える。切り離すまでは、どちらか一方
-    it("生きていても、印があれば 409 と理由", async () => {
+    // 2026-11-11 判断（owner 承認）: 前は 409 で断っていた（共有した実体を写真の削除が
+    // ストーリーごと消すため）。今は**画像を写して切り離す**——消すときの約束は
+    // `storyKeptMedia.test.ts` が縛る
+    it("生きていて印があれば、画像を写して残す（共有しない）", async () => {
         world({ ...base, expiresAt: FUTURE, archive: true });
+        mockS3Send.mockResolvedValue({});
         const r = await keep();
-        expect(r.statusCode).toBe(409);
-        expect(JSON.parse(r.body).error, "理由が伝わらない").toContain("アーカイブ");
-        expect(mockPutPhoto, "写真を作っている").not.toHaveBeenCalled();
+        expect(r.statusCode).toBe(200);
+        const photo = mockPutPhoto.mock.calls[0][0] as Record<string, unknown>;
+        expect(String(photo.key)).toBe(`uploads/${ME}/kept-3f2a1b4c-5d6e-4f70-8a91-b2c3d4e5f607.webp`);
+        expect(photo.fromStory).toBe("story-1");
+        expect("keptFrom" in photo).toBe(false);
     });
 
     it("期限切れは、棚へ移っていても 404（今までどおり）", async () => {

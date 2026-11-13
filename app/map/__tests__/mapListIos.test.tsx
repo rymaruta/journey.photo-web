@@ -18,10 +18,10 @@ import MapPhotoList from "../MapPhotoList";
 const PIN: SpotPin = { slug: "takaya-jinja", name: "高屋神社", region: "香川県 観音寺市", lat: 34.1, lng: 133.6, cover: null, stage: "published" };
 const WITH_COVER = { ...PIN, cover: { src: "/images/spots/thumb/t.jpg", alt: "高屋神社", credit: "写真: Someone / CC BY-SA 4.0" } } as SpotPin;
 
-describe("地図の一覧（撮影スポットの行）", () => {
-    it("見出しは「撮影スポット」（「公式」を付けない）", () => {
+describe("地図の一覧（観光スポットの行）", () => {
+    it("見出しは「観光スポット」（「公式」を付けない）", () => {
         render(<MapSpotList spots={[PIN]} locale="ja" />);
-        expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("撮影スポット");
+        expect(screen.getByRole("heading", { level: 2 }).textContent).toBe("観光スポット");
     });
 
     it("行は黒地に直に・高さ 64・下に白8%の線、名前は明朝 18", () => {
@@ -42,7 +42,7 @@ describe("地図の一覧（撮影スポットの行）", () => {
 });
 
 describe("地図の一覧（写真の行）", () => {
-    it("行は撮影スポットの行と同じ形（高さ 64・線で区切る）", () => {
+    it("行は観光スポットの行と同じ形（高さ 64・線で区切る）", () => {
         render(<MapPhotoList locale="ja" photos={[{ id: "a", src: "https://x/uploads/a.jpg", location: "パリ", coords: { lat: 1, lng: 2 } } as never]} />);
         const row = screen.getByTestId("map-photo-row");
         expect(row.className).toContain("min-h-[64px]");
@@ -50,14 +50,14 @@ describe("地図の一覧（写真の行）", () => {
     });
 });
 
-describe("地図の撮影スポットの札", () => {
+describe("地図の観光スポットの札", () => {
     const sheet = (spot: SpotPin) => render(<ToastProvider><MapSpotSheet spot={spot} locale="ja" onClose={() => {}} /></ToastProvider>);
 
     it("名前は明朝 22、眉は白（札はガラスの地）", () => {
         sheet(PIN);
         const name = screen.getByText("高屋神社");
         expect(name.style.fontSize).toBe("22px");
-        const eyebrow = screen.getByText("撮影スポット");
+        const eyebrow = screen.getByText("観光スポット");
         expect(eyebrow.className).toContain("eyebrow");
         expect(eyebrow.className).not.toContain("text-accent");
     });

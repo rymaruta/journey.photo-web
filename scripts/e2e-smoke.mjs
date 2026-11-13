@@ -618,7 +618,7 @@ async function runChecks(browser, eng) {
         ? fs.readdirSync(locDir).filter((f) => f.endsWith(".html") && f !== "_none.html").sort()
         : [];
     if (locs.length > 0) {
-        console.log(`\n[${eng}][5b] 撮影スポット詳細`);
+        console.log(`\n[${eng}][5b] 観光スポット詳細`);
         const slug = locs[0].replace(/\.html$/, "");
         await gotoSettled(page, `http://localhost:${PORT}/location/${encodeURIComponent(slug)}`);
         check(`[${eng}] スポット詳細: ハイドレーション完了`, await waitForHydration(page));
@@ -765,7 +765,7 @@ async function runChecks(browser, eng) {
         const spotLink = await page
             .waitForSelector("[data-testid='search-spot-results'] a[href='/spots/ginzan-onsen']", { timeout: 10000 })
             .then(() => true).catch(() => false);
-        check(`[${eng}] さがす: 「銀山温泉」で撮影スポットの節からガイドへ行ける`, spotLink);
+        check(`[${eng}] さがす: 「銀山温泉」で観光スポットの節からガイドへ行ける`, spotLink);
 
         await gotoSettled(page, `http://localhost:${PORT}/spots/ginzan-onsen`);
         await waitForHydration(page);
@@ -804,9 +804,16 @@ async function runChecks(browser, eng) {
      */
     if (fs.existsSync(path.join(OUT, "q.html"))) {
         console.log(`\n[${eng}][5e] 今日の一問`);
+        // 2026-11-12（デザインの案 第10章）: 一問の札はホームの上の札から「さがす」の先頭へ移した（ホームの札は最大3枚）
         await gotoSettled(page, `http://localhost:${PORT}/`);
         await waitForHydration(page);
-        check(`[${eng}] 今日の一問: トップから入口で行ける`, !!(await page.$("[data-testid='home-quiz-entry'][href='/q']")));
+        check(`[${eng}] 今日の一問: トップの上の札に一問の札が無い（さがすへ移した）`, !(await page.$("[data-testid='home-quiz-entry']")));
+        await gotoSettled(page, `http://localhost:${PORT}/search`);
+        await waitForHydration(page);
+        const searchQuiz = await page
+            .waitForSelector("[data-testid='search-quiz-entry'][href='/q']", { timeout: 10000 })
+            .then(() => true).catch(() => false);
+        check(`[${eng}] 今日の一問: さがすの先頭の札から行ける`, searchQuiz);
         await gotoSettled(page, `http://localhost:${PORT}/q`);
         await waitForHydration(page);
         const choices = await page
@@ -821,6 +828,35 @@ async function runChecks(browser, eng) {
             // 形だけでなく、**行き先のページがビルドに在る**こと（404 のガイドへ送らない）
             const built = /^\/spots\/[a-z0-9-]+$/.test(guide) && fs.existsSync(path.join(OUT, `${guide.slice(1)}.html`));
             check(`[${eng}] 今日の一問: 答えると結果とガイドへのリンク（行き先が在る）`, result && built, guide);
+        }
+    }
+
+    /**
+     * **使い方（/help）**（2026-11-12・札 journey.photo-ios#517）。目次から全頁へ札で行け、
+     * 押すと頁が開き、絵1枚と3行が出る。電話の幅で横にはみ出さない（iOS のアプリの中の Safari で開く頁）
+     */
+    {
+        console.log(`\n[${eng}][5h] 使い方`);
+        await gotoSettled(page, `http://localhost:${PORT}/help`);
+        await waitForHydration(page);
+        const cards = await page.evaluate(() => [...document.querySelectorAll("[data-testid='help-card']")].map((a) => a.getAttribute("href")));
+        const built = cards.filter((h) => /^\/help\/[a-z-]+$/.test(h ?? "") && fs.existsSync(path.join(OUT, `${(h ?? "").slice(1)}.html`)));
+        check(`[${eng}] 使い方: 目次に札が並び、行き先の頁が全部ビルドに在る`, cards.length >= 4 && built.length === cards.length, JSON.stringify(cards));
+        const overflowIndex = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+        check(`[${eng}] 使い方: 目次が電話の幅で横にはみ出さない`, overflowIndex <= 0, `はみ出し=${overflowIndex}px`);
+        if (cards.length > 0) {
+            await tapOrClick(page, `[data-testid='help-card'][href='${cards[0]}']`);
+            await page.waitForURL((u) => u.pathname.replace(/\.html$/, "") === cards[0], { timeout: 10000 }).catch(() => {});
+            await waitForHydration(page);
+            const shape = await page.evaluate(() => ({
+                h1: document.querySelector("h1")?.textContent ?? "",
+                figures: document.querySelectorAll("main > figure svg[role='img']").length,
+                lines: document.querySelectorAll("[data-testid='help-lines'] > li").length,
+                overflow: document.documentElement.scrollWidth - window.innerWidth,
+            }));
+            check(`[${eng}] 使い方: 札を押すと頁が開き、題・絵1枚・3行が出る`,
+                shape.h1.length > 0 && shape.figures === 1 && shape.lines === 3, JSON.stringify(shape));
+            check(`[${eng}] 使い方: 頁が電話の幅で横にはみ出さない`, shape.overflow <= 0, `はみ出し=${shape.overflow}px`);
         }
     }
 
@@ -926,7 +962,7 @@ function signedInApiBody(url, method, photos) {
     if (p === "/music/search") return { results: [] };
     // 光と天気の知らせ（Pro）。**1か所返す**——0件だと札（名前・押せる高さ）を一度も測らない
     if (p === "/user/light-forecast") return {
-        places: [{ key: "SPOT-smoke", slug: "smoke", name: "スモークの撮影スポット", timeZone: "Asia/Tokyo", forecast: true,
+        places: [{ key: "SPOT-smoke", slug: "smoke", name: "スモークの観光スポット", timeZone: "Asia/Tokyo", forecast: true,
             days: [{ date: "2099-12-31", sunrise: { at: "2099-12-30T20:42:00.000Z", clock: "05:42" }, sunset: null,
                 morningBlue: { start: null, end: null }, eveningBlue: { start: null, end: null },
                 morning: { weather: "clear", chance: "high" }, evening: null, night: null }] }],

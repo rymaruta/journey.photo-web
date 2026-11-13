@@ -733,6 +733,164 @@ describe("会話の削除", () => {
     });
 });
 
+describe("送信の取り消し（POST /dm/{id}/messages の { unsend }・2026-11-12）", () => {
+    const A = msg(PEER, "やあ", "2026-11-09T00:00:01.000Z", "m-peer-0001");
+    const B = msg(ME, "まちがい", "2026-11-09T00:00:02.000Z", "m-mine-0002");
+    const unsend = (id: unknown, sub = ME) => invoke(handler, ev("POST /dm/{id}/messages", sub, { id: CONV, body: { unsend: id } }));
+    const convUpdates = () => convWrites().filter((c) => String(c.input.UpdateExpression).startsWith("REMOVE #items["));
+    const inboxWrites = (uid: string) => writes().filter((c) => c.input.Key?.id === `dminbox#${uid}`);
+
+    beforeEach(() => {
+        rows[KEY] = convRow([A, B], { updatedAt: B.t });
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { t: B.t, excerpt: "まちがい", from: ME }) });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME, { t: B.t, excerpt: "まちがい", unread: 1, from: ME }) });
+        // 本体の取り消しを模型の行にも反映する（受信箱の直しは、取り消した後の本体を読む）
+        ccf = (cmd, input) => {
+            if (cmd === "UpdateCommand" && input.Key?.id === KEY && String(input.UpdateExpression).startsWith("REMOVE #items[")) {
+                const row = rows[KEY] as Row & { items: { id: string }[] };
+                const i = Number(/REMOVE #items\[(\d+)\]/.exec(String(input.UpdateExpression))![1]);
+                rows[KEY] = { ...row, items: row.items.filter((_, j) => j !== i), updatedAt: input.ExpressionAttributeValues[":now"], unsentAt: input.ExpressionAttributeValues[":now"] };
+            }
+            return false;
+        };
+    });
+
+    it("🔴 自分の1通を消す（その位置の id と updatedAt を条件に・跡を残さない）・本文を返さない", async () => {
+        const r = await unsend(B.id);
+        expect(r.statusCode).toBe(200);
+        expect(r.body).not.toContain("まちがい");
+        const [u] = convUpdates();
+        expect(u.input.UpdateExpression).toBe("REMOVE #items[1] SET updatedAt = :now, unsentAt = :now, lastUnsent = :lu");
+        expect(u.input.ExpressionAttributeValues[":lu"], "押し直しで未読を直す手がかり").toEqual({ id: B.id, fromEnd: 0 });
+        expect(u.input.ConditionExpression).toBe("#items[1].#mid = :mid AND updatedAt = :prev");
+        expect(u.input.ExpressionAttributeValues).toMatchObject({ ":mid": B.id, ":prev": B.t });
+        // 「取り消しました」の通も印も足さない（本体に残るのは相手の1通だけ）
+        expect((rows[KEY] as { items: unknown[] }).items).toEqual([A]);
+        expect(writes().some((c) => c.cmd === "PutCommand"), "取り消しの跡を書いている").toBe(false);
+    });
+
+    it("🔴 受信箱: 抜粋と時刻を残った最後の通に戻し、相手の未読を1つ減らす（自分の行の未読は触らない）", async () => {
+        await unsend(B.id);
+        const [peerW] = inboxWrites(PEER);
+        expect(peerW.input.ConditionExpression).toBe("convs.#c.#t = :t0 AND convs.#c.#u = :u0");
+        expect(peerW.input.ExpressionAttributeValues).toMatchObject({ ":t": A.t, ":x": "やあ", ":lid": A.id, ":from": PEER, ":u": 0, ":t0": B.t, ":u0": 1 });
+        const [meW] = inboxWrites(ME);
+        expect(meW.input.ExpressionAttributeValues).toMatchObject({ ":t": A.t, ":x": "やあ", ":u": 0 });
+    });
+
+    it("相手がもう読んだ通（未読 0）・未読より前の通では未読を減らさない", async () => {
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME, { t: B.t, unread: 0 }) });
+        await unsend(B.id);
+        expect(inboxWrites(PEER)[0].input.ExpressionAttributeValues[":u"]).toBe(0);
+
+        // 自分の通が2つ・相手の未読は1（新しい方だけ未読）。古い方を消しても未読はそのまま・抜粋も触らない
+        calls = [];
+        const C = msg(ME, "つづき", "2026-11-09T00:00:03.000Z", "m-mine-0003");
+        rows[KEY] = convRow([A, B, C], { updatedAt: C.t });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME, { t: C.t, unread: 1 }) });
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER, { t: C.t }) });
+        await unsend(B.id);
+        expect(inboxWrites(PEER), "読んだ通・最後でない通で受信箱を書き換えている").toHaveLength(0);
+        expect(inboxWrites(ME)).toHaveLength(0);
+    });
+
+    it("🔴 相手に見える通が無くなったら、相手の受信箱から会話ごと外す（自分の行は残し、抜粋を空に）", async () => {
+        rows[KEY] = convRow([B], { updatedAt: B.t, state: "request", initiator: ME, reqCount: 1 });
+        await unsend(B.id);
+        const [peerW] = inboxWrites(PEER);
+        // 承認前の会話を受け取った側の行を外すときは、断った印を同じ書き込みで残す（取り消し → 削除で通数を戻させない）
+        expect(peerW.input.UpdateExpression).toBe("REMOVE convs.#c SET #dec = :n");
+        expect(peerW.input.ExpressionAttributeNames["#dec"]).toBe(`dec_${ME}`);
+        expect(peerW.input.ExpressionAttributeValues[":n"]).toBe(1);
+        const [meW] = inboxWrites(ME);
+        expect(meW.input.UpdateExpression).toBe("SET convs.#c.#x = :x, convs.#c.#u = :u, convs.#c.#uid = :mid REMOVE convs.#c.#f");
+        expect(meW.input.ExpressionAttributeValues[":x"]).toBe("");
+        // 本体は残す（承認前の通数 reqCount を消さない——取り消しで3通の歯止めを戻させない）
+        expect(writes().some((c) => c.cmd === "DeleteCommand"), "本体を消して通数の歯止めを戻している").toBe(false);
+    });
+
+    it("🔴 他人の通は取り消せない（404・何も書かない）・参加者でない人・形の違う id も同じ", async () => {
+        const other = await unsend(A.id);
+        expect(other.statusCode).toBe(404);
+        expect(writes(), "相手のメッセージを消している").toHaveLength(0);
+        expect((await unsend(B.id, THIRD)).statusCode).toBe(404);
+        expect((await unsend("x")).statusCode).toBe(400);
+        expect((await unsend("a b c d e f g")).statusCode).toBe(400);
+        expect((await unsend(123)).statusCode).toBe(400);
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("自分の側を消す前の通・自分の側を消した会話・ブロックの相手は 404（何も書かない）", async () => {
+        rows[KEY] = { ...(rows[KEY] as Row), loClearedAt: B.t };
+        expect((await unsend(B.id)).statusCode).toBe(404);
+        rows[KEY] = convRow([A, B], { updatedAt: B.t });
+        rows[`dminbox#${ME}`] = boxRow(ME, {});
+        expect((await unsend(B.id)).statusCode).toBe(404);
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER) });
+        mockHidden.mockResolvedValue(new Set([PEER]));
+        expect((await unsend(B.id)).statusCode).toBe(404);
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("自分が取り消した通の押し直しは 200・本体は書かず、受信箱の直しだけやり直す（覚えた位置で未読を1回だけ減らす）", async () => {
+        rows[KEY] = convRow([A], { updatedAt: B.t, lastUnsent: { id: B.id, fromEnd: 0 } });
+        const r = await unsend(B.id);
+        expect(r.statusCode).toBe(200);
+        expect(convUpdates()).toHaveLength(0);
+        expect(inboxWrites(PEER)[0].input.ExpressionAttributeValues).toMatchObject({ ":x": "やあ", ":u": 0, ":mid": B.id });
+    });
+
+    it("🔴 取り消した覚えの無い・もう無い通は、他人の通と同じ 404 messageNotFound（何も書かない）", async () => {
+        rows[KEY] = convRow([A], { updatedAt: B.t });
+        const gone = await unsend(B.id);
+        const other = await unsend(A.id);
+        expect([gone.statusCode, gone.body]).toEqual([other.statusCode, other.body]);
+        expect(bodyOf(gone).code).toBe("messageNotFound");
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("同時の書き込みで条件が外れたら読み直してやり直す・続けば 409", async () => {
+        let n = 0;
+        const apply = ccf;
+        ccf = (cmd, input) => {
+            if (cmd === "UpdateCommand" && input.Key?.id === KEY && n++ === 0) return true;
+            return apply(cmd, input);
+        };
+        expect((await unsend(B.id)).statusCode).toBe(200);
+        expect(convUpdates()).toHaveLength(2);
+
+        calls = [];
+        rows[KEY] = convRow([A, B], { updatedAt: B.t });
+        ccf = (cmd, input) => cmd === "UpdateCommand" && input.Key?.id === KEY;
+        expect((await unsend(B.id)).statusCode).toBe(409);
+    });
+
+    it("退会した本人は取り消せない（書く口として 410）", async () => {
+        mockReadLive.mockResolvedValueOnce({ gone: { statusCode: 410, body: "{}" } });
+        expect((await unsend(B.id)).statusCode).toBe(410);
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("🔴 相手の読み直し: since より後に取り消しがあれば、差分ではなく全部を full で返す（無ければ今までどおり差分）", async () => {
+        rows[KEY] = convRow([A], { updatedAt: "2026-11-09T00:00:05.000Z", unsentAt: "2026-11-09T00:00:05.000Z" });
+        const full = bodyOf(await invoke(handler, ev("GET /dm/{id}", PEER, { id: CONV, since: B.t })));
+        expect(full.full).toBe(true);
+        expect(full.items.map((m: { id: string }) => m.id)).toEqual([A.id]);
+        const after = bodyOf(await invoke(handler, ev("GET /dm/{id}", PEER, { id: CONV, since: "2026-11-09T00:00:05.000Z" })));
+        expect(after).toEqual({ id: CONV, unchanged: true, items: [] });
+        rows[KEY] = convRow([A, B], { updatedAt: B.t, unsentAt: "2026-11-09T00:00:00.500Z" });
+        const diff = bodyOf(await invoke(handler, ev("GET /dm/{id}", PEER, { id: CONV, since: A.t })));
+        expect(diff.full).toBeUndefined();
+        expect(diff.items.map((m: { id: string }) => m.id)).toEqual([B.id]);
+    });
+
+    it("通報の写しは取り消しで消さない（通報の行に触れない）", async () => {
+        rows[`dmreport#${CONV}#${PEER}`] = { id: `dmreport#${CONV}#${PEER}`, messages: [B] };
+        await unsend(B.id);
+        expect(writes().some((c) => String(c.input.Key?.id ?? "").startsWith("dmreport#")), "通報の写しを書き換えている").toBe(false);
+    });
+});
+
 describe("通報（POST /dm/{id}/report）", () => {
     const many = () => Array.from({ length: 25 }, (_, i) =>
         msg(i % 2 ? ME : PEER, `本文${i}`, `2026-11-09T00:00:${String(i).padStart(2, "0")}.000Z`, `rep-${String(i).padStart(4, "0")}`));
@@ -1291,6 +1449,59 @@ describe("会話の引用札（ストーリーへの返信から写した通・s
         expect(calls.some((c) => String(c.input.Key?.id ?? "").startsWith("story-")), "要らない読みをしている").toBe(false);
     });
 
+    describe("🔴 写真を紹介したストーリー（sharedPhotoId・#541）", () => {
+        // 紹介できるのは自分の写真だけ（2026-11-12）: 写真の持ち主は紹介した本人（PEER）
+        const photo = (o: Row = {}) => ({ id: "p-shared", src: "https://cdn/p.jpg", userId: PEER, ...o });
+        beforeEach(() => {
+            rows["story-1"] = storyRow({ sharedPhotoId: "p-shared" });
+            rows["p-shared"] = photo();
+            mockHidden.mockResolvedValue(new Set<string>());
+            mockDeleted.mockReturnValue({ deleted: new Set<string>(), unread: new Set<string>() });
+        });
+        afterEach(() => { mockHidden.mockReset().mockResolvedValue(new Set<string>()); });
+
+        it("紹介した写真が見られる間は live", async () => {
+            expect((await read(ME)).items[0].story.state).toBe("live");
+        });
+
+        const lost: [string, () => void][] = [
+            ["持ち主が非公開にした", () => { rows["p-shared"] = photo({ published: false }); }],
+            ["持ち主が範囲を絞った", () => { rows["p-shared"] = photo({ audience: "followers" }); }],
+            ["持ち主が消した", () => { delete rows["p-shared"]; }],
+            ["持ち主が退会した", () => { mockDeleted.mockReturnValue({ deleted: new Set([PEER]), unread: new Set<string>() }); }],
+            // 見る人と持ち主（＝紹介した本人・会話の相手）のブロックは、会話ごと 404 になる（呼ぶ側の門）
+            // 🔴 2026-11-12 より前に作られた、人の写真の紹介（持ち主でない人が紹介した行）
+            ["人の写真の紹介（持ち主でない人が紹介した）", () => { rows["p-shared"] = photo({ userId: THIRD }); }],
+        ];
+        for (const [label, arrange] of lost) {
+            it(`${label}: 見る人には ended（紹介した本人には live）`, async () => {
+                vi.spyOn(console, "error").mockImplementation(() => undefined);
+                arrange();
+                expect((await read(ME)).items[0].story, "見られない写真を DM の札に出している").toEqual({ id: "story-1", state: "ended" });
+                expect((await read(PEER)).items[0].story.state, "紹介した本人に見せていない").toBe("live");
+                vi.restoreAllMocks();
+            });
+        }
+
+        it("見る人のブロック一覧は会話の読みで読んだものを使う（読み直さない）", async () => {
+            mockHidden.mockClear();
+            await read(ME);
+            expect(mockHidden).toHaveBeenCalledTimes(1);
+        });
+
+        it("紹介した写真が読めなければ ended", async () => {
+            vi.spyOn(console, "error").mockImplementation(() => undefined);
+            const real = mockSend.getMockImplementation()!;
+            mockSend.mockImplementation(async (c: { constructor: { name: string }; input: Record<string, any> }) => {   // eslint-disable-line @typescript-eslint/no-explicit-any
+                if (c.constructor.name === "GetCommand" && c.input.Key.id === "p-shared") throw new Error("boom");
+                return real(c);
+            });
+            expect((await read(ME)).items[0].story).toEqual({ id: "story-1", state: "ended" });
+            mockSend.mockImplementation(real);
+            vi.restoreAllMocks();
+        });
+    });
+
     it("since の読み直しは、返す通のぶんだけ引く", async () => {
         const b = bodyOf(await invoke(handler, ev("GET /dm/{id}", ME, { id: CONV, since: "2026-11-09T00:00:01.500Z" })));
         expect(b.items.map((m: { text: string }) => m.text)).toEqual(["ありがとう"]);
@@ -1457,5 +1668,168 @@ describe("ストーリーへの返信: 写った会話・お知らせの欄", ()
         });
         await reply({ text: "きれいですね" });
         expect(putBeforeNotif, "お知らせが写しより先に積まれている").toBe(true);
+    });
+});
+
+describe("🔴 同じ会話で、送った写真の札と、紹介のストーリーの引用の門が両方効く（#541 の ① と ③）", () => {
+    const FUTURE = () => new Date(Date.now() + 3600_000).toISOString();
+    const read = async (uid = ME) => bodyOf(await invoke(handler, ev("GET /dm/{id}", uid, { id: CONV })));
+    beforeEach(() => {
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER) });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME) });
+        rows["photo-1"] = { id: "photo-1", src: "https://cdn/p.jpg", thumbSrc: "https://cdn/p_t.webp", userId: THIRD };
+        rows["story-1"] = { id: "story-1", story: true, userId: PEER, src: "https://cdn/s.jpg", mediaType: "image", expiresAt: FUTURE(), sharedPhotoId: "p-shared" };
+        rows["p-shared"] = { id: "p-shared", src: "https://cdn/ps.jpg", userId: PEER };   // 自分の写真の紹介（2026-11-12）
+        follows(PEER, ME);
+        rows[KEY] = convRow([
+            { ...msg(ME, "きれい", "2026-11-09T00:00:01.000Z", "m-story-01"), via: "story", storyId: "story-1" },
+            { ...msg(PEER, "", "2026-11-09T00:00:02.000Z", "m-photo-01"), photoId: "photo-1" },
+        ], { updatedAt: "2026-11-09T00:00:02.000Z" });
+    });
+
+    it("どちらも見られる間は両方 live", async () => {
+        const b = await read(ME);
+        expect(b.items[0].story.state).toBe("live");
+        expect(b.items[1].photo.state).toBe("live");
+    });
+
+    it("紹介した写真を非公開にした → 引用だけ ended（送った写真の札は live のまま）", async () => {
+        rows["p-shared"] = { ...(rows["p-shared"] as Row), published: false };
+        const b = await read(ME);
+        expect(b.items[0].story, "紹介の写真の門が効いていない").toEqual({ id: "story-1", state: "ended" });
+        expect(b.items[1].photo.state).toBe("live");
+    });
+
+    it("送った写真を非公開にした → 写真の札だけ gone（引用は live のまま）", async () => {
+        rows["photo-1"] = { ...(rows["photo-1"] as Row), published: false };
+        const b = await read(ME);
+        expect(b.items[0].story.state).toBe("live");
+        expect(b.items[1].photo, "送った写真の門が効いていない").toEqual({ id: "photo-1", state: "gone" });
+    });
+});
+
+describe("写真を送る（photoId・札 #541・2026-11-11）", () => {
+    const photo = (o: Row = {}) => ({ id: "photo-1", src: "https://cdn/p.jpg", thumbSrc: "https://cdn/p_t.webp", userId: THIRD, title: { ja: "弘前城の桜", en: "Hirosaki" }, location: "青森県弘前市", ...o });
+    const accepted = () => {
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z")]);
+        rows[`dminbox#${ME}`] = boxRow(ME, { [CONV]: entry(PEER) });
+        rows[`dminbox#${PEER}`] = boxRow(PEER, { [CONV]: entry(ME) });
+    };
+    const read = async (uid = ME) => bodyOf(await invoke(handler, ev("GET /dm/{id}", uid, { id: CONV })));
+    beforeEach(() => { rows["photo-1"] = photo(); follows(PEER, ME); });
+
+    it("🔴 承認後は写真だけで送れる。本体は text 空・photoId、抜粋と API の本文は「写真を送りました」・photoOnly", async () => {
+        accepted();
+        const r = await send("", ME, PEER, { photoId: "photo-1" });
+        expect(r.statusCode).toBe(200);
+        const b = bodyOf(r);
+        expect(b.message).toMatchObject({ text: "写真を送りました", photoId: "photo-1", photoOnly: true });
+        const stored = (convWrites().at(-1)!.input.ExpressionAttributeValues as Record<string, { photoId?: string; text: string }[]>)[":new"][0];
+        expect(stored).toMatchObject({ text: "", photoId: "photo-1" });
+        expect(entryWrites(PEER).at(-1)!.input.ExpressionAttributeValues[":x"]).toBe("写真を送りました");
+    });
+
+    it("写真と文字を一緒に送ると、本文はそのまま・photoOnly は付けない", async () => {
+        accepted();
+        const b = bodyOf(await send("この場所です", ME, PEER, { photoId: "photo-1" }));
+        expect(b.message).toMatchObject({ text: "この場所です", photoId: "photo-1" });
+        expect(b.message.photoOnly).toBeUndefined();
+    });
+
+    it("🔴 承認前（会話の始まり・リクエストの間）は写真を断る（何も書かない）", async () => {
+        const r = await send("", ME, PEER, { photoId: "photo-1" });
+        expect(r.statusCode).toBe(400);
+        expect(bodyOf(r).code).toBe("requestPhoto");
+        expect(writes()).toHaveLength(0);
+        rows[KEY] = convRow([msg(ME, "a", "2026-11-09T00:00:00.000Z")], { state: "request", initiator: ME, reqCount: 1 });
+        const again = await send("見て", ME, PEER, { photoId: "photo-1" });
+        expect(bodyOf(again).code).toBe("requestPhoto");
+        expect(writes()).toHaveLength(0);
+    });
+
+    it("🔴 送る人に見せられない写真は 404 photoNotFound（下書き・ストーリー・無い・持ち主にブロックされた）", async () => {
+        accepted();
+        for (const row of [photo({ published: false }), photo({ story: true }), undefined]) {
+            if (row) rows["photo-1"] = row; else delete rows["photo-1"];
+            const r = await send("", ME, PEER, { photoId: "photo-1" });
+            expect(r.statusCode).toBe(404);
+            expect(bodyOf(r).code).toBe("photoNotFound");
+        }
+        rows["photo-1"] = photo();
+        rows[`block#${THIRD}#${ME}`] = { id: "b" };
+        expect(bodyOf(await send("", ME, PEER, { photoId: "photo-1" })).code).toBe("photoNotFound");
+        expect(convWrites()).toHaveLength(0);
+    });
+
+    it("形の違う photoId は 400（黙って文字だけにしない）・文字も写真も無ければ empty", async () => {
+        accepted();
+        expect(bodyOf(await send("やあ", ME, PEER, { photoId: "a#b" })).code).toBe("badRequest");
+        expect(bodyOf(await send("やあ", ME, PEER, { photoId: 12 })).code).toBe("badRequest");
+        expect(bodyOf(await send("", ME, PEER)).code).toBe("empty");
+        expect(convWrites()).toHaveLength(0);
+    });
+
+    it("🔴 会話を読むと、読む人の目で写真の札を付ける（live: 縮小版・題・撮影地 / 見られなければ gone）", async () => {
+        accepted();
+        rows[KEY] = convRow([{ ...msg(ME, "", "2026-11-09T00:00:02.000Z", "m-photo-01"), photoId: "photo-1" }, msg(PEER, "a", "2026-11-09T00:00:03.000Z")]);
+        const mine = await read(ME);
+        expect(mine.items[0]).toMatchObject({
+            text: "写真を送りました", photoOnly: true, photoId: "photo-1",
+            photo: { id: "photo-1", state: "live", src: "https://cdn/p_t.webp", title: "弘前城の桜", location: "青森県弘前市", ownerId: THIRD },
+        });
+        expect(mine.items[1].photo, "写真の無い通に札を付けている").toBeUndefined();
+        // 持ち主が受け取った人をブロックした → 受け取った人には gone（送った人には live のまま）
+        rows[`block#${THIRD}#${PEER}`] = { id: "b" };
+        expect((await read(PEER)).items[0].photo).toEqual({ id: "photo-1", state: "gone" });
+        expect((await read(ME)).items[0].photo.state).toBe("live");
+        // 非公開に戻した → 2人とも gone
+        rows["photo-1"] = photo({ published: false });
+        expect((await read(ME)).items[0].photo).toEqual({ id: "photo-1", state: "gone" });
+    });
+
+    it("🔴 公開範囲を絞った写真: 見せてよい人（フォロワー）にだけ live で、絵は署名つき URL。フォロワーでない受け手には gone", async () => {
+        const { generateKeyPairSync } = await import("node:crypto");
+        const { privateKey } = generateKeyPairSync("rsa", {
+            modulusLength: 2048,
+            privateKeyEncoding: { type: "pkcs8", format: "pem" },
+            publicKeyEncoding: { type: "spki", format: "pem" },
+        });
+        const saved = { id: process.env.CLOUDFRONT_KEY_PAIR_ID, key: process.env.CLOUDFRONT_PRIVATE_KEY };
+        process.env.CLOUDFRONT_KEY_PAIR_ID = "K1";
+        process.env.CLOUDFRONT_PRIVATE_KEY = privateKey;
+        try {
+            accepted();
+            rows["photo-1"] = photo({ audience: "followers", src: "https://cdn/private/p.jpg", thumbSrc: "https://cdn/private/p_t.webp" });
+            rows[KEY] = convRow([{ ...msg(ME, "", "2026-11-09T00:00:02.000Z", "m-photo-01"), photoId: "photo-1" }]);
+            follows(THIRD, ME);   // 送った人は持ち主のフォロワー・受け取った人は違う
+            const mine = await read(ME);
+            expect(mine.items[0].photo.state).toBe("live");
+            expect(mine.items[0].photo.src).toContain("https://cdn/private/p_t.webp?");
+            expect(mine.items[0].photo.src, "絞った写真の絵に署名が無い").toContain("Signature=");
+            expect((await read(PEER)).items[0].photo, "フォロワーでない受け手に絞った写真を見せている").toEqual({ id: "photo-1", state: "gone" });
+            // 公開の写真には署名しない（一覧と同じ URL）
+            rows["photo-1"] = photo();
+            expect((await read(ME)).items[0].photo.src).toBe("https://cdn/p_t.webp");
+        } finally {
+            if (saved.id === undefined) delete process.env.CLOUDFRONT_KEY_PAIR_ID; else process.env.CLOUDFRONT_KEY_PAIR_ID = saved.id;
+            if (saved.key === undefined) delete process.env.CLOUDFRONT_PRIVATE_KEY; else process.env.CLOUDFRONT_PRIVATE_KEY = saved.key;
+        }
+    });
+
+    it("🔴 同じ id の再送は、写真がその後に非公開になっても 404 にしない（入った1通をそのまま返す）", async () => {
+        accepted();
+        const first = await send("", ME, PEER, { photoId: "photo-1", id: "k-photo-0001" });
+        expect(first.statusCode).toBe(200);
+        // 1通目が本体に入った形にする（モックは書き込みを rows に写さないので、手で入れる）
+        rows[KEY] = convRow([msg(PEER, "a", "2026-11-09T00:00:01.000Z"), { ...bodyOf(first).message, text: "", mine: undefined }]);
+        rows["photo-1"] = photo({ published: false });
+        const again = await send("", ME, PEER, { photoId: "photo-1", id: "k-photo-0001" });
+        expect(again.statusCode, "入った1通の再送を写真の判定で断っている").toBe(200);
+    });
+
+    it("古い通（photoId なし）は今までどおり（photo・photoOnly の欄を作らない）", async () => {
+        accepted();
+        const b = await read(ME);
+        expect(Object.keys(b.items[0]).sort()).toEqual(["from", "id", "mine", "t", "text"]);
     });
 });

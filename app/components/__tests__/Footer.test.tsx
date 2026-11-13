@@ -18,7 +18,7 @@ describe("フッターの導線", () => {
             // 公式撮影地ガイドの索引。**写真の投稿が0枚の場所も載る**面なので、
             // 写真の集約（`/location`）とは別に入口が要る。撮影地マップの隣
             // （どちらも「場所から探す」）
-            ["撮影スポット", ROUTES.SPOTS],
+            ["観光スポット", ROUTES.SPOTS],
             ["いいねした写真", ROUTES.FAVORITES],
             // **いいねの隣に置く。** 別の棚だと分かるのは並んでいるとき
             ["保存した写真", ROUTES.SAVES],
@@ -27,6 +27,8 @@ describe("フッターの導線", () => {
             ["行きたい場所", ROUTES.SAVED_SPOTS],
             ["利用規約", ROUTES.TERMS],
             ["プライバシーポリシー", ROUTES.PRIVACY],
+            // 意見箱（2026-11-11 札 #546）
+            ["意見を送る", ROUTES.FEEDBACK("footer")],
             // 見出しの字（自前で配る Shippori Mincho B1）のライセンス全文（2026-10-21）
             ["SIL Open Font License 1.1", "/licenses/ShipporiMinchoB1-OFL.txt"],
         ]);

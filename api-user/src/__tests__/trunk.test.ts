@@ -1355,12 +1355,13 @@ describe("部品を付ける（PUT /user/trunk/equip）", () => {
     });
 });
 
-describe("口（serverless.yml の trunk 関数）", () => {
+// トランクの口は user API から別のスタック（`serverless.trunk.yml`）へ移した（札 journey.photo-ios#552 ②）
+describe("口（serverless.trunk.yml の trunk 関数）", () => {
     it("handler が分ける口が全部 trunk 関数の道筋にある（新しい関数は作らない）", async () => {
         const fs = await import("fs");
         const path = await import("path");
-        const yml = fs.readFileSync(path.join(__dirname, "..", "..", "serverless.yml"), "utf8");
-        const block = yml.slice(yml.indexOf("\n  trunk:\n"), yml.indexOf("\n  getComments:\n"));
+        const yml = fs.readFileSync(path.join(__dirname, "..", "..", "serverless.trunk.yml"), "utf8");
+        const block = yml.slice(yml.indexOf("\n  trunk:\n"));
         const routes = [...block.matchAll(/path: (\S+)\n\s+method: (\w+)/g)].map((m) => `${m[2]} ${m[1]}`);
         for (const r of [
             "GET /user/trunk", "PUT /user/trunk/model", "PUT /user/trunk/settings",

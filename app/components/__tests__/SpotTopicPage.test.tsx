@@ -27,7 +27,7 @@ describe("SpotTopicPage", () => {
     it("パンくず・見出し・導入文・カード（スポットの頁へ）・構造化データ2本", () => {
         const view = themeView("temples-shrines", "kyoto")!;
         const { container } = render(<SpotTopicPage view={view} eyebrow="Photo spots · Theme" />);
-        expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("京都府の寺社の撮影スポット");
+        expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("京都府の寺社の観光スポット");
         const crumbs = within(screen.getByRole("navigation", { name: "パンくずリスト" })).getAllByRole("link").map((a) => a.getAttribute("href"));
         expect(crumbs).toEqual(["/", "/spots", "/spots/area/kyoto"]);
         expect(screen.getByText(view.intro)).toBeTruthy();
@@ -44,7 +44,7 @@ describe("SpotTopicPage", () => {
         const { container } = render(<SpotTopicPage view={view} eyebrow="x" />);
         const place = screen.getByTestId("topic-place-link");
         expect(place.getAttribute("href")).toBe("/spots/area/overseas/it");
-        expect(place.textContent).toBe(`イタリアの撮影スポットをすべて見る（${view.placeLink!.count}件）`);
+        expect(place.textContent).toBe(`イタリアの観光スポットをすべて見る（${view.placeLink!.count}件）`);
         const tips = screen.getAllByTestId("topic-card-tip");
         expect(tips).toHaveLength(view.cards.filter((c) => c.tip).length);
         expect(tips[0].textContent).toBe(`撮り方　${view.cards[0].tip}`);
@@ -73,19 +73,19 @@ describe("SpotTopicPage", () => {
     it("🔴 `/spots/area/overseas` は国の一覧（スポットのカードを積まない）", async () => {
         const el = await SpotAreaPage({ params: Promise.resolve({ area: "overseas" }) });
         const { container } = render(el);
-        expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("海外の撮影スポット");
+        expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("海外の観光スポット");
         expect(container.querySelectorAll("ul.grid")).toHaveLength(0);
         const fr = container.querySelector('a[href="/spots/area/overseas/fr"]');
         expect(fr?.textContent).toContain(String(countryView("fr")!.cards.length));
         // 県の頁はこれまでどおりスポットの一覧
         render(await SpotAreaPage({ params: Promise.resolve({ area: "kyoto" }) }));
-        expect(screen.getAllByRole("heading", { level: 1 }).map((h) => h.textContent)).toContain("京都府の撮影スポット");
+        expect(screen.getAllByRole("heading", { level: 1 }).map((h) => h.textContent)).toContain("京都府の観光スポット");
     });
 
     it("`/spots` から季節とテーマの頁へ張る", () => {
         const { container } = render(<SpotIndexPage />);
         const section = within(screen.getByTestId("spots-topic-index"));
-        expect(section.getByRole("link", { name: /^秋の撮影スポット/ }).getAttribute("href")).toBe("/spots/season/autumn");
+        expect(section.getByRole("link", { name: /^秋の観光スポット/ }).getAttribute("href")).toBe("/spots/season/autumn");
         expect(container.querySelector('a[href="/spots/theme/temples-shrines/kyoto"]')).toBeTruthy();
     });
 });
@@ -130,7 +130,7 @@ describe("SpotsEntry（ホーム）", () => {
         render(<SpotsEntry locale="ja" seasonal={seasonal} />);
         expect(screen.getByTestId("home-spots-entry").getAttribute("href")).toBe("/spots");
         const sec = within(screen.getByTestId("home-season-spots"));
-        expect(sec.getByRole("heading").textContent).toBe("いまの季節（秋）の撮影スポット");
+        expect(sec.getByRole("heading").textContent).toBe("いまの季節（秋）の観光スポット");
         expect(sec.getByRole("link", { name: /すべて 194件/ }).getAttribute("href")).toBe("/spots/season/autumn");
         const card = sec.getByRole("link", { name: /A寺/ });
         expect(card.getAttribute("href")).toBe("/spots/a");
@@ -172,11 +172,11 @@ describe("スポットの頁 → 切り口の頁", () => {
     };
 
     it("載っている一覧へのチップを出す（無ければ節ごと出さない）", () => {
-        const topics = [{ href: "/spots/theme/temples-shrines/kyoto", label: "京都府の寺社の撮影スポット", count: 14 }];
+        const topics = [{ href: "/spots/theme/temples-shrines/kyoto", label: "京都府の寺社の観光スポット", count: 14 }];
         const { unmount } = render(<ToastProvider><SpotGuideClient spot={SPOT} photos={[]} nearby={[]} locationPath={null} topics={topics} /></ToastProvider>);
         const sec = within(screen.getByTestId("spot-topics"));
-        expect(sec.getByRole("heading").textContent).toBe("この撮影スポットが載っている一覧");
-        expect(sec.getByRole("link", { name: /京都府の寺社の撮影スポット/ }).getAttribute("href")).toBe("/spots/theme/temples-shrines/kyoto");
+        expect(sec.getByRole("heading").textContent).toBe("この観光スポットが載っている一覧");
+        expect(sec.getByRole("link", { name: /京都府の寺社の観光スポット/ }).getAttribute("href")).toBe("/spots/theme/temples-shrines/kyoto");
         unmount();
         render(<ToastProvider><SpotGuideClient spot={SPOT} photos={[]} nearby={[]} locationPath={null} /></ToastProvider>);
         expect(screen.queryByTestId("spot-topics")).toBeNull();
@@ -190,15 +190,15 @@ describe("スポットの頁 → 切り口の頁", () => {
         const country = spotCountryRef(fr)!;
         expect(country).toEqual({ href: "/spots/area/overseas/fr", name: "フランス", nameEn: "France" });
         expect(spotBreadcrumb(fr, { slug: "overseas", name: "海外", nameEn: "Outside Japan" } as never, country).map((c) => c.name))
-            .toEqual(["ホーム", "撮影スポット", "海外", "フランス", fr.name]);
+            .toEqual(["ホーム", "観光スポット", "海外", "フランス", fr.name]);
         const OVERSEAS: Spot = { ...SPOT, region: { country: "フランス", prefecture: "イル・ド・フランス" } };
         render(<ToastProvider><SpotGuideClient spot={OVERSEAS} photos={[]} nearby={[]} locationPath={null}
             area={{ slug: "overseas", name: "海外", nameEn: "Outside Japan" }} country={country}
             sameArea={{ label: "フランス", spots: [{ slug: "x", name: "X", region: "パリ" } as never] }} /></ToastProvider>);
         const crumbs = within(screen.getByRole("navigation", { name: "パンくずリスト" })).getAllByRole("link").map((a) => a.getAttribute("href"));
         expect(crumbs).toEqual(["/", "/spots", "/spots/area/overseas", "/spots/area/overseas/fr"]);
-        expect(screen.getByRole("link", { name: /フランスの撮影スポットをすべて見る/ }).getAttribute("href")).toBe("/spots/area/overseas/fr");
-        expect(screen.queryByRole("link", { name: /海外の撮影スポットをすべて見る/ })).toBeNull();
+        expect(screen.getByRole("link", { name: /フランスの観光スポットをすべて見る/ }).getAttribute("href")).toBe("/spots/area/overseas/fr");
+        expect(screen.queryByRole("link", { name: /海外の観光スポットをすべて見る/ })).toBeNull();
     });
 });
 
@@ -206,7 +206,7 @@ describe("スポットの頁 → 切り口の頁", () => {
  * **撮影スポットの一覧・県・季節・テーマの頁の字と節**（2026-10-31 束 2 P1〜P5・iOS の字の段 Display 32／節の見出し 22）。
  * どれも直しを戻すと落ちる
  */
-describe("撮影スポットの一覧の頁の字と節（束 2）", () => {
+describe("観光スポットの一覧の頁の字と節（束 2）", () => {
     it("P1・P3 切り口の頁: 題は明朝 32（text-4xl）、関連の節は明朝 22、導入文は 15", () => {
         const view = themeView("temples-shrines", "kyoto")!;
         render(<SpotTopicPage view={view} eyebrow="x" />);

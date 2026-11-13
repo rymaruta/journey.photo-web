@@ -37,7 +37,8 @@ function functionBlocks(yml: string): Map<string, string> {
 const services = [
     {
         name: "api-user", file: "api-user/serverless.yml",
-        // `getInvite` は共同アルバムの招待（案C）。**開いた瞬間にログインを
+        // `getInvite`（共同アルバムの招待）は別のスタック（`serverless.albums.yml`・#552 ②）へ移した。下の describe が見る。
+        // 以下はそのときの経緯: `getInvite` は共同アルバムの招待（案C）。**開いた瞬間にログインを
         // 求めると拡散の輪がそこで切れる**ので、閲覧だけ未認証で開ける。
         // 守りは「認証」ではなく**推測不能なトークン**（192ビット）で、
         // 読むのは招待の行とアルバムの行の GetItem 2回だけ
@@ -53,12 +54,14 @@ const services = [
         // **ログインした全員**の意味で、インターネット全体ではなかった。
         // 今はログインを要求したうえで、さらにフォローを見ている
         publicFns: [
-            "getPublicProfile", "searchUsers", "getLikeCount", "getComments", "getFollowStats", "getInvite", "getFeed",
+            "getPublicProfile", "searchUsers", "getLikeCount", "getComments", "getFollowStats", "getFeed",
             // App Store Server Notifications（Apple から・署名で確かめる。`purchases.ts`）
             "appStoreNotification",
+            // 意見箱のログインしていない人の口（札 #546。`feedback.ts`・IP ごとの上限）
+            "sendFeedbackPublic",
         ],
         /** PublicReadRole ではなく専用ロールで動かす公開関数（関数名 → ロール名） */
-        ownRole: { getFeed: "PublicFeedRole", appStoreNotification: "AppStoreNotifyRole" } as Record<string, string>,
+        ownRole: { getFeed: "PublicFeedRole", appStoreNotification: "AppStoreNotifyRole", sendFeedbackPublic: "FeedbackRole" } as Record<string, string>,
     },
     { name: "api", file: "api/serverless.yml", publicFns: ["getPhotos", "getPhoto"], ownRole: {} as Record<string, string> },
 ];
@@ -95,6 +98,57 @@ describe.each(services)("$name: 未認証の口は読み取り専用ロールで
             if (!b.includes("authorizer:")) continue;
             expect(b, `${name} に読み取り専用ロールが付いている`).not.toContain("role: PublicReadRole");
         }
+    });
+});
+
+// 共同アルバム（`api-user/serverless.albums.yml`・札 journey.photo-ios#552 ②で user API から移した）。
+// 未認証の口は招待リンクの下見（`getInvite`）だけ。**開いた瞬間にログインを求めると拡散の輪がそこで切れる**ので
+// 閲覧だけ未認証で開ける。守りは推測不能なトークン（192ビット）で、読むのは写真テーブルの GetItem だけ
+describe("albums: 未認証の口は読み取り専用の役で動く", () => {
+    const yml = readFileSync(join(ROOT, "api-user/serverless.albums.yml"), "utf8");
+    const blocks = functionBlocks(yml);
+
+    it("認可の無い httpApi の関数は getInvite だけ", () => {
+        const found = [...blocks].filter(([, b]) => b.includes("httpApi:") && !b.includes("authorizer:")).map(([n]) => n);
+        expect(found).toEqual(["getInvite"]);
+    });
+
+    it("getInvite は AlbumInviteReadRole で、ほかの関数は使わない", () => {
+        const users = [...blocks].filter(([, b]) => /^\s{4}role: AlbumInviteReadRole\s*$/m.test(b)).map(([n]) => n);
+        expect(users).toEqual(["getInvite"]);
+    });
+
+    it("AlbumInviteReadRole はログと写真テーブルの GetItem だけ", () => {
+        const role = yml.split(/\n {4}AlbumInviteReadRole:\n/)[1];
+        expect(role).toBeDefined();
+        const actions = [...role.replace(/^\s*#.*$/gm, "").matchAll(/^\s*-\s+([a-z0-9-]+:[A-Za-z]+)\s*$/gm)].map((m) => m[1]);
+        expect(actions.sort()).toEqual(["dynamodb:GetItem", "logs:CreateLogStream", "logs:PutLogEvents"]);
+        expect(role).not.toMatch(/usersTable|s3:|cloudfront:/);
+        expect(role).toContain("Service: lambda.amazonaws.com");
+    });
+});
+
+// みんなの「行きたい」（撮影スポットを払うの②）は別のスタック（`api-user/serverless.spot-wants.yml`・2026-11-12）。
+// 未ログインでも払えるので口は未認証。共有ロールを作らせないよう、**全部の関数に専用ロール**を付ける
+// （ロールの中身は `api-user/src/__tests__/spotWants.test.ts` が見る）
+describe("spot-wants: 未認証の口は専用ロールで動く", () => {
+    const yml = readFileSync(join(ROOT, "api-user/serverless.spot-wants.yml"), "utf8");
+    const blocks = functionBlocks(yml);
+
+    it("認可の無い httpApi の関数は recordSpotWants だけ", () => {
+        const found = [...blocks].filter(([, b]) => b.includes("httpApi:") && !b.includes("authorizer:")).map(([n]) => n);
+        expect(found).toEqual(["recordSpotWants"]);
+    });
+
+    it("recordSpotWants は SpotWantsRecordRole で、ほかの関数は使わない", () => {
+        const users = [...blocks].filter(([, b]) => /^\s{4}role: SpotWantsRecordRole\s*$/m.test(b)).map(([n]) => n);
+        expect(users).toEqual(["recordSpotWants"]);
+    });
+
+    it("どの関数も role を持つ（serverless の共有ロールを作らせない）", () => {
+        expect(blocks.size).toBe(3);
+        for (const [name, b] of blocks) expect(b, `${name} に role が無い`).toMatch(/^\s{4}role: \w+\s*$/m);
+        expect(yml).not.toMatch(/^\s{2}iam:/m);
     });
 });
 
@@ -233,5 +287,49 @@ describe("AppStoreNotifyRole は知らせの処理に要るものだけ持つ", 
             `logs:CreateLogStream ${LOGS_ARN}`,
             `logs:PutLogEvents ${LOGS_ARN}`,
         ].sort());
+    });
+});
+
+// 意見箱のログインしていない人の口（sendFeedbackPublic・札 #546）専用。未認証で**書ける**口なので、
+// 動詞と資源を組で固定する（削除・Scan・Query・users テーブル・`private/feedback/` の外の S3 を持たない）
+describe("FeedbackRole は意見の受け取りに要るものだけ持つ", () => {
+    const yml = readFileSync(join(ROOT, "api-user/serverless.yml"), "utf8");
+    const res = yml.split(/\nresources:\n/)[1]!;
+    const m = /^ {4}FeedbackRole:$([\s\S]*?)(?=^ {4}\w+:$)/m.exec(res);
+    const PHOTOS_ARN = "arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}";
+    const S3_ARN = "arn:aws:s3:::${param:uploadBucket}/private/feedback/*";
+    const LOGS_ARN = "arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*";
+
+    it("動詞と資源の組がちょうどこれだけ", () => {
+        expect(m, "FeedbackRole が無い").not.toBeNull();
+        const block = m![1].replace(/^\s*#.*$/gm, "");
+        expect(block).toContain("Service: lambda.amazonaws.com");
+        const pairs = block.split(/^\s*- Effect: /m).slice(1).flatMap((st) => {
+            expect(st.split("\n")[0].trim()).toBe("Allow");
+            const actions = [...st.split(/Resource:/)[0].matchAll(/^\s*-\s+([a-z0-9-]+:[A-Za-z]+)\s*$/gm)].map((x) => x[1]);
+            const resources = [...(st.split(/Resource:/)[1] ?? "").matchAll(/^\s*-\s+(arn:\S+)\s*$/gm)].map((x) => x[1]);
+            return actions.flatMap((a) => resources.map((r) => `${a} ${r}`));
+        }).sort();
+        expect(pairs).toEqual([
+            `dynamodb:GetItem ${PHOTOS_ARN}`,
+            `dynamodb:PutItem ${PHOTOS_ARN}`,
+            `dynamodb:UpdateItem ${PHOTOS_ARN}`,
+            `logs:CreateLogStream ${LOGS_ARN}`,
+            `logs:PutLogEvents ${LOGS_ARN}`,
+            `s3:PutObject ${S3_ARN}`,
+        ].sort());
+    });
+
+    it("DynamoDB は意見の2種類の行だけ（行の鍵の頭で縛る）", () => {
+        const block = m![1].replace(/^\s*#.*$/gm, "");
+        const ddbStatement = block.split(/^\s*- Effect: /m).slice(1).find((st) => st.includes("dynamodb:"));
+        expect(ddbStatement).toBeDefined();
+        expect(ddbStatement).toMatch(/Condition:\s*\n\s*ForAllValues:StringLike:\s*\n\s*dynamodb:LeadingKeys:\s*\n\s*- "feedback#\*"\s*\n\s*- "feedbackday#\*"/);
+    });
+
+    it("IP の目印の鍵は、ログインしていない口にだけ配る", () => {
+        const fn = /^ {2}sendFeedbackPublic:$([\s\S]*?)(?=^ {2}\w+:$)/m.exec(yml);
+        expect(fn![1]).toMatch(/FEEDBACK_IP_KEY: \$\{param:feedbackIpKey, ''\}/);
+        expect(yml.match(/FEEDBACK_IP_KEY:/g)).toHaveLength(1);
     });
 });

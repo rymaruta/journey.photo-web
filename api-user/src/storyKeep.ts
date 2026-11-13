@@ -11,6 +11,9 @@ import type { Photo } from "./types";
 import { isStoryExpired } from "./storyExpiry";
 import { assertLiveCaller } from "./liveCaller";
 import { isCloseFriendsStory } from "./storyAudience";
+import { copyAll } from "./s3Move";
+import { s3DeleteMany } from "./s3Delete";
+import { keptCopyKey, urlWithKey } from "./storyKeptMedia";
 
 /**
  * ストーリーの1枚を、ギャラリーの写真として残す。
@@ -107,17 +110,19 @@ export const keepStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
             return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ photoId: story.keptAs, already: true }) };
         }
 
-        // **「アーカイブに自動保存」の投稿は残せない。** 残した写真と
-        // ストーリーは S3 の実体を共有する。写真の方をあとで消すと
-        // `deleteMyPhoto` の `keptFrom` がストーリーの行ごと消す——生きている
-        // ストーリーなら「どうせ24時間で消える」で済むが、アーカイブは本人が
-        // 残すつもりのものなので、**黙って消える口を作らない**。
-        // 実体を複製して切り離すまでは、どちらか一方。理由を伝えて断る
-        // （画面は印のある投稿に「残す」を出さない。ここは直接叩く経路の門）。
-        // **冪等の分岐より後ろ。** 既に残してある行は、応答が失われて
-        // 押し直された回に 409 ではなく同じ写真IDを返す
-        if (story.archive === true) {
-            return jsonError(409, "アーカイブに保存する投稿はギャラリーに残せません（写真を消すとアーカイブも消えるため）");
+        // **「アーカイブに自動保存」の投稿は、画像を写して切り離す**（2026-11-11 判断・owner 承認）。
+        // 前は 409 で断っていた: 普通の残し方は S3 の実体を共有し、写真の方をあとで消すと
+        // `deleteMyPhoto` の `keptFrom` がストーリーの行ごと消す——アーカイブは本人が残す
+        // つもりのものなので、黙って消える口を作らないため。自動保存が既定でオンになり、
+        // 「写真として残す」が多くの人から消えるので、**写して**両方を独立させる
+        // （`storyKeptMedia.ts`）。写真に `keptFrom` を付けないので、写真を消してもストーリーは残る
+        const copyArchive = story.archive === true;
+
+        // **写真を紹介したストーリーは残せない**（2026-11-11・`storyPhotoShare.ts`）。絵は紹介した
+        // 写真の札で、残すと**人の写真が自分のギャラリーの1枚になる**（持ち主の公開範囲・削除が
+        // 効かない写しができる）。自分の写真の紹介でも、同じ写真の写しが増えるだけなので断る
+        if (typeof story.sharedPhotoId === "string" && story.sharedPhotoId) {
+            return jsonError(409, "写真を紹介したストーリーはギャラリーに残せません");
         }
 
         // 枚数の上限は写真の口と同じものを使う（複製した規則は静かにずれる）
@@ -131,7 +136,11 @@ export const keepStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
         // **写真IDは鍵から導出する**（`upload.ts` と同じ規則）。同じ実体からは
         // 必ず同じIDになるので、二度押しは `putPhoto` の
         // `attribute_not_exists(id)` が自然に弾く——新しい仕掛けを作らない
-        const photoId = idFromUploadKey(key);
+        // 自分用に残すストーリーは、写した先の鍵が写真の鍵（同じストーリーからは必ず同じ鍵）
+        const photoKey = copyArchive ? keptCopyKey(key) : key;
+        const photoSrc = copyArchive ? urlWithKey(src, photoKey) : src;
+        if (!photoKey || !photoSrc) return jsonError(400, "この投稿は残せません");
+        const photoId = idFromUploadKey(photoKey);
         const safeThumb = isOwnUploadUrl(body.thumbUrl, userId) && String(body.thumbUrl).length <= 500
             ? canonicalUploadUrl(String(body.thumbUrl), process.env.CLOUDFRONT_URL ?? "")
             : undefined;
@@ -145,8 +154,8 @@ export const keepStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
 
         const photo: Photo = {
             id: photoId,
-            src,
-            key,
+            src: photoSrc,
+            key: photoKey,
             // キャプションがあれば題に。**撮影日は作らない**——ストーリーの
             // 投稿時刻から撮影日をこしらえると、年表と JSON-LD が嘘の日付で
             // 並ぶ（台帳が「捏造の UTC 0時の行」として一度踏んでいる形）
@@ -180,12 +189,23 @@ export const keepStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
             // 一緒に消すために要る（`deleteMyPhoto`）——実体は共有なので、
             // 写真だけ消すと**自分のストーリーが全員に割れた画像で出続ける**
             // うえ、`keptAs` が死んだIDを指したまま残って**二度と残せなくなる**
-            keptFrom: storyId,
+            // **自分用に残すストーリーから写したときは `keptFrom` を付けない**——画像を共有して
+            // いないので、写真を消してもストーリー（アーカイブ）は残す。代わりに**関係だけ**を
+            // `fromStory` に書く（画面の「ストーリーから作った写真」・消すときの「一緒に消す」）。
+            // `keptFrom` を読む古い経路（差し替えの門・管理者の削除）は、写した写真を独立に扱う
+            ...(copyArchive ? { fromStory: storyId } : { keptFrom: storyId }),
             // 投稿の時刻はストーリーのものを引き継ぐ（一覧の並びが
             // 「その日に上げたもの」として正しい位置に来る）
             createdAt: typeof story.createdAt === "string" ? story.createdAt : now,
             updatedAt: now,
         };
+
+        // **先に写す。** 写せなければ何も書かない（行が無い画像を指す形を作らない）。
+        // 写した先は本人の置き場（`uploads/<uid>/kept-…`）なので、権限は既存の
+        // `uploads/*` の読み・書き（serverless.yml の provider の役割）で足りる
+        if (copyArchive && !await copyAll([{ from: key, to: photoKey }], `keepStory(${storyId})`)) {
+            return jsonError(500, "残せませんでした。もう一度お試しください");
+        }
 
         try {
             await putPhoto(photo);
@@ -201,9 +221,11 @@ export const keepStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
         await ddb.send(new UpdateCommand({
             TableName: PHOTOS_TABLE,
             Key: { id: storyId },
-            UpdateExpression: "SET keptAs = :p",
+            // 写したときは「画像を共有していない」印（`keptCopy`）も立てる。ストーリーを消す・
+            // 掃除するときに、ストーリーの画像は消してよいことの根拠（`sharesKeptMedia`）
+            UpdateExpression: copyArchive ? "SET keptAs = :p, keptCopy = :t" : "SET keptAs = :p",
             ConditionExpression: "attribute_exists(id) AND attribute_not_exists(keptAs)",
-            ExpressionAttributeValues: { ":p": photoId },
+            ExpressionAttributeValues: copyArchive ? { ":p": photoId, ":t": true } : { ":p": photoId },
         })).catch(async (e) => {
             // **例外の名前で決め打ちしない。** 条件は
             // `attribute_exists(id) AND attribute_not_exists(keptAs)` の2つを
@@ -226,6 +248,8 @@ export const keepStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
             // 割れた画像の行だけが残る（`createAlbum` が同じ理由で
             // 後片付けをしている。あちらは例外を選り好みしない）
             await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: photoId } })).catch(() => undefined);
+            // 写した画像も消す（行が消えると、どの削除経路からも辿れない置き去りになる）
+            if (copyArchive) await s3DeleteMany([photoKey], `keepStory(${storyId})`).catch(() => undefined);
             throw e;
         });
 

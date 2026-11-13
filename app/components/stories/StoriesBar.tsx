@@ -18,8 +18,9 @@ import { useSongSearch } from "../../../lib/hooks/useSongSearch";
 import { type SongResult } from "../../../lib/utils/music";
 import { startFromPointer, clampStart } from "../../../lib/utils/songTrim";
 import { log } from "../../../lib/utils/log";
+import { readStoryArchive, writeStoryArchive } from "../../../lib/utils/storyArchivePref";
 import {
-    groupStories, hasUnseen, loadSeenStoryIds, markStorySeen, isSeenStoriesKey,
+    groupStories, hasUnseen, storyDeletePaths, loadSeenStoryIds, markStorySeen, isSeenStoriesKey,
     type Story, type StoryGroup,
 } from "../../../lib/stories";
 import StoryViewer from "./StoryViewer";
@@ -523,15 +524,23 @@ export default function StoriesBar() {
      */
     const [showLocation, setShowLocation] = useState(true);
     /**
-     * アーカイブに自動保存。**既定は切**＝これまでどおり24時間で消える。
+     * アーカイブに自動保存。**2026-11-11 判断（owner「最初からオンでいい」・iOS とそろえる）:
+     * 既定は入、最後に選んだ値を人ごとに覚える**（`lib/utils/storyArchivePref.ts`）。
      * 入にしたぶんだけ、期限切れの掃除が消さずに棚へ移す（本人だけが
      * `/user/archive` で見られる）。「24時間で消える約束」を守るのはここ
      * ——残るのは本人が選んだぶんだけ。
      *
-     * 入にした投稿は「残す」（ギャラリーへ）を押せない（実体を共有する
-     * ので、写真を消すとアーカイブごと消えるため。サーバーも 409）
+     * 入にした投稿も「残す」（ギャラリーへ）を押せる（2026-11-11 から。サーバーが画像を写して
+     * 切り離すので、写真を消してもアーカイブは残る・`api-user/src/storyKeptMedia.ts`）
      */
-    const [archive, setArchive] = useState(false);
+    const [archive, setArchive] = useState(() => readStoryArchive(userId));
+    // ログインの状態が後から分かる・人が替わったら、その人の値を読む
+    useEffect(() => { setArchive(readStoryArchive(userId)); }, [userId]);
+    /** 切り替えたら人ごとに覚える（2026-11-11 判断） */
+    const changeArchive = useCallback((keep: boolean) => {
+        setArchive(keep);
+        writeStoryArchive(userId, keep);
+    }, [userId]);
 
     // 試聴用オーディオ（検索結果も選択中の曲も、常に1つだけ鳴らす）
     const previewAudioRef = useRef<HTMLAudioElement | null>(null);
@@ -731,8 +740,10 @@ export default function StoriesBar() {
         // 同じ設定で出る（画面は閉じているので気づけない）
         setAllowReplies(true);
         setShowLocation(true);
-        setArchive(false);
-    }, [stopPreview, clearSongSearch]);
+        // 自動保存は**その人が最後に選んだ値**へ戻す（2026-11-11 判断・既定は入）。
+        // 本人が選んだ値なので「黙って同じ設定で出る」驚きにはならない
+        setArchive(readStoryArchive(userId));
+    }, [stopPreview, clearSongSearch, userId]);
 
     // 下書きのプレビューURLを必ず解放する。
     // 解放は closeDraft の中だけにあったので、✕ を押さずに離れたとき
@@ -1115,10 +1126,12 @@ export default function StoriesBar() {
         locale, showToast, loadStories, closeDraft, stopPreview]);
 
     // 自分のストーリーを削除
-    const handleDeleteStory = useCallback(async (storyId: string) => {
+    const handleDeleteStory = useCallback(async (storyId: string, withPhotoId?: string) => {
         try {
             const { userFetch, isGoneResponse, readApiError } = await import("../../../lib/utils/api");
-            const res = await userFetch(`/stories/${encodeURIComponent(storyId)}`, { method: "DELETE" });
+            // 「写真も一緒に消す」は写真の口 → ストーリーの口の順（2026-11-11・`storyDeletePaths`）
+            for (const path of storyDeletePaths(storyId, withPhotoId)) {
+            const res = await userFetch(path, { method: "DELETE" });
             // 404 は成功として扱う（別タブで先に消した／24時間で期限切れ）。
             // 失敗と読んで throw していたので `loadStories()` に到達せず、
             // **もう存在しないストーリーがバーに残り続けた**（開くと画像が
@@ -1130,6 +1143,7 @@ export default function StoriesBar() {
                 // 伝わらない
                 throw new Error(await readApiError(res,
                     locale === "en" ? "Failed to delete" : "削除に失敗しました"));
+            }
             }
             showToast(locale === "en" ? "Story deleted" : "ストーリーを削除しました", "success");
             await loadStories();
@@ -2160,12 +2174,12 @@ export default function StoriesBar() {
                                 disabled={posting}
                             />
 
-                            {/* 既定は切（24時間で消える）。入にしたぶんだけ本人の
-                                アーカイブに残る。モックの「アーカイブに自動保存」 */}
+                            {/* 既定は入・最後に選んだ値を人ごとに覚える（2026-11-11 判断）。
+                                入にしたぶんだけ本人のアーカイブに残る。モックの「アーカイブに自動保存」 */}
                             <SettingSwitch
                                 label={locale === "en" ? "Save to archive" : "アーカイブに自動保存"}
                                 checked={archive}
-                                onChange={setArchive}
+                                onChange={changeArchive}
                                 disabled={posting}
                             />
 

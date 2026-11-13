@@ -38,7 +38,7 @@ function spot(slug: string, prefecture: string, over: Partial<Spot> = {}): Spot 
 
 const verified = { status: "published" as const, verifiedBy: "運営", verifiedAt: "2026-09-25" };
 
-describe("サイトマップ: 撮影スポットは人が確かめた行だけ", () => {
+describe("サイトマップ: 観光スポットは人が確かめた行だけ", () => {
     it("下書きの個別ページ・下書きしか無い県・確認1件の県は載らない", async () => {
         ledger.spots = [
             spot("kagawa-a", "香川県"),

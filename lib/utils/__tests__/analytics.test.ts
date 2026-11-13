@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { track, gaInitSnippet, signupFromVia, PENDING_QUEUE, PENDING_MAX } from "../analytics";
 
 /**
@@ -53,5 +53,38 @@ describe("signupFromVia", () => {
         expect(signupFromVia(null)).toBe("other");
         expect(signupFromVia("")).toBe("other");
         expect(signupFromVia("WISH")).toBe("other");
+        // 撮影スポットを払う画面（`/swipe`）から（2026-11-11）
+        expect(signupFromVia("swipe")).toBe("swipe");
+        expect(signupFromVia("SWIPE")).toBe("other");
+    });
+});
+
+// 合図を URL に持つ私的な頁（`/j?t=`・`/qr?t=`）の頁の記録に、合図を載せない（2026-11-12・札 journey.photo-ios#545）
+describe("GA4 の頁の記録に私的な合図を載せない", () => {
+    const configOn = (path: string) => {
+        window.history.replaceState(null, "", path);
+        w.dataLayer = undefined;
+        (0, eval)(gaInitSnippet("G-TEST"));
+        const dl = (w.dataLayer as unknown as IArguments[]).map((a) => Array.from(a));
+        return dl.find((a) => a[0] === "config")!;
+    };
+
+    afterEach(() => { window.history.replaceState(null, "", "/"); });
+
+    it.each(["/qr?t=SECRETSECRETSECRETSECRETSECRET12", "/j?t=SECRETSECRETSECRETSECRETSECRET12&x=1", "/qr/?t=SECRETSECRETSECRETSECRETSECRET12"])(
+        "%s の page_location から t を外す",
+        (path) => {
+            const config = configOn(path);
+            expect(config[1]).toBe("G-TEST");
+            const loc = (config[2] as { page_location: string }).page_location;
+            expect(loc).not.toContain("SECRET");
+            expect(new URL(loc).searchParams.has("t")).toBe(false);
+            expect(JSON.stringify(w.dataLayer, (_k, v) => (v instanceof Date ? "" : v))).not.toContain("SECRET");
+        },
+    );
+
+    it("ほかの頁はそのまま（t があっても私的な頁でなければ触らない）", () => {
+        expect(configOn("/search?t=abc")).toEqual(["config", "G-TEST"]);
+        expect(configOn("/q")).toEqual(["config", "G-TEST"]);
     });
 });

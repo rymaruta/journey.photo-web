@@ -95,7 +95,7 @@ describe("GA4 は描画のあと", () => {
     });
 });
 
-describe("撮影スポットの札の下のリンクは 24px の的", () => {
+describe("観光スポットの札の下のリンクは 24px の的", () => {
     it("ライセンスと作者のリンクが、どちらも高さ 24px の箱になっている", async () => {
         const { TopicCreditLine, COMPACT_CREDIT_LINE } = await import("../components/SpotTopicLists");
         const { LocaleProvider } = await import("../i18n/context");

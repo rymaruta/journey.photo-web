@@ -162,8 +162,10 @@ describe("診断が見る「読み取り専用ロールの関数」", () => {
     it("`role: PublicReadRole` を書いた関数を全部拾う", () => {
         const pub = publicFnsFromServerless() as string[];
         expect(pub.length, "1つも拾えていない（正規表現が壊れている）").toBeGreaterThan(5);
-        // 本番で誤報の元になった1つ
-        expect(pub, "getInvite を見ていない（正しい設定に !! を出す）").toContain("api-user:getInvite");
+        // 本番で誤報の元になったのは `getInvite`（2026-11-12 に共同アルバムの別スタックへ移した・#552）。
+        // 今も user API に居る読み取り専用の関数で同じことを見る
+        expect(pub, "getLikeCount を見ていない（正しい設定に !! を出す）").toContain("api-user:getLikeCount");
+        expect(pub, "別のスタックへ移した関数まで拾っている").not.toContain("api-user:getInvite");
         // 共有ロールの関数は入らない
         expect(pub, "共有ロールの関数まで拾っている").not.toContain("api-user:likePhoto");
     });
@@ -203,16 +205,16 @@ describe("診断が見る「読み取り専用ロールの関数」", () => {
     // 衝突を作って、区別していることを縛る
     it("同名でもパッケージが違えば別（読み取り専用の側）", () => {
         const pub = publicFnsFromServerless() as string[];
-        expect(pub, "前提が変わった（api-user:getInvite が無い）").toContain("api-user:getInvite");
-        expect(pub, "管理API側にも期待している").not.toContain("api:getInvite");
+        expect(pub, "前提が変わった（api-user:getLikeCount が無い）").toContain("api-user:getLikeCount");
+        expect(pub, "管理API側にも期待している").not.toContain("api:getLikeCount");
         const lines = (reportFunctions([{
-            // 管理API側の同名関数。共有ロールのままで**正しい**
-            FunctionName: "photo-gallery-api-prod-getInvite",
+            // 管理API側の同名関数（仮）。共有ロールのままで**正しい**
+            FunctionName: "photo-gallery-api-prod-getLikeCount",
             Role: "arn:aws:iam::1:role/x-lambdaRole",
             Environment: { Variables: {} },
         }], [], pub) as string[]).join("\n");
         expect(lines, "管理API側に「共有ロールのまま」を誤爆している").not.toContain("共有ロールのまま");
-        expect(lines).toContain("api:getInvite");
+        expect(lines).toContain("api:getLikeCount");
     });
 
     // **0件を静かに素通ししない**（トークン側と同じ守り）

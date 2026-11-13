@@ -1133,13 +1133,13 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                 <Link
                                     href={`/spots/${spotLink.slug}`}
                                     prefetch={false}
-                                    aria-label={locale === "en" ? `Photo spot: ${spotLink.name}` : `撮影スポット: ${spotLink.name}`}
+                                    aria-label={locale === "en" ? `Photo spot: ${spotLink.name}` : `観光スポット: ${spotLink.name}`}
                                     className={`${FOOT_ROW} pointer-events-auto`}
                                     style={FOOT_ROW_STYLE}
                                     data-testid="photo-spot-guide"
                                 >
                                     <BookOpenIcon aria-hidden="true" className="flex-shrink-0" style={{ width: 13, height: 13, strokeWidth: 1.8 }} />
-                                    <span className={FOOT_UNDERLINE}>{locale === "en" ? `Photo spot · ${spotLink.name}` : `撮影スポット · ${spotLink.name}`}</span>
+                                    <span className={FOOT_UNDERLINE}>{locale === "en" ? `Photo spot · ${spotLink.name}` : `観光スポット · ${spotLink.name}`}</span>
                                     <span className="flex-shrink-0" aria-hidden="true">›</span>
                                 </Link>
                             )}
@@ -1561,7 +1561,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                 {nearbySpots.length > 0 && (
                     <section aria-labelledby="photo-nearby-spots-heading" className="pt-5" data-testid="photo-nearby-spots">
                         <h2 id="photo-nearby-spots-heading" className="m-0 mb-3 font-serif font-bold" style={{ fontSize: "18px", lineHeight: "24px" }}>
-                            {locale === "en" ? "Photo spots nearby" : "近くの撮影スポット"}
+                            {locale === "en" ? "Photo spots nearby" : "近くの観光スポット"}
                         </h2>
                         <SpotRows rows={nearbySpots} isJa={locale !== "en"} />
                     </section>

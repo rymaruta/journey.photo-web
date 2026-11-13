@@ -1,0 +1,175 @@
+# みんなの「行きたい」（2026-11-12・撮影スポットを払うの②・`src/spotWants.ts`）を、
+# user API とは**別のスタック**で配る。
+#
+# 🔴 なぜ分けたか: user API のスタック（`serverless.yml`）は部品が 488 個あり、②の 15 個を足すと
+#    503 個になって CloudFormation の上限 500 で本番の反映が落ちた
+#    （2026-11-12 Deploy API Lambdas 43124792781）。ここに分ければ user API は 488 のまま。
+#
+# 置き場を api-user の中の別の設定ファイルにした理由: 関数のコード（`src/spotWants.ts`）・依存
+# （`node_modules`）・esbuild の設定を user API と共有するため。別のディレクトリにすると、
+# 同じコードを2か所に置くか、外を参照する作りが要る。配るときは `--config serverless.spot-wants.yml`。
+#
+# 🔴 口の URL は今の user API と同じ（`POST <user API>/spots/wants`）。新しい HTTP API は作らず、
+#    user API のスタックが書き出す HttpApiId（`sls-photo-gallery-user-api-<stage>-HttpApiId`）を
+#    取り込んで、**経路だけ**このスタックに置く。Web とアプリが叩く先は変わらない。
+#    そのため、このスタックを配るのは user API のスタックが在ってから（`deploy-api.yml` の順番）。
+#    流量の絞り（段の RouteSettings）は段を持つ user API 側（`serverless.yml` の `extensions`）に置く。
+#    経路が先に在る必要があるので、`deploy-api.yml` はこのスタックを user API より先に配る。
+service: photo-gallery-spot-wants
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ap-northeast-1
+  # user API と同じ（`scripts/__tests__/logRetention.test.ts`）
+  logRetentionInDays: 90
+  versionFunctions: false
+  environment:
+    PHOTOS_TABLE: ${param:photosTable}
+  httpApi:
+    # user API の HTTP API に経路を足す（新しい API は作らない）
+    id:
+      Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node22
+    platform: node
+    exclude:
+      - '@aws-sdk/*'
+
+functions:
+  # **未認証で呼べる口**（未ログインでも払える）。端末のでたらめな ID・日の上限・月1回で荒らしを止める。
+  # 役は数の行の読み書きだけ（鍵の頭 `dynamodb:LeadingKeys` で数の行に絞る）。
+  # 流量は user API の段で絞る（`serverless.yml` の `extensions.HttpApiStage.RouteSettings`）
+  recordSpotWants:
+    handler: src/spotWants.recordSpotWants
+    role: SpotWantsRecordRole
+    events:
+      - httpApi:
+          path: /spots/wants
+          method: POST
+
+  # 毎日1回、今月の数を読んで上位と数を `app/data/spot-wants.json` にして Web の置き場へ書く。
+  # 急に増えた撮影スポットに印を付けて上位から外す。日本時間の 4:17（日の区切りの後）
+  aggregateSpotWants:
+    handler: src/spotWants.aggregateSpotWants
+    role: SpotWantsAggregateRole
+    timeout: 300
+    environment:
+      SITE_BUCKET: ${param:siteBucket}
+    events:
+      - schedule: cron(17 19 * * ? *)
+
+  # 毎日1回、古い重なり止め・日の上限・塩の行を消す（photos 表の TTL は無効・有効にしない）。
+  # 数の配りとは別の関数（片方が落ちても他方は動く）。日本時間の 4:47
+  cleanupSpotWants:
+    handler: src/spotWants.cleanupSpotWants
+    role: SpotWantsAggregateRole
+    timeout: 300
+    events:
+      - schedule: cron(47 19 * * ? *)
+
+resources:
+  Resources:
+    # みんなの「行きたい」を受ける口（`recordSpotWants`）。数の行の読み書きだけ
+    SpotWantsRecordRole:
+      Type: AWS::IAM::Role
+      Properties:
+        # IAM のロール名は 64 文字まで（staging でも収まる短い名前）
+        RoleName: ${self:service}-${sls:stage}-wantsRecord
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: spotWantsRecord
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # 数の行（鍵の頭 spotwant・wantby・wantday・wantip・wantsalt）だけ。写真の行は読み書きできない
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - spotwant*
+                        - wantby#*
+                        - wantday#*
+                        - wantip#*
+                        - wantsalt#*
+
+    # 毎日の集計（`aggregateSpotWants`）。数を読む・印を書く・古い行を消す・Web の置き場の1ファイルだけ書く
+    SpotWantsAggregateRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-wantsAggregate
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: spotWantsAggregate
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # 読み書き・削除は数の行（鍵の頭で絞る）だけ。**写真の行は権限でも消せない**
+                - Effect: Allow
+                  Action:
+                    - dynamodb:BatchGetItem
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:BatchWriteItem
+                    - dynamodb:DeleteItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - spotwant*
+                        - wantby#*
+                        - wantday#*
+                        - wantip#*
+                        - wantsalt#*
+                # 古い行を探す Scan（読むだけ・鍵の頭の条件は Scan には効かないので別に置く。projection は id だけ）
+                - Effect: Allow
+                  Action:
+                    - dynamodb:Scan
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                - Effect: Allow
+                  Action:
+                    - s3:PutObject
+                  Resource:
+                    - arn:aws:s3:::${param:siteBucket}/app/data/spot-wants.json

@@ -55,6 +55,11 @@ describe("プライバシーポリシーの数が実装と合っている", () =
         const s5 = sectionOf(5);
         expect(s5, "会話の保存数が実装（DM_MESSAGES_MAX）と違う").toContain(`新しい${constOf("api-user/src/dm.ts", "DM_MESSAGES_MAX")}通まで、または1会話あたりの保存容量の上限まで`);
         expect(s5, "通報の写しの通数が実装（DM_REPORT_LAST）と違う").toContain(`直近${constOf("api-user/src/dm.ts", "DM_REPORT_LAST")}通の写し`);
+        // 押し直しの通報は前の写しを残して重ねる（2026-11-12・`reportConversation`）。上限は DM_REPORT_KEEP_MAX
+        expect(s5, "押し直しで写しを重ねる上限が実装（DM_REPORT_KEEP_MAX）と違う")
+            .toContain(`前の写しも残して新しい直近${constOf("api-user/src/dm.ts", "DM_REPORT_LAST")}通と合わせ、最大${constOf("api-user/src/dm.ts", "DM_REPORT_KEEP_MAX")}通まで保存します`);
+        expect(sectionOf(11), "退会後に残るものの通報の写しの通数が実装と違う")
+            .toContain(`写し（直近${constOf("api-user/src/dm.ts", "DM_REPORT_LAST")}通。もう一度通報したときは前の写しと合わせて最大${constOf("api-user/src/dm.ts", "DM_REPORT_KEEP_MAX")}通）`);
         expect(s5, "リクエストの通数が実装（DM_REQUEST_MAX）と違う").toContain(`文字${constOf("api-user/src/dm.ts", "DM_REQUEST_MAX")}通まで`);
         // 会話数の上限は本文では言わない（言うなら実装と同じ数）。実装の定数が読めること自体は見る
         expect(constOf("api-user/src/dmInbox.ts", "DM_CONVS_MAX")).toBeGreaterThan(0);
@@ -75,6 +80,11 @@ describe("プライバシーポリシーの数が実装と合っている", () =
             "プッシュ通知にはメッセージの本文を載せず、送った方の名前だけを表示します",
             "通報した時点の直近",
             "会話はご自身の側だけ削除できます",
+            // 送信の取り消し（2026-11-12・`dm.ts` の `unsendMessage`）: 跡を残さず消す・通報の写しは残る
+            "いつでも送信を取り消せます",
+            "取り消したことを示す表示も残しません",
+            "通報の写しに含まれたメッセージが通報の記録として残ります",
+            "送信を取り消しても、退会しても消しません",
         ]) expect(s5, `5節に「${phrase}」が無い`).toContain(phrase);
         expect(sectionOf(2)).toContain("メッセージ（DM）の本文");
         expect(sectionOf(11)).toContain("メッセージ（DM）の受信箱と、ご自身の側の会話");
@@ -121,7 +131,7 @@ describe("本文の約束が消えていない", () => {
     it("3節: iPhone アプリの新しい版の切り替えと、前の版の動きを両方書いてある", () => {
         const s3 = sectionOf(3);
         expect(s3).toContain("「撮影地の位置を付ける（約1kmに丸めて保存）」で切り替えられます（初期状態はオンです）");
-        expect(s3).toContain("投稿・ストーリー・写真の差し替えの画面");
+        expect(s3).toContain("投稿、ストーリー、写真の差し替えの画面");
         expect(s3).toContain("オフにすると写真の位置情報は送らず");
         expect(s3, "前の版の動きが抜けている（まだ切り替えの無い版が出回っている）").toContain("この切り替えの無い前の版では、上の条件のとおり送ります");
         expect(s3, "切り替えが入ったのに、無いと言っている").not.toContain("切り替えはありません");
@@ -379,5 +389,26 @@ describe("旅のトランクの節が、人のトランクの口と合ってい�
         for (const phrase of ["手持ちのラベル", "硬貨の枚数", "部品箱とかけら", "ラベルの元の写真のID"]) {
             expect(trunk, `見えないものに「${phrase}」が無い`).toContain(phrase);
         }
+    });
+});
+
+describe("観光スポットを払う画面（/swipe・2026-11-11）", () => {
+    it("ログインせずに払った「行きたい」の端末の印は40件まで・ログインでサーバーへ移す、と本文に書いてある", () => {
+        const n = constOf("lib/utils/spotSwipe.ts", "SWIPE_WANT_MAX");
+        expect(page).toContain("観光スポットを払う画面（/swipe）");
+        expect(page, "本文の件数が実装と違う").toContain(`最大${n}件`);
+        expect(page).toContain("ログインしたときに、ご自身の「行きたい場所」としてサーバーへ移し");
+        // 移す口は「行きたい場所」と同じ（POST /user/spots）
+        expect(read("lib/utils/spotSwipe.ts")).toContain("POST /user/spots");
+    });
+
+    it("みんなの「行きたい」: 端末の番号を送る・10件以上だけ公開・順位は日本だけ、が実装と合う", () => {
+        const min = constOf("api-user/src/spotWants.ts", "MIN_SHOWN");
+        expect(page).toContain(`観光スポットごとの月の数（${min}件以上のもの）`);
+        expect(page).toContain("端末ごとに作るでたらめな番号");
+        expect(page).toContain("IPアドレスそのものは保存せず");
+        expect(page).toContain("日本の観光スポットの中の順位");
+        // 「localStorage はサーバーに送らない」と言い切らない（端末の番号は送る）
+        expect(page).toContain("「行きたい」の数を数えるための端末ごとの番号を除きます");
     });
 });

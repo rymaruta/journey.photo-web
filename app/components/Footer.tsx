@@ -19,7 +19,7 @@ export default function Footer() {
         // 公式撮影地ガイドの索引。**写真の投稿が0枚の場所も載る**面なので、
         // 写真の一覧（`/location`）とは別に入口が要る。フッターは全ページに
         // 出るので、写真から来た人にも見つかる（撮影地マップと同じ理由）
-        { href: ROUTES.SPOTS, label: locale === "en" ? "Photo spots" : "撮影スポット" },
+        { href: ROUTES.SPOTS, label: locale === "en" ? "Photo spots" : "観光スポット" },
         { href: ROUTES.FAVORITES, label: navLabels.favorites || (locale === "en" ? "Liked Photos" : "いいねした写真") },
         // 保存した写真。**いいねとは別の棚**なので、並べて出して違いを見せる
         { href: ROUTES.SAVES, label: navLabels.saves || (locale === "en" ? "Saved Photos" : "保存した写真") },
@@ -29,6 +29,8 @@ export default function Footer() {
         { href: ROUTES.SAVED_SPOTS, label: locale === "en" ? "Want to go" : "行きたい場所" },
         { href: ROUTES.TERMS, label: locale === "en" ? "Terms" : "利用規約" },
         { href: ROUTES.PRIVACY, label: locale === "en" ? "Privacy" : "プライバシーポリシー" },
+        // 意見箱（2026-11-11 札 #546）
+        { href: ROUTES.FEEDBACK("footer"), label: locale === "en" ? "Send feedback" : "意見を送る" },
     ];
 
     return (

@@ -103,8 +103,24 @@ export const ROUTES = {
      * 画面が日付のファイルから読むので、HTML は空の殻（`app/q/layout.tsx`）
      */
     QUIZ: "/q",
+    /**
+     * 撮影スポットを払う（写真を右へ払うと行きたい・2026-11-11）。**検索に出す**（題と説明を持つ静的な頁・
+     * 札の山は `/app/data/swipe.json`）。未ログインでも払える。入口はホームの上段の札の1枚目
+     */
+    SWIPE: "/swipe",
     PRIVACY: "/privacy",
     TERMS: "/terms",
+    /**
+     * 使い方（2026-11-12・札 journey.photo-ios#517）。目次と、機能ごとの短い頁（台帳は `lib/data/helpPages.ts`）。
+     * iOS の入口は 設定 → ヘルプと規約 → 使い方 の1か所だけ（`HELP` を開く）
+     */
+    HELP: "/help",
+    HELP_PAGE: (slug: string) => `/help/${slug}`,
+    /**
+     * 意見を送る（札 #546・2026-11-11）。ログインしていなくても送れる。入口はフッターと設定。
+     * `?from=` でどこから来たかを渡す（`footer` | `settings`）。検索結果には出さない（`appPageMetadata`）
+     */
+    FEEDBACK: (from?: "footer" | "settings") => (from ? `/feedback?from=${from}` : "/feedback"),
     ADMIN: "/admin",
     LOGIN: "/login",
     SIGNUP: "/signup",
@@ -205,7 +221,7 @@ export function safeNextPath(raw: unknown): string | null {
 }
 
 /** ログイン画面へ。戻り先を添える（省略時は既定＝自分のプロフィール） */
-export function loginWithNext(next?: string | null, via?: "wish"): string {
+export function loginWithNext(next?: string | null, via?: "wish" | "swipe"): string {
     const safe = safeNextPath(next);
     const base = safe ? `${ROUTES.LOGIN}?next=${encodeURIComponent(safe)}` : ROUTES.LOGIN;
     // `via` は登録までの数え方（`lib/utils/analytics.ts` の `signupFromVia`）。

@@ -1,0 +1,60 @@
+name: Stack size
+
+# **CloudFormation のスタックの部品の数を、PR の段で数える**（札 journey.photo-ios#552 の①）。
+#
+# 2026-11-12、user API のスタックが 503 個になり、本番の Deploy API Lambdas が
+# 「Number of resources, 503, is greater than maximum allowed, 500」で落ちた。
+# CloudFormation は配る段で初めて断るので、PR も staging も通ったまま本番で止まる。
+# ここで `serverless package` して数え、450 を超えたら（すでに超えているスタックは
+# 決めた数から増えたら）赤にする。判断は `scripts/lib/stackSize.mjs`。
+#
+# `checks.yml` に入れず別にしたのは、あちらが api/ api-user/ を起動条件に持たず、
+# 足すと API だけの PR でも全スイート（約10分）が流れるから。こちらは1分前後。
+# **AWS の鍵は使わない**（PR のコードに配る鍵を渡さない）。`${aws:accountId}` は
+# 仮の値に置き換えて固める（`substituteAccountId`）。
+# 同じ検査は `deploy-api.yml` の配る前の段（config）でも流れる。
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "api/**"
+      - "api-user/**"
+      - "scripts/check-stack-size.mjs"
+      - "scripts/lib/stackSize.mjs"
+      - ".github/workflows/stack-size.yml"
+
+concurrency:
+  group: stack-size-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  count:
+    name: スタックの部品の数
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+          cache-dependency-path: |
+            api/package-lock.json
+            api-user/package-lock.json
+
+      # 固めるのに serverless-esbuild と、固める元の依存が要る（ルートの依存は要らない）
+      - name: Install API dependencies
+        run: npm ci
+        working-directory: api
+      - name: Install user API dependencies
+        run: npm ci
+        working-directory: api-user
+
+      # 数は staging・prod の両方（stage で部品が変わる設定を書いても見逃さない）
+      - name: 部品の数を数える
+        run: node scripts/check-stack-size.mjs --stage staging,prod

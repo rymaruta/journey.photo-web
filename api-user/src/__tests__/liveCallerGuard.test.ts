@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync } from "node:fs";
 import path from "node:path";
 
 /**
@@ -21,7 +21,11 @@ import path from "node:path";
  */
 
 const SRC = path.join(__dirname, "..");
-const YML = readFileSync(path.join(SRC, "..", "serverless.yml"), "utf8");
+/**
+ * user API（`serverless.yml`）と、そこから口を移した・口を足す**別のスタック**（`serverless.<機能>.yml`・札 #552）。
+ * 別のスタックに移した口もこの守りから外さない（移した途端に退会の確かめが黙って抜けないように）
+ */
+const YML_FILES = readdirSync(path.join(SRC, "..")).filter((n) => /^serverless(\.[\w-]+)?\.yml$/.test(n)).sort();
 
 /** 共通の確かめ。どれか1つを export の本体で呼んでいればよい */
 const GUARD = /\b(?:assertLiveCaller|readLiveCaller|goneIfDeleted)\(/;
@@ -120,7 +124,7 @@ const EXCLUDED: Array<{ route: string; reason: string; stillChecks?: [file: stri
     },
 ];
 
-const routes = routesOf(YML);
+const routes = YML_FILES.flatMap((f) => routesOf(readFileSync(path.join(SRC, "..", f), "utf8")));
 const writes = routes.filter((r) => r.authorized && r.method !== "GET");
 const key = (r: Route) => `${r.method} ${r.path}`;
 const excluded = new Map(EXCLUDED.map((e) => [e.route, e]));

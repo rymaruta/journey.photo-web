@@ -45,7 +45,7 @@ import TripLightCard from "./TripLightCard";
 export default function TripsClient({ spots }: { spots: Record<string, SpotRef> }) {
     const { locale } = useLocale();
     const en = locale === "en";
-    const { isAuthenticated, loading: authLoading } = useAuth();
+    const { isAuthenticated, loading: authLoading, userId } = useAuth();
     const { plans, pending, failed, retry, busy, create, update, remove, error } = useTripPlans(isAuthenticated, authLoading);
     const [openId, setOpenId] = React.useState<string | null>(null);
     const [newTitle, setNewTitle] = React.useState("");
@@ -144,6 +144,7 @@ export default function TripsClient({ spots }: { spots: Record<string, SpotRef> 
                         <PlanCard
                             key={plan.planId}
                             en={en}
+                            me={userId}
                             plan={plan}
                             spots={spots}
                             open={openId === plan.planId}
@@ -165,8 +166,10 @@ function countItems(plan: TripPlan): number {
     return plan.days.reduce((n, d) => n + d.items.length, 0);
 }
 
-function PlanCard({ en, plan, spots, open, busy, onToggle, onUpdate, onRemove }: {
+function PlanCard({ en, me, plan, spots, open, busy, onToggle, onUpdate, onRemove }: {
     en: boolean;
+    /** ログインしている人（共有したプランで、作った人か仲間かを分ける） */
+    me?: string | null;
     plan: TripPlan;
     spots: Record<string, SpotRef>;
     open: boolean;
@@ -177,6 +180,8 @@ function PlanCard({ en, plan, spots, open, busy, onToggle, onUpdate, onRemove }:
 }) {
     const [confirming, setConfirming] = React.useState(false);
     const count = countItems(plan);
+    // 共有したプランの仲間（作った人でない）は「削除」ではなく「抜ける」（サーバーも仲間の DELETE は抜けるだけ）
+    const leaving = !!plan.shared && plan.shared.ownerId !== me;
 
     return (
         <li className="rounded-2xl bg-surface ring-1 ring-line overflow-hidden">
@@ -189,17 +194,24 @@ function PlanCard({ en, plan, spots, open, busy, onToggle, onUpdate, onRemove }:
                     style={{ touchAction: "manipulation", minHeight: 44 }}
                 >
                     <span className="block truncate text-sm font-semibold">{plan.title}</span>
-                    <span className="block text-xs text-white/60" style={{ marginTop: "2px" }}>
-                        {[period(plan, en ? "en" : "ja"), en ? `${count} place${count !== 1 ? "s" : ""}` : `${count} か所`]
+                    {/* 期間・場所の数・共有の人数は余白で分ける（中黒で区切らない・2026-11-12 の決まり） */}
+                    <span className="flex flex-wrap gap-x-2 text-xs text-white/60" style={{ marginTop: "2px" }}>
+                        {[
+                            period(plan, en ? "en" : "ja"),
+                            en ? `${count} place${count !== 1 ? "s" : ""}` : `${count} か所`,
+                            plan.shared ? (en ? `Shared with ${plan.shared.memberCount}` : `${plan.shared.memberCount}人で共有`) : "",
+                        ]
                             .filter(Boolean)
-                            .join(" ・ ")}
+                            .map((part) => <span key={part}>{part}</span>)}
                     </span>
                 </button>
                 <button
                     type="button"
                     onClick={() => setConfirming(true)}
                     disabled={busy}
-                    aria-label={en ? `Delete ${plan.title}` : `「${plan.title}」を削除`}
+                    aria-label={leaving
+                        ? (en ? `Leave ${plan.title}` : `「${plan.title}」から抜ける`)
+                        : (en ? `Delete ${plan.title}` : `「${plan.title}」を削除`)}
                     className="shrink-0 rounded-full px-3 text-xs bg-surface ring-1 ring-white/15 text-white/70 hover:bg-white/15 hover:text-white disabled:opacity-60 transition inline-flex items-center"
                     style={{ touchAction: "manipulation", minHeight: 44 }}
                 >
@@ -211,7 +223,11 @@ function PlanCard({ en, plan, spots, open, busy, onToggle, onUpdate, onRemove }:
             {confirming && (
                 <div className="px-4 pb-3 flex items-center gap-2 flex-wrap">
                     <span className="text-xs text-white/80">
-                        {en ? "Delete this trip?" : "この旅行プランを削除しますか？"}
+                        {leaving
+                            ? (en ? "Leave this shared trip?" : "この旅行プランから抜けますか？")
+                            : plan.shared
+                                ? (en ? "Delete this trip for everyone?" : "仲間全員からこの旅行プランを削除しますか？")
+                                : (en ? "Delete this trip?" : "この旅行プランを削除しますか？")}
                     </span>
                     <button
                         type="button"
@@ -220,7 +236,7 @@ function PlanCard({ en, plan, spots, open, busy, onToggle, onUpdate, onRemove }:
                         className="rounded-full px-3 text-xs ring-1 ring-danger/50 text-danger hover:bg-danger/10 disabled:opacity-60 transition"
                         style={{ touchAction: "manipulation", minHeight: 44 }}
                     >
-                        {en ? "Delete" : "削除する"}
+                        {leaving ? (en ? "Leave" : "抜ける") : (en ? "Delete" : "削除する")}
                     </button>
                     <button
                         type="button"

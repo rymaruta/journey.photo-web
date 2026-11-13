@@ -249,7 +249,7 @@ describe("savePhoto: 自動の結びを外した印", () => {
 
 // **撮影スポットの紐付け**（本人がスポットの画面から選ぶ・2026-09-29）。
 // 形の違う値は書かない（名前などを入れても紐付かない）
-describe("savePhoto: 撮影スポット", () => {
+describe("savePhoto: 観光スポット", () => {
     it("形の合う spotId を保存する", async () => {
         await invoke(event("u1", { ...BASE, spotId: "sp_0123456789ab" }));
         expect(savedPhoto().spotId).toBe("sp_0123456789ab");
@@ -514,6 +514,19 @@ describe("savePhoto: 公開したら静的サイトを作り直してもらう",
         const res = await invoke(event("u1", { ...BASE, published: false }));
         expect(res.statusCode).toBe(200);
         expect(savedRewrite().keptFrom).toBe("story-1");
+    });
+
+    // 2026-11-11: 自分用に残したストーリーから写した写真の元（`fromStory`）も落とさない。
+    // 落とすと「ストーリーから作った写真」の札と「一緒に消す」が消える
+    it("再送で書き直しても、写した元のストーリー（fromStory）は引き継ぐ", async () => {
+        mockPutPhoto.mockRejectedValue(Object.assign(new Error("dup"), { name: "ConditionalCheckFailedException" }));
+        mockGetPhotoById.mockResolvedValue({
+            id: "x", userId: "u1", src: BASE.publicUrl, published: false, fromStory: "story-2",
+            createdAt: "2026-01-01T00:00:00.000Z", updatedAt: "2026-01-01T00:00:00.000Z",
+        });
+        const res = await invoke(event("u1", { ...BASE, published: false }));
+        expect(res.statusCode).toBe(200);
+        expect(savedRewrite().fromStory).toBe("story-2");
     });
 
     it("再送で published を持たない行なら、公開済みとして頼まない", async () => {

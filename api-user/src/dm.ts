@@ -6,6 +6,7 @@ import { requireEnv } from "./env";
 import { JSON_HEADERS, getUserId, jsonError } from "./http";
 import { displayNameOf, DEFAULT_NAME, DELETED_USER_NAME, deletedAmong, pushDmMessage } from "./notify";
 import { truncate, sanitizeText } from "./sanitize";
+import { cleanMultilineText, INVISIBLE } from "./textClean";
 import { isBlocked, hiddenUserIds } from "./blockCheck";
 import { isFollowing } from "./followCheck";
 import { readUserList } from "./userList";
@@ -15,6 +16,8 @@ import { readLiveCaller } from "./liveCaller";
 import { isReportReason, REPORT_NOTE_MAX } from "./report";
 import { isDeletedProfile } from "./types";
 import { storyQuotesFor, type StoryQuote } from "./dmStoryQuote";
+import { photoQuotesFor, type PhotoQuote } from "./dmPhotoQuote";
+import { readVisiblePhoto, isPhotoId } from "./photoVisibility";
 import {
     DM_CONVS_MAX, DM_REQUESTS_MAX, DM_INBOX_HARD_MAX, DM_DECLINED_MAX, slotCounts,
     DM_EXCERPT_MAX, dmInboxId, declinedAttr, readDmInbox, unreadConvCount,
@@ -66,8 +69,15 @@ const USERS_TABLE = requireEnv("USERS_TABLE");
 /**
  * 1通。`via: "story"` はストーリーへの返信から写した通で、`storyId` はそのストーリー
  * （2026-11-10 から書く。**それより前に写した通は持たない**）。
+ *
+ * `photoId` は送った写真（2026-11-11 から・札 #541）。**写真だけの通は `text` が空**——API に出すときは
+ * 古いアプリのために `text` を「写真を送りました」で埋め、`photoOnly: true` を添える（`shapeMessage`）。
+ * 新しい GSI・表は作らない（会話の本体の1通に欄を1つ足すだけ）。
  */
-export type DmMessage = { id: string; from: string; text: string; t: string; via?: "story"; storyId?: string };
+export type DmMessage = { id: string; from: string; text: string; t: string; via?: "story"; storyId?: string; photoId?: string };
+
+/** 写真だけの通の、抜粋と古いアプリ向けの本文（文字の無い吹き出しを出させない） */
+export const DM_PHOTO_TEXT = "写真を送りました";
 
 type ConvState = "inbox" | "request";
 
@@ -86,6 +96,19 @@ type DmConv = {
     /** この時刻より前のメッセージは、その人には見せない（自分の側を消した時刻） */
     loClearedAt?: string;
     hiClearedAt?: string;
+    /**
+     * 最後に送信を取り消した時刻（2026-11-12・送信取り消し）。`?since=` の読み直しがこれより前からなら、
+     * 差分ではなく全部を `full: true` で返す（差分だけでは「消えた1通」を相手の画面が知れない）
+     */
+    unsentAt?: string;
+    /**
+     * 受け取った人（始めた人ではない方）が一度でも話したか（2026-11-12・確かめ役の指摘）。**通の有無で決めない**
+     * ——受け取った人が返信を取り消すと、始めた人の画面が「承認前の3通を使い切った」に戻っていた。
+     * この欄より前の会話は通から見る（`peerHasSpoken`）
+     */
+    replied?: boolean;
+    /** 最後に取り消した通と、その通が送り主の通の中で後ろから何番目だったか（押し直しで未読を直すため） */
+    lastUnsent?: { id: string; fromEnd: number };
     updatedAt: string;
 };
 
@@ -120,23 +143,12 @@ const isCcf = (e: unknown) => (e as { name?: string })?.name === "ConditionalChe
 const errName = (e: unknown) => (e as { name?: string })?.name ?? "Error";
 
 /**
- * 本文の整え。**改行は残す**（`sanitizeText` は改行まで落とすので、段落が1行に潰れる）。
- * 見えない制御文字を落とし、行の前後と3つ以上の連続する空行をまとめ、上限で切る。
+ * 本文の整え。**改行は残す**・見えない字を落とす・上限で切る。中身は `textClean.ts`
+ * （2026-11-11、意見箱と共有するため切り出した。振る舞いは同じ）。
  */
 export function cleanDmText(v: unknown): string {
-    if (typeof v !== "string") return "";
-    const t = v
-        .replace(/\r\n?/g, "\n")
-        .replace(/[\u0000-\u0009\u000B-\u001F\u007F-\u009F]/g, "")
-        // ゼロ幅・方向制御・ソフトハイフン（URL 判定をすり抜ける・見た目の無い本文を作れる）
-        .replace(INVISIBLE, "")
-        .replace(/\n{3,}/g, "\n\n")
-        .trim();
-    return t ? truncate(t, DM_TEXT_MAX) : "";
+    return cleanMultilineText(v, DM_TEXT_MAX);
 }
-
-/** U+200B-200F・202A-202E・2060・2066-2069・FEFF・00AD */
-const INVISIBLE = /[\u200B-\u200F\u202A-\u202E\u2060\u2066-\u2069\uFEFF\u00AD]/g;
 
 const TLDS = "com|net|org|jp|io|co|me|ly|gl|link|app|dev|xyz|info|biz|cc|tv|to|us|uk|ru|cn|site|online|shop|top|club"
     + "|gg|be|ee|asia|ink|page|live|store|tech";
@@ -183,8 +195,23 @@ function parseConv(item: Record<string, unknown> | undefined): DmConv | null {
         ...(item.direct === true ? { direct: true } : {}),
         ...(typeof item.loClearedAt === "string" ? { loClearedAt: item.loClearedAt } : {}),
         ...(typeof item.hiClearedAt === "string" ? { hiClearedAt: item.hiClearedAt } : {}),
+        ...(typeof item.unsentAt === "string" ? { unsentAt: item.unsentAt } : {}),
+        ...(item.replied === true ? { replied: true } : {}),
+        ...(isLastUnsent(item.lastUnsent) ? { lastUnsent: item.lastUnsent } : {}),
         updatedAt: typeof item.updatedAt === "string" ? item.updatedAt : "",
     };
+}
+
+const isLastUnsent = (v: unknown): v is { id: string; fromEnd: number } =>
+    !!v && typeof (v as { id?: unknown }).id === "string" && typeof (v as { fromEnd?: unknown }).fromEnd === "number";
+
+/**
+ * 受け取った人（始めた人ではない方）が話したことがあるか。**本体の印（`replied`）が正**——通は取り消しで消えるので、
+ * 通の有無だけで決めると、返信を取り消した会話が承認前に戻って見える（2026-11-12・確かめ役の指摘）。
+ * 印より前の会話は通から見る
+ */
+export function peerHasSpoken(c: Pick<DmConv, "initiator" | "items" | "replied">): boolean {
+    return c.replied === true || c.items.some((m) => m.from !== c.initiator);
 }
 
 async function readConv(lo: string, hi: string, consistent = true): Promise<DmConv | null> {
@@ -305,6 +332,8 @@ export type SendInput = {
     via?: "story";
     /** `via: "story"` のときの元のストーリー（通に残し、会話の引用札に使う） */
     storyId?: string;
+    /** 送る写真（2026-11-11・札 #541）。送る人に見せてよい写真だけ（`photoVisibility.ts`）。文字は無くてよい */
+    photoId?: unknown;
     /** 端末への知らせを送るか。ストーリー返信の写しは送らない（返信の通知が別に出る） */
     push: boolean;
     myName: string;
@@ -322,6 +351,11 @@ export type SendOk = {
 /** **理由コードも文面も、相手との関係で変えない**（1種類）。UI の文言は iOS 側で決める */
 const URL_REFUSED = "承認されるまではリンクを送れません";
 const REQUEST_LIMITED = `承認されるまでは${DM_REQUEST_MAX}通までです`;
+/**
+ * 承認前は写真も送れない（2026-11-11 判断・札 #541）。URL と同じ考え: 承認前の歯止めは「文字3通まで」で、
+ * 知らない人から絵が届く口を作らない（迷惑・不快な絵を見せない）。理由コードは関係で変えない
+ */
+const PHOTO_REFUSED = "承認されるまでは写真を送れません";
 
 const fail = (status: number, message: string, code?: string): SendFail => ({ ok: false, status, message, code });
 
@@ -335,7 +369,10 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     const to = typeof inp.to === "string" ? inp.to.toLowerCase() : "";
     if (!isUserId(me) || !isUserId(to) || to === me) return fail(400, "不正なリクエスト", "badRequest");
     const text = cleanDmText(inp.text);
-    if (!text) return fail(400, "メッセージを入力してください", "empty");
+    // 写真は ID の形だけ先に見る（見せてよいかは下で読む）。**欄があって形が違えば断る**（黙って文字だけにしない）
+    const photoId = inp.photoId === undefined || inp.photoId === null ? undefined : isPhotoId(inp.photoId) ? inp.photoId : null;
+    if (photoId === null) return fail(400, "不正なリクエスト", "badRequest");
+    if (!text && !photoId) return fail(400, "メッセージを入力してください", "empty");
     const msgId = typeof inp.id === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(inp.id) ? inp.id : uuidv4();
 
     // **ブロックされていたら 404**（ブロックと分かる応答は返さない）。自分がブロックした相手には、
@@ -362,6 +399,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
         id: msgId, from: me, text, t: "",
         ...(inp.via ? { via: inp.via } : {}),
         ...(inp.via === "story" && typeof inp.storyId === "string" && inp.storyId ? { storyId: inp.storyId } : {}),
+        ...(photoId ? { photoId } : {}),
     };
 
     let followsRecipient: boolean | null = null;   // 自分が相手をフォローしているか（門）
@@ -370,6 +408,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     let after: { state: ConvState; initiator: string; direct: boolean } | null = null;
     let duplicate = false;
     let peerSpoke = false;   // 相手がこの会話で話したことがあるか（送り主に見せる状態を決める）
+    let photoChecked = false;   // 写真を見せてよいかは1回だけ読む（やり直しの度に読まない）
 
     for (let attempt = 0; attempt <= WRITE_RETRIES; attempt++) {
         if (attempt === WRITE_RETRIES) return fail(409, "混み合っています。もう一度お試しください", "busy");
@@ -377,7 +416,8 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
         // **時刻は試行ごとに取り直す**（やり直しで古い時刻のまま書くと、`since` で読む側が取りこぼす）
         const now = new Date().toISOString();
         message = { ...message, t: now };
-        peerSpoke = !!conv?.items.some((m) => m.from === to);
+        // 相手（`to`）が話したか。始めた人が自分のときだけ効く（`myState`）ので、受け取った人が話したかの印で見る
+        peerSpoke = !!conv && conv.initiator === me && peerHasSpoken(conv);
 
         // **前回の追記が通っていたら、もう足さない**（応答が失われて再送されたとき。`storyReplies.ts` と同じ）
         const stored = conv?.items.find((m) => m.id === msgId);
@@ -405,6 +445,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
             nextState = "request";
             direct = autoInbox;
             if (containsUrl(text)) return fail(400, URL_REFUSED, "requestUrl");
+            if (photoId) return fail(400, PHOTO_REFUSED, "requestPhoto");
             // 断られたあとの再送でも、送った通数は戻らない（`dec_<送り主>`・直行の相手が消した場合も同じ）
             const prior = theirBox.declined[me] ?? 0;
             if (prior >= DM_REQUEST_MAX) return fail(429, REQUEST_LIMITED, "requestLimit");
@@ -413,6 +454,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
             direct = conv.direct === true;
             if (conv.initiator === me) {
                 if (containsUrl(text)) return fail(400, URL_REFUSED, "requestUrl");
+                if (photoId) return fail(400, PHOTO_REFUSED, "requestPhoto");
                 if (conv.reqCount >= DM_REQUEST_MAX) return fail(429, REQUEST_LIMITED, "requestLimit");
                 nextState = "request";
                 bumpReq = true;
@@ -423,6 +465,15 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
             }
         } else {
             nextState = "inbox";
+        }
+
+        // 写真は**送る人に今見せてよい写真だけ**（下書き・非公開・範囲の外・持ち主にブロックされた人は送れない）。
+        // **同じ id の再送の判定（上の `stored`）と承認前の断りの後に読む**——入った1通の再送を、その後に写真が
+        // 非公開になったことで 404 にしない（2026-11-11・確かめ役の指摘）。受け取る人に見せるかは、読むたびに
+        // `dmPhotoQuote.ts` が受け取る人の目で決め直す
+        if (photoId && !photoChecked) {
+            if (!await readVisiblePhoto(photoId, me)) return fail(404, "写真が見つかりません", "photoNotFound");
+            photoChecked = true;
         }
 
         // 相手の枠（リクエストは別枠）。**書く前に断る**（本体が入ってから 409 にしない）
@@ -463,6 +514,8 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
                     UpdateExpression:
                         `SET #items = ${trimmed ? ":kept" : "list_append(#items, :new)"}, updatedAt = :now`
                         + (setInbox ? ", #state = :inbox" : "")
+                        // 受け取った人が話した印（取り消しで通が消えても残す）
+                        + (conv.initiator !== me ? ", replied = :true" : "")
                         + (bumpReq ? ", reqCount = if_not_exists(reqCount, :z) + :one" : ""),
                     // 長さだけでは、200通/40KB で古い方を落とす書き込みどうしが同じ長さのまま通り、
                     // 先の1通が消える。**最後に書かれた時刻（`updatedAt`）も条件にする**
@@ -473,6 +526,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
                         ...(trimmed ? { ":kept": kept } : { ":new": [message] }),
                         ...(setInbox ? { ":inbox": "inbox" } : {}),
                         ...(bumpReq ? { ":z": 0, ":one": 1 } : {}),
+                        ...(conv.initiator !== me ? { ":true": true } : {}),
                     },
                 }));
             }
@@ -486,7 +540,7 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     if (!after) return fail(409, "混み合っています。もう一度お試しください", "busy");
 
     // --- 受信箱（相手 → 自分）。**本体は入っているので、落ちたら 500 を返し、同じ id の再送で続きをやり直す** ---
-    const excerpt = truncate(text.replace(/\s+/g, " "), DM_EXCERPT_MAX);
+    const excerpt = excerptOf(message);
     const requestOpen = after.state === "request";
     // 受け取る側の置き場所だけが違う（直行ならリクエストの棚に置かず、プッシュも出す）
     const theirState: DmEntryState = requestOpen && !after.direct ? "request" : "inbox";
@@ -531,6 +585,9 @@ async function isCloseFriendOf(owner: string, who: string): Promise<boolean> {
     }
 }
 
+/** 受信箱の行に出す抜粋（写真だけの通は「写真を送りました」・改行は空白） */
+const excerptOf = (m: DmMessage) => truncate((m.text || DM_PHOTO_TEXT).replace(/\s+/g, " "), DM_EXCERPT_MAX);
+
 /** 1日の歯止めを原子的に1つ進める。上限なら false（何も進まない） */
 async function reserveDaily(uid: string, isNewConv: boolean): Promise<boolean> {
     try {
@@ -545,6 +602,30 @@ async function reserveDaily(uid: string, isNewConv: boolean): Promise<boolean> {
                 ":uid": uid, ":day": dayOf(), ":one": 1, ":maxSent": DM_DAILY_SENT,
                 ...(isNewConv ? { ":maxNew": DM_DAILY_NEW_CONVS } : {}),
             },
+        }));
+        return true;
+    } catch (e) {
+        if (isCcf(e)) return false;
+        throw e;
+    }
+}
+
+/**
+ * 旅行プランの会話（`tripShare.ts`）の1日の歯止め（2026-11-12 確かめ役の指摘6・**DM の仕組みを使い回す**）。
+ * 行は DM と同じ `dmday#<uid>#<日付>`（退会で消える・`purgeDmFor`）で、数える欄は別の `tripSent`
+ * （2026-11-12 判断: プランの会話で話した日に DM が送れなくなる、を作らない）。上限なら false（何も進まない）
+ */
+export const TRIP_CHAT_DAILY_SENT = 300;
+
+export async function reserveTripChatDaily(uid: string): Promise<boolean> {
+    try {
+        await ddb.send(new UpdateCommand({
+            TableName: PHOTOS_TABLE,
+            Key: { id: dmDayKey(uid, dayOf()) },
+            UpdateExpression: "SET uid = :uid, #d = :day ADD tripSent :one",
+            ConditionExpression: "attribute_not_exists(tripSent) OR tripSent < :maxTrip",
+            ExpressionAttributeNames: { "#d": "day" },
+            ExpressionAttributeValues: { ":uid": uid, ":day": dayOf(), ":one": 1, ":maxTrip": TRIP_CHAT_DAILY_SENT },
         }));
         return true;
     } catch (e) {
@@ -588,9 +669,10 @@ export async function mirrorStoryReplyToDm(
 // 名前の解決（受信箱には名前を持たない。表示のたびに引く）
 // ---------------------------------------------------------------------------
 
-type PeerInfo = { name: string; username?: string; deleted?: true };
+export type PeerInfo = { name: string; username?: string; deleted?: true };
 
-async function peerInfos(ids: readonly string[]): Promise<Map<string, PeerInfo>> {
+/** 名前の解決。旅行プランの仲間（`tripShare.ts`）も同じ規則で引く（2026-11-12） */
+export async function peerInfos(ids: readonly string[]): Promise<Map<string, PeerInfo>> {
     const out = new Map<string, PeerInfo>();
     const uniq = [...new Set(ids)];
     for (let i = 0; i < uniq.length; i += 100) {
@@ -634,10 +716,18 @@ const okJson = (body: unknown) => ({
  * API に出す1通。`storyId` を持つ通には、読む人から見た引用札（`story`・`dmStoryQuote.ts`）を
  * `quotes` から付ける（送信の応答は札を引かないので `storyId` だけ）
  */
-const shapeMessage = (m: DmMessage, me: string, quotes?: ReadonlyMap<string, StoryQuote>) => ({
-    id: m.id, from: m.from, mine: m.from === me, text: m.text, t: m.t, ...(m.via ? { via: m.via } : {}),
+const shapeMessage = (
+    m: DmMessage, me: string, quotes?: ReadonlyMap<string, StoryQuote>, photos?: ReadonlyMap<string, PhotoQuote>,
+) => ({
+    id: m.id, from: m.from, mine: m.from === me,
+    // 写真だけの通は、古いアプリに空の吹き出しを出させないよう本文を埋め、新しいアプリには `photoOnly` で知らせる
+    text: m.text || (m.photoId ? DM_PHOTO_TEXT : m.text),
+    t: m.t, ...(m.via ? { via: m.via } : {}),
     ...(m.storyId ? { storyId: m.storyId } : {}),
     ...(m.storyId && quotes?.get(m.storyId) ? { story: quotes.get(m.storyId) } : {}),
+    ...(m.photoId ? { photoId: m.photoId } : {}),
+    ...(m.photoId && !m.text ? { photoOnly: true } : {}),
+    ...(m.photoId && photos?.get(m.photoId) ? { photo: photos.get(m.photoId) } : {}),
 });
 
 // ---------------------------------------------------------------------------
@@ -693,16 +783,22 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
     if (since && conv.updatedAt <= since) return okJson({ id: convId, unchanged: true, items: [] });
 
     const visible = visibleTo(conv, uid);
-    const items = since ? visible.filter((m) => m.t > since) : visible;
-    const [peers, quotes] = await Promise.all([
+    // **前に読んだ後に送信が取り消されていたら、差分ではなく全部を返す**（`full`・画面は置き換える）。
+    // 差分（since より後の通）だけでは、消えた1通を相手の画面が知れない（2026-11-12・送信取り消し）
+    const full = !!since && !!conv.unsentAt && conv.unsentAt > since;
+    const items = since && !full ? visible.filter((m) => m.t > since) : visible;
+    const [peers, quotes, photos] = await Promise.all([
         peerInfos([peer]),
         // 返す通のうち、ストーリーへの返信から写した通だけ（無ければ読みに行かない）
-        storyQuotesFor(uid, [pair.lo, pair.hi], items.flatMap((m) => (m.storyId ? [m.storyId] : []))),
+        // 紹介した写真の門は、上で読んだ見る人のブロック一覧をそのまま使う（読み直さない）
+        storyQuotesFor(uid, [pair.lo, pair.hi], items.flatMap((m) => (m.storyId ? [m.storyId] : [])), hidden),
+        // 送った写真の札（読む人の目で見せてよいか決め直す・無ければ読みに行かない）
+        photoQuotesFor(uid, items.flatMap((m) => (m.photoId ? [m.photoId] : []))),
     ]);
     const p = peers.get(peer) ?? fallbackPeer();
     const initiatorIsMe = conv.initiator === uid;
     // **始めた人には、相手が話すまで残り数を見せる**（リクエストでも直行でも同じ。承認だけでは見せ方を変えない）
-    const peerSpoke = conv.items.some((m) => m.from === peer);
+    const peerSpoke = peerHasSpoken(conv);
     const remaining = initiatorIsMe && !peerSpoke ? Math.max(0, DM_REQUEST_MAX - conv.reqCount) : undefined;
     return okJson({
         id: convId, peerId: peer, name: p.name, ...(p.username ? { username: p.username } : {}),
@@ -712,7 +808,8 @@ async function getConversation(uid: string, convId: string | undefined, sinceRaw
         canSend: !p.deleted && remaining !== 0,
         ...(remaining !== undefined ? { requestRemaining: remaining } : {}),
         t: conv.updatedAt,
-        items: items.map((m) => shapeMessage(m, uid, quotes)),
+        ...(full ? { full: true } : {}),
+        items: items.map((m) => shapeMessage(m, uid, quotes, photos)),
     });
 }
 
@@ -785,6 +882,20 @@ type RemoveMode = {
 };
 
 /**
+ * 断った印 `dec_<送り主>` を足すときに外す、ほかの人の印（`DM_DECLINED_MAX` 人まで。越えるなら、通数の小さい
+ * ＝上限に届いていないものから外す）。会話を消すとき（`removeConversation`）と、送信の取り消しで
+ * 受け取った側の行を外すとき（`fixEntryAfterUnsend`）で同じ形にする
+ */
+function declineMarks(declined: Readonly<Record<string, number>>, sender: string): { evict: string[] } {
+    const evict: string[] = [];
+    if (declined[sender] === undefined) {
+        const others = Object.entries(declined).sort((x, y) => x[1] - y[1]);
+        for (let i = 0; i < others.length - (DM_DECLINED_MAX - 1); i++) evict.push(others[i][0]);
+    }
+    return { evict };
+}
+
+/**
  * 自分の側だけ消す。**両方の受信箱から消えたら本体を物理削除**する。
  *
  *   1. 自分の受信箱の行を外す。**受け取ったリクエストを消すときは、送り主の通数を `dec_<送り主>` に残す**
@@ -804,12 +915,8 @@ export async function removeConversation(uid: string, convId: string | undefined
     if (!mode.account) {
         // **承認前の会話を受け取った人が消したら、直行の相手でも断った印を残す**（全員に同じ規則）
         const declining = conv !== null && conv.state === "request" && conv.initiator !== uid;
-        // 断った印は DM_DECLINED_MAX 人まで。越えるなら、通数の小さい（上限に届いていない）ものから外す
-        const evict: string[] = [];
-        if (declining && box.declined[peer] === undefined) {
-            const others = Object.entries(box.declined).sort((x, y) => x[1] - y[1]);
-            for (let i = 0; i < others.length - (DM_DECLINED_MAX - 1); i++) evict.push(others[i][0]);
-        }
+        // 断った印は DM_DECLINED_MAX 人まで。越えるなら、通数の小さい（上限に届いていない）ものから外す（`declineMarks`）
+        const evict: string[] = declining ? declineMarks(box.declined, peer).evict : [];
         try {
             await ddb.send(new UpdateCommand({
                 TableName: PHOTOS_TABLE,
@@ -877,6 +984,10 @@ async function removeAllRequests(uid: string) {
     return okJson({ ok: true, removed });
 }
 
+type ReportCopy = { id: string; from?: string; text?: string; t: string; photoId?: string };
+/** 押し直しで写しを重ねたときの上限（1行 400KB を守る。500字×100通でも 150KB） */
+export const DM_REPORT_KEEP_MAX = 100;
+
 async function reportConversation(uid: string, convId: string | undefined, body: { reason?: unknown; note?: unknown }) {
     const pair = parseConvId(convId);
     if (!pair || (uid !== pair.lo && uid !== pair.hi)) return jsonError(404, "会話が見つかりません", "notFound");
@@ -889,6 +1000,15 @@ async function reportConversation(uid: string, convId: string | undefined, body:
     // 自分に見えているぶんだけ（自分の側を消す前のものは写さない）
     const last = visibleTo(conv, uid).slice(-DM_REPORT_LAST);
     const note = sanitizeText(body.note, REPORT_NOTE_MAX);
+    // **押し直しでも、前の写しの通は残す**（2026-11-12・確かめ役の指摘: 通報 → 相手が取り消し → 押し直しで、
+    // 写しから取り消された通が消えていた）。前の写しと今の直近を id で合わせ、時刻の順に。多すぎれば古い方から
+    const prev = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: dmReportKey(convId!, uid) }, ConsistentRead: true }));
+    const kept = Array.isArray(prev.Item?.messages) ? (prev.Item!.messages as { id?: unknown; t?: unknown }[])
+        .filter((m): m is ReportCopy => typeof m?.id === "string" && typeof m?.t === "string") : [];
+    const fresh: ReportCopy[] = last.map((m) => ({ id: m.id, from: m.from, text: m.text, t: m.t, ...(m.photoId ? { photoId: m.photoId } : {}) }));
+    const byId = new Map<string, ReportCopy>(kept.map((m) => [m.id, m]));
+    for (const m of fresh) byId.set(m.id, m);
+    const messages = [...byId.values()].sort((a, b) => a.t.localeCompare(b.t)).slice(-DM_REPORT_KEEP_MAX);
     await ddb.send(new PutCommand({
         TableName: PHOTOS_TABLE,
         Item: {
@@ -896,13 +1016,235 @@ async function reportConversation(uid: string, convId: string | undefined, body:
             convId, reporterId: uid, reportedId: peer,
             reason: body.reason,
             ...(note ? { note } : {}),
-            messages: last.map((m) => ({ id: m.id, from: m.from, text: m.text, t: m.t })),
+            messages,
             createdAt: new Date().toISOString(),
         },
-        // 条件は付けない。同じ人が押し直したら上書き（理由を選び直したい・直近の写しを新しくしたい）
+        // 条件は付けない。同じ人が押し直したら理由・補足は上書き、写しは前の通を残して直近を足す（上の `messages`）
     }));
     // 受け付けたことだけ返す
     return okJson({ success: true });
+}
+
+// ---------------------------------------------------------------------------
+// 送信の取り消し（2026-11-12・owner「DM 送信取り消し必要だわ」「取り消しました。みたいなメッセージはいらない」）
+// ---------------------------------------------------------------------------
+
+/** 取り消す通の id の形（送るときの冪等の鍵・`uuidv4` の両方が通る形。任意の文字列を式に入れない） */
+const isMessageId = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(v);
+
+export type UnsendResult = { status: number; error?: string; code?: string };
+
+/**
+ * 取り消せる通ではない（他人の通・自分に見えていない通・もう無い通）。**どれも同じ答え**にする
+ * （2026-11-12・確かめ役の指摘: 在るかどうかで 200 と 404 が分かれていた）。会話そのものが見られない
+ * （参加者でない・自分の側を消した・ブロックの関係）は `notFound` で、こちらとは分ける——アプリは
+ * `messageNotFound` を「もう消えている」、`notFound` を「取り消せなかった」と読む
+ */
+const MESSAGE_GONE: UnsendResult = { status: 404, error: "メッセージが見つかりません", code: "messageNotFound" };
+const CONV_GONE: UnsendResult = { status: 404, error: "会話が見つかりません", code: "notFound" };
+
+/**
+ * **自分が送った1通を取り消す。期限は無い。** 会話の本体（直近200通・40KB の形）から、その1通を
+ * **跡を残さず消す**（「取り消しました」の行も印も残さない）。相手の画面は次の読み直しで消える
+ * （本体の `unsentAt` が `?since=` より後なら、`getConversation` が全部を `full: true` で返す）。
+ *
+ *   - **取り消せるのは送った本人だけ**。他人の通・見えない通・もう無い通は同じ 404 `messageNotFound`
+ *     （在るかどうかを言い分けない）。会話が見られない（参加者でない・自分の側を消した・ブロックの関係）は 404 `notFound`
+ *   - 本体の書き込みは「その位置の通の id がこの id」「`updatedAt` が読んだときのまま」を条件にする
+ *     （同時の送信・取り消しで別の1通を消さない）。外れたら読み直してやり直す
+ *   - **ストーリーへの返信から写した通は、ストーリーの返信の行（`storyreplies#`）からも消す**
+ *     （2026-11-12・確かめ役の指摘。プライバシー頁の「サーバーからも削除」と合わせる）。会話より先に消す——
+ *     落ちたら何も消えていない状態で 500 になり、押し直しでやり直せる
+ *   - 受信箱: 抜粋・時刻が消えた通を指していたら、残った最後の通に戻す。**相手の未読はその通が未読のうちなら1つ減らす**
+ *     （押し直しでも1回だけ・`lastUnsent` と行の `unsentId`）。**相手に見える通が無くなったら、相手の受信箱から会話ごと外す**。
+ *     **承認前の会話なら、同じ書き込みで断った印 `dec_<送り主>` を残す**（2026-11-12・確かめ役の指摘: 外すだけだと、
+ *     取り消し → 自分の側を削除 で本体ごと通数が消え、承認前の「通算3通まで」を何度でも送り直せた。`removeConversation` と同じ形）。
+ *     自分の行は残す（自分の画面で開いている会話を消さない）
+ *   - **通報の写し（`dmreport#`）は消さない**。押し直しの通報でも、前の写しの通は残す（`reportConversation`）
+ *   - 新しい関数・経路は足さない（部品の数が上限 500 に近い）。口は `POST /dm/{id}/messages` の本文 `{ unsend: <id> }`
+ *     ——**古いサーバーに届いても本文が空として 400 で断られる**（DELETE にすると、古いサーバーは会話ごと消してしまう）
+ */
+export async function unsendMessage(uid: string, convId: string | undefined, rawId: unknown): Promise<UnsendResult> {
+    const pair = parseConvId(convId);
+    if (!pair || (uid !== pair.lo && uid !== pair.hi)) return CONV_GONE;
+    if (!isMessageId(rawId)) return { status: 400, error: "不正なリクエスト", code: "badRequest" };
+    const peer = uid === pair.lo ? pair.hi : pair.lo;
+    if ((await hiddenFor(uid)).has(peer)) return CONV_GONE;
+
+    /** 相手の未読を直す手がかり（取り消した通が送り主の通の中で後ろから何番目か）。-1 は分からない */
+    let fromEnd = -1;
+    let storyDone = false;
+    for (let attempt = 0; ; attempt++) {
+        if (attempt === WRITE_RETRIES) return { status: 409, error: "混み合っています。もう一度お試しください", code: "busy" };
+        const [box, conv] = await Promise.all([readDmInbox(uid, true), readConv(pair.lo, pair.hi)]);
+        if (!conv || !box.convs[convId!]) return CONV_GONE;
+        const index = conv.items.findIndex((m) => m.id === rawId);
+        if (index < 0) {
+            // もう無い。**自分が取り消した通の押し直しなら**、受信箱の直しだけやり直す（応答が落ちた回の続き）。
+            // それ以外（他人の通・無い通）は何もしない。答えはどちらも同じ
+            if (conv.lastUnsent?.id === rawId) {
+                fromEnd = conv.lastUnsent.fromEnd;
+                break;
+            }
+            return MESSAGE_GONE;
+        }
+        const target = conv.items[index];
+        // **他人の通・自分に見えていない通は取り消せない**（在ることも言わない）
+        if (target.from !== uid || target.t <= clearedAtOf(conv, uid)) return MESSAGE_GONE;
+        if (target.storyId && !storyDone) {
+            await removeStoryReplyFor(target.storyId, target.id, uid);
+            storyDone = true;
+        }
+        const mine = conv.items.filter((m) => m.from === uid);
+        const pos = mine.length - 1 - mine.findIndex((m) => m.id === rawId);
+        const now = new Date().toISOString();
+        try {
+            await ddb.send(new UpdateCommand({
+                TableName: PHOTOS_TABLE,
+                Key: { id: dmConvKey(pair.lo, pair.hi) },
+                // index は数（読んだ位置）。利用者の値は式に入れない
+                UpdateExpression: `REMOVE #items[${index}] SET updatedAt = :now, unsentAt = :now, lastUnsent = :lu`,
+                ConditionExpression: `#items[${index}].#mid = :mid AND updatedAt = :prev`,
+                ExpressionAttributeNames: { "#items": "items", "#mid": "id" },
+                ExpressionAttributeValues: { ":now": now, ":mid": rawId, ":prev": conv.updatedAt, ":lu": { id: rawId, fromEnd: pos } },
+            }));
+        } catch (e) {
+            if (isCcf(e)) continue;   // 誰かが先に書いた。読み直してやり直す
+            throw e;
+        }
+        fromEnd = pos;
+        break;
+    }
+
+    // 受信箱（相手 → 自分）。本体は消えているので、落ちたら 500 を返し、押し直しで直しをやり直す
+    await fixEntryAfterUnsend(peer, uid, pair, convId!, rawId, fromEnd, true);
+    await fixEntryAfterUnsend(uid, peer, pair, convId!, rawId, -1, false);
+    return { status: 200 };
+}
+
+/**
+ * ストーリーへの返信の行（`storyreplies#<storyId>`）から、その人の返信を1件消す（2026-11-12）。
+ * 写しの通の id は返信の id と同じ（`mirrorStoryReplyToDm`）。**無ければ何もしない**（消えた・期限で片付いた・押し直し）。
+ * バッジの数（ストーリーの行の `replyCount`）も合わせる。棚へ移った・消えた行には書かない（`postStoryReply` と同じ条件）
+ */
+/** `storyReplies.ts` の `storyRepliesId` と同じ形（あちらが `dm.ts` を読むので、循環を作らないよう写す・試験で縛る） */
+export const STORY_REPLIES_KEY = (storyId: string) => `storyreplies#${storyId}`;
+
+async function removeStoryReplyFor(storyId: string, replyId: string, uid: string): Promise<void> {
+    for (let attempt = 0; attempt < WRITE_RETRIES; attempt++) {
+        const res = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: STORY_REPLIES_KEY(storyId) }, ConsistentRead: true }));
+        const items = Array.isArray(res.Item?.items) ? (res.Item!.items as { id?: unknown; uid?: unknown }[]) : [];
+        const index = items.findIndex((r) => r?.id === replyId && r?.uid === uid);
+        if (index < 0) return;
+        try {
+            await ddb.send(new UpdateCommand({
+                TableName: PHOTOS_TABLE,
+                Key: { id: STORY_REPLIES_KEY(storyId) },
+                UpdateExpression: `REMOVE #items[${index}]`,
+                ConditionExpression: `#items[${index}].#rid = :rid`,
+                ExpressionAttributeNames: { "#items": "items", "#rid": "id" },
+                ExpressionAttributeValues: { ":rid": replyId },
+            }));
+        } catch (e) {
+            if (isCcf(e)) continue;
+            throw e;
+        }
+        await ddb.send(new UpdateCommand({
+            TableName: PHOTOS_TABLE,
+            Key: { id: storyId },
+            UpdateExpression: "SET replyCount = :n",
+            ConditionExpression: "attribute_exists(id) AND attribute_not_exists(archivedAt)",
+            ExpressionAttributeValues: { ":n": items.length - 1 },
+        })).catch((e) => { if (!isCcf(e)) throw e; });
+        return;
+    }
+    throw new Error("story reply remove conflict");
+}
+
+/**
+ * 取り消しのあとの受信箱の1行（`owner` の行。`other` は会話の相手）。**行を読んでから本体を読む**
+ * （行に入っている通は必ず本体に先に入っている——`sendDm` の順。逆に読むと、その間に入った通を知らない本体で
+ * 行を古い通に巻き戻す。2026-11-12・確かめ役の指摘）。
+ *
+ * 行が消えた通を指していたら（行の時刻が、見える最後の通より新しい）、見える最後の通に戻す。
+ * `fromEnd` が未読の数より小さければ（相手がまだ読んでいない通）、未読を1つ減らす——**行に `unsentId` を書き、
+ * 同じ通の押し直しでは減らさない**。見える通が無くなったら:
+ *   - `dropWhenEmpty`（相手の側）: 行を外す。**承認前の会話を受け取った側なら、断った印 `dec_<送り主>` を残す**
+ *   - 自分の側: 行は残し、抜粋を空に・`from` を外す（「あなた: 」だけを出させない）
+ * 書き込みは「行の時刻と未読が読んだときのまま」を条件にする（同時の送信・既読で数を狂わせない）。
+ */
+async function fixEntryAfterUnsend(
+    owner: string, other: string, pair: { lo: string; hi: string }, convId: string, msgId: string,
+    fromEnd: number, dropWhenEmpty: boolean,
+): Promise<void> {
+    for (let i = 0; i < WRITE_RETRIES; i++) {
+        const box = await readDmInbox(owner, true);
+        const e = box.convs[convId];
+        if (!e) return;
+        const conv = await readConv(pair.lo, pair.hi);
+        if (!conv) return;
+        const visible = visibleTo(conv, owner);
+        const last = visible[visible.length - 1];
+        const already = e.unsentId === msgId;
+        const unread = !already && fromEnd >= 0 && fromEnd < e.unread ? e.unread - 1 : e.unread;
+        const names = { "#c": convId, "#t": "t", "#u": "unread" };
+        const cond = "convs.#c.#t = :t0 AND convs.#c.#u = :u0";
+        const condValues = { ":t0": e.t, ":u0": e.unread };
+        try {
+            if (!last && dropWhenEmpty) {
+                // 相手に見える通が無い: 中身の無い会話を残さない（跡を残さない）。承認前なら断った印を残す
+                const declining = conv.state === "request" && conv.initiator !== owner;
+                const d = declining ? declineMarks(box.declined, other) : { evict: [] as string[] };
+                await ddb.send(new UpdateCommand({
+                    TableName: PHOTOS_TABLE,
+                    Key: { id: dmInboxId(owner) },
+                    UpdateExpression: "REMOVE convs.#c" + d.evict.map((_, k) => `, #ev${k}`).join("") + (declining ? " SET #dec = :n" : ""),
+                    ConditionExpression: cond,
+                    ExpressionAttributeNames: {
+                        ...names, ...(declining ? { "#dec": declinedAttr(other) } : {}),
+                        ...Object.fromEntries(d.evict.map((u, k) => [`#ev${k}`, declinedAttr(u)])),
+                    },
+                    ExpressionAttributeValues: {
+                        ...condValues,
+                        ...(declining ? { ":n": Math.max(conv.reqCount, box.declined[other] ?? 0) } : {}),
+                    },
+                }));
+                return;
+            }
+            if (!last) {
+                if (e.excerpt === "" && e.from === undefined && unread === e.unread && already) return;
+                await ddb.send(new UpdateCommand({
+                    TableName: PHOTOS_TABLE,
+                    Key: { id: dmInboxId(owner) },
+                    UpdateExpression: "SET convs.#c.#x = :x, convs.#c.#u = :u, convs.#c.#uid = :mid REMOVE convs.#c.#f",
+                    ConditionExpression: cond,
+                    ExpressionAttributeNames: { ...names, "#x": "excerpt", "#f": "from", "#uid": "unsentId" },
+                    ExpressionAttributeValues: { ":x": "", ":u": unread, ":mid": msgId, ...condValues },
+                }));
+                return;
+            }
+            const stale = e.t > last.t;
+            if (!stale && unread === e.unread) return;
+            await ddb.send(new UpdateCommand({
+                TableName: PHOTOS_TABLE,
+                Key: { id: dmInboxId(owner) },
+                UpdateExpression: (stale
+                    ? "SET convs.#c.#t = :t, convs.#c.#x = :x, convs.#c.#lid = :lid, convs.#c.#f = :from, convs.#c.#u = :u"
+                    : "SET convs.#c.#u = :u") + ", convs.#c.#uid = :mid",
+                ConditionExpression: cond,
+                ExpressionAttributeNames: { ...names, "#uid": "unsentId", ...(stale ? { "#x": "excerpt", "#lid": "lastId", "#f": "from" } : {}) },
+                ExpressionAttributeValues: {
+                    ":u": unread, ":mid": msgId, ...condValues,
+                    ...(stale ? { ":t": last.t, ":x": excerptOf(last), ":lid": last.id, ":from": last.from } : {}),
+                },
+            }));
+            return;
+        } catch (err) {
+            if (!isCcf(err)) throw err;
+            // 同時に送られた・読まれた。読み直してやり直す
+        }
+    }
+    throw new Error("dm inbox fix conflict");
 }
 
 // ---------------------------------------------------------------------------
@@ -958,7 +1300,7 @@ const sendResult = (r: SendOk | SendFail) => r.ok
  * DM の全部の口。**関数を増やさない**（部品の数が上限 500 に近い——`trunk.handler` と同じ理由）。
  *
  *     POST   /dm                    会話の開始（相手 `to` と本文）。続きの送信にも使える
- *     POST   /dm/{id}/messages      会話の続きを送る
+ *     POST   /dm/{id}/messages      会話の続きを送る。本文が `{ unsend: <id> }` なら自分の1通を取り消す（2026-11-12）
  *     GET    /dm                    受信箱（リクエストも同じ一覧。`state` で分ける）
  *     GET    /dm/{id}?since=        会話を読む（変化なしは `{unchanged:true}`）
  *     PUT    /dm/{id}/read          既読
@@ -1002,15 +1344,20 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
         if (route === "POST /dm") {
             return sendResult(await sendDm({
                 me: uid, to: String(body.to ?? ""), text: body.text, id: typeof body.id === "string" ? body.id : undefined,
-                push: true, myName,
+                photoId: body.photoId, push: true, myName,
             }));
+        }
+        if (route === "POST /dm/{id}/messages" && body.unsend !== undefined) {
+            // 送信の取り消し（2026-11-12）。経路を足さず、この口の本文で分ける（`unsendMessage` の注記）
+            const r = await unsendMessage(uid, id, body.unsend);
+            return r.status === 200 ? okJson({ ok: true }) : jsonError(r.status, r.error ?? "失敗しました", r.code);
         }
         if (route === "POST /dm/{id}/messages") {
             const pair = parseConvId(id);
             if (!pair || (uid !== pair.lo && uid !== pair.hi)) return jsonError(404, "会話が見つかりません", "notFound");
             return sendResult(await sendDm({
                 me: uid, to: uid === pair.lo ? pair.hi : pair.lo, text: body.text, id: typeof body.id === "string" ? body.id : undefined,
-                push: true, myName,
+                photoId: body.photoId, push: true, myName,
             }));
         }
         return jsonError(404, "見つかりません");
