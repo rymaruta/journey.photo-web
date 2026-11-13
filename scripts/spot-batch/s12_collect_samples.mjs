@@ -17,16 +17,16 @@ const WIKIDATA = "https://www.wikidata.org/w/api.php";
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 let last = 0; const stats = { req: 0, r429: 0, waited: 0 };
 async function api(base, params) {
-    const url = `${base}?${new URLSearchParams({ format: "json", formatversion: "2", maxlag: "5", ...params })}`;
+    const url = `${base}?${new URLSearchParams({ format: "json", formatversion: "2", maxlag: process.env.SPOT_MAXLAG ?? "5", ...params })}`;
     for (let attempt = 0; attempt < 60; attempt++) {
         const w = last + MIN_INTERVAL_MS - Date.now(); if (w > 0) await sleep(w);
         last = Date.now(); stats.req++;
         const res = await fetch(url, { headers: { "User-Agent": USER_AGENT, "Api-User-Agent": USER_AGENT } });
-        if (res.status === 429 || res.status >= 500) { const a = Math.max(Number(res.headers.get("retry-after")) || 0, Math.min(10 * (attempt + 1), 120)); stats.r429++; stats.waited += a; await sleep(a * 1000); continue; }
+        if (res.status === 429 || res.status >= 500) { const a = Math.max(Number(res.headers.get("retry-after")) || 0, Math.min(10 * (attempt + 1), 120)); stats.r429++; stats.waited += a; console.log(`  retry ${attempt + 1}/60 HTTP ${res.status} 待ち ${a}s`); await sleep(a * 1000); continue; }
         if (!res.ok) throw new Error(`HTTP ${res.status}: ${url}`);
         const body = await res.json();
-        if (body?.error?.code === "cirrussearch-too-busy-error") { stats.busy = (stats.busy ?? 0) + 1; stats.waited += 30 * (attempt + 1); await sleep(30000 * (attempt + 1)); continue; }
-        if (body?.error?.code === "maxlag") { const w = Math.max(Number(res.headers.get("retry-after")) || 5, Math.min(10 * (attempt + 1), 120)); stats.waited += w; await sleep(w * 1000); continue; }
+        if (body?.error?.code === "cirrussearch-too-busy-error") { stats.busy = (stats.busy ?? 0) + 1; stats.waited += 30 * (attempt + 1); console.log(`  retry ${attempt + 1}/60 search-busy 待ち ${30 * (attempt + 1)}s`); await sleep(30000 * (attempt + 1)); continue; }
+        if (body?.error?.code === "maxlag") { console.log(`  maxlag の遅れ ${body.error.lag ?? "?"} 秒（${new URL(url).host}）`); const w = Math.max(Number(res.headers.get("retry-after")) || 5, Math.min(10 * (attempt + 1), 120)); stats.waited += w; console.log(`  retry ${attempt + 1}/60 maxlag 待ち ${w}s`); await sleep(w * 1000); continue; }
         if (body?.error) throw new Error(`${body.error.code}: ${body.error.info}`);
         return body;
     }

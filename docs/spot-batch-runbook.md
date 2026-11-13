@@ -143,6 +143,10 @@ git add content/spots.json scripts/spot-batch/state && git commit
 
 ```bash
 timeout 7000 node scripts/spot-batch/s12_collect_samples.mjs > collect.log 2>&1   # 背景で流す（146 か所で 約20分）
+# ログが「retry … maxlag 待ち」だけで 1 か所目が出ない（2026-11-13 に 1 時間以上詰まった）ときは、
+# Wikidata の複製の遅れが 5 秒を超え続けている。429 ではない。読み取りだけで 5 回しか引かないので、
+# SPOT_MAXLAG=120 を付けて流し直す（間隔は変えない）。再開は保存済みの所を飛ばす
+SPOT_MAXLAG=120 timeout 7000 node scripts/spot-batch/s12_collect_samples.mjs > collect.log 2>&1
 node scripts/spot-batch/s13_restore_candidates.mjs
 git add content/spot-samples.candidates.json && git commit                         # 候補だけ。確定ファイルは目視のあと
 ```
