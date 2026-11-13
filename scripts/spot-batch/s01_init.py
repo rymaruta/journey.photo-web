@@ -87,7 +87,9 @@ for p, v in by.items():
 
 # 前の束で見た（書いた・見送った）候補は、もう一度は見ない
 # ただし「上限のため見送り（書ける）」は記事に問題が無いので、次の束の候補に戻す（state/skipped.json）
-_back = {r["qid"] for r in load(os.path.join(STATE, "skipped.json"), []) if r.get("kind") == "上限のため見送り（書ける）"}
+# 2026-11-13 owner「観光スポットに名前を変えた」「めっちゃ増やしたい」: 撮影の目線で外した見送りも、観光の目線で書けるか見るため候補に戻す
+_BACK_KINDS = {"上限のため見送り（書ける）", "記事に景色の記述が乏しい", "施設で撮影対象と言えない", "見学・撮影できるか分からない"}
+_back = {r["qid"] for r in load(os.path.join(STATE, "skipped.json"), []) if r.get("kind") in _BACK_KINDS}
 save("prev_qids.json", sorted(set(load(os.path.join(STATE, "seen-qids.json"))) - _back), indent=None)
 if _back:
     print("前に上限で見送った候補を戻す", len(_back))
