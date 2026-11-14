@@ -648,3 +648,86 @@ describe("🔴 共有する途中で両方に行がある間（見直し3）", (
         expect((await myTrips(B)).map((p) => p.planId)).not.toContain(P);
     });
 });
+
+/**
+ * 会話の1通の通報（2026-11-14・札 journey.photo-ios#597・審査ガイドライン 1.2）。
+ * 仲間だけ・ほかの人の文の通だけ・直近の写しを `tripreport#<plan>#<通>#<通報者>` に残す。相手には知らせない
+ */
+describe("会話の通報（POST /trip-share/{planId}/report）", () => {
+    const report = (sub: string, body: unknown) => api(sub, "POST /trip-share/{planId}/report", {}, body);
+    const messagesOf = () => store.get(`tripchat#${P}`)!.items as Array<{ id: string; from: string; text?: string }>;
+    const reportRows = () => [...store.entries()].filter(([k]) => k.startsWith("tripreport#"));
+
+    it("ほかの仲間の通を通報すると、直近の写しが残る（1人1通に1件・押し直しは上書き）", async () => {
+        await sharedWithB();
+        await api(A, "POST /trip-share/{planId}/chat", {}, { text: "朝いちで行こう" });
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "いやな文" });
+        const target = messagesOf().find((m) => m.text === "いやな文")!;
+        mockPush.mockClear();
+        const r = await report(A, { messageId: target.id, reason: "harassment", note: "  何度も  " });
+        expect(r.statusCode).toBe(200);
+        expect(json(r)).toEqual({ success: true });
+        const rows = reportRows();
+        expect(rows.map(([k]) => k)).toEqual([`tripreport#${P}#${target.id}#${A}`]);
+        const row = rows[0][1];
+        expect(row).toMatchObject({ planId: P, messageId: target.id, reporterId: A, reportedId: B, reason: "harassment", note: "何度も" });
+        expect((row.messages as Array<{ text: string }>).map((m) => m.text)).toEqual(["朝いちで行こう", "いやな文"]);
+        // 🔴 `userId` の欄を持たせない（`userId-createdAt-index` に載る）
+        expect(row).not.toHaveProperty("userId");
+        // 相手には知らせない
+        expect(mockPush).not.toHaveBeenCalled();
+        await report(A, { messageId: target.id, reason: "spam" });
+        expect(reportRows()).toHaveLength(1);
+        expect(reportRows()[0][1]).toMatchObject({ reason: "spam" });
+        expect(reportRows()[0][1]).not.toHaveProperty("note");
+    });
+
+    it("ブロックした後でも通報できる（写しはブロックした相手の通も入れる）", async () => {
+        await sharedWithB();
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "いやな文" });
+        const target = messagesOf()[0];
+        block(A, B);
+        expect((await report(A, { messageId: target.id, reason: "harassment" })).statusCode).toBe(200);
+        expect((reportRows()[0][1].messages as Array<{ id: string }>).map((m) => m.id)).toEqual([target.id]);
+    });
+
+    it("直近 20 通を写す。古い通を通報したら、その通も頭に入れる", async () => {
+        await sharedWithB();
+        const { TRIP_REPORT_LAST } = await import("../tripChat");
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "古い文" });
+        for (let n = 0; n < TRIP_REPORT_LAST + 2; n++) await api(A, "POST /trip-share/{planId}/chat", {}, { text: `文${n}` });
+        const old = messagesOf()[0];
+        expect((await report(A, { messageId: old.id, reason: "other" })).statusCode).toBe(200);
+        const copied = reportRows()[0][1].messages as Array<{ id: string; text: string }>;
+        expect(copied).toHaveLength(TRIP_REPORT_LAST + 1);
+        expect(copied[0]).toMatchObject({ id: old.id, text: "古い文" });
+        expect(copied.at(-1)!.text).toBe(`文${TRIP_REPORT_LAST + 1}`);
+    });
+
+    it("仲間でない人は 404（プランの有無も教えない）・行を書かない", async () => {
+        await sharedWithB();
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "こんにちは" });
+        const r = await report(C, { messageId: messagesOf()[0].id, reason: "spam" });
+        expect(r.statusCode).toBe(404);
+        expect(json(r).code).toBe("notFound");
+        expect(reportRows()).toEqual([]);
+    });
+
+    it("自分の通・「日程に足しました」の通・無い通・形の違う id・理由の無いものは断る", async () => {
+        await sharedWithB();
+        await api(A, "POST /trip-share/{planId}/chat", {}, { text: "自分の文" });
+        const mine = messagesOf()[0];
+        const rev = store.get(`trip#${P}`)!.rev as number;
+        expect((await putTrip(B, { rev, days: [{ items: [{ kind: "spot", spotId: SPOT1 }, { kind: "spot", spotId: SPOT2 }] }] })).statusCode).toBe(200);
+        const event = messagesOf().find((m) => m.from === B && m.text === undefined)!;
+        expect(event).toBeDefined();
+        expect((await report(A, { messageId: mine.id, reason: "spam" })).statusCode).toBe(400);
+        expect((await report(A, { messageId: event.id, reason: "spam" })).statusCode).toBe(400);
+        const gone = await report(A, { messageId: "00000000-0000-4000-8000-000000000000", reason: "spam" });
+        expect(gone.statusCode).toBe(404);
+        expect(json(gone).code).toBe("messageNotFound");
+        expect((await report(A, { messageId: "tripreport#x", reason: "spam" })).statusCode).toBe(400);
+        expect((await report(A, { messageId: mine.id, reason: "nope" })).statusCode).toBe(400);
+        expect(reportRows()).toEqual([]);
+    });
+});

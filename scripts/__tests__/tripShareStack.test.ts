@@ -51,7 +51,7 @@ describe("旅行プランの共有の別スタック", () => {
     it("認証の口は全部 user API が書き出す認可を通る（自分で認可を作らない・#552 ③）", () => {
         const b = blocks.get("tripShare")!;
         const events = b.split("- httpApi:").length - 1;
-        expect(events).toBe(9);
+        expect(events).toBe(10);
         expect(b.split("Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId").length - 1).toBe(events);
         expect(yml).not.toMatch(/AWS::ApiGatewayV2::Authorizer/);
     });
@@ -59,7 +59,7 @@ describe("旅行プランの共有の別スタック", () => {
     it("user API と同じ経路を持たない・HTTP API は取り込む（新しく作らない）", () => {
         const mine = routes(yml);
         const theirs = new Set(routes(userYml));
-        expect(mine.length).toBe(10);
+        expect(mine.length).toBe(11);
         for (const r of mine) expect(theirs.has(r), r).toBe(false);
         expect(yml).toMatch(/Fn::ImportValue: sls-photo-gallery-user-api-\$\{sls:stage\}-HttpApiId/);
     });
@@ -112,6 +112,13 @@ describe("旅行プランの共有の権限", () => {
             const acts = mine.filter((st) => st.keys.includes(k)).flatMap((st) => st.actions).filter((a) => a !== "dynamodb:GetItem");
             expect(acts.sort(), k).toEqual(["dynamodb:UpdateItem"]);
         }
+    });
+
+    it("会話の通報の写し（`tripreport#`）には PutItem だけ書ける（2026-11-14 #597。無いと通報が 500）", () => {
+        const mine = statements(yml).filter(photos);
+        const acts = mine.filter((st) => st.keys.includes("tripreport#*")).flatMap((st) => st.actions);
+        expect(acts.sort()).toEqual(["dynamodb:PutItem"]);
+        expect(routes(yml)).toContain("POST /trip-share/{planId}/report");
     });
 
     it("共有の口の関数は 15 秒まで待つ（知らせを送る間に切れない）", () => {
