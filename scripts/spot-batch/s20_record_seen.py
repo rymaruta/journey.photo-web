@@ -32,12 +32,21 @@ if a.held:
 raw = load("cands_raw.json", {})
 pref = {c["qid"]: p for p, lst in raw.items() for c in lst}
 arts = load("articles.json", {})
-written = {r["qid"] for f in out_files() for r in load(f)["rows"]}
+# 座標で外した行（drops.json: slug → 理由）は「書いた行」ではなく見送りとして残す（第8束まで、ここで消えていた）
+drops = load("drops.json", {})
+drop_rows = {r["qid"]: r for f in out_files() for r in load(f)["rows"] if r["slug"] in drops}
+written = {r["qid"] for f in out_files() for r in load(f)["rows"]} - set(drop_rows)
 sk = {r["qid"]: r for r in load(os.path.join(STATE, "skipped.json"), [])}
 for q in written:
     sk.pop(q, None)
 today = datetime.date.today().isoformat()
 n_new = 0
+for q, r in drop_rows.items():
+    reason = drops[r["slug"]]
+    kind, revisit = classify_skip(reason)
+    sk[q] = {"qid": q, "title": r.get("articleTitle") or r["name"], "prefecture": pref.get(q, ""), "batch": a.batch,
+             "decidedAt": today, "kind": kind, "reason": reason, "revisitWhen": revisit}
+    n_new += 1
 for f in out_files():
     for x in load(f).get("skipped", []):
         kind, revisit = classify_skip(x.get("reason", ""))
