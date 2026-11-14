@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { SPOTS, type Spot } from "../spots";
 import { spotAreaOf } from "../spotLink";
-import { spotBreadcrumb, spotStructuredData, sameAreaSpots, sameAreaLabel, spotPageUrl, handPickedNearby } from "../spotSeo";
+import { spotBreadcrumb, spotStructuredData, spotSameAs, sameAreaSpots, sameAreaLabel, spotPageUrl, handPickedNearby } from "../spotSeo";
 import { isPublished, visibleSpots } from "../../utils/spotGuide";
 import { distanceLabel } from "../../utils/journey";
 import { siteConfig } from "../../utils/seo";
@@ -39,9 +39,12 @@ describe("spotStructuredData", () => {
     });
 
     it("台帳に無い項目は書かない（空で出さない）", () => {
-        const bare = { ...bySlug("ginzan-onsen"), summary: undefined, nameEn: undefined, coords: undefined, region: undefined };
+        const bare = {
+            ...bySlug("ginzan-onsen"), summary: undefined, nameEn: undefined, coords: undefined, region: undefined,
+            aiCheck: undefined, officialWebsiteUrl: undefined,
+        };
         const data = spotStructuredData(bare);
-        for (const key of ["description", "alternateName", "image", "address"]) {
+        for (const key of ["description", "alternateName", "image", "address", "sameAs"]) {
             expect(data, key).not.toHaveProperty(key);
         }
     });
@@ -64,6 +67,48 @@ describe("spotStructuredData", () => {
         // 代表写真が無くても作例だけで書ける。作例が無ければ今までどおり（文字列か、無し）
         expect(spotStructuredData(ginzan, { samples: [sample] }).image).toHaveLength(1);
         expect(spotStructuredData(ginzan, { image: "https://example.com/a.jpg", samples: [] }).image).toBe("https://example.com/a.jpg");
+    });
+
+    it("同じ場所を指す外部の頁（Wikipedia・Wikidata・公式サイト）を sameAs に書く（台帳の全行・出典と公式サイトから導いたものと一致）", () => {
+        const all = SPOTS.filter((s) => isPublished(s));
+        let withSameAs = 0;
+        for (const s of all) {
+            const data = spotStructuredData(s);
+            const expected = [
+                ...(s.aiCheck?.sources ?? []).map((x) => x.url).filter((u) => /^https:\/\/([a-z-]+\.)?(wikipedia|wikidata)\.org\//.test(u)),
+                ...(s.officialWebsiteUrl?.startsWith("https://") ? [s.officialWebsiteUrl] : []),
+            ];
+            const uniq = [...new Set(expected)];
+            if (uniq.length === 0) {
+                expect(data, s.slug).not.toHaveProperty("sameAs");
+                continue;
+            }
+            withSameAs++;
+            expect(data.sameAs, s.slug).toEqual(uniq);
+            for (const u of data.sameAs as string[]) expect(u, s.slug).toMatch(/^https:\/\//);
+        }
+        // 見張り: 照合済みの大半に付く（付かなくなったら出典の形が変わった）
+        expect(withSameAs, "sameAs の付く行").toBeGreaterThan(all.length * 0.8);
+    });
+
+    it("sameAs に自治体の案内など場所そのものでない出典は結ばない・http の公式サイトは結ばない", () => {
+        const spot = {
+            aiCheck: {
+                checkedAt: "2026-11-14", delegatedBy: "x",
+                sources: [
+                    { url: "https://ja.wikipedia.org/wiki/%E3%83%86%E3%82%B9%E3%83%88", title: "Wikipedia" },
+                    { url: "https://www.wikidata.org/wiki/Q1", title: "Wikidata" },
+                    { url: "https://www.city.example.lg.jp/kanko/", title: "自治体の案内" },
+                    { url: "https://ja.wikipedia.org/wiki/%E3%83%86%E3%82%B9%E3%83%88", title: "重複" },
+                ],
+            },
+            officialWebsiteUrl: "http://example.com/",
+        };
+        expect(spotSameAs(spot)).toEqual([
+            "https://ja.wikipedia.org/wiki/%E3%83%86%E3%82%B9%E3%83%88",
+            "https://www.wikidata.org/wiki/Q1",
+        ]);
+        expect(spotSameAs({})).toEqual([]);
     });
 
     it("海外は国名を書く（国しか無い行でも住所が空にならない）", () => {
