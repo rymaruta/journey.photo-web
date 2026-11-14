@@ -30028,5 +30028,655 @@
     "spotId": "sp_fee69eae6ea6",
     "file": "File:Yuwakuonsen Spa 001.JPG",
     "reason": "目で見て（visual-review）: 旅館と斜面の補強材が主役"
+  },
+  {
+    "spotId": "sp_0389f2c10711",
+    "file": "File:Matsushima shinkei zu by Hosoi Heishu (Tohoku History Museum).jpg",
+    "reason": "目で見て（visual-review）: 古い絵（松島の掛け軸）"
+  },
+  {
+    "spotId": "sp_04b5452a73be",
+    "file": "File:JMSDF WAVE's officer Winter Dress Uniform.jpg",
+    "reason": "目で見て（visual-review）: 人物（制服の隊員）が主役"
+  },
+  {
+    "spotId": "sp_0824f88ac95f",
+    "file": "File:Hachirogatapolder.jpg",
+    "reason": "目で見て（visual-review）: 地図・図面"
+  },
+  {
+    "spotId": "sp_086503ab76ad",
+    "file": "File:Mimuro02.JPG",
+    "reason": "目で見て（visual-review）: 山頂の標柱が主役"
+  },
+  {
+    "spotId": "sp_0a74faf5f027",
+    "file": "File:Mutsure.island.jpg",
+    "reason": "目で見て（visual-review）: 空からの写真（飛行機の窓）"
+  },
+  {
+    "spotId": "sp_0a74faf5f027",
+    "file": "File:MutsureMaru ShimonosekiCity Shimonoseki 20121007.jpg",
+    "reason": "目で見て（visual-review）: 定期船（船体が主役）で島の景色でない"
+  },
+  {
+    "spotId": "sp_0bd93c68b0e4",
+    "file": "File:Lake Biwa Museum 20201024 01.jpg",
+    "reason": "目で見て（visual-review）: 館名の石標だけが主役"
+  },
+  {
+    "spotId": "sp_0e520fade4db",
+    "file": "File:Kure Port from JMSDF Kure Museum.jpg",
+    "reason": "目で見て（visual-review）: 霞んだ逆光で駐車場・車が目立つ"
+  },
+  {
+    "spotId": "sp_0fabb956abcf",
+    "file": "File:Miyagi Shrine, Hachinohe.jpg",
+    "reason": "目で見て（visual-review）: 『Miyagi Shrine』で三八城神社と確かめられず（別の神社の可能性）"
+  },
+  {
+    "spotId": "sp_130db9b8bb78",
+    "file": "File:舟塚古墳 (小美玉市) 出土埴輪 (茨城県立歴史館).JPG",
+    "reason": "目で見て（visual-review）: 館内の埴輪の展示品が主役"
+  },
+  {
+    "spotId": "sp_130db9b8bb78",
+    "file": "File:Name-plate-of-ibaraki-prefectural-museum-of-history.jpeg",
+    "reason": "目で見て（visual-review）: 館名の文字板だけが主役"
+  },
+  {
+    "spotId": "sp_14894969c7a7",
+    "file": "File:Asahiyama zoo.jpg",
+    "reason": "目で見て（visual-review）: 看板・券売窓口の寄りで人が写り込む（看板が主役）"
+  },
+  {
+    "spotId": "sp_17d6d1410187",
+    "file": "File:Kuzuu Fossil Museum Karasawa Mine Hitachi 10 ton diesel No. 13 1.jpg",
+    "reason": "目で見て（visual-review）: 屋外展示の機関車が主役（館の景色でない）"
+  },
+  {
+    "spotId": "sp_17d6d1410187",
+    "file": "File:Kuzuu Fossil Museum Karasawa Mine Hitachi 10 ton diesel No. 13 2.jpg",
+    "reason": "目で見て（visual-review）: 同上"
+  },
+  {
+    "spotId": "sp_1b00aaca2b77",
+    "file": "File:Mogami Yoshiaki's helmet.jpg",
+    "reason": "目で見て（visual-review）: 兜の展示品が主役"
+  },
+  {
+    "spotId": "sp_1b00aaca2b77",
+    "file": "File:最上義光公騎馬像と山形城東追手門 Statue of feudal lord Yoshiaki Mogami - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 騎馬像と城門で、歴史館そのものは写らない別の場所（328m）"
+  },
+  {
+    "spotId": "sp_1b7e8fe42981",
+    "file": "File:Aerial view of Tokyo Disneyresort.jpg",
+    "reason": "目で見て（visual-review）: 空からの写真"
+  },
+  {
+    "spotId": "sp_1b7e8fe42981",
+    "file": "File:東京ディズニーリゾート 2026年6月13日の千葉県 202606131534 IMG 0761.jpg",
+    "reason": "目で見て（visual-review）: ぶれて傾き、工事幕が主役"
+  },
+  {
+    "spotId": "sp_1d1a1be481cb",
+    "file": "File:Mie Prefectural Art Museum (Tsu, Mie) VLux5 hdsr 02.jpg",
+    "reason": "目で見て（visual-review）: 館内ロビーで積み木が主役"
+  },
+  {
+    "spotId": "sp_243e403e25a8",
+    "file": "File:Ken H. IMG 0402 1600 (8692513396).jpg",
+    "reason": "目で見て（visual-review）: 登山者が目立ち、ファイル名に地名が無く根子岳と確かめられない"
+  },
+  {
+    "spotId": "sp_243e403e25a8",
+    "file": "File:四阿山2010.04.04.JPG",
+    "reason": "目で見て（visual-review）: ファイル名が四阿山（別の山）で根子岳と確かめられない"
+  },
+  {
+    "spotId": "sp_243e403e25a8",
+    "file": "File:Trail (8691396217).jpg",
+    "reason": "目で見て（visual-review）: どの山の登山道か確かめられない・人物が目立つ"
+  },
+  {
+    "spotId": "sp_27130460d321",
+    "file": "File:Odaka Yonagocity Tottripref.JPG",
+    "reason": "目で見て（visual-review）: 空が大半で山が小さく、孝霊山と確かめられない"
+  },
+  {
+    "spotId": "sp_280182cabaa9",
+    "file": "File:零式艦上戦闘機 52型丙 知覧特攻平和会館.jpg",
+    "reason": "目で見て（visual-review）: 館内の展示機体が主役"
+  },
+  {
+    "spotId": "sp_280182cabaa9",
+    "file": "File:Chiran Peace Museum Gate of the Army Flight School 001.jpg",
+    "reason": "目で見て（visual-review）: 石碑・案内板が主役"
+  },
+  {
+    "spotId": "sp_280182cabaa9",
+    "file": "File:Chiran Peace Museum Nameplate 001.jpg",
+    "reason": "目で見て（visual-review）: 館名の石標だけが主役"
+  },
+  {
+    "spotId": "sp_2c8446d6ff9d",
+    "file": "File:Hida Temple (29159135698).jpg",
+    "reason": "目で見て（visual-review）: そのスポットで撮った写真か確認できない（ファイル名が「Hida Temple」で社名なし）"
+  },
+  {
+    "spotId": "sp_2c8446d6ff9d",
+    "file": "File:Hida Temple 2 (42981212742).jpg",
+    "reason": "目で見て（visual-review）: 同上（ファイル名に社名なし）"
+  },
+  {
+    "spotId": "sp_2d1000287f04",
+    "file": "File:Futaoijima Island from Hibikibashi Bridge.jpg",
+    "reason": "目で見て（visual-review）: 島がほぼ写らず、景色として弱い"
+  },
+  {
+    "spotId": "sp_339dc24d0e8c",
+    "file": "File:Maiduru Shrine Takanabe Hyuga.JPG",
+    "reason": "目で見て（visual-review）: 別の場所（舞鶴神社）で美術館ではない"
+  },
+  {
+    "spotId": "sp_339dc24d0e8c",
+    "file": "File:Takanabe Central Miyazaki 2010.JPG",
+    "reason": "目で見て（visual-review）: 別の場所（高鍋の市街の遠景）で美術館が写っていない"
+  },
+  {
+    "spotId": "sp_33cedb58a7c5",
+    "file": "File:鎌倉名越白衣舎示誡.jpg",
+    "reason": "目で見て（visual-review）: 古文書の接写（展示・資料で景色ではない）"
+  },
+  {
+    "spotId": "sp_33ef17cbaa00",
+    "file": "File:Kabutoyama02.JPG",
+    "reason": "目で見て（visual-review）: 三角点の案内板と石積みが主役"
+  },
+  {
+    "spotId": "sp_3507b5e236d3",
+    "file": "File:Amidati.jpg",
+    "reason": "目で見て（visual-review）: 石碑が主役"
+  },
+  {
+    "spotId": "sp_39d68de55484",
+    "file": "File:Nishima port.jpg",
+    "reason": "目で見て（visual-review）: フェリーの甲板と乗組員が主役で、島の景色として弱い"
+  },
+  {
+    "spotId": "sp_455336f6b068",
+    "file": "File:Mantomi Todaiji Gayo site 01.JPG",
+    "reason": "目で見て（visual-review）: 石碑・説明板が主役"
+  },
+  {
+    "spotId": "sp_45707726d735",
+    "file": "File:楯築遺跡出土 旋帯文石 (模造).JPG",
+    "reason": "目で見て（visual-review）: 館内の展示品（石）が主役"
+  },
+  {
+    "spotId": "sp_45707726d735",
+    "file": "File:楯築遺跡出土 旋帯文石（模造）.JPG",
+    "reason": "目で見て（visual-review）: 館内の展示品（ガラスケース）"
+  },
+  {
+    "spotId": "sp_475a34c50672",
+    "file": "File:Kagoshima City Museum 2013-08.JPG",
+    "reason": "目で見て（visual-review）: 館内の展示ポスターと受付"
+  },
+  {
+    "spotId": "sp_49be6a9d7fb1",
+    "file": "File:中綱湖 - panoramio (8).jpg",
+    "reason": "目で見て（visual-review）: 他サイトの透かし文字が入っている"
+  },
+  {
+    "spotId": "sp_4a041e382b06",
+    "file": "File:Houses in Takashima.jpg",
+    "reason": "目で見て（visual-review）: 電柱・護岸の道で、高島と確認できない（ファイル名に島名のみ・景色が平凡）"
+  },
+  {
+    "spotId": "sp_4a1470b64dda",
+    "file": "File:Maya01.JPG",
+    "reason": "目で見て（visual-review）: 石碑が主役"
+  },
+  {
+    "spotId": "sp_4a1470b64dda",
+    "file": "File:Tori-Tenjyo-ji Fudomyoo.jpg",
+    "reason": "目で見て（visual-review）: 不動明王像と賽銭箱の接写で、像が主役"
+  },
+  {
+    "spotId": "sp_4c59a23771fd",
+    "file": "File:Panorama of Sunpu Castle (1).jpg",
+    "reason": "目で見て（visual-review）: 駿府城の街並みで静岡県立美術館ではない（別の場所）"
+  },
+  {
+    "spotId": "sp_4c59a23771fd",
+    "file": "File:Panorama of Sunpu Castle (2).jpg",
+    "reason": "目で見て（visual-review）: 同上"
+  },
+  {
+    "spotId": "sp_50ad67e559ba",
+    "file": "File:Crossing of Otsu-fuda from Ise-sangu-meisyo-zue.png",
+    "reason": "目で見て（visual-review）: 古い絵（版画）"
+  },
+  {
+    "spotId": "sp_50ad67e559ba",
+    "file": "File:Mine in Ishibe from Ōmi-koku-rokugun-bussann-zusetsu.png",
+    "reason": "目で見て（visual-review）: 古い絵（製鉄の図）で別の場所"
+  },
+  {
+    "spotId": "sp_50ad67e559ba",
+    "file": "File:Hiroshige's Tohkaidoh Ohtsu.jpg",
+    "reason": "目で見て（visual-review）: 古い版画（走井の茶店）"
+  },
+  {
+    "spotId": "sp_5a46aa251bdd",
+    "file": "File:Gifu Prefectural Museum 20210820 04.jpg",
+    "reason": "目で見て（visual-review）: 館内の恐竜骨格・展示が主役"
+  },
+  {
+    "spotId": "sp_5aeb6f0b1dc6",
+    "file": "File:Beppu Rakutenchi Cable Line 1920s 01.jpg",
+    "reason": "目で見て（visual-review）: 古い白黒写真（昭和初期）"
+  },
+  {
+    "spotId": "sp_5aeb6f0b1dc6",
+    "file": "File:Beppu Rakutenchi Cable Line 1920s.jpg",
+    "reason": "目で見て（visual-review）: 1920年代の古い写真"
+  },
+  {
+    "spotId": "sp_63c4fcb45cff",
+    "file": "File:Kakarashima Cat Stones 260912 1.jpg",
+    "reason": "目で見て（visual-review）: 絵付けした猫の小石の接写で、島の景色ではない"
+  },
+  {
+    "spotId": "sp_6684873b4467",
+    "file": "File:Odai Yamamoto I potsherds.jpg",
+    "reason": "目で見て（visual-review）: 土器片の展示品が主役"
+  },
+  {
+    "spotId": "sp_67a289af4f59",
+    "file": "File:Another History Museum, Matsushiro.jpg",
+    "reason": "目で見て（visual-review）: 私設の資料館の建物・駐車場・車・看板が主役で、跡そのものではない"
+  },
+  {
+    "spotId": "sp_68a21e509219",
+    "file": "File:富山 (47983160173).jpg",
+    "reason": "目で見て（visual-review）: 館内の椅子の展示が主役"
+  },
+  {
+    "spotId": "sp_6ec59d6a50e2",
+    "file": "File:Ainu traditional house”cise”1.jpg",
+    "reason": "目で見て（visual-review）: 館内展示（アイヌの家の復元）が主役"
+  },
+  {
+    "spotId": "sp_6ec59d6a50e2",
+    "file": "File:Japan Hokkaido Ainu traditional house ”cise”1.jpg",
+    "reason": "目で見て（visual-review）: 館内展示（アイヌの家の復元）が主役"
+  },
+  {
+    "spotId": "sp_6ee677260887",
+    "file": "File:Yokkaichi City Culture Hall 2013.jpg",
+    "reason": "目で見て（visual-review）: 隣の四日市市文化会館で、博物館ではない別の施設"
+  },
+  {
+    "spotId": "sp_71233e72cd5b",
+    "file": "File:Fukui Fine Arts Museum 20210505 01.jpg",
+    "reason": "目で見て（visual-review）: 玄関ホールの内側で案内の立て看板が主役、建物の外観が分からない"
+  },
+  {
+    "spotId": "sp_71233e72cd5b",
+    "file": "File:Fukui Fine Arts Museum 20210505 02.jpg",
+    "reason": "目で見て（visual-review）: 館内の展示室"
+  },
+  {
+    "spotId": "sp_7331f98ca9f6",
+    "file": "File:Kamoiwakura Ruins.JPG",
+    "reason": "目で見て（visual-review）: 銅鐸の復元展示と解説板が主役"
+  },
+  {
+    "spotId": "sp_7331f98ca9f6",
+    "file": "File:加茂岩倉遺跡 銅鐸埋納状況復元.JPG",
+    "reason": "目で見て（visual-review）: 館内の復元展示（銅鐸の模型）"
+  },
+  {
+    "spotId": "sp_7331f98ca9f6",
+    "file": "File:Doutaku in Kamoiwakura ruins.JPG",
+    "reason": "目で見て（visual-review）: 銅鐸の復元物の接写で景色でない"
+  },
+  {
+    "spotId": "sp_73ce1bce34c4",
+    "file": "File:KomaruJyo Ato2.JPG",
+    "reason": "目で見て（visual-review）: 石碑が主役"
+  },
+  {
+    "spotId": "sp_7494dd8de436",
+    "file": "File:伊勢遺跡 (守山市) 出土土器.JPG",
+    "reason": "目で見て（visual-review）: 館内の出土土器の展示"
+  },
+  {
+    "spotId": "sp_8130d7688f58",
+    "file": "File:MatsumotoShunsuke Cityscape 1940 Sep.png",
+    "reason": "目で見て（visual-review）: 絵画作品（館内の展示品）"
+  },
+  {
+    "spotId": "sp_847a6e371aaa",
+    "file": "File:150 pounds cannon replica Saga Shrine 01.JPG",
+    "reason": "目で見て（visual-review）: 大砲の複製と説明板が主役"
+  },
+  {
+    "spotId": "sp_847a6e371aaa",
+    "file": "File:Annex of Saga Shrine.jpg",
+    "reason": "目で見て（visual-review）: 駐車場・テント・コーンが主役の社務所"
+  },
+  {
+    "spotId": "sp_8bc4bce166af",
+    "file": "File:Sairinji 20240618 (1).jpg",
+    "reason": "目で見て（visual-review）: 水路と護岸が主役で、寺は木の間に屋根がわずかに見えるだけ"
+  },
+  {
+    "spotId": "sp_8e35534a04d1",
+    "file": "File:藤原純友の人形.jpg",
+    "reason": "目で見て（visual-review）: 館内展示の人形"
+  },
+  {
+    "spotId": "sp_8e35534a04d1",
+    "file": "File:愛媛県大洲城2.jpg",
+    "reason": "目で見て（visual-review）: 館内展示の城の模型"
+  },
+  {
+    "spotId": "sp_8ee0fedc59e0",
+    "file": "File:Shono, from the serie 53 Stations of Hokaido, SDMA 1965.92.46.jpg",
+    "reason": "目で見て（visual-review）: 浮世絵（古い絵）で現地の写真ではない"
+  },
+  {
+    "spotId": "sp_8ee0fedc59e0",
+    "file": "File:Hiroshige46 shono.jpg",
+    "reason": "目で見て（visual-review）: 広重の浮世絵"
+  },
+  {
+    "spotId": "sp_8f786e09f79b",
+    "file": "File:Bunker nearby Mizunami Fossil Museum 20130110.JPG",
+    "reason": "目で見て（visual-review）: 暗いトンネル状の入口で何も分からない（ファイル名も付近の掩体）"
+  },
+  {
+    "spotId": "sp_918c0e2d8dde",
+    "file": "File:Сендайский городской музей истории и быта 2.jpg",
+    "reason": "目で見て（visual-review）: 館内展示の堤人形"
+  },
+  {
+    "spotId": "sp_925f384cc083",
+    "file": "File:220430 Yamagata Prefectural Budokan Yamagata Yamagata pref Japan01s3.jpg",
+    "reason": "目で見て（visual-review）: ファイル名が山形県立武道館で、別の建物"
+  },
+  {
+    "spotId": "sp_98a88dede362",
+    "file": "File:Hotakaso slopecar.jpg",
+    "reason": "目で見て（visual-review）: 斜行エレベーター（乗り物）が主役で温泉郷の景色と分からない"
+  },
+  {
+    "spotId": "sp_98a88dede362",
+    "file": "File:Okuhida Onsengo Hirayu, Takayama, Gifu Prefecture 506-1433, Japan - panoramio (1).jpg",
+    "reason": "目で見て（visual-review）: ファイル名に地名が無く、景色から奥飛騨と推しただけ"
+  },
+  {
+    "spotId": "sp_98ef4c12e286",
+    "file": "File:Niihama City Ferry KUROSHIMA.jpg",
+    "reason": "目で見て（visual-review）: 渡海船が主役で島の景色ではない"
+  },
+  {
+    "spotId": "sp_98ef4c12e286",
+    "file": "File:Niihama City Ferry Oshima Waiting Room.jpg",
+    "reason": "目で見て（visual-review）: 渡海船の待合所の建物で景色でない"
+  },
+  {
+    "spotId": "sp_98ef4c12e286",
+    "file": "File:NiOshima aerial photograph 2010.jpg",
+    "reason": "目で見て（visual-review）: 空からの写真"
+  },
+  {
+    "spotId": "sp_9b6a366b3f4e",
+    "file": "File:摩陀羅神社.jpg",
+    "reason": "目で見て（visual-review）: 摩陀羅神社の写真で、ファイル名に寺名が無く境内と確かめられない"
+  },
+  {
+    "spotId": "sp_9ba401aa5e96",
+    "file": "File:2016-11-12 Nushima 沼島 DSCF4168.jpg",
+    "reason": "目で見て（visual-review）: ガスボンベと原付が主役で、景色ではない"
+  },
+  {
+    "spotId": "sp_a128d5f91307",
+    "file": "File:Hibara, Kitashiobara, Yama District, Fukushima Prefecture 966-0400, Japan - panoramio (32).jpg",
+    "reason": "目で見て（visual-review）: 川と遠景の駐車場の写真で、美術館が写っていると確かめられない"
+  },
+  {
+    "spotId": "sp_a235b713be95",
+    "file": "File:Tokushima hyoutanjima cruise.jpg",
+    "reason": "目で見て（visual-review）: ファイル名が徳島の瓢箪島の遊覧船。別の場所と船が主役"
+  },
+  {
+    "spotId": "sp_a71ce991443c",
+    "file": "File:Display of rural Japanese life at the Fukui prefectural museum of history.jpg",
+    "reason": "目で見て（visual-review）: 館内の展示室"
+  },
+  {
+    "spotId": "sp_a71ce991443c",
+    "file": "File:Display of craft heritage Takefu city, south of Fukui city in rural west Japan.jpg",
+    "reason": "目で見て（visual-review）: 館内の展示品（農具・道具）"
+  },
+  {
+    "spotId": "sp_a8cf2dc98bde",
+    "file": "File:Kanotenmangu (Kanotenjinmachi, Gifu) VLux5 hdsr 01.jpg",
+    "reason": "目で見て（visual-review）: スズメが主役で神社の景色でない"
+  },
+  {
+    "spotId": "sp_a8cf2dc98bde",
+    "file": "File:Kanotenmangu (Kanotenjinmachi, Gifu) VLux5 hdsr 04.jpg",
+    "reason": "目で見て（visual-review）: 案内板が主役"
+  },
+  {
+    "spotId": "sp_aaa173da4136",
+    "file": "File:Mimasaka Katsuyama -03.jpg",
+    "reason": "目で見て（visual-review）: 城でなく勝山の町並み（石の標柱）で、城の景色と確かめられない"
+  },
+  {
+    "spotId": "sp_af75c004b65e",
+    "file": "File:Iwaya shrine tanemaji 01.jpg",
+    "reason": "目で見て（visual-review）: 暗い洞内で札と小さな祠が主役。種間寺の景色と分からない"
+  },
+  {
+    "spotId": "sp_b369fe9b408a",
+    "file": "File:Terahigashi Site.jpg",
+    "reason": "目で見て（visual-review）: 案内板と石碑が主役で遺跡の景色が写っていない"
+  },
+  {
+    "spotId": "sp_b4d55b3575e7",
+    "file": "File:140427 Shimane Art Museum Matsue Shimane pref Japan04s5.jpg",
+    "reason": "目で見て（visual-review）: ミュージアムショップの売り場・屋内"
+  },
+  {
+    "spotId": "sp_b4d55b3575e7",
+    "file": "File:Dog by Aoki Shigeru (Shimane Art Museum).jpg",
+    "reason": "目で見て（visual-review）: 展示作品（絵画）"
+  },
+  {
+    "spotId": "sp_b6abe87f5b9c",
+    "file": "File:HIYORIYAMA GAMOU2014.JPG",
+    "reason": "目で見て（visual-review）: 標識（看板）が主役"
+  },
+  {
+    "spotId": "sp_b6abe87f5b9c",
+    "file": "File:日和山 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 看板と路面が主役。津波で流される前の姿"
+  },
+  {
+    "spotId": "sp_b81919748765",
+    "file": "File:20200926fukushima05.jpg",
+    "reason": "目で見て（visual-review）: 人物（政治家の訪問）が主役"
+  },
+  {
+    "spotId": "sp_bb65c411f5e3",
+    "file": "File:Omoriyama Zoo.jpg",
+    "reason": "目で見て（visual-review）: 衛星写真（空からの写真）"
+  },
+  {
+    "spotId": "sp_bff4e1079741",
+    "file": "File:Old yanagihara school01s2400.jpg",
+    "reason": "目で見て（visual-review）: 旧柳原学校校舎で博物館そのものでなく、同じ公園内と確かめられない"
+  },
+  {
+    "spotId": "sp_c05387d6a146",
+    "file": "File:Yunotsu Onsen 02.jpg",
+    "reason": "目で見て（visual-review）: 「ゆのつ温泉」の看板柱が主役"
+  },
+  {
+    "spotId": "sp_c1e9770d0cdc",
+    "file": "File:Ludlamite from Ashio Mine, Japan.jpg",
+    "reason": "目で見て（visual-review）: 展示物（鉱物標本）"
+  },
+  {
+    "spotId": "sp_cbc7fee26ea1",
+    "file": "File:Sanuki-Hiroshima post-office.jpg",
+    "reason": "目で見て（visual-review）: 郵便局の建物とのぼりが主役"
+  },
+  {
+    "spotId": "sp_cbd22f018584",
+    "file": "File:Lee U-Fan museum 李禹煥美術館 香川県香川郡直島町字倉浦 PC192983.jpg",
+    "reason": "目で見て（visual-review）: 撮影場所を示す直接の手がかりが無い"
+  },
+  {
+    "spotId": "sp_ce6564195e54",
+    "file": "File:Akita Prefectural Central Park 001.jpg",
+    "reason": "目で見て（visual-review）: 園名の石碑と車道が主役"
+  },
+  {
+    "spotId": "sp_d33bcfb049f9",
+    "file": "File:Fête Nautique - Raoul Dufy - Google Arts & Culture.jpg",
+    "reason": "目で見て（visual-review）: 絵画（ラウル・デュフィ）"
+  },
+  {
+    "spotId": "sp_d33bcfb049f9",
+    "file": "File:Screen of wisteria and morning glory with dogs - Takeuchi Seiho - Google Cultural Institute.jpg",
+    "reason": "目で見て（visual-review）: 屏風絵（竹内栖鳳）"
+  },
+  {
+    "spotId": "sp_d47128f214c8",
+    "file": "File:Ishiyakushi.jpg",
+    "reason": "目で見て（visual-review）: 浮世絵（古い絵）"
+  },
+  {
+    "spotId": "sp_d47128f214c8",
+    "file": "File:東海道五十三次 石薬師-Ishiyakushi, from the series The Fifty-three Stations of the Tōkaidō Road MET DP122817.jpg",
+    "reason": "目で見て（visual-review）: 浮世絵（広重）"
+  },
+  {
+    "spotId": "sp_d47128f214c8",
+    "file": "File:東海道五十三次之内 石薬師 石薬師寺-Ishiyakushi, Ishiyakushi Ji MET DP122225.jpg",
+    "reason": "目で見て（visual-review）: 浮世絵（広重）"
+  },
+  {
+    "spotId": "sp_d6fd37920a80",
+    "file": "File:Wakasa Hyota-kun01bs4592.jpg",
+    "reason": "目で見て（visual-review）: 写る山が陣鉢山と確かめられない（撮影者・番号が同じという推定のみ）"
+  },
+  {
+    "spotId": "sp_d747638f3b3b",
+    "file": "File:A stone of Nishinoshima01 atTheScienceMuseumOfMapAndSurvey.jpg",
+    "reason": "目で見て（visual-review）: 展示品の岩石が主役"
+  },
+  {
+    "spotId": "sp_d747638f3b3b",
+    "file": "File:A stone of Nishinoshima02 atTheScienceMuseumOfMapAndSurvey.jpg",
+    "reason": "目で見て（visual-review）: 展示品の岩石が主役"
+  },
+  {
+    "spotId": "sp_d88f2bad9983",
+    "file": "File:古河城跡・本丸跡河川敷.jpg",
+    "reason": "目で見て（visual-review）: 河川敷の草地と遠景だけで景色として弱い"
+  },
+  {
+    "spotId": "sp_d978652bfb4b",
+    "file": "File:Madarashima Island and Iki Channel from plane for Fukuoka Airport.jpg",
+    "reason": "目で見て（visual-review）: 飛行機の翼越しの空撮"
+  },
+  {
+    "spotId": "sp_d978652bfb4b",
+    "file": "File:名護屋城跡 - panoramio.jpg",
+    "reason": "目で見て（visual-review）: 名護屋城跡から見た島影で別の場所（ファイル名も名護屋城跡）"
+  },
+  {
+    "spotId": "sp_de05950a13b5",
+    "file": "File:伏原大塚古墳出土 円筒埴輪.JPG",
+    "reason": "目で見て（visual-review）: 展示品（円筒埴輪）"
+  },
+  {
+    "spotId": "sp_e12b8a8fac85",
+    "file": "File:Mt,Tanjo Yamada-cho Kobe 丹生山と廃車 DSCF4944.jpg",
+    "reason": "目で見て（visual-review）: 放置された廃車が主役"
+  },
+  {
+    "spotId": "sp_e12b8a8fac85",
+    "file": "File:Tanjosankei11.JPG",
+    "reason": "目で見て（visual-review）: 落ち葉の中の石仏だけで景色として弱い"
+  },
+  {
+    "spotId": "sp_e1f39c8a29d2",
+    "file": "File:Cat by Kishida Ryusei (Kasama Nichido Museum of Art).jpg",
+    "reason": "目で見て（visual-review）: 絵画（展示品・猫の日本画）"
+  },
+  {
+    "spotId": "sp_eb96890f0dbc",
+    "file": "File:Radar at Museum of Aeronautical Science.jpg",
+    "reason": "目で見て（visual-review）: 屋外展示のレーダー装置のアップ（展示物が主役）"
+  },
+  {
+    "spotId": "sp_ee126dee8028",
+    "file": "File:Head of Helicolenus hilgendorfii.jpg",
+    "reason": "目で見て（visual-review）: 魚の寄りで、この水族館で撮ったか確かめられない"
+  },
+  {
+    "spotId": "sp_f1bd4a9f2be2",
+    "file": "File:Fukui plain.jpg",
+    "reason": "目で見て（visual-review）: 福井平野の眺めで、山頂付近と推しただけ。文殊山と確かめる根拠が弱い"
+  },
+  {
+    "spotId": "sp_fa4a852c96d7",
+    "file": "File:Inryoji Temple Information.jpg",
+    "reason": "目で見て（visual-review）: 案内板が主役"
+  },
+  {
+    "spotId": "sp_fbd1cc8e6fd2",
+    "file": "File:Kabasaki houdai.jpg",
+    "reason": "目で見て（visual-review）: 樺崎砲台跡の写真で、資料館とは別の場所"
+  },
+  {
+    "spotId": "sp_fcae07987a99",
+    "file": "File:Atelomycterus baliensis in an aquarium.jpg",
+    "reason": "目で見て（visual-review）: 水槽のサメで、この水族館で撮ったか確かめられない（ファイル名は別種の学名）"
+  },
+  {
+    "spotId": "sp_fec8180aa42d",
+    "file": "File:Oita Ecological Aquarium Marine Palace 1960s.png",
+    "reason": "目で見て（visual-review）: 1960年代の古い白黒写真"
+  },
+  {
+    "spotId": "sp_ffb46408cd2f",
+    "file": "File:Beppu Mt.Tsurumi01.jpg",
+    "reason": "目で見て（visual-review）: ファイル名は鶴見岳で別の山。見た目からの推定のみ"
+  },
+  {
+    "spotId": "sp_ffbc97765cf8",
+    "file": "File:Yokkaichi (5758957601).jpg",
+    "reason": "目で見て（visual-review）: 浮世絵（古い絵）"
+  },
+  {
+    "spotId": "sp_ffbc97765cf8",
+    "file": "File:東海道五十三次 四日市 日永村追分 参宮道-Yokkaichi MET DP123194.jpg",
+    "reason": "目で見て（visual-review）: 浮世絵"
+  },
+  {
+    "spotId": "sp_ffbc97765cf8",
+    "file": "File:Hiroshige44 yokkaichi.jpg",
+    "reason": "目で見て（visual-review）: 浮世絵"
   }
 ]
