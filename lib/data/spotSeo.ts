@@ -66,6 +66,23 @@ function countryOf(spot: Spot): string | undefined {
 }
 
 /**
+ * **同じ場所を指す外部の頁**（schema.org の `sameAs`・2026-11-14）。検索エンジンが、このページの場所と
+ * Wikipedia・Wikidata の項目を同じものとして結びつけやすくする。
+ *
+ * 結ぶのは**照合した出典（`aiCheck.sources`）のうち Wikipedia・Wikidata の頁**と、**公式サイト**
+ * （`officialWebsiteUrl`）だけ。どれも `https`。台帳の出典のそのほかの頁（自治体の案内など）は、
+ * 場所そのものを指す頁とは限らないので結ばない。重複は1つにする
+ */
+export function spotSameAs(spot: Pick<Spot, "aiCheck" | "officialWebsiteUrl">): string[] {
+    const isEntity = (u: string) => /^https:\/\/([a-z-]+\.)?(wikipedia|wikidata)\.org\//.test(u);
+    const urls = [
+        ...(spot.aiCheck?.sources ?? []).map((x) => x.url).filter(isEntity),
+        ...(spot.officialWebsiteUrl && spot.officialWebsiteUrl.startsWith("https://") ? [spot.officialWebsiteUrl] : []),
+    ];
+    return [...new Set(urls)];
+}
+
+/**
  * 観光地の構造化データ。**台帳に在る項目だけ書く**（無い項目を空で出さない）。
  *
  * - **座標（`geo`）は書かない。** 台帳の座標は約1km に丸めてあり、画面も「位置はおおよそ」と
@@ -98,6 +115,7 @@ export function spotStructuredData(
             ...(region?.city ? { addressLocality: region.city } : {}),
         }
         : undefined;
+    const sameAs = spotSameAs(spot);
     return {
         "@context": "https://schema.org",
         "@type": "TouristAttraction",
@@ -107,6 +125,7 @@ export function spotStructuredData(
         url: spotPageUrl(spot),
         ...(image ? { image } : {}),
         ...(address ? { address } : {}),
+        ...(sameAs.length > 0 ? { sameAs } : {}),
     };
 }
 
