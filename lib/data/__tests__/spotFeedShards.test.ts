@@ -65,12 +65,12 @@ const image: SpotImage = {
 } as SpotImage;
 
 describe("区分の鍵", () => {
-    it("日本は地方、海外は国（ISO の2文字）", () => {
-        expect(shardKey({ region: { prefecture: "東京都" } })).toBe("jp-kanto");
+    it("日本は県（jp-<スラッグ>）、海外は国（ISO の2文字）", () => {
+        expect(shardKey({ region: { prefecture: "東京都" } })).toBe("jp-tokyo");
         expect(shardKey({ region: { prefecture: "北海道" } })).toBe("jp-hokkaido");
-        expect(shardKey({ region: { prefecture: "沖縄県" } })).toBe("jp-kyushu");
+        expect(shardKey({ region: { prefecture: "沖縄県" } })).toBe("jp-okinawa");
         expect(shardKey({ region: { country: "フランス", prefecture: "イヴリーヌ県" } })).toBe("fr");
-        expect(shardKey({ region: { country: "日本", prefecture: "京都府" } })).toBe("jp-kinki");
+        expect(shardKey({ region: { country: "日本", prefecture: "京都府" } })).toBe("jp-kyoto");
     });
 
     it("表に無い国・県の分からない日本の行も、どこかの区分に入る（落とさない）", () => {
@@ -99,7 +99,7 @@ describe("索引と詳細（固定の台帳）", () => {
         const slugs = indexRows(feed.index).map((s) => s.slug);
         expect(slugs.sort()).toEqual(buildSpotFeed(spots, images).map((s) => s.slug).sort());
         expect(slugs).not.toContain("draft-d");
-        expect(feed.index.shards.map((s) => s.key)).toEqual(["fr", "jp-kanto", "jp-kinki"]);
+        expect(feed.index.shards.map((s) => s.key)).toEqual(["fr", "jp-kyoto", "jp-tokyo"]);
     });
 
     it("索引の全行が、その区分の詳細に1回だけ在り、詳細の行は spots.json の行と同じ中身", () => {
@@ -109,7 +109,7 @@ describe("索引と詳細（固定の台帳）", () => {
         }
         const total = [...feed.shardJson.values()].reduce((n, j) => n + JSON.parse(j).length, 0);
         expect(total, "詳細に索引に無い行がある").toBe(indexRows(feed.index).length);
-        const kyoto = JSON.parse(feed.shardJson.get("jp-kinki")!)[0];
+        const kyoto = JSON.parse(feed.shardJson.get("jp-kyoto")!)[0];
         expect(kyoto).toEqual(JSON.parse(JSON.stringify(toSpotFeedItem(spots[2], images))));
     });
 
@@ -134,7 +134,7 @@ describe("索引と詳細（固定の台帳）", () => {
     });
 
     it("索引に文を入れない。季節・時間帯は種類、写真は有無、別名は空を落とす", () => {
-        const tokyo = feed.index.shards.find((s) => s.key === "jp-kanto")!.spots.find((s) => s.slug === "tokyo-a")!;
+        const tokyo = feed.index.shards.find((s) => s.key === "jp-tokyo")!.spots.find((s) => s.slug === "tokyo-a")!;
         expect(tokyo).toEqual({
             spotId: "sp_tokyo-a00000", slug: "tokyo-a", name: "tokyo-a", nameEn: "tokyo-a en", reading: "よみ",
             aliases: ["別名"], region: { prefecture: "東京都", city: "千代田区" }, coords: { lat: 35.68, lng: 139.76 },

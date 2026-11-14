@@ -51,7 +51,9 @@ if not rows:
 subprocess.run(["git", "-C", PG, "checkout", "origin/develop", "--", "content/spots.json"], check=True)
 IDS = load("ids.json", {})
 jst = datetime.datetime.now(datetime.timezone(datetime.timedelta(hours=9)))
-today = jst.strftime("%Y-%m-%d")
+# 日本時間の日付。ただし UTC の今日より先にしない（日本時間の 0〜9 時は UTC ではまだ前日で、
+# 台帳のテスト「未来の日付を書かない」が落ちる。第9束・2026-11-15 00:04 JST に踏んだ）
+today = min(jst.strftime("%Y-%m-%d"), datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d"))
 now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000Z")
 new = []
 for r in rows:
@@ -68,7 +70,8 @@ for r in rows:
     u = r.get("officialWebsiteUrl")
     if u and sites.get(u, {}).get("ok") and u.startswith("https://"):
         e["officialWebsiteUrl"] = u
-        pt = sites[u].get("title") or ""
+        # サイトの <title> に Markdown の ** が入っている頁がある（三島由紀夫文学館）。出典の題に ** を残さない
+        pt = (sites[u].get("title") or "").replace("**", " ").strip()
         core = r["name"].split(" ")[-1]
         src.append({"url": u, "title": f"公式サイト「{pt if core[:2] in pt else r['name']}」"})
     e.update({"status": "published", "draftedAt": today, "draftedBy": "claude", "createdAt": f"{today}T00:00:00.000Z", "updatedAt": now,
