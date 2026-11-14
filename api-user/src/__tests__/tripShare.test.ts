@@ -731,3 +731,51 @@ describe("会話の通報（POST /trip-share/{planId}/report）", () => {
         expect(reportRows()).toEqual([]);
     });
 });
+
+/** 確かめ役の指摘（2026-11-14）: 押し直しで前の写しを消さない・ブロックの間柄の仲間の通を写さない */
+describe("会話の通報の写し（押し直し・ブロックの間柄）", () => {
+    const report = (sub: string, body: unknown) => api(sub, "POST /trip-share/{planId}/report", {}, body);
+    const messagesOf = () => store.get(`tripchat#${P}`)!.items as Array<{ id: string; from: string; text?: string }>;
+    const copied = () => [...store.entries()].filter(([k]) => k.startsWith("tripreport#"))
+        .flatMap(([, v]) => v.messages as Array<{ id: string; from: string; text: string }>);
+
+    it("押し直しても、前の写しにあって会話から消えた通は残る（DM の通報と同じ）", async () => {
+        await sharedWithB();
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "前の文" });
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "いやな文" });
+        const target = messagesOf().find((m) => m.text === "いやな文")!;
+        expect((await report(A, { messageId: target.id, reason: "harassment" })).statusCode).toBe(200);
+        // 「前の文」が会話から消えた（流れた・取り消された）あとに押し直す
+        const row = store.get(`tripchat#${P}`)!;
+        store.set(`tripchat#${P}`, { ...row, items: messagesOf().filter((m) => m.text !== "前の文") });
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "後の文" });
+        expect((await report(A, { messageId: target.id, reason: "spam" })).statusCode).toBe(200);
+        expect(copied().map((m) => m.text)).toEqual(["前の文", "いやな文", "後の文"]);
+        expect([...store.keys()].filter((k) => k.startsWith("tripreport#"))).toHaveLength(1);
+    });
+
+    async function withC() {
+        await sharedWithB();
+        const { token } = json(await api(A, "POST /trip-share/{planId}/invite"));
+        expect((await api(C, "POST /trip-invites/{token}/join", { token })).statusCode).toBe(200);
+        await api(C, "POST /trip-share/{planId}/chat", {}, { text: "しろの文" });
+        await api(B, "POST /trip-share/{planId}/chat", {}, { text: "いやな文" });
+        return messagesOf().find((m) => m.text === "いやな文")!;
+    }
+
+    it("通報した人をブロックしている仲間（C）の通は写さない", async () => {
+        const target = await withC();
+        block(C, A);
+        expect((await report(A, { messageId: target.id, reason: "harassment" })).statusCode).toBe(200);
+        expect(copied().map((m) => m.from)).not.toContain(C);
+        expect(copied().map((m) => m.text)).toEqual(["いやな文"]);
+    });
+
+    it("通報した人がブロックしている仲間（C）の通は写さない", async () => {
+        const target = await withC();
+        block(A, C);
+        expect((await report(A, { messageId: target.id, reason: "harassment" })).statusCode).toBe(200);
+        expect(copied().map((m) => m.from)).not.toContain(C);
+        expect(copied().map((m) => m.text)).toEqual(["いやな文"]);
+    });
+});

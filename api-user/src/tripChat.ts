@@ -32,6 +32,8 @@ export const tripChatReportKey = (planId: string, messageId: string, reporter: s
     `tripreport#${planId}#${messageId}#${reporter}`;
 /** 通報で写す直近の通の数（DM の `DM_REPORT_LAST` と同じ 20） */
 export const TRIP_REPORT_LAST = 20;
+/** 押し直しで写しを重ねたときの上限（DM の `DM_REPORT_KEEP_MAX` と同じ 100。500字×100通でも 1行 400KB に収まる） */
+export const TRIP_REPORT_KEEP_MAX = 100;
 /** 通の id の形（`randomUUID` の形。任意の文字列を行のキーにさせない） */
 export const isTripMessageId = (v: unknown): v is string =>
     typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);

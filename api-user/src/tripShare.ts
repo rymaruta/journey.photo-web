@@ -23,7 +23,7 @@ import {
 } from "./tripPlans";
 import {
     appendTripChat, readTripChat, stripTripChatFrom, textMessage, tripChatKey, TRIP_CHAT_TEXT_MAX,
-    tripChatReportKey, isTripMessageId, TRIP_REPORT_LAST,
+    tripChatReportKey, isTripMessageId, TRIP_REPORT_LAST, TRIP_REPORT_KEEP_MAX,
     type TripChatMessage, type TripChatLast,
 } from "./tripChat";
 
@@ -343,7 +343,7 @@ async function sendChat(me: string, planId: string, body: Record<string, unknown
  *   - **仲間だけ**（仲間でなければプランの有無も教えない 404）
  *   - 通報できるのは**ほかの仲間が書いた文の通**だけ。自分の通・「日程に足しました」の通は 400（画面も出さない）
  *   - 会話に無い通（流れて消えた・退会で外れた）は 404 `messageNotFound`
- *   - **通報時点の直近 20 通（自分に見えているぶん）と、通報した通を写して残す**（あとで相手が退会して通が消えても運営が見られる・
+ *   - **通報時点の直近 20 通（自分に見えているぶん）と、通報した通を写して残す**。押し直しでも前の写しの通は残す（`TRIP_REPORT_KEEP_MAX` まで）（あとで相手が退会して通が消えても運営が見られる・
  *     DM の `reportConversation` と同じ考え）。ブロック中の相手の通も通報できる（ブロックした直後に通報するのがふつう）
  *   - 受け付けたことだけ返す。相手には知らせない
  */
@@ -357,21 +357,33 @@ async function reportChat(me: string, planId: string, body: Record<string, unkno
     if (!target) return jsonError(404, "メッセージが見つかりません", "messageNotFound");
     if (target.from === me) return jsonError(400, "自分のメッセージは通報できません");
     if (typeof target.text !== "string") return jsonError(400, "このメッセージは通報できません");
-    const copy = (m: TripChatMessage) => ({ id: m.id, from: m.from, t: m.t, ...(typeof m.text === "string" ? { text: m.text } : {}) });
+    type Copy = { id: string; from: string; t: string; text?: string };
+    const copy = (m: TripChatMessage): Copy => ({ id: m.id, from: m.from, t: m.t, ...(typeof m.text === "string" ? { text: m.text } : {}) });
+    // 写すのは自分に見えている文の通だけ（ブロックの間柄の人の通は外す・`readChat` と同じ）。通報した通は必ず入れる
     const recent = chat.items.filter((m) => !hidden.has(m.from) && typeof m.text === "string").slice(-TRIP_REPORT_LAST);
-    const messages = recent.some((m) => m.id === target.id) ? recent.map(copy) : [copy(target), ...recent.map(copy)];
+    const fresh = recent.some((m) => m.id === target.id) ? recent.map(copy) : [copy(target), ...recent.map(copy)];
+    // **押し直しでも、前の写しの通は残す**（DM の `reportConversation` と同じ・2026-11-14 確かめ役の指摘1: 上書きで前の写しが消えていた）。
+    // 前の写しと今の直近を id で合わせ、時刻の順に。多すぎれば古い方から落とすが、通報した通は残す
+    const key = tripChatReportKey(planId, target.id, me);
+    const prev = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: key }, ConsistentRead: true }));
+    const kept = Array.isArray(prev.Item?.messages) ? (prev.Item!.messages as Array<Partial<Copy>>)
+        .filter((m): m is Copy => typeof m?.id === "string" && typeof m?.from === "string" && typeof m?.t === "string") : [];
+    const byId = new Map<string, Copy>(kept.map((m) => [m.id, m]));
+    for (const m of fresh) byId.set(m.id, m);
+    let messages = [...byId.values()].sort((a, b) => a.t.localeCompare(b.t)).slice(-TRIP_REPORT_KEEP_MAX);
+    if (!messages.some((m) => m.id === target.id)) messages = [copy(target), ...messages.slice(1)];
     const note = sanitizeText(body.note, REPORT_NOTE_MAX);
     await ddb.send(new PutCommand({
         TableName: PHOTOS_TABLE,
         Item: {
-            id: tripChatReportKey(planId, target.id, me),
+            id: key,
             planId, messageId: target.id, reporterId: me, reportedId: target.from,
             reason: body.reason,
             ...(note ? { note } : {}),
             messages,
             createdAt: new Date().toISOString(),
         },
-        // 条件は付けない。同じ人が同じ通を押し直したら理由・補足・写しを上書き（1人1通に1件）
+        // 条件は付けない。同じ人が同じ通を押し直したら理由・補足は上書き、写しは前の通を残して直近を足す（上の `messages`）
     }));
     return ok({ success: true });
 }
