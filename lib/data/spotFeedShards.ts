@@ -10,7 +10,7 @@
 //
 // 区分の鍵（`shardKey`）は**アプリにとって意味の無い札**として扱わせる（アプリは索引の
 // `shards[].key` と、その下の行だけを見る）。区分が大きくなったら、アプリを変えずに
-// サーバーだけで割り直せる（例: `jp-kanto` → 県ごと）。
+// サーバーだけで割り直せる（2026-11-14 に日本を地方 → 県ごとに割り直した）。
 //
 // 古いアプリが読む `/app/data/spots.json` は `spotFeed.ts` のまま、**2026-10-07 の公開行に固定**
 // （`content/spots-feed-legacy.json`・`legacySpotFeed`）。これ以上は増やさない。
@@ -20,22 +20,10 @@
 import { SPOTS, type Spot } from "./spots";
 import { SPOT_IMAGES, type SpotImage } from "./spotImages";
 import { buildSpotFeed, type SpotFeedItem } from "./spotFeed";
-import { prefectureByName, type RegionName } from "./prefectures";
+import { prefectureByName } from "./prefectures";
 
 /** 索引の形の版。**形を互換なしに変えるときだけ上げる**（アプリは知らない版なら古い `spots.json` に戻る） */
 export const SPOT_FEED_VERSION = 1;
-
-/** 日本の地方 → 区分の鍵。地方の名前は `prefectures.ts` の `REGIONS` */
-const JAPAN_AREA_KEYS: Record<RegionName, string> = {
-    "北海道": "jp-hokkaido",
-    "東北": "jp-tohoku",
-    "関東": "jp-kanto",
-    "中部": "jp-chubu",
-    "近畿": "jp-kinki",
-    "中国": "jp-chugoku",
-    "四国": "jp-shikoku",
-    "九州・沖縄": "jp-kyushu",
-};
 
 /**
  * 国（台帳の `region.country`・日本語表記）→ 区分の鍵（ISO 3166-1 alpha-2 の小文字）。
@@ -116,21 +104,19 @@ export const OTHER_KEY = "other";
 const JAPAN_UNKNOWN_KEY = "jp-other";
 
 /**
- * 1行の区分の鍵。日本は地方、海外は国。
- * 2026-10-07 判断: 日本を県（47）で割ると、いまは1区分20件前後で要求が細かすぎる。
- * 地方（8）なら1区分 約130件・約110KB。1万件に増えて区分が 500KB を超えたら県で割る
- * （テストの上限 `SHARD_MAX_BYTES` が知らせる）
+ * 1行の区分の鍵。日本は県（`jp-<県のスラッグ>`・47区分）、海外は国。
+ * 2026-10-07 判断: 日本を県で割ると、そのころは1区分20件前後で要求が細かすぎた（地方・8区分 約130件・約110KB）。
  *
- * 2026-10-30 owner 県ごとに100: 国内の目標が約4,700件になった。実測は1件 約1KB
- * （2026-10-30・jp-chubu 197KB／約200件）なので、県が平均50件を超えるころ中部（9県）・
- * 九州（8県）が 500KB に届く。そのときは日本の鍵を県（`jp-<県のスラッグ>`）に替える
- * ——アプリは索引の `shards` に従って読むので、サーバーだけで割り直せる
+ * **2026-11-14: 地方 → 県に割り直した。** owner の「県ごとに100」（2026-10-30）で国内が増え、観光第9束の
+ * 分で `jp-chubu`（9県）が 555KB になり、上限（`SHARD_MAX_BYTES`・500KB）を超えた。県なら1区分 約100件・約100KB。
+ * アプリは索引の `shards` に従って読むので、サーバーだけで割り直せた（iOS の `Sources/` は鍵の名前に依存しない）。
+ * 県の分からない日本の行は `jp-other`
  */
 export function shardKey(item: Pick<SpotFeedItem, "region">): string {
     const country = item.region?.country?.trim();
     if (country && country !== "日本") return COUNTRY_SHARD_KEYS[country] ?? OTHER_KEY;
     const pref = prefectureByName(item.region?.prefecture);
-    return pref ? JAPAN_AREA_KEYS[pref.region] : JAPAN_UNKNOWN_KEY;
+    return pref ? `jp-${pref.slug}` : JAPAN_UNKNOWN_KEY;
 }
 
 /**
