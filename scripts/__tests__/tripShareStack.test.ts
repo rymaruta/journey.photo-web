@@ -114,10 +114,10 @@ describe("旅行プランの共有の権限", () => {
         }
     });
 
-    it("会話の通報の写し（`tripreport#`）には PutItem だけ書ける（2026-11-14 #597。無いと通報が 500）", () => {
+    it("会話の通報の写し（`tripreport#`）は GetItem と PutItem だけ（押し直しで前の写しを読む・2026-11-14 #597。無いと通報が 500）", () => {
         const mine = statements(yml).filter(photos);
         const acts = mine.filter((st) => st.keys.includes("tripreport#*")).flatMap((st) => st.actions);
-        expect(acts.sort()).toEqual(["dynamodb:PutItem"]);
+        expect(acts.sort()).toEqual(["dynamodb:GetItem", "dynamodb:PutItem"]);
         expect(routes(yml)).toContain("POST /trip-share/{planId}/report");
     });
 

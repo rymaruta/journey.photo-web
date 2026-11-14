@@ -86,9 +86,11 @@ provider:
               dynamodb:LeadingKeys:
                 - devices#*
                 - dmday#*
-        # 会話の通報の写し（`tripChat.ts` の `tripChatReportKey`・2026-11-14 #597）。書くだけ（読み直さない・上書き）
+        # 会話の通報の写し（`tripChat.ts` の `tripChatReportKey`・2026-11-14 #597）。押し直しで前の写しを読んで残すので
+        # 読むのと書くのだけ（消さない・UpdateItem もしない）
         - Effect: Allow
           Action:
+            - dynamodb:GetItem
             - dynamodb:PutItem
           Resource:
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
