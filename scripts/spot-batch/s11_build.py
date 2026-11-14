@@ -70,7 +70,8 @@ for r in rows:
     u = r.get("officialWebsiteUrl")
     if u and sites.get(u, {}).get("ok") and u.startswith("https://"):
         e["officialWebsiteUrl"] = u
-        pt = sites[u].get("title") or ""
+        # サイトの <title> に Markdown の ** が入っている頁がある（三島由紀夫文学館）。出典の題に ** を残さない
+        pt = (sites[u].get("title") or "").replace("**", " ").strip()
         core = r["name"].split(" ")[-1]
         src.append({"url": u, "title": f"公式サイト「{pt if core[:2] in pt else r['name']}」"})
     e.update({"status": "published", "draftedAt": today, "draftedBy": "claude", "createdAt": f"{today}T00:00:00.000Z", "updatedAt": now,
