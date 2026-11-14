@@ -23,6 +23,21 @@ import type { TripItem } from "./tripPlans";
 
 export const tripChatKey = (planId: string) => `tripchat#${planId}`;
 
+/**
+ * 会話の1通の通報の写し（2026-11-14・札 journey.photo-ios#597・審査ガイドライン 1.2）。
+ * **1人1通につき1件**（同じ人が同じ通を押し直したら上書き）。DM の通報の写し（`dm.ts` の `dmReportKey`）と同じ表・同じ作法で、
+ * 新しい表・GSI は作らない。🔴 `userId` の欄は持たせない（`userId-createdAt-index` に載る）。運営の記録なので退会でも消さない
+ */
+export const tripChatReportKey = (planId: string, messageId: string, reporter: string) =>
+    `tripreport#${planId}#${messageId}#${reporter}`;
+/** 通報で写す直近の通の数（DM の `DM_REPORT_LAST` と同じ 20） */
+export const TRIP_REPORT_LAST = 20;
+/** 押し直しで写しを重ねたときの上限（DM の `DM_REPORT_KEEP_MAX` と同じ 100。500字×100通でも 1行 400KB に収まる） */
+export const TRIP_REPORT_KEEP_MAX = 100;
+/** 通の id の形（`randomUUID` の形。任意の文字列を行のキーにさせない） */
+export const isTripMessageId = (v: unknown): v is string =>
+    typeof v === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+
 export const TRIP_CHAT_MAX = 200;
 export const TRIP_CHAT_BUDGET_BYTES = 40 * 1024;
 export const TRIP_CHAT_TEXT_MAX = 500;

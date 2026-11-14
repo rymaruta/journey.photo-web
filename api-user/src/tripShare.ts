@@ -8,6 +8,8 @@ import { isUserId } from "./userId";
 import { UserListError, updateUserRow } from "./userList";
 import { convIdOf, dmConvKey, parseConvId, peerInfos, reserveTripChatDaily } from "./dm";
 import { cleanMultilineText } from "./textClean";
+import { isReportReason, REPORT_NOTE_MAX } from "./report";
+import { sanitizeText } from "./sanitize";
 import { deviceTokens, forgetTokens } from "./devices";
 import { apnsConfigured, sendPush } from "./apns";
 import {
@@ -21,6 +23,7 @@ import {
 } from "./tripPlans";
 import {
     appendTripChat, readTripChat, stripTripChatFrom, textMessage, tripChatKey, TRIP_CHAT_TEXT_MAX,
+    tripChatReportKey, isTripMessageId, TRIP_REPORT_LAST, TRIP_REPORT_KEEP_MAX,
     type TripChatMessage, type TripChatLast,
 } from "./tripChat";
 
@@ -334,6 +337,58 @@ async function sendChat(me: string, planId: string, body: Record<string, unknown
 }
 
 /**
+ * POST /trip-share/{planId}/report — 会話の1通を通報する（2026-11-14・札 journey.photo-ios#597・審査ガイドライン 1.2）。
+ * 本文 `{ messageId, reason, note? }`。理由は写真・DM の通報と同じ許可リスト（`report.ts` の `REPORT_REASONS`）。
+ *
+ *   - **仲間だけ**（仲間でなければプランの有無も教えない 404）
+ *   - 通報できるのは**ほかの仲間が書いた文の通**だけ。自分の通・「日程に足しました」の通は 400（画面も出さない）
+ *   - 会話に無い通（流れて消えた・退会で外れた）は 404 `messageNotFound`
+ *   - **通報時点の直近 20 通（自分に見えているぶん）と、通報した通を写して残す**。押し直しでも前の写しの通は残す（`TRIP_REPORT_KEEP_MAX` まで）（あとで相手が退会して通が消えても運営が見られる・
+ *     DM の `reportConversation` と同じ考え）。ブロック中の相手の通も通報できる（ブロックした直後に通報するのがふつう）
+ *   - 受け付けたことだけ返す。相手には知らせない
+ */
+async function reportChat(me: string, planId: string, body: Record<string, unknown>) {
+    if (!isTripMessageId(body.messageId)) return jsonError(400, "不正なリクエスト");
+    if (!isReportReason(body.reason)) return jsonError(400, "理由を選んでください");
+    const row = await readSharedTrip(planId);
+    if (!row || !isTripMember(row, me)) return notFound();
+    const [chat, hidden] = await Promise.all([readTripChat(planId), hiddenUserIds(me)]);
+    const target = chat.items.find((m) => m.id === body.messageId);
+    if (!target) return jsonError(404, "メッセージが見つかりません", "messageNotFound");
+    if (target.from === me) return jsonError(400, "自分のメッセージは通報できません");
+    if (typeof target.text !== "string") return jsonError(400, "このメッセージは通報できません");
+    type Copy = { id: string; from: string; t: string; text?: string };
+    const copy = (m: TripChatMessage): Copy => ({ id: m.id, from: m.from, t: m.t, ...(typeof m.text === "string" ? { text: m.text } : {}) });
+    // 写すのは自分に見えている文の通だけ（ブロックの間柄の人の通は外す・`readChat` と同じ）。通報した通は必ず入れる
+    const recent = chat.items.filter((m) => !hidden.has(m.from) && typeof m.text === "string").slice(-TRIP_REPORT_LAST);
+    const fresh = recent.some((m) => m.id === target.id) ? recent.map(copy) : [copy(target), ...recent.map(copy)];
+    // **押し直しでも、前の写しの通は残す**（DM の `reportConversation` と同じ・2026-11-14 確かめ役の指摘1: 上書きで前の写しが消えていた）。
+    // 前の写しと今の直近を id で合わせ、時刻の順に。多すぎれば古い方から落とすが、通報した通は残す
+    const key = tripChatReportKey(planId, target.id, me);
+    const prev = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: key }, ConsistentRead: true }));
+    const kept = Array.isArray(prev.Item?.messages) ? (prev.Item!.messages as Array<Partial<Copy>>)
+        .filter((m): m is Copy => typeof m?.id === "string" && typeof m?.from === "string" && typeof m?.t === "string") : [];
+    const byId = new Map<string, Copy>(kept.map((m) => [m.id, m]));
+    for (const m of fresh) byId.set(m.id, m);
+    let messages = [...byId.values()].sort((a, b) => a.t.localeCompare(b.t)).slice(-TRIP_REPORT_KEEP_MAX);
+    if (!messages.some((m) => m.id === target.id)) messages = [copy(target), ...messages.slice(1)];
+    const note = sanitizeText(body.note, REPORT_NOTE_MAX);
+    await ddb.send(new PutCommand({
+        TableName: PHOTOS_TABLE,
+        Item: {
+            id: key,
+            planId, messageId: target.id, reporterId: me, reportedId: target.from,
+            reason: body.reason,
+            ...(note ? { note } : {}),
+            messages,
+            createdAt: new Date().toISOString(),
+        },
+        // 条件は付けない。同じ人が同じ通を押し直したら理由・補足は上書き、写しは前の通を残して直近を足す（上の `messages`）
+    }));
+    return ok({ success: true });
+}
+
+/**
  * GET /trip-share/inbox — 受信箱に並べるプランの会話（入っている共有プラン全部・最後の通の新しい順）。
  * 会話の行は**最後の通と通し番号だけ**を射影で読む（行ぜんぶを読まない）
  */
@@ -457,6 +512,7 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
         if (route === "DELETE /trip-share/{planId}/invite") return await revokeInvite(me, planId);
         if (route === "DELETE /trip-share/{planId}/members/{uid}") return await removeMember(me, planId, event.pathParameters?.uid);
         if (route === "POST /trip-share/{planId}/chat") return await sendChat(me, planId, body);
+        if (route === "POST /trip-share/{planId}/report") return await reportChat(me, planId, body);
         return jsonError(404, "見つかりません");
     } catch (e) {
         if (e instanceof UserListError) return jsonError(503, "混み合っています。もう一度お試しください");
