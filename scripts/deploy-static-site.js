@@ -21,6 +21,7 @@ if (fs.existsSync(envLocalPath)) {
 }
 const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } = require("@aws-sdk/client-s3");
 const { CloudFrontClient, CreateInvalidationCommand } = require("@aws-sdk/client-cloudfront");
+const { submitIndexNow } = require("./lib/indexnow.js");
 const { lookup: mimeLookup } = require("mime-types");
 
 // Parse --bucket argument（バリデーションは直接実行時のみ。テストからの
@@ -999,6 +1000,8 @@ async function main() {
     // トップの OGP 画像は「一番新しい公開写真」なので、その写真が消えると
     // 次のビルドまで壊れたままになる（削除は S3 の実体も消す）
     await verifyOgImage();
+    // IndexNow（Bing などへ、直近2日に更新された URL を知らせる）。本番だけ・失敗してもデプロイは止めない
+    await submitIndexNow({ siteUrl: SITE_URL, outDir });
 
     console.log("\n[deploy] Done.\n");
 }
