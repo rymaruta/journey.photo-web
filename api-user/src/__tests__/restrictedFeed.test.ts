@@ -9,6 +9,25 @@ vi.mock("../dynamodb", () => ({
     STORY_FEED_KEY: "1",
 }));
 
+// **署名の中身を決められるようにする。** 署名は鍵ごとにでたらめな base64 で、
+// たまたま「key」の3文字が入ることがある（本番の Deploy Site run 43678165012 の
+// 1回目で `Signature=...Sn8IkeyHZ-...` になり、下の「key が漏れている」が落ちた）。
+// `forced.signature` を入れた間だけ、`createSign().sign()` がその値を返す。
+// 入れていない間は本物の署名のまま。
+const forced = vi.hoisted(() => ({ signature: null as Buffer | null }));
+vi.mock("node:crypto", async (importOriginal) => {
+    const real = await importOriginal<typeof import("node:crypto")>();
+    return {
+        ...real,
+        createSign: (algorithm: string) => {
+            const signer = real.createSign(algorithm);
+            if (!forced.signature) return signer;
+            const signature = forced.signature;
+            return Object.assign(signer, { sign: () => signature });
+        },
+    };
+});
+
 const { isVisiblePhoto, getRestrictedFeed, stripPrivate } = await import("../restrictedFeed");
 const { ddb } = await import("../dynamodb");
 const { sanitizeAudience } = await import("../sanitize");
@@ -336,6 +355,33 @@ describe("一覧の本文に、署名が乗っているか", () => {
     });
 });
 
+/// **確かめたいのは「内部の項目（とくに S3 の object key・原本の URL）を返していないこと」。**
+///
+/// もとは返した文字列の全体に「key」の字が無いことを見ていた。それだと、署名付き URL の
+/// 署名（毎回でたらめな base64）にたまたま「key」の3文字が入っただけで落ちる
+/// （本番の Deploy Site run 43678165012 の1回目）。そこで次の2つを見る:
+///  - 項目の名前: 返した各行（と2枚目以降の `extraImages`）に、その名前の欄が無い
+///  - 項目の値: 内部の値（S3 の key・原本の URL・元のストーリー）が、文字列のどこにも無い
+///    （別の名前の欄に写して返す形も捕まえる）
+const LEAKED_FIELDS = ["srcOriginal", "key", "staticStale", "publicFeed", "keptFrom"] as const;
+const LEAKED_VALUES = ["uploads/me/r1.jpg", "https://cdn/originals/r1.jpg", "story-1"] as const;
+
+function expectNoPrivateFields(body: string) {
+    const rows = JSON.parse(body) as Record<string, unknown>[];
+    expect(rows.length, "行が1つも返っていない（何も確かめていない）").toBeGreaterThan(0);
+    for (const row of rows) {
+        const containers = [row, ...(Array.isArray(row.extraImages) ? row.extraImages : [])];
+        for (const c of containers) {
+            for (const field of LEAKED_FIELDS) {
+                expect(Object.keys(c as object), `${field} が漏れている`).not.toContain(field);
+            }
+        }
+    }
+    for (const value of LEAKED_VALUES) {
+        expect(body, `${value} が漏れている`).not.toContain(value);
+    }
+}
+
 // 🔴 **落とすことと署名することは、どちらも要る。**
 //
 // この1行を2つの PR が別々に書き換えていた（#134 が `stripPrivate`・
@@ -373,14 +419,51 @@ describe("落としてから署名する（両方が同時に効く）", () => {
         const body = res.body as string;
 
         // #134 の側: 内部の項目は1つも出ない
-        for (const field of ["srcOriginal", "key", "staticStale", "publicFeed", "keptFrom"]) {
-            expect(body, `${field} が漏れている`).not.toContain(field);
-        }
+        expectNoPrivateFields(body);
         // #136 の側: 残った画像には期限が付く
         const rows = JSON.parse(body) as { src: string; thumbSrc: string }[];
         expect(rows[0].src, "src に署名が無い").toContain("Signature=");
         expect(rows[0].thumbSrc, "派生に署名が無い").toContain("Signature=");
         vi.unstubAllEnvs();
+    });
+
+    /// 署名に「key」の3文字が入っても、「key が漏れている」と言わない。
+    /// 本番の Deploy Site（run 43678165012）の1回目で落ちたときの署名の値で再現する。
+    it("署名に key の字が入っても、漏れとは言わない", async () => {
+        const { generateKeyPairSync } = await import("node:crypto");
+        const { privateKey } = generateKeyPairSync("rsa", {
+            modulusLength: 2048,
+            privateKeyEncoding: { type: "pkcs1", format: "pem" },
+            publicKeyEncoding: { type: "spki", format: "pem" },
+        });
+        vi.stubEnv("CLOUDFRONT_KEY_PAIR_ID", "K2EXAMPLE");
+        vi.stubEnv("CLOUDFRONT_PRIVATE_KEY", privateKey as unknown as string);
+        // CloudFront の base64 では `+` が `-` になる → `Sn8IkeyHZ-AA`
+        forced.signature = Buffer.from("Sn8IkeyHZ+AA", "base64");
+        try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (ddb.send as any).mockReset().mockImplementation((cmd: any) => {
+                if ((cmd.input as Record<string, unknown>).KeyConditionExpression) {
+                    return Promise.resolve({ Items: [{
+                        id: "r1", userId: ME, audience: "followers",
+                        src: "https://cdn/r1.jpg", thumbSrc: "https://cdn/r1-t.jpg",
+                        srcOriginal: "https://cdn/originals/r1.jpg",
+                        key: "uploads/me/r1.jpg", staticStale: true,
+                        publicFeed: "restricted", keptFrom: "story-1",
+                    }] });
+                }
+                return Promise.resolve({});
+            });
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const res = await (getRestrictedFeed as any)(event);
+            const body = res.body as string;
+            // 前提: 署名に「key」の字が入っている（入っていなければ、この試験は何も確かめていない）
+            expect(body).toContain("Signature=Sn8IkeyHZ-AA");
+            expectNoPrivateFields(body);
+        } finally {
+            forced.signature = null;
+            vi.unstubAllEnvs();
+        }
     });
 });
 
