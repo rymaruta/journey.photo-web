@@ -134,7 +134,9 @@ describe("public/ に置いたものは全部配信される", () => {
     it("参照が無いファイルは、理由つきで一覧にある", () => {
         const orphans = files.filter((f) => !allowed.has(f) && !isDerivedThumb(f) && !BADGE_ASSETS.has(f) && !referenced(f));
         expect(orphans, `参照0のまま配信されている: ${orphans.join(", ")}`).toEqual([]);
-    });
+        // 観光スポットの写真（public/images/spots）が束ごとに増える（3,500枚超）ので、
+        // 混んだ機械では既定の5秒を超えることがある（2026-11-15: 検査が重なって6.1秒）
+    }, 30_000);
 
     // 一覧が腐るのを防ぐ（消したファイルの理由だけ残る形にしない）
     it("一覧に書いたファイルは実在する", () => {
