@@ -82,6 +82,7 @@ import { photoLightZone, directionsTarget, offersInspiredShoot } from "@/lib/uti
 import { MoreLink } from "@/app/components/SectionHead";
 import { ROW_TALL, CARD, ROW_TITLE, ROW_SUB, ROW_CHEVRON } from "@/app/components/rowStyles";
 import { GLASS_BTN, GLASS_ICON_STYLE } from "@/app/components/buttonStyles";
+import SignUpBenefits from "@/app/components/SignUpBenefits";
 
 /** 写真を押した／引いたの境目（px）。これより動いたら「送った」で、全画面は開かない */
 const HERO_TAP_SLOP = 10;
@@ -1642,6 +1643,11 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     />
                 </div>
             )}
+
+            {/* 「登録するとできること」（札 journey.photo-ios#618 の案1・2026-11-15 判断で案C）。ログインしていない人にだけ、
+                関連の写真の下・コメントの前に控えめに（出さない人には何も描かない）。押した先は今の登録とログインの頁 */}
+            <SignUpBenefits locale={locale === "en" ? "en" : "ja"} className="mt-8 px-4 lg:px-0"
+                            photos={[...related.author, ...related.location].slice(0, 4)} />
 
             {/* **コメントの節**（iOS の `commentsBlock`）: 「コメント」15 semibold ＋ 数 15 text-3 の等幅数字、その下に一覧と入力欄（44・C6）。
                 吹き出しを押したらここへ送る。ヘッダーは sticky なので、その高さぶん手前で止める（PC。スマホは見出しが無いので 0） */}
