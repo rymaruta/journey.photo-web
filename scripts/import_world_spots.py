@@ -50,15 +50,7 @@ def retry_delay(headers, attempt):
     return min(180, 10 * 2 ** attempt + random.uniform(0, 5))
 
 
-def fetch(country, limit, offset):
-    types = " ".join("wd:" + x for x in TYPES)
-    query = f"""SELECT DISTINCT ?item ?itemLabel ?coord ?image ?commonsCategory WHERE {{
-      VALUES ?kind {{ {types} }}
-      ?item wdt:P31 ?kind; wdt:P17 wd:{country}; wdt:P625 ?coord.
-      OPTIONAL {{ ?item wdt:P18 ?image. }}
-      OPTIONAL {{ ?item wdt:P373 ?commonsCategory. }}
-      SERVICE wikibase:label {{ bd:serviceParam wikibase:language "ja,en". }}
-    }} ORDER BY ?item LIMIT {limit} OFFSET {offset}"""
+def sparql(query):
     url = ENDPOINT + "?" + urllib.parse.urlencode({"query": query, "format": "json"})
     req = urllib.request.Request(url, headers={
         "Accept": "application/sparql-results+json",
@@ -83,6 +75,41 @@ def fetch(country, limit, offset):
             print(f"Network error: cooling down {wait:.1f}s", flush=True)
             time.sleep(wait)
     raise RuntimeError("unreachable")
+
+
+def fetch(country, limit, offset):
+    types = " ".join("wd:" + x for x in TYPES)
+    return sparql(f"""SELECT DISTINCT ?item ?itemLabel ?coord ?image ?commonsCategory WHERE {{
+      VALUES ?kind {{ {types} }}
+      ?item wdt:P31 ?kind; wdt:P17 wd:{country}; wdt:P625 ?coord.
+      OPTIONAL {{ ?item wdt:P18 ?image. }}
+      OPTIONAL {{ ?item wdt:P373 ?commonsCategory. }}
+      SERVICE wikibase:label {{ bd:serviceParam wikibase:language "ja,en". }}
+    }} ORDER BY ?item LIMIT {limit} OFFSET {offset}""")
+
+
+def count_items(country):
+    # fetch() と同じ条件の項目の数だけを数える（名前・画像・並べ替えを付けない軽い問い合わせ）。
+    types = " ".join("wd:" + x for x in TYPES)
+    rows = sparql(f"""SELECT (COUNT(DISTINCT ?item) AS ?n) WHERE {{
+      VALUES ?kind {{ {types} }}
+      ?item wdt:P31 ?kind; wdt:P17 wd:{country}; wdt:P625 ?coord.
+    }}""")
+    return int(rows[0]["n"]["value"]) if rows else 0
+
+
+def rotating_offset(cycle, total, limit):
+    """何周目か（cycle）から、その国の件数（total）の中で回る offset を返す。
+
+    🔴 2026-11-13、14（rymaruta/journey.photo-ios#614）: 以前は全部の国で
+    ((tick // 48) % 20) * 250 を使い、48日ごとに 250 件ずつ進めていた。13周目で
+    offset 3000 になり、件数がそれより少ない国（DK 840、NL 1526、EG、KE、GR など）は
+    0 件しか取れなかった。国ごとの件数のページ数で割った余りにして、必ず件数の中に収める。
+    """
+    if total <= 0:
+        return 0
+    pages = (total + limit - 1) // limit
+    return (cycle % pages) * limit
 
 COMMONS_API = "https://commons.wikimedia.org/w/api.php"
 ALLOWED_LICENSES = ("cc0", "cc-by", "public domain", "pdm")
@@ -176,12 +203,20 @@ def main():
     p.add_argument("--slot", type=int, required=True)
     p.add_argument("--limit", type=int, default=250)
     p.add_argument("--offset", type=int, default=0)
+    p.add_argument("--cycle", type=int, default=None,
+                   help="何周目か。指定すると offset はその国の件数の中で回して決める")
     p.add_argument("--image-limit", type=int, default=15)
     p.add_argument("--output-dir", default="data/imports/world")
     a = p.parse_args()
     if a.slot < 0 or not 1 <= a.limit <= 500 or a.offset < 0 or not 0 <= a.image_limit <= 50:
         p.error("invalid slot, limit or offset")
+    if a.cycle is not None and a.cycle < 0:
+        p.error("invalid cycle")
     code, country = COUNTRIES[a.slot % len(COUNTRIES)]
+    if a.cycle is not None:
+        total = count_items(country)
+        a.offset = rotating_offset(a.cycle, total, a.limit)
+        print(f"{code}: {total} items; cycle {a.cycle} -> offset {a.offset}", flush=True)
     records = {}
     image_requests = 0
     for row in fetch(country, a.limit, a.offset):
