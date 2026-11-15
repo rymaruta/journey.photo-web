@@ -36,12 +36,15 @@ type Props = {
     /** **はじめての投稿**の写真の id（`firstPostPhotoIds`・iOS の `HomeFeedTile.isFirstPost`・札 journey.photo-ios#537 案1）。
      *  時刻で決まるので、印は載ったあとにだけ出す（静的 HTML に焼かない） */
     firstPostIds?: ReadonlySet<string>;
+    /** 並びの途中に1つだけ挟む段（「登録するとできること」・札 journey.photo-ios#618 の案1・2026-11-15）。
+     *  `afterIndex` 番目の写真の後ろに、2列ぶんの行で置く。写真がそれより少なければ最後に置く。中身が null なら何も足さない */
+    insert?: { afterIndex: number; node: React.ReactNode };
 };
 
 /** 段どうし・段の中の隙間（板: 4px） */
 const GAP = 4;
 
-export default function HomeMosaic({ photos, locale, priorityCount = 3, firstPostIds }: Props) {
+export default function HomeMosaic({ photos, locale, priorityCount = 3, firstPostIds, insert }: Props) {
     // 大きい段かどうかを**何番目か**で引く（並びそのものは `editorialRows` が決める・`editorialLargeIndexes`）
     const large = React.useMemo(() => editorialLargeIndexes(photos), [photos]);
     return (
@@ -50,10 +53,18 @@ export default function HomeMosaic({ photos, locale, priorityCount = 3, firstPos
         // スマホは画面の端から端まで（本文の `p-4` を打ち消す）。広い画面は箱の中
         <ol className="-mx-4 sm:mx-0 grid grid-cols-2 m-0 p-0" style={{ gap: GAP, listStyle: "none" }}>
             {photos.map((p, i) => (
-                <li key={p.id} className={`m-0 p-0 ${large.has(i) ? "col-span-2" : ""}`}>
-                    <HomeTile photo={p} locale={locale} large={large.has(i)} priority={i < priorityCount} lcp={i === 0 && priorityCount > 0}
-                              firstPost={!!firstPostIds?.has(String(p.id))} />
-                </li>
+                <React.Fragment key={p.id}>
+                    <li className={`m-0 p-0 ${large.has(i) ? "col-span-2" : ""}`}>
+                        <HomeTile photo={p} locale={locale} large={large.has(i)} priority={i < priorityCount} lcp={i === 0 && priorityCount > 0}
+                                  firstPost={!!firstPostIds?.has(String(p.id))} />
+                    </li>
+                    {insert && i === Math.min(insert.afterIndex, photos.length - 1) && (
+                        // 写真の並びは端から端まで（-mx-4）なので、挟む段は本文の端 16px に戻す。上下は段の間 20px
+                        <li key="home-insert" className="m-0 col-span-2 px-4 sm:px-0 py-5" data-testid="home-mosaic-insert">
+                            {insert.node}
+                        </li>
+                    )}
+                </React.Fragment>
             ))}
         </ol>
     );
