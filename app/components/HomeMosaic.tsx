@@ -148,11 +148,12 @@ function HomeTile({ photo, locale, large = false, priority = false, lcp = false,
             )}
 
             {/* **はじめての投稿**の印（iOS の `HomeFeedTile.firstPostMark`・札 journey.photo-ios#537 案1・2026-11-11）。
-                初めて載せた人の1枚に、見る人が気づいて反応を返せるように。押すものではない。写真の上なので白だけ
-                （地は右下のいいねの丸と同じ黒 55%・字は 12px）。見える文字がそのまま読み上げの名前に入る。
-                時刻で決まるので載ったあとにだけ出す（`hydrated`） */}
+                初めて載せた人の1枚に、見る人が気づいて反応を返せるように。押すものではない。写真の上なので白だけ。
+                2026-11-15 判断: 形はデザインの板（XN38）の「ガラス（写真、地図の上）: 黒 55%＋ぼかし 18＋白 10% の縁」に
+                そろえた（iOS の `jpGlass` と同じ。前は黒 55% の塗りだけで、iOS と形が割れていた）。字は 12px の太字、高さ 24。
+                見える文字がそのまま読み上げの名前に入る。時刻で決まるので載ったあとにだけ出す（`hydrated`） */}
             {firstPost && hydrated && (
-                <span data-testid="home-first-post" className="absolute inline-flex items-center rounded-full text-white bg-black/55 font-semibold pointer-events-none whitespace-nowrap"
+                <span data-testid="home-first-post" className="absolute inline-flex items-center rounded-full text-white bg-black/55 backdrop-blur-[18px] ring-1 ring-inset ring-glass-line font-semibold pointer-events-none whitespace-nowrap"
                       style={{ top: 8, left: 8, height: 24, padding: "0 8px", fontSize: "12px", lineHeight: "16px" }}>
                     <span className="sr-only">{isJa ? "、" : ", "}</span>{isJa ? "はじめての投稿" : "First post"}
                 </span>
