@@ -966,7 +966,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     };
 
     const handleSaveShareCard = async (ratio: ShareCardRatio) => {
-        if (!photo?.src) return;
+        // **持ち主だけ**（2026-11-15・札 journey.photo-ios#629）。メニューに出さないだけでなく、ここでも断る
+        if (!photo?.src || !isOwnPhoto) return;
         try {
             // Reuse the same-origin /uploads fallback used by StoryViewer; raw CDN URLs may reject CORS.
             const imageBlob = await fetchImageBytes(publicImageUrl(photo.src));
@@ -1073,7 +1074,11 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     buttonSize={44}
                     items={[
                         { key: "share", label: locale === "en" ? "Share" : "共有", onSelect: () => void handleShare() },
-                        ...(["4:5", "9:16", "1:1"] as const).map(ratio => ({ key: `share-card-${ratio}`, label: locale === "en" ? `Save share image ${ratio}` : `共有画像を保存（${ratio}）`, onSelect: () => void handleSaveShareCard(ratio) })),
+                        // **共有画像の保存は持ち主だけ**（2026-11-15・札 journey.photo-ios#629）。CLAUDE.md「他人の写真は、その人のもの」:
+                        // 他人の写真の画像を手にできる道（共有カードの画像の書き出し）は持ち主だけにする。2026-11-15 まで、
+                        // ログインしていない人でも他人の写真の 1080x1350 の JPEG を落とせた（本番で確かめた）。
+                        // 持ち主の写真へ人を連れて行くもの（共有・リンクのコピー・X・LINE）は残す
+                        ...(isOwnPhoto ? (["4:5", "9:16", "1:1"] as const) : []).map(ratio => ({ key: `share-card-${ratio}`, label: locale === "en" ? `Save share image ${ratio}` : `共有画像を保存（${ratio}）`, onSelect: () => void handleSaveShareCard(ratio) })),
                         { key: "copy", label: locale === "en" ? "Copy link" : "リンクをコピー", onSelect: () => void handleCopyLink() },
                         { key: "x", label: locale === "en" ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(currentUrl, shareText, "photo") },
                         ...(locale === "ja" ? [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(currentUrl, shareText, "photo") }] : []),
