@@ -56,7 +56,7 @@ describe("写真の詳細: 自動の結び", () => {
         const notice = await screen.findByTestId("spot-auto-notice");
         expect(notice.textContent).toContain("あなたにだけ表示");
         // 自動で結んだ写真でも、裾の帯に撮影スポットのチップが出る
-        expect(screen.getByTestId("photo-spot-guide").textContent).toContain("観光スポット · 蔵王キツネ村");
+        expect(screen.getByTestId("photo-spot-guide").textContent).toContain("蔵王キツネ村");
         expect(screen.getByTestId("photo-spot-guide").getAttribute("href")).toBe("/spots/miyagi-zao-fox");
         expect(notice.textContent).toContain("観光スポット「蔵王キツネ村」に結びました");
         expect(screen.getByTestId("photo-spot-guide")).toBeTruthy();

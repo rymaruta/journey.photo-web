@@ -13,6 +13,7 @@
  *
  * 大きさは素材の README（`lib/data/badges.ts` の注記）。
  */
+import { HIT_44 } from "./chipStyles";
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { XMarkIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
@@ -152,7 +153,8 @@ export function NameBadge({ badges, displayBadge, ownerName, locale, manageHref 
                 aria-expanded={open}
                 aria-label={locale === "en" ? `Medal: ${label}. Show all medals` : `メダル: ${label}。メダルの一覧を開く`}
                 title={label}
-                className="shrink-0 inline-flex items-center justify-center rounded-full active:scale-95 transition"
+                // 見た目は size のまま、押せる当たりだけ 44（`HIT_44`・2026-11-15）
+                className={`shrink-0 inline-flex items-center justify-center rounded-full active:scale-95 transition ${HIT_44}`}
                 style={{ width: size, height: size, margin, touchAction: "manipulation" }}
                 data-testid="name-badge"
             >

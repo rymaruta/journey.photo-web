@@ -22,6 +22,7 @@ import { highlightKey, highlightsOfUserKey } from "./highlights";
 import { readUserList } from "./userList";
 import { forgetAppStoreLinks } from "./supporterStore";
 import { qrKey, qrOfKey, isValidQrToken } from "./profileQr";
+import { aiUseKeysForCleanup } from "./tripAiKeys";
 
 // 退会（アカウント削除）。DELETE /user/account、認証必須、呼び出し元の sub のみ対象。
 // 不可逆な破壊操作のため「確実に引ける範囲を確実に消す」方針:
@@ -798,6 +799,9 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
             console.error(`deleteAccount: QR の合図を読めませんでした（${uid}）:`, e);
         }
         await ddbDelete(PHOTOS_TABLE, { id: `qrof#${uid}` });
+        // AI の旅行プランの月の回数（`tripAi.ts`・札 journey.photo-ios#621）。この月から1年前まで。
+        // 中身は回数だけだが、本人の使い方の記録なので残さない
+        for (const id of aiUseKeysForCleanup(uid, Date.now())) await ddbDelete(PHOTOS_TABLE, { id });
         // 端末の宛先（`devices.ts` の `devices#<uid>`）。**プッシュ通知の
         // APNs トークンの集合。**
         //

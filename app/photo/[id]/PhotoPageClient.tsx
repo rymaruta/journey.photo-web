@@ -83,6 +83,7 @@ import { inspiredSourceFor, type InspiredLink } from "@/lib/utils/inspired";
 import type { SpotLink } from "@/lib/data/spotLink";
 import { CHIP_OFF, CHIP_SIZE, CHIP_HIT } from "@/app/components/chipStyles";
 import PhotoTripSection from "./PhotoTripSection";
+import { shortPlaceLine } from "@/lib/utils/metaPlace";
 import { LoadingState, ErrorState } from "@/app/components/StateViews";
 // **全画面は押したときに読む**（写真ページの最初の JS に載せない。検索の着地点で、
 // 押さずに去る人が大半）。静的書き出しでは描かないので ssr: false
@@ -920,6 +921,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     //
     // **題の英語は捨てていない**——`ImageObject.alternateName` が持つ。
     const locationText = typeof photo.location === "string" ? photo.location : "";
+    // 写真の裾の1行に出す撮影地（名前と市区町村だけ・住所の全文は出さない）。切れなければ全文
+    const placeLine = shortPlaceLine(locationText);
     // **題が無い写真の見出し。** 題は空にできる（`api-user/src/upload.ts` は
     // 空なら `title` の欄ごと持たない）ので、題をそのまま見出しに入れるだけだと
     // **中身の無い見出し**になる——読み上げは「見出し」とだけ言い、検索の
@@ -1192,13 +1195,16 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     </>
                 )}
 
-                {/* **写真の裾**（iOS の `photoFoot`・束 1 P2）: 黒 72% → 0 の暗がり（下 150・短い写真では 6 割まで）の上に、
-                    束の点と「📍 撮影地 · 撮影地の詳細」「📖 撮影スポット · 名前 ›」の行。**写真の上なので白だけ**。
-                    以前は住所の全文の黒い札と、右下の地図の丸（地図は「…」と「この近くで撮られた写真」の「地図で見る」へ） */}
-                {(locationText || spotLink || images.length > 1) && (
+                {/* **写真の裾は1行**（2026-11-15 owner 判断・札 journey.photo-ios#625）。以前は「📍 住所の全文 · 撮影地の詳細」と
+                    「📖 観光スポット · 名前 ›」の2行で、横長の写真（390 で高さ 260）の下 37% を覆い、暗がりは写真の 60% に掛かっていた。
+                    いまは1行だけ: 観光スポットが引ければその名前（行き先は観光スポットの頁）、引けなければ撮影地の名前と市区町村
+                    （`placeLine`・行き先は撮影地の写真の一覧）。中黒で区切らない。**iOS の板は2行**（`placeRow`・`spotGuideRow`）——
+                    Web は写真を切り抜かず縦横比のまま出すので、横長の写真が低く、2行だと写真の多くを覆うため1行にした。
+                    暗がりも 1行ぶん（下 96・最大 40%）。**写真の上なので白だけ** */}
+                {(placeLine || spotLink || images.length > 1) && (
                     <>
                         <div aria-hidden="true" className="absolute inset-x-0 bottom-0 pointer-events-none"
-                             style={{ height: "min(150px, 60%)", background: "linear-gradient(to bottom, rgb(0 0 0 / 0), rgb(0 0 0 / 0.72))" }} />
+                             style={{ height: "min(96px, 40%)", background: "linear-gradient(to bottom, rgb(0 0 0 / 0), rgb(0 0 0 / 0.72))" }} />
                         <div className="absolute inset-x-0 bottom-0 px-4 pb-1 flex flex-col items-start pointer-events-none" data-testid="photo-foot">
                             {images.length > 1 && (
                                 <span aria-hidden="true" className="self-center flex gap-1.5 pb-2" data-testid="photo-page-dots">
@@ -1207,25 +1213,9 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                     ))}
                                 </span>
                             )}
-                            {locationText && (
-                                <Link
-                                    href={collectionPath("location", slugify(locationText, "location"))}
-                                    prefetch={false}
-                                    aria-label={locale === "en" ? `${locationText} · Place details` : `${locationText} · 撮影地の詳細`}
-                                    className={`${FOOT_ROW} pointer-events-auto`}
-                                    style={FOOT_ROW_STYLE}
-                                    data-testid="photo-place-link"
-                                >
-                                    <MapPinIcon aria-hidden="true" className="flex-shrink-0" style={{ width: 13, height: 13, strokeWidth: 1.8 }} />
-                                    <span className={FOOT_UNDERLINE}>{locationText}</span>
-                                    <span className="flex-shrink-0 whitespace-nowrap text-white/80" aria-hidden="true">
-                                        {locale === "en" ? " · Place details" : " · 撮影地の詳細"}
-                                    </span>
-                                </Link>
-                            )}
-                            {/* 台帳の撮影スポット。本人が選んだ `spotId`、無ければ撮影地の名前と位置から自動で結んだ先（サーバーの `page.tsx` が解く・
-                                journey.photo-ios#425）。本人が外したらこの画面でも引っ込める。以前は本文の下の札（`SpotLinkCard`） */}
-                            {spotLink && (
+                            {/* 台帳の観光スポット。本人が選んだ `spotId`、無ければ撮影地の名前と位置から自動で結んだ先（サーバーの `page.tsx` が解く・
+                                journey.photo-ios#425）。本人が外したらこの画面でも引っ込める */}
+                            {spotLink ? (
                                 <Link
                                     href={`/spots/${spotLink.slug}`}
                                     prefetch={false}
@@ -1235,16 +1225,29 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                     data-testid="photo-spot-guide"
                                 >
                                     <BookOpenIcon aria-hidden="true" className="flex-shrink-0" style={{ width: 13, height: 13, strokeWidth: 1.8 }} />
-                                    <span className={FOOT_UNDERLINE}>{locale === "en" ? `Photo spot · ${spotLink.name}` : `観光スポット · ${spotLink.name}`}</span>
+                                    <span className={FOOT_UNDERLINE}>{spotLink.name}</span>
                                     <span className="flex-shrink-0" aria-hidden="true">›</span>
                                 </Link>
-                            )}
+                            ) : placeLine ? (
+                                <Link
+                                    href={collectionPath("location", slugify(locationText, "location"))}
+                                    prefetch={false}
+                                    aria-label={locale === "en" ? `Photos taken at ${placeLine}` : `撮影地: ${placeLine}`}
+                                    className={`${FOOT_ROW} pointer-events-auto`}
+                                    style={FOOT_ROW_STYLE}
+                                    data-testid="photo-place-link"
+                                >
+                                    <MapPinIcon aria-hidden="true" className="flex-shrink-0" style={{ width: 13, height: 13, strokeWidth: 1.8 }} />
+                                    <span className={FOOT_UNDERLINE}>{placeLine}</span>
+                                    <span className="flex-shrink-0" aria-hidden="true">›</span>
+                                </Link>
+                            ) : null}
                         </div>
                     </>
                 )}
             </div>
 
-            <div className="min-w-0">
+            <div className="min-w-0 flex flex-col">
             {/* **iOS の写真の詳細の順**（`PhotoDetailView.details`・束 1 P4）: 題 → 日時 → カテゴリ → 本文 → 作者 →
                 「この写真を見て撮影」→ 操作の段 → 次の旅へ → 撮影情報 → タグ → 曲 → 近くの写真 → 近くの撮影スポット → 関連 → コメント。
                 節の間は 16（iOS の `VStack(spacing: 16)`）・写真との間 20。以前は 題 → 作者 → 日時と住所 → 本文 → タグ の順 */}
@@ -1310,7 +1313,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                         <div className="min-w-0 flex-1">
                             <div className="flex min-w-0 items-center gap-1">
                                 <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
-                                  className="flex min-h-[44px] min-w-0 items-center text-white font-semibold hover:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                                  className="flex min-h-[44px] min-w-[44px] items-center text-white font-semibold hover:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                                   title={authorName}
                                   style={{ fontSize: "15px", lineHeight: "20px", touchAction: "manipulation" }}>
                                 <span className="block min-w-0 truncate">{authorName}</span>
@@ -1410,7 +1413,33 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     </div>
                     <div aria-hidden="true" className="h-px bg-line" />
                 </div>
+            </div>{/* /photo-details（題から操作の段まで） */}
 
+            {/* **スマホではコメントを操作の段のすぐ後に置く**（2026-11-15 owner 判断・札 journey.photo-ios#625）。以前は頁の下の方
+                （390x664 の縦長の写真で 2,252px＝3.4画面目、関連の写真と登録の案内の後）で、読んでから書くまでが遠かった。
+                **PC（1024px 以上）は今までの位置**（`lg:order-last`: 右の列の最後・登録の案内の後）。この列は flex の縦並びで、
+                ほかの子は order を持たないので、PC の見た目の並びは前と同じ。**読み上げとタブの順は DOM の順（スマホの並び）**。
+                iOS は「この近くで撮られた写真」の後にコメントを置くが、Web は間に前後の写真・他の写真・登録の案内が入るので、反応の段のすぐ後に寄せた */}
+            {/* **コメントの節**（iOS の `commentsBlock`）: 「コメント」15 semibold ＋ 数 15 text-3 の等幅数字、その下に一覧と入力欄（44・C6）。
+                吹き出しを押したらここへ送る。ヘッダーは sticky なので、その高さぶん手前で止める（PC。スマホは見出しが無いので 0） */}
+            <section ref={commentsRef} aria-labelledby="photo-comments-heading" className="mt-6 px-4 lg:px-0 lg:order-last"
+                     style={{ scrollMarginTop: "var(--header-h)" }} data-testid="photo-comments">
+                <h2 id="photo-comments-heading" className="m-0 mb-2 flex items-baseline gap-1.5" style={{ fontSize: "15px", lineHeight: "20px" }}
+                    aria-label={locale === "en" ? `Comments (${commentCount})` : `コメント ${commentCount}件`}>
+                    <span className="font-semibold text-white">{locale === "en" ? "Comments" : "コメント"}</span>
+                    <span className="text-text-3 tabular-nums font-normal">{commentCount}</span>
+                </h2>
+                <CommentSection
+                    photoId={photo.id}
+                    photoOwnerId={photo.userId}
+                    locale={locale}
+                    initialCount={typeof photo.commentCount === "number" ? photo.commentCount : 0}
+                    hideHeading
+                    onCountChange={setCommentCount}
+                />
+            </section>
+
+            <div className="px-4 lg:px-0 mt-4 flex flex-col gap-4" data-testid="photo-details-more">
             {/* NEXT TRIP · 次の旅へ（行きたい・経路・次のゴールデンアワー・撮りに行く）。
                 アプリと同じ位置: いいね・コメント・保存・共有の段のすぐ下 */}
             <PhotoTripSection
@@ -1755,24 +1784,6 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
             <SignUpBenefits locale={locale === "en" ? "en" : "ja"} className="mt-8 px-4 lg:px-0"
                             photos={[...related.author, ...related.location].slice(0, 4)} />
 
-            {/* **コメントの節**（iOS の `commentsBlock`）: 「コメント」15 semibold ＋ 数 15 text-3 の等幅数字、その下に一覧と入力欄（44・C6）。
-                吹き出しを押したらここへ送る。ヘッダーは sticky なので、その高さぶん手前で止める（PC。スマホは見出しが無いので 0） */}
-            <section ref={commentsRef} aria-labelledby="photo-comments-heading" className="mt-6 px-4 lg:px-0"
-                     style={{ scrollMarginTop: "var(--header-h)" }} data-testid="photo-comments">
-                <h2 id="photo-comments-heading" className="m-0 mb-2 flex items-baseline gap-1.5" style={{ fontSize: "15px", lineHeight: "20px" }}
-                    aria-label={locale === "en" ? `Comments (${commentCount})` : `コメント ${commentCount}件`}>
-                    <span className="font-semibold text-white">{locale === "en" ? "Comments" : "コメント"}</span>
-                    <span className="text-text-3 tabular-nums font-normal">{commentCount}</span>
-                </h2>
-                <CommentSection
-                    photoId={photo.id}
-                    photoOwnerId={photo.userId}
-                    locale={locale}
-                    initialCount={typeof photo.commentCount === "number" ? photo.commentCount : 0}
-                    hideHeading
-                    onCountChange={setCommentCount}
-                />
-            </section>
             </div>{/* /右カラム */}
             </div>{/* /2カラム（PC） */}
             </main>
