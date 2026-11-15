@@ -103,6 +103,7 @@ describe("count（端末の AI で作った回）", () => {
         const u = inputs()[0];
         expect(u.Key).toEqual({ id: `aiuse#u1#${jstMonth(Date.now())}` });
         expect(u.ExpressionAttributeValues[":limit"]).toBe(30);
+        expect(u.ConditionExpression).toBe("attribute_not_exists(#c) OR #c < :limit");
         expect(json(r).usage.used).toBe(5);
     });
     it("無料の人が上限なら 429 と code=limit", async () => {
