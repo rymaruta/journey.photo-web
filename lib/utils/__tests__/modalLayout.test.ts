@@ -52,7 +52,9 @@ describe("モーダルが定数を参照している", () => {
 
     it("キャプションは CAPTION_MIN_HEIGHT を使う（固定 px に戻っていない）", () => {
         const code = codeOf("app/components/GalleryModal/ModalCaption.tsx");
-        expect(code, "定数を参照していない").toContain("minHeight: CAPTION_MIN_HEIGHT");
+        // 2026-11-15: 下限は 640px 以上だけに掛ける（`sm:min-h-[var(--gm-cap-min)]`）。スマホは枠ごと1本でスクロールする
+        expect(code, "定数を参照していない").toContain('["--gm-cap-min" as string]: CAPTION_MIN_HEIGHT');
+        expect(code, "640px 以上で下限が効いていない").toContain("sm:min-h-[var(--gm-cap-min)]");
         expect(code, "固定 px に戻っている").not.toMatch(/minHeight:\s*"200px"/);
     });
 
@@ -61,7 +63,9 @@ describe("モーダルが定数を参照している", () => {
         expect(code, "効かない下限が戻っている").not.toMatch(/minHeight:\s*"300px"/);
         // **`dvh` で測る。** 枠は実際の表示領域（`h-full`）なので、中身が
         // `vh` だとツールバーのぶんずれて `overflow-hidden` に切られる
-        expect(code, "vh のままだとツールバーの分だけ切られる").toContain('height: "60dvh"');
+        // 2026-11-15: 640px 以上は `sm:h-[60dvh]`。スマホは縦横比から（`phoneImageHeight`・寸法が無ければ 60dvh）
+        expect(code, "vh のままだとツールバーの分だけ切られる").toContain("sm:h-[60dvh]");
+        expect(code).toContain("phoneImageHeight(p.width, p.height)");
     });
 
     // **枠（95dvh）を基準にも縛る。** `100dvh - 60dvh - 40px` だけだと、
@@ -73,7 +77,9 @@ describe("モーダルが定数を参照している", () => {
     it("キャプションの上限は枠（35dvh）にも縛られる", () => {
         const code = codeOf("app/components/GalleryModal/ModalCaption.tsx");
         expect(code, "大きい画面で枠からはみ出して切られる").toContain("35dvh");
-        expect(code).toMatch(/maxHeight:\s*"min\(/);
+        // 2026-11-15: 上限は 640px 以上だけ（`sm:max-h-[var(--gm-cap-max)]`）
+        expect(code).toMatch(/"--gm-cap-max" as string\]:\s*"min\(/);
+        expect(code).toContain("sm:max-h-[var(--gm-cap-max)]");
     });
 
     it("CSS の式と定数が一致している", () => {

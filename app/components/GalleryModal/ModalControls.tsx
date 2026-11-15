@@ -29,6 +29,14 @@ const BTN_STYLE: React.CSSProperties = {
     pointerEvents: "auto",
 };
 
+/**
+ * **スマホ（640px 未満）では、上の3つ（保存・いいね・閉じる）を画面に留める**（2026-11-15）。
+ * スマホでは枠ごと1本でスクロールし、写真は上へ流れて消える（`GalleryModal/index.tsx`）。写真と一緒に
+ * 流すと、読んでいる途中で閉じる・いいねに指が届かない。iOS の写真詳細も、戻る・「…」は上に留まる。
+ * 前後の矢印は写真の上の操作なので、写真と一緒に流す
+ */
+const TOP_ROW_PHONE = "max-sm:fixed max-sm:top-[calc(8px+env(safe-area-inset-top,0px))]";
+
 type Props = {
     onPrev: () => void;
     onNext: () => void;
@@ -84,7 +92,7 @@ export default function ModalControls({
             <button
                 {...stopAndCall(onToggleFavorite)}
                 aria-label={isFav ? "いいねを取り消す" : "いいね"}
-                className={`${BTN_BASE} top-2 sm:top-3 right-[64px] sm:right-[72px]`}
+                className={`${BTN_BASE} top-2 sm:top-3 ${TOP_ROW_PHONE} right-[64px] sm:right-[72px]`}
                 style={BTN_STYLE}
             >
                 {isFav
@@ -122,7 +130,7 @@ export default function ModalControls({
                 {...stopAndCall(onToggleSave)}
                 aria-label={isSaved ? "保存を取り消す" : "保存"}
                 aria-busy={savePending}
-                className={`${BTN_BASE} top-2 sm:top-3 right-[120px] sm:right-[132px]`}
+                className={`${BTN_BASE} top-2 sm:top-3 ${TOP_ROW_PHONE} right-[120px] sm:right-[132px]`}
                 style={BTN_STYLE}
             >
                 {isSaved
@@ -135,7 +143,7 @@ export default function ModalControls({
             <button
                 {...stopAndCall(onClose)}
                 aria-label="閉じる"
-                className={`${BTN_BASE} top-2 sm:top-3 right-2 sm:right-3`}
+                className={`${BTN_BASE} top-2 sm:top-3 ${TOP_ROW_PHONE} right-2 sm:right-3`}
                 style={BTN_STYLE}
             >
                 <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">

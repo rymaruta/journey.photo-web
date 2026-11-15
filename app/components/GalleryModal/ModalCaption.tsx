@@ -48,7 +48,9 @@ export default function ModalCaption({
 
     return (
         <div
-            className="flex-shrink-0 overflow-y-auto overscroll-contain bg-black text-white/90 px-4 sm:px-6 py-3 sm:py-4"
+            // **スマホ（640px 未満）では箱の中でスクロールしない**（2026-11-15）。枠（`GalleryModal/index.tsx`）ごと
+            // 1本で流れるので、高さの上限・下限も 640px 以上だけに掛ける。下は安全領域（ホームへ戻る帯）のぶん空ける
+            className="flex-shrink-0 sm:overflow-y-auto overscroll-contain bg-black text-white/90 px-4 sm:px-6 pt-3 pb-[calc(24px+env(safe-area-inset-bottom,0px))] sm:py-4 sm:max-h-[var(--gm-cap-max)] sm:min-h-[var(--gm-cap-min)]"
             style={{
                 // **枠（`95dvh`）を基準にも縛る。** `100dvh - 60dvh - 40px`
                 // だけだと、画像の `60dvh` と合わせて `100dvh - 40px` になり、
@@ -61,16 +63,16 @@ export default function ModalCaption({
                 // 内側に収まる（`GalleryModal/index.tsx`）ので、ホーム画面から
                 // 起動した縦向き（上 59px＋下 34px）では使える高さがその分減る。
                 // 引かないと共有ボタンの行が枠の外で切られる。
-                maxHeight: "min(calc(100dvh - 60dvh - 40px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)), 35dvh)",
+                ["--gm-cap-max" as string]: "min(calc(100dvh - 60dvh - 40px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)), 35dvh)",
                 // **下限を画面の高さに連動させる（TAP-7）。** 200px 固定だと、
                 // 画像の下限（300px）と合わせて 500px になり、横向きのスマホの
                 // 外枠（95vh = 356px @ 667x375）に入らない。両方 `flex-shrink-0`
                 // なので縮まず、この箱ごと画面からはみ出して**共有ボタンの行に
                 // 指が届かなくなる**。縦向きでは `min(200px, 30vh)` = 200px な
                 // ので見た目は変わらない
-                minHeight: CAPTION_MIN_HEIGHT,
+                ["--gm-cap-min" as string]: CAPTION_MIN_HEIGHT,
                 WebkitOverflowScrolling: "touch",
-            }}
+            } as React.CSSProperties}
         >
             {/* `break-words`: 写真ページと同じデータ。長い URL があると
                 この箱の中が横に流れ、共有ボタンの行も一緒に流れる

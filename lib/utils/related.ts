@@ -396,6 +396,7 @@ const VIEWER_FIELDS = [
     "song",             // BGM
     "commentCount",     // コメント件数
     "likes",            // いいねの初期値（`usePhotoLikes` に渡る）
+    "width", "height",  // スマホで写真の高さを縦横比から決める（`phoneImageHeight`・2026-11-15）
     "coords", "geoApprox",  // 地図リンクと、その位置が推定かどうか
     // **人が入れた地図リンク。** `GalleryModal` は `getPreferredMapLink(p)` を
     // 写真ごと渡して呼び、あちら（`lib/data/photos.ts`）が `p.mapLinks` を読む。

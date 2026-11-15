@@ -59,6 +59,7 @@ describe("ビューアに渡す写真の項目", () => {
         "metaKey", "ctrlKey", "shiftKey", "altKey", "focus", "blur", "contains", "querySelector",
         "style", "classList", "dataset", "value", "name", "ok", "message", "requiresAuth", "then",
         "catch",
+        "scrollTop", // 枠のスクロール位置（frameRef.current.scrollTop・スマホで下へ払って閉じる判定）
         // ⚠️ **`id` は入れない。** 本物の項目なので、落ちたら落ちてほしい
     ]);
 
