@@ -12,13 +12,15 @@ export type Toast = {
     duration?: number;
     /** 案内の次の一手（「ログイン」など）。内部の頁への遷移だけ（`href` はサイト内の絶対パス） */
     action?: ToastAction;
+    /** 2つ目の一手（未ログインの案内の「ログイン」。主の `action` は「新規登録」・札 journey.photo-ios#630） */
+    secondaryAction?: ToastAction;
 };
 
 export type ToastAction = { label: string; href: string };
 
 type ToastContextType = {
     toasts: Toast[];
-    showToast: (message: string, type?: ToastType, duration?: number, action?: ToastAction) => void;
+    showToast: (message: string, type?: ToastType, duration?: number, action?: ToastAction, secondaryAction?: ToastAction) => void;
     removeToast: (id: string) => void;
 };
 
@@ -34,9 +36,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         return () => { timers.forEach(clearTimeout); };
     }, []);
 
-    const showToast = useCallback((message: string, type: ToastType = "success", duration: number = 3000, action?: ToastAction) => {
+    const showToast = useCallback((message: string, type: ToastType = "success", duration: number = 3000, action?: ToastAction, secondaryAction?: ToastAction) => {
         const id = Math.random().toString(36).substring(2, 9);
-        const newToast: Toast = { id, message, type, duration, ...(action ? { action } : {}) };
+        const newToast: Toast = { id, message, type, duration, ...(action ? { action } : {}), ...(secondaryAction ? { secondaryAction } : {}) };
 
         setToasts((prev) => [...prev, newToast]);
 

@@ -50,6 +50,9 @@ describe("登録するとできること（文と行き先）", () => {
         expect(signupBenefitsSignupHref("//evil.example")).toBe("/signup");
         expect(signupBenefitsSignupHref(null)).toBe("/signup");
         expect(signupBenefitsLoginHref("/photo/abc")).toBe("/login?next=%2Fphoto%2Fabc");
+        // 払う画面から来た印（via）も、ログインの頁へ渡すときと同じ形で登録の頁へ運ぶ（札 journey.photo-ios#630）
+        expect(signupBenefitsSignupHref("/swipe", "swipe")).toBe("/signup?next=%2Fswipe&via=swipe");
+        expect(signupBenefitsLoginHref("/swipe", "swipe")).toBe("/login?next=%2Fswipe&via=swipe");
     });
 });
 

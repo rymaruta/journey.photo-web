@@ -98,6 +98,8 @@ describe("いいねした写真（サーバー側の一覧）", () => {
         expect(await screen.findByTestId("favorites-guest")).toBeInTheDocument();
         expect(titles(), "未ログインに古い控えを出している").toEqual([]);
         expect(screen.getByRole("link", { name: "ログイン" }).getAttribute("href")).toBe("/login?next=%2Ffavorites&via=like");
+        // 新規登録も同じ所に1回で（札 journey.photo-ios#630、2026-11-15）
+        expect(screen.getByRole("link", { name: "新規登録" }).getAttribute("href")).toBe("/signup?next=%2Ffavorites&via=like");
         expect(mockUserFetch).not.toHaveBeenCalled();
     });
 

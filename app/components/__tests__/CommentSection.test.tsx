@@ -409,6 +409,7 @@ describe("CommentSection: セッションが切れていたとき", () => {
         await waitFor(() => expect(mockShowToast).toHaveBeenCalled());
         // 2026-11-09: 「ログイン」のリンク付き（戻り先は今の頁・via=comment）
         expect(mockShowToast).toHaveBeenLastCalledWith("コメントするにはログインしてください", "info", 6000,
+            { label: "新規登録", href: expect.stringMatching(/^\/signup\?.*via=comment/) },
             { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=comment/) });
     });
 

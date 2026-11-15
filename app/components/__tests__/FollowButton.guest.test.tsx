@@ -25,15 +25,19 @@ beforeEach(() => {
 
 describe("FollowAction: 未ログイン", () => {
     it.each([
-        ["ja", "フォローするにはログインしてください", "ログイン", "フォロー"],
-        ["en", "Log in to follow", "Log in", "Follow"],
-    ])("%s: リンク付きの info", async (locale, msg, label, btn) => {
+        ["ja", "フォローするにはログインしてください", "ログイン", "フォロー", "新規登録"],
+        ["en", "Log in to follow", "Log in", "Follow", "Sign up"],
+    ])("%s: リンク付きの info", async (locale, msg, label, btn, signup) => {
         render(<FollowAction targetUserId="22222222-2222-4222-8222-222222222222" isOwner={false} isAuthenticated={false} locale={locale as "ja" | "en"} />);
         const b = await screen.findByRole("button", { name: new RegExp(btn) });
         await waitFor(() => expect((b as HTMLButtonElement).disabled).toBe(false));
         fireEvent.click(b);
         await waitFor(() => expect(showToast).toHaveBeenCalled());
+        // 新規登録（主）とログイン（札 journey.photo-ios#630、2026-11-15）
         expect(showToast).toHaveBeenCalledWith(msg, "info", 6000, {
+            label: signup,
+            href: "/signup?next=%2Fusers%2F22222222-2222-4222-8222-222222222222&via=follow",
+        }, {
             label,
             href: "/login?next=%2Fusers%2F22222222-2222-4222-8222-222222222222&via=follow",
         });

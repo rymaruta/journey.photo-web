@@ -6,7 +6,8 @@ import { usePhotos } from "../../lib/hooks/usePhotos";
 import { fetchFollowingSet, subscribeFollowingSet } from "../../lib/hooks/useFollow";
 import { timelinePhotos } from "../../lib/utils/timeline";
 import { firstPostPhotoIds } from "../../lib/utils/homeFeed";
-import { ROUTES, loginWithNext } from "../../lib/routes";
+import { ROUTES } from "../../lib/routes";
+import { signInAskActions } from "../../lib/auth/signupBenefits";
 import { track } from "../../lib/utils/analytics";
 import HomeMosaic from "./HomeMosaic";
 import { EmptyState, ErrorState, LoadingState } from "./StateViews";
@@ -98,7 +99,8 @@ export default function TimelineFeed({ locale }: Props) {
             <EmptyState className="py-16" testId="following-guest"
                 title={isJa ? "ログインすると、フォロー中の人の写真が見られます" : "Log in to see photos from people you follow"}
                 message={isJa ? "気になる作者をフォローすると、新しい写真がここに並びます。" : "Follow photographers you like and their new photos will appear here."}
-                action={{ label: isJa ? "ログイン" : "Log in", href: loginWithNext(typeof window === "undefined" ? null : window.location.pathname + window.location.search, "follow") }} />
+                // 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主）
+                {...signInAskActions(locale, typeof window === "undefined" ? null : window.location.pathname + window.location.search, "follow")} />
         );
     }
     if (followingError) {

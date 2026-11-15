@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { useToast } from "./useToast";
-import { loginWithNext } from "../routes";
+import { signInAskActions } from "../auth/signupBenefits";
 import { track, type LoginPromptTrigger } from "../utils/analytics";
 import type { LoginVia } from "../auth/loginVia";
 
@@ -15,6 +15,10 @@ import type { LoginVia } from "../auth/loginVia";
  * 4か所（写真ページ・モーダル・フォロー・コメント）が同じ見せ方になるよう、文言と作りをここに1つだけ置く。
  *
  * 数える（`login_prompt`）のは**案内を出した回**。押したあとにログインへ進んだかは `view_signup` / `login` で見る。
+ *
+ * 2026-11-15（札 journey.photo-ios#630）: owner「ログインのお願いあるけど、会員登録してない人には有効ではないので、
+ * 会員登録もそこに出したい」。リンクを「新規登録」（主・真鍮）と「ログイン」（隣）の2つにした。どちらも戻り先と via を運ぶ。
+ * 新規登録を主にするのは、本番の会員が約7人（Cognito の見積もり）で、押した人の多くはまだ登録していないため
  */
 export const GUEST_PROMPT_COPY: Record<Exclude<LoginPromptTrigger, "following_tab">, { ja: string; en: string }> = {
     like: { ja: "いいねするにはログインしてください", en: "Log in to like" },
@@ -48,12 +52,8 @@ export function useGuestPrompt(locale: "ja" | "en" | string) {
         if (last !== undefined && now - last >= 0 && now - last < GUEST_PROMPT_MS) return;
         lastShownAt.set(text, now);
         const next = typeof window === "undefined" ? null : window.location.pathname + window.location.search;
-        showToast(
-            text,
-            "info",
-            GUEST_PROMPT_MS,
-            { label: en ? GUEST_PROMPT_ACTION.en : GUEST_PROMPT_ACTION.ja, href: loginWithNext(next, VIA_OF[trigger]) },
-        );
+        const { action, secondaryAction } = signInAskActions(en ? "en" : "ja", next, VIA_OF[trigger]);
+        showToast(text, "info", GUEST_PROMPT_MS, action, secondaryAction);
         track("login_prompt", { trigger });
     }, [showToast, en]);
 }

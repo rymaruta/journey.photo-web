@@ -81,5 +81,7 @@ describe("行きたい場所の地図", () => {
         const link = screen.getByRole("link", { name: "ログイン" });
         expect(link.getAttribute("href")).toContain("/login");
         expect(link.getAttribute("href")).toContain(encodeURIComponent("/saved-spots"));
+        // 新規登録も同じ所に1回で（札 journey.photo-ios#630、2026-11-15）
+        expect(screen.getByRole("link", { name: "新規登録" }).getAttribute("href")).toBe("/signup?next=%2Fsaved-spots");
     });
 });
