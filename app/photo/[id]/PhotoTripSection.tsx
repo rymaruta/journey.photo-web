@@ -66,7 +66,7 @@ export default function PhotoTripSection({
                  className="flex flex-col gap-2.5 pt-2" data-testid="photo-trip">
             {/* 眉ラベル＋消える線（板の `.eb.ebl`） */}
             <p className="m-0 eyebrow eyebrow-line text-accent" aria-hidden="true">
-                <span className="flex-shrink-0">{isJa ? "NEXT TRIP · 次の旅へ" : "NEXT TRIP"}</span>
+                <span className="flex-shrink-0">{/* 中黒で区切らない・英字の眉を重ねない（2026-11-15・owner の好み 2026-11-12） */}{isJa ? "次の旅へ" : "NEXT TRIP"}</span>
             </p>
 
             {tiles > 0 && (

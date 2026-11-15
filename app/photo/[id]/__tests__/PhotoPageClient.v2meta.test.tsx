@@ -77,25 +77,28 @@ describe("写真ページ: 撮影情報（iOS の形）", () => {
 
 // 2026-10-31 束 1 P2: iOS の `placeRow`（「📍 撮影地 · 撮影地の詳細」・写真の上の白い字・下線・当たり 44）
 describe("写真ページ: 道しるべ", () => {
-    it("写真の裾に「撮影地 · 撮影地の詳細」（撮影地の頁へ・押す的は 44px・黒い札で囲まない）", async () => {
+    // 2026-11-15（札 journey.photo-ios#625）: 裾は1行。中黒と「撮影地の詳細」の添え字はやめた
+    it("写真の裾に撮影地の1行（撮影地の頁へ・押す的は 44px・黒い札で囲まない）", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
         await screen.findByText("朝の湖");
-        const link = screen.getByRole("link", { name: "銀山温泉 · 撮影地の詳細" });
+        const link = screen.getByRole("link", { name: "撮影地: 銀山温泉" });
         expect(link.getAttribute("href")).toContain("/location/");
-        expect(link.textContent).toContain("撮影地の詳細");
+        expect(link.textContent).not.toContain("撮影地の詳細");
         expect(link.style.minHeight).toBe("44px");
         expect(link.innerHTML).not.toMatch(/bg-black/);
     });
 
-    it("台帳の観光スポットを指す写真は「観光スポット · 名前 ›」の行も出す（観光スポットの頁へ）", async () => {
+    it("台帳の観光スポットを指す写真は、裾の1行が観光スポット（名前 ›・観光スポットの頁へ）になる", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={BASE}
                                 spotLink={{ slug: "ginzan-onsen", name: "銀山温泉", region: "山形県 尾花沢市" } as unknown as SpotLink} />);
         await screen.findByText("朝の湖");
         const row = screen.getByTestId("photo-spot-guide");
         expect(row.getAttribute("href")).toBe("/spots/ginzan-onsen");
-        expect(row.textContent).toContain("観光スポット · 銀山温泉");
-        // 2行の当たり（44 ずつ）を負の余白で重ねない（束 1 の確かめの直し）
-        for (const a of [row, screen.getByTestId("photo-place-link")]) expect(a.className).not.toMatch(/-my-/);
+        expect(row.textContent).toBe("銀山温泉›");
+        expect(row.getAttribute("aria-label")).toBe("観光スポット: 銀山温泉");
+        // 行は1つだけ（撮影地の行は出さない・写真を覆う高さを減らす）
+        expect(screen.queryByTestId("photo-place-link")).toBeNull();
+        expect(row.className).not.toMatch(/-my-/);
     });
 });
 

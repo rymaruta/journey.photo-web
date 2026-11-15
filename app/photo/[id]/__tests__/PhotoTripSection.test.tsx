@@ -30,7 +30,7 @@ describe("PhotoTripSection", () => {
     // 2026-10-31 束 1 P7: iOS の `PhotoTripSection.chip`（48・角 14・印は真鍮・字は白 15）
     it("スポットを指す写真: 行きたい（スポットの鍵）と経路（Google マップ・新しいタブ・印は真鍮・字は白）", () => {
         render(<PhotoTripSection spot={SPOT} directionsTo={GINZAN} zone={null} inspiredPhotoId={null} locale="ja" />);
-        expect(screen.getByText("NEXT TRIP · 次の旅へ")).toBeTruthy();
+        expect(screen.getByText("次の旅へ")).toBeTruthy();
         const wish = screen.getByTestId("wish");
         expect(wish.textContent).toBe("ginzan-onsen");
         expect(wish.dataset.kind, "観光スポットのページと同じ鍵（SPOT-…）で入れる").toBe("spot");
@@ -57,7 +57,8 @@ describe("PhotoTripSection", () => {
         vi.setSystemTime(new Date("2026-10-10T12:00:00+09:00"));
         render(<PhotoTripSection spot={SPOT} directionsTo={GINZAN} zone="Asia/Tokyo" inspiredPhotoId={null} locale="ja" />);
         const line = await screen.findByTestId("photo-trip-golden");
-        expect(line.textContent).toContain("次のゴールデンアワー · 今日");
+        expect(line.textContent).toContain("次のゴールデンアワーは今日");
+        expect(line.textContent).not.toMatch(/[·・]/);
         expect(line.textContent).toContain("16:34–17:26");
     });
 

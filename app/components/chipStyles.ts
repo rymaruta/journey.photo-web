@@ -56,6 +56,11 @@ export const CHIP_SIZE = { fontSize: "13px", lineHeight: "18px", padding: "7px 1
  * （無いと当たりがはみ出して縦に揺れる・`FilterBar` の `WRAPPING_ROW`）。
  * 本文の板の値は 34（DesignSystem 03・iOS `PillChip.height`）。比較の板 C5 の「36」は iOS の実装と食い違うので 34 を取った
  */
+/**
+ * **見た目の大きさを変えずに、押せる当たりだけを 44x44 にする**（2026-11-15・札 journey.photo-ios#625 の続き）。
+ * 中心から上下左右に広げる。`overflow: hidden` の要素（`truncate` など）では擬似要素が切られるので使わない
+ */
+export const HIT_44 = "relative before:absolute before:left-1/2 before:top-1/2 before:-translate-x-1/2 before:-translate-y-1/2 before:w-[max(100%,44px)] before:h-[max(100%,44px)] before:content-['']";
 export const CHIP_HIT = "relative before:absolute before:inset-x-0 before:-inset-y-[5px] before:content-['']";
 /** 折り返すチップの並び（横 6・縦 10＝当たり 44 が重ならない） */
 export const CHIP_ROW = "flex flex-wrap gap-x-1.5 gap-y-2.5 m-0 p-0";
