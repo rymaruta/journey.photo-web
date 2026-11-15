@@ -65,19 +65,54 @@ export function isDeviceToken(v: unknown): v is string {
  */
 export const normalizeDeviceToken = (v: string) => v.trim().toLowerCase();
 
-/** その人の端末トークン。引けなければ空（通知が飛ばないだけ） */
-export async function deviceTokens(uid: string, consistent = false): Promise<string[]> {
+/**
+ * 端末のアプリが持っている通知の文言の段（`POST /user/devices` の `pushKeys`・2026-11-15 札 #618）。
+ *
+ * 端末の通知の文は、サーバーが送る鍵（`NOTIF_COMMENT_REPLY` など）をアプリの `Localizable.strings` で
+ * 引いて出す。**鍵を持たない古いアプリは、鍵の文字列そのものを通知に出す**（`notify.ts` の `LOC_KEYS`）。
+ * App Store の 1.0.87（2026-10-11）は `NOTIF_LIKE`・`NOTIF_COMMENT`・`NOTIF_FOLLOW`・
+ * `NOTIF_STORY_REPLY`・`NOTIF_BADGE` しか持っていない（2026-11-15 に `testflight/1.0.87` の
+ * `Localizable.strings` で確かめた）。
+ *
+ * - 段 2: 2026-11-11 の鍵（`NOTIF_COMMENT_REPLY`・`NOTIF_STORY_MENTION`・`NOTIF_STORY_SHARE`）を持つ。
+ *   アプリは 1.1.82 から鍵を持つが、`pushKeys` を送るのは札 #618 の版から
+ * - 送らない古いアプリは段 1。段 2 の種類はその端末には送らない（一覧には積むので、開けば見える）
+ *
+ * 2026-11-15 判断: **持ち主の行（`devices#<uid>`）に、段 2 の端末だけの Set（`keys2Tokens`）を足す。**
+ * 新しい表・索引・行は作らない。登録の書き込み（`ADD #tokens`）と同じ1回に `ADD` を足すだけで、
+ * 送る側も今と同じ1回の GetItem で読む（読み書きの回数は増えない）
+ */
+export const PUSH_KEYS_LATEST = 2;
+const KEYS2_ATTR = "keys2Tokens";
+
+/** Set か配列を文字列の配列に（lib-dynamodb は DynamoDB の Set を JS の Set にして返す） */
+function stringsOf(v: unknown): string[] {
+    if (v instanceof Set) return [...v].map(String);
+    return Array.isArray(v) ? v.map(String) : [];
+}
+
+/** 持ち主の行を読む。`tokens` と、段 2 の端末（`keys2Tokens`） */
+async function deviceRow(uid: string, consistent: boolean): Promise<{ tokens: string[]; keys2: Set<string> }> {
+    const res = await ddb.send(new GetCommand({
+        TableName: PHOTOS_TABLE,
+        Key: { id: devicesId(uid) },
+        ProjectionExpression: "#tokens, #k2",
+        ExpressionAttributeNames: { "#tokens": "tokens", "#k2": KEYS2_ATTR },
+        ...(consistent ? { ConsistentRead: true } : {}),
+    }));
+    return { tokens: stringsOf(res.Item?.tokens), keys2: new Set(stringsOf(res.Item?.[KEYS2_ATTR])) };
+}
+
+/**
+ * その人の端末トークン。引けなければ空（通知が飛ばないだけ）。
+ *
+ * `minPushKeys` が 2 なら、**段 2 の鍵を持つアプリの端末だけ**（`PUSH_KEYS_LATEST` の注記）。
+ * 古いアプリの端末に、鍵の文字列がそのまま出る通知を送らないため
+ */
+export async function deviceTokens(uid: string, consistent = false, minPushKeys = 1): Promise<string[]> {
     try {
-        const res = await ddb.send(new GetCommand({
-            TableName: PHOTOS_TABLE,
-            Key: { id: devicesId(uid) },
-            ProjectionExpression: "tokens",
-            ...(consistent ? { ConsistentRead: true } : {}),
-        }));
-        const tokens = res.Item?.tokens;
-        // lib-dynamodb は DynamoDB の Set を JS の Set にして返す
-        if (tokens instanceof Set) return [...tokens].map(String);
-        return Array.isArray(tokens) ? tokens.map(String) : [];
+        const row = await deviceRow(uid, consistent);
+        return minPushKeys >= 2 ? row.tokens.filter((t) => row.keys2.has(t)) : row.tokens;
     } catch (e) {
         console.error(`deviceTokens: 端末を引けませんでした（${uid}）:`, e);
         return [];
@@ -114,7 +149,7 @@ export const registerDevice: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
     const gone = await assertLiveCaller(userId);
     if (gone) return gone;
 
-    let body: { token?: unknown };
+    let body: { token?: unknown; pushKeys?: unknown };
     try {
         body = JSON.parse(event.body ?? "{}") as typeof body;
     } catch {
@@ -122,6 +157,8 @@ export const registerDevice: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
     }
     const token = typeof body.token === "string" ? normalizeDeviceToken(body.token) : "";
     if (!isDeviceToken(token)) return jsonError(400, "端末のトークンが不正です");
+    // 文言の段（`PUSH_KEYS_LATEST`）。数でなければ段 1（古いアプリは送らない）
+    const keys2 = typeof body.pushKeys === "number" && body.pushKeys >= 2;
 
     try {
         // **先に前の持ち主から外す。** 逆引きの行を自分に書き換え、
@@ -134,8 +171,11 @@ export const registerDevice: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
         await ddb.send(new UpdateCommand({
             TableName: PHOTOS_TABLE,
             Key: { id: devicesId(userId) },
-            UpdateExpression: "ADD #tokens :token SET uid = :uid, updatedAt = :now",
-            ExpressionAttributeNames: { "#tokens": "tokens" },
+            // 段 2 のアプリなら、同じ書き込みで `keys2Tokens` にも足す（書き込みの回数は増えない）
+            UpdateExpression: keys2
+                ? "ADD #tokens :token, #k2 :token SET uid = :uid, updatedAt = :now"
+                : "ADD #tokens :token SET uid = :uid, updatedAt = :now",
+            ExpressionAttributeNames: { "#tokens": "tokens", ...(keys2 ? { "#k2": KEYS2_ATTR } : {}) },
             ExpressionAttributeValues: {
                 ":token": new Set([token]),
                 ":uid": userId,
@@ -144,7 +184,7 @@ export const registerDevice: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
         }));
         // **溢れたら古い方を落とす。** 落とせなくても登録は成功で返す
         // （送る側が重くなるだけで、通知は届く）
-        await trimTokens(userId, token);
+        await trimTokens(userId, token, keys2);
     } catch (e) {
         console.error(`registerDevice error（${userId}）:`, e);
         return jsonError(500, "登録できませんでした");
@@ -159,14 +199,29 @@ export const registerDevice: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
  * **今の1台を残して、残りから溢れたぶんを外す**のが唯一安全な形
  * （無効なトークンは APNs の 410 で自然に消えていく）。
  */
-async function trimTokens(uid: string, keep: string): Promise<void> {
+async function trimTokens(uid: string, keep: string, keepIsKeys2: boolean): Promise<void> {
     // **強整合で読む。** いま `ADD` した1台が見えない読みが返ると件数が
     // 1少なく見えて切り詰めが飛ぶ／2台がほぼ同時に登録すると同じ古い
     // 断面から各々 `extra` を計算して 10 未満まで削る
-    const tokens = await deviceTokens(uid, true);
-    if (tokens.length <= DEVICES_MAX) return;
-    const extra = tokens.filter((t) => t !== keep).slice(0, tokens.length - DEVICES_MAX);
-    await forgetTokens(uid, extra);
+    const row = await deviceRow(uid, true);
+    const { tokens } = row;
+    const extra = tokens.length <= DEVICES_MAX ? []
+        : tokens.filter((t) => t !== keep).slice(0, tokens.length - DEVICES_MAX);
+    if (extra.length > 0) await forgetTokens(uid, extra);
+    // 段 2 の印の掃除（2026-11-15 札 #618）。**印が実際に在るときだけ** DELETE を書く
+    // （無い行に書きに行かない＝古いアプリの登録で書き込みを増やさない）:
+    //   - 同じ端末に古いアプリを入れ直した（段 1 で登録し直した）→ その端末を印から外す
+    //   - `tokens` から外れた端末（410・溢れ・別の人へ移った）の印 → 外す（印が際限なく残らない）
+    const alive = new Set(tokens.filter((t) => !extra.includes(t)));
+    const stale = [...row.keys2].filter((t) => !alive.has(t) || (t === keep && !keepIsKeys2));
+    if (stale.length === 0) return;
+    await ddb.send(new UpdateCommand({
+        TableName: PHOTOS_TABLE,
+        Key: { id: devicesId(uid) },
+        UpdateExpression: "DELETE #k2 :stale",
+        ExpressionAttributeNames: { "#k2": KEYS2_ATTR },
+        ExpressionAttributeValues: { ":stale": new Set(stale) },
+    })).catch((e) => console.error(`trimTokens: 段 2 の印を外せませんでした（${uid}）:`, e));
 }
 
 /**

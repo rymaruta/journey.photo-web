@@ -217,3 +217,54 @@ describe("読み出し", () => {
         expect(mockDdbSend).not.toHaveBeenCalled();
     });
 });
+
+/**
+ * 文言の段（`pushKeys`・2026-11-15 札 #618）。段 2 の鍵を持つアプリの端末だけを `keys2Tokens` に置き、
+ * コメントへの返信・メンションはその端末にだけ送る（`notify.ts` の `KEYS2_TYPES`）。
+ */
+describe("文言の段", () => {
+    const row = (tokens: string[], keys2: string[] = []) => (c: Cmd) =>
+        (c.constructor.name === "GetCommand"
+            ? { Item: { tokens: new Set(tokens), ...(keys2.length ? { keys2Tokens: new Set(keys2) } : {}) } } : {});
+    const updates = () => cmds().filter((c) => c.constructor.name === "UpdateCommand");
+
+    it("pushKeys 2 なら、同じ1回の書き込みで keys2Tokens にも足す", async () => {
+        serve(undefined, row([TOKEN], [TOKEN]));
+        await invoke(registerDevice, ev("u1", { token: TOKEN, pushKeys: 2 }));
+        const update = withExpr(devicesId("u1"), "ADD #tokens :token, #k2 :token")!;
+        expect(update, "段 2 の印を足していない").toBeTruthy();
+        expect((update.input.ExpressionAttributeNames as Record<string, string>)["#k2"]).toBe("keys2Tokens");
+        // 書き込みは今と同じ本数（持ち主の付け替え1・自分の行1）。掃除は印が要るときだけ
+        expect(updates()).toHaveLength(2);
+    });
+
+    it("pushKeys を送らない古いアプリは、印を足さない（書き込みも増やさない）", async () => {
+        serve(undefined, row([TOKEN]));
+        await invoke(registerDevice, ev("u1", { token: TOKEN }));
+        expect(withExpr(devicesId("u1"), "#k2"), "古いアプリに印を足した・掃除を書いた").toBeFalsy();
+        expect(updates()).toHaveLength(2);
+    });
+
+    it("同じ端末に古いアプリを入れ直した（段 1 で登録し直した）ら、印から外す", async () => {
+        serve(undefined, row([TOKEN], [TOKEN]));
+        await invoke(registerDevice, ev("u1", { token: TOKEN }));
+        const del = withExpr(devicesId("u1"), "DELETE #k2")!;
+        expect(del, "古いアプリの端末に印が残る").toBeTruthy();
+        expect((del.input.ExpressionAttributeValues as Record<string, Set<string>>)[":stale"]).toEqual(new Set([TOKEN]));
+    });
+
+    it("tokens から外れた端末の印は掃除する", async () => {
+        serve(undefined, row([TOKEN], [TOKEN, OTHER]));
+        await invoke(registerDevice, ev("u1", { token: TOKEN, pushKeys: 2 }));
+        const del = withExpr(devicesId("u1"), "DELETE #k2")!;
+        expect((del.input.ExpressionAttributeValues as Record<string, Set<string>>)[":stale"]).toEqual(new Set([OTHER]));
+    });
+
+    it("段 2 を求めたら、印のある端末だけを返す（無ければ空）", async () => {
+        serve(undefined, row([TOKEN, OTHER], [OTHER]));
+        expect(await deviceTokens("u1", false, 2)).toEqual([OTHER]);
+        expect(await deviceTokens("u1")).toEqual([TOKEN, OTHER]);
+        serve(undefined, row([TOKEN]));
+        expect(await deviceTokens("u1", false, 2)).toEqual([]);
+    });
+});

@@ -30,8 +30,8 @@ export type Notif = {
     // `storymention`（2026-11-09・札 #505）は「ストーリーであなたをメンションしました」。
     // `photoId` はそのストーリーの id、`byId` / `byName` は投稿者。**見られる人にしか
     // 作らない**（`storyMentions.ts`）。古いアプリは知らない `type` を `kind: nil` で
-    // 読む（一覧は壊れない）。**端末への通知は `PUSH_READY_TYPES` に入れるまで送らない**
-    // （下。鍵が無い古いアプリが `NOTIF_STORY_MENTION` の文字をそのまま出すため）。
+    // 読む（一覧は壊れない）。**端末へは鍵を持つアプリにだけ送る**（下の `KEYS2_TYPES`。
+    // 鍵が無い古いアプリが `NOTIF_STORY_MENTION` の文字をそのまま出すため）。
     //
     // `storyshare`（2026-11-11・journey.photo-ios#541 の ①）は「あなたの写真をストーリーで紹介しました」。
     // `photoId` / `photoSrc` は**紹介された自分の写真**（持ち主は紹介した人のストーリーを見られない
@@ -41,8 +41,8 @@ export type Notif = {
     // 付いた写真、`commentId` は**返信のコメント**（押すとそのコメントへ）。`comments.ts` の `postComment`。
     // 返信の相手が写真の持ち主なら、持ち主には `comment` ではなくこちら1つだけを送る（二重にしない）。
     //
-    // どちらも古いアプリは `kind: nil` で読み（一覧は壊れない）、**端末への通知は `PUSH_READY_TYPES`
-    // に入れるまで送らない**（`storymention` と同じ理由・下）
+    // どちらも古いアプリは `kind: nil` で読む（一覧は壊れない）。端末へは、鍵を持つアプリにだけ送る
+    // （`commentreply`・`storymention`、2026-11-15 札 #618・下の `KEYS2_TYPES`）
     type: "like" | "comment" | "follow" | "storyreply" | "badge" | "inspired" | "storymention"
         | "storyshare" | "commentreply";
     photoId: string;
@@ -433,17 +433,22 @@ const LOC_KEYS: Record<Notif["type"] | "dm", string> = {
 };
 
 /**
- * 端末へ送ってよい種類。**`storymention`・`storyshare`・`commentreply` は入れていない**
- * （2026-11-09・2026-11-11 判断）。
+ * 端末へ送ってよい種類。
  *
  * 文面は端末の `Localizable.strings` の鍵で出す（上）。**鍵を持たない古い
  * アプリは、鍵の文字列そのもの（`NOTIF_STORY_MENTION`）を通知に出す**。
- * アプリが鍵を持つ版（iOS 側の対応）を配ってから、ここに足す。それまでは
- * 通知の一覧（`notifs#`）には積むので、開けば見える。
+ *
+ * 2026-11-15（札 #618）: **`commentreply`・`storymention` を足した。** ただし `KEYS2_TYPES` に入れ、
+ * 鍵を持つと名乗ったアプリの端末（`devices.ts` の `PUSH_KEYS_LATEST`）にだけ送る。App Store の
+ * 1.0.87 は鍵を持たないので、その端末には今までどおり送らない（一覧には積むので、開けば見える）。
+ * `storyshare` は作られなくなった（2026-11-12・`stories.ts`）ので足さない。
  */
 const PUSH_READY_TYPES: ReadonlySet<Notif["type"]> = new Set<Notif["type"]>([
-    "like", "comment", "follow", "storyreply", "badge", "inspired",
+    "like", "comment", "follow", "storyreply", "badge", "inspired", "commentreply", "storymention",
 ]);
+
+/** 段 2 の鍵（2026-11-11 の文言）を持つアプリの端末にだけ送る種類（`devices.ts` の `PUSH_KEYS_LATEST`） */
+const KEYS2_TYPES: ReadonlySet<Notif["type"]> = new Set<Notif["type"]>(["commentreply", "storymention"]);
 
 /**
  * 通知を端末へ送る。**best-effort**（落ちても本体は成功）。
@@ -488,6 +493,7 @@ async function deliverPush(ownerId: string, notif: Notif, storedUnread?: unknown
     if (!apnsConfigured()) return;
     if (!PUSH_READY_TYPES.has(notif.type)) return;
     await sendToDevices(ownerId, { unread: storedUnread, items }, {
+        minPushKeys: KEYS2_TYPES.has(notif.type) ? 2 : 1,
         locKey: LOC_KEYS[notif.type],
         locArgs: [notif.byName],
         // 押したときの行き先。**写真が無い通知（follow）もある**
@@ -535,10 +541,10 @@ export async function pushDmMessage(ownerId: string, p: { byName: string; byId: 
 async function sendToDevices(
     ownerId: string,
     bell: { unread?: unknown; items?: unknown } | undefined,
-    message: { locKey: string; locArgs: string[]; data: Record<string, string> },
+    message: { locKey: string; locArgs: string[]; data: Record<string, string>; minPushKeys?: number },
 ): Promise<void> {
     try {
-        const tokens = await deviceTokens(ownerId);
+        const tokens = await deviceTokens(ownerId, false, message.minPushKeys ?? 1);
         if (tokens.length === 0) return;
         // **ブロック一覧を引くのはここまで来たときだけ。** 上の2つの門
         // （設定が無い／端末が1つも無い）で落ちる人には1回も払わせない
