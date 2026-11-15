@@ -18,6 +18,7 @@ from batchlib import load, work_dir
 
 work_dir()
 mats = load("materials.json")
+before = load("rows_before.json", {})
 BANNED = ["撮りどき", "撮影地", "この場所", "ガイド", "捨て", "**"]
 SUBJ = ["雰囲気", "静か", "静寂", "人気", "賑わ", "にぎわ", "混み", "混雑", "おすすめ", "オススメ", "必見", "絶景", "素晴らし", "見事", "圧巻", "壮観", "壮大", "癒", "魅了", "感動", "落ち着いた", "多くの人が訪れ"]
 LATEST = re.compile(r"閉鎖|閉館|休館|休止|運休|規制|立入禁止|立ち入り禁止|通行止め|工事|再整備|更新事業|予約|拝観|開洞|開門|閉門|開館|開園|料金|有料|定休|廃止|休園|不定期|年現在|時点|現在")
@@ -72,10 +73,14 @@ for f in files:
                     p.append(f"引用が{ev.get('src')}の本文に無い: 「{ev.get('quote', '')[:30]}」")
         if not claims or not any(c.get("evidence") for c in claims):
             p.append("根拠の引用が無い")
-        official = [k for k in src if k.startswith("o")]
+        # 元の説明（すでに公開して照合済み）にある数字で、Wikipedia の本文にも在るものは残してよい。
+        # 新しく足す数字は、公式サイトの頁に在るか、2つ以上の出典に在るものだけ
+        b0 = before.get(slug) or {}
+        old = numbers((b0.get("description") or "") + (b0.get("summary") or "") + " ".join(b0.get("highlights") or []))
         for num in sorted(numbers(body)):
             where = [k for k, t in src.items() if num in numbers(t) or num in t]
-            if not (any(k.startswith("o") for k in where) or len(where) >= 2):
+            kept = num in old and "wp" in where
+            if not (any(k.startswith("o") for k in where) or len(where) >= 2 or kept):
                 p.append(f"数字「{num}」の根拠が足りない（{where or '材料に無い'}）")
         nb = norm(body)
         hit = None
