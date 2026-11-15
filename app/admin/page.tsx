@@ -11,6 +11,7 @@ import { useToast } from "../../lib/hooks/useToast";
 import { PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
 import type { Photo } from "@/lib/data/photos";
 import { selectVisiblePhotos } from "./visiblePhotos";
+import PhotoTileMeta from "./PhotoTileMeta";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
 import { log } from "../../lib/utils/log";
 import { ROUTES } from "../../lib/routes";
@@ -266,7 +267,7 @@ export default function AdminPage() {
                             type="search"
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
-                            placeholder={locale === "en" ? "Search title, place, tag" : "タイトル・場所・タグで検索"}
+                            placeholder={locale === "en" ? "Search title, place, tag" : "タイトル、場所、タグで検索"}
                             className="flex-1 min-w-[200px] px-4 py-2.5 bg-surface-2 ring-1 ring-line-strong rounded-full text-sm text-white placeholder:text-white/35 focus:outline-none focus:ring-white/25"
                             style={{ fontSize: "16px" }}
                             aria-label={locale === "en" ? "Search photos" : "写真を検索"}
@@ -384,11 +385,7 @@ export default function AdminPage() {
                                     </div>
                                     <div className="absolute inset-x-0 bottom-0 p-2 pt-6 bg-gradient-to-t from-black/85 to-transparent">
                                         <p className="text-xs text-white font-medium truncate">{getTitle(photo)}</p>
-                                        {(photo.location || photo.category) && (
-                                            <p className="text-[12px] text-white/55 truncate">
-                                                {[photo.location, photo.category].filter(Boolean).join(" · ")}
-                                            </p>
-                                        )}
+                                        <PhotoTileMeta location={photo.location} category={photo.category} />
                                     </div>
                                 </div>
                             ))}
