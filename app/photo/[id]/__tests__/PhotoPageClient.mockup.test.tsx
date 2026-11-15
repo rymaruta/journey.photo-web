@@ -78,7 +78,8 @@ beforeEach(() => {
 describe("写真ページ: 最終版モックの並び", () => {
     // 2026-10-31 束 1 P4・P11: iOS の写真の詳細の順（題 → 日時 → 本文 → 作者 → 操作 → 撮影情報 → タグ → 関連 → コメント）。
     // 以前は 題 → 作者 → 日時と住所 → 本文 → タグ → 操作 → タブ
-    it("並び: ヒーロー → 題 → 日時 → 本文 → 作者行 → 操作の段 → 撮影情報 → タグ → コメントの節", async () => {
+    // 2026-11-15（札 journey.photo-ios#625）: コメントの節は操作の段のすぐ後（DOM の順＝スマホの並び）。PC は `lg:order-last` で列の最後
+    it("並び: ヒーロー → 題 → 日時 → 本文 → 作者行 → 操作の段 → コメントの節 → 撮影情報 → タグ", async () => {
         page();
         await screen.findByText("夕陽に染まる白い街");
         const hero = screen.getByAltText(/夕陽に染まる白い街/);
@@ -90,10 +91,13 @@ describe("写真ページ: 最終版モックの並び", () => {
         const exif = screen.getByTestId("photo-exif");
         const tag = screen.getByRole("link", { name: "#ギリシャ" });
         const comments = screen.getByRole("heading", { name: "コメント 24件" });
-        for (const [a, b] of [[hero, title], [title, body], [body, author], [author, like], [like, exif], [exif, tag], [tag, comments]] as const) {
+        for (const [a, b] of [[hero, title], [title, body], [body, author], [author, like], [like, comments], [comments, exif], [exif, tag]] as const) {
             expect(before(a, b), "並びが iOS と違う").toBe(true);
         }
         expect(screen.queryByRole("tablist"), "コメントと関連写真の切り替えは無くした").toBeNull();
+        // PC（1024px 以上）は今までどおり列の最後へ（見た目の並びを変えない）
+        expect(screen.getByTestId("photo-comments").className).toContain("lg:order-last");
+        expect(screen.getByTestId("photo-comments").parentElement!.className).toMatch(/(^|\s)flex flex-col/);
     });
 
     // 束 1 P2: 写真の裾は「📍 撮影地 · 撮影地の詳細」の行だけ（地図の丸は外し、「…」の中へ）
@@ -102,7 +106,9 @@ describe("写真ページ: 最終版モックの並び", () => {
         await screen.findByText("夕陽に染まる白い街");
         const place = screen.getByTestId("photo-place-link");
         expect(place.getAttribute("href")).toContain("/location/");
-        expect(place.textContent).toContain("撮影地の詳細");
+        // 2026-11-15: 裾は1行（名前と市区町村）。「· 撮影地の詳細」の添え字はやめた
+        expect(place.textContent).not.toContain("撮影地の詳細");
+        expect(place.textContent).not.toMatch(/[·・]/);
         expect(screen.queryByTestId("photo-map-button"), "写真の上の地図の丸は外した").toBeNull();
         fireEvent.click(screen.getByRole("button", { name: "その他" }));
         expect(screen.getByRole("menuitem", { name: "撮影地マップで見る" }).getAttribute("href")).toMatch(/^\/map#/);

@@ -123,3 +123,16 @@ export function placeForSentence(place: MetaPlace): string {
     const extra = area || (isMuni(head) ? pref : "");
     return extra ? `${head}（${extra}）` : head;
 }
+
+/**
+ * 写真の頁の、写真の裾の1行に出す撮影地（2026-11-15・札 journey.photo-ios#625）。
+ * 「名前、市区町村」（市区町村が無ければ名前だけ）。住所の全文（郵便番号・番地・国）は出さない。
+ * 名前が取れない文字列は全文を返す（何も出さないより、書かれたものを出す）
+ */
+export function shortPlaceLine(location: unknown): string {
+    const full = typeof location === "string" ? location.trim() : "";
+    if (!full) return "";
+    const { head, area } = metaPlace(full);
+    if (!head) return full;
+    return area ? `${head}、${area}` : head;
+}

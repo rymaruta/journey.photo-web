@@ -1,4 +1,5 @@
 "use client";
+import { HIT_44 } from "./chipStyles";
 
 // 写真ページのコメント欄。公開閲覧、認証ユーザーが投稿でき、
 // 投稿者本人または写真オーナーが削除できる。
@@ -176,7 +177,7 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
                                         <UserAvatar userId="" className="w-7 h-7" iconClassName="w-4 h-4" />
                                     </span>
                                 ) : (
-                                    <Link href={ROUTES.USER_PROFILE(c.uid)} prefetch={false} className="flex-shrink-0 mt-0.5">
+                                    <Link href={ROUTES.USER_PROFILE(c.uid)} prefetch={false} className={`flex-shrink-0 mt-0.5 ${HIT_44}`}>
                                         <UserAvatar userId={c.uid} className="w-7 h-7" iconClassName="w-4 h-4" />
                                     </Link>
                                 )}
@@ -187,7 +188,8 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
                                                 {c.name}
                                             </span>
                                         ) : (
-                                            <Link href={ROUTES.USER_PROFILE(c.uid)} prefetch={false} className="text-[13px] font-semibold text-white/85 hover:underline truncate">
+                                            // 当たりは上下を 12 ずつ広げて 44（`truncate` は擬似要素を切るので余白で広げる・2026-11-15）
+                                            <Link href={ROUTES.USER_PROFILE(c.uid)} prefetch={false} className="text-[13px] font-semibold text-white/85 hover:underline truncate py-3 -my-3 min-w-[44px]">
                                                 {c.name}
                                             </Link>
                                         )}
@@ -203,7 +205,7 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
                                                         : "コメントを削除できませんでした。もう一度お試しください", "error");
                                                 })}
                                                 aria-label={locale === "en" ? "Delete comment" : "コメントを削除"}
-                                                className="ml-auto flex-shrink-0 p-1 text-white/40 hover:text-danger transition"
+                                                className={`ml-auto flex-shrink-0 p-1 text-white/40 hover:text-danger transition ${HIT_44}`}
                                                 style={{ touchAction: "manipulation" }}
                                             >
                                                 <TrashIcon className="w-3.5 h-3.5" />

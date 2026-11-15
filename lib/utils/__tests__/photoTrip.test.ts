@@ -72,9 +72,10 @@ describe("nextGoldenHour（次のゴールデンアワー）", () => {
 });
 
 describe("goldenLineParts（板の1行）", () => {
-    it("「次のゴールデンアワー · 明日」と時刻", () => {
+    // 2026-11-15: 中黒で区切らない（owner の好み 2026-11-12）
+    it("「次のゴールデンアワーは明日」と時刻", () => {
         expect(goldenLineParts({ day: "tomorrow", start: "16:12", end: "16:48", local: false }, true))
-            .toEqual({ label: "次のゴールデンアワー · 明日", time: "16:12–16:48" });
+            .toEqual({ label: "次のゴールデンアワーは明日", time: "16:12–16:48" });
     });
     it("時計が違う土地は「（現地）」", () => {
         expect(goldenLineParts({ day: "today", start: "06:01", end: "06:40", local: true }, true).time)
