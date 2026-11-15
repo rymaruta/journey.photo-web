@@ -60,7 +60,9 @@ describe("状態を混ぜない", () => {
     it("未ログインはログインへ送る（作る口を出さない）", () => {
         hooks.auth = { isAuthenticated: false, loading: false };
         draw();
-        expect(screen.getByRole("link", { name: "ログイン" })).toBeTruthy();
+        expect(screen.getByRole("link", { name: "ログイン" }).getAttribute("href")).toBe("/login?next=%2Ftrips");
+        // 新規登録も同じ所に1回で（札 journey.photo-ios#630、2026-11-15）
+        expect(screen.getByRole("link", { name: "新規登録" }).getAttribute("href")).toBe("/signup?next=%2Ftrips");
         expect(screen.queryByRole("button", { name: /作る/ })).toBeNull();
     });
 

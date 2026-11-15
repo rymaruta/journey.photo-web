@@ -52,6 +52,11 @@ describe("コメントの入力欄（下に貼る）", () => {
         expect(login.textContent).toBe("ログインしてコメント");
         expect(login.getAttribute("href")).toContain("next=");
         expect(login.style.minHeight).toBe("44px");
+        // 新規登録も同じ所に1回で（札 journey.photo-ios#630、2026-11-15）
+        const signup = screen.getByTestId("comment-signup");
+        expect(signup.textContent).toBe("新規登録");
+        expect(signup.getAttribute("href")).toMatch(/^\/signup\?next=/);
+        expect(signup.style.minHeight).toBe("44px");
     });
 
     it("ログインしている人は入力欄と送信が下に貼られる（44 の高さ）", async () => {

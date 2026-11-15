@@ -101,8 +101,11 @@ describe("挟む札（窓で止めない）", () => {
         fireEvent.click(screen.getByTestId("swipe-pass"));
         const pause = await screen.findByTestId("swipe-pause");
         expect(pause.textContent).toContain("選んだ 1 か所を、地図と旅行プランで");
-        expect(screen.getByTestId("swipe-pause-action").getAttribute("href")).toBe("/login?next=%2Fswipe&via=swipe");
-        expect(screen.getByTestId("swipe-pause-action").textContent).toBe("ログインして見る");
+        // 未ログインは新規登録が主、ログインは下の文字のリンク（札 journey.photo-ios#630、2026-11-15）
+        expect(screen.getByTestId("swipe-pause-action").getAttribute("href")).toBe("/signup?next=%2Fswipe&via=swipe");
+        expect(screen.getByTestId("swipe-pause-action").textContent).toBe("新規登録して見る");
+        expect(screen.getByTestId("swipe-pause-login").getAttribute("href")).toBe("/login?next=%2Fswipe&via=swipe");
+        expect(screen.getByTestId("swipe-pause-login").textContent).toBe("ログインして見る");
         // 左へ払う（← キー）で続ける
         fireEvent.keyDown(window, { key: "ArrowLeft" });
         await screen.findByTestId("swipe-card");

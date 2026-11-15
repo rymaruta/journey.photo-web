@@ -15,6 +15,7 @@ import { ROUTES } from "../../lib/routes";
 import UserAvatar from "./UserAvatar";
 import { EmptyState, ErrorState, LoadingState } from "./StateViews";
 import { loginWithNext } from "../../lib/routes";
+import { SIGNUP_BENEFITS_SIGNUP, signupBenefitsSignupHref } from "../../lib/auth/signupBenefits";
 
 type Props = {
     photoId: string;
@@ -48,6 +49,10 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
     const loginHref = typeof window === "undefined"
         ? ROUTES.LOGIN
         : loginWithNext(window.location.pathname + window.location.search);
+    // 新規登録の行き先（同じ戻り先。札 journey.photo-ios#630）
+    const signupHref = typeof window === "undefined"
+        ? ROUTES.SIGNUP
+        : signupBenefitsSignupHref(window.location.pathname + window.location.search);
     // authLoading = ログイン状態がまだ分からない期間。ここを見ないと、
     // ログイン済みの人にも一瞬「ログインするとコメントできます」が出て、
     // その間にリンクを押すとログインページ経由で別の場所へ飛ばされる。
@@ -307,16 +312,29 @@ export default function CommentSection({ photoId, photoOwnerId, locale, initialC
                 // 戻り先を添える。無いとログイン後に自分のプロフィールへ
                 // 飛ばされ、コメントしようとしていた写真を見失う。
                 // 見た目は入力欄の形（押すとログインへ）。写真のある画面なので真鍮の塗りにしない
-                <Link
-                    href={loginHref}
-                    prefetch={false}
-                    data-testid="comment-login"
-                    // 入力欄と同じ形（角 12・白8%の縁・2026-10-30 束 0b C6）
-                    className="flex items-center w-full rounded-field bg-surface-2 ring-1 ring-inset ring-line px-[14px] text-text-2 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-                    style={{ minHeight: "44px", fontSize: "15px", touchAction: "manipulation" }}
-                >
-                    {locale === "en" ? "Log in to comment" : "ログインしてコメント"}
-                </Link>
+                <div className="flex items-center gap-3">
+                    <Link
+                        href={loginHref}
+                        prefetch={false}
+                        data-testid="comment-login"
+                        // 入力欄と同じ形（角 12、白8%の縁、2026-10-30 束 0b C6）
+                        className="flex items-center flex-1 min-w-0 rounded-field bg-surface-2 ring-1 ring-inset ring-line px-[14px] text-text-2 hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                        style={{ minHeight: "44px", fontSize: "15px", touchAction: "manipulation" }}
+                    >
+                        {locale === "en" ? "Log in to comment" : "ログインしてコメント"}
+                    </Link>
+                    {/* 新規登録も並べる（札 journey.photo-ios#630、2026-11-15）。まだ登録していない人はここから1回で登録の頁へ。
+                        写真のある画面なので線のボタン（「登録するとできること」と同じ形） */}
+                    <Link
+                        href={signupHref}
+                        prefetch={false}
+                        data-testid="comment-signup"
+                        className="inline-flex items-center justify-center flex-shrink-0 px-4 rounded-full border border-line-strong text-white font-semibold no-underline focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
+                        style={{ minHeight: "44px", fontSize: "15px", touchAction: "manipulation" }}
+                    >
+                        {locale === "en" ? SIGNUP_BENEFITS_SIGNUP.en : SIGNUP_BENEFITS_SIGNUP.ja}
+                    </Link>
+                </div>
             )}
             </div>
             {/* 送れたことの読み上げ（1回だけ）。見た目は送った1件が先頭に出ることで伝える */}

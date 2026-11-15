@@ -1,14 +1,14 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
+import SignUpLoginLinks from "../components/SignUpLoginLinks";
 import { MapIcon, PlusIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../auth/context";
 import { useLocale } from "../i18n/context";
 import { usePhotos } from "../../lib/hooks/usePhotos";
 import { useSavedSpots } from "../../lib/hooks/useSavedSpots";
 import { useTripPlans, type TripPlan, type TripItem } from "../../lib/hooks/useTripPlans";
-import { ROUTES, loginWithNext } from "../../lib/routes";
+import { ROUTES } from "../../lib/routes";
 import { collectEntries } from "../../lib/utils/collections";
 import { parseSavedKey, dedupeSavedKeys } from "../../lib/utils/savedSpotKey";
 import type { SpotRef } from "../../lib/data/spotLink";
@@ -55,15 +55,8 @@ export default function TripsClient({ spots }: { spots: Record<string, SpotRef> 
             <Shell en={en} count={null}>
                 <Empty
                     text={en ? "Sign in to plan a trip." : "旅行プランを作るにはログインしてください。"}
-                    action={
-                        <Link
-                            href={loginWithNext(ROUTES.TRIPS)}
-                            prefetch={false}
-                            className="text-link hover:text-white underline underline-offset-4"
-                        >
-                            {en ? "Sign in" : "ログイン"}
-                        </Link>
-                    }
+                    // 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主。写真の無い頁なので真鍮の塗り）
+                    action={<SignUpLoginLinks locale={locale} next={ROUTES.TRIPS} variant="fill" testIdPrefix="trips-signin" />}
                 />
             </Shell>
         );
