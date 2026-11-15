@@ -192,4 +192,16 @@ describe("HomeMosaic", () => {
         // 時刻で決まるので、サーバーで描いた HTML には出さない（水和が食い違わない）
         expect(renderToString(<HomeMosaic photos={photos} locale="ja" firstPostIds={new Set(["b"])} />)).not.toContain("はじめての投稿");
     });
+
+    it("はじめての投稿の印の形は板のガラス（黒 55%＋ぼかし 18＋白 10% の縁）で、iOS の `jpGlass` とそろう（2026-11-15）", () => {
+        const { container } = render(<HomeMosaic photos={[photo("a")]} locale="ja" firstPostIds={new Set(["a"])} />);
+        const mark = container.querySelector('[data-testid="home-first-post"]') as HTMLElement;
+        expect(mark.className.split(/\s+/)).toEqual(expect.arrayContaining(
+            ["rounded-full", "text-white", "bg-black/55", "backdrop-blur-[18px]", "ring-1", "ring-inset", "ring-glass-line", "font-semibold"]));
+        // 真鍮は写真の上では沈むので使わない（板「写真の上には白しか置かない」）
+        expect(mark.className).not.toMatch(/accent/);
+        expect(mark.style.height).toBe("24px");
+        expect(mark.style.fontSize).toBe("12px");
+        expect(mark.textContent).toBe("、はじめての投稿");
+    });
 });
