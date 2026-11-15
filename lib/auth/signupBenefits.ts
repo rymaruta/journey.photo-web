@@ -5,7 +5,7 @@
  * ログインの頁（`app/login`）は変えない。**ログインしていない人に、トップの並びの途中と写真の頁で、
  * 控えめな案内（札4枚）を出す**（`app/components/SignUpBenefits.tsx`）。押した先は今の `/signup` と `/login` のまま。
  *
- * 4枚は輪の順（載せる → 行きたい場所 → AI で旅行プラン → 話す）。iOS のホームの段
+ * 4枚は輪の順（載せる → 行きたい場所 → 旅行プランを仲間と → 話す）。iOS のホームの段
  * （`SignUpBenefit`、`HomeSignUpBenefitsView`）と同じ字、同じ順にそろえる。中黒で区切らない。
  */
 import { ROUTES, loginWithNext, safeNextPath } from "../routes";
@@ -15,9 +15,7 @@ export type SignUpBenefitId = "post" | "wantToGo" | "tripPlan" | "message";
 export const SIGNUP_BENEFITS: ReadonlyArray<{ id: SignUpBenefitId; ja: string; en: string }> = [
     { id: "post", ja: "写真を載せる", en: "Post photos" },
     { id: "wantToGo", ja: "行きたい場所を保存", en: "Save places to go" },
-    // 2026-11-15（札 journey.photo-ios#621・owner「AI の旅行プランを登録の入口に」）: 「旅行プランを仲間と作る」と入れ替えた。
-    // 5枚だと2列で1枚余る。iOS の `SignUpBenefit.tripPlan` と同じ字。識別子は変えない
-    { id: "tripPlan", ja: "AI で旅行プランを作る", en: "Plan trips with AI" },
+    { id: "tripPlan", ja: "旅行プランを仲間と作る", en: "Plan trips with friends" },
     { id: "message", ja: "メッセージで話す", en: "Chat in messages" },
 ];
 

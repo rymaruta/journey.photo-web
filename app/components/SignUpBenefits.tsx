@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { PlusIcon, MapPinIcon, SparklesIcon, ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, MapPinIcon, CalendarIcon, ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import type { Photo, Locale } from "@/lib/data/photos";
 import { useAuth } from "../auth/context";
 import Thumb from "./Thumb";
@@ -15,7 +15,7 @@ import {
 const ICONS: Record<SignUpBenefitId, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
     post: PlusIcon,
     wantToGo: MapPinIcon,
-    tripPlan: SparklesIcon,
+    tripPlan: CalendarIcon,
     message: ChatBubbleLeftIcon,
 };
 
