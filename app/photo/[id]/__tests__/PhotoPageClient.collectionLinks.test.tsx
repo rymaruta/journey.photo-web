@@ -100,7 +100,8 @@ describe("集約ページへの内部リンク", () => {
         await screen.findByText("テスト写真");
         expandExif();
         expect(hrefOf("SONY ILCE-7M3")).toBe(collectionPath("camera", "sony-ilce-7m3"));
-        expect(locationHref("香川県 観音寺市 高屋神社"))
+        // 写真の裾は「名前、市区町村」の1行（2026-11-15）。行き先は今までどおり撮影地の全文から作る
+        expect(locationHref("高屋神社、観音寺市"))
             .toBe(collectionPath("location", "香川県-観音寺市-高屋神社"));
     });
 });

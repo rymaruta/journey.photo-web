@@ -120,7 +120,8 @@ export function goldenLineParts(g: NextGolden, isJa: boolean): { label: string; 
     const day = g.day === "today" ? (isJa ? "今日" : "today") : (isJa ? "明日" : "tomorrow");
     const local = g.local ? (isJa ? "（現地）" : " (local)") : "";
     return {
-        label: isJa ? `次のゴールデンアワー · ${day}` : `Next golden hour · ${day}`,
+        // 中黒で区切らない（2026-11-15・owner の好み 2026-11-12）。「次のゴールデンアワーは今日」
+        label: isJa ? `次のゴールデンアワーは${day}` : `Next golden hour · ${day}`,
         time: `${g.start}–${g.end}${local}`,
     };
 }
