@@ -115,6 +115,59 @@ export function nextTab(
     return isPeoplePage || !who.myId ? null : "me";
 }
 
+/**
+ * **写真の頁（スマホ）では、下へ送ると帯を隠し、上へ戻すと出す**（2026-11-15 owner 判断・札 journey.photo-ios#625）。
+ * 帯は 84px（390x664 で画面の13%）で、縦長の写真では題のすぐ下から本文に重なっていた。読むあいだは隠し、
+ * 少しでも上へ戻せば出す（Safari の下の帯と同じ手ざわり）。頁の上の方（`BAR_SHOW_TOP` より上）では必ず出す。
+ * PC（1024px 以上）と、写真の頁でない所はいつも出す。`--bottom-bar-h` は変えない（変えると `body` の下の余白が
+ * 縮んで頁の高さが変わり、いちばん下で送りが跳ねて出し入れを繰り返す）
+ */
+export const BAR_SHOW_TOP = 80;
+export const BAR_SCROLL_DELTA = 6;
+export function hidesBarOnScroll(pathname: string): boolean {
+    return pathname.startsWith("/photo/");
+}
+/** 前の位置 `prevY` から `y` へ送ったときに、帯を隠すか。小さな揺れ（`BAR_SCROLL_DELTA` 以下）では今のまま */
+export function nextBarHidden(prevY: number, y: number, hidden: boolean): boolean {
+    if (y < BAR_SHOW_TOP) return false;
+    const dy = y - prevY;
+    if (dy > BAR_SCROLL_DELTA) return true;
+    if (dy < -BAR_SCROLL_DELTA) return false;
+    return hidden;
+}
+
+function useHideOnScroll(active: boolean): [boolean, () => void] {
+    const [hidden, setHidden] = React.useState(false);
+    React.useEffect(() => {
+        if (!active || typeof window === "undefined") { setHidden(false); return; }
+        const phone = window.matchMedia?.("(max-width: 1023.98px)");
+        let lastY = window.scrollY;
+        let frame = 0;
+        const onScroll = () => {
+            if (frame) return;
+            frame = window.requestAnimationFrame(() => {
+                frame = 0;
+                const y = window.scrollY;
+                if (phone && !phone.matches) { setHidden(false); lastY = y; return; }
+                setHidden((h) => {
+                    const next = nextBarHidden(lastY, y, h);
+                    // 揺れのあいだは基準を動かさない（ゆっくり送っても溜まって判定できる）
+                    if (Math.abs(y - lastY) > BAR_SCROLL_DELTA || y < BAR_SHOW_TOP) lastY = y;
+                    return next;
+                });
+            });
+        };
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => {
+            window.removeEventListener("scroll", onScroll);
+            if (frame) window.cancelAnimationFrame(frame);
+            setHidden(false);
+        };
+    }, [active]);
+    const show = React.useCallback(() => setHidden(false), []);
+    return [hidden, show];
+}
+
 function safeDecode(s: string): string | null {
     try { return decodeURIComponent(s); } catch { return null; }
 }
@@ -129,6 +182,7 @@ export default function BottomNav() {
     const [sheetOpen, setSheetOpen] = React.useState(false);
 
     useBottomBarHeight(barRef);
+    const [barHidden, showBar] = useHideOnScroll(hidesBarOnScroll(pathname));
 
     // **画面が変わったら閉じる。** `PostSheet` は「常駐する場所に置く日が
     // 来たら、そちら側でパスを見比べること」と自分で書いている。ここが
@@ -214,8 +268,12 @@ export default function BottomNav() {
                 aria-label={locale === "en" ? "Main" : "メインメニュー"}
                 // 帯そのものは透明で押せない。**下の隙間は safe-area と大きい方**
                 // （ホーム画面から起動した iPhone ではホームインジケーターの上に乗る）
-                className="pointer-events-none fixed inset-x-0 bottom-0 z-40"
+                // 写真の頁（スマホ）で読んでいるあいだは下へ隠す（`useHideOnScroll`）。キーボードで中へ入ったら出す
+                className="pointer-events-none fixed inset-x-0 bottom-0 z-40 transition-transform duration-200 ease-out motion-reduce:transition-none"
+                data-hidden={barHidden && !sheetOpen ? "true" : undefined}
+                onFocusCapture={showBar}
                 style={{
+                    transform: barHidden && !sheetOpen ? "translateY(calc(100% + 8px))" : undefined,
                     paddingBottom: "max(22px, env(safe-area-inset-bottom, 0px))",
                     paddingLeft: "calc(16px + env(safe-area-inset-left, 0px))",
                     paddingRight: "calc(16px + env(safe-area-inset-right, 0px))",
