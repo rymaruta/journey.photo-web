@@ -23,6 +23,9 @@ import { useAuth } from "./auth/context";
 import TimelineFeed from "./components/TimelineFeed";
 import HomeMosaic from "./components/HomeMosaic";
 import { EmptyState, ErrorState, LoadingState } from "./components/StateViews";
+import SignUpBenefits from "./components/SignUpBenefits";
+import type { Photo } from "@/lib/data/photos";
+import { SIGNUP_BENEFITS_AFTER_INDEX, showsSignupBenefits } from "../lib/auth/signupBenefits";
 import HomeTopCards, { QuizCard } from "./components/HomeTopCards";
 import AppInstallCard from "./components/AppInstallCard";
 import SpotsEntry from "./components/SpotsEntry";
@@ -185,6 +188,14 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
   const { showToast } = useToast();
   const { photos, loaded: photosLoaded, failed: photosFailed, retry: retryPhotos } = usePhotos();
   const { isAuthenticated, userId, loading: authLoading } = useAuth();
+  // 「登録するとできること」（札 journey.photo-ios#618 の案1・2026-11-15 判断で案C）: ログインしていない人にだけ、
+  // トップの並びのひと回り（5枚）の後ろに1回。登録とログインの頁は変えない。絵の地はその後ろに並ぶ写真から
+  const benefitsShown = showsSignupBenefits({ loading: authLoading, isAuthenticated });
+  const benefitsInsert = (list: ReadonlyArray<Photo>) =>
+    benefitsShown
+      ? { afterIndex: SIGNUP_BENEFITS_AFTER_INDEX,
+          node: <SignUpBenefits locale={locale === "en" ? "en" : "ja"} photos={list.slice(SIGNUP_BENEFITS_AFTER_INDEX + 1, SIGNUP_BENEFITS_AFTER_INDEX + 5)} /> }
+      : undefined;
   const ownUserId = isAuthenticated ? userId : null;
   // 保存した写真の id を**1回で**引いてカードに配る（写真ごとに聞きに行かせない）
   const saves = useMySaves(isAuthenticated, authLoading);
@@ -817,6 +828,14 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
                     <SpotsEntry locale={locale === "en" ? "en" : "ja"} seasonal={seasonalSpots} showRow={false} />
                   </div>
                 )}
+                {/* 「登録するとできること」（札 journey.photo-ios#618 の案1・2026-11-15 判断で案C）: ログインしていない人にだけ、
+                    写真 5 枚と季節の段の後ろに1回（iOS のホームと同じ位置）。登録とログインの頁は変えない */}
+                {benefitsShown && (
+                  <div className="py-5">
+                    <SignUpBenefits locale={locale === "en" ? "en" : "ja"}
+                                    photos={filteredPhotos.slice(SEASON_SHELF_AFTER, SEASON_SHELF_AFTER + 4)} />
+                  </div>
+                )}
                 {filteredPhotos.length > SEASON_SHELF_AFTER && (
                   <div style={{ marginTop: seasonalShelfShown ? 0 : 4 }}>
                     <HomeMosaic
@@ -845,6 +864,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
               locale={locale === "en" ? "en" : "ja"}
               priorityCount={HOME_PRIORITY_COUNT}
               firstPostIds={firstPostIds}
+              insert={benefitsInsert(filteredPhotos)}
             />
           )}
         </HomeColumns></HomePanel>
