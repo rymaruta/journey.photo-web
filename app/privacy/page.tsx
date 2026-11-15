@@ -11,6 +11,8 @@ import { siteConfig, shareOgImage } from "@/lib/utils/seo";
 // （2026-10-18: 公開プロフィール・すれちがい・旅のトランク・ストーリー・光と天気の知らせ・Pro の購入・退会）。
 // （2026-11-15・journey.photo-ios #604: DM の写真と観光スポット・ストーリーの動画とマイク・旅行プランの会話の通報・
 //   意見に添える記録（`ExitTrail`・MetricKit）・行った県の記録。iOS 1.1.91＝a65201d と api-user の tripShare.ts・dmPhotoQuote.ts に合わせた）
+// （2026-11-15・journey.photo-ios #621: AI で旅行プランを作る。`api-user/src/tripAi.ts`（Amazon Bedrock、東京の Nova Lite）と
+//   iOS の端末の AI（Foundation Models）。送る中身は `tripAi.ts` の `userMessage`。owner 承認 2026-11-15）
 // 旅のトランクの「他の方に見えるもの」は `api-user/src/trunk.ts` の `readTheirTrunk`・`theirLabel`・`showTrunk`・
 // `ticket` と `trunkPlace.ts` の `placeOkFor`（photo-gallery #409・2026-10-18）。Pro の章を隠す設定（#407）は
 // 本番に出たら書き足すこと。
@@ -450,6 +452,12 @@ export default function PrivacyPage() {
                     <p>当サイトは、法令に基づく場合を除き、取得した情報を第三者に販売・提供しません。ただし、運営のために以下のサービスを利用しています。</p>
                     <ul className="list-disc pl-5 space-y-1">
                         <li><strong className="text-white/90">Amazon Web Services</strong> — 写真・データの保存、配信、認証（Cognito）</li>
+                        <li>
+                            <strong className="text-white/90">Amazon Web Services（Amazon Bedrock）</strong> — iPhone アプリの「AI で旅行プランを作る」。
+                            東京の地域で処理します。送るのは、入力した頼みの文、候補の観光スポットの名前と種類、今の日程の中身だけで、
+                            お名前・メールアドレス・位置は送りません。送った文は当サイトのサーバーに残しません（残すのは月の利用回数だけです）。
+                            端末の中の AI（Apple Intelligence）を使える iPhone では、端末の中で処理し、文を送りません
+                        </li>
                         <li><strong className="text-white/90">Google アナリティクス</strong> — アクセス解析（ウェブサイトのみ）</li>
                         <li><strong className="text-white/90">OpenStreetMap（Nominatim）</strong> — 撮影地名の解決と撮影地の候補の検索（座標は約1kmに丸めた値、または入力した語のみ送信）</li>
                         <li><strong className="text-white/90">Apple</strong> — App Store（Pro の購入と取引の確認）、プッシュ通知（APNs）、天気予報（WeatherKit。観光スポットの座標のみ送信）、曲の検索（検索した語のみ送信）。アプリでは、旅やすれちがいの場所の名前を調べるために、約1kmに丸めた位置を Apple の地図サービスに渡します</li>
