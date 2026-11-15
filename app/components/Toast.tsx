@@ -73,6 +73,19 @@ function ToastItem({ toast }: { toast: ToastType }) {
                     {toast.action.label}
                 </Link>
             )}
+            {/* 2つ目の一手（未ログインの案内の「ログイン」）。主の「新規登録」より控えめに text-2 の字。当たりは 44pt */}
+            {toast.secondaryAction && (
+                <Link
+                    href={toast.secondaryAction.href}
+                    prefetch={false}
+                    onClick={() => removeToast(toast.id)}
+                    data-testid="toast-secondary-action"
+                    className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-2 -my-2 text-sm text-text-2 hover:text-white whitespace-nowrap rounded-full hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 flex-shrink-0"
+                    style={{ touchAction: "manipulation" }}
+                >
+                    {toast.secondaryAction.label}
+                </Link>
+            )}
             <button
                 onClick={handleClose}
                 className="p-1.5 rounded-full hover:bg-white/10 active:scale-90 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 flex-shrink-0"

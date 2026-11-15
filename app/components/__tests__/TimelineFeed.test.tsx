@@ -135,6 +135,8 @@ describe("TimelineFeed", () => {
         render(<Feed />);
         const login = screen.getByRole("link", { name: "ログイン" });
         expect(login.getAttribute("href")).toMatch(/^\/login\?next=.*&via=follow$/);
+        // 新規登録も同じ所に1回で（札 journey.photo-ios#630、2026-11-15）
+        expect(screen.getByRole("link", { name: "新規登録" }).getAttribute("href")).toMatch(/^\/signup\?next=.*&via=follow$/);
         // 2026-11-09: 何も起きないように見えないよう、タブの中で「見られる」条件を言う
         expect(screen.getByText("ログインすると、フォロー中の人の写真が見られます")).toBeTruthy();
         expect(follow.fetch, "未ログインなのに一覧を取りに行っている").not.toHaveBeenCalled();

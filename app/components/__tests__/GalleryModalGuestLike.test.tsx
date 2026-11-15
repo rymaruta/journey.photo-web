@@ -47,6 +47,7 @@ const expectPrompt = async () => {
     await waitFor(() => expect(mockShowToast).toHaveBeenCalled());
     expect(mockShowToast).toHaveBeenCalledWith(
         "いいねするにはログインしてください", "info", 6000,
+        { label: "新規登録", href: "/signup?next=%2F%3Fphoto%3Dp1&via=like" },
         { label: "ログイン", href: "/login?next=%2F%3Fphoto%3Dp1&via=like" });
     // 赤い失敗の文言は出さない
     expect(mockShowToast.mock.calls.map((c) => String(c[1]))).not.toContain("error");

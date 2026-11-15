@@ -8,6 +8,7 @@ import { useLocale } from "../i18n/context";
 import { useToast } from "../../lib/hooks/useToast";
 import { useSavedSpots } from "../../lib/hooks/useSavedSpots";
 import { loginWithNext, ROUTES } from "../../lib/routes";
+import { signupBenefitsSignupHref } from "../../lib/auth/signupBenefits";
 import { userFetch } from "../../lib/utils/api";
 import { spotSavedKey } from "../../lib/utils/savedSpotKey";
 import {
@@ -131,6 +132,9 @@ export default function SwipeClient() {
     const wants = decisions.filter((d) => d.choice === "want").length;
     const paused = current !== null && showsSwipePause(decisions.length, wants, continuedAt);
     const mapHref = isAuthenticated ? ROUTES.SAVED_SPOTS_MAP : loginWithNext(ROUTES.SWIPE, "swipe");
+    // 挟む札の主ボタン。ログインしていない人は新規登録を主にし、ログインは下の文字のリンク
+    // （札 journey.photo-ios#630、2026-11-15 判断。本番の会員は約7人で、ここに来る人の多くは未登録）
+    const pauseHref = isAuthenticated ? ROUTES.SAVED_SPOTS_MAP : signupBenefitsSignupHref(ROUTES.SWIPE, "swipe");
 
     /**
      * ログイン中の「行きたい」で、まだサーバーの答えを待っている札（slug → 入れられたか）。
@@ -381,13 +385,20 @@ export default function SwipeClient() {
                     {paused ? (
                         <div className="mt-4 flex flex-col gap-2">
                             {/* 写真の無い札の主ボタン＝真鍮の塗りに墨 */}
-                            <Link href={mapHref} prefetch={false} data-testid="swipe-pause-action"
+                            <Link href={pauseHref} prefetch={false} data-testid="swipe-pause-action"
                                   className={`${BTN_FILL} bg-accent-fill text-ink inline-flex items-center justify-center`}>
-                                {isAuthenticated ? (en ? "See on map" : "地図で見る") : (en ? "Sign in to see" : "ログインして見る")}
+                                {isAuthenticated ? (en ? "See on map" : "地図で見る") : (en ? "Sign up to see" : "新規登録して見る")}
                             </Link>
                             <button type="button" onClick={() => choose("skip")} className={BTN_LINE} data-testid="swipe-continue">
                                 {en ? "Keep swiping" : "続けて払う"}
                             </button>
+                            {!isAuthenticated && (
+                                <Link href={mapHref} prefetch={false} data-testid="swipe-pause-login"
+                                      className="inline-flex items-center justify-center self-center text-text-2 no-underline hover:text-white"
+                                      style={{ minHeight: 44, minWidth: 44, fontSize: "13px" }}>
+                                    {en ? "Log in to see" : "ログインして見る"}
+                                </Link>
+                            )}
                         </div>
                     ) : (
                         <>

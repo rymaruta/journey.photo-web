@@ -168,6 +168,7 @@ describe("写真ページ: 最終版モックの並び", () => {
         fireEvent.click(screen.getByRole("button", { name: "保存" }));
         await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith(
             "写真を保存するにはログインしてください", "info", 6000,
+            { label: "新規登録", href: expect.stringMatching(/^\/signup\?.*via=save/) },
             { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=save/) }));
     });
 
@@ -179,6 +180,7 @@ describe("写真ページ: 最終版モックの並び", () => {
         fireEvent.click(screen.getByRole("button", { name: "いいね 342件" }));
         await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith(
             "いいねするにはログインしてください", "info", 6000,
+            { label: "新規登録", href: expect.stringMatching(/^\/signup\?.*via=like/) },
             { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=like/) }));
         expect(mockShowToast).not.toHaveBeenCalledWith(expect.stringContaining("保存できませんでした"), "error");
     });

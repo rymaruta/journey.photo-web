@@ -9,7 +9,8 @@ import { useLocale } from "../i18n/context";
 import { MapIcon } from "@heroicons/react/24/outline";
 import ListPageHeader from "../components/ListPageHeader";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateViews";
-import { ROUTES, loginWithNext } from "../../lib/routes";
+import { ROUTES } from "../../lib/routes";
+import { signInAskActions } from "../../lib/auth/signupBenefits";
 import { collectEntries, collectionPath } from "../../lib/utils/collections";
 import type { SpotLink } from "../../lib/data/spotLink";
 import { parseSavedKey, dedupeSavedKeys } from "../../lib/utils/savedSpotKey";
@@ -128,7 +129,8 @@ export default function SavedSpotsClient({ spots, embedded = false }: { spots: R
             <Shell locale={locale} embedded={embedded}>
                 <EmptyState
                     message={en ? "Sign in to keep spots you want to visit." : "行きたい場所を残すにはログインしてください。"}
-                    action={{ label: en ? "Sign in" : "ログイン", href: loginWithNext(ROUTES.SAVED_SPOTS) }}
+                    // 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主）
+                    {...signInAskActions(locale, ROUTES.SAVED_SPOTS)}
                 />
             </Shell>
         );

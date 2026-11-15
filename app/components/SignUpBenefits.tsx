@@ -7,9 +7,9 @@ import { PlusIcon, MapPinIcon, CalendarIcon, ChatBubbleLeftIcon } from "@heroico
 import type { Photo, Locale } from "@/lib/data/photos";
 import { useAuth } from "../auth/context";
 import Thumb from "./Thumb";
+import SignUpLoginLinks from "./SignUpLoginLinks";
 import {
-    SIGNUP_BENEFITS, SIGNUP_BENEFITS_HEADING, SIGNUP_BENEFITS_SIGNUP, SIGNUP_BENEFITS_LOGIN,
-    signupBenefitsSignupHref, signupBenefitsLoginHref, showsSignupBenefits, type SignUpBenefitId,
+    SIGNUP_BENEFITS, SIGNUP_BENEFITS_HEADING, signupBenefitsSignupHref, showsSignupBenefits, type SignUpBenefitId,
 } from "@/lib/auth/signupBenefits";
 
 const ICONS: Record<SignUpBenefitId, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
@@ -70,18 +70,8 @@ export default function SignUpBenefits({ locale, photos = [], className = "" }: 
                     );
                 })}
             </ul>
-            <div className="flex items-center gap-4">
-                <Link href={signupHref} prefetch={false} data-testid="signup-benefits-signup"
-                      className="inline-flex items-center justify-center px-5 rounded-full border border-line-strong text-white font-semibold no-underline focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-                      style={{ minHeight: 44, fontSize: "15px" }}>
-                    {isJa ? SIGNUP_BENEFITS_SIGNUP.ja : SIGNUP_BENEFITS_SIGNUP.en}
-                </Link>
-                <Link href={signupBenefitsLoginHref(pathname)} prefetch={false} data-testid="signup-benefits-login"
-                      className="inline-flex items-center text-text-2 no-underline hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent"
-                      style={{ minHeight: 44, minWidth: 44, fontSize: "13px" }}>
-                    {isJa ? SIGNUP_BENEFITS_LOGIN.ja : SIGNUP_BENEFITS_LOGIN.en}
-                </Link>
-            </div>
+            {/* 下の2つは、ほかのログインのお願いと同じ部品（`SignUpLoginLinks`、札 journey.photo-ios#630） */}
+            <SignUpLoginLinks locale={locale} next={pathname} testIdPrefix="signup-benefits" />
         </section>
     );
 }

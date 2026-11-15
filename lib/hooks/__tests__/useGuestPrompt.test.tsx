@@ -24,7 +24,9 @@ describe("useGuestPrompt", () => {
     it("文言・info・ログインのリンク（next=今の頁・via=押したもの）", () => {
         const { result } = renderHook(() => useGuestPrompt("ja"));
         result.current("like");
+        // 新規登録（主）とログイン（隣）の2つ。どちらも戻り先と via を運ぶ（札 journey.photo-ios#630、2026-11-15）
         expect(showToast).toHaveBeenCalledWith("いいねするにはログインしてください", "info", 6000,
+            { label: "新規登録", href: "/signup?next=%2Fphoto%2Fp1%3Fx%3D1&via=like" },
             { label: "ログイン", href: "/login?next=%2Fphoto%2Fp1%3Fx%3D1&via=like" });
     });
 
@@ -32,7 +34,8 @@ describe("useGuestPrompt", () => {
         const { result } = renderHook(() => useGuestPrompt("en"));
         result.current("like");
         expect(showToast.mock.calls[0][0]).toBe("Log in to like");
-        expect(showToast.mock.calls[0][3]).toEqual({ label: "Log in", href: "/login?next=%2Fphoto%2Fp1%3Fx%3D1&via=like" });
+        expect(showToast.mock.calls[0][3]).toEqual({ label: "Sign up", href: "/signup?next=%2Fphoto%2Fp1%3Fx%3D1&via=like" });
+        expect(showToast.mock.calls[0][4]).toEqual({ label: "Log in", href: "/login?next=%2Fphoto%2Fp1%3Fx%3D1&via=like" });
     });
 
     it("4つの入口が全部、リンク付き・via 付き", () => {
@@ -42,7 +45,8 @@ describe("useGuestPrompt", () => {
             result.current(t);
             expect(showToast.mock.calls[0][0]).toBe(GUEST_PROMPT_COPY[t].ja);
             expect(showToast.mock.calls[0][1]).toBe("info");
-            expect(showToast.mock.calls[0][3].href).toContain(`via=${t}`);
+            expect(showToast.mock.calls[0][3].href).toMatch(new RegExp(`^/signup\\?.*via=${t}$`));
+            expect(showToast.mock.calls[0][4].href).toMatch(new RegExp(`^/login\\?.*via=${t}$`));
         }
     });
 

@@ -51,10 +51,15 @@ export const STATE_ACTION_CLASS =
 export const STATE_RETRY_CLASS =
     `inline-flex items-center justify-center ${BTN_LINE} hover:bg-white/10 transition-colors disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent`;
 
-export function EmptyState({ title, message, action, icon, headingLevel, className = "", testId = "state-empty" }: {
+export function EmptyState({ title, message, action, secondaryAction, icon, headingLevel, className = "", testId = "state-empty" }: {
     title?: string;
     message: React.ReactNode;
     action?: StateAction;
+    /**
+     * 主ボタンの下の、控えめな文字のリンク（ログインのお願いの「ログイン」。主は「新規登録」・札 journey.photo-ios#630）。
+     * 字は text-2 の 13、当たりは 44
+     */
+    secondaryAction?: { label: string; href: string };
     /** 画面の手がかりの絵（任意・灰で出す）。三角は使わない——0件は失敗ではない */
     icon?: React.ReactNode;
     headingLevel?: number;
@@ -77,6 +82,13 @@ export function EmptyState({ title, message, action, icon, headingLevel, classNa
                     {action.label}
                 </button>
             ))}
+            {secondaryAction && (
+                <Link href={secondaryAction.href} prefetch={false} data-testid={`${testId}-secondary`}
+                      className="inline-flex items-center justify-center text-text-2 no-underline hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                      style={{ minHeight: 44, minWidth: 44, fontSize: "13px", touchAction: "manipulation" }}>
+                    {secondaryAction.label}
+                </Link>
+            )}
         </div>
     );
 }

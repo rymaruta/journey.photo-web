@@ -143,6 +143,8 @@ describe("保存した写真のページ", () => {
         // **戻り先を持たせる。** 素の `/login` だと、ログインしたあと
         // マイページへ飛ばされて、見に来た棚に戻れない
         expect(login.getAttribute("href")).toBe("/login?next=%2Fsaves");
+        // 新規登録も同じ所に1回で（札 journey.photo-ios#630、2026-11-15）
+        expect(screen.getByRole("link", { name: "新規登録" }).getAttribute("href")).toBe("/signup?next=%2Fsaves");
     });
 
     it("ログイン中で0件なら、押し方を案内する", async () => {

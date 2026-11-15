@@ -7,7 +7,8 @@ import { useAuth } from "../../auth/context";
 import { useLocale } from "../../i18n/context";
 import { usePhotos } from "../../../lib/hooks/usePhotos";
 import { useSavedSpots } from "../../../lib/hooks/useSavedSpots";
-import { ROUTES, loginWithNext } from "../../../lib/routes";
+import { ROUTES } from "../../../lib/routes";
+import { signInAskActions } from "../../../lib/auth/signupBenefits";
 import { parseSavedKey, dedupeSavedKeys } from "../../../lib/utils/savedSpotKey";
 import { photosInCollection } from "../../../lib/utils/collections";
 import type { SpotPin } from "../../../lib/data/spotLink";
@@ -80,7 +81,8 @@ export default function SavedSpotsMapClient({ spots }: { spots: readonly SpotPin
     if (!authLoading && !isAuthenticated) {
         body = <EmptyState
             message={en ? "Sign in to keep spots you want to visit." : "行きたい場所を残すにはログインしてください。"}
-            action={{ label: en ? "Sign in" : "ログイン", href: loginWithNext(ROUTES.SAVED_SPOTS) }} />;
+            // 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主）
+            {...signInAskActions(locale, ROUTES.SAVED_SPOTS)} />;
     } else if (pending || (slugs.length > 0 && !loaded && pins.length === 0)) {
         body = <LoadingState kind="rows" locale={L} />;
     } else if (failed) {

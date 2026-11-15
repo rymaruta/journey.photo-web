@@ -10,7 +10,8 @@ import GalleryGrid from "../components/GalleryGrid";
 import { EDITORIAL_HERO_SIZES, EDITORIAL_PAIR_SIZES } from "../components/gridSizes";
 import ListPageHeader from "../components/ListPageHeader";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateViews";
-import { ROUTES, loginWithNext } from "../../lib/routes";
+import { ROUTES } from "../../lib/routes";
+import { signInAskActions } from "../../lib/auth/signupBenefits";
 import { useLocale } from "../i18n/context";
 import { photoCategoryMap } from "../../lib/utils/categoryMap";
 
@@ -89,7 +90,8 @@ export default function FavoritesPage() {
                 <EmptyState
                     testId="favorites-guest"
                     message={en ? "Log in to see the photos you liked." : "ログインすると、いいねした写真がここに並びます。"}
-                    action={{ label: en ? "Log in" : "ログイン", href: loginWithNext(ROUTES.FAVORITES, "like") }}
+                    // 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主）
+                    {...signInAskActions(locale, ROUTES.FAVORITES, "like")}
                 />
             ) : serverLikes.pending && n === 0 ? (
                 // 読み込み中は格子の灰の骨格（iOS `JPLoadingState(kind: .grid)`・0.3 秒より早ければ出さない）

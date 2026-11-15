@@ -12,7 +12,8 @@ import ListPageHeader from "../components/ListPageHeader";
 import { EmptyState, ErrorState, LoadingState } from "../components/StateViews";
 import { useLocale } from "../i18n/context";
 import { photoCategoryMap } from "../../lib/utils/categoryMap";
-import { ROUTES, loginWithNext } from "../../lib/routes";
+import { ROUTES } from "../../lib/routes";
+import { signInAskActions } from "../../lib/auth/signupBenefits";
 
 /**
  * 保存した写真（/saves）。**`/favorites`（いいねした写真）とは別のページ。**
@@ -137,7 +138,8 @@ export default function SavedPhotosContent({ embedded = false }: { embedded?: bo
                     <EmptyState
                         message={en ? "Log in to keep photos here." : "写真を保存するにはログインしてください。"}
                         // **戻り先を持たせる。** 素の `/login` だと、見に来た棚に戻れない
-                        action={{ label: en ? "Log in" : "ログイン", href: loginWithNext(ROUTES.SAVES) }}
+                        // 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主）
+                        {...signInAskActions(locale, ROUTES.SAVES)}
                     />
                 ) : (
                     <EmptyState
