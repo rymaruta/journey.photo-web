@@ -21,6 +21,7 @@ on:
   pull_request:
     paths:
       - 'scripts/import_world_spots.py'
+      - 'scripts/test_import_world_spots.py'
       - '.github/workflows/import-world-spots.yml'
 
 permissions:
@@ -40,7 +41,9 @@ jobs:
         with:
           python-version: '3.12'
       - name: Validate script
-        run: python -m py_compile scripts/import_world_spots.py
+        run: |
+          python -m py_compile scripts/import_world_spots.py
+          python -m unittest scripts.test_import_world_spots -v
       - name: Fetch world spots
         env:
           EVENT: ${{ github.event_name }}
@@ -53,17 +56,22 @@ jobs:
           event = os.environ["EVENT"]
           if event == "schedule":
               # 1日に1か国ずつ、48か国を回る。48日で一周したら次の 250 件へ進む。
+              # 次の 250 件の位置（offset）は、スクリプトがその国の件数を数えて、件数の中で回して決める
+              # （固定の ((tick // 48) % 20) * 250 だと件数の少ない国が 0 件になっていた、journey.photo-ios#614）。
               tick = int(datetime.now(timezone.utc).timestamp()) // 86400
               slot = tick % 48
-              offset = ((tick // 48) % 20) * 250
+              page = ["--cycle", str(tick // 48)]
           elif event == "pull_request":
-              slot, offset = 0, 0
+              slot, page = 0, ["--offset", "0"]
           else:
               slot, offset = int(os.environ["SLOT_INPUT"]), int(os.environ["OFFSET_INPUT"])
-          if not 0 <= slot < 48 or not 0 <= offset <= 100000:
+              if not 0 <= offset <= 100000:
+                  raise SystemExit("invalid slot or offset")
+              page = ["--offset", str(offset)]
+          if not 0 <= slot < 48:
               raise SystemExit("invalid slot or offset")
           subprocess.run(["python", "scripts/import_world_spots.py", "--slot", str(slot),
-                          "--offset", str(offset), "--limit", "250"], check=True)
+                          *page, "--limit", "250"], check=True)
           PY
       - uses: actions/upload-artifact@v4
         with:
