@@ -105,6 +105,8 @@ def robots_ok(url):
 
 
 def get_html(url):
+    # 日本語のパス・クエリを含む URL は、符号化してから取る（urllib は ASCII しか送れない）
+    url = urllib.parse.quote(url, safe=":/?&=%#+,;@~-._!$'()*")
     host = urllib.parse.urlsplit(url).netloc
     w = _last.get(host, 0) + 2.0 - time.time()
     if w > 0:
