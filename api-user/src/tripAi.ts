@@ -107,7 +107,14 @@ async function release(uid: string, now: number): Promise<void> {
 
 // ---------- 入力 ----------
 
-const KIND_RE = /^[a-z]{2,16}$/;
+/**
+ * 台帳の季節・時間帯の綴り（アプリの `SpotBodyText.seasonOrder`・`timeOrder`）→ AI に渡す日本語。
+ * 知らない綴りは落とす（AI への文に任意の字を入れさせない）
+ */
+export const KIND_LABELS: Record<string, string> = {
+    spring: "春", summer: "夏", autumn: "秋", winter: "冬",
+    dawn: "夜明け", morning: "朝", day: "昼", goldenHour: "夕方の斜光", dusk: "夕暮れ", night: "夜",
+};
 
 export type Candidate = { name: string; area: string; category: string; seasons: string[]; times: string[] };
 
@@ -118,7 +125,7 @@ function cleanText(v: unknown, max: number): string {
 }
 
 function cleanKinds(v: unknown): string[] {
-    return Array.isArray(v) ? v.filter((k): k is string => typeof k === "string" && KIND_RE.test(k)).slice(0, 8) : [];
+    return Array.isArray(v) ? v.filter((k): k is string => typeof k === "string" && Object.hasOwn(KIND_LABELS, k)).slice(0, 8) : [];
 }
 
 export function parseCandidates(v: unknown): Candidate[] | null {
@@ -155,8 +162,8 @@ export const SYSTEM_PROMPT = `あなたは日本の旅行プランを組む係�
 export function candidateLines(cands: Candidate[]): string {
     return cands.map((c, i) => {
         const tags = [
-            c.seasons.length ? `季節:${c.seasons.join("/")}` : "",
-            c.times.length ? `時間帯:${c.times.join("/")}` : "",
+            c.seasons.length ? `季節:${c.seasons.map((k) => KIND_LABELS[k]).join("/")}` : "",
+            c.times.length ? `時間帯:${c.times.map((k) => KIND_LABELS[k]).join("/")}` : "",
         ].filter(Boolean).join(" ");
         const where = [c.area, c.category].filter(Boolean).join("、");
         return `${i + 1}. ${c.name}${where ? `（${where}）` : ""}${tags ? ` ${tags}` : ""}`;
