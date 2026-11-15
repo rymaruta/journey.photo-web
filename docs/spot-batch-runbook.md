@@ -245,3 +245,29 @@ rm -rf .next out && timeout 7000 npm run verify > verify.log 2>&1     # 背景�
 - `npm run verify` を2本同時に流さない。別のブランチへ入れる前に緑
 - 本番に出す順番は「本番に出す」の印の札で。ほかのセッションの反映と重ねない
 - 費用・データベース・GSI が増えるものは owner の承認（この手順には無い）
+
+---
+
+## 13. 濃くする束（公開済みの行の説明を、複数の出典から独自の文章に書き直す・2026-11-15）
+
+owner「SEO 対策ガチガチで・中身も濃くするならそれも」（rymaruta/journey.photo-ios#410）。薄い説明が多いと、検索エンジンに
+「似たページの量産」と見られる。増やす束（1〜12 章）と**交互に**回す（Wikimedia・公式サイトへの取得を同時に流さない）。
+**既存の行の説明を書き換える**ので、増やす束より厳しく確かめる。
+
+```bash
+export SPOT_BATCH_DIR=/home/user/spot-batch/e<番号>        # 濃くする束ごとのフォルダ（e1・e2…）
+cd <photo-gallery>   # origin/develop から枝を切る（例 claude/spots-enrich2）
+python3 scripts/spot-batch/e01_select.py --n 40 --per-pref 3 --max-len 200   # 説明の短い順・県ごとに --per-pref 件まで。--prefs 宮崎県,山形県 で県を指定
+timeout 7000 python3 scripts/spot-batch/e02_fetch.py > fetch.log 2>&1        # 背景で流す（Wikipedia 全文＋公式サイトの頁・40件で約25分）
+python3 scripts/spot-batch/e02b_prep.py --groups 4                          # 材料が足りる行を組に分ける（薄い行は thin.json に理由）
+```
+1. **書く担当（組ごとに1人・`prompts/ENRICH_WRITER.md`）**: 出力は `out/<組>.json`（`description`・`highlights`・`claims`＋根拠の引用）。
+   書いたら `e03_check.py out/<組>.json` を問題0にする（引用が材料に在る・数字は公式サイトか2出典・材料と連続21字が同じでない・禁止語・英字・注記）
+2. **確かめ役（組ごとに別の1人・`prompts/ENRICH_REVIEWER.md`）** → `review/R<組>.json` → 親が決めて書いた担当に戻す（直し）
+3. **二度目の確かめ役（1人）**: 直した文に新しい誤りが入っていないか（増やす束の雛形4と同じ）
+4. 反映: `python3 scripts/spot-batch/e04_apply.py out/A.json out/B.json …`（対象の行のテキストだけを差し替える・`state/enriched.json` に控え）
+   → `npx tsx scripts/gen-light-ledger.ts`（description を使う欄があれば）→ `npx vitest run lib/data/__tests__ app/__tests__/spotBody.test.ts` → verify → develop → 本番
+   - 本番（main）の台帳は develop と違う（main にだけある行がある）。`e04_apply.py --ledger content/spots.json` を **main から切った枝で、同じ out を使って流す**（行ごとのテキスト差し替えなので、どちらの台帳にも同じ結果になる）
+5. 公式サイトのある行から始めた（760 行）。**公式サイトの無い行は次の段階**: 自治体・観光協会・文化庁の国指定文化財等データベースなどの頁を探して材料に足す
+- **守ること**: 事実は材料にあることだけ。写さない（連続21字）。数・年・称号は公式サイトの頁か2出典。アクセス・料金・営業時間は書かない（別の欄）。
+  取れなかった頁・robots.txt が禁じる頁は取らない。材料が薄い行は水増しせず見送る
