@@ -37,3 +37,16 @@ export function captionFitsViewport(viewportHeight: number): boolean {
     return viewportHeight * IMAGE_HEIGHT_RATIO + resolvedCaptionMinHeight(viewportHeight)
         <= viewportHeight * FRAME_RATIO;
 }
+
+/**
+ * スマホ（640px 未満）でのモーダルの写真の高さ（2026-11-15）。
+ *
+ * スマホでは枠ごと1本でスクロールするので、写真は縦横比どおりの高さで置く（横長の写真の上下に黒い余りを作らない）。
+ * 上限は 80dvh（写真ページの写真の `max-h-[80vh]` と同じ。縦長の写真でも、最初の画面の下に題の頭が見える）。
+ * 寸法が無い・壊れているときは、今までと同じ 60dvh。
+ */
+export function phoneImageHeight(width?: number, height?: number): string {
+    if (!width || !height || !Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return "60dvh";
+    const vw = Math.round((height / width) * 100 * 1000) / 1000;
+    return `min(${vw}vw, 80dvh)`;
+}

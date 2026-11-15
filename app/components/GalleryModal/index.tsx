@@ -12,6 +12,7 @@ import { useImagePreloader } from "../../../lib/hooks/useImagePreloader";
 import { copyToClipboard, shareUrl } from "../../../lib/utils/share";
 import { siteConfig } from "../../../lib/utils/seo";
 import { ROUTES } from "../../../lib/routes";
+import { phoneImageHeight } from "../../../lib/utils/modalLayout";
 import { log } from "../../../lib/utils/log";
 import { lockBodyScroll, unlockBodyScroll } from "@/lib/utils/scrollLock";
 import { hapticTap } from "../../../lib/utils/haptics";
@@ -60,8 +61,18 @@ export default function GalleryModal({
     useEffect(() => { helpOpenRef.current = helpOpen; }, [helpOpen]);
 
 
+    // **スマホ（640px 未満）では枠ごと1本でスクロールする**（2026-11-15 owner「文章だけスクロールできて、写真だけ固定なので見づらい」）。
+    // 下へ払って閉じるのは、指を置いた時も離した時も枠が一番上にあるときだけ。読んでから上へ戻す指（下へ払う形）で
+    // 閉じないように（iOS の写真詳細も、一番上で下へ引いたときだけ前の画面へ戻る・札 #592）
+    const frameRef = useRef<HTMLDivElement | null>(null);
+    const touchStartTopRef = useRef(0);
+    const closeIfAtTop = useCallback(() => {
+        const top = frameRef.current?.scrollTop ?? 0;
+        if (touchStartTopRef.current > 0 || top > 0) return;
+        onClose();
+    }, [onClose]);
     const { handlers: swipeHandlers } = useSwipe({
-        onSwipeLeft: onNext, onSwipeRight: onPrev, onSwipeDown: onClose,
+        onSwipeLeft: onNext, onSwipeRight: onPrev, onSwipeDown: closeIfAtTop,
         threshold: 50, velocityThreshold: 0.3,
     });
     // いいねはサーバーにも届ける。
@@ -275,10 +286,18 @@ export default function GalleryModal({
                 切られる——**TAP-7 と同じ「キャプションの下部に指が届かない」が
                 縦向きでも出る**（表示領域を90px縮めた実測で画面外22px）。
                 `app/globals.css` が body に `100dvh` を入れているのは同じ理由。 */}
+            {/* **スマホ（640px 未満）では、この枠が1本でスクロールする**（2026-11-15）。以前は写真が画面の 60% に
+                止まったまま、文章は下の 34% の箱の中だけで流れていた（実測 390x664: 写真 398px・文章の箱 226px、
+                文章の全長 732px のうち一度に見えるのは 31%）。いまは写真のすぐ下から題・説明・共有が続き、
+                下へ送ると写真は上へ流れて消える（iOS の写真詳細 `PhotoDetailView` と同じ）。写真をもう一度見るのは、
+                上へ戻すか、写真を押して全画面。640px 以上（PC・横向きのスマホ）は今までどおり写真と文章を分けて持つ */}
             <div
+                ref={frameRef}
+                onTouchStartCapture={() => { touchStartTopRef.current = frameRef.current?.scrollTop ?? 0; }}
                 onClick={(e) => e.stopPropagation()}
-                className="relative w-full h-full max-sm:pad-safe sm:h-auto sm:max-h-[min(95dvh,100%)] flex flex-col sm:mx-4 sm:rounded-2xl overflow-hidden bg-black sm:ring-1 sm:ring-line"
+                className="relative w-full h-full max-sm:pad-safe sm:h-auto sm:max-h-[min(95dvh,100%)] flex flex-col sm:mx-4 sm:rounded-2xl overflow-hidden max-sm:overflow-y-auto max-sm:overscroll-contain bg-black sm:ring-1 sm:ring-line"
                 style={{ maxWidth: "980px" }}
+                data-testid="gallery-modal-frame"
             >
                 {/* **前後に送ったら、どの写真になったかを読み上げる。** フォーカスは
                     矢印のボタンに残ったまま、題と写真が黙って入れ替わっていた
@@ -299,9 +318,12 @@ export default function GalleryModal({
                     高さは `60vh` が決めるので、下限はそもそも要らない
                     （`min(300px, 45vh)` も試したが 45vh < 60vh で**一度も拘束
                     しない**＝効いていない定数だった）。 */}
+                {/* **スマホの高さは写真の縦横比で決める**（`phoneImageHeight`）。枠ごと流れるので、横長の写真の上下に
+                    黒い余りを作らない。上限 80dvh は写真ページの写真（`max-h-[80vh]`）と同じ。640px 以上は今までどおり 60dvh */}
                 <div
-                    className="relative w-full flex-shrink-0 bg-black sm:bg-transparent"
-                    style={{ height: "60dvh", fontSize: 0, lineHeight: 0, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    className="relative w-full flex-shrink-0 bg-black sm:bg-transparent h-[var(--gm-img-h)] sm:h-[60dvh]"
+                    style={{ ["--gm-img-h" as string]: phoneImageHeight(p.width, p.height), fontSize: 0, lineHeight: 0, position: "relative", display: "flex", alignItems: "center", justifyContent: "center" } as React.CSSProperties}
+                    data-testid="gallery-modal-image-area"
                 >
                     <div className="relative w-full h-full" {...swipeHandlers} onClick={handleImageTap}>
                         <ModalImage key={p.id} src={p.src} srcAvif={p.srcAvif} alt={altText} focalPoint={p.focalPoint} />
