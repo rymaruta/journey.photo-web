@@ -28,7 +28,7 @@ beforeEach(() => {
 
 describe("登録するとできること（文と行き先）", () => {
     it("4枚は iOS（SignUpBenefit）と同じ字、同じ順。中黒で区切らない", () => {
-        expect(SIGNUP_BENEFITS.map((b) => b.ja)).toEqual(["写真を載せる", "行きたい場所を保存", "旅行プランを仲間と作る", "メッセージで話す"]);
+        expect(SIGNUP_BENEFITS.map((b) => b.ja)).toEqual(["写真を載せる", "行きたい場所を保存", "AI で旅行プランを作る", "メッセージで話す"]);
         expect(SIGNUP_BENEFITS_HEADING.ja).toBe("登録するとできること");
         for (const b of SIGNUP_BENEFITS) expect(b.ja).not.toMatch(/[・·]/);
         // iOS の札の字と突き合わせる（片方だけ変えない）
