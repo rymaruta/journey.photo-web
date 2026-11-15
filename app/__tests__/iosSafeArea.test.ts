@@ -68,7 +68,8 @@ describe("上の安全領域（ホーム画面から起動したとき）", () =
 
     it("キャプションの高さの上限から、上下の安全領域を引いている（引かないと共有の行が切れる）", () => {
         const src = code("app/components/GalleryModal/ModalCaption.tsx");
-        const line = src.split("\n").find((l) => l.includes("maxHeight:")) ?? "";
+        // 2026-11-15: 上限は CSS の変数（640px 以上だけ `sm:max-h-[var(--gm-cap-max)]` が読む）
+        const line = src.split("\n").find((l) => l.includes('"--gm-cap-max" as string]:')) ?? "";
         expect(line).toContain("safe-area-inset-top");
         expect(line).toContain("safe-area-inset-bottom");
     });
