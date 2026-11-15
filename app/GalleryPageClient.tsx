@@ -21,6 +21,9 @@ import { useToast } from "../lib/hooks/useToast";
 import { useAuth } from "./auth/context";
 import TimelineFeed from "./components/TimelineFeed";
 import HomeMosaic from "./components/HomeMosaic";
+import SignUpBenefits from "./components/SignUpBenefits";
+import type { Photo } from "@/lib/data/photos";
+import { SIGNUP_BENEFITS_AFTER_INDEX, showsSignupBenefits } from "../lib/auth/signupBenefits";
 import { EmptyState } from "./components/StateViews";
 import HomeTopCards, { QuizCard } from "./components/HomeTopCards";
 import SpotsEntry from "./components/SpotsEntry";
@@ -150,6 +153,13 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
   const { showToast } = useToast();
   const { photos, loaded: photosLoaded, failed: photosFailed } = usePhotos();
   const { isAuthenticated, userId, loading: authLoading } = useAuth();
+  // 「登録するとできること」（札 journey.photo-ios#618 の案1・2026-11-15 判断で案C）: ログインしていない人にだけ、
+  // トップの並びのひと回り（5枚）の後ろに1回。登録とログインの頁は変えない。絵の地はその後ろに並ぶ写真から
+  const benefitsInsert = (list: ReadonlyArray<Photo>) =>
+    showsSignupBenefits({ loading: authLoading, isAuthenticated })
+      ? { afterIndex: SIGNUP_BENEFITS_AFTER_INDEX,
+          node: <SignUpBenefits locale={locale === "en" ? "en" : "ja"} photos={list.slice(SIGNUP_BENEFITS_AFTER_INDEX + 1, SIGNUP_BENEFITS_AFTER_INDEX + 5)} /> }
+      : undefined;
   const ownUserId = isAuthenticated ? userId : null;
   // 保存した写真の id を**1回で**引いてカードに配る（写真ごとに聞きに行かせない）
   const saves = useMySaves(isAuthenticated, authLoading);
@@ -742,6 +752,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
                 locale={locale === "en" ? "en" : "ja"}
                 priorityCount={hasFeatured && !narrowedNow ? 0 : HOME_PRIORITY_COUNT}
                 firstPostIds={firstPostIds}
+                insert={benefitsInsert(filteredPhotos)}
               />
             )}
           </div>
@@ -760,6 +771,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
               locale={locale === "en" ? "en" : "ja"}
               priorityCount={HOME_PRIORITY_COUNT}
               firstPostIds={firstPostIds}
+              insert={benefitsInsert(filteredPhotos)}
             />
           )}
         </HomeColumns></HomePanel>
