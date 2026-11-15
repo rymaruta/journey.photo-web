@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import SignUpLoginLinks from "../components/SignUpLoginLinks";
 import { BookmarkIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../auth/context";
 import { useMySaves } from "../../lib/hooks/useMySaves";
@@ -11,7 +12,7 @@ import GalleryGrid from "../components/GalleryGrid";
 import { GRID_SIZES_5XL } from "../components/gridSizes";
 import { useLocale } from "../i18n/context";
 import { photoCategoryMap } from "../../lib/utils/categoryMap";
-import { ROUTES, loginWithNext } from "../../lib/routes";
+import { ROUTES } from "../../lib/routes";
 
 /**
  * 保存した写真（/saves）。**`/favorites`（いいねした写真）とは別のページ。**
@@ -142,14 +143,8 @@ export default function SavesPage() {
                             {/* **戻り先を持たせる。** 素の `/login` だと、
                                 ログインしたあとマイページへ飛ばされて、
                                 見に来た棚に戻れない */}
-                            <Link
-                                href={loginWithNext(ROUTES.SAVES)}
-                                prefetch={false}
-                                className="mt-1 inline-flex items-center px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-sm text-white transition"
-                                style={{ minHeight: "44px" }}
-                            >
-                                {en ? "Log in" : "ログイン"}
-                            </Link>
+                            {/* 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主。写真の無い頁なので真鍮の塗り） */}
+                            <SignUpLoginLinks locale={locale} next={ROUTES.SAVES} variant="fill" testIdPrefix="saves-signin" className="mt-1" />
                         </>
                     ) : (
                         <>

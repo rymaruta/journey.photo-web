@@ -8,7 +8,7 @@
  * 4枚は輪の順（載せる → 行きたい場所 → 旅行プランを仲間と → 話す）。iOS のホームの段
  * （`SignUpBenefit`、`HomeSignUpBenefitsView`）と同じ字、同じ順にそろえる。中黒で区切らない。
  */
-import { ROUTES, loginWithNext, safeNextPath } from "../routes";
+import { ROUTES, loginWithNext } from "../routes";
 
 export type SignUpBenefitId = "post" | "wantToGo" | "tripPlan" | "message";
 
@@ -27,15 +27,20 @@ export const SIGNUP_BENEFITS_LOGIN = { ja: "ログイン", en: "Log in" } as con
 /** トップの並びで、ひと回り（大きく1枚 → 2枚 → 2枚 ＝ 5枚）の後ろに出す（iOS と同じ位置） */
 export const SIGNUP_BENEFITS_AFTER_INDEX = 4;
 
-/** 札と「新規登録」の行き先。今いる頁へ戻れるよう `next` を添える（登録の頁が前から読む値） */
-export function signupBenefitsSignupHref(currentPath?: string | null): string {
-    const safe = safeNextPath(currentPath);
-    return safe ? `${ROUTES.SIGNUP}?next=${encodeURIComponent(safe)}` : ROUTES.SIGNUP;
+type Via = Parameters<typeof loginWithNext>[1];
+
+/**
+ * 札と「新規登録」の行き先。今いる頁へ戻れるよう `next` を添える（登録の頁が前から読む値）。
+ * `via`（登録までの数え方）はログインの頁へ渡すときと同じ形で運ぶ（許可リストは `loginWithNext` のもの）
+ */
+export function signupBenefitsSignupHref(currentPath?: string | null, via?: Via): string {
+    // ログインの頁への行き先（`/login?next=…&via=…`）と同じ問いを、登録の頁へ向ける
+    return ROUTES.SIGNUP + loginWithNext(currentPath, via).slice(ROUTES.LOGIN.length);
 }
 
 /** 「ログイン」の行き先（今のログインの頁へ。戻り先つき） */
-export function signupBenefitsLoginHref(currentPath?: string | null): string {
-    return loginWithNext(currentPath);
+export function signupBenefitsLoginHref(currentPath?: string | null, via?: Via): string {
+    return loginWithNext(currentPath, via);
 }
 
 /** 出すか。**ログインの確かめが終わって、ログインしていないと分かってから**（確かめ中にログイン済みの人へ一瞬出さない） */

@@ -132,6 +132,8 @@ describe("TimelineFeed", () => {
         render(<Feed />);
         const login = screen.getByRole("link", { name: "ログイン" });
         expect(login.getAttribute("href")).toMatch(/^\/login\?next=/);
+        // 新規登録も同じ所に1回で（札 journey.photo-ios#630、2026-11-15）
+        expect(screen.getByRole("link", { name: "新規登録" }).getAttribute("href")).toMatch(/^\/signup\?next=/);
         expect(follow.fetch, "未ログインなのに一覧を取りに行っている").not.toHaveBeenCalled();
         expect(cardIds()).toEqual([]);
     });

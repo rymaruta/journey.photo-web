@@ -2,12 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
+import SignUpLoginLinks from "./SignUpLoginLinks";
 import { useAuth } from "../auth/context";
 import { usePhotos } from "../../lib/hooks/usePhotos";
 import { fetchFollowingSet, subscribeFollowingSet } from "../../lib/hooks/useFollow";
 import { timelinePhotos } from "../../lib/utils/timeline";
 import { firstPostPhotoIds } from "../../lib/utils/homeFeed";
-import { ROUTES, loginWithNext } from "../../lib/routes";
+import { ROUTES } from "../../lib/routes";
 import HomeMosaic from "./HomeMosaic";
 
 type Props = { locale: string };
@@ -74,9 +75,9 @@ export default function TimelineFeed({ locale }: Props) {
                 <p className="text-sm text-white/70 m-0">
                     {isJa ? "ログインすると、フォローしている人の写真がここに流れます。" : "Log in to see photos from people you follow."}
                 </p>
-                <Link href={loginWithNext(typeof window === "undefined" ? null : window.location.pathname)} prefetch={false} className={pillClass}>
-                    {isJa ? "ログイン" : "Log in"}
-                </Link>
+                {/* 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主） */}
+                <SignUpLoginLinks locale={locale} next={typeof window === "undefined" ? null : window.location.pathname}
+                                  testIdPrefix="timeline-signin" className="justify-center" />
             </Empty>
         );
     }

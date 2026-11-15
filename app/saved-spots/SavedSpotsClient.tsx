@@ -2,12 +2,13 @@
 
 import React from "react";
 import Link from "next/link";
+import SignUpLoginLinks from "../components/SignUpLoginLinks";
 import { BookmarkIcon } from "@heroicons/react/24/outline";
 import { useAuth } from "../auth/context";
 import { usePhotos } from "../../lib/hooks/usePhotos";
 import { useSavedSpots } from "../../lib/hooks/useSavedSpots";
 import { useLocale } from "../i18n/context";
-import { ROUTES, loginWithNext } from "../../lib/routes";
+import { ROUTES } from "../../lib/routes";
 import { collectEntries, collectionPath } from "../../lib/utils/collections";
 import type { SpotLink } from "../../lib/data/spotLink";
 import { parseSavedKey, dedupeSavedKeys } from "../../lib/utils/savedSpotKey";
@@ -107,15 +108,8 @@ export default function SavedSpotsClient({ spots }: { spots: Record<string, Spot
             <Shell locale={locale}>
                 <Empty
                     text={en ? "Sign in to keep spots you want to visit." : "行きたい場所を残すにはログインしてください。"}
-                    action={
-                        <Link
-                            href={loginWithNext(ROUTES.SAVED_SPOTS)}
-                            prefetch={false}
-                            className="text-link hover:text-white underline underline-offset-4"
-                        >
-                            {en ? "Sign in" : "ログイン"}
-                        </Link>
-                    }
+                    // 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主。写真の無い頁なので真鍮の塗り）
+                    action={<SignUpLoginLinks locale={locale} next={ROUTES.SAVED_SPOTS} variant="fill" testIdPrefix="saved-spots-signin" />}
                 />
             </Shell>
         );
