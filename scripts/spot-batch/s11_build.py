@@ -58,8 +58,12 @@ now = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.0
 new = []
 for r in rows:
     a = arts[r["qid"]]
-    src = [{"url": "https://ja.wikipedia.org/wiki/" + urllib.parse.quote(a["title"].replace(" ", "_")), "title": f"Wikipedia「{a['title']}」"},
-           {"url": f"https://www.wikidata.org/wiki/{r['qid']}", "title": f"Wikidata「{r['qid']}」（座標・所在地）"}]
+    if r["qid"].startswith("KN"):
+        # 文化庁「国指定文化財等データベース」の登録情報が材料の行（2026-11-16・docs/spot-batch-runbook.md 第14章）
+        src = [{"url": a["source"], "title": f"文化庁 国指定文化財等データベース「{a['title']}」（名称・所在地・指定・解説・座標）"}]
+    else:
+        src = [{"url": "https://ja.wikipedia.org/wiki/" + urllib.parse.quote(a["title"].replace(" ", "_")), "title": f"Wikipedia「{a['title']}」"},
+               {"url": f"https://www.wikidata.org/wiki/{r['qid']}", "title": f"Wikidata「{r['qid']}」（座標・所在地）"}]
     IDS.setdefault(r["qid"], "sp_" + secrets.token_hex(6))
     lat, lng = coords_for(a, r.get("coordsDoubt", False))
     e = {"spotId": IDS[r["qid"]], "slug": r["slug"], "name": r["name"], "nameEn": r["nameEn"], "reading": r["reading"],
