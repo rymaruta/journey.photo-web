@@ -87696,5 +87696,335 @@
       "width": 1280,
       "height": 857
     }
+  },
+  "amida-sugi": {
+    "wikidata": "",
+    "file": "File:阿弥陀杉 - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E9%98%BF%E5%BC%A5%E9%99%80%E6%9D%89_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/%E9%98%BF%E5%BC%A5%E9%99%80%E6%9D%89_-_panoramio.jpg/1280px-%E9%98%BF%E5%BC%A5%E9%99%80%E6%9D%89_-_panoramio.jpg",
+    "author": "sk01",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/amida-sugi.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/57/%E9%98%BF%E5%BC%A5%E9%99%80%E6%9D%89_-_panoramio.jpg/1280px-%E9%98%BF%E5%BC%A5%E9%99%80%E6%9D%89_-_panoramio.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "kamao-kofun": {
+    "wikidata": "",
+    "file": "File:Kamao kofun 3.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Kamao_kofun_3.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Kamao_kofun_3.jpg/1280px-Kamao_kofun_3.jpg",
+    "author": "ハポニアラ",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "licenseCode": "cc-by-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kamao-kofun.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4e/Kamao_kofun_3.jpg/1280px-Kamao_kofun_3.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "shohinken-teien": {
+    "wikidata": "",
+    "file": "File:2013年06月08日撮影 松浜軒 - panoramio (18).jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:2013%E5%B9%B406%E6%9C%8808%E6%97%A5%E6%92%AE%E5%BD%B1_%E6%9D%BE%E6%B5%9C%E8%BB%92_-_panoramio_(18).jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/2013%E5%B9%B406%E6%9C%8808%E6%97%A5%E6%92%AE%E5%BD%B1_%E6%9D%BE%E6%B5%9C%E8%BB%92_-_panoramio_%2818%29.jpg/1280px-2013%E5%B9%B406%E6%9C%8808%E6%97%A5%E6%92%AE%E5%BD%B1_%E6%9D%BE%E6%B5%9C%E8%BB%92_-_panoramio_%2818%29.jpg",
+    "author": "kuni3 on panoramio",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/shohinken-teien.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/30/2013%E5%B9%B406%E6%9C%8808%E6%97%A5%E6%92%AE%E5%BD%B1_%E6%9D%BE%E6%B5%9C%E8%BB%92_-_panoramio_%2818%29.jpg/1280px-2013%E5%B9%B406%E6%9C%8808%E6%97%A5%E6%92%AE%E5%BD%B1_%E6%9D%BE%E6%B5%9C%E8%BB%92_-_panoramio_%2818%29.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "konpira-sugi": {
+    "wikidata": "",
+    "file": "File:金比羅スギ - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E9%87%91%E6%AF%94%E7%BE%85%E3%82%B9%E3%82%AE_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/%E9%87%91%E6%AF%94%E7%BE%85%E3%82%B9%E3%82%AE_-_panoramio.jpg/1280px-%E9%87%91%E6%AF%94%E7%BE%85%E3%82%B9%E3%82%AE_-_panoramio.jpg",
+    "author": "sk01",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/konpira-sugi.jpg",
+      "width": 960,
+      "height": 1280
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/%E9%87%91%E6%AF%94%E7%BE%85%E3%82%B9%E3%82%AE_-_panoramio.jpg/1280px-%E9%87%91%E6%AF%94%E7%BE%85%E3%82%B9%E3%82%AE_-_panoramio.jpg",
+      "width": 1280,
+      "height": 1707
+    }
+  },
+  "takenokuma-okeyaki": {
+    "wikidata": "",
+    "file": "File:竹の熊の大ケヤキ - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E7%AB%B9%E3%81%AE%E7%86%8A%E3%81%AE%E5%A4%A7%E3%82%B1%E3%83%A4%E3%82%AD_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/%E7%AB%B9%E3%81%AE%E7%86%8A%E3%81%AE%E5%A4%A7%E3%82%B1%E3%83%A4%E3%82%AD_-_panoramio.jpg/1280px-%E7%AB%B9%E3%81%AE%E7%86%8A%E3%81%AE%E5%A4%A7%E3%82%B1%E3%83%A4%E3%82%AD_-_panoramio.jpg",
+    "author": "sk01",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/takenokuma-okeyaki.jpg",
+      "width": 960,
+      "height": 1280
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/%E7%AB%B9%E3%81%AE%E7%86%8A%E3%81%AE%E5%A4%A7%E3%82%B1%E3%83%A4%E3%82%AD_-_panoramio.jpg/1280px-%E7%AB%B9%E3%81%AE%E7%86%8A%E3%81%AE%E5%A4%A7%E3%82%B1%E3%83%A4%E3%82%AD_-_panoramio.jpg",
+      "width": 1280,
+      "height": 1707
+    }
+  },
+  "imamachi-ichirizuka": {
+    "wikidata": "",
+    "file": "File:Imamachi Ichirizuka Miyakonojo Japan.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Imamachi_Ichirizuka_Miyakonojo_Japan.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Imamachi_Ichirizuka_Miyakonojo_Japan.jpg/1280px-Imamachi_Ichirizuka_Miyakonojo_Japan.jpg",
+    "author": "Sanjo",
+    "license": "Public domain (PD-self)",
+    "licenseCode": "PD-self",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/imamachi-ichirizuka.jpg",
+      "width": 960,
+      "height": 540
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e6/Imamachi_Ichirizuka_Miyakonojo_Japan.jpg/1280px-Imamachi_Ichirizuka_Miyakonojo_Japan.jpg",
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "yasui-sokken-kyutaku": {
+    "wikidata": "",
+    "file": "File:安井息軒旧宅 - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E5%AE%89%E4%BA%95%E6%81%AF%E8%BB%92%E6%97%A7%E5%AE%85_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/%E5%AE%89%E4%BA%95%E6%81%AF%E8%BB%92%E6%97%A7%E5%AE%85_-_panoramio.jpg/1280px-%E5%AE%89%E4%BA%95%E6%81%AF%E8%BB%92%E6%97%A7%E5%AE%85_-_panoramio.jpg",
+    "author": "sk01",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/yasui-sokken-kyutaku.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/%E5%AE%89%E4%BA%95%E6%81%AF%E8%BB%92%E6%97%A7%E5%AE%85_-_panoramio.jpg/1280px-%E5%AE%89%E4%BA%95%E6%81%AF%E8%BB%92%E6%97%A7%E5%AE%85_-_panoramio.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "iwafune-kofun": {
+    "wikidata": "",
+    "file": "File:Iinashi Iwafune Kofun, gaikan-1.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Iinashi_Iwafune_Kofun,_gaikan-1.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Iinashi_Iwafune_Kofun%2C_gaikan-1.jpg/1280px-Iinashi_Iwafune_Kofun%2C_gaikan-1.jpg",
+    "author": "Saigen Jiro",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "licenseCode": "cc0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/iwafune-kofun.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Iinashi_Iwafune_Kofun%2C_gaikan-1.jpg/1280px-Iinashi_Iwafune_Kofun%2C_gaikan-1.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "iwayaji-no-kiriake": {
+    "wikidata": "",
+    "file": "File:Iwayaji no Kiriake slot canyon B.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Iwayaji_no_Kiriake_slot_canyon_B.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Iwayaji_no_Kiriake_slot_canyon_B.jpg/1280px-Iwayaji_no_Kiriake_slot_canyon_B.jpg",
+    "author": "さかおり",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/iwayaji-no-kiriake.jpg",
+      "width": 960,
+      "height": 539
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/Iwayaji_no_Kiriake_slot_canyon_B.jpg/1280px-Iwayaji_no_Kiriake_slot_canyon_B.jpg",
+      "width": 1280,
+      "height": 719
+    }
+  },
+  "ushio-no-katsura": {
+    "wikidata": "",
+    "file": "File:Ushio no Katsura Cercidphylluum japonicum F.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ushio_no_Katsura_Cercidphylluum_japonicum_F.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Ushio_no_Katsura_Cercidphylluum_japonicum_F.jpg/1280px-Ushio_no_Katsura_Cercidphylluum_japonicum_F.jpg",
+    "author": "さかおり",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/ushio-no-katsura.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/Ushio_no_Katsura_Cercidphylluum_japonicum_F.jpg/1280px-Ushio_no_Katsura_Cercidphylluum_japonicum_F.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "dangyokei": {
+    "wikidata": "",
+    "file": "File:Dangyokei.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Dangyokei.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Dangyokei.jpg/1280px-Dangyokei.jpg",
+    "author": "Jack serow",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/dangyokei.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Dangyokei.jpg/1280px-Dangyokei.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "yamashiro-futagozuka": {
+    "wikidata": "",
+    "file": "File:山代二子塚古墳.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E5%B1%B1%E4%BB%A3%E4%BA%8C%E5%AD%90%E5%A1%9A%E5%8F%A4%E5%A2%B3.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/%E5%B1%B1%E4%BB%A3%E4%BA%8C%E5%AD%90%E5%A1%9A%E5%8F%A4%E5%A2%B3.jpg/1280px-%E5%B1%B1%E4%BB%A3%E4%BA%8C%E5%AD%90%E5%A1%9A%E5%8F%A4%E5%A2%B3.jpg",
+    "author": "馬星",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/yamashiro-futagozuka.jpg",
+      "width": 960,
+      "height": 641
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/%E5%B1%B1%E4%BB%A3%E4%BA%8C%E5%AD%90%E5%A1%9A%E5%8F%A4%E5%A2%B3.jpg/1280px-%E5%B1%B1%E4%BB%A3%E4%BA%8C%E5%AD%90%E5%A1%9A%E5%8F%A4%E5%A2%B3.jpg",
+      "width": 1280,
+      "height": 854
+    }
+  },
+  "takezaki-no-katsura": {
+    "wikidata": "",
+    "file": "File:Takezaki no Katsura Cercidphylluum japonicum D.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Takezaki_no_Katsura_Cercidphylluum_japonicum_D.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Takezaki_no_Katsura_Cercidphylluum_japonicum_D.jpg/1280px-Takezaki_no_Katsura_Cercidphylluum_japonicum_D.jpg",
+    "author": "さかおり",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/takezaki-no-katsura.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Takezaki_no_Katsura_Cercidphylluum_japonicum_D.jpg/1280px-Takezaki_no_Katsura_Cercidphylluum_japonicum_D.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "tamawakasu-yaosugi": {
+    "wikidata": "",
+    "file": "File:Yaosugi @Tamawakasumikoto shrine - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Yaosugi_@Tamawakasumikoto_shrine_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Yaosugi_%40Tamawakasumikoto_shrine_-_panoramio.jpg/960px-Yaosugi_%40Tamawakasumikoto_shrine_-_panoramio.jpg",
+    "author": "ccfarmer",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "licenseCode": "cc-by-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-16",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/tamawakasu-yaosugi.jpg",
+      "width": 960,
+      "height": 1440
+    }
   }
 }
