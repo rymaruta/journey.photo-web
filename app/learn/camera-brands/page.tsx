@@ -11,7 +11,7 @@ import { ROUTES } from "@/lib/routes";
 import { collectEntries, collectionPath, type CollectionEntry } from "@/lib/utils/collections";
 import { learnArticle } from "@/lib/data/learn/articles";
 import {
-    BRANDS, BRANDS_FAQ, BRANDS_LEAD, BUYING_CHECKLIST, CAMERA_TERMS, SMARTPHONE_NOTE, USE_CASES, brandOfCamera,
+    BRANDS, BRANDS_FAQ, BRANDS_LEAD, BUYING_CHECKLIST, CAMERA_TERMS, CHOOSING_STEPS, SMARTPHONE_NOTE, USE_CASES, brandOfCamera,
 } from "@/lib/data/learn/cameraBrands";
 import { exampleRule } from "@/lib/data/learn/cameraBasics";
 import { pickExamples } from "@/lib/learn/examples";
@@ -57,8 +57,21 @@ export default async function CameraBrandsPage() {
                 <Breadcrumbs crumbs={crumbs} />
                 <LearnHeader eyebrow={ARTICLE.eyebrow} title={ARTICLE.title} lead={BRANDS_LEAD} />
 
+                <section aria-labelledby="brands-steps" className="mb-10">
+                    <h2 id="brands-steps" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>迷ったら、この4ステップで選ぼう</h2>
+                    <ol className="m-0 mt-5 p-0 list-none grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {CHOOSING_STEPS.map((step, index) => (
+                            <li key={step.title} className="rounded-xl bg-surface ring-1 ring-line p-4">
+                                <p className="m-0 text-accent font-semibold" style={{ fontSize: "13px" }}>STEP {index + 1}</p>
+                                <h3 className="m-0 mt-2 font-semibold text-white" style={{ fontSize: "16px" }}>{step.title}</h3>
+                                <p className="m-0 mt-2 text-chip-text" style={{ fontSize: "14px", lineHeight: "24px" }}>{step.detail}</p>
+                            </li>
+                        ))}
+                    </ol>
+                </section>
+
                 <section aria-labelledby="brands-terms" className="mb-10">
-                    <h2 id="brands-terms" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>まず知っておきたい6つの用語</h2>
+                    <h2 id="brands-terms" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>まず知っておきたい8つの用語</h2>
                     <p className="m-0 mt-3 text-chip-text" style={{ fontSize: "15px", lineHeight: "26px" }}>専門用語がわからなくても大丈夫。比較表を読む前に、ここだけ押さえましょう。</p>
                     <dl className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
                         {CAMERA_TERMS.map((item) => (
