@@ -43,10 +43,10 @@ const BASE_ARTICLES: LearnArticle[] = [
         number: 11,
         href: ROUTES.LEARN_CAMERA_BRANDS,
         eyebrow: "第11章 カメラ選び",
-        title: "カメラメーカーの特徴を比較",
-        description: "SONY・Canon・Nikon・FUJIFILM・Leica・Hasselblad・OM SYSTEM・Panasonic・RICOH/PENTAX。マウントとセンサーの大きさ、向く人、気をつけたい点。",
+        title: "カメラメーカー9社を比較｜初心者向けの違いと選び方",
+        description: "SONY・Canon・Nikon・FUJIFILMなど主要9ブランドを比較。センサー・マウント・AFなどの用語から、風景・旅行・人物・動画に合うカメラの選び方まで初心者向けに解説。",
         published: "2026-11-04",
-        modified: "2026-11-04",
+        modified: "2026-11-17",
     },
     {
         id: "composition",
