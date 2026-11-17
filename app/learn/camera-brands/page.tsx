@@ -11,7 +11,7 @@ import { ROUTES } from "@/lib/routes";
 import { collectEntries, collectionPath, type CollectionEntry } from "@/lib/utils/collections";
 import { learnArticle } from "@/lib/data/learn/articles";
 import {
-    BRANDS, BRANDS_FAQ, BRANDS_LEAD, BUYING_CHECKLIST, CAMERA_TERMS, CHOOSING_STEPS, COMPARISON_AXES, COMMON_MISTAKES, SHOOTING_PATHS, SMARTPHONE_NOTE, USE_CASES, brandOfCamera,
+    BRANDS, BRANDS_FAQ, BRANDS_LEAD, BUYING_CHECKLIST, CAMERA_TERMS, CHOOSING_STEPS, COMPARISON_AXES, COMMON_MISTAKES, QUICK_ANSWERS, SHOOTING_PATHS, SMARTPHONE_NOTE, USE_CASES, brandOfCamera,
 } from "@/lib/data/learn/cameraBrands";
 import { exampleRule } from "@/lib/data/learn/cameraBasics";
 import { pickExamples } from "@/lib/learn/examples";
@@ -21,7 +21,7 @@ import {
 } from "../_parts/LearnParts";
 
 const ARTICLE = learnArticle("camera-brands");
-const TITLE = "カメラメーカー9社を比較｜初心者向けの違いと選び方";
+const TITLE = ARTICLE.title;
 
 export const metadata = learnMetadata(ARTICLE.href, TITLE, ARTICLE.description, "article");
 
@@ -57,6 +57,12 @@ export default async function CameraBrandsPage() {
                 <Breadcrumbs crumbs={crumbs} />
                 <LearnHeader eyebrow={ARTICLE.eyebrow} title={ARTICLE.title} lead={BRANDS_LEAD} />
 
+                <section aria-labelledby="brands-conclusion" className="mb-10">
+                    <h2 id="brands-conclusion" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>結論｜カメラメーカーは撮りたいものから選ぼう</h2>
+                    <p className="m-0 mt-3 text-chip-text" style={{ fontSize: "15px", lineHeight: "26px" }}>メーカーの名前だけで画質や使いやすさは決まりません。まずは自分の撮影目的に近い候補を見つけ、実際の機種とレンズを比較しましょう。</p>
+                    <LearnTable caption="目的別の候補（順位ではありません）" head={["撮影目的", "まず比較したいメーカー・シリーズ"]} rows={QUICK_ANSWERS.map((item) => [item.need, item.answer])} />
+                </section>
+
                 <section aria-labelledby="brands-steps" className="mb-10">
                     <h2 id="brands-steps" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>迷ったら、この4ステップで選ぼう</h2>
                     <ol className="m-0 mt-5 p-0 list-none grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -84,7 +90,7 @@ export default async function CameraBrandsPage() {
                 </section>
 
                 <section aria-labelledby="brands-table">
-                    <h2 id="brands-table" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>早見表</h2>
+                    <h2 id="brands-table" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>カメラメーカー9社の違いを比較｜マウント・センサー・向いている人</h2>
                     <LearnTable
                         caption="主なマウントとセンサーの大きさ（機種ごとの仕様は公式サイトで確かめてください）"
                         head={["メーカー", "主なマウント", "センサーの大きさ", "向く人"]}
@@ -93,7 +99,7 @@ export default async function CameraBrandsPage() {
                 </section>
 
                 <section aria-labelledby="brands-usecase" className="mt-12">
-                    <h2 id="brands-usecase" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>用途から選ぶ</h2>
+                    <h2 id="brands-usecase" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>用途別のカメラの選び方｜風景・人物・旅行・動画</h2>
                     <LearnTable caption="撮りたいものから、見るべきところ" head={["撮りたいもの", "見るところ"]} rows={USE_CASES.map((u) => [u.need, u.look])} />
                 </section>
 
@@ -225,7 +231,7 @@ export default async function CameraBrandsPage() {
                 </section>
 
                 <section aria-labelledby="brands-faq" className="py-10 border-t border-line">
-                    <h2 id="brands-faq" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>カメラ選びのよくある質問</h2>
+                    <h2 id="brands-faq" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>カメラメーカー比較でよくある質問</h2>
                     <FaqList items={BRANDS_FAQ} />
                 </section>
 
