@@ -5,6 +5,7 @@
 // 機種の写真への道は、既存の機材の集約頁（`/camera/<機種>`・`collectEntries(…, "camera")`）を使う。
 
 import React from "react";
+import CameraBrandsAnalytics from "./CameraBrandsAnalytics";
 import Link from "next/link";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { ROUTES } from "@/lib/routes";
@@ -54,6 +55,7 @@ export default async function CameraBrandsPage() {
                 images: [],
             })} />
             <main className="min-h-screen bg-bg text-white px-4 sm:px-6 md:px-8 pt-6 pb-24 mx-auto w-full max-w-4xl" data-testid="learn-brands">
+                <CameraBrandsAnalytics />
                 <Breadcrumbs crumbs={crumbs} />
                 <LearnHeader eyebrow={ARTICLE.eyebrow} title={ARTICLE.title} lead={BRANDS_LEAD} />
 
@@ -136,6 +138,7 @@ export default async function CameraBrandsPage() {
                         <Link
                             key={b.id}
                             href={`#${b.id}`} prefetch={false}
+                            data-learn-target="brand_jump"
                             className="inline-flex items-center min-h-[44px] px-4 rounded-full bg-chip ring-1 ring-line text-chip-text hover:text-white"
                             style={{ fontSize: "13px", touchAction: "manipulation" }}
                         >
@@ -175,7 +178,7 @@ export default async function CameraBrandsPage() {
                                         <ul className="m-0 p-0 list-none flex flex-wrap gap-x-4">
                                             {cams.map((c) => (
                                                 <li key={c.slug}>
-                                                    <Link href={collectionPath("camera", c.slug)} prefetch={false} className="inline-flex items-center gap-1 min-h-[44px] text-white underline underline-offset-4 decoration-line-strong hover:decoration-white" style={{ fontSize: "14px" }}>
+                                                    <Link href={collectionPath("camera", c.slug)} prefetch={false} data-learn-target="camera_examples" className="inline-flex items-center gap-1 min-h-[44px] text-white underline underline-offset-4 decoration-line-strong hover:decoration-white" style={{ fontSize: "14px" }}>
                                                         {c.label}<span className="text-text-3 tabular-nums">（{c.count}枚）</span>
                                                     </Link>
                                                 </li>
@@ -184,7 +187,7 @@ export default async function CameraBrandsPage() {
                                     </div>
                                 )}
                                 <div className="mt-auto pt-3">
-                                    <ExternalLink href={b.official}>{b.name} の公式サイト</ExternalLink>
+                                    <div data-learn-target="brand_official"><ExternalLink href={b.official}>{b.name} の公式サイト</ExternalLink></div>
                                 </div>
                             </section>
                         );
@@ -237,7 +240,7 @@ export default async function CameraBrandsPage() {
 
                 <aside aria-labelledby="brands-next" className="mt-6 rounded-2xl bg-accent-soft ring-1 ring-line p-5">
                     <h2 id="brands-next" className="m-0 text-white font-semibold" style={{ fontSize: "15px" }}>次に読む</h2>
-                    <Link href={ROUTES.LEARN_CAMERA_BASICS} prefetch={false} className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
+                    <Link href={ROUTES.LEARN_CAMERA_BASICS} prefetch={false} data-learn-target="camera_basics" className="inline-flex items-center min-h-[44px] text-accent underline underline-offset-4 hover:text-accent-strong" style={{ fontSize: "15px" }}>
                         カメラの使い方 完全入門（F値・シャッター・ISO）
                     </Link>
                 </aside>
