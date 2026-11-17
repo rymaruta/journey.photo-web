@@ -16,9 +16,9 @@ export default function CameraBrandsAnalytics() {
         if (!root) return;
         const onClick = (event: Event) => {
             if (!(event.target instanceof Element)) return;
-            const link = event.target.closest("a[data-learn-target]");
+            const link = event.target.closest("a");
             if (!link || !root.contains(link)) return;
-            const value = link.getAttribute("data-learn-target");
+            const value = link.closest("[data-learn-target]")?.getAttribute("data-learn-target");
             if (!TARGETS.some((target) => target === value)) return;
             track("learn_link_click", { article: "camera_brands", target: value as Target });
         };
