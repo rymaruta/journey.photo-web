@@ -11,7 +11,7 @@ import { ROUTES } from "@/lib/routes";
 import { collectEntries, collectionPath, type CollectionEntry } from "@/lib/utils/collections";
 import { learnArticle } from "@/lib/data/learn/articles";
 import {
-    BRANDS, BRANDS_FAQ, BRANDS_LEAD, BUYING_CHECKLIST, CAMERA_TERMS, CHOOSING_STEPS, SMARTPHONE_NOTE, USE_CASES, brandOfCamera,
+    BRANDS, BRANDS_FAQ, BRANDS_LEAD, BUYING_CHECKLIST, CAMERA_TERMS, CHOOSING_STEPS, COMPARISON_AXES, COMMON_MISTAKES, SHOOTING_PATHS, SMARTPHONE_NOTE, USE_CASES, brandOfCamera,
 } from "@/lib/data/learn/cameraBrands";
 import { exampleRule } from "@/lib/data/learn/cameraBasics";
 import { pickExamples } from "@/lib/learn/examples";
@@ -95,6 +95,34 @@ export default async function CameraBrandsPage() {
                 <section aria-labelledby="brands-usecase" className="mt-12">
                     <h2 id="brands-usecase" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>用途から選ぶ</h2>
                     <LearnTable caption="撮りたいものから、見るべきところ" head={["撮りたいもの", "見るところ"]} rows={USE_CASES.map((u) => [u.need, u.look])} />
+                </section>
+
+
+                <section aria-labelledby="brands-paths" className="mt-12">
+                    <h2 id="brands-paths" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>撮りたい写真別｜比較するメーカーの候補</h2>
+                    <p className="m-0 mt-3 text-chip-text" style={{ fontSize: "15px", lineHeight: "26px" }}>順位ではなく、用途に合う候補を紹介します。ここにないメーカーでも撮影できないわけではありません。</p>
+                    <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {SHOOTING_PATHS.map((item) => (
+                            <article key={item.title} className="rounded-2xl bg-surface ring-1 ring-line p-5">
+                                <h3 className="m-0 font-semibold text-white" style={{ fontSize: "18px" }}>{item.title}</h3>
+                                <p className="m-0 mt-3 text-accent" style={{ fontSize: "14px", lineHeight: "24px" }}>{item.candidates}</p>
+                                <p className="m-0 mt-3 text-chip-text" style={{ fontSize: "14px", lineHeight: "25px" }}>{item.reason}</p>
+                            </article>
+                        ))}
+                    </div>
+                </section>
+
+                <section aria-labelledby="brands-axes" className="mt-12">
+                    <h2 id="brands-axes" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>メーカーを比べる6つの視点</h2>
+                    <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        {COMPARISON_AXES.map((item) => (
+                            <article key={item.title} className="rounded-2xl border border-line p-5">
+                                <p className="m-0 text-accent font-semibold" style={{ fontSize: "13px" }}>{item.title}</p>
+                                <h3 className="m-0 mt-2 font-semibold text-white" style={{ fontSize: "17px" }}>{item.question}</h3>
+                                <p className="m-0 mt-3 text-chip-text" style={{ fontSize: "14px", lineHeight: "25px" }}>{item.body}</p>
+                            </article>
+                        ))}
+                    </div>
                 </section>
 
                 <nav aria-label="メーカーへ移動" className="mt-12 flex flex-wrap gap-2">
@@ -181,6 +209,19 @@ export default async function CameraBrandsPage() {
                             </li>
                         ))}
                     </ol>
+                </section>
+
+
+                <section aria-labelledby="brands-mistakes" className="py-10 border-t border-line">
+                    <h2 id="brands-mistakes" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>購入前に避けたい5つの失敗</h2>
+                    <div className="mt-5 grid gap-4">
+                        {COMMON_MISTAKES.map((item) => (
+                            <article key={item.title} className="rounded-xl bg-surface ring-1 ring-line p-5">
+                                <h3 className="m-0 text-white font-semibold" style={{ fontSize: "16px" }}>{item.title}</h3>
+                                <p className="m-0 mt-2 text-chip-text" style={{ fontSize: "14px", lineHeight: "25px" }}>{item.fix}</p>
+                            </article>
+                        ))}
+                    </div>
                 </section>
 
                 <section aria-labelledby="brands-faq" className="py-10 border-t border-line">
