@@ -11,7 +11,7 @@ import { ROUTES } from "@/lib/routes";
 import { collectEntries, collectionPath, type CollectionEntry } from "@/lib/utils/collections";
 import { learnArticle } from "@/lib/data/learn/articles";
 import {
-    BRANDS, BRANDS_FAQ, BRANDS_LEAD, BUYING_CHECKLIST, SMARTPHONE_NOTE, USE_CASES, brandOfCamera,
+    BRANDS, BRANDS_FAQ, BRANDS_LEAD, BUYING_CHECKLIST, CAMERA_TERMS, SMARTPHONE_NOTE, USE_CASES, brandOfCamera,
 } from "@/lib/data/learn/cameraBrands";
 import { exampleRule } from "@/lib/data/learn/cameraBasics";
 import { pickExamples } from "@/lib/learn/examples";
@@ -21,7 +21,7 @@ import {
 } from "../_parts/LearnParts";
 
 const ARTICLE = learnArticle("camera-brands");
-const TITLE = "カメラメーカーの特徴を比較｜初めての1台の選び方";
+const TITLE = "カメラメーカー9社を比較｜初心者向けの違いと選び方";
 
 export const metadata = learnMetadata(ARTICLE.href, TITLE, ARTICLE.description, "article");
 
@@ -56,6 +56,19 @@ export default async function CameraBrandsPage() {
             <main className="min-h-screen bg-bg text-white px-4 sm:px-6 md:px-8 pt-6 pb-24 mx-auto w-full max-w-4xl" data-testid="learn-brands">
                 <Breadcrumbs crumbs={crumbs} />
                 <LearnHeader eyebrow={ARTICLE.eyebrow} title={ARTICLE.title} lead={BRANDS_LEAD} />
+
+                <section aria-labelledby="brands-terms" className="mb-10">
+                    <h2 id="brands-terms" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>まず知っておきたい6つの用語</h2>
+                    <p className="m-0 mt-3 text-chip-text" style={{ fontSize: "15px", lineHeight: "26px" }}>専門用語がわからなくても大丈夫。比較表を読む前に、ここだけ押さえましょう。</p>
+                    <dl className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {CAMERA_TERMS.map((item) => (
+                            <div key={item.term} className="rounded-xl bg-surface ring-1 ring-line p-4">
+                                <dt className="font-semibold text-white" style={{ fontSize: "16px" }}>{item.term}</dt>
+                                <dd className="m-0 mt-2 text-chip-text" style={{ fontSize: "14px", lineHeight: "24px" }}>{item.explanation}</dd>
+                            </div>
+                        ))}
+                    </dl>
+                </section>
 
                 <section aria-labelledby="brands-table">
                     <h2 id="brands-table" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>早見表</h2>
@@ -143,7 +156,7 @@ export default async function CameraBrandsPage() {
                 </section>
 
                 <section aria-labelledby="brands-buying" className="py-10 border-t border-line">
-                    <h2 id="brands-buying" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>買う前に確かめたい5つのこと</h2>
+                    <h2 id="brands-buying" className="m-0 font-serif font-bold text-white" style={{ fontSize: "24px", lineHeight: 1.4 }}>買う前に確かめたい6つのこと</h2>
                     <ol className="m-0 mt-4 p-0 list-none flex flex-col gap-5">
                         {BUYING_CHECKLIST.map((item, i) => (
                             <li key={item.title} className="flex gap-4">
