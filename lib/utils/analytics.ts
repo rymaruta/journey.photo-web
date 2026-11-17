@@ -102,6 +102,8 @@ export const EVENT_SPEC = {
     nav_click: { area: NAV_AREAS, dest: NAV_DESTS },
     // 推奨イベント（欄は GA4 の推奨名に合わせ、値は絞る。`item_id` は送る・`search_term`（検索語）は送らない）
     select_content: { content_type: SELECT_CONTENT_TYPES, item_id: ITEM_ID },
+    // 教科書の回遊。記事と遷移先は固定の分類のみで、URL・閲覧者情報は送らない
+    learn_link_click: { article: ["camera_brands"], target: ["brand_official", "camera_examples", "camera_basics", "brand_jump"] },
     search: { search_term_length: COUNT, result_count: COUNT },
     // 撮影スポット一覧（`/spots`）の検索窓（2026-11-09）。`search` と同じ形。**語は送らない**（長さと件数だけ。0件かどうかは result_count で見る）
     spots_search: { search_term_length: COUNT, result_count: COUNT },
