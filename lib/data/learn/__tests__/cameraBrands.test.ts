@@ -36,7 +36,7 @@ describe("メーカーの台帳", () => {
 
     it("用途・買う前の確認は空でない", () => {
         expect(USE_CASES.length).toBeGreaterThanOrEqual(5);
-        expect(BUYING_CHECKLIST).toHaveLength(5);
+        expect(BUYING_CHECKLIST).toHaveLength(6);
     });
 });
 
