@@ -169,6 +169,35 @@ export const BRANDS: Brand[] = [
     },
 ];
 
+
+/** 数字で決めつけず、実際の購入判断に使える比較軸。 */
+export const COMPARISON_AXES = [
+    { title: "画質", question: "何を『きれい』と感じる？", body: "解像感・暗所のノイズ・色・背景ぼけは別の要素です。同じ被写体を近い条件で撮った作例を見て、自分が重視する違いを探しましょう。" },
+    { title: "AFと動体撮影", question: "誰を、どんな動きで撮る？", body: "人物の瞳・走る子ども・鳥など、認識対象と追従性能は機種ごとに異なります。メーカー名だけで決めず、目的に近い実写レビューを確認しましょう。" },
+    { title: "レンズ", question: "次に買いたい一本はある？", body: "広角・標準・望遠の焦点距離、開放F値、手ぶれ補正、価格、重さを確認。カメラ本体が魅力的でも、欲しいレンズがないと後悔につながります。" },
+    { title: "携帯性", question: "一日中持ち歩ける？", body: "本体重量だけでなく、レンズ・バッテリー・ストラップまで含めて判断。軽い機材なら持ち出す回数が増えることもあります。" },
+    { title: "動画", question: "どんな映像を作りたい？", body: "歩き撮りなら手ぶれ補正、長時間なら熱対策、編集するならLogや記録形式を確認。動画性能は同じメーカー内でも大きく異なります。" },
+    { title: "総費用", question: "購入後に何が必要？", body: "レンズ・記録メディア・予備電池・バッグ・編集環境を含めて比較。中古なら保証、シャッターの状態、修理受付も確認しましょう。" },
+];
+
+/** メーカー名の人気ランキングではなく、撮影目的ごとの候補と理由を示す。 */
+export const SHOOTING_PATHS = [
+    { title: "旅行・街歩き", candidates: "Sony α APS-C / FUJIFILM X / OM SYSTEM / RICOH GR", reason: "携帯性と、気軽に持ち出せるレンズ構成を優先。交換レンズが必要かも先に考えましょう。" },
+    { title: "人物・家族", candidates: "Canon EOS R / Sony α / Nikon Z", reason: "瞳AFの使い勝手と、人物撮影に使いたいレンズを機種ごとに確認しましょう。" },
+    { title: "風景・建築", candidates: "Nikon Z / Sony α / Canon EOS R / FUJIFILM GFX / Hasselblad X", reason: "広角レンズ、ダイナミックレンジ、解像度、携帯性を比較。高画素が必須とは限りません。" },
+    { title: "野鳥・登山", candidates: "OM SYSTEM / Nikon Z / Canon EOS R / Sony α", reason: "望遠レンズ込みの重量、AF、耐候性を比較。小さなセンサーが携帯性に役立つこともあります。" },
+    { title: "映像制作", candidates: "Panasonic LUMIX / Sony α / Canon EOS R / Nikon Z", reason: "必要な記録形式、熱対策、手ぶれ補正、音声入力を機種別に確認しましょう。" },
+    { title: "撮影体験・作品制作", candidates: "Leica M・Q / FUJIFILM X / Hasselblad X", reason: "操作感や色づくり、ファインダーの体験も選択基準。価格やAFの方式には注意しましょう。" },
+];
+
+export const COMMON_MISTAKES = [
+    { title: "『フルサイズなら必ずきれい』と思い込む", fix: "センサー以外にレンズ・光・撮影設定が大きく影響します。用途に必要な性能を優先しましょう。" },
+    { title: "ボディの価格だけで予算を使い切る", fix: "欲しいレンズと予備バッテリーなどを含めて総額を計算しましょう。" },
+    { title: "作例を色味だけで判断する", fix: "JPEG設定やRAW現像で色は変わります。撮影条件や編集の有無を確かめましょう。" },
+    { title: "同じメーカーのレンズは全部使えると思う", fix: "マウントとセンサー対応を確認。FUJIFILM XとGFX、LUMIX SとGは別システムです。" },
+    { title: "スペック表だけで購入を決める", fix: "握り心地・メニュー・ファインダー・レンズ込みの重さは店頭で確認しましょう。" },
+];
+
 /** 用途から選ぶ早見 */
 export const USE_CASES: { need: string; look: string }[] = [
     { need: "旅行で軽く持ち歩きたい", look: "APS-C かマイクロフォーサーズの小さな機種、またはレンズ一体型（GR など）。レンズを付けた重さで比べる" },
