@@ -1,0 +1,89 @@
+name: Check stable build id (temporary)
+
+# 札 journey.photo-ios#638 の確かめ用（この枝だけ。main には入れない）。
+# 同じ JS でデータだけ違うビルド・JS も違うビルドを作り、版の切り替わりで画面の行き来が正しく動くかを見る。
+on:
+  push:
+    branches:
+      - ci-check/stable-build-id
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    container:
+      image: mcr.microsoft.com/playwright:v1.61.1-noble
+    defaults:
+      run:
+        shell: bash
+    env:
+      NEXT_PUBLIC_API_BASE_URL: https://rfq22dzchf.execute-api.ap-northeast-1.amazonaws.com
+      NEXT_PUBLIC_USER_API_BASE_URL: https://y9f8ajacc2.execute-api.ap-northeast-1.amazonaws.com
+      NEXT_PUBLIC_COGNITO_USER_POOL_ID: ap-northeast-1_DSQ16c6vO
+      NEXT_PUBLIC_COGNITO_CLIENT_ID: 1qjl9c8gmqidigps55jhv4foi
+      NEXT_PUBLIC_CLOUDFRONT_URL: https://d15fn3rcaiymu9.cloudfront.net
+      NEXT_PUBLIC_SITE_URL: https://d15fn3rcaiymu9.cloudfront.net
+      NEXT_PUBLIC_CONTACT_EMAIL: journey.photo.official@gmail.com
+      NEXT_PUBLIC_ENV_NAME: staging
+      # 写真はコミット済みの photos.json を使う（DynamoDB に触らない。無い表を指し、CI の印を外して同期を素通りさせる）
+      PHOTOS_TABLE: no-such-table-stable-build-id-check
+      USERS_TABLE: no-such-table-stable-build-id-check
+      ALLOW_EMPTY_PHOTOS: "1"
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+      - run: npm ci
+
+      - name: Build A
+        run: |
+          set -euo pipefail
+          env -u CI GITHUB_SHA=3f9c2a7e61d04b8a95c1e7f2d6a83b40c5e19d72 npm run build > ../build.log 2>&1 || { tail -60 ../build.log; exit 1; }; grep -E "ビルドID" ../build.log
+          test -f out/index.html
+          mv out ../outA
+
+      - name: Build B (same JS, data changed, other commit)
+        run: |
+          set -euo pipefail
+          node -e '
+            const fs=require("fs");const f="content/spots.json";const d=JSON.parse(fs.readFileSync(f,"utf8"));
+            const s=d.find(e=>e.slug==="ezuko");s.summary+="（確認用の書き換え）";fs.writeFileSync(f,JSON.stringify(d,null,2)+"\n");'
+          env -u CI GITHUB_SHA=8d14e0b7c3a95f62e0d71b4c9a28f5e36b0c17a4 npm run build > ../build.log 2>&1 || { tail -60 ../build.log; exit 1; }; grep -E "ビルドID" ../build.log
+          test -f out/index.html
+          mv out ../outB
+
+      - name: Build C (JS changed)
+        run: |
+          set -euo pipefail
+          sed -i 's/aria-label="メインメニュー"/aria-label="メインメニュー（確認）"/' app/components/HeaderNav.tsx
+          grep -q "メインメニュー（確認）" app/components/HeaderNav.tsx
+          env -u CI GITHUB_SHA=c2a7f81d5e30b96a4f07c3e1b92d58a6e4f01b3c npm run build > ../build.log 2>&1 || { tail -60 ../build.log; exit 1; }; grep -E "ビルドID" ../build.log
+          test -f out/index.html
+          mv out ../outC
+
+      - name: Compare outputs
+        run: |
+          set -euo pipefail
+          for o in A B C; do printf '%s: ' $o; head -c 80 ../out$o/index.html | grep -o '<!--[^>]*-->'; done
+          echo "A vs B 違うファイル: $(diff -rq ../outA ../outB | wc -l)"
+          diff -rq ../outA ../outB | head -20 || true
+          echo "A vs C 違うファイル: $(diff -rq ../outA ../outC | wc -l)"
+          echo "旧ID(3f9c2a…)の残り: $(grep -rl 3f9c2a7e61d04b8a95c1e7f2 ../outA | wc -l)"
+
+      - name: Navigate across versions (Playwright)
+        run: |
+          set -uo pipefail
+          rc=0
+          echo "== A → B（JS 同じ・データだけ違う）: 読み直さずに切り替わり、新しいデータが出る"
+          node scripts/check-stable-build-id.mjs ../outA ../outB soft /spots/ashiosan-ibaraki /spots/ezuko 確認用の書き換え || rc=1
+          echo "== A → C（JS 違う）: 丸ごと読み直す"
+          node scripts/check-stable-build-id.mjs ../outA ../outC hard /spots/ashiosan-ibaraki /spots/ezuko 江津湖 || rc=1
+          echo "== C → C（同じ版の中）: 読み直さずに切り替わる"
+          node scripts/check-stable-build-id.mjs ../outC ../outC soft /spots/ashiosan-ibaraki /spots/ezuko 江津湖 || rc=1
+          exit $rc
