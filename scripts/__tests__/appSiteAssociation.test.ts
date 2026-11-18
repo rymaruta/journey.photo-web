@@ -2,8 +2,9 @@ import { describe, it, expect } from "vitest";
 import fs from "fs";
 import path from "path";
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const { contentTypeFor, AASA_KEY, AASA_EDGE_KEY } = require("../deploy-static-site.js") as {
+const { contentTypeFor, putParamsFor, AASA_KEY, AASA_EDGE_KEY } = require("../deploy-static-site.js") as {
     contentTypeFor: (key: string) => string;
+    putParamsFor: (key: string) => { ContentType: string };
     AASA_KEY: string;
     AASA_EDGE_KEY: string;
 };
@@ -80,6 +81,9 @@ describe("apple-app-site-association", () => {
         expect(AASA_EDGE_KEY).toBe(`${AASA_KEY}.html`);
         expect(contentTypeFor(AASA_KEY)).toBe("application/json");
         expect(contentTypeFor(AASA_EDGE_KEY)).toBe("application/json");
+        // S3 へ実際に渡す値（上げる・上げないの判定の指紋もここから作る）
+        expect(putParamsFor(AASA_KEY).ContentType).toBe("application/json");
+        expect(putParamsFor(AASA_EDGE_KEY).ContentType).toBe("application/json");
         // ほかは今までどおり
         expect(contentTypeFor("spots/abukumado.html")).toBe("text/html");
         expect(contentTypeFor("robots.txt")).toBe("text/plain");
