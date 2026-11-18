@@ -322,5 +322,299 @@
    "https://www.korekawa-jomon.jp/guide/",
    "https://www.korekawa-jomon.jp/floor/"
   ]
+ },
+ {
+  "slug": "hitachi-izumo",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%B8%B8%E9%99%B8%E5%9B%BD%E5%87%BA%E9%9B%B2%E5%A4%A7%E7%A4%BE",
+   "https://izumotaisha.or.jp/",
+   "https://izumotaisha.or.jp/company/",
+   "https://izumotaisha.or.jp/grounds/"
+  ]
+ },
+ {
+  "slug": "ukiha-inari",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%B5%AE%E7%BE%BD%E7%A8%B2%E8%8D%B7%E7%A5%9E%E7%A4%BE",
+   "https://ukiha-inari.jp/"
+  ]
+ },
+ {
+  "slug": "oppoji",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%B9%99%E5%AF%B6%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q11369928",
+   "https://oppouji.info/",
+   "https://oppouji.info/keidai.html"
+  ]
+ },
+ {
+  "slug": "ijimino-ochaya",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%BA%94%E5%8D%81%E5%85%AC%E9%87%8E%E5%BE%A1%E8%8C%B6%E5%B1%8B",
+   "https://www.wikidata.org/wiki/Q11372055",
+   "https://www.city.shibata.lg.jp/shisetsu/kanko/kanko/1005066.html"
+  ]
+ },
+ {
+  "slug": "toyama-botanic-gardens",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%AF%8C%E5%B1%B1%E7%9C%8C%E4%B8%AD%E5%A4%AE%E6%A4%8D%E7%89%A9%E5%9C%92",
+   "https://www.wikidata.org/wiki/Q4948424",
+   "https://www.bgtym.org/",
+   "https://www.bgtym.org/outline/"
+  ]
+ },
+ {
+  "slug": "tsuno-jinja",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E9%83%BD%E8%BE%B2%E7%A5%9E%E7%A4%BE",
+   "https://www.wikidata.org/wiki/Q3541675",
+   "https://tunojinjya6.webnode.jp/",
+   "https://tunojinjya6.webnode.jp/%e9%83%bd%e8%be%b2%e7%a5%9e%e7%a4%be%e5%85%ac%e5%bc%8f%e3%83%9b%e3%83%bc%e3%83%a0%e3%83%9a%e3%83%bc%e3%82%b8%e5%be%a1%e7%94%b1%e7%b7%92/"
+  ]
+ },
+ {
+  "slug": "rokko-alpine-garden",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%85%AD%E7%94%B2%E9%AB%98%E5%B1%B1%E6%A4%8D%E7%89%A9%E5%9C%92",
+   "https://www.wikidata.org/wiki/Q7360060",
+   "https://www.rokkosan.com/hana/"
+  ]
+ },
+ {
+  "slug": "tachibana-ohana",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E7%AB%8B%E8%8A%B1%E6%B0%8F%E5%BA%AD%E5%9C%92",
+   "https://www.wikidata.org/wiki/Q11598174",
+   "https://ohana.co.jp/",
+   "https://ohana.co.jp/about/"
+  ]
+ },
+ {
+  "slug": "akita-castle-ruins",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E7%A7%8B%E7%94%B0%E5%9F%8E",
+   "https://www.wikidata.org/wiki/Q11595283",
+   "https://www.city.akita.lg.jp/kanko/kanrenshisetsu/1003616/1002306.html"
+  ]
+ },
+ {
+  "slug": "selion-akita",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E3%82%BB%E3%83%AA%E3%82%AA%E3%83%B3_%28%E7%A7%8B%E7%94%B0%E5%B8%82%29",
+   "https://www.wikidata.org/wiki/Q11314514",
+   "https://www.selion-akita.com/",
+   "https://www.selion-akita.com/facility/"
+  ]
+ },
+ {
+  "slug": "yosuien",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E9%A4%8A%E7%BF%A0%E5%9C%92",
+   "https://www.wikidata.org/wiki/Q11666865",
+   "https://yosuien.com/",
+   "https://yosuien.com/garden/",
+   "https://yosuien.com/access/"
+  ]
+ },
+ {
+  "slug": "seihakuji-yamanashi",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%B8%85%E7%99%BD%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q3477895",
+   "https://seihakuji.com/",
+   "https://seihakuji.com/history/"
+  ]
+ },
+ {
+  "slug": "mikimoto-pearl-island",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E3%83%9F%E3%82%AD%E3%83%A2%E3%83%88%E7%9C%9F%E7%8F%A0%E5%B3%B6",
+   "https://www.wikidata.org/wiki/Q6849883",
+   "https://www.mikimoto-pearl-island.jp"
+  ]
+ },
+ {
+  "slug": "ninnaji",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%BB%81%E5%92%8C%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q1202871",
+   "https://ninnaji.jp/",
+   "https://ninnaji.jp/precincts/",
+   "https://ninnaji.jp/cherry_tree/",
+   "https://ninnaji.jp/about_outline/"
+  ]
+ },
+ {
+  "slug": "tenryuji",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%A4%A9%E9%BE%8D%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q1759226",
+   "https://www.tenryuji.com/",
+   "https://www.tenryuji.com/about/",
+   "https://www.tenryuji.com/unryuzu/"
+  ]
+ },
+ {
+  "slug": "kyoto-kozanji",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E9%AB%98%E5%B1%B1%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q986750",
+   "https://kosanji.com/",
+   "https://kosanji.com/about/"
+  ]
+ },
+ {
+  "slug": "sakatsura-isosaki-jinja",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E9%85%92%E5%88%97%E7%A3%AF%E5%89%8D%E7%A5%9E%E7%A4%BE",
+   "https://www.wikidata.org/wiki/Q11644289",
+   "https://sakatura.org/",
+   "https://sakatura.org/goyuisyo/"
+  ]
+ },
+ {
+  "slug": "yoshimizu-jinja",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%90%89%E6%B0%B4%E7%A5%9E%E7%A4%BE",
+   "https://www.wikidata.org/wiki/Q3572667",
+   "https://www.yoshimizu-shrine.com/",
+   "https://www.yoshimizu-shrine.com/%E7%94%B1%E7%B7%92-%E6%AD%B4%E5%8F%B2",
+   "https://www.yoshimizu-shrine.com/%E5%A2%83%E5%86%85%E6%A1%88%E5%86%85",
+   "https://www.yoshimizu-shrine.com/%E8%A4%87%E8%A3%BD-%E5%A2%83%E5%86%85%E6%A1%88%E5%86%85"
+  ]
+ },
+ {
+  "slug": "yunogo-onsen",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%B9%AF%E9%83%B7%E6%B8%A9%E6%B3%89",
+   "https://www.wikidata.org/wiki/Q8061351",
+   "https://spa-yunogo.or.jp/",
+   "https://spa-yunogo.or.jp/about/",
+   "https://spa-yunogo.or.jp/enjoy/spot_02.php"
+  ]
+ },
+ {
+  "slug": "izu-shaboten-zoo",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%BC%8A%E8%B1%86%E3%82%B7%E3%83%A3%E3%83%9C%E3%83%86%E3%83%B3%E5%8B%95%E7%89%A9%E5%85%AC%E5%9C%92",
+   "https://www.wikidata.org/wiki/Q11380531",
+   "https://izushaboten.com/",
+   "https://izushaboten.com/animal/petting/"
+  ]
+ },
+ {
+  "slug": "sesshu-no-sato-memorial",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E7%9B%8A%E7%94%B0%E5%B8%82%E7%AB%8B%E9%9B%AA%E8%88%9F%E3%81%AE%E9%83%B7%E8%A8%98%E5%BF%B5%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q17222556",
+   "https://sesshu3.jp/",
+   "https://sesshu3.jp/profile",
+   "https://sesshu3.jp/archives/special-exhibition/current"
+  ]
+ },
+ {
+  "slug": "onomichi-city-museum",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%B0%BE%E9%81%93%E5%B8%82%E7%AB%8B%E7%BE%8E%E8%A1%93%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q11465485",
+   "https://www.onomichi-museum.jp/",
+   "https://www.onomichi-museum.jp/about/"
+  ]
+ },
+ {
+  "slug": "endo-shusaku-literature-museum",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E9%81%A0%E8%97%A4%E5%91%A8%E4%BD%9C%E6%96%87%E5%AD%A6%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q93429",
+   "https://www.city.nagasaki.lg.jp/site/endou/",
+   "https://www.city.nagasaki.lg.jp/site/endou/6670.html"
+  ]
+ },
+ {
+  "slug": "wakayama-museum-of-natural-history",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%92%8C%E6%AD%8C%E5%B1%B1%E7%9C%8C%E7%AB%8B%E8%87%AA%E7%84%B6%E5%8D%9A%E7%89%A9%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q11417475",
+   "https://www.shizenhaku.wakayama-c.ed.jp/",
+   "https://www.shizenhaku.wakayama-c.ed.jp/guidance.html"
+  ]
+ },
+ {
+  "slug": "saitama-peace-museum",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%9F%BC%E7%8E%89%E7%9C%8C%E5%B9%B3%E5%92%8C%E8%B3%87%E6%96%99%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q11426567",
+   "https://www.saitama-peacemuseum.com/",
+   "https://www.saitama-peacemuseum.com/%E5%B1%95%E7%A4%BA%E3%81%AE%E3%81%94%E6%A1%88%E5%86%85"
+  ]
+ },
+ {
+  "slug": "oshu-shoboji",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%AD%A3%E6%B3%95%E5%AF%BA_%28%E5%A5%A5%E5%B7%9E%E5%B8%82%29",
+   "https://www.wikidata.org/wiki/Q11123496",
+   "https://shoboji.net/",
+   "https://shoboji.net/about/",
+   "https://shoboji.net/guide/"
+  ]
+ },
+ {
+  "slug": "chokaido-museum",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%BE%84%E6%87%90%E5%A0%82%E7%BE%8E%E8%A1%93%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q24868589",
+   "https://chokaido.jp",
+   "https://chokaido.jp/hstory/",
+   "https://chokaido.jp/admission/"
+  ]
+ },
+ {
+  "slug": "fukuoka-asian-art-museum",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E7%A6%8F%E5%B2%A1%E3%82%A2%E3%82%B8%E3%82%A2%E7%BE%8E%E8%A1%93%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q3330163",
+   "https://faam.city.fukuoka.lg.jp/",
+   "https://faam.city.fukuoka.lg.jp/event/27520/"
+  ]
+ },
+ {
+  "slug": "seki-museum-of-art",
+  "date": "2026-11-18",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E3%82%BB%E3%82%AD%E7%BE%8E%E8%A1%93%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q123531601",
+   "https://www.seki.co.jp/mus/",
+   "https://www.seki.co.jp/mus/contents/rodin"
+  ]
  }
 ]
