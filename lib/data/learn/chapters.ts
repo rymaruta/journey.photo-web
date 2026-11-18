@@ -15,6 +15,7 @@ import { GEAR_CARE } from "./chapters/gear-care";
 import { GLOSSARY } from "./chapters/glossary";
 import { PRACTICE_30DAYS } from "./chapters/practice-30days";
 import { AUTUMN_LEAVES } from "./chapters/autumn-leaves";
+import { SNOW_SCENERY } from "./chapters/snow-scenery";
 
 const ALL: (Chapter | null)[] = [
     FOCUS_AND_BLUR,
@@ -28,6 +29,7 @@ const ALL: (Chapter | null)[] = [
     GLOSSARY,
     PRACTICE_30DAYS,
     AUTUMN_LEAVES,
+    SNOW_SCENERY,
 ];
 
 export const CHAPTERS: Chapter[] = ALL.filter((c): c is Chapter => c !== null)
