@@ -17,17 +17,17 @@ const workflow = strip(readFileSync(join(root, ".github", "workflows", "deploy.y
 
 describe("本番の反映が S3 への書き込みで時間切れにならない", () => {
     it("HTML を1件ずつ順に書いていない", () => {
-        expect(script).not.toMatch(/for\s*\(const\s+\w+\s+of\s+htmlFiles\)\s*await\s+uploadFile/);
+        expect(script).not.toMatch(/for\s*\(const\s+\w+\s+of\s+(?:htmlFiles|htmlPlan\.upload)\)\s*await\s+uploadFile/);
     });
 
     it("HTML も素材と同じ並び（runPool）で書く", () => {
-        expect(script).toMatch(/await\s+runPool\(htmlFiles,\s*uploadFile/);
+        expect(script).toMatch(/await\s+runPool\(htmlPlan\.upload,\s*uploadFile/);
     });
 
     it("素材を上げ終えてから HTML を書く（順番は崩さない）", () => {
         const images = script.indexOf("await runPool(imageAssets, uploadFile");
         const assets = script.indexOf("await runPool(otherAssets, uploadFile");
-        const html = script.indexOf("await runPool(htmlFiles, uploadFile");
+        const html = script.indexOf("await runPool(htmlPlan.upload, uploadFile");
         expect(images).toBeGreaterThan(-1);
         expect(assets).toBeGreaterThan(images);
         expect(html).toBeGreaterThan(assets);
@@ -37,7 +37,7 @@ describe("本番の反映が S3 への書き込みで時間切れにならない
     it("素材のうち画像（images/）を先に上げ終えてから、残り（JSON など）を上げる", () => {
         // eslint-disable-next-line @typescript-eslint/no-require-imports
         const { splitImagesFirst } = require("../deploy-static-site.js");
-        expect(script).toMatch(/splitImagesFirst\(assets\)/);
+        expect(script).toMatch(/splitImagesFirst\(assetPlan\.upload\)/);
         expect(splitImagesFirst([
             "app/data/spots.json", "images/spots/thumb/a.jpg", "images/spots/a.jpg", "_next/static/x.js", "imagesx/y.png",
         ])).toEqual({

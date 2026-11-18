@@ -18,6 +18,13 @@ on:
     branches:
       - main
   workflow_dispatch:
+    inputs:
+      # 中身も付け方も前回と同じファイルは S3 に書かない（2026-11-18・`planUploads`）。
+      # 付け方の変更は控えとの比べで自動で書き直すが、控えが信用できないときの逃げ道として全部を書き直す
+      fullUpload:
+        description: "中身が同じファイルも全部 S3 に書き直す（約5万件・1回 約0.25ドル）"
+        type: boolean
+        default: false
   # 退会・写真削除・非公開のあとに API から呼ばれる。
   # 静的エクスポートなので、実体を消しても配ってある HTML は残り続ける。
   # 定期ビルドを止めている今、ここが唯一の掃除経路。
@@ -474,6 +481,8 @@ jobs:
           # 1人が全部の写真を持っている今は退会1回で 88% が消える。
           # push / 手動実行では外さない（out/ が本番より貧しいときに止める）。
           ALLOW_BULK_DELETE: ${{ github.event_name == 'repository_dispatch' && '1' || '0' }}
+          # 手動実行で `fullUpload` を選んだときだけ全部を書き直す（push・repository_dispatch では空＝0）
+          DEPLOY_FULL_UPLOAD: ${{ github.event_name == 'workflow_dispatch' && inputs.fullUpload && '1' || '0' }}
         run: |
           set -euo pipefail
           if [ "$ENV_NAME" = "prod" ]; then
