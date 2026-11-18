@@ -18,7 +18,7 @@
 
 import { SPOTS, type Spot, type SpotSeason } from "./spots";
 import { visibleSpots, isPublished } from "../utils/spotGuide";
-import { spotCoverImage, spotCoverLarge, spotCoverSize } from "./spotImages";
+import { spotCoverImage, spotCoverSize } from "./spotImages";
 import { spotThumbSrc, spotThumbExists } from "./spotThumbs";
 import { COUNTRY_SHARD_KEYS } from "./spotFeedShards";
 import { REGIONS, prefectureByName, OVERSEAS_SLUG, OVERSEAS_NAME, type RegionName } from "./prefectures";
@@ -45,8 +45,8 @@ export const SEASON_JA: Record<SpotSeason, string> = { spring: "春", summer: "�
 export const SEASON_EN: Record<SpotSeason, string> = { spring: "Spring", summer: "Summer", autumn: "Autumn", winter: "Winter" };
 
 /**
- * 季節の案内の文に出てくる、検索でよく打たれる語（導入文で件数を数えるだけ）。
- * **頁の題には使わない**——秋の頁の全部が紅葉の案内ではない
+ * 季節の案内の文に出てくる、検索でよく打たれる語（導入文で件数を数える）。
+ * **頁の題を語だけにしない**——秋の頁の全部が紅葉の案内ではない。題では「紅葉の名所N か所も」と一部の数で言う（`seasonTitle`・2026-11-18）
  */
 const SEASON_KEYWORD: Partial<Record<SpotSeason, string>> = { spring: "桜", autumn: "紅葉", winter: "雪" };
 // 夏は置かない（多いのは「緑」「青」で、季節らしさを言う語にならない・2026-10-11 台帳で数えた）
@@ -441,32 +441,48 @@ export function topicCards(spots: readonly Spot[]): TopicCard[] {
 }
 
 /**
- * OGP の画像の1枚（**元の大きさ**の代表写真・サムネは 240px で小さすぎる）。寸法つき。
- * 2026-10-22: 横 1,200px 以上の版（`spotCoverLarge`・Commons の 1280px）があればそれ、無ければサイトに置いた 960px
+ * OGP の画像の1枚（**サイトに置いた代表写真**・横 960px。サムネの 240px ではない）。寸法つき。
+ *
+ * 2026-11-18 判断（札 journey.photo-ios#432 の続き・検索と共有から人を呼ぶ）: 一覧の頁（季節・紅葉・テーマ・県・
+ * `/spots`）の og:image を、Wikimedia Commons への直リンク（横 1280px・2026-10-22）から**自前の画像**に替えた。
+ * 共有の絵を取りに来る相手（LINE・Facebook など）が Commons に断られると、カードに絵が出ない
+ * （2026-11-18、この作業の回線から Facebook の取りに来る名乗りで Commons の 1280px を頼むと 403 だった）。
+ * 自前の画像は同じ写真をサイトに置いた縮小版（`localize-spot-images.mjs`・横 960px）。
+ * 横 1,200px に届かないので Discover の大きな絵の条件は満たさない——一覧の頁は Discover より検索結果と共有が主なので、
+ * 確実に出る方を取った。**スポットの頁（`spotSeoImage`）・画像サイトマップは Commons の 1280px のまま**
  */
-function coverOgOf(s: Spot): { src: string; alt: string; width?: number; height?: number; large: boolean } | undefined {
+function coverOgOf(s: Spot): { src: string; alt: string; width?: number; height?: number } | undefined {
     const c = spotCoverImage(s);
     if (!c?.src) return undefined;
-    const alt = c.alt || s.name;
-    const large = spotCoverLarge(s);
-    if (large) return { src: large.src, alt, width: large.width, height: large.height, large: true };
-    return { src: c.src, alt, ...spotCoverSize(s), large: false };
+    return { src: c.src, alt: c.alt || s.name, ...spotCoverSize(s) };
+}
+
+/** og:image に使う最小の幅（自前の縮小版の横 960px を通し、小さく作られた17枚を後回しにする） */
+export const TOPIC_OG_MIN_WIDTH = 900;
+
+/** 外の画像（Commons など）を og:image に出さない。サイトの中の道（`/images/…`）か、サイトのドメインだけ */
+export function isOwnImageSrc(src: string): boolean {
+    if (src.startsWith("/") && !src.startsWith("//")) return true;
+    try {
+        return new URL(src).host === new URL(siteConfig.url).host;
+    } catch {
+        return false;
+    }
 }
 
 /**
- * 並びの順に見て、**横 1,200px 以上の版を持つ最初の行**の代表写真。どの行にも無ければ、写真のある最初の行の
- * 960px（2026-10-22・SEO。1,200 に届かない写真は代表に選ぶ順を下げる）
+ * 並びの順に見て、**自前の画像で横 `TOPIC_OG_MIN_WIDTH` 以上**の最初の行の代表写真。
+ * 無ければ、自前の画像の最初の行（幅は問わない）。自前の画像が1枚も無ければ undefined（サイトの代表画像に落ちる）
  */
 function firstOgCover(spots: readonly Spot[]): TopicView["ogImage"] {
     let fallback: ReturnType<typeof coverOgOf>;
     for (const s of spots) {
         const og = coverOgOf(s);
-        if (!og) continue;
-        if (og.large) return { src: og.src, alt: og.alt, width: og.width, height: og.height };
-        if (!fallback) fallback = og;
+        if (!og || !isOwnImageSrc(og.src)) continue;
+        if ((og.width ?? 0) >= TOPIC_OG_MIN_WIDTH) return og;
+        fallback ??= og;
     }
-    if (!fallback) return undefined;
-    return { src: fallback.src, alt: fallback.alt, ...(fallback.width && fallback.height ? { width: fallback.width, height: fallback.height } : {}) };
+    return fallback;
 }
 
 /** OGP の画像: カードの並び（写真のある行が先）の順で `firstOgCover` */
@@ -622,6 +638,128 @@ export function themeDescription(t: ThemeTopic, cards: readonly TopicCard[]): st
     return out;
 }
 
+// ─────────────────────────────────────────────────────────────
+// 季節・見どころ（紅葉・桜・雪景色）の頁の題と説明（2026-11-18）
+// ─────────────────────────────────────────────────────────────
+//
+// owner（2026-11-18）「アプリや WEB が全然認知されていない」。GSC（10-31 時点の過去28日・札 #432）で
+// 表示 1.21万・クリック 191（押される率 約1.6%）。題は「紅葉の観光スポット36選 | Journey Photo 旅フォトギャラリー」で、
+//   - 日本の人が打つ語（「紅葉 見頃」「京都 紅葉 名所」「桜 名所」）が題にも説明にも無かった（紅葉の頁に「見頃」は0回）
+//   - 「36選」は並べた数で、実際は 170 か所（残りは地方・県の頁）——数で負けて見えた
+//   - 後ろ 17 字がサイト名（検索結果はサイト名を別の行に出す）
+// テーマの頁（`themeTitle`・#527）と同じく、サイト名の template を外した完全な形で、全角 33 以内に収める。
+// 🔴 **見頃の日付・月は書かない**（台帳は春夏秋冬の4つだけ）。「見頃」は「見頃に行きたい」「年や場所で前後します」の言い方だけ。
+
+/**
+ * 題で使う地方の短い呼び名。検索で打たれる形に寄せる（近畿は「関西」）。
+ * 「中国」は国の中国と紛れるので「中国地方」のまま（`REGION_LABEL` と同じ理由）
+ */
+export const REGION_TITLE: Record<RegionName, string> = {
+    "北海道": "北海道", "東北": "東北", "関東": "関東", "中部": "中部",
+    "近畿": "関西", "中国": "中国地方", "四国": "四国", "九州・沖縄": "九州・沖縄",
+};
+
+/**
+ * 季節の見どころ（秋は紅葉・春は桜・冬は雪景色。夏は無い）の題・説明・導入文の言い方。
+ * 本番（main）では紅葉・桜・雪景色の頁（`FEATURES`）が同じ言い方を持つ。develop にはその頁がまだ無いので、季節の頁の分だけ置く
+ */
+type SeasonFeatureWords = { titleNoun: string; descLead: (where: string) => string; peakNote: string };
+export const SEASON_FEATURE_WORDS: Partial<Record<SpotSeason, SeasonFeatureWords>> = {
+    autumn: { titleNoun: "紅葉の名所", descLead: (where) => `秋の紅葉の見頃に行きたい${where ? `${where}の` : ""}名所`, peakNote: "紅葉の見頃は年や場所で前後します。" },
+    spring: { titleNoun: "桜の名所", descLead: (where) => `春の桜の見頃に行きたい${where ? `${where}の` : ""}名所`, peakNote: "桜の見頃は年や場所で前後します。" },
+    winter: { titleNoun: "雪景色の名所", descLead: (where) => `冬の雪景色を見に行きたい${where ? `${where}の` : ""}名所`, peakNote: "雪の量や見頃は年や場所で変わります。" },
+};
+
+/** 候補を上から見て、全角換算 `THEME_TITLE_MAX` に収まる最初の題。どれも収まらなければ `last` */
+function fitTitle(cands: readonly string[], last: string): string {
+    return cands.find((x) => titleWidth(x) <= THEME_TITLE_MAX) ?? last;
+}
+
+/** 名所の名前を添えた題の候補（`themeTitle` と同じ並び。名前の区切りは「、」） */
+function titleWithNames(head: string, cards: readonly TopicCard[], n: number): string[] {
+    const [a, b] = cards.map((c) => c.name);
+    return [
+        ...(a && b && n > 2 ? [`${head}｜${a}、${b}ほか`] : []),
+        ...(a && b && n === 2 ? [`${head}｜${a}、${b}`] : []),
+        ...(a && n > 1 ? [`${head}｜${a}ほか`] : []),
+    ];
+}
+
+const regionBySlug = (slug: string): RegionName | undefined => (Object.keys(REGION_SLUGS) as RegionName[]).find((k) => REGION_SLUGS[k] === slug);
+
+/**
+ * 季節の頁の題。
+ *   全体: 秋の観光スポット1160か所｜紅葉の名所171か所も
+ *   地方: 関西の秋の観光スポット184選｜紅葉の名所30か所も
+ * 「紅葉の名所N か所も」は秋の案内に「紅葉」とある行の数（`hasSeasonKeyword`）。**秋の頁の全部が紅葉ではない**ので
+ * 「も」で一部だと言う。夏（見どころの頁が無い）と、語のある行が `MIN_TOPIC_SPOTS` 件未満の頁
+ * （海外の秋は1件で「紅葉の名所1か所も」になる）は名所の名前を添える
+ */
+export function seasonTitle(t: SeasonTopic, cards: readonly TopicCard[]): string {
+    const n = t.spots.length;
+    const r = t.area && t.area !== OVERSEAS_SLUG ? regionBySlug(t.area) : undefined;
+    const label = !t.area ? "" : t.area === OVERSEAS_SLUG ? `${OVERSEAS_NAME}の` : r ? `${REGION_TITLE[r]}の` : `${t.areaName}の`;
+    const all = cards.length >= n;
+    const head = `${label}${SEASON_JA[t.season]}の観光スポット${all ? `${cards.length}選` : `${n}か所`}`;
+    const f = SEASON_FEATURE_WORDS[t.season];
+    const k = f ? t.spots.filter((s) => hasSeasonKeyword(s, t.season)).length : 0;
+    return fitTitle([
+        ...(f && k >= MIN_TOPIC_SPOTS ? [`${head}｜${f.titleNoun}${k}か所も`] : []),
+        ...titleWithNames(head, cards, n),
+    ], head);
+}
+
+/** 内訳（多い順に `n` 個）を「寺社37か所、山岳34か所」の形に */
+function countsText(pairs: ReadonlyArray<readonly [string, number]>): string {
+    return pairs.map(([x, k]) => `${x}${k}か所`).join("、");
+}
+function categoryTop(spots: readonly Spot[], n = 3): Array<[string, number]> {
+    const m = new Map<string, number>();
+    for (const s of spots) if (s.category) m.set(s.category, (m.get(s.category) ?? 0) + 1);
+    return [...m.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja")).slice(0, n);
+}
+
+/**
+ * 説明を組む: 頭（`lead`）に、収まる文だけを順に足す（**文の途中で切らない**・`THEME_DESCRIPTION_MAX` 字まで）。
+ * 頭は名所の名前を3つ → 2つ → 1つ → 無しの順で、収まる形を使う
+ */
+function fitDescription(lead: (k: number) => string, parts: readonly string[]): string {
+    let out = [3, 2, 1, 0].map(lead).find((x) => [...x].length <= THEME_DESCRIPTION_MAX) ?? lead(0);
+    for (const p of parts) if ([...out].length + [...p].length <= THEME_DESCRIPTION_MAX) out += p;
+    return out;
+}
+const timeSentence = (time: number, n: number) => `${time === n ? "全か所" : `${time}か所`}に時間帯ごとの撮影の案内があります。`;
+
+/**
+ * 季節の頁の説明。
+ * 「秋に行きたい国内外の観光スポット1160か所。阿寺渓谷、寒霞渓、宮島 大聖院など。秋の紅葉の見頃に行きたい名所は171か所。…」
+ */
+export function seasonDescription(t: SeasonTopic, cards: readonly TopicCard[]): string {
+    const n = t.spots.length;
+    const sj = SEASON_JA[t.season];
+    const where = t.area ? t.areaName : "国内外";
+    const f = SEASON_FEATURE_WORDS[t.season];
+    const k = f ? t.spots.filter((s) => hasSeasonKeyword(s, t.season)).length : 0;
+    const regions = t.area ? [] : (() => {
+        const m = new Map<string, number>();
+        for (const s of t.spots) {
+            const r = regionOf(s);
+            const key = r ? REGION_LABEL[r] : OVERSEAS_NAME;
+            m.set(key, (m.get(key) ?? 0) + 1);
+        }
+        return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+    })();
+    const time = timeCount(t.spots);
+    return fitDescription(
+        (c) => `${sj}に行きたい${where}の観光スポット${n}か所。${c > 0 && cards.length > 0 ? `${names(cards, c)}${n > c ? "など" : ""}。` : ""}`,
+        [
+            ...(f && k >= MIN_TOPIC_SPOTS ? [`${f.descLead("")}は${k}か所。`] : []),
+            ...(regions.length > 0 ? [`多いのは${countsText(regions)}。`] : []),
+            ...(time > 0 ? [timeSentence(time, n)] : []),
+        ],
+    );
+}
+
 /** 季節の頁の導入文 */
 export function seasonIntro(t: SeasonTopic, cards: readonly TopicCard[]): string {
     const n = t.spots.length;
@@ -632,7 +770,9 @@ export function seasonIntro(t: SeasonTopic, cards: readonly TopicCard[]): string
     const kw = SEASON_KEYWORD[t.season];
     if (kw) {
         const k = t.spots.filter((s) => hasSeasonKeyword(s, t.season)).length;
-        if (k > 0) text += `うち${k}件は${label}の案内に「${kw}」の記述があります。`;
+        // 見頃の1文（日付は書かない・2026-11-18）
+        const f = SEASON_FEATURE_WORDS[t.season];
+        if (k > 0) text += `うち${k}件は${label}の案内に「${kw}」の記述があります。${f ? f.peakNote : ""}`;
     }
     if (!t.area) {
         // 全体の頁は地方の内訳（多い順に3つ）
@@ -842,7 +982,9 @@ export function seasonView(season: string, area: string | null, spots: readonly 
             { heading: "ほかの季節", headingEn: "Other seasons", links: otherSeasons.map(seasonLink) },
         ].filter((g) => g.links.length > 0),
         indexable: true,
-        descriptionExtra: timeGuideNote(t.spots),
+        // 題・説明は検索で打たれる語に合わせて頁ごとに組む（2026-11-18・`seasonTitle`）
+        title: seasonTitle(t, cards),
+        description: seasonDescription(t, cards),
         ogImage: ogImageOf(t.spots, cards),
         lastModified: latest(t.spots),
     };
@@ -866,14 +1008,14 @@ export function topicStructuredData(view: TopicView) {
 }
 
 /**
- * **OGP の画像に使う代表写真**（台帳の順で、代表写真を持つ最初の行の元の大きさ）。
+ * **OGP の画像に使う代表写真**（台帳の順で、サイトに置いた代表写真を持つ最初の行）。
  * 撮影スポットの入口（`/spots`）は子の `openGraph` が親の画像を消すので、絵が無かった（2026-10-16）
  */
 export function firstSpotOgImage(
     spots: readonly Spot[],
     alt: string,
 ): { url: string; alt: string; width?: number; height?: number } | undefined {
-    // 2026-10-22: 横 1,200px 以上の版を持つ行を先に（`firstOgCover`）
+    // 2026-11-18: サイトに置いた代表写真（横 960px）を持つ行を先に（`firstOgCover`。外の画像を og:image に出さない）
     const og = firstOgCover(spots);
     if (!og) return undefined;
     return {

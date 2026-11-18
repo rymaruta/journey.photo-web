@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteConfig, generateHomeStructuredData, FEED_ALTERNATE, shareOgImage, shareImageUrl } from "../lib/utils/seo";
+import { siteConfig, generateHomeStructuredData, FEED_ALTERNATE, shareOgImage, shareImageUrl, HOME_TITLE, HOME_DESCRIPTION } from "../lib/utils/seo";
 import { loadAllPhotos } from "../lib/server/photos";
 import GalleryPageClient from "./GalleryPageClient";
 import { homeSeasonalSpots } from "../lib/data/spotTopics";
@@ -8,8 +8,8 @@ import { homeSeasonalSpots } from "../lib/data/spotTopics";
 // （2026-10-31 はスーパーのぶどう）が共有カードと Google の検索結果に出ていた
 export async function generateMetadata(): Promise<Metadata> {
     return {
-        title: siteConfig.name,
-        description: siteConfig.description,
+        title: { absolute: HOME_TITLE },
+        description: HOME_DESCRIPTION,
         keywords: [
             "旅行写真", "旅フォト", "旅の写真", "旅行記", "フォトギャラリー",
             "風景写真", "スナップ写真", "海外旅行", "国内旅行",
@@ -27,15 +27,15 @@ export async function generateMetadata(): Promise<Metadata> {
             locale: "ja_JP",
             url: siteConfig.url,
             siteName: siteConfig.name,
-            title: siteConfig.name,
-            description: siteConfig.description,
+            title: HOME_TITLE,
+            description: HOME_DESCRIPTION,
             images: [shareOgImage()],
         },
         // 子が `twitter` を書かないとルートの値が残る。ここでも同じ1枚を明示する
         twitter: {
             card: "summary_large_image",
-            title: siteConfig.name,
-            description: siteConfig.description,
+            title: HOME_TITLE,
+            description: HOME_DESCRIPTION,
             images: [shareImageUrl()],
             creator: siteConfig.twitterHandle,
         },
