@@ -79,9 +79,15 @@ describe("applyStableBuildId（ビルドIDを画面の JS の指紋にする）"
 
     it("置き換えられない所に旧IDが残っていたら止める", () => {
         const a = fakeOut("a", SHA_A);
-        // 一覧に無い拡張子のファイルに、頭の24文字だけが入っている
-        put(a, "odd.bin", `x${SHA_A.slice(0, 24)}x`);
+        // 置き換えの組に無い形（頭の24文字だけ・コメントの形でない）で入っている
+        put(a, "odd.html", `<p>${SHA_A.slice(0, 24)}</p>`);
         expect(() => applyStableBuildId(a, SHA_A)).toThrow(/旧ID/);
+    });
+
+    it("画像の中のバイトが偶然一致しても止めない（中身を見るのは文字のファイルだけ）", () => {
+        const a = fakeOut("a", SHA_A);
+        put(a, "images/spots/thumb/x.jpg", `\xff${SHA_A.slice(0, 24)}\xd9`);
+        expect(() => applyStableBuildId(a, SHA_A)).not.toThrow();
     });
 
     it("想定の形でないビルドIDは止める", () => {

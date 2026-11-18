@@ -102,8 +102,12 @@ function applyStableBuildId(outDir, buildId) {
     // 旧IDの 24 文字がどこかに残っていたら止める（合言葉が半分だけ変わったビルドを配らない）
     const leftovers = [];
     for (const f of walk(outDir)) {
-        // 文字のファイル以外（画像など）も見る。拡張子の一覧の漏れで、置き換え損ねたファイルを見逃さない
-        if (f.includes(fromHead) || fs.readFileSync(path.join(outDir, f)).includes(fromHead)) leftovers.push(f);
+        // 中身を見るのは文字のファイルと拡張子の無いファイルだけ。画像の中のバイトの並びが偶然一致して止まらないように
+        // （2026-11-18 の確かめで、`bbbb…` の仮の ID が spots/thumb の JPEG の中に偶然あって止まった。
+        // 本物の sha の 24 桁がバイナリに偶然現れることはまず無いが、止まる側の害が大きい）
+        const ext = path.extname(f);
+        const scan = ext === "" || TEXT_EXT.has(ext);
+        if (f.includes(fromHead) || (scan && fs.readFileSync(path.join(outDir, f)).includes(fromHead))) leftovers.push(f);
         if (leftovers.length >= 5) break;
     }
     if (leftovers.length > 0) {
