@@ -181,6 +181,39 @@ function copyPhotosJsonIntoOut() {
     }
 }
 
+/**
+ * **アプリのリンクの宣言（AASA）**（2026-11-18・札 rymaruta/journey.photo-ios#545 の段2「Web に来た人をアプリへつなぐ」）。
+ * `public/.well-known/apple-app-site-association`。iOS はこれを読んで、journey-photo.com のリンクをアプリで開く。
+ *
+ * Apple の決まり: `https://<ドメイン>/.well-known/apple-app-site-association` が**リダイレクト無しの 200**、
+ * 中身は JSON（`Content-Type: application/json`）。
+ *
+ * 🔴 **同じ中身を `.html` の鍵にも置く。** 本番の CloudFront の viewer-request（Lambda@Edge
+ * `photo-gallery-ogp-viewer-request`・このリポジトリには無い）は「拡張子の無いパス → `.html` を付ける」ので、
+ * `/.well-known/apple-app-site-association` は S3 の `.well-known/apple-app-site-association.html` を読みに行く
+ * （2026-11-18 に関数の中身を読んで確かめた: `if (!/\.[a-zA-Z0-9]+$/.test(uri)) request.uri = uri + ".html"`）。
+ * 関数を変えずに済むよう、その鍵にも同じ JSON を置き、**どちらも `application/json` で上げる**（`contentTypeFor`）。
+ * 素の鍵は、関数を直した日のため（そのとき `.html` の写しを消せばよい）
+ */
+const AASA_KEY = ".well-known/apple-app-site-association";
+const AASA_EDGE_KEY = `${AASA_KEY}.html`;
+
+function copyAasaForEdgeRewrite() {
+    const src = path.join(outDir, AASA_KEY);
+    if (!fs.existsSync(src)) {
+        // public/ にあるのに out/ に無い＝ビルドが写していない。黙って出すと 404 のまま気付かない
+        throw new Error(`[deploy] out/${AASA_KEY} がありません（public/.well-known/ が書き出されていない）`);
+    }
+    fs.copyFileSync(src, path.join(outDir, AASA_EDGE_KEY));
+    console.log(`[deploy] Copied ${AASA_KEY} → ${AASA_EDGE_KEY}（CloudFront の .html の書き換えのため）`);
+}
+
+/** 上げるときの Content-Type。AASA は拡張子が無い（`.html` の写しもある）ので JSON と名指しする */
+function contentTypeFor(key) {
+    if (key === AASA_KEY || key === AASA_EDGE_KEY) return "application/json";
+    return mimeLookup(key) || "application/octet-stream";
+}
+
 const region = "ap-northeast-1";
 const s3 = new S3Client({ region });
 const cf = new CloudFrontClient({ region });
@@ -290,7 +323,7 @@ function cacheControlFor(key) {
  */
 function putParamsFor(key) {
     return {
-        ContentType: mimeLookup(key) || "application/octet-stream",
+        ContentType: contentTypeFor(key),
         // 長いキャッシュを許すのは内容ハッシュ付きのものだけ（_next/static/**）。
         //
         // 以前は「HTML でなければ1年 immutable」だったので、public/ にある
@@ -1065,6 +1098,7 @@ async function main() {
     console.log(`\n[deploy] Uploading ${outDir} → s3://${bucket}/`);
 
     copyPhotosJsonIntoOut();
+    copyAasaForEdgeRewrite();
     const allFiles = collectFiles(outDir);
     // robots.txt は必ずある（app/robots.ts が静的に出す）。無い＝ビルドが
     // 途中で終わっているので、それも止める。
@@ -1181,6 +1215,7 @@ module.exports = {
     FORBIDDEN_IN_OUTPUT, forbiddenPattern, shouldScan, classifyStaleObjects, deletesImmediately, isHtmlOrTxt, isRevalidatedEachTime,
     planUploads, putParamsFor, putParamsFingerprint, remoteEtagMap, encodeDeployState, decodeDeployState, DEPLOY_STATE_KEY, ASSET_GRACE_MS, invalidationPathsFor, changedKeys, isInvalidatable, cacheControlFor,
     bulkDeleteGuard, BULK_DELETE_RATIO, BULK_DELETE_MIN, deleteStaleKeys,
+    contentTypeFor, AASA_KEY, AASA_EDGE_KEY,
     pageCheckTargets, runnerLooksReachable };
 
 if (require.main === module) main().catch(err => {

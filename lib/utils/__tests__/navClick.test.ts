@@ -17,7 +17,8 @@ describe("nav_click の仕様", () => {
     });
 
     it("app_store_click の placement に spot_detail がある（既存の値も残る）", () => {
-        expect([...APP_STORE_PLACEMENTS]).toEqual(["footer", "banner", "article", "home", "spot_detail"]);
+        // spot_open_app は観光スポットの頁の「アプリで保存」（2026-11-18・札 journey.photo-ios#545）
+        expect([...APP_STORE_PLACEMENTS]).toEqual(["footer", "banner", "article", "home", "spot_detail", "spot_open_app"]);
         expect(sanitizeParams("app_store_click", { placement: "spot_detail" })).toEqual({ placement: "spot_detail" });
     });
 
