@@ -67,7 +67,8 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     title: {
       default: siteConfig.name,
-      template: `%s | Journey Photo 旅フォトギャラリー`,
+      // 2026-11-18: サイト名の部分を短く（「 | Journey Photo 旅フォトギャラリー」の 17 字で、頁の題が検索結果で切れていた）
+      template: `%s | Journey Photo`,
     },
     description: siteConfig.description,
     keywords: [
