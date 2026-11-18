@@ -145,7 +145,12 @@ function main() {
     try {
         console.log("[build] next build を実行...\n");
         execSync("npx next build", { stdio: "inherit", cwd: root });
+        // ビルドIDを「画面の JS の中身」から決め直す（`scripts/lib/stableBuildId.js`）。
+        // コミットの sha のままだと、データも JS も同じでも全ページが毎回「変わった」になり、S3 に全部を書き直す
+        stabilizeBuildId();
     } catch (err) {
+        // next build の失敗（status あり）は自分で出力済み。それ以外（ビルドIDの置き換えなど）は理由を出す
+        if (err.status === undefined) console.error(err.message ?? err);
         exitCode = err.status ?? 1;
     } finally {
         console.log("\n[build] app/api を復元...");
@@ -157,6 +162,17 @@ function main() {
     }
 
     process.exit(exitCode);
+}
+
+/**
+ * `next build` が書いた `.next/BUILD_ID`（＝`generateBuildId`・コミットの sha）を、`out/` の中で
+ * 画面の JS の指紋に置き換える。失敗したらビルドを失敗にする（呼び出し側の catch が終了コードにする）
+ */
+function stabilizeBuildId() {
+    const { applyStableBuildId } = require("./lib/stableBuildId.js");
+    const buildId = fs.readFileSync(path.join(root, ".next", "BUILD_ID"), "utf8").trim();
+    const { from, to, files } = applyStableBuildId(path.join(root, "out"), buildId);
+    console.log(`[build] ビルドIDを画面の JS の指紋にしました: ${from} → ${to}（${files} ファイル）`);
 }
 
 if (require.main === module) main();
