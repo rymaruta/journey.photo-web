@@ -22,6 +22,7 @@ import { CARD, ROW_TALL, ROW_ICON_BOX, ROW_ICON, ROW_TITLE, ROW_SUB, ROW_CHEVRON
 import SaveSpotButton, { TILE, TILE_OFF, TILE_TEXT, TILE_ICON, TILE_MIN_H } from "./SaveSpotButton";
 import { spotUploadHref } from "@/lib/utils/spotUpload";
 import SpotNext, { NEARBY_SECTION_ID } from "./SpotNext";
+import OpenInAppButton from "./OpenInAppButton";
 import { lightCellText, lightLegend, type LightCalendar } from "../../lib/utils/lightCalendar";
 import { LIGHT_MAX_OFFSET, direction, guideTimes, lightDateLabel, lightNote, lightSheet, lightZone, splitGuides, type LightBlock } from "../../lib/utils/spotLight";
 import { MILKY_WAY_MIN_ALTITUDE, directionSummary, milkyWaySummary, newMoonLabels, skyLead, type SpotSky } from "../../lib/utils/spotSky";
@@ -868,6 +869,8 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         <span className={TILE_TEXT}>{isJa ? "シェア" : "Share"}</span>
                     </button>
                 </div>
+                {/* iPhone で見ている人だけ「アプリで保存」（2026-11-18・札 journey.photo-ios#545・`OpenInAppButton`） */}
+                <OpenInAppButton slug={spot.slug} isJa={isJa} />
                 </div>
 
                 {/* ── 3b. 次へ（2026-11-09・入口の案C）──────

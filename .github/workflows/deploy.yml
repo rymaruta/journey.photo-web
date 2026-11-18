@@ -17,6 +17,27 @@ on:
   push:
     branches:
       - main
+    # **サイトの出力（out/）に効かない変更だけの push では動かない**（2026-11-18・owner「不要なとこもデプロイされて
+    # 料金かかってないか」）。11月の main への push 136 回のうち 13 回は、API だけ・テストだけ・文書・ほかのワークフロー
+    # だけの変更だった。1回あたり Actions 約40分と、S3 の書き込み。
+    # 外すのは、ビルド（scripts/prepare-static-build.js → next build。tsconfig は api・api-user を exclude）が
+    # 読まない所だけ。lib/・scripts/・content/・public/ のように Web と API の両方・ビルドが使う所は外さない。
+    # 外した所をサイトのコードが読み始めたら `scripts/__tests__/deployPaths.test.ts` が落ちる。
+    # GitHub の paths は「どれか1つでも残るファイルがあれば動く」・後ろの行が勝つ。
+    # repository_dispatch（写真の削除・退会の掃除）と手動実行はこの絞りを受けない。
+    paths:
+      - "**"
+      - "!api/**"
+      - "!api-user/**"
+      - "!docs/**"
+      - "!**.md"
+      - "!**/__tests__/**"
+      - "!**.test.ts"
+      - "!**.test.tsx"
+      - "!**.test.js"
+      - "!**.test.mjs"
+      - "!.github/**"
+      - ".github/workflows/deploy.yml"
   workflow_dispatch:
     inputs:
       # 中身も付け方も前回と同じファイルは S3 に書かない（2026-11-18・`planUploads`）。

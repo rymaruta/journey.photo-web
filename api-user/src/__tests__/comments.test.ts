@@ -12,6 +12,7 @@ vi.mock("../liveCaller", async (orig) => ({
 }));
 
 const mockDdbSend = vi.hoisted(() => vi.fn());
+const mockScrub = vi.hoisted(() => vi.fn(async (..._a: unknown[]) => undefined));
 const mockPush = vi.hoisted(() => vi.fn());
 const mockLookup = vi.hoisted(() => vi.fn());
 
@@ -31,6 +32,7 @@ vi.mock("../notify", () => ({
     deletedAmong: async (ids: unknown) => ({ deleted: await mockDeletedIds(ids), unread: mockUnreadIds() }),
     withUnreadAsDeleted: (r: { deleted: Set<string>; unread: Set<string> }) => new Set([...r.deleted, ...r.unread]),
     DELETED_USER_NAME: "退会したユーザー",
+    scrubCommentNotifText: (...a: unknown[]) => mockScrub(...a),
 }));
 
 const mockIsBlocked = vi.hoisted(() => vi.fn(async () => false));
@@ -62,6 +64,7 @@ function ev(sub: string | undefined, params: Record<string, string> | undefined,
 beforeEach(() => {
     mockUnreadIds.mockReset().mockReturnValue(new Set<string>());
     mockDdbSend.mockReset();
+    mockScrub.mockReset().mockResolvedValue(undefined);
     mockDeletedIds.mockReset().mockResolvedValue(new Set<string>());
     mockPush.mockReset().mockResolvedValue(undefined);
     mockIsBlocked.mockReset().mockResolvedValue(false);
@@ -378,6 +381,19 @@ describe("deleteComment", () => {
             .mockResolvedValueOnce({}); // count -1
         const res = await invoke(deleteComment, ev("author", { id: "p1", commentId: "c1" }));
         expect(res.statusCode).toBe(200);
+        // 持ち主のベルに残った本文の抜粋を消す（案 B4）
+        expect(mockScrub).toHaveBeenCalledWith("owner", "c1");
+    });
+
+    it("持ち主が自分のコメントを消したら、ベルを触らない（知らせは積まれていない）", async () => {
+        mockDdbSend
+            .mockResolvedValueOnce({ Item: { userId: "owner" } })
+            .mockResolvedValueOnce({ Item: { items: [{ ...existing[0], uid: "owner" }] } })
+            .mockResolvedValueOnce({})
+            .mockResolvedValueOnce({});
+        const res = await invoke(deleteComment, ev("owner", { id: "p1", commentId: "c1" }));
+        expect(res.statusCode).toBe(200);
+        expect(mockScrub).not.toHaveBeenCalled();
     });
 
     // 削除は `REMOVE #items[i]` で添字を指す。添字は読んだ時点のもので、
