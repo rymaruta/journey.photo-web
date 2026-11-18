@@ -6,7 +6,7 @@ import {
     countryView, themeView, seasonView, overseasView,
     topicStructuredData, topicTitle, topicMetadata, topicLinksForSpot, spotIndexTopics,
     homeSeasonalSpots, seasonOfMonth, SEASON_TOP_CARDS, spotTopicSitemapEntries, themePath, seasonPath,
-    themeBreakdown, THEME_TITLE_MAX, THEME_DESCRIPTION_MAX,
+    themeBreakdown, THEME_TITLE_MAX, THEME_DESCRIPTION_MAX, TOPIC_OG_MIN_WIDTH,
 } from "../spotTopics";
 import { prefectureByName, OVERSEAS_SLUG } from "../prefectures";
 import { siteConfig, INDEXABLE_ROBOTS } from "../../utils/seo";
@@ -257,10 +257,11 @@ describe("季節", () => {
         for (const s of firstSix) expect(s.seasonalGuide!.some((g) => g.season === "autumn" && g.text.includes("紅葉")), s.slug).toBe(true);
         const regionOf = (s: Spot) => (s.region?.country === "日本" ? prefectureByName(s.region?.prefecture)?.region : "海外");
         expect(new Set(firstSix.map(regionOf)).size).toBe(6);
-        // OGP は元の写真（サムネではない）。2026-10-22: 横 1,200px 以上の版（Commons の 1280px）があればそれ
+        // OGP は代表写真（サムネではない）。2026-11-18: サイトに置いた版（横 960px）。外の画像（Commons）にしない
         expect(v.ogImage?.src).toBeTruthy();
         expect(v.ogImage!.src).not.toContain("/images/spots/thumb/");
-        expect(v.ogImage!.width).toBeGreaterThanOrEqual(1200);
+        expect(v.ogImage!.src).toMatch(/^\/images\/spots\//);
+        expect(v.ogImage!.width).toBeGreaterThanOrEqual(TOPIC_OG_MIN_WIDTH);
         const abs = v.ogImage!.src.startsWith("http") ? v.ogImage!.src : `${siteConfig.url}${v.ogImage!.src}`;
         expect(topicMetadata(v).openGraph?.images?.[0].url).toBe(abs);
     });
@@ -278,8 +279,8 @@ describe("説明（description）", () => {
         for (const v of [themeView("temples-shrines", "kyoto")!, countryView("fr")!, seasonView("autumn", "kinki")!, overseasView()]) {
             const d = topicMetadata(v).description!;
             expect(d).not.toContain("撮影ガイドつき");
-            // テーマの頁は自分の説明（`themeDescription`・#527）。ほかは導入文の頭のまま
-            if (v.path.startsWith("/spots/theme/")) expect(d).toBe(v.description);
+            // テーマ（#527）・季節（2026-11-18）の頁は自分の説明。ほかは導入文の頭のまま
+            if (v.path.startsWith("/spots/theme/") || v.path.startsWith("/spots/season/")) expect(d).toBe(v.description);
             else expect(d.startsWith(v.intro.slice(0, 40))).toBe(true);
         }
         const v = countryView("fr")!;

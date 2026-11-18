@@ -131,6 +131,15 @@ export const siteConfig = {
 };
 
 /**
+ * トップの題と説明（2026-11-18・検索から人を呼ぶ）。
+ * 題は「Journey Photo | 旅フォトギャラリー」で「観光スポット」の語が無く、観光スポットの頁（約4,500か所）を持つことが
+ * 検索結果から分からなかった。**サイト名「Journey Photo」は owner が決めるので変えず**、後ろの言い方だけ替える。
+ * 説明は owner の文（`siteConfig.description`・2026-09-20）の後ろに、観光スポットの1文を足す
+ */
+export const HOME_TITLE = "Journey Photo | 旅の写真と観光スポットのフォトギャラリー";
+export const HOME_DESCRIPTION = `${siteConfig.description}観光スポットの見どころと、季節ごとの撮影の案内も載せています。`;
+
+/**
  * **サイトの代表画像（共有カード・検索結果の1枚）**——2026-10-31 判断（札 journey.photo-ios#432 の 4）。
  *
  * それまでトップ・`/map`・`/q`・404 などは `resolveOgImage`（ビルド時の**一番新しい公開写真**）を
