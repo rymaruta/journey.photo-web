@@ -77,8 +77,17 @@ export type Notif = {
      * 端末のバッジ（`sendToDevices`）は、この行をベルの側で数えない（DM の未読で1回だけ数える）
      */
     dmConvId?: string;
-    /** `commentreply` だけ: 返信のコメントの id（押した先でそのコメントへ寄せる） */
+    /**
+     * `commentreply`: 返信のコメントの id。`comment`（2026-11-18 から書く・案 B4）: 付いたコメントの id。
+     * どちらも押した先でそのコメントへ寄せる（アプリは返信の欄を開く）。**`comment` のこの欄より前の行は持たない**
+     */
     commentId?: string;
+    /**
+     * `comment` だけ（2026-11-18 から書く・案 B4）: 本文の抜粋（`commentExcerpt.ts`・1行・80字まで）。
+     * ベルの行に「：「…」」で出す。**端末への知らせには載せない**（ロック画面に本文を出さない・`deliverPush`）。
+     * コメントが消されたら消す（`scrubCommentNotifText`）。**この欄より前の行は持たない**（古い行は今までどおりの文）
+     */
+    text?: string;
     t: string;
 };
 
@@ -406,6 +415,46 @@ export async function pushNotification(ownerId: string, notif: Notif): Promise<v
 }
 
 /**
+ * 消されたコメントの抜粋を、写真の持ち主のベルの行から消す（2026-11-18・案 B4）。
+ *
+ * 書いた人が消した本文が、持ち主のベルにだけ残らないようにする。**行そのものは残す**
+ * （未読は「先頭 n 件」の位置の数なので、行を抜くと未読の数がずれる）。行は「がコメントしました」に戻り、
+ * 押すと写真を開く（コメントが無いので、その位置へは送らない）。
+ *
+ * 添字で消し、「その添字が今もそのコメントの行であること」を条件に付ける（新しい知らせが先頭に
+ * 積まれると添字がずれる）。ずれたら読み直す。**best-effort**——落ちてもコメントの削除は成功のまま
+ */
+export async function scrubCommentNotifText(ownerId: string, commentId: string): Promise<void> {
+    try {
+        for (let attempt = 0; attempt < 3; attempt++) {
+            const res = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: notifsId(ownerId) } }));
+            const items: unknown[] = Array.isArray(res.Item?.items) ? res.Item.items : [];
+            const index = items.findIndex((n) => {
+                const row = n as { commentId?: unknown; text?: unknown } | null;
+                return row?.commentId === commentId && typeof row?.text === "string";
+            });
+            if (index < 0) return;
+            try {
+                await ddb.send(new UpdateCommand({
+                    TableName: PHOTOS_TABLE,
+                    Key: { id: notifsId(ownerId) },
+                    UpdateExpression: `REMOVE #items[${index}].#text`,
+                    ConditionExpression: `#items[${index}].commentId = :cid`,
+                    ExpressionAttributeNames: { "#items": "items", "#text": "text" },
+                    ExpressionAttributeValues: { ":cid": commentId },
+                }));
+                return;
+            } catch (e) {
+                if ((e as { name?: string }).name !== "ConditionalCheckFailedException") throw e;
+                // 添字がずれた（新しい知らせが積まれた・切り詰めた）。読み直す
+            }
+        }
+    } catch (e) {
+        console.error("scrubCommentNotifText error:", e);
+    }
+}
+
+/**
  * 端末の `Localizable.strings` の鍵。**文面はサーバーで作らない**
  * ——相手の言語を知らないので、作ると英語の端末にも日本語が届く。
  *
@@ -509,7 +558,7 @@ async function deliverPush(ownerId: string, notif: Notif, storedUnread?: unknown
             ...(notif.sourcePhotoId ? { sourcePhotoId: notif.sourcePhotoId } : {}),
             // ストーリーへの文字の返信が DM の受信箱に入った: 押した先に会話を選べるよう会話 ID を添える
             ...(notif.dmConvId ? { convId: notif.dmConvId } : {}),
-            // コメントへの返信: 押した先でそのコメントへ寄せる
+            // コメント・コメントへの返信: 押した先でそのコメントへ寄せる。**本文（`text`）は載せない**
             ...(notif.commentId ? { commentId: notif.commentId } : {}),
         },
     });
