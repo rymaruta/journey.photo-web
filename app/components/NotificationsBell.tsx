@@ -57,8 +57,13 @@ type Notif = {
     tier?: number;
     /** `inspired` だけ: 元になった（自分の）写真 */
     sourcePhotoId?: string;
-    /** `commentreply` だけ: 返信のコメント（押すとそのコメントの位置へ） */
+    /**
+     * `commentreply`: 返信のコメント。`comment`（2026-11-18 から・案 B4）: 付いたコメント。
+     * どちらも押すとそのコメントの位置へ（`commentReplyHref`）
+     */
     commentId?: string;
+    /** `comment` だけ（2026-11-18 から・案 B4）: 本文の抜粋（サーバーが 80 字で切る）。行に「：「…」」で出す */
+    text?: string;
     t: string;
 };
 
@@ -940,6 +945,13 @@ export default function NotificationsBell() {
                                                     {locale === "en"
                                                         ? <><span className="font-semibold">{n.byName}</span> commented on your photo</>
                                                         : <><span className="font-semibold">{n.byName}</span> さんがあなたの写真にコメントしました</>}
+                                                    {/* 本文の1行（2026-11-18・案 B4、板 Notifications「：「稜線の色がきれいですね」」）。
+                                                        古い行（抜粋を持たない）・消されたコメントは今までどおりの文だけ */}
+                                                    {typeof n.text === "string" && n.text.trim() !== "" && (
+                                                        <span data-testid="notif-comment-excerpt">
+                                                            {locale === "en" ? `: “${n.text}”` : `：「${n.text}」`}
+                                                        </span>
+                                                    )}
                                                 </>
                                             ) : null /* 知らない種類は何も出さない。
                                                 以前はここが「旅立たせました！」の分岐で、
@@ -1012,7 +1024,7 @@ export default function NotificationsBell() {
                                             href={n.type === "badge" && myId ? ROUTES.USER_PROFILE(myId)
                                                 : n.type === "follow" && n.targetUserId ? ROUTES.USER_PROFILE(n.targetUserId)
                                                 : n.type === "storymention" && byUser ? ROUTES.USER_PROFILE(byUser)
-                                                : n.type === "commentreply" ? commentReplyHref(n.photoId, n.commentId) : ROUTES.PHOTO(n.photoId)}
+                                                : n.type === "commentreply" || n.type === "comment" ? commentReplyHref(n.photoId, n.commentId) : ROUTES.PHOTO(n.photoId)}
                                             onClick={closePanel}
                                             className="flex items-start gap-3 min-w-0 flex-1 active:opacity-80 transition"
                                             style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}

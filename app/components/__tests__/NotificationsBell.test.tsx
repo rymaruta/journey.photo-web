@@ -1721,6 +1721,29 @@ describe("NotificationsBell: 紹介と返信の通知（#541）", () => {
         expect(hrefs).toContain(`/photo/${built}#comment-c9`);
     });
 
+    // 案 B4（2026-11-18）: 持ち主へのコメントの知らせに本文の抜粋とコメントの id
+    it("コメントの行は本文の1行を出し、そのコメントの位置へ飛ぶ（古い行は今までどおり）", async () => {
+        const PHOTO_INDEX = (await import("@/app/data/photo-index.json")).default as { photoIds: string[] };
+        const built = PHOTO_INDEX.photoIds[0];
+        expect(built, "索引に写真が無い（この試験が何も確かめない）").toBeTruthy();
+        const NEW = { type: "comment", photoId: built, photoSrc: "https://c/p.webp", byName: "霧の人", byId: "u9", commentId: "c5", text: "稜線の色がきれいですね", t: "2026-07-10T02:00:00Z" };
+        const OLD = { type: "comment", photoId: "p-old", photoSrc: "https://c/o.webp", byName: "朝凪", byId: "u10", t: "2026-07-10T00:30:00Z" };
+        mockUserFetch.mockImplementation((url: string) => Promise.resolve(
+            url === "/user/following" ? fetchOk({ userIds: [] }) : fetchOk({ items: [NEW, OLD], unread: 2 }),
+        ));
+        render(<NotificationsBell />);
+        await waitFor(() => expect(mockUserFetch).toHaveBeenCalled());
+        fireEvent.click(screen.getByRole("button", { name: "通知" }));
+        await waitFor(() => expect(screen.getByText(/霧の人/)).toBeTruthy());
+        expect(screen.getByText(/霧の人/).closest("p")?.textContent)
+            .toBe("霧の人 さんがあなたの写真にコメントしました：「稜線の色がきれいですね」");
+        expect(screen.getByText(/朝凪/).closest("p")?.textContent).toBe("朝凪 さんがあなたの写真にコメントしました");
+        expect(screen.getAllByTestId("notif-comment-excerpt")).toHaveLength(1);
+        const hrefs = screen.getAllByRole("link").map((a) => a.getAttribute("href"));
+        expect(hrefs).toContain(`/photo/${built}#comment-c5`);
+        expect(hrefs).toContain("/?photo=p-old");
+    });
+
     it("返信は「コメント」のタブに入り、紹介は「すべて」だけ", async () => {
         const { inTab } = await import("../NotificationsBell");
         expect(inTab("commentreply", "comment")).toBe(true);
