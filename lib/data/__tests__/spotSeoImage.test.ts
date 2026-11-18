@@ -13,7 +13,7 @@ import { publishableSpots } from "../../utils/spotGuide";
 import { siteConfig } from "../../utils/seo";
 import { generateMetadata } from "../../../app/spots/[slug]/page";
 import { spotImageEntries } from "../../../app/sitemap-images.xml/route";
-import { firstSpotOgImage, seasonView, topicMetadata, areaStructuredData } from "../spotTopics";
+import { firstSpotOgImage, seasonView, topicMetadata, areaStructuredData, TOPIC_OG_MIN_WIDTH } from "../spotTopics";
 import { spotAreas, visibleSpotsInArea } from "../spotLink";
 import SpotGuidePage from "../../../app/components/SpotGuidePage";
 import { usableLarge, knownSizes, normalizeLarge, applyLarge } from "../../../scripts/spot-cover-large.mjs";
@@ -253,19 +253,21 @@ describe("実データ（2026-10-22）", () => {
         expect(new Set(srcs).size).toBe(srcs.length);
     });
 
-    it("🔴 県・まとめの頁の OGP に幅・高さ（topicMetadata・areaStructuredData）", () => {
+    it("🔴 県・まとめの頁の OGP に幅・高さ（topicMetadata・areaStructuredData）・自前の画像（2026-11-18）", () => {
         const view = seasonView("autumn", null)!;
         const meta = topicMetadata(view);
         const og = meta.openGraph!.images![0] as { url: string; width?: number; height?: number };
-        expect(og.width).toBeGreaterThanOrEqual(1200);
+        // 一覧の頁の og:image はサイトに置いた代表写真（横 960px）。Commons への直リンクにしない
+        expect(og.url.startsWith(`${siteConfig.url}/images/spots/`), og.url).toBe(true);
+        expect(og.width).toBeGreaterThanOrEqual(TOPIC_OG_MIN_WIDTH);
         expect(og.height).toBeGreaterThan(0);
         // X のカードも同じ1枚（レイアウトの新着写真を残さない）
         expect((meta as { twitter?: { images?: string[] } }).twitter?.images).toEqual([og.url]);
         const area = spotAreas().find((a) => visibleSpotsInArea(a.slug).some((x) => spotCoverSeoSource(x)?.large))!;
         const { ogImage } = areaStructuredData(area, visibleSpotsInArea(area.slug));
-        expect(ogImage!.width).toBeGreaterThanOrEqual(1200);
+        expect(ogImage!.width).toBeGreaterThanOrEqual(TOPIC_OG_MIN_WIDTH);
         expect(ogImage!.height).toBeGreaterThan(0);
-        expect(ogImage!.url).toMatch(new RegExp(`/${ogImage!.width}px-`));
+        expect(ogImage!.url.startsWith(`${siteConfig.url}/images/spots/`), ogImage!.url).toBe(true);
     });
 
     it("🔴 ページの構造化データの代表写真（ImageObject）も横 1,200px 以上の版で、幅・高さつき", async () => {
@@ -287,10 +289,11 @@ describe("実データ（2026-10-22）", () => {
         expect(e.images.some((i) => i.src.endsWith(`/images/spots/${hit.slug}.jpg`))).toBe(false);
     });
 
-    it("🔴 県・まとめの頁の OGP も、1,200px 以上の版を持つ行を先に選ぶ", () => {
+    it("🔴 県・まとめの頁の OGP は自前の画像（横 TOPIC_OG_MIN_WIDTH 以上）を先に選ぶ・外の画像を出さない（2026-11-18）", () => {
         const og = firstSpotOgImage(pages, "x")!;
-        expect(og.width).toBeGreaterThanOrEqual(1200);
+        expect(og.width).toBeGreaterThanOrEqual(TOPIC_OG_MIN_WIDTH);
         expect(og.height).toBeGreaterThan(0);
+        expect(og.url).not.toContain("wikimedia.org");
     });
 
     it("🔴 ページの <img>（代表写真）はサイトに置いた 960px のまま（外の画像を LCP に載せない）", () => {

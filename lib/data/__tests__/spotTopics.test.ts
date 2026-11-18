@@ -7,7 +7,7 @@ import {
     countryView, themeView, seasonView, overseasView, cityView, seasonThemeView, cityLinksForPrefecture,
     topicStructuredData, topicTitle, topicMetadata, topicLinksForSpot, spotIndexTopics,
     homeSeasonalSpots, seasonOfMonth, SEASON_TOP_CARDS, spotTopicSitemapEntries, themePath, seasonPath, areaIntro,
-    themeBreakdown, THEME_TITLE_MAX, THEME_DESCRIPTION_MAX,
+    themeBreakdown, THEME_TITLE_MAX, THEME_DESCRIPTION_MAX, TOPIC_OG_MIN_WIDTH,
 } from "../spotTopics";
 import { prefectureByName, OVERSEAS_SLUG } from "../prefectures";
 import { siteConfig, INDEXABLE_ROBOTS } from "../../utils/seo";
@@ -258,10 +258,11 @@ describe("季節", () => {
         for (const s of firstSix) expect(s.seasonalGuide!.some((g) => g.season === "autumn" && g.text.includes("紅葉")), s.slug).toBe(true);
         const regionOf = (s: Spot) => (s.region?.country === "日本" ? prefectureByName(s.region?.prefecture)?.region : "海外");
         expect(new Set(firstSix.map(regionOf)).size).toBe(6);
-        // OGP は元の写真（サムネではない）。2026-10-22: 横 1,200px 以上の版（Commons の 1280px）があればそれ
+        // OGP は代表写真（サムネではない）。2026-11-18: サイトに置いた版（横 960px）。外の画像（Commons）にしない
         expect(v.ogImage?.src).toBeTruthy();
         expect(v.ogImage!.src).not.toContain("/images/spots/thumb/");
-        expect(v.ogImage!.width).toBeGreaterThanOrEqual(1200);
+        expect(v.ogImage!.src).toMatch(/^\/images\/spots\//);
+        expect(v.ogImage!.width).toBeGreaterThanOrEqual(TOPIC_OG_MIN_WIDTH);
         const abs = v.ogImage!.src.startsWith("http") ? v.ogImage!.src : `${siteConfig.url}${v.ogImage!.src}`;
         expect(topicMetadata(v).openGraph?.images?.[0].url).toBe(abs);
     });
@@ -279,8 +280,8 @@ describe("説明（description）", () => {
         for (const v of [themeView("temples-shrines", "kyoto")!, countryView("fr")!, seasonView("autumn", "kinki")!, overseasView()]) {
             const d = topicMetadata(v).description!;
             expect(d).not.toContain("撮影ガイドつき");
-            // テーマの頁は自分の説明（`themeDescription`・#527）。ほかは導入文の頭のまま
-            if (v.path.startsWith("/spots/theme/")) expect(d).toBe(v.description);
+            // テーマ（#527）・季節（2026-11-18）の頁は自分の説明。ほかは導入文の頭のまま
+            if (v.path.startsWith("/spots/theme/") || v.path.startsWith("/spots/season/")) expect(d).toBe(v.description);
             else expect(d.startsWith(v.intro.slice(0, 40))).toBe(true);
         }
         const v = countryView("fr")!;
@@ -545,16 +546,19 @@ describe("紅葉の頁（2026-11-06）", () => {
         for (const s of orphans) expect(shown.has(s.slug), s.slug).toBe(true);
     });
 
-    it("題は「…の紅葉の観光スポットN選」・導入文は数えた事実・見頃の日付は書かない", () => {
+    it("題は「紅葉の見頃に行きたい名所N か所」・導入文は数えた事実・見頃の日付は書かない", () => {
         const v = momijiView(null)!;
         expect(v.heading).toBe("紅葉の観光スポット");
-        expect(topicTitle(v)).toBe(`紅葉の観光スポット${v.cards.length}選`);
+        const total = momijiTopics().find((t) => t.place === null)!.spots.length;
+        expect(topicTitle(v)).toBe(`紅葉の見頃に行きたい名所${total}か所｜全国の観光スポット`);
         // まとめの頁は一部だけ並べる＝全体の数と、並べた数（題の「N選」）を分けて言う（2026-11-11・#527）
         const n = momijiTopics().find((t) => t.place === null)!.spots.length;
         expect(v.cards.length).toBeLessThan(n);
         expect(v.intro).toContain(`「紅葉」の記述があるスポットは${n}件あります。`);
         expect(v.intro).toContain(`${v.cards.length}件を載せ`);
-        expect(v.intro + (v.descriptionExtra ?? "")).not.toMatch(/見頃|\d+月|例年/);
+        // 「見頃」は年や場所で前後するとだけ言う。月・旬・例年の日付は台帳に無いので書かない（2026-11-18）
+        expect(v.intro).toContain("紅葉の見頃は年や場所で前後します。");
+        expect(v.intro + (v.description ?? "")).not.toMatch(/\d+月|例年|上旬|中旬|下旬/);
         const sub = momijiTopics().find((t) => t.place)!;
         const sv = momijiView(sub.place!.slug)!;
         expect(sv.heading).toBe(`${sub.place!.name}の紅葉の観光スポット`);
@@ -602,10 +606,11 @@ describe.each([
         const v = featureView(key, null)!;
         expect(v.heading).toBe(hubHeading);
         expect(v.path).toBe(hubPath);
-        expect(topicTitle(v)).toBe(`${hubHeading}${v.cards.length}選`);
         const total = featureTopics(key).find((t) => t.place === null)!.spots.length;
+        expect(topicTitle(v)).toBe(`${FEATURES[key].hubLead}${total}か所｜全国の観光スポット`);
         expect(v.intro).toContain(v.cards.length < total ? `「${kw}」の記述があるスポットは${total}件あります。` : `「${kw}」の記述があるスポットを`);
-        expect(v.intro + (v.descriptionExtra ?? "")).not.toMatch(/見頃|\d+月|例年|撮りどき|注目スポット|撮影地ガイド/);
+        expect(v.intro + (v.description ?? "")).not.toMatch(/\d+月|例年|上旬|中旬|下旬|撮りどき|注目スポット|撮影地ガイド/);
+        expect(v.intro.endsWith(FEATURES[key].peakNote)).toBe(true);
         const sub = featureTopics(key).find((t) => t.place)!;
         const sv = featureView(key, sub.place!.slug)!;
         expect(sv.path).toBe(`${hubPath}/${sub.place!.slug}`);
@@ -685,13 +690,16 @@ describe("見どころの頁の題と説明が食い違わない（#527）", () 
         }
     });
 
-    it("題の「N選」の N は、説明の「まとめました」か「この頁には…N件を載せ」の N と同じ", () => {
+    it("題の数は、説明の「名所N か所」と導入文の数と同じ（まとめは全体の数・地方と県は並べた数＝全体）", () => {
+        // 2026-11-18: 題は「紅葉の見頃に行きたい名所170か所」「京都府の紅葉の名所7選」。並べた数と全体の数を取り違えない
         for (const v of views) {
             const title = topicTitle(v);
             const d = topicMetadata(v).description as string;
-            const n = Number(title.match(/(\d+)選$/)![1]);
-            const said = d.match(/(\d+)件まとめました/)?.[1] ?? d.match(/など(\d+)件を載せ/)?.[1];
-            expect(Number(said), `${v.path}: ${title} / ${d}`).toBe(n);
+            const n = Number((title.match(/名所(\d+)(?:か所|選)/) ?? [])[1]);
+            expect(d, `${v.path}: ${title} / ${d}`).toContain(`の名所${n}か所。`);
+            const said = Number(v.intro.match(/(\d+)件まとめました/)?.[1] ?? v.intro.match(/スポットは(\d+)件あります/)?.[1]);
+            expect(said, `${v.path}: ${title} / ${v.intro}`).toBe(n);
+            if (/選/.test(title)) expect(v.cards.length, v.path).toBe(n);
         }
     });
 });
