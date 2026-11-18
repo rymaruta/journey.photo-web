@@ -10,6 +10,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
+const zlib = require("zlib");
 
 // .env.local から AWS 認証情報を読み込む
 const envLocalPath = path.resolve(__dirname, "../.env.local");
@@ -19,7 +20,7 @@ if (fs.existsSync(envLocalPath)) {
         if (m) process.env[m[1]] ??= m[2].replace(/^["']|["']$/g, "");
     }
 }
-const { S3Client, PutObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } = require("@aws-sdk/client-s3");
+const { S3Client, PutObjectCommand, GetObjectCommand, ListObjectsV2Command, DeleteObjectsCommand } = require("@aws-sdk/client-s3");
 const { CloudFrontClient, CreateInvalidationCommand } = require("@aws-sdk/client-cloudfront");
 const { submitIndexNow } = require("./lib/indexnow.js");
 const { lookup: mimeLookup } = require("mime-types");
@@ -139,10 +140,20 @@ function changedKeys(localFiles, remoteObjects) {
         // 無効化の対象だけ（`isInvalidatable`）。/_next/static は内容ハッシュ付きなので
         // 名前が変われば別物になり、無効化は要らない
         if (!isInvalidatable(key)) continue;
-        const md5 = crypto.createHash("md5").update(fs.readFileSync(path.join(outDir, file))).digest("hex");
-        if (remote.get(key) !== md5) changed.push(file);
+        if (remote.get(key) !== fileMd5(file)) changed.push(file);
     }
     return changed;
+}
+
+/** out/ の中のファイルの MD5（16進）。書くかどうかの判定と無効化の判定で2回読まないよう控える */
+const md5Cache = new Map();
+function fileMd5(file) {
+    let md5 = md5Cache.get(file);
+    if (md5 === undefined) {
+        md5 = crypto.createHash("md5").update(fs.readFileSync(path.join(outDir, file))).digest("hex");
+        md5Cache.set(file, md5);
+    }
+    return md5;
 }
 
 if (require.main === module) {
@@ -272,28 +283,141 @@ function cacheControlFor(key) {
             : "public, max-age=3600";
 }
 
+/**
+ * S3 に書くときに付ける値（中身以外の全部）。**PutObject に渡す付け方は必ずここで決める。**
+ * 書くかどうかの判定（`planUploads`）が、この戻り値をまるごと比べるため。
+ * ここ以外で値を足すと、付け方を変えても中身が同じファイルが書き直されず、古い付け方のまま残る。
+ */
+function putParamsFor(key) {
+    return {
+        ContentType: mimeLookup(key) || "application/octet-stream",
+        // 長いキャッシュを許すのは内容ハッシュ付きのものだけ（_next/static/**）。
+        //
+        // 以前は「HTML でなければ1年 immutable」だったので、public/ にある
+        // 固定名のファイル（favicon.ico・icon-512.png・images/*）まで
+        // 1年 immutable で配っていた。差し替えても、既に取得した人の
+        // ブラウザは再検証すらしないので新しいものが永久に届かない
+        // （ホーム画面に追加した PWA のアイコンが変わらない）。
+        // しかも無効化の対象からも外していたので、直す手段が無かった。
+        CacheControl: cacheControlFor(key),
+    };
+}
+
+/** 付け方の指紋（`putParamsFor` の戻り値を、項目名の順にそろえて文字にしたもの） */
+function putParamsFingerprint(params) {
+    return JSON.stringify(Object.keys(params).sort().map((k) => [k, params[k]]));
+}
+
 async function uploadFile(filePath) {
     const fullPath = path.join(outDir, filePath);
     const key = filePath.split(path.sep).join("/"); // S3 uses forward slashes
     const body = fs.readFileSync(fullPath);
-    const contentType = mimeLookup(filePath) || "application/octet-stream";
-    // 長いキャッシュを許すのは内容ハッシュ付きのものだけ（_next/static/**）。
-    //
-    // 以前は「HTML でなければ1年 immutable」だったので、public/ にある
-    // 固定名のファイル（favicon.ico・icon-512.png・images/*）まで
-    // 1年 immutable で配っていた。差し替えても、既に取得した人の
-    // ブラウザは再検証すらしないので新しいものが永久に届かない
-    // （ホーム画面に追加した PWA のアイコンが変わらない）。
-    // しかも無効化の対象からも外していたので、直す手段が無かった。
-    const cacheControl = cacheControlFor(key);
-
     await s3.send(new PutObjectCommand({
         Bucket: bucket,
         Key: key,
         Body: body,
-        ContentType: contentType,
-        CacheControl: cacheControl,
+        ...putParamsFor(key),
     }));
+}
+
+/**
+ * どのファイルを S3 に書き、どれを飛ばすか（2026-11-18・S3 の書き込みの料金）。
+ *
+ * **以前は毎回、全部のファイル（2026-11-12 の本番で 10,683 + 42,961 件）を無条件に PutObject していた。**
+ * S3 の11月の料金はほぼ全部が書き込みの回数（APN1-Requests-Tier1）で、日ごとの額は Deploy Site の回数に
+ * 比例していた（1回 約 5.4 万件 × 0.0047 ドル/1000 ≒ 0.25 ドル）。中身が何も変わっていない回でも同じだった。
+ * さらにバケットは版の管理（versioning）が有効なので、書き直すたびに古い版が残り、置き場も増えていた。
+ *
+ * **飛ばすのは、次の3つが全部そろうときだけ:**
+ *   1. S3 に同じキーがある
+ *   2. その ETag がローカルの MD5 と同じ（PutObject で上げた・SSE-S3 の物は ETag＝中身の MD5。
+ *      `changedKeys` と同じ前提。マルチパートの ETag は `-` 付きで MD5 と一致しないので、必ず書く側に倒れる）
+ *   3. **前回このスクリプトが書いたときの付け方（`putParamsFor` の指紋）が今と同じ**
+ *
+ * 3 の選び方: 付け方は ListObjectsV2 では返らない（HeadObject を全件に打つと 5 万件の読み取りと数分かかる）。
+ * 「付け方の版」を人が上げる形は、上げ忘れると Content-Type・Cache-Control の直しが**黙って届かない**ので選ばない。
+ * そこで、デプロイの最後に**キーごとの付け方の指紋を S3 の控え（`DEPLOY_STATE_KEY`）に書き**、次の回はそれと比べる。
+ * `putParamsFor` を変えれば指紋が変わるので、変わったキーだけが**自動で**書き直される。
+ * 控えが無い・読めない・壊れているときは、全部を書く（安全側）。
+ * 逃げ道として、`DEPLOY_FULL_UPLOAD=1`（Deploy Site の手動実行の `fullUpload`）で全部を書き直せる。
+ */
+function planUploads(files, { remoteEtags, lastFingerprints, md5Of, force = false }) {
+    const upload = [];
+    const skip = [];
+    for (const file of files) {
+        const key = file.split(path.sep).join("/");
+        const remote = remoteEtags.get(key);
+        const same = !force
+            && remote !== undefined
+            && remote === md5Of(file)
+            && lastFingerprints.get(key) === putParamsFingerprint(putParamsFor(key));
+        (same ? skip : upload).push(file);
+    }
+    return { upload, skip };
+}
+
+/** S3 の一覧（`listS3Objects`）から「キー → ETag（引用符なし）」 */
+function remoteEtagMap(remoteObjects) {
+    return new Map(remoteObjects.map((o) => [o.key, (o.etag ?? "").replace(/"/g, "")]));
+}
+
+/**
+ * デプロイの控え（S3 に置く）。中身は `{ version, fingerprints: {キー: 付け方の指紋}, staleSince: {キー: 時刻(ms)} }` を gzip したもの。
+ * - `fingerprints`: `planUploads` の 3 に使う
+ * - `staleSince`: ビルドから外れた素材を**いつ外れたか**で猶予する（`classifyStaleObjects`）。
+ *   書き直さないファイルは LastModified が古いままになるので、LastModified では「外れてからの日数」を測れない
+ * 配信元から見えても困らない（公開しているファイルの名前と付け方だけ）。ビルドに無いが消さない（`SERVER_OWNED_KEYS`）
+ */
+const DEPLOY_STATE_KEY = "_deploy/state.json.gz";
+const DEPLOY_STATE_VERSION = 1;
+
+function encodeDeployState({ fingerprints, staleSince }) {
+    return zlib.gzipSync(JSON.stringify({
+        version: DEPLOY_STATE_VERSION,
+        fingerprints: Object.fromEntries(fingerprints),
+        staleSince: Object.fromEntries(staleSince),
+    }));
+}
+
+/** 読めないもの・版の違うものは空の控え（＝全部を書く・外れた素材は今から猶予）に倒す */
+function decodeDeployState(buf) {
+    const empty = { fingerprints: new Map(), staleSince: new Map() };
+    if (!buf) return empty;
+    try {
+        const raw = JSON.parse(zlib.gunzipSync(buf).toString("utf8"));
+        if (raw?.version !== DEPLOY_STATE_VERSION) return empty;
+        return {
+            fingerprints: new Map(Object.entries(raw.fingerprints ?? {})),
+            staleSince: new Map(Object.entries(raw.staleSince ?? {}).filter(([, v]) => Number.isFinite(v))),
+        };
+    } catch {
+        return empty;
+    }
+}
+
+async function readDeployState() {
+    try {
+        const res = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: DEPLOY_STATE_KEY }));
+        return decodeDeployState(Buffer.from(await res.Body.transformToByteArray()));
+    } catch (e) {
+        if (e?.name !== "NoSuchKey") console.warn(`[deploy] 控え（${DEPLOY_STATE_KEY}）を読めませんでした（${e?.name ?? e}）。全部を書きます。`);
+        return decodeDeployState(null);
+    }
+}
+
+/** 控えを書く。失敗してもデプロイは止めない（次の回が多めに書くだけ・外れた素材を長めに残すだけで、壊れはしない） */
+async function writeDeployState(state) {
+    try {
+        await s3.send(new PutObjectCommand({
+            Bucket: bucket,
+            Key: DEPLOY_STATE_KEY,
+            Body: encodeDeployState(state),
+            ContentType: "application/gzip",
+            CacheControl: "no-store",
+        }));
+    } catch (e) {
+        console.warn(`[deploy] 控え（${DEPLOY_STATE_KEY}）を書けませんでした（${e?.name ?? e}）。次の回は全部を書きます。`);
+    }
 }
 
 async function listS3Objects() {
@@ -349,24 +473,37 @@ function deletesImmediately(key) {
  * - `app/data/spot-wants.json`: みんなの「行きたい」の数（`api-user` の `aggregateSpotWants` が毎日書く・2026-11-11）。
  *   ビルドに無いので、デプロイの掃除に「古いアセット」と読まれて消えると、次の集計まで頁の数が消える
  */
-const SERVER_OWNED_KEYS = new Set(["app/data/spot-wants.json"]);
+const SERVER_OWNED_KEYS = new Set(["app/data/spot-wants.json", DEPLOY_STATE_KEY]);
 
-function classifyStaleObjects(localKeys, remoteObjects, now, graceMs) {
+/**
+ * `staleSince`（キー → ビルドから外れたと最初に見た時刻）を渡すと、猶予は**外れた時から**数える（2026-11-18）。
+ *
+ * 中身が同じファイルを書き直さなくなった（`planUploads`）ので、LastModified は「最後に中身が変わった時」になった。
+ * LastModified で数えると、40日変わらずに使われていた素材が今日ビルドから外れたとき、**猶予なしで消える**
+ * （古い HTML を持つ端末で 404）。控えに記録の無いものは「今外れた」とみなす（長めに残す側に倒す）。
+ * 渡さないときは従来どおり LastModified で数える。
+ * 戻り値の `staleSince` は、次の回に控えへ書く分（残したものだけ）。
+ */
+function classifyStaleObjects(localKeys, remoteObjects, now, graceMs, staleSince) {
     const localSet = new Set(localKeys.map(k => k.split(path.sep).join("/")));
     const toDelete = [];
+    const nextStaleSince = new Map();
     let kept = 0;
     for (const obj of remoteObjects) {
         if (localSet.has(obj.key)) continue;
         if (SERVER_OWNED_KEYS.has(obj.key)) { kept++; continue; }
         const immediate = deletesImmediately(obj.key);
-        const age = obj.lastModified ? now - obj.lastModified.getTime() : Infinity;
+        const modified = obj.lastModified ? obj.lastModified.getTime() : -Infinity;
+        const since = staleSince ? Math.max(modified, staleSince.get(obj.key) ?? now) : modified;
+        const age = now - since;
         if (immediate || age > graceMs) {
             toDelete.push(obj.key);
         } else {
             kept++;
+            if (staleSince) nextStaleSince.set(obj.key, staleSince.get(obj.key) ?? now);
         }
     }
-    return { toDelete, kept };
+    return { toDelete, kept, staleSince: nextStaleSince };
 }
 
 /**
@@ -432,10 +569,18 @@ function bulkDeleteGuard(toDelete, remoteObjects, { ratio = BULK_DELETE_RATIO, m
         + `  意図した削除なら ALLOW_BULK_DELETE=1 を付けて再実行してください。`;
 }
 
-async function deleteStaleKeys(localKeys, remoteObjects) {
-    const { toDelete, kept } = classifyStaleObjects(localKeys, remoteObjects, Date.now(), ASSET_GRACE_MS);
+/**
+ * `staleSince`（Map）を渡すと猶予を「外れた時から」数え、**その Map を次の回に控えへ書く中身に置き換える**
+ * （`classifyStaleObjects`）
+ */
+async function deleteStaleKeys(localKeys, remoteObjects, staleSince) {
+    const { toDelete, kept, staleSince: next } = classifyStaleObjects(localKeys, remoteObjects, Date.now(), ASSET_GRACE_MS, staleSince);
     const guard = process.env.ALLOW_BULK_DELETE === "1" ? null : bulkDeleteGuard(toDelete, remoteObjects);
     if (guard) throw new Error(guard);
+    if (staleSince) {
+        staleSince.clear();
+        for (const [k, v] of next) staleSince.set(k, v);
+    }
     if (kept > 0) console.log(`[deploy] Keeping ${kept} stale asset(s) within ${ASSET_GRACE_MS / 86400000}-day grace period.`);
     if (toDelete.length === 0) return [];
     // DeleteObjects accepts up to 1000 keys at a time
@@ -935,6 +1080,18 @@ async function main() {
     // アップロード前の状態を控えておく。「実際に中身が変わったファイル」だけを
     // 無効化するために使う（定期ビルドの多くは出力が前回と同じ）。
     const beforeUpload = await listS3Objects();
+    // 中身も付け方も前回と同じファイルは書かない（`planUploads`。2026-11-18・S3 の書き込みの料金）
+    const deployState = await readDeployState();
+    const forceFull = process.env.DEPLOY_FULL_UPLOAD === "1";
+    if (forceFull) console.log("[deploy] DEPLOY_FULL_UPLOAD=1: 中身が同じファイルも全部書き直します。");
+    const planOpts = {
+        remoteEtags: remoteEtagMap(beforeUpload),
+        lastFingerprints: deployState.fingerprints,
+        md5Of: fileMd5,
+        force: forceFull,
+    };
+    const assetPlan = planUploads(assets, planOpts);
+    const htmlPlan = planUploads(htmlFiles, planOpts);
 
     // Step 1: Upload new hashed assets first (JS/CSS/images), no --delete yet.
     //         Old assets stay so in-flight requests to current HTML still work.
@@ -942,8 +1099,8 @@ async function main() {
     //         「一部チャンクだけ 503 で Safari が水和できない」事故を防ぐ）。
     //         **画像（`images/`）を先に上げ終えてから、残り（それを指す `*.json` など）を上げる。**
     //         アプリ向けの JSON の `thumbUrl` が、まだ上がっていない JPEG を指す隙間を作らない（2026-10-08）
-    console.log(`[deploy] Step 1/3: uploading ${assets.length} asset(s)...`);
-    const { images: imageAssets, rest: otherAssets } = splitImagesFirst(assets);
+    console.log(`[deploy] Step 1/3: uploading ${assetPlan.upload.length} asset(s)（skip ${assetPlan.skip.length}：中身も付け方も同じ）...`);
+    const { images: imageAssets, rest: otherAssets } = splitImagesFirst(assetPlan.upload);
     await runPool(imageAssets, uploadFile, 12);
     await runPool(otherAssets, uploadFile, 12);
 
@@ -953,13 +1110,24 @@ async function main() {
     //         以前は1件ずつで、撮影スポットのページが増えた 2026-09-27 に
     //         S3 の段が13分を超え、ジョブの30分の上限で打ち切られた
     //         （本番は途中まで入れ替わった状態で止まった）。素材と同じ並びで書く。
-    console.log(`[deploy] Step 2/3: uploading ${htmlFiles.length} HTML/txt file(s)...`);
-    await runPool(htmlFiles, uploadFile, 12);
+    console.log(`[deploy] Step 2/3: uploading ${htmlPlan.upload.length} HTML/txt file(s)（skip ${htmlPlan.skip.length}：中身も付け方も同じ）...`);
+    await runPool(htmlPlan.upload, uploadFile, 12);
 
     // Step 3: Remove stale objects (assets get a grace period; see deleteStaleKeys).
     console.log("[deploy] Step 3/3: removing stale S3 objects...");
     const remoteObjects = await listS3Objects();
-    const deletedKeys = await deleteStaleKeys(allFiles, remoteObjects);
+    const deletedKeys = await deleteStaleKeys(allFiles, remoteObjects, deployState.staleSince);
+
+    // 次の回のための控え。今回のビルドの全部のキーの付け方（書いたものも飛ばしたものも、いまは今の付け方で S3 にある）
+    const written = assetPlan.upload.length + htmlPlan.upload.length;
+    await writeDeployState({
+        fingerprints: new Map(allFiles.map((f) => {
+            const key = f.split(path.sep).join("/");
+            return [key, putParamsFingerprint(putParamsFor(key))];
+        })),
+        staleSince: deployState.staleSince,
+    });
+    console.log(`[deploy] S3 への書き込み: ${written} 件（skip ${allFiles.length - written} 件・削除 ${deletedKeys.length} 件）`);
 
     console.log("\n[deploy] S3 sync complete.");
 
@@ -1010,7 +1178,8 @@ async function main() {
 module.exports = {
     verifyOgImage, splitImagesFirst,
     assertNoForbiddenContent, assertRobotsMatchesTarget, invalidationTargets,
-    FORBIDDEN_IN_OUTPUT, forbiddenPattern, shouldScan, classifyStaleObjects, deletesImmediately, isHtmlOrTxt, isRevalidatedEachTime, ASSET_GRACE_MS, invalidationPathsFor, changedKeys, isInvalidatable, cacheControlFor,
+    FORBIDDEN_IN_OUTPUT, forbiddenPattern, shouldScan, classifyStaleObjects, deletesImmediately, isHtmlOrTxt, isRevalidatedEachTime,
+    planUploads, putParamsFor, putParamsFingerprint, remoteEtagMap, encodeDeployState, decodeDeployState, DEPLOY_STATE_KEY, ASSET_GRACE_MS, invalidationPathsFor, changedKeys, isInvalidatable, cacheControlFor,
     bulkDeleteGuard, BULK_DELETE_RATIO, BULK_DELETE_MIN, deleteStaleKeys,
     pageCheckTargets, runnerLooksReachable };
 
