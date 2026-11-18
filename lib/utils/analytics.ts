@@ -58,7 +58,8 @@ export const SHARE_METHODS = ["native", "copy", "x", "line"] as const;
 export const SHARE_CONTENT_TYPES = ["photo", "spot", "quiz", "trip"] as const;
 export const SELECT_CONTENT_TYPES = ["spot", "photo", "article"] as const;
 // `spot_detail` … 撮影スポット詳細の説明文の下の札（2026-11-09・入口の案C）
-export const APP_STORE_PLACEMENTS = ["footer", "banner", "article", "home", "spot_detail"] as const;
+// spot_open_app … 観光スポットの頁の「アプリで保存」（2026-11-18・札 journey.photo-ios#545）。押した先はアプリか App Store
+export const APP_STORE_PLACEMENTS = ["footer", "banner", "article", "home", "spot_detail", "spot_open_app"] as const;
 /**
  * `nav_click`（どの入口が使われたか・2026-11-09 owner「任せる」・デザイナーの提案書の節5）。
  * `area` … 入口の置き場所。`dest` … 行き先の種類（URL・slug・検索語は送らない）。

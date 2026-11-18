@@ -1,0 +1,25 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["5T76NZUL2L.com.journeyphoto.JourneyPhoto"],
+        "components": [
+          { "/": "/spots/*/*", "exclude": true, "comment": "一覧の頁（地方、市町村、季節、テーマ）はアプリに受ける画面が無い" },
+          { "/": "/spots/sakura", "exclude": true },
+          { "/": "/spots/momiji", "exclude": true },
+          { "/": "/spots/snow", "exclude": true },
+          { "/": "/spots/*", "comment": "観光スポットの頁" },
+          { "/": "/photo/*", "comment": "写真の頁" },
+          { "/": "/users/search", "exclude": true },
+          { "/": "/users/trip", "exclude": true },
+          { "/": "/users/*", "comment": "人の頁（/users/<id>）" },
+          { "/": "/users", "?": { "id": "?*" }, "comment": "人の頁（/users?id=<id>）" },
+          { "/": "/trips", "comment": "旅行プラン" },
+          { "/": "/t", "?": { "t": "?*" }, "comment": "旅行プランへのお誘い" },
+          { "/": "/j", "?": { "t": "?*" }, "comment": "共同アルバムへの招待" },
+          { "/": "/qr", "?": { "t": "?*" }, "comment": "プロフィールの QR" }
+        ]
+      }
+    ]
+  }
+}
