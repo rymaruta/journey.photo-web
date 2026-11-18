@@ -10,6 +10,7 @@ vi.mock("../liveCaller", async (orig) => ({
 }));
 
 const mockDdbSend = vi.hoisted(() => vi.fn());
+const mockScrub = vi.hoisted(() => vi.fn(async (..._a: unknown[]) => undefined));
 const mockPush = vi.hoisted(() => vi.fn());
 
 vi.mock("../dynamodb", () => ({
@@ -27,6 +28,7 @@ vi.mock("../notify", () => ({
     deletedAmong: async (ids: unknown) => ({ deleted: await mockDeletedIds(ids), unread: mockUnreadIds() }),
     withUnreadAsDeleted: (r: { deleted: Set<string>; unread: Set<string> }) => new Set([...r.deleted, ...r.unread]),
     DELETED_USER_NAME: "退会したユーザー",
+    scrubCommentNotifText: (...a: unknown[]) => mockScrub(...a),
 }));
 
 const mockIsBlocked = vi.hoisted(() => vi.fn(async (_blocker: string, _blocked: string) => false));
@@ -102,6 +104,15 @@ describe("postComment: 返信", () => {
         const reply = mockPush.mock.calls[0][1];
         expect(reply).toMatchObject({ photoId: "p1", byId: "sora", byName: "そら", photoSrc: "t" });
         expect(reply.commentId).toBe(appended(writes).id);
+    });
+
+    it("持ち主へのコメントの知らせに、そのコメントの id と本文の抜粋を入れる（案 B4）", async () => {
+        const writes = world();
+        expect((await invoke(postComment, ev("sora", { id: "p1" }, { text: "稜線の色が\nきれいですね" }))).statusCode).toBe(200);
+        expect(sentTypes()).toEqual([["mika", "comment"]]);
+        const notice = mockPush.mock.calls[0][1];
+        expect(notice.commentId).toBe(appended(writes).id);
+        expect(notice.text).toBe("稜線の色が きれいですね");
     });
 
     it("相手が写真の持ち主なら、持ち主には返信の知らせ1つだけ（2つ届けない）", async () => {

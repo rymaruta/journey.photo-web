@@ -3,7 +3,8 @@ import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
 import { ddb, PHOTOS_TABLE } from "./dynamodb";
 import { JSON_HEADERS, getUserId, jsonError } from "./http";
-import { pushNotification, displayNameOf, DEFAULT_NAME, deletedAmong, withUnreadAsDeleted, DELETED_USER_NAME } from "./notify";
+import { pushNotification, displayNameOf, DEFAULT_NAME, deletedAmong, withUnreadAsDeleted, DELETED_USER_NAME, scrubCommentNotifText } from "./notify";
+import { commentExcerpt } from "./commentExcerpt";
 import { truncate } from "./sanitize";
 import { isBlocked } from "./blockCheck";
 import { canViewPhoto } from "./restrictedFeed";
@@ -495,12 +496,17 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
             });
         }
         if (owner && owner !== uid && owner !== replyTarget) {
+            // どのコメントか（`commentId`）と本文の抜粋（`text`）を足す（2026-11-18・案 B4、owner 採用）。
+            // ベルの行に本文の1行を出し、押すとそのコメントの位置で返信の欄を開く。
+            // 古いアプリは知らない欄を読み飛ばす（今までどおり写真の頭で開く）
             await pushNotification(owner, {
                 type: "comment",
                 photoId,
                 photoSrc: String(photo.thumbSrc ?? photo.src),
                 byName: comment.name,
                 byId: uid,
+                commentId: comment.id,
+                text: commentExcerpt(comment.text),
                 ...(photo.location ? { atLocation: photo.location } : {}),
                 t: comment.t,
             });
@@ -564,6 +570,7 @@ export const deleteComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         // ずれていたら読み直す。
         let removed = false;
         let gone = false; // 再試行中に他の経路で消えた（結果は同じなので成功扱い）
+        let removedBy: string | undefined; // 消したコメントを書いた人
         for (let attempt = 0; attempt <= DELETE_RETRIES && !removed && !gone; attempt++) {
             const all = await readComments(photoId);
             const index = all.findIndex((c) => c.id === commentId);
@@ -574,6 +581,7 @@ export const deleteComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
             }
             // 投稿者本人 or 写真オーナーのみ
             if (all[index].uid !== uid && ownerId !== uid) return jsonError(403, "権限がありません");
+            removedBy = all[index].uid;
 
             try {
                 await ddb.send(new UpdateCommand({
@@ -602,6 +610,10 @@ export const deleteComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
             ConditionExpression: "attribute_exists(id) AND commentCount > :z",
             ExpressionAttributeValues: { ":z": 0, ":one": 1 },
         })).catch(() => { /* 0 or 写真消滅は無視 */ });
+
+        // 持ち主のベルの行に残った本文の抜粋を消す（2026-11-18・案 B4）。知らせは書いた人≠持ち主のときだけ
+        // 積まれる。best-effort（中で握りつぶす）
+        if (ownerId && ownerId !== removedBy) await scrubCommentNotifText(ownerId, commentId);
 
         return { statusCode: 200, headers: JSON_HEADERS, body: JSON.stringify({ ok: true }) };
     } catch (e) {

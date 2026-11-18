@@ -13,6 +13,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
  * 判定の材料を何回どの順で読むかに縛られず、「誰に通るか」だけを見るため。
  */
 
+const mockScrub = vi.hoisted(() => vi.fn(async (..._a: unknown[]) => undefined));
 const mockPush = vi.hoisted(() => vi.fn());
 vi.mock("../notify", () => ({
     pushNotification: mockPush,
@@ -23,6 +24,7 @@ vi.mock("../notify", () => ({
     deletedAmong: vi.fn(async () => ({ deleted: new Set<string>(), unread: new Set<string>() })),
     withUnreadAsDeleted: (r: { deleted: Set<string>; unread: Set<string> }) => new Set([...r.deleted, ...r.unread]),
     DELETED_USER_NAME: "退会したユーザー",
+    scrubCommentNotifText: (...a: unknown[]) => mockScrub(...a),
 }));
 
 type Row = Record<string, unknown>;
