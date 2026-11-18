@@ -166,6 +166,7 @@ const EXEMPT: Array<[string, string, string]> = [
     ["app/user/profile/page.tsx", "song.previewUrl", "曲の試聴（iTunes の音源・プロフィールの一覧）"],
 
     // (a2) 自分のサイトに置いた固定の資産（写真ではない）
+    ["app/components/OpenInAppButton.tsx", '"/logo-aperture.png"', "観光スポットの頁の「アプリで保存」の固定ロゴ（2026-11-18）。同じサイト相対パス"],
     ["app/layout.tsx", '"/logo-aperture.png"', "ヘッダーのロゴ（`public/` に置いた固定の絵。相対パスなので既にサイトのドメイン）"],
     ["app/components/ProfileNameMarks.tsx", "proMarkImage(style, size)", "Pro の印（`public/badges/` に置いた固定の SVG。相対パス）"],
     // `badgeImage` は季節の章で絵の無い年に null を返すので、一度変数に受けてから描く

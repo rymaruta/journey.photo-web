@@ -20,6 +20,7 @@ import SectionHead, { MoreLink } from "./SectionHead";
 import { CARD, ROW_TALL, ROW_ICON_BOX, ROW_ICON, ROW_TITLE, ROW_SUB, ROW_CHEVRON } from "./rowStyles";
 import SaveSpotButton, { TILE, TILE_OFF, TILE_TEXT, TILE_ICON, TILE_MIN_H } from "./SaveSpotButton";
 import { spotUploadHref } from "@/lib/utils/spotUpload";
+import OpenInAppButton from "./OpenInAppButton";
 import { CHIP_OFF, CHIP_SIZE } from "./chipStyles";
 import { CHIP_HIT, CHIP_ROW } from "./SpotTopicLists";
 import { lightCellText, lightLegend, type LightCalendar } from "../../lib/utils/lightCalendar";
@@ -824,6 +825,8 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         <span className={TILE_TEXT}>{isJa ? "シェア" : "Share"}</span>
                     </button>
                 </div>
+                {/* iPhone で見ている人だけ「アプリで保存」（2026-11-18・札 journey.photo-ios#545・`OpenInAppButton`） */}
+                <OpenInAppButton slug={spot.slug} isJa={isJa} />
                 </div>
 
                 {/* PC は2段組。スマホは1列（スマホを横に引き伸ばさない） */}
