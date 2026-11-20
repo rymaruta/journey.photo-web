@@ -3,7 +3,7 @@ import { readFile } from "fs/promises";
 import { existsSync } from "fs";
 import path from "path";
 import type { Photo } from "@/lib/data/photos";
-import { siteConfig, INDEXABLE_ROBOTS, NOINDEX_FOLLOW_ROBOTS, publicImageUrl } from "@/lib/utils/seo";
+import { appItunes, siteConfig, INDEXABLE_ROBOTS, NOINDEX_FOLLOW_ROBOTS, publicImageUrl } from "@/lib/utils/seo";
 import { isSearchHidden } from "@/lib/utils/searchHidden";
 import UserProfileClient from "../UserProfileClient";
 import { withPlaceholderParam } from "../../../lib/server/staticParams";
@@ -164,6 +164,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
         robots: isSearchHidden(id) ? NOINDEX_FOLLOW_ROBOTS : INDEXABLE_ROBOTS,
         description,
         alternates: { canonical: url },
+        itunes: appItunes(url),
         openGraph: {
             type: "profile",
             url,

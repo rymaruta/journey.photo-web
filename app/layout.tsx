@@ -17,9 +17,10 @@ import { AuthProvider } from "./auth/context";
 import { MusicProvider } from "./music/MusicContext";
 import MiniPlayer from "./components/MiniPlayer";
 import BottomNav from "./components/BottomNav";
+import AppTopBanner from "./components/AppTopBanner";
 import { LocaleProvider } from "./i18n/context";
 import { ANDROID_FLAG_SCRIPT, ANDROID_HIDE_CSS } from "../lib/utils/androidHide";
-import { siteConfig, generateWebSiteStructuredData, generateOrganizationStructuredData, INDEXABLE_ROBOTS, FEED_ALTERNATE, shareOgImage, shareImageUrl } from "../lib/utils/seo";
+import { appItunes, siteConfig, generateWebSiteStructuredData, generateOrganizationStructuredData, INDEXABLE_ROBOTS, FEED_ALTERNATE, shareOgImage, shareImageUrl } from "../lib/utils/seo";
 
 // Instagram IAB / iOS Safari でブラウザUIを除いた実際の表示領域を使う
 // viewportFit=cover でノッチ・ホームインジケーター領域の safe-area-inset を有効化
@@ -59,8 +60,9 @@ export async function generateMetadata(): Promise<Metadata> {
     // **iPhone の Safari で「アプリで開く／入手」の帯を出す**（Smart App Banner・2026-10-07）。
     // 検索から撮影地のページに来た人をアプリへつなぐ（全国の戦略「Web とアプリをつなぐ」）。
     // ホーム画面から開いた全画面（appleWebApp）では Safari が帯を出さないので、そちらの体験は変わらない。
-    // 子のページは `itunes` を書かないので、全ページに効く
-    itunes: { appId: siteConfig.iosAppId },
+    // 2026-11-20 owner 判断（札 journey.photo-ios#666）: 頁ごとに canonical と同じ URL を `app-argument` で渡す。
+    // canonical を書く頁は `appItunes(url)` で上書きする（`itunes` はオブジェクトごと差し替わる）。ここは下の canonical と同じトップの URL
+    itunes: appItunes(siteConfig.url),
     // 旧 iOS 互換のため従来名も明示（Next は標準名 mobile-web-app-capable を出力するため）
     other: {
       "apple-mobile-web-app-capable": "yes",
@@ -254,6 +256,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <LocaleProvider>
             <AuthProvider>
               <MusicProvider>
+              {/* **iPhone の Safari 以外のブラウザだけ、いちばん上にアプリの帯**（2026-11-20 owner 判断・札 journey.photo-ios#666）。
+                  頁の流れの上に置き、ヘッダーと重ねて固定しない（下へ送るとヘッダーだけが貼り付く）。Safari は Apple の帯（上の `itunes`） */}
+              <AppTopBanner />
               {/* Header: 黒一色の地に白字（iOS の `Main.dc.html`・「黒塗りの真鍮」の地は `#000`）。
                   以前は 70% の地＋ぼかし＋上からの白いにじみだったが、iOS は透けない黒 */}
               <header

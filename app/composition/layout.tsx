@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ROUTES } from "../../lib/routes";
-import { INDEXABLE_ROBOTS, generateBreadcrumbStructuredData, shareImageUrl, shareOgImage, siteConfig } from "../../lib/utils/seo";
+import { appItunes, INDEXABLE_ROBOTS, generateBreadcrumbStructuredData, shareImageUrl, shareOgImage, siteConfig } from "../../lib/utils/seo";
 
 // 構図ガイドは**ログイン不要の公開頁**。page.tsx は "use client" で metadata を持てないので、
 // ここ（サーバー部品）で持つ。robots は手書きせず `INDEXABLE_ROBOTS` を引く
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     title: TITLE,
     description: DESCRIPTION,
     alternates: { canonical: URL },
+    itunes: appItunes(URL),
     robots: INDEXABLE_ROBOTS,
     openGraph: {
         type: "website",

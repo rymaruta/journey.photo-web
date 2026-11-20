@@ -1303,7 +1303,8 @@ describe("1画面ぶんの通知一覧（スマホ）と PC の板", () => {
         // 画面の一番上から覆うと、閉じる手段がシートの中だけになる。
         // 高さは安全領域込みの変数で見る（ホーム画面から起動したときは
         // ヘッダーが時計・電池の帯のぶん高くなる）
-        expect(sheet.className).toContain("top-[var(--header-h)]");
+        // 上のアプリの帯が見えている間はその高さも足す（`--app-banner-h`・2026-11-20 札 #666）
+        expect(sheet.className).toContain("top-[calc(var(--header-h)_+_var(--app-banner-h,0px))]");
         expect(sheet.className).toContain("fixed");
     });
 

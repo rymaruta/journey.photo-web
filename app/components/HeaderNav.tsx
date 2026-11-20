@@ -14,6 +14,7 @@ import { ROUTES } from "../../lib/routes";
 import dynamic from "next/dynamic";
 import { HEADER_ICON_BTN, HEADER_ICON_BTN_STYLE, HEADER_ICON_STYLE } from "./headerIcon";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
+import HeaderAppLink, { useAppIPhone } from "./HeaderAppLink";
 
 /**
  * **お知らせのベルは、ログインしている人のときだけ読み込む**（2026-11-11 判断・札 journey.photo-ios#527）。
@@ -147,13 +148,22 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
         cursor: "pointer",
     };
 
+    // **アプリを入れられる iPhone では「アプリ」が1つ増える**（2026-11-20 札 journey.photo-ios#666）。ロゴ「Journey Photo」を切らないよう、
+    // 並びの隙間を 8 → 4 に詰め、「ログイン」の字リンクは下のタブに任せる（どれも当たりは 44 のまま）。
+    // 実測（390px の容れ物・2026-11-20）: 右の並び「アプリ・登録・☰」は 153px。375〜440px で切れない（「Journey Photo」は
+    // 容れ物の serif で 130・Charter でも切れない。幅の広い DejaVu Serif の太字 22px（168）だけ 375px で 14px 切れる。実機の New York はその間で、実機では見ていない）
+    const appIPhone = useAppIPhone();
+
     return (
         <nav aria-label={locale === "en" ? "Site header" : "ヘッダー"}
-             className={`site-header__nav flex items-center gap-2 flex-shrink-0 ${className}`}>
+             className={`site-header__nav flex items-center ${appIPhone ? "gap-1" : "gap-2"} flex-shrink-0 ${className}`}>
             {/* **右はお知らせ（ログイン中）とメニューの2つだけ・地を持たない**（2026-10-30 判断・束 0b C2・
                 iOS のホームのバーと同じ）。以前は左に「ユーザーを探す」の虫眼鏡を置き、お知らせとメニューを
                 地の付いたガラスの丸い札（`.header-glass`）に入れていた。探すは下の札（`BottomNav`）に任せる。
                 「ユーザーを探す」の行き先は消さず、メニューの1行に移した（下） */}
+            {/* **iPhone だけ「アプリ」**（2026-11-20 owner 判断・札 journey.photo-ios#666）。Safari にも出す。
+                上の帯を × で閉じた後も、ここから App Store へ行ける。並びの左端（お知らせ・メニューの前） */}
+            <HeaderAppLink />
             {/* 通知ベル: 「あなたの写真が誰かを旅立たせました」が届く */}
             {isAuthenticated && <NotificationsBell />}
             {/* **未ログインの人にだけ「ログイン」の文字リンクと「登録」**（ログインは 2026-11-09 owner「任せる」・入口の案A の最小。
@@ -173,7 +183,8 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                     onClick={() => track("nav_click", { area: "header", dest: "login" })}
                     // **414px 未満では出さない**（2026-11-09）: 右側が「ログイン・登録・☰」で約194px になり、ロゴ「Journey Photo」が
                     // 320〜375px で切れた（実測）。ログインは下のタブにある。登録は常に残す。414px 以上は両方（実測: 400px は余白16px で薄いので 414 にした）
-                    className="hidden min-[414px]:inline-flex items-center justify-center rounded-full px-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                    // アプリを入れられる iPhone では出さない（右に「アプリ」が入るので・2026-11-20 札 #666。ログインは下のタブにある）
+                    className={`${appIPhone ? "hidden" : "hidden min-[414px]:inline-flex"} items-center justify-center rounded-full px-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60`}
                     style={{ minHeight: "44px", minWidth: "44px", fontSize: "14px", lineHeight: "20px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
                 >
                     {locale === "en" ? "Log in" : "ログイン"}
@@ -229,7 +240,7 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                     aria-modal="true"
                     aria-label={locale === "en" ? "Menu" : "メニュー"}
                     ref={panelRef}
-                    className="fixed left-0 right-0 bottom-0 top-[var(--header-h)] z-50"
+                    className="fixed left-0 right-0 bottom-0 top-[calc(var(--header-h)_+_var(--app-banner-h,0px))] z-50"
                 >
                     {/* Backdrop */}
                     <div

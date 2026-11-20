@@ -217,6 +217,32 @@ describe("HeaderNav - 未ログインの「ログイン」", () => {
         expect(signup.some((c) => /^max-/.test(c) || /:hidden$/.test(c))).toBe(false);
     });
 
+    // 2026-11-20 札 journey.photo-ios#666: アプリを入れられる iPhone では「アプリ」が入るので、ロゴを切らないよう並びを詰める
+    it("iPhone: 「アプリ」を出し、「ログイン」は広い画面でも出さず、並びの隙間は 4（登録・☰ はそのまま）", () => {
+        setRole("anonymous");
+        const spy = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1");
+        try {
+            render(<HeaderNav />);
+            expect(screen.getByTestId("header-app").textContent).toBe("アプリ");
+            const login = screen.getByTestId("header-login").className.split(/\s+/);
+            expect(login).toContain("hidden");
+            expect(login).not.toContain("min-[414px]:inline-flex");
+            expect(screen.getByTestId("header-signup")).toBeTruthy();
+            const nav = screen.getByRole("navigation", { name: "ヘッダー" });
+            expect(nav.className.split(/\s+/)).toContain("gap-1");
+        } finally {
+            spy.mockRestore();
+        }
+    });
+
+    it("iPhone でなければ「アプリ」を出さず、並びも今のまま", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        expect(screen.queryByTestId("header-app")).toBeNull();
+        expect(screen.getByRole("navigation", { name: "ヘッダー" }).className.split(/\s+/)).toContain("gap-2");
+    });
+
     it("☰ の中の行は「登録」（ヘッダーと同じ呼び名・labels.ja）", async () => {
         const { ja } = await import("../../i18n/labels");
         expect(ja.navigation?.signup).toBe("登録");
