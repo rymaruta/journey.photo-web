@@ -1,109 +1,69 @@
 /**
- * AI で旅行プランを作る口（札 journey.photo-ios#621・owner 承認 2026-11-15「いいよ、進めて」）。
+ * AI の口（ログインの口。別のスタック `serverless.trip-ai.yml`）
  *
- *     POST /user/trip-ai   （ログインの口。別のスタック `serverless.trip-ai.yml`）
+ *     POST /user/trip-ai
+ *
+ * - 旅行プランの AI（札 journey.photo-ios#621・owner 承認 2026-11-15「いいよ、進めて」）
+ * - AI に頼む（札 #652・owner 承認 2026-11-20「たのむ」。Artifact「AI に頼む」8版）
  *
  * ## 何をするか
  *
- * - アプリが台帳と行きたい場所から選んだ**候補（20件まで）**と、利用者が打った頼みの文を受け取り、
+ * - 旅行プラン: アプリが台帳と行きたい場所から選んだ**候補（20件まで）**と、利用者が打った頼みの文を受け取り、
  *   AI に**候補の番号から選んで日に割り、理由を1文書かせる**。AI に場所を作らせない。
  *   知らない番号・重なった番号・範囲の外の日は**ここで落とす**（アプリも同じ確かめをする）
- * - 回数は月ごとにサーバーで数えて守る（上限は `tripAiConfig.ts`）
+ * - 頼む: 打った文と直前の2往復と、アプリが引いた公開の行（観光スポット・使い方の頁）で答える（`aiAsk.ts`）。
+ *   アプリの作りやセキュリティのことは答えない（`aiGuard.ts`。呼ぶ前の断りと答えの前の見張り）
+ * - 回数は日と月の両方をサーバーで数えて守る。端末の AI の回も数える。サーバーの AI は推定金額でも止める
+ *   （1人 月90円、全体 月400円を日ごとに割る。`aiQuota.ts`・`tripAiConfig.ts`）
+ * - **サーバーの AI を使えるのは Pro と管理者だけ**（2026-11-20 承認。端末の AI が無い iPhone の無料の人は「AI なしで組む」へ）
  * - 打った文はサーバーに残さない（記録に出すのは回数とトークン数だけ）
  *
  * ## 体の形（`action` で分ける。口は1つ）
  *
- *     { "action": "status" }                                   → 今月の回数
- *     { "action": "count" }                                    → 端末の AI で作った回を数える（無料の人だけ数える）
+ *     { "action": "status" }
+ *         → { usage, trip: QuotaView, ask: QuotaView }        （`usage` は前からの旅行プランの月の形）
+ *     { "action": "reserve", "kind": "ask"|"trip", "via": "device"|"server" }
+ *         → QuotaView = { tier, kind, day: { used, limit, remaining }, month: { used, limit, remaining, resetsOn }, serverAllowed }
+ *         取れない: 429 { reason: "day"|"month"|"userCost"|"global", code: "limit", quota }
+ *         無料の人の via: server: 403 { reason: "proOnly", code: "pro_only" }
+ *     { "action": "ask", "text": "...", "history"?: [{ "q", "a" }]（直前の2往復まで）,
+ *       "sources"?: [{ "kind"?: "spot", "name", "area"?, "category"?, "seasons"?, "times"?, "note"? } | { "kind": "help", "title", "body" }] }
+ *         → { answer, general, refused, quota }   （Pro と管理者だけ。reserve(via: server) 済みならそれを使い、無ければここで取る）
+ *     { "action": "count" }        → 端末の AI で旅行プランを作った回を数える（前からの口。reserve(trip, device) と同じ。返事は `usage`）
  *     { "action": "plan", "request": "...", "days"?: 2,
  *       "candidates": [{ "name", "area"?, "category"?, "seasons"?: [...], "times"?: [...] }],
- *       "current"?: [{ "n", "day" }] }                         → AI で組む（候補の番号は 1 から）
+ *       "current"?: [{ "n", "day" }] }                         → AI で組む（候補の番号は 1 から。Pro と管理者だけ）
+ *         → { plan: { title, days, stops: [{ n, day }], reason, dropped }, usage }
+ *         無料の人: 422 { code: "pro_only" }（アプリは「AI なしで組む」へ）
  *
- *     返事の `usage`: { tier, used, limit, remaining, resetsOn, countsDevice }
- *     plan の返事:   { plan: { title, days, stops: [{ n, day }], reason, dropped }, usage }
+ * ## 何を数えるか（2026-11-20 から）
  *
- * ## 何を数えるか（2026-11-15 判断。案 https://claude.ai/artifact/2EH3WZ8v3s5dUokTvsNFoG の推奨に従う）
- *
- * - **サーバーの AI（Bedrock）で作った回は、だれでも数える**（費用がかかるのはここだけ）
- * - **端末の AI で作った回は、無料の人だけ数える。** 案の推奨は「回数は Bedrock の人だけ数える」
- *   「お試しは端末の AI でも Bedrock でも数える」。お試しが「無料の人は月30回」に替わったので、
- *   無料の人の回数は Pro の案内のための枠として端末でも数え、Pro と管理者の端末の回は数えない（0円なので）
- * - 読み取れなかった回・AI が答えなかった回は数えない（先に1つ取り、失敗したら戻す）
+ * - 端末の AI の回もサーバーの AI の回も、だれでも同じ上限で数える（CLAUDE.md「AI の機能には必ず回数の上限を付ける」）
+ * - 読み取れなかった回・AI が答えなかった回・断った回は数えない（先に1つ取り、だめなら戻す。かかった費用は残す）
  * - 管理者（Cognito の admin。`isAdmin`。アプリの `auth.isAdmin` と同じ `cognito:groups` を見る）は Pro と同じ上限
  *
- * ## 行の形（photos 表。表と GSI は増やさない・owner 承認の3）
- *
- *     `aiuse#<利用者>#<YYYY-MM>`  { count, updatedAt }   … 月は日本時間
- *
- * 🔴 `userId`・`createdAt`・`storyFeed`・`publicFeed`・`expiresAt` を持たせない（索引に載ると一覧に紛れる。`profileQr.ts` と同じ）。
- * 退会の掃除（`account.ts`）が、この1年分の行を消す。
+ * 行の形は `aiQuota.ts` の先頭。退会の掃除（`account.ts`）が、その人の1年分の行を消す。
  */
 
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { BedrockRuntimeClient, ConverseCommand } from "@aws-sdk/client-bedrock-runtime";
-import { ddb, PHOTOS_TABLE } from "./dynamodb";
 import { JSON_HEADERS, getUserId, isAdmin, jsonError } from "./http";
 import { readLiveCaller } from "./liveCaller";
 import { isPro } from "./badgeKeys";
 import {
-    TRIP_AI_LIMITS, TRIP_AI_MAX_CANDIDATES, TRIP_AI_MAX_DAYS, TRIP_AI_MAX_OUTPUT_TOKENS, TRIP_AI_MAX_REQUEST,
-    TRIP_AI_MODEL_ID, TRIP_AI_REGION, type TripAiTier,
+    ASK_MAX_OUTPUT_TOKENS, TRIP_AI_LIMITS, TRIP_AI_MAX_CANDIDATES, TRIP_AI_MAX_DAYS, TRIP_AI_MAX_OUTPUT_TOKENS, TRIP_AI_MAX_REQUEST,
+    TRIP_AI_MODEL_ID, TRIP_AI_REGION, estimateCost, reserveCost, type AiKind, type TripAiTier,
 } from "./tripAiConfig";
-import { aiUseKey, jstMonth, resetsOn } from "./tripAiKeys";
+import {
+    readQuota, releaseUse, reserveUse, serverTier, settleUse, takeHeld, usageOf, viewOf,
+    type LimitReason, type QuotaView, type Via,
+} from "./aiQuota";
+import { REFUSAL, leaksInAnswer, refuseBeforeCall } from "./aiGuard";
+import { ASK_SYSTEM_PROMPT, askMessage, cleanQuestion, parseAnswer, parseHistory, parseSources } from "./aiAsk";
 
 const bedrock = new BedrockRuntimeClient({ region: TRIP_AI_REGION });
 
-// ---------- 回数 ----------
-
-export type Usage = { tier: TripAiTier; used: number; limit: number; remaining: number; resetsOn: string; countsDevice: boolean };
-
-function usageOf(tier: TripAiTier, used: number, now: number): Usage {
-    const limit = TRIP_AI_LIMITS[tier];
-    return { tier, used, limit, remaining: Math.max(0, limit - used), resetsOn: resetsOn(now), countsDevice: tier === "free" };
-}
-
-async function readUsed(uid: string, now: number): Promise<number> {
-    const res = await ddb.send(new GetCommand({ TableName: PHOTOS_TABLE, Key: { id: aiUseKey(uid, jstMonth(now)) }, ConsistentRead: true }));
-    const c = (res.Item as { count?: unknown } | undefined)?.count;
-    return typeof c === "number" && Number.isFinite(c) ? c : 0;
-}
-
-/** 上限の手前なら1つ取り、取った後の数を返す。上限なら null */
-async function reserve(uid: string, limit: number, now: number): Promise<number | null> {
-    try {
-        const res = await ddb.send(new UpdateCommand({
-            TableName: PHOTOS_TABLE,
-            Key: { id: aiUseKey(uid, jstMonth(now)) },
-            UpdateExpression: "SET #c = if_not_exists(#c, :zero) + :one, #u = :now",
-            ConditionExpression: "attribute_not_exists(#c) OR #c < :limit",
-            ExpressionAttributeNames: { "#c": "count", "#u": "updatedAt" },
-            ExpressionAttributeValues: { ":zero": 0, ":one": 1, ":limit": limit, ":now": new Date(now).toISOString() },
-            ReturnValues: "UPDATED_NEW",
-        }));
-        const c = (res.Attributes as { count?: unknown } | undefined)?.count;
-        return typeof c === "number" ? c : 1;
-    } catch (e) {
-        if ((e as { name?: string } | null)?.name === "ConditionalCheckFailedException") return null;
-        throw e;
-    }
-}
-
-/** 取った1つを戻す（AI が答えなかった・読み取れなかった回）。戻せなくても答えは変えない */
-async function release(uid: string, now: number): Promise<void> {
-    try {
-        await ddb.send(new UpdateCommand({
-            TableName: PHOTOS_TABLE,
-            Key: { id: aiUseKey(uid, jstMonth(now)) },
-            UpdateExpression: "SET #c = #c - :one",
-            ConditionExpression: "#c > :zero",
-            ExpressionAttributeNames: { "#c": "count" },
-            ExpressionAttributeValues: { ":zero": 0, ":one": 1 },
-        }));
-    } catch (e) {
-        console.error("tripAi: 回数を戻せませんでした", (e as Error)?.name);
-    }
-}
+export type { Usage } from "./aiQuota";
 
 // ---------- 入力 ----------
 
@@ -208,7 +168,11 @@ export function sanitizePlan(raw: unknown, cands: Candidate[], fixedDays: number
     let reason = cleanText(r.reason, 60);
     const areas = cands.map((c) => `${c.area}${c.name}`).join(" ");
     if (PREFS.some((p) => reason.includes(p) && !areas.includes(p))) reason = "";
-    return { title: cleanText(r.title, 20), days, stops, reason, dropped };
+    // 答えの前の見張り（`aiGuard.ts`）。題と理由に鍵の形・内部の名前・URL・メールが混じったら出さない
+    if (leaksInAnswer(reason)) reason = "";
+    let title = cleanText(r.title, 20);
+    if (leaksInAnswer(title)) title = "";
+    return { title, days, stops, reason, dropped };
 }
 
 /** AI の文から最初の JSON の塊を読む */
@@ -218,12 +182,12 @@ export function extractJson(text: string): unknown {
     try { return JSON.parse(m[0]); } catch { return null; }
 }
 
-async function callModel(message: string): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
+async function callModel(system: string, message: string, maxTokens: number): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
     const res = await bedrock.send(new ConverseCommand({
         modelId: TRIP_AI_MODEL_ID,
-        system: [{ text: SYSTEM_PROMPT }],
+        system: [{ text: system }],
         messages: [{ role: "user", content: [{ text: message }] }],
-        inferenceConfig: { maxTokens: TRIP_AI_MAX_OUTPUT_TOKENS, temperature: 0.2 },
+        inferenceConfig: { maxTokens, temperature: 0.2 },
     }));
     const text = (res.output?.message?.content ?? []).map((c) => ("text" in c && typeof c.text === "string" ? c.text : "")).join("");
     return { text, inputTokens: res.usage?.inputTokens ?? 0, outputTokens: res.usage?.outputTokens ?? 0 };
@@ -232,13 +196,28 @@ async function callModel(message: string): Promise<{ text: string; inputTokens: 
 // ---------- 口 ----------
 
 const NO_STORE = { ...JSON_HEADERS, "Cache-Control": "no-store" };
-const ok = (body: unknown) => ({ statusCode: 200, headers: NO_STORE, body: JSON.stringify(body) });
-/** 上限に来た（429）。アプリはこれを見て AI なしの組み方と Pro の案内に替える */
-const limitReached = (tier: TripAiTier, now: number) => ({
-    statusCode: 429,
-    headers: NO_STORE,
-    body: JSON.stringify({ error: "今月の AI の回数を使い切りました", code: "limit", usage: usageOf(tier, TRIP_AI_LIMITS[tier], now) }),
-});
+const reply = (statusCode: number, body: unknown) => ({ statusCode, headers: NO_STORE, body: JSON.stringify(body) });
+const ok = (body: unknown) => reply(200, body);
+
+const LIMIT_TEXT: Record<LimitReason, string> = {
+    day: "今日の AI の回数を使い切りました",
+    month: "今月の AI の回数を使い切りました",
+    userCost: "今月はこれ以上サーバーの AI を使えません",
+    global: "いまはサーバーの AI を休んでいます",
+};
+/** 上限に来た（429）。`reason` で何の上限かを返す。旅行プランの前からの形（`usage`）も添える */
+const limitReached = (reason: LimitReason, quota: QuotaView, usage?: ReturnType<typeof usageOf>) =>
+    reply(429, { error: LIMIT_TEXT[reason], code: "limit", reason, quota, ...(usage ? { usage } : {}) });
+const proOnly = () => reply(403, { error: "サーバーの AI は Pro の方だけ使えます", code: "pro_only", reason: "proOnly" });
+
+const isKind = (v: unknown): v is AiKind => v === "ask" || v === "trip";
+const isVia = (v: unknown): v is Via => v === "device" || v === "server";
+
+/** サーバーの AI の1回を用意する: `reserve` で先に取った回があればそれを使い、無ければここで取る */
+async function acquireServer(uid: string, tier: TripAiTier, kind: AiKind, now: number) {
+    if (await takeHeld(uid, kind, now)) return { ok: true as const, cost: reserveCost(kind) };
+    return reserveUse(uid, tier, kind, "server", now);
+}
 
 export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) => {
     const userId = getUserId(event);
@@ -249,25 +228,36 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
     let body: Record<string, unknown>;
     try {
         body = JSON.parse(event.body ?? "{}") as Record<string, unknown>;
-        if (!body || typeof body !== "object") throw new Error("not object");
+        if (!body || typeof body !== "object" || Array.isArray(body)) throw new Error("not object");
     } catch {
         return jsonError(400, "形が正しくありません", "bad_request");
     }
 
     const now = Date.now();
     const tier: TripAiTier = isAdmin(event) ? "admin" : isPro(live.row, now) ? "pro" : "free";
-    const limit = TRIP_AI_LIMITS[tier];
 
     try {
         switch (body.action) {
-            case "status":
-                return ok({ usage: usageOf(tier, await readUsed(userId, now), now) });
+            case "status": {
+                const q = await readQuota(userId, tier, now);
+                return ok({ usage: usageOf(tier, q.trip.month.used, now), trip: q.trip, ask: q.ask });
+            }
+
+            case "reserve": {
+                if (!isKind(body.kind) || !isVia(body.via)) return jsonError(400, "kind と via が要ります", "bad_request");
+                if (body.via === "server" && !serverTier(tier)) return proOnly();
+                const r = await reserveUse(userId, tier, body.kind, body.via, now, body.via === "server");
+                const q = await readQuota(userId, tier, now);
+                const view = body.kind === "trip" ? q.trip : q.ask;
+                if (!r.ok) return limitReached(r.reason, view);
+                return ok(view);
+            }
 
             case "count": {
-                // 端末の AI で作った回。Pro と管理者は数えない（0円）
-                if (tier !== "free") return ok({ usage: usageOf(tier, await readUsed(userId, now), now) });
-                const used = await reserve(userId, limit, now);
-                if (used === null) return limitReached(tier, now);
+                // 端末の AI で旅行プランを作った回（前からの口）。2026-11-20 からだれでも数える
+                const r = await reserveUse(userId, tier, "trip", "device", now);
+                const used = typeof r.row.count === "number" ? r.row.count : 0;
+                if (!r.ok) return limitReached(r.reason, viewOf(tier, "trip", r.row, 0, now), usageOf(tier, TRIP_AI_LIMITS[tier], now));
                 return ok({ usage: usageOf(tier, used, now) });
             }
 
@@ -282,24 +272,76 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
                     .filter((s) => s.n >= 1 && s.n <= cands.length)
                     .slice(0, TRIP_AI_MAX_CANDIDATES);
 
-                const used = await reserve(userId, limit, now);
-                if (used === null) return limitReached(tier, now);
+                // 端末の AI が無い iPhone の無料の人は、サーバーの AI で組まない（owner 承認 2026-11-20）。
+                // 前からのアプリは 422 を「読み取れなかった」として AI なしで組む
+                if (!serverTier(tier)) {
+                    return reply(422, { error: "AI を使わずに組みます", code: "pro_only", reason: "proOnly" });
+                }
+                const got = await acquireServer(userId, tier, "trip", now);
+                if (!got.ok) {
+                    return limitReached(got.reason, viewOf(tier, "trip", got.row, 0, now), usageOf(tier, TRIP_AI_LIMITS[tier], now));
+                }
                 let out: Awaited<ReturnType<typeof callModel>>;
                 try {
-                    out = await callModel(userMessage(request, cands, days, current));
+                    out = await callModel(SYSTEM_PROMPT, userMessage(request, cands, days, current), TRIP_AI_MAX_OUTPUT_TOKENS);
                 } catch (e) {
-                    await release(userId, now);
+                    await releaseUse(userId, "trip", now, got.cost);
                     console.error("tripAi: AI が答えませんでした", (e as Error)?.name);
                     return jsonError(502, "いまは AI を使えません", "ai_unavailable");
                 }
+                const spent = estimateCost(out.inputTokens, out.outputTokens);
                 const plan = sanitizePlan(extractJson(out.text), cands, days);
                 // 記録は数だけ（打った文・答えの中身は残さない）
-                console.log(JSON.stringify({ tripAi: "plan", tier, model: TRIP_AI_MODEL_ID, in: out.inputTokens, out: out.outputTokens, ok: !!plan, dropped: plan?.dropped ?? null }));
+                console.log(JSON.stringify({ tripAi: "plan", tier, model: TRIP_AI_MODEL_ID, in: out.inputTokens, out: out.outputTokens, cost: spent, ok: !!plan, dropped: plan?.dropped ?? null }));
                 if (!plan) {
-                    await release(userId, now);
-                    return { statusCode: 422, headers: NO_STORE, body:JSON.stringify({ error: "頼みを読み取れませんでした", code: "unreadable", usage: usageOf(tier, used - 1, now) }) };
+                    await releaseUse(userId, "trip", now, got.cost, spent);
+                    const q = await readQuota(userId, tier, now);
+                    return reply(422, { error: "頼みを読み取れませんでした", code: "unreadable", usage: usageOf(tier, q.trip.month.used, now) });
                 }
-                return ok({ plan, usage: usageOf(tier, used, now) });
+                await settleUse(userId, now, got.cost, spent);
+                const q = await readQuota(userId, tier, now);
+                return ok({ plan, usage: usageOf(tier, q.trip.month.used, now), trip: q.trip });
+            }
+
+            case "ask": {
+                if (!serverTier(tier)) return proOnly();
+                const text = cleanQuestion(body.text);
+                const history = parseHistory(body.history);
+                const sources = parseSources(body.sources);
+                if (!text || !history || !sources) return jsonError(400, "質問の形が正しくありません", "bad_request");
+
+                // 呼ぶ前の断り（費用0円・回数も使わない。reserve で先に取った回は戻す）
+                if (refuseBeforeCall(text)) {
+                    if (await takeHeld(userId, "ask", now)) await releaseUse(userId, "ask", now, reserveCost("ask"));
+                    console.log(JSON.stringify({ tripAi: "ask", tier, refused: "before" }));
+                    const q = await readQuota(userId, tier, now);
+                    return ok({ answer: REFUSAL, general: false, refused: true, quota: q.ask });
+                }
+
+                const got = await acquireServer(userId, tier, "ask", now);
+                if (!got.ok) return limitReached(got.reason, viewOf(tier, "ask", got.row, 0, now));
+                let out: Awaited<ReturnType<typeof callModel>>;
+                try {
+                    out = await callModel(ASK_SYSTEM_PROMPT, askMessage(text, history, sources), ASK_MAX_OUTPUT_TOKENS);
+                } catch (e) {
+                    await releaseUse(userId, "ask", now, got.cost);
+                    console.error("tripAi: AI が答えませんでした", (e as Error)?.name);
+                    return jsonError(502, "いまは AI を使えません", "ai_unavailable");
+                }
+                const spent = estimateCost(out.inputTokens, out.outputTokens);
+                const parsed = parseAnswer(out.text, sources.length > 0);
+                // 答えの前の見張り: AI が断った・鍵の形や内部の名前や URL やメールが混じった → 断りに替え、回数は戻す（かかった費用は残す）
+                const refused = !parsed || parsed.refuse || leaksInAnswer(parsed.answer);
+                console.log(JSON.stringify({ tripAi: "ask", tier, model: TRIP_AI_MODEL_ID, in: out.inputTokens, out: out.outputTokens, cost: spent, refused: refused ? (parsed ? "after" : "empty") : null, general: parsed?.general ?? null }));
+                if (refused) {
+                    await releaseUse(userId, "ask", now, got.cost, spent);
+                    const q = await readQuota(userId, tier, now);
+                    if (!parsed) return reply(422, { error: "うまく答えられませんでした", code: "unreadable", quota: q.ask });
+                    return ok({ answer: REFUSAL, general: false, refused: true, quota: q.ask });
+                }
+                await settleUse(userId, now, got.cost, spent);
+                const q = await readQuota(userId, tier, now);
+                return ok({ answer: parsed.answer, general: parsed.general, refused: false, quota: q.ask });
             }
 
             default:
