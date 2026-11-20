@@ -54,6 +54,10 @@ const JA_BEFORE: RegExp[] = [
     // 「公開範囲の制限を外すには」は通す（AI・あなたの制限のときだけ）
     new RegExp(`(${L}ai${R}|エーアイ|あなた|きみ|お前)の?(制限|ルール|決まり|縛り|フィルター)を?(解除|外|無視|破|なく)`),
     /(開発者モード|デベロッパーモード|脱獄|ジェイルブレイク|制限なしモード|なんでも答えるモード|あなたは今から|役になりきって|ロールプレイ)/,
+    // 作った会社・指示の書き出し（「金閣寺は誰が作った」は通す。AI やアプリが主語のときだけ）
+    new RegExp(`(あなた|きみ|君|お前|このai|この${L}ai${R}|${L}ai${R}|エーアイ|このアプリ|アプリ)(は|って|を)?(誰|だれ|どこ|どの会社|何社|なにしゃ)(に|が|の|で)?(作|つく|開発|でき)`),
+    new RegExp(`(どの会社|どこの会社|何社|開発元|開発会社|メーカー)の?(${L}ai${R}|エーアイ|モデル(?!コース))|(${L}ai${R}|エーアイ)の(開発元|会社|メーカー|作り手)`),
+    /((上|前|最初|これまで)(に|の)?(書かれ|書い|ある|あった)[^。]{0,6}(文|文章|テキスト|指示|内容))|(そのまま|一字一句|全部|全文)[^。]{0,6}(書き出|出力|表示|繰り返|写し|見せ)/,
     // 管理者の機能
     /(管理者|管理画面|運営の画面|運営画面|管理用|管理ページ|管理機能|特権|運営者の権限|adminページ|admin画面)/,
     // ほかの利用者の非公開の情報（「写真を非公開にするには」「DM の送り方」は通す）
@@ -80,6 +84,10 @@ const EN_BEFORE: RegExp[] = [
     /\b(api[ -]?keys?|secret[ -]?keys?|access[ -]?keys?|private[ -]?keys?|access[ -]?tokens?|auth[ -]?tokens?|bearer tokens?|credentials?)\b/,
     /\b(system prompt|system message|your (prompt|instructions|rules)|initial instructions|hidden instructions|developer (message|mode)|prompt injection|jailbreak|dan mode)\b/,
     /\b(ignore|disregard|forget|override|bypass)\b.{0,30}\b(previous|prior|above|earlier|all|your|the)\b.{0,20}\b(instructions?|rules?|prompts?|directions?|guidelines?)\b/,
+    /\b(ignore|disregard|forget)\b.{0,15}\b(all|everything|anything)\b.{0,15}\b(above|before|previous|prior|earlier)\b|\bignore (the )?above\b/,
+    /\b(instructions?|rules?|prompts?|directions?)\b.{0,20}\b(were you|you were|you've been|you have been|did you get|you got) ?(given|told|set|provided)?\b/,
+    /\b(repeat|print|output|copy|write out|show)\b.{0,30}\b(text|words|everything|messages?|content)\b.{0,10}\b(above|before|so far|verbatim)\b|\bverbatim\b/,
+    /\b(who (made|built|created|trained|developed) you|which company (made|built|created|developed|owns) (you|this ai|the ai)|what company (made|built|created|developed|is behind) (you|this ai|the ai))\b/,
     /\b(reveal|print|show|repeat|output|tell me)\b.{0,30}\b(system prompt|your prompt|the prompt|your instructions|hidden rules|rules you were given)\b/,
     /\b(admin|administrator|admin panel|moderator tools?|superuser|root access)\b/,
     /\b(someone|somebody|another user|other users?|other people|a user)'?s? ?(private|hidden|dms?|direct messages?|messages|emails?|e-?mail address(es)?|address(es)?|phone( numbers?)?|location|whereabouts|saved places|passwords?|real names?)\b/,
@@ -98,8 +106,11 @@ export function refuseBeforeCall(text: string): boolean {
 
 // ---------- 答えの前の見張り ----------
 
-/** 公開の頁として出してよい URL の場所（journey-photo.com とその下だけ） */
-const PUBLIC_HOSTS = /^(?:[a-z0-9-]+\.)*journey-photo\.com$/;
+/**
+ * 公開の頁として出してよい URL の場所。**この2つに完全一致するものだけ**（サイトの `siteConfig.url`）。
+ * それ以外の URL らしき物（bit.ly、*.tokyo、journey-photo.com.evil.example、サブドメインなど）は断りに替える（2026-11-20 確かめ役の指摘）
+ */
+const PUBLIC_HOSTS = new Set(["journey-photo.com", "www.journey-photo.com"]);
 
 const KEY_SHAPES: RegExp[] = [
     /\b(AKIA|ASIA|AIDA|AROA|AIPA|ANPA|ANVA|AGPA)[A-Z0-9]{12,}\b/,
@@ -120,13 +131,22 @@ const INTERNAL_NAMES: RegExp[] = [
     /\baiuse#|\brebuild#|#all#/i,
     /\b(photo-gallery|journey\.photo-web|journey\.photo-ios|api-user|trip-ai|tripai|aiquota|aiguard|serverless|esbuild)\b/i,
     /\b(photos_table|users_table|photos-test|prod-photos|dev-photos|userid-createdat|storyfeed|publicfeed)\b/i,
-    /\b(lambda|dynamodb|cognito|cloudfront|execute-api|amazonaws|bedrock|api gateway|s3:\/\/)\b/i,
-    /\b(amazon nova|nova[ -]lite|nova-v1|anthropic|claude|chatgpt|openai|gpt-?\d|gemini|llama)\b/i,
+    /\b(aws|amazon|lambda|dynamodb|cognito|cloudfront|execute-api|amazonaws|bedrock|api gateway|s3:\/\/)\b/i,
+    /\b(nova|anthropic|claude|chatgpt|openai|gpt-?\d|gemini|llama|mistral|foundation models?|apple intelligence|llm|language model)\b/i,
+    // 使っている AI・場所を名前で言う形（日本語）
+    /(アマゾン|エーダブリューエス|ベッドロック|ノヴァ|ノバ|アンソロピック|クロード(?!・?モネ)|ジェミニ|大規模言語モデル|言語モデル|基盤モデル|生成aiのモデル|東京リージョン|大阪リージョン|リージョン)/i,
     /(システムプロンプト|システムの指示|指示文|system prompt|"refuse"|"general"|<資料>|<会話>|<質問>|refuse を|general を)/i,
     /(案内係です|答えは json だけ)/i,
 ];
 
-const URL_LIKE = /\b(?:https?:\/\/|www\.)[^\s<>"'）)」]+|\b(?:[a-z0-9-]+\.)+(?:com|net|org|jp|io|dev|app|co|cloud|aws|ai|info|biz|me|xyz)\b(?:\/[^\s<>"'）)」]*)?/gi;
+// URL らしき物を2つの網で拾う。
+// - 大文字・小文字を問わない網: スキームか www. で始まる物と、よく使う末尾（COM、JP、LY、TOKYO など）の物
+// - 小文字だけの網: 「名前.名前」の形ならどの末尾でも（bit.ly、x.tokyo、a.b.example）。「Mt.Fuji」のように大文字で始まる語は当てない
+const TLDS = "com|net|org|jp|io|dev|app|co|cloud|aws|ai|info|biz|me|xyz|ly|tokyo|link|site|page|sh|to|gl|gg|tv|cc|us|uk|online|shop|top|example";
+const URL_TAIL = String.raw`(?:\/[^\s<>"'）)」]*)?`;
+const URL_LIKE_I = new RegExp(
+    String.raw`\b(?:https?:\/\/|www\.)[^\s<>"'）)」]+|(?<![A-Za-z0-9.-])(?:[A-Za-z0-9-]+\.)+(?:${TLDS})\b` + URL_TAIL, "gi");
+const URL_LIKE = new RegExp(String.raw`(?<![A-Za-z0-9.-])(?:[a-z0-9-]+\.)+[a-z]{2,}\b` + URL_TAIL, "g");
 const EMAIL = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/;
 
 function urlHost(u: string): string {
@@ -140,8 +160,10 @@ export function leaksInAnswer(answer: string): boolean {
     if (EMAIL.test(t)) return true;
     if (KEY_SHAPES.some((r) => r.test(t))) return true;
     if (INTERNAL_NAMES.some((r) => r.test(t))) return true;
-    for (const m of t.matchAll(URL_LIKE)) {
-        if (!PUBLIC_HOSTS.test(urlHost(m[0]))) return true;
+    for (const re of [URL_LIKE_I, URL_LIKE]) {
+        for (const m of t.matchAll(re)) {
+            if (!PUBLIC_HOSTS.has(urlHost(m[0]))) return true;
+        }
     }
     return false;
 }
