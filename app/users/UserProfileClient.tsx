@@ -1400,6 +1400,9 @@ export default function UserProfileClient({ userId, initialBio, initialUsername 
                                         isOwner={isOwner}
                                         isAuthenticated={viewerAuthed}
                                         locale={locale as "ja" | "en"}
+                                        // ログインの案内の板に「誰を」を出す（札 #664）
+                                        targetName={displayName ?? undefined}
+                                        targetHandle={shownUsername ?? undefined}
                                     />
                                 </div>
                             )}

@@ -2,10 +2,13 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
-// 2026-11-09: 未ログインでフォローを押したら、文言だけで終わらせず「ログイン」リンク付きの案内（info・via=follow）。
-// 戻り先は押した頁（その人・その写真に返す）
+// 2026-11-09: 未ログインでフォローを押したら、文言だけで終わらせずログイン・新規登録の入口を出す（via=follow）。
+// 戻り先は押した頁（その人・その写真に返す）。
+// 2026-11-20（札 journey.photo-ios#664）: 入口を小さなトーストから案内の板に替えた。
+// 板のリンクにも via=follow を残し、`login_prompt`{follow} は板を出した回だけ数える
 
 const showToast = vi.hoisted(() => vi.fn());
+const gtag = vi.hoisted(() => vi.fn());
 vi.mock("../../../lib/utils/api", () => ({
     userFetch: vi.fn(async () => ({ ok: false, status: 401, json: async () => ({}) })),
     userPublicFetch: vi.fn(async () => ({ ok: true, json: async () => ({ followers: 0, following: 0 }) })),
@@ -13,33 +16,47 @@ vi.mock("../../../lib/utils/api", () => ({
 }));
 vi.mock("@/lib/utils/log", () => ({ log: { warn: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 vi.mock("../../../lib/hooks/useToast", () => ({ useToast: () => ({ showToast }) }));
+vi.mock("../UserAvatar", () => ({ default: () => <div data-testid="avatar" /> }));
 
 const { FollowAction } = await import("../FollowButton");
-const { resetGuestPromptThrottle } = await import("../../../lib/hooks/useGuestPrompt");
+
+const T = "22222222-2222-4222-8222-222222222222";
 
 beforeEach(() => {
-    resetGuestPromptThrottle();
     showToast.mockReset();
-    window.history.replaceState({}, "", "/users/22222222-2222-4222-8222-222222222222");
+    gtag.mockReset();
+    (window as unknown as { gtag: typeof gtag }).gtag = gtag;
+    sessionStorage.clear();
+    window.history.replaceState({}, "", `/users/${T}`);
 });
 
 describe("FollowAction: 未ログイン", () => {
     it.each([
-        ["ja", "フォローするにはログインしてください", "ログイン", "フォロー", "新規登録"],
-        ["en", "Log in to follow", "Log in", "Follow", "Sign up"],
-    ])("%s: リンク付きの info", async (locale, msg, label, btn, signup) => {
-        render(<FollowAction targetUserId="22222222-2222-4222-8222-222222222222" isOwner={false} isAuthenticated={false} locale={locale as "ja" | "en"} />);
+        ["ja", "フォロー"],
+        ["en", "Follow"],
+    ])("%s: 案内の板（ログイン・新規登録に via=follow と戻り先）", async (locale, btn) => {
+        render(<FollowAction targetUserId={T} isOwner={false} isAuthenticated={false} locale={locale as "ja" | "en"} />);
         const b = await screen.findByRole("button", { name: new RegExp(btn) });
         await waitFor(() => expect((b as HTMLButtonElement).disabled).toBe(false));
         fireEvent.click(b);
-        await waitFor(() => expect(showToast).toHaveBeenCalled());
-        // 新規登録（主）とログイン（札 journey.photo-ios#630、2026-11-15）
-        expect(showToast).toHaveBeenCalledWith(msg, "info", 6000, {
-            label: signup,
-            href: "/signup?next=%2Fusers%2F22222222-2222-4222-8222-222222222222&via=follow",
-        }, {
-            label,
-            href: "/login?next=%2Fusers%2F22222222-2222-4222-8222-222222222222&via=follow",
-        });
+        const primary = await screen.findByTestId("follow-login-primary");
+        const signup = screen.getByTestId("follow-login-signup");
+        await waitFor(() => expect(primary.getAttribute("href")).toContain("via=follow"));
+        expect(primary.getAttribute("href")!.startsWith(`/login?next=${encodeURIComponent(`/users/${T}`)}`)).toBe(true);
+        expect(signup.getAttribute("href")!.startsWith(`/signup?next=${encodeURIComponent(`/users/${T}`)}`)).toBe(true);
+        expect(signup.getAttribute("href")).toContain("via=follow");
+        // 小さなトーストは出さない（板に替えた）
+        expect(showToast).not.toHaveBeenCalled();
+    });
+
+    it("login_prompt{follow} を板を出した回だけ数える", async () => {
+        render(<FollowAction targetUserId={T} isOwner={false} isAuthenticated={false} locale="ja" />);
+        const b = await screen.findByRole("button", { name: /フォロー/ });
+        await waitFor(() => expect((b as HTMLButtonElement).disabled).toBe(false));
+        fireEvent.click(b);
+        await screen.findByTestId("follow-login-sheet");
+        const prompts = () => gtag.mock.calls.filter((c) => c[1] === "login_prompt");
+        await waitFor(() => expect(prompts()).toHaveLength(1));
+        expect(prompts()[0][2]).toMatchObject({ trigger: "follow" });
     });
 });

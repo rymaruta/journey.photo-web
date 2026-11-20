@@ -1053,6 +1053,7 @@ export default function NotificationsBell() {
                                                 // ＝押すと解除のボタンが、密に並ぶ行の中に
                                                 // 32px で居座る（誤タップで無確認に解除される）
                                                 hideWhenFollowing
+                                                targetName={n.byName}
                                             />
                                         </div>
                                     )}
