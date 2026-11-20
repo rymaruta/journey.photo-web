@@ -10,7 +10,8 @@
  *         ask            … AI に頼むの今月の回数
  *         askDay<DD>     … AI に頼むのその日の回数
  *         costMilliYen   … その人のサーバーの AI の今月の推定金額（1/1000 円）
- *         tripHeld / askHeld … `reserve`（via: server）で先に取って、まだ AI を呼んでいない回の数
+ *         tripHeld<DD> / askHeld<DD> … その日に `reserve`（via: server）で先に取って、まだ AI を呼んでいない回の数。
+ *                        日をまたいだら使えない（期限切れは数を戻さずに捨てる。1日の上限を2日分使う道を閉じる・2026-11-20 確かめ役の指摘）
  *         updatedAt
  *     `aiuse#all#<YYYY-MM>`     { costMilliYen, updatedAt }          … 全体の今月の推定金額（止めに使う）
  *     `aiuse#all#<YYYY-MM-DD>`  { costMilliYen, calls, updatedAt }   … 全体のその日の記録
@@ -53,7 +54,7 @@ type Row = Record<string, unknown>;
 const dd = (now: number) => String(jstDayOfMonth(now).day).padStart(2, "0");
 const monthField = (kind: AiKind) => (kind === "trip" ? "count" : "ask");
 const dayField = (kind: AiKind, now: number) => `${kind}Day${dd(now)}`;
-const heldField = (kind: AiKind) => `${kind}Held`;
+const heldField = (kind: AiKind, now: number) => `${kind}Held${dd(now)}`;
 const COST = "costMilliYen";
 
 const num = (v: unknown) => (typeof v === "number" && Number.isFinite(v) ? v : 0);
@@ -89,10 +90,14 @@ export function viewOf(tier: TripAiTier, kind: AiKind, row: Row, globalCost: num
     };
 }
 
-/** 旅行プランの前からの形（`usage`）。端末の回もだれでも数える（2026-11-20 から） */
+/**
+ * 旅行プランの前からの形（`usage`）。`countsDevice` は前の版のアプリのために、無料の人だけ true のまま
+ * （前の版は Pro で true だと端末の回のあとに `count` を呼び、圏外で落ちると組んだ結果を捨てる。TripAIRunner.swift。
+ * 新しいアプリは `reserve` で数える。2026-11-20 確かめ役の指摘）
+ */
 export function usageOf(tier: TripAiTier, used: number, now: number): Usage {
     const limit = TRIP_AI_LIMITS[tier];
-    return { tier, used, limit, remaining: Math.max(0, limit - used), resetsOn: resetsOn(now), countsDevice: true };
+    return { tier, used, limit, remaining: Math.max(0, limit - used), resetsOn: resetsOn(now), countsDevice: tier === "free" };
 }
 
 /** 今の回数（両方の種類）と、全体の今月の推定金額 */
@@ -132,7 +137,7 @@ export async function reserveUse(uid: string, tier: TripAiTier, kind: AiKind, vi
         sets.push("#c = if_not_exists(#c, :zero) + :cost");
         conds.push("(attribute_not_exists(#c) OR #c <= :croom)");
         if (hold) {
-            names["#h"] = heldField(kind);
+            names["#h"] = heldField(kind, now);
             sets.push("#h = if_not_exists(#h, :zero) + :one");
         }
     }
@@ -191,7 +196,7 @@ export async function takeHeld(uid: string, kind: AiKind, now: number): Promise<
             TableName: PHOTOS_TABLE, Key: { id: aiUseKey(uid, jstMonth(now)) },
             UpdateExpression: "SET #h = #h - :one",
             ConditionExpression: "#h > :zero",
-            ExpressionAttributeNames: { "#h": heldField(kind) },
+            ExpressionAttributeNames: { "#h": heldField(kind, now) },
             ExpressionAttributeValues: { ":zero": 0, ":one": 1 },
         }));
         return true;
@@ -212,7 +217,7 @@ async function releaseUser(uid: string, kind: AiKind, now: number, cost: number,
         sets.push("#c = #c - :cost");
     }
     if (held) {
-        names["#h"] = heldField(kind);
+        names["#h"] = heldField(kind, now);
         sets.push("#h = #h - :one");
     }
     try {
@@ -228,52 +233,70 @@ async function releaseUser(uid: string, kind: AiKind, now: number, cost: number,
 }
 
 /**
- * 取った1回を戻す（AI が答えなかった・読み取れなかった・断った回）。
- * `spent` は実際にかかった推定金額（AI を呼んだあとで断ったときは、かかった分は残す）。戻せなくても答えは変えない
+ * 取った1回を戻す。**AI を呼ぶ前に断った回と、AI が答えなかった回（502）だけ**。
+ * AI を呼んだ回は、断っても読み取れなくても戻さない（戻すと断られる頼みの繰り返しで日と月の上限が効かず、
+ * 全体の1日分を1人で使い切れる。2026-11-20 確かめ役の指摘）。戻せなくても答えは変えない
  */
-export async function releaseUse(uid: string, kind: AiKind, now: number, reservedCost: number, spent = 0): Promise<void> {
-    await releaseUser(uid, kind, now, Math.max(0, reservedCost - spent), false);
-    if (reservedCost > 0) await adjustGlobal(spent - reservedCost, spent, now, spent > 0);
+export async function releaseUse(uid: string, kind: AiKind, now: number, reservedCost: number): Promise<void> {
+    await releaseUser(uid, kind, now, reservedCost, false);
+    if (reservedCost > 0) await adjustGlobal(-reservedCost, 0, now, false);
 }
 
-/** 呼んだあと、先に取った推定金額を実際の額に直す（1人と全体）。全体の日の記録も足す */
+/**
+ * 呼んだあと、先に取った推定金額を実際の額に直す（1人と全体）。全体の日の記録も足す。
+ * 実際の額が先取りを越えたときは、まず止めの条件つきで足す。条件に合わなければ（止めを越える）、それでも実際の額は残す
+ * ——数を小さく見せると止めが遅れるので。越えた行は次の回の `reserveUse` の条件で止まる
+ */
 export async function settleUse(uid: string, now: number, reservedCost: number, actual: number): Promise<void> {
     const delta = actual - reservedCost;
     if (delta !== 0) {
-        try {
-            await ddb.send(new UpdateCommand({
-                TableName: PHOTOS_TABLE, Key: { id: aiUseKey(uid, jstMonth(now)) },
-                UpdateExpression: "SET #c = if_not_exists(#c, :zero) + :d",
-                ExpressionAttributeNames: { "#c": COST },
-                ExpressionAttributeValues: { ":zero": 0, ":d": delta },
-            }));
-        } catch (e) {
-            console.error("aiQuota: 1人の金額を直せませんでした", (e as Error)?.name);
-        }
+        await addCost({ id: aiUseKey(uid, jstMonth(now)) }, delta, delta > 0 ? USER_MONTH_COST_CAP : null, now, "1人");
     }
     await adjustGlobal(delta, actual, now, true);
 }
 
-async function adjustGlobal(delta: number, actual: number, now: number, called: boolean): Promise<void> {
-    const at = new Date(now).toISOString();
+/** 金額を足す。`cap` があれば「足したあとも cap 以下」の条件で足し、越えるなら条件なしで足して記録に残す。cap の中で足せたら true */
+async function addCost(key: { id: string }, delta: number, cap: number | null, now: number, label: string): Promise<boolean> {
+    const base = {
+        TableName: PHOTOS_TABLE, Key: key,
+        UpdateExpression: "SET #c = if_not_exists(#c, :zero) + :d, #u = :now",
+        ExpressionAttributeNames: { "#c": COST, "#u": "updatedAt" },
+    };
+    const values = { ":zero": 0, ":d": delta, ":now": new Date(now).toISOString() };
     try {
-        if (delta !== 0) {
-            await ddb.send(new UpdateCommand({
-                TableName: PHOTOS_TABLE, Key: { id: aiUseAllMonthKey(jstMonth(now)) },
-                UpdateExpression: "SET #c = if_not_exists(#c, :zero) + :d, #u = :now",
-                ExpressionAttributeNames: { "#c": COST, "#u": "updatedAt" },
-                ExpressionAttributeValues: { ":zero": 0, ":d": delta, ":now": at },
-            }));
+        if (cap !== null) {
+            try {
+                await ddb.send(new UpdateCommand({
+                    ...base, ConditionExpression: "attribute_not_exists(#c) OR #c <= :room",
+                    ExpressionAttributeValues: { ...values, ":room": cap - delta },
+                }));
+                return true;
+            } catch (e) {
+                if (!isCcf(e)) throw e;
+                console.warn(`aiQuota: ${label}の止めを越えました（次の回から止まります）`);
+            }
         }
-        if (called) {
-            await ddb.send(new UpdateCommand({
-                TableName: PHOTOS_TABLE, Key: { id: aiUseAllDayKey(jstDate(now)) },
-                UpdateExpression: "SET #c = if_not_exists(#c, :zero) + :a, #n = if_not_exists(#n, :zero) + :one, #u = :now",
-                ExpressionAttributeNames: { "#c": COST, "#n": "calls", "#u": "updatedAt" },
-                ExpressionAttributeValues: { ":zero": 0, ":a": actual, ":one": 1, ":now": at },
-            }));
-        }
+        await ddb.send(new UpdateCommand({ ...base, ExpressionAttributeValues: values }));
+        return cap === null;
     } catch (e) {
-        console.error("aiQuota: 全体の金額を直せませんでした", (e as Error)?.name);
+        console.error(`aiQuota: ${label}の金額を直せませんでした`, (e as Error)?.name);
+        return false;
+    }
+}
+
+async function adjustGlobal(delta: number, actual: number, now: number, called: boolean): Promise<void> {
+    if (delta !== 0) {
+        await addCost({ id: aiUseAllMonthKey(jstMonth(now)) }, delta, delta > 0 ? GLOBAL_MONTH_COST_CAP : null, now, "全体");
+    }
+    if (!called) return;
+    try {
+        await ddb.send(new UpdateCommand({
+            TableName: PHOTOS_TABLE, Key: { id: aiUseAllDayKey(jstDate(now)) },
+            UpdateExpression: "SET #c = if_not_exists(#c, :zero) + :a, #n = if_not_exists(#n, :zero) + :one, #u = :now",
+            ExpressionAttributeNames: { "#c": COST, "#n": "calls", "#u": "updatedAt" },
+            ExpressionAttributeValues: { ":zero": 0, ":a": actual, ":one": 1, ":now": new Date(now).toISOString() },
+        }));
+    } catch (e) {
+        console.error("aiQuota: 全体の日の記録を足せませんでした", (e as Error)?.name);
     }
 }

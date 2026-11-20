@@ -29,7 +29,7 @@
  *     { "action": "ask", "text": "...", "history"?: [{ "q", "a" }]（直前の2往復まで）,
  *       "sources"?: [{ "kind"?: "spot", "name", "area"?, "category"?, "seasons"?, "times"?, "note"? } | { "kind": "help", "title", "body" }] }
  *         → { answer, general, refused, quota }   （Pro と管理者だけ。reserve(via: server) 済みならそれを使い、無ければここで取る）
- *     { "action": "count" }        → 端末の AI で旅行プランを作った回を数える（前からの口。reserve(trip, device) と同じ。返事は `usage`）
+ *     { "action": "count" }        → 端末の AI で旅行プランを作った回を数える（前の版のアプリの口。無料の人だけ数える。返事は `usage`）
  *     { "action": "plan", "request": "...", "days"?: 2,
  *       "candidates": [{ "name", "area"?, "category"?, "seasons"?: [...], "times"?: [...] }],
  *       "current"?: [{ "n", "day" }] }                         → AI で組む（候補の番号は 1 から。Pro と管理者だけ）
@@ -38,8 +38,9 @@
  *
  * ## 何を数えるか（2026-11-20 から）
  *
- * - 端末の AI の回もサーバーの AI の回も、だれでも同じ上限で数える（CLAUDE.md「AI の機能には必ず回数の上限を付ける」）
- * - 読み取れなかった回・AI が答えなかった回・断った回は数えない（先に1つ取り、だめなら戻す。かかった費用は残す）
+ * - 端末の AI の回もサーバーの AI の回も、だれでも同じ上限で数える（新しいアプリは reserve。前の版の count は無料の人だけ）（CLAUDE.md「AI の機能には必ず回数の上限を付ける」）
+ * - 呼ぶ前に断った回と、AI が答えなかった回（502）は数えない（先に1つ取り、戻す）。
+ *   AI を呼んだ回は、断っても読み取れなくても数える（2026-11-20 確かめ役の指摘。戻すと上限が効かない）
  * - 管理者（Cognito の admin。`isAdmin`。アプリの `auth.isAdmin` と同じ `cognito:groups` を見る）は Pro と同じ上限
  *
  * 行の形は `aiQuota.ts` の先頭。退会の掃除（`account.ts`）が、その人の1年分の行を消す。
@@ -59,7 +60,7 @@ import {
     type LimitReason, type QuotaView, type Via,
 } from "./aiQuota";
 import { REFUSAL, leaksInAnswer, refuseBeforeCall } from "./aiGuard";
-import { ASK_SYSTEM_PROMPT, askMessage, cleanQuestion, parseAnswer, parseHistory, parseSources } from "./aiAsk";
+import { ASK_SYSTEM_PROMPT, askMessage, cleanQuestion, parseAnswer, parseHistory, parseSources, sourceTexts } from "./aiAsk";
 
 const bedrock = new BedrockRuntimeClient({ region: TRIP_AI_REGION });
 
@@ -254,7 +255,12 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
             }
 
             case "count": {
-                // 端末の AI で旅行プランを作った回（前からの口）。2026-11-20 からだれでも数える
+                // 端末の AI で旅行プランを作った回（前からの口・前の版のアプリだけが呼ぶ）。前の版のとおり無料の人だけ数える。
+                // Pro は `usage.countsDevice: false` を見て呼ばない（呼ばれても数えない）。新しいアプリは `reserve` で数える
+                if (tier !== "free") {
+                    const q = await readQuota(userId, tier, now);
+                    return ok({ usage: usageOf(tier, q.trip.month.used, now) });
+                }
                 const r = await reserveUse(userId, tier, "trip", "device", now);
                 const used = typeof r.row.count === "number" ? r.row.count : 0;
                 if (!r.ok) return limitReached(r.reason, viewOf(tier, "trip", r.row, 0, now), usageOf(tier, TRIP_AI_LIMITS[tier], now));
@@ -293,12 +299,12 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
                 const plan = sanitizePlan(extractJson(out.text), cands, days);
                 // 記録は数だけ（打った文・答えの中身は残さない）
                 console.log(JSON.stringify({ tripAi: "plan", tier, model: TRIP_AI_MODEL_ID, in: out.inputTokens, out: out.outputTokens, cost: spent, ok: !!plan, dropped: plan?.dropped ?? null }));
+                // AI を呼んだ回は、読み取れなくても回数を戻さない（2026-11-20 確かめ役の指摘。戻すと上限が効かない）
+                await settleUse(userId, now, got.cost, spent);
                 if (!plan) {
-                    await releaseUse(userId, "trip", now, got.cost, spent);
                     const q = await readQuota(userId, tier, now);
                     return reply(422, { error: "頼みを読み取れませんでした", code: "unreadable", usage: usageOf(tier, q.trip.month.used, now) });
                 }
-                await settleUse(userId, now, got.cost, spent);
                 const q = await readQuota(userId, tier, now);
                 return ok({ plan, usage: usageOf(tier, q.trip.month.used, now), trip: q.trip });
             }
@@ -310,8 +316,10 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
                 const sources = parseSources(body.sources);
                 if (!text || !history || !sources) return jsonError(400, "質問の形が正しくありません", "bad_request");
 
-                // 呼ぶ前の断り（費用0円・回数も使わない。reserve で先に取った回は戻す）
-                if (refuseBeforeCall(text)) {
+                // 呼ぶ前の断り（費用0円・回数も使わない。reserve で先に取った回は戻す）。
+                // 打った文だけでなく、直前の往復と引いた行の文も見る（AI に渡す文は全部見る）
+                const passed = [text, ...history.flatMap((h) => [h.q, h.a]), ...sources.flatMap(sourceTexts)];
+                if (passed.some(refuseBeforeCall)) {
                     if (await takeHeld(userId, "ask", now)) await releaseUse(userId, "ask", now, reserveCost("ask"));
                     console.log(JSON.stringify({ tripAi: "ask", tier, refused: "before" }));
                     const q = await readQuota(userId, tier, now);
@@ -330,16 +338,16 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
                 }
                 const spent = estimateCost(out.inputTokens, out.outputTokens);
                 const parsed = parseAnswer(out.text, sources.length > 0);
-                // 答えの前の見張り: AI が断った・鍵の形や内部の名前や URL やメールが混じった → 断りに替え、回数は戻す（かかった費用は残す）
+                // 答えの前の見張り: AI が断った・鍵の形や内部の名前や URL やメールが混じった → 断りに替える。
+                // AI を呼んだ回なので、回数は戻さない（2026-11-20 確かめ役の指摘）
                 const refused = !parsed || parsed.refuse || leaksInAnswer(parsed.answer);
                 console.log(JSON.stringify({ tripAi: "ask", tier, model: TRIP_AI_MODEL_ID, in: out.inputTokens, out: out.outputTokens, cost: spent, refused: refused ? (parsed ? "after" : "empty") : null, general: parsed?.general ?? null }));
+                await settleUse(userId, now, got.cost, spent);
                 if (refused) {
-                    await releaseUse(userId, "ask", now, got.cost, spent);
                     const q = await readQuota(userId, tier, now);
                     if (!parsed) return reply(422, { error: "うまく答えられませんでした", code: "unreadable", quota: q.ask });
                     return ok({ answer: REFUSAL, general: false, refused: true, quota: q.ask });
                 }
-                await settleUse(userId, now, got.cost, spent);
                 const q = await readQuota(userId, tier, now);
                 return ok({ answer: parsed.answer, general: parsed.general, refused: false, quota: q.ask });
             }
