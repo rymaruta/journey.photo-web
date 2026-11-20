@@ -19,6 +19,7 @@ const { contentTypeFor, putParamsFor, AASA_KEY, AASA_EDGE_KEY } = require("../de
 const root = path.resolve(__dirname, "../..");
 const aasa = JSON.parse(fs.readFileSync(path.join(root, "public", AASA_KEY), "utf8")) as {
     applinks: { details: Array<{ appIDs: string[]; components: Array<{ "/": string; "?"?: Record<string, string>; exclude?: boolean }> }> };
+    webcredentials?: { apps: string[] };
 };
 
 /** Apple の照合の形（`*` は0字以上・`/` も含む、`?` は1字）を正規表現にする */
@@ -45,6 +46,12 @@ describe("apple-app-site-association", () => {
         // チームID 5T76NZUL2L は TestFlight の署名の記録（配布証明書 Apple Distribution の括弧の中）、
         // バンドルID は journey.photo-ios の Config/Production.xcconfig の JP_BUNDLE_ID
         expect(aasa.applinks.details.map((d) => d.appIDs)).toEqual([["5T76NZUL2L.com.journeyphoto.JourneyPhoto"]]);
+    });
+
+    it("保存したパスワードをアプリのログインの欄に出す（webcredentials・2026-11-20・札 rymaruta/journey.photo-ios#661）", () => {
+        // iOS の entitlements の `webcredentials:journey-photo.com`（と www）と対。片方だけだと候補は黙って出ない。
+        // アプリは applinks と同じ本番の1つだけ（staging のバンドルID は載せない）
+        expect(aasa.webcredentials?.apps).toEqual(["5T76NZUL2L.com.journeyphoto.JourneyPhoto"]);
     });
 
     it("アプリに画面がある道はアプリで開く", () => {

@@ -21,5 +21,8 @@
         ]
       }
     ]
+  },
+  "webcredentials": {
+    "apps": ["5T76NZUL2L.com.journeyphoto.JourneyPhoto"]
   }
 }
