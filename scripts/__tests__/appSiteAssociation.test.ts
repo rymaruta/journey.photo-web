@@ -15,6 +15,7 @@ const { contentTypeFor, putParamsFor, AASA_KEY, AASA_EDGE_KEY } = require("../de
  * iOS はこのファイルを読み、ここに書いた道（パス）のリンクをアプリで開く。
  * アプリに受ける画面がある所だけを書く——ログイン・登録・設定・投稿・Pro の頁はアプリへ飛ばさない。
  * 🔴 **ここに道を足したら、iOS の振り分けにも同じ道を足す**（アプリが開いて何も出ない、を作らない）。
+ * iOS 側は journey.photo-ios の `Sources/JourneyPhoto/Core/Text/AppLink.swift`（`AppLinkTests` が同じ表を持つ）。
  */
 const root = path.resolve(__dirname, "../..");
 const aasa = JSON.parse(fs.readFileSync(path.join(root, "public", AASA_KEY), "utf8")) as {
@@ -57,7 +58,7 @@ describe("apple-app-site-association", () => {
     it("アプリに画面がある道はアプリで開く", () => {
         for (const url of [
             "/spots/abukumado", "/spots/abukumado?app=save", "/photo/abc123", "/users/u-1", "/users?id=u-1",
-            "/trips", "/t?t=tok", "/j?t=tok", "/qr?t=tok",
+            "/qr?t=tok",
         ]) expect(opensInApp(url), url).toBe(true);
     });
 
@@ -67,6 +68,10 @@ describe("apple-app-site-association", () => {
             "/spots", "/spots/area/kanto", "/spots/city/kyoto/kyoto", "/spots/season/spring", "/spots/sakura",
             "/spots/sakura/tokyo", "/spots/momiji", "/spots/snow", "/spots/theme/temple/kyoto",
             "/users", "/users/search", "/users/trip", "/t", "/j", "/qr", "/privacy", "/terms",
+            // アプリに受ける口がまだ無い（AppLink が受けない・2026-11-20 判断・journey.photo-ios#664）
+            "/trips", "/t?t=tok", "/j?t=tok",
+            // アプリが受けるのは1段だけ（/photo/<id>・/users/<id>）
+            "/photo/a/b", "/users/u-1/x",
         ]) expect(opensInApp(url), url).toBe(false);
     });
 
