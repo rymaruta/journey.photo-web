@@ -184,6 +184,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           **`lib/utils/assetRecovery.ts` の `isAssetElement` と同じ規則。**
           写しが2つあるのは、こちらが**チャンクより先に**動く必要があるため
           （React の部品では `<head>` の時点の失敗を拾えない）。
+
+          **頁を離れる途中の失敗では読み直さない**（2026-11-20）。WebKit（Safari）は、別の頁へ移るとき
+          読み込み中の script / CSS を打ち切り、その要素に error を出す（Chromium は出さない・手元の WebKit で確かめた）。
+          それを「チャンクが来ない」と取って `location.reload()` していたので、**読み込みが残っている頁から
+          別の頁へ移ると、移動が読み直しに割り込まれて元の頁に戻されていた**。本番の Deploy Site
+          （run 44815049595 の2回目）の smoke が WebKit で `/map` へ移る途中に落ちたのはこれ。
+          `beforeunload`（移動の始まり・WebKit では error より先に来る）と `pagehide` で印を付け、
+          10秒の間は読み直さない。移動が取りやめになった（ダウンロード・`mailto:` など）ときは10秒で元に戻る。
+          `pageshow`（bfcache から戻った）でも外す。`lib/utils/assetRecovery.ts` の `isLeavingPage` と同じ規則
           最初あちらだけ直したが、**先に登録されるこちらが発火し続けていた**
           ——測って気づいた。突き合わせは
           `app/__tests__/assetRecoveryInline.test.ts` が振る舞いで行う。
@@ -197,7 +206,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var KEY="jp_asset_reload_at";function rl(){var now=Date.now(),last=0;try{last=Number(sessionStorage.getItem(KEY)||0)}catch(x){return}if(last&&now-last<60000)return;try{sessionStorage.setItem(KEY,String(now))}catch(x){return}location.reload()}addEventListener("error",function(e){var t=e.target;if(!t||typeof t.tagName!=="string")return;var tag=t.tagName.toUpperCase();var url="";if(tag==="SCRIPT")url=t.src||"";else if(tag==="LINK"&&String(t.rel||"").toLowerCase().indexOf("stylesheet")>-1)url=t.href||"";else return;if(!url)return;var here=location.origin;if(!here)return;try{if(new URL(url,here).origin!==here)return}catch(x){return}rl()},true);addEventListener("load",function(){try{var ls=document.querySelectorAll('link[rel~="stylesheet"]');if(!ls.length)return;for(var i=0;i<ls.length;i++){var s=ls[i].sheet;if(!s)continue;try{if(s.cssRules&&s.cssRules.length)return}catch(x){return}}rl()}catch(e){}})}catch(e){}})();`,
+            __html: `(function(){try{var KEY="jp_asset_reload_at",lv=0;addEventListener("beforeunload",function(){lv=Date.now()});addEventListener("pagehide",function(){lv=Date.now()});addEventListener("pageshow",function(){lv=0});function rl(){var now=Date.now(),last=0;if(lv&&now-lv>=0&&now-lv<10000)return;try{last=Number(sessionStorage.getItem(KEY)||0)}catch(x){return}if(last&&now-last<60000)return;try{sessionStorage.setItem(KEY,String(now))}catch(x){return}location.reload()}addEventListener("error",function(e){var t=e.target;if(!t||typeof t.tagName!=="string")return;var tag=t.tagName.toUpperCase();var url="";if(tag==="SCRIPT")url=t.src||"";else if(tag==="LINK"&&String(t.rel||"").toLowerCase().indexOf("stylesheet")>-1)url=t.href||"";else return;if(!url)return;var here=location.origin;if(!here)return;try{if(new URL(url,here).origin!==here)return}catch(x){return}rl()},true);addEventListener("load",function(){try{var ls=document.querySelectorAll('link[rel~="stylesheet"]');if(!ls.length)return;for(var i=0;i<ls.length;i++){var s=ls[i].sheet;if(!s)continue;try{if(s.cssRules&&s.cssRules.length)return}catch(x){return}}rl()}catch(e){}})}catch(e){}})();`,
           }}
         />
         {/*

@@ -471,6 +471,19 @@ async function runChecks(browser, eng) {
     // （手元は0件・本番は16件）、どちらでも成り立つことだけ見る。
     if (fs.existsSync(path.join(OUT, "map.html"))) {
         console.log(`\n[${eng}][3] 撮影地マップ`);
+        // **頁を離れる途中でチャンクが打ち切られても、移動は読み直しに割り込まれない**（2026-11-20）。
+        // WebKit は別の頁へ移るとき読み込み中の script に error を出し、`AssetRecovery`・`layout.tsx` の見張りが
+        // それで `location.reload()` して、移動を割り込んで元の頁へ戻していた（Deploy Site run 44815049595 の2回目は
+        // プロフィールから `/map` へ移る途中にこれで落ちた）。読み込み中のチャンクを1本わざと作って、そのまま移る。
+        // `gotoSettled` は割り込みを1回だけ行き直して隠すので、ここは行き直さない形（`retryInterrupted: false`）で見る
+        {
+            const SLOW = "/_next/static/chunks/__smoke-slow-chunk.js";
+            await page.route(`**${SLOW}`, (r) => { setTimeout(() => r.fulfill({ status: 200, contentType: "text/javascript", body: "" }).catch(() => {}), 5000); });
+            await page.evaluate((src) => { const s = document.createElement("script"); s.src = src; document.head.appendChild(s); }, SLOW);
+            const left = await gotoSettled(page, `http://localhost:${PORT}/map`, { waitUntil: "domcontentloaded" }, { retryInterrupted: false }).then(() => "ok", (e) => String(e?.message ?? e).split("\n")[0]);
+            check(`[${eng}] 読み込み中のチャンクを残して移っても、読み直しに割り込まれず /map に着く`, left === "ok" && new URL(page.url()).pathname === "/map", `${left} → ${page.url()}`);
+            await page.unroute(`**${SLOW}`);
+        }
         await gotoSettled(page, `http://localhost:${PORT}/map`);
         check(`[${eng}] 地図: ハイドレーション完了`, await waitForHydration(page));
         const m = await page.evaluate(() => ({
