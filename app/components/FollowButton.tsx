@@ -3,13 +3,15 @@
 // プロフィールのフォローUI: フォロワー/フォロー中の数（全員に表示）と、
 // 他人のプロフィールにはフォローボタン。
 
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { ChevronRightIcon, ChevronDownIcon } from "@heroicons/react/24/outline";
 import { INLINE_BTN, INLINE_BTN_STYLE, FOLLOW_ON, FOLLOW_OFF, FOLLOW_LIST_MIN_W, PROFILE_FOLLOW_BTN, PROFILE_FOLLOW_STYLE, PROFILE_FOLLOW_OFF, PROFILE_FOLLOW_ON } from "./buttonStyles";
 import { useFollow } from "../../lib/hooks/useFollow";
 import { useToast } from "../../lib/hooks/useToast";
 import { STAT_NUMBER_PX, STAT_LABEL_PX, STAT_NUMBER_CLASS, STAT_LABEL_CLASS, STAT_CELL_CLASS } from "./statCellStyle";
 import FollowingSheet, { type FollowListKind } from "./FollowingSheet";
+import FollowLoginSheet from "./FollowLoginSheet";
+import { hasFollowAfterLogin, clearFollowAfterLogin } from "../../lib/utils/followAfterLogin";
 
 type Props = {
     targetUserId: string;
@@ -53,6 +55,12 @@ type Props = {
      * 出してから消すと、一覧が一瞬ずれる。
      */
     hideWhenFollowing?: boolean;
+    /**
+     * ログインの案内の板（`FollowLoginSheet`）に出す相手の名前と @名（@ は付けない）。
+     * 無くても板は出る（見出しが「フォローするにはログイン」になる）
+     */
+    targetName?: string;
+    targetHandle?: string;
 };
 
 /**
@@ -182,7 +190,7 @@ export default function FollowButton({ targetUserId, isAuthenticated, locale, va
  * フォローボタン単体。数字のピル（FollowButton）とは切り離し、
  * プロフィールのアクション行（編集/写真を追加 と同じ場所）に置けるようにする。
  */
-export function FollowAction({ targetUserId, isOwner, isAuthenticated, locale, variant = "profile", ariaLabel, hideWhenFollowing }: Props) {
+export function FollowAction({ targetUserId, isOwner, isAuthenticated, locale, variant = "profile", ariaLabel, hideWhenFollowing, targetName, targetHandle }: Props) {
     // 数は描かないので取りに行かない（検索結果 N 件で N 本飛んでいた）。
     // 数のピルはプロフィールの FollowButton が別に取る。
     //
@@ -195,6 +203,38 @@ export function FollowAction({ targetUserId, isOwner, isAuthenticated, locale, v
     const { isFollowing, pending, resolved, toggle } = useFollow(targetUserId, isAuthenticated, false);
     const { showToast } = useToast();
     const compact = variant === "followBack";
+    const btnRef = useRef<HTMLButtonElement>(null);
+    // 2026-11-20 判断（札 #664）: 未ログインの人には、小さなトーストではなく案内の板を出す
+    const [loginSheet, setLoginSheet] = useState(false);
+
+    // **ログインから戻ったら、1回だけフォローする**（2026-11-20 判断・札 #664）。
+    //
+    // 印（URL の合言葉＋このタブの sessionStorage）は `lib/utils/followAfterLogin.ts`。
+    // 外の頁が付けた URL だけでは走らない（sessionStorage は同じサイトの頁からしか書けない）。
+    //
+    // **`resolved` を信じるのは、ログイン済みの状態で一度「まだ分からない」を見てから。**
+    // 未ログインの間 `useFollow` は resolved=true（未フォローで確定）を返していて、ログインが
+    // 届いた描画ではまだその古い true が見える（`useFollow` の effect が false に戻すのは同じ
+    // コミットの中）。そこで送ると、既にフォロー中かどうかを確かめないまま POST してしまう。
+    const sawUnresolvedWhileAuthedRef = useRef(false);
+    useEffect(() => {
+        if (!targetUserId) return;
+        if (isAuthenticated && !resolved) sawUnresolvedWhileAuthedRef.current = true;
+        if (!hasFollowAfterLogin(targetUserId)) return;
+        // 自分の頁なら何もしない（印だけ消す）
+        if (isOwner) { clearFollowAfterLogin(); return; }
+        if (!isAuthenticated || !resolved || !sawUnresolvedWhileAuthedRef.current) return;
+        // **送る前に消す**＝何があっても2回目は無い（同じ相手のボタンが同じ頁に2つあっても、
+        // 後から読んだ方には印がもう無い）
+        clearFollowAfterLogin();
+        // もうフォロー中なら送らない（押すと外れてしまう）
+        if (isFollowing) return;
+        void toggle().then(({ result }) => {
+            if (result === "followed") showToast(locale === "en" ? "Following" : "フォローしました", "success");
+            // 失敗（相手がいない・自分だった・通信）は黙る。ボタンは「フォローする」のまま残るので、
+            // 押し直せば手動の道（理由つきのトースト）に乗る
+        });
+    }, [targetUserId, isAuthenticated, resolved, isFollowing, isOwner, toggle, showToast, locale]);
 
     if (isOwner) return null;
     // 返し終わった行（と、まだ判定が付いていない行）には何も置かない。
@@ -204,7 +244,11 @@ export function FollowAction({ targetUserId, isOwner, isAuthenticated, locale, v
     const onClick = async () => {
         const { result, message } = await toggle();
         if (result === "auth-required") {
-            showToast(message ?? (locale === "en" ? "Log in to follow" : "フォローするにはログインしてください"), "info");
+            // 2026-11-20 判断（札 #664）: 未ログインは案内の板。以前の小さな info のトーストは
+            // 気付きにくく（owner「サイズが小さい気がして気付きにくいかも」）、ログイン後もフォローされなかった。
+            // **ログイン済みのはずが鍵が取れなかった回**（`message` がある＝別タブでログアウト・失効）も
+            // やることは同じ「ログインし直す」なので、同じ板にそろえる
+            setLoginSheet(true);
         } else if (result === "followed") {
             // `already`（取り直したら既にフォロー中）はここを通らない。送っていないので言わない
             showToast(locale === "en" ? "Following" : "フォローしました", "success");
@@ -216,8 +260,11 @@ export function FollowAction({ targetUserId, isOwner, isAuthenticated, locale, v
     };
 
     return (
+        <>
         <button
+            ref={btnRef}
             onClick={() => void onClick()}
+            aria-haspopup={isAuthenticated ? undefined : "dialog"}
             // 判定が終わるまで押させない。初期値の false を「未フォロー」と
             // 同じ扱いにしていた頃は、一覧を取り終える前にボタンが「フォロー」と
             // 出て、押しても既にフォロー済みで画面が変わらなかった。
@@ -243,5 +290,16 @@ export function FollowAction({ targetUserId, isOwner, isAuthenticated, locale, v
                         ? (locale === "en" ? "Follow" : "フォロー")
                         : (locale === "en" ? "Follow" : "フォローする")}
         </button>
+        {loginSheet && (
+            <FollowLoginSheet
+                targetUserId={targetUserId}
+                targetName={targetName}
+                targetHandle={targetHandle}
+                locale={locale}
+                onClose={() => setLoginSheet(false)}
+                restoreRef={btnRef}
+            />
+        )}
+        </>
     );
 }

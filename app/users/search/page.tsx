@@ -181,6 +181,8 @@ export default function UserSearchPage() {
                                 isOwner={!!userId && userId === u.userId}
                                 isAuthenticated={isAuthenticated}
                                 locale={locale}
+                                targetName={u.displayName || undefined}
+                                targetHandle={u.username || undefined}
                             />
                         </div>
                     </li>

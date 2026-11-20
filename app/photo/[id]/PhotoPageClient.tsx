@@ -1241,6 +1241,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                 isAuthenticated={isAuthenticated}
                                 locale={locale === "en" ? "en" : "ja"}
                                 variant="outline"
+                                targetName={photo.displayName}
+                                targetHandle={photo.uploaderUsername ?? undefined}
                             />
                         )}
                     </div>
