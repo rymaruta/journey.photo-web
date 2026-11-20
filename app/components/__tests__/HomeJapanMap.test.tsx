@@ -229,7 +229,9 @@ describe("日本地図: 県ごとの上位の数件（静的データ）", () =>
 
     it("静的 HTML には一覧を出さない（閉じた状態・県を押すまで何も出ない）", () => {
         expect(html).not.toContain('data-testid="home-japan-map-spots"');
-        expect(html).toContain('data-open="false"');
+        // 2026-11-20 owner 判断「このでかい枠が常に出てきて嫌だ」: 選んでいないときは枠（帯）そのものを出さない
+        expect(html).not.toContain('data-testid="home-japan-map-panel"');
+        expect(html).toContain("地方を押すと、県の観光スポットが出ます");
     });
 });
 
@@ -267,7 +269,9 @@ const px = (ux: number, uy: number): [number, number] => {
 const wrapEl = () => screen.getByTestId("home-japan-map-wrap");
 const stageOf = () => wrapEl().getAttribute("data-stage");
 const panelEl = () => screen.getByTestId("home-japan-map-panel");
-const isOpen = () => panelEl().getAttribute("data-open") === "true";
+/** 帯は県を選んだときだけ出る（2026-11-20 owner 判断）。出ていれば開いている */
+const isOpen = () => screen.queryByTestId("home-japan-map-panel") !== null;
+const guideText = () => screen.queryByTestId("home-japan-map-guide")?.textContent ?? null;
 const tipEl = () => screen.getByTestId("home-japan-map-tip");
 const tipText = () => (tipEl().hidden ? null : tipEl().textContent);
 const link = (slug: string) => document.querySelector<SVGAElement>(`a[data-s="${slug}"]`)!;
@@ -297,16 +301,66 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
     });
     afterEach(() => { vi.useRealTimers(); });
 
-    it("起動: 全国・地方チップは「全国」＋ 9 つ（実ボタン）・全国が選択中・枠は押すと何が出るかの一言・一覧への近道がある", () => {
+    it("起動: 全国・地方チップは「全国」＋ 9 つ（実ボタン）・全国が選択中・一覧への近道がある", () => {
         mountFresh();
         const chips = [...screen.getByTestId("home-japan-map-chips").querySelectorAll("button")];
         expect(chips.map((c) => c.textContent)).toEqual(["全国", "北海道", "東北", "関東", "中部", "近畿", "中国", "四国", "九州", "沖縄"]);
         expect(chips[0].getAttribute("aria-pressed")).toBe("true");
         expect(stageOf()).toBe("all");
         expect(isOpen()).toBe(false);
-        expect(panelEl().querySelector("h3")!.textContent).toBe("県の観光スポット");
-        expect(screen.getByTestId("home-japan-map-panel-note").textContent).toBe("地方を押し、県を押すと、ここに出ます");
         expect(screen.getAllByText(/県の一覧から選ぶ/).length).toBeGreaterThan(0);
+    });
+
+    describe("🔴 何も選んでいないときは枠を出さない（2026-11-20 owner「このでかい枠が常に出てきて嫌だ」）", () => {
+        it("選んでいないときは帯（枠）が無い。案内は地図の上の小さな1行だけ（text-3・固定欄の中・命令ではない）", () => {
+            mountFresh();
+            expect(screen.queryByTestId("home-japan-map-panel")).toBeNull();
+            expect(document.getElementById("home-japan-map-sheet")).toBeNull();
+            expect(document.querySelector(".jm-sheet")).toBeNull();
+            const guide = screen.getByTestId("home-japan-map-guide");
+            expect(guide.textContent).toBe("地方を押すと、県の観光スポットが出ます");
+            expect(guide.className).toContain("text-text-3");
+            // 地図の上の端（固定欄 36px の中）。地図の下や別の枠には置かない
+            expect(screen.getByTestId("home-japan-map-bar").contains(guide)).toBe(true);
+            expect(guide.textContent).not.toContain("選ぶ");
+            expect(guide.textContent).not.toContain("・");
+        });
+
+        it("「県の一覧から選ぶ」は地図の下の1つだけ（二重に出さない）", () => {
+            mountFresh();
+            expect(screen.getAllByText(/県の一覧から選ぶ/)).toHaveLength(1);
+            expect(document.querySelectorAll(`button[aria-controls="home-japan-map-list"]`)).toHaveLength(1);
+            expect(screen.getByTestId("home-japan-map-list-toggle").className).toContain("jm-tlink-b");
+        });
+
+        it("地方を押すと案内は「県を押すと」に替わる（枠は出ない）。県を選ぶと枠が出て案内は消え、閉じると枠の無い状態に戻る", () => {
+            mountFresh();
+            fireEvent.click(screen.getByRole("button", { name: "関東" }));
+            expect(isOpen()).toBe(false);
+            expect(guideText()).toBe("関東　県を押すと、観光スポットが出ます");
+            fireEvent.click(link("kanagawa"), { detail: 1 });
+            expect(isOpen()).toBe(true);
+            expect(panelEl().querySelector("h3")!.textContent).toBe("神奈川県");
+            expect(screen.getByTestId("home-japan-map-close")).toBeTruthy();
+            expect(guideText()).toBeNull();
+            expect(screen.getByTestId("home-japan-map-bar").textContent).toBe("関東 を表示中");
+            fireEvent.click(screen.getByTestId("home-japan-map-close"));
+            expect(screen.queryByTestId("home-japan-map-panel")).toBeNull();
+            expect(document.querySelector(".jm-sheet")).toBeNull();
+            expect(guideText()).toBe("関東　県を押すと、観光スポットが出ます");
+            fireEvent.click(screen.getByRole("button", { name: "全国" }));
+            expect(guideText()).toBe("地方を押すと、県の観光スポットが出ます");
+        });
+
+        it("北海道（地方を拡大しない県）を選ぶと、固定欄は県名を出し、閉じると全国の案内に戻る", () => {
+            mountFresh();
+            fireEvent.click(screen.getByRole("button", { name: "北海道" }));
+            expect(isOpen()).toBe(true);
+            expect(screen.getByTestId("home-japan-map-bar").textContent).toBe("北海道 を表示中");
+            fireEvent.click(screen.getByTestId("home-japan-map-close"));
+            expect(isOpen()).toBe(false);
+            expect(guideText()).toBe("地方を押すと、県の観光スポットが出ます");
+        });
     });
 
     it("地方チップ: 関東を押すと拡大して開く（履歴は積まない・URL は変わらない）。読み上げに「関東を拡大。7県」。全国で戻る", async () => {
@@ -319,7 +373,7 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
         expect(window.location.hash).toBe("");
         expect(isOpen()).toBe(false);
         expect(screen.getByRole("button", { name: "関東" }).getAttribute("aria-pressed")).toBe("true");
-        expect(panelEl().textContent).toContain("関東の県");
+        expect(guideText()).toBe("関東　県を押すと、観光スポットが出ます");
         // 拡大した地方の外の県は沈む
         expect(document.querySelectorAll("path.jm-dim").length).toBe(40);
         fireEvent.click(screen.getByRole("button", { name: "全国" }));
@@ -577,7 +631,7 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
                 expect(looksSelected(), `${t}ms`).toEqual(NOTHING);
                 await settle(100);
             }
-            expect(screen.getByTestId("home-japan-map-bar").textContent).toBe("全国　地方を押すと開きます");
+            expect(screen.getByTestId("home-japan-map-bar").textContent).toBe("地方を押すと、県の観光スポットが出ます");
             expect(screen.queryByTestId("home-japan-map-hint")).toBeNull(); // 地図の上の一言「長押ししてなぞる」も出さない
             expect(document.body.textContent).not.toContain("長押ししてなぞる");
         });
@@ -592,10 +646,9 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
             expect(window.location.hash).toBe("");
             expect(screen.getByTestId("home-japan-map-status").textContent).toBe("中部を拡大。9県。");
             expect(document.querySelectorAll(".jm-rlabel")).toHaveLength(0);
-            // 拡大した地方の帯の一言
-            expect(panelEl().querySelector("h3")!.textContent).toBe("中部の県");
-            expect(screen.getByTestId("home-japan-map-panel-note").textContent).toBe("県を押すと、ここに観光スポットが出ます");
-            expect(screen.getByTestId("home-japan-map-bar").textContent).toBe("中部 を表示中");
+            // 拡大した地方: 枠は出さず、地図の上の1行で次の一手を言う（2026-11-20 owner 判断）
+            expect(screen.queryByTestId("home-japan-map-panel")).toBeNull();
+            expect(screen.getByTestId("home-japan-map-bar").textContent).toBe("中部　県を押すと、観光スポットが出ます");
             fireEvent.click(screen.getByRole("button", { name: "全国" }));
             expect(stageOf()).toBe("all");
             expect(document.querySelectorAll(".jm-rlabel")).toHaveLength(9);
@@ -623,15 +676,16 @@ describe("日本地図: 操作（地方チップ・タップ・なぞり・一�
             expect(isOpen()).toBe(false);
         });
 
-        it("帯と固定欄の文: 命令の「県を選ぶ」・操作の説明（指を置き、なぞる）・中黒を使わない", () => {
+        it("固定欄の文: 命令の「県を選ぶ」・操作の説明（指を置き、なぞる）・中黒を使わない", () => {
             mountFresh();
-            const panel = panelEl().textContent ?? "";
-            expect(panel).not.toContain("県を選ぶ");
-            expect(panelEl().querySelector("h3")!.textContent).not.toContain("選ぶ");
-            expect(panel).not.toContain("なぞる");
-            expect(panel).not.toContain("指を置き");
-            expect(screen.getByTestId("home-japan-map-panel-note").textContent).not.toContain("・");
-            expect(screen.getByTestId("home-japan-map-bar").textContent).not.toContain("・");
+            const bar = () => screen.getByTestId("home-japan-map-bar").textContent ?? "";
+            for (const go of [() => {}, () => fireEvent.click(screen.getByRole("button", { name: "近畿" }))]) {
+                go();
+                expect(bar()).not.toContain("選ぶ");
+                expect(bar()).not.toContain("なぞる");
+                expect(bar()).not.toContain("指を置き");
+                expect(bar()).not.toContain("・");
+            }
             expect(screen.getByTestId("home-japan-map").textContent).not.toContain("撮りどき");
         });
     });
