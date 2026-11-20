@@ -1,4 +1,5 @@
-# AI で旅行プランを作る口（札 journey.photo-ios#621・owner 承認 2026-11-15「いいよ、進めて」・`src/tripAi.ts`）を、
+# AI で旅行プランを作る口（札 journey.photo-ios#621・owner 承認 2026-11-15「いいよ、進めて」・`src/tripAi.ts`）と、
+# AI に頼む（札 #652・owner 承認 2026-11-20「たのむ」。同じ口の `action: "ask"`）を、
 # user API とは**別のスタック**で配る（札 #552 の決まり。user API に口を足さない）。
 #
 # - 口は POST /user/trip-ai の1つ。URL は user API と同じ（HttpApiId を取り込み、経路だけ置く）
@@ -139,7 +140,7 @@ custom:
       - '@aws-sdk/*'
 
 functions:
-  # AI で旅行プランを作る・今月の回数を返す・端末の AI の回を数える（体の `action` で分ける）
+  # AI で旅行プランを作る・AI に頼む・日と月の回数を返す・端末の AI の回を数える（体の `action` で分ける）
   tripAi:
     handler: src/tripAi.handler
     role: TripAiRole
@@ -185,7 +186,8 @@ resources:
                     - bedrock:InvokeModel
                   Resource:
                     - arn:aws:bedrock:ap-northeast-1::foundation-model/amazon.nova-lite-v1:0
-                # 回数の行（`aiuse#`）だけ読み書きする
+                # 回数の行（`aiuse#`）だけ読み書きする。利用者ごとの行と、全体の止めの行（`aiuse#all#<年月>`・`aiuse#all#<年月日>`。
+                # 札 #652・`src/aiQuota.ts`）の両方がこの頭
                 - Effect: Allow
                   Action:
                     - dynamodb:GetItem

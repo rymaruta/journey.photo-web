@@ -13,6 +13,8 @@ import { siteConfig, shareOgImage } from "@/lib/utils/seo";
 //   意見に添える記録（`ExitTrail`・MetricKit）・行った県の記録。iOS 1.1.91＝a65201d と api-user の tripShare.ts・dmPhotoQuote.ts に合わせた）
 // （2026-11-15・journey.photo-ios #621: AI で旅行プランを作る。`api-user/src/tripAi.ts`（Amazon Bedrock、東京の Nova Lite）と
 //   iOS の端末の AI（Foundation Models）。送る中身は `tripAi.ts` の `userMessage`。owner 承認 2026-11-15）
+// （2026-11-20・journey.photo-ios #652: 探すの欄で AI に頼む。送る中身は `aiAsk.ts` の `askMessage`（打った文・直前の2往復・
+//   引いた公開の行）。残すのは `aiQuota.ts` の回数と推定金額だけ。owner 承認 2026-11-20「たのむ」）
 // 旅のトランクの「他の方に見えるもの」は `api-user/src/trunk.ts` の `readTheirTrunk`・`theirLabel`・`showTrunk`・
 // `ticket` と `trunkPlace.ts` の `placeOkFor`（photo-gallery #409・2026-10-18）。Pro の章を隠す設定（#407）は
 // 本番に出たら書き足すこと。
@@ -27,7 +29,7 @@ import { siteConfig, shareOgImage } from "@/lib/utils/seo";
 // 11節のログの保存期間（90日）は `api/serverless.yml`・`api-user/serverless.yml` の
 // `logRetentionInDays`（photo-gallery #397）。Lambda@Edge（OGP）のログは CloudFormation の外で
 // 期限が付いていないので、「全部が90日」とは書かない（`scripts/__tests__/logRetention.test.ts` の注記）。
-const LAST_UPDATED = "2026年11月15日";
+const LAST_UPDATED = "2026年11月20日";
 
 export const metadata: Metadata = {
     // サイト名は `app/layout.tsx` の `template` が付ける。ここでも足すと
@@ -453,10 +455,13 @@ export default function PrivacyPage() {
                     <ul className="list-disc pl-5 space-y-1">
                         <li><strong className="text-white/90">Amazon Web Services</strong> — 写真・データの保存、配信、認証（Cognito）</li>
                         <li>
-                            <strong className="text-white/90">Amazon Web Services（Amazon Bedrock）</strong> — iPhone アプリの「AI で旅行プランを作る」。
-                            東京の地域で処理します。送るのは、入力した頼みの文、候補の観光スポットの名前と種類、今の日程の中身だけで、
-                            お名前・メールアドレス・位置は送りません。送った文は当サイトのサーバーに残しません（残すのは月の利用回数だけです）。
-                            端末の中の AI（Apple Intelligence）を使える iPhone では、端末の中で処理し、文を送りません
+                            <strong className="text-white/90">Amazon Web Services（Amazon Bedrock）</strong> — iPhone アプリの「AI で旅行プランを作る」と、
+                            「探す」の欄で AI に頼む・聞く機能。東京の地域で処理します。
+                            旅行プランで送るのは、入力した頼みの文、候補の観光スポットの名前と種類、今の日程の中身だけです。
+                            「探す」で送るのは、入力した文と、その直前の2往復（質問と答え）、答えに使う観光スポットや使い方の頁の公開の内容だけです。
+                            どちらも、お名前・メールアドレス・現在地などの位置は送りません。送った文と答えは当サイトのサーバーに残しません
+                            （残すのは、日と月の利用回数と、利用料金の見積もりの数字だけです）。
+                            端末の中の AI（Apple Intelligence）を使える iPhone では、端末の中で処理し、文を送りません（利用回数だけを数えます）
                         </li>
                         <li><strong className="text-white/90">Google アナリティクス</strong> — アクセス解析（ウェブサイトのみ）</li>
                         <li><strong className="text-white/90">OpenStreetMap（Nominatim）</strong> — 撮影地名の解決と撮影地の候補の検索（座標は約1kmに丸めた値、または入力した語のみ送信）</li>
