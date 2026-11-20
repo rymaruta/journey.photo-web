@@ -78,6 +78,11 @@ export function parseSources(v: unknown): AskSource[] | null {
     return out;
 }
 
+/** 引いた行のうち、AI に渡す文（呼ぶ前の断りに通す） */
+export function sourceTexts(s: AskSource): string[] {
+    return s.kind === "help" ? [s.title, s.body] : [s.name, s.area, s.category, s.note];
+}
+
 export const cleanQuestion = (v: unknown) => cleanLine(v, ASK_MAX_TEXT);
 
 export const ASK_SYSTEM_PROMPT = `あなたは旅と写真のアプリの案内係です。利用者の質問に短く答えます。利用者が英語で聞いたら英語、それ以外は日本語で答えます。
