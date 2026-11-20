@@ -15,10 +15,12 @@ const { contentTypeFor, putParamsFor, AASA_KEY, AASA_EDGE_KEY } = require("../de
  * iOS はこのファイルを読み、ここに書いた道（パス）のリンクをアプリで開く。
  * アプリに受ける画面がある所だけを書く——ログイン・登録・設定・投稿・Pro の頁はアプリへ飛ばさない。
  * 🔴 **ここに道を足したら、iOS の振り分けにも同じ道を足す**（アプリが開いて何も出ない、を作らない）。
+ * iOS 側は journey.photo-ios の `Sources/JourneyPhoto/Core/Text/AppLink.swift`（`AppLinkTests` が同じ表を持つ）。
  */
 const root = path.resolve(__dirname, "../..");
 const aasa = JSON.parse(fs.readFileSync(path.join(root, "public", AASA_KEY), "utf8")) as {
     applinks: { details: Array<{ appIDs: string[]; components: Array<{ "/": string; "?"?: Record<string, string>; exclude?: boolean }> }> };
+    webcredentials?: { apps: string[] };
 };
 
 /** Apple の照合の形（`*` は0字以上・`/` も含む、`?` は1字）を正規表現にする */
@@ -47,10 +49,16 @@ describe("apple-app-site-association", () => {
         expect(aasa.applinks.details.map((d) => d.appIDs)).toEqual([["5T76NZUL2L.com.journeyphoto.JourneyPhoto"]]);
     });
 
+    it("保存したパスワードをアプリのログインの欄に出す（webcredentials・2026-11-20・札 rymaruta/journey.photo-ios#661）", () => {
+        // iOS の entitlements の `webcredentials:journey-photo.com`（と www）と対。片方だけだと候補は黙って出ない。
+        // アプリは applinks と同じ本番の1つだけ（staging のバンドルID は載せない）
+        expect(aasa.webcredentials?.apps).toEqual(["5T76NZUL2L.com.journeyphoto.JourneyPhoto"]);
+    });
+
     it("アプリに画面がある道はアプリで開く", () => {
         for (const url of [
             "/spots/abukumado", "/spots/abukumado?app=save", "/photo/abc123", "/users/u-1", "/users?id=u-1",
-            "/trips", "/t?t=tok", "/j?t=tok", "/qr?t=tok",
+            "/qr?t=tok",
         ]) expect(opensInApp(url), url).toBe(true);
     });
 
@@ -60,6 +68,10 @@ describe("apple-app-site-association", () => {
             "/spots", "/spots/area/kanto", "/spots/city/kyoto/kyoto", "/spots/season/spring", "/spots/sakura",
             "/spots/sakura/tokyo", "/spots/momiji", "/spots/snow", "/spots/theme/temple/kyoto",
             "/users", "/users/search", "/users/trip", "/t", "/j", "/qr", "/privacy", "/terms",
+            // アプリに受ける口がまだ無い（AppLink が受けない・2026-11-20 判断・journey.photo-ios#664）
+            "/trips", "/t?t=tok", "/j?t=tok",
+            // アプリが受けるのは1段だけ（/photo/<id>・/users/<id>）
+            "/photo/a/b", "/users/u-1/x",
         ]) expect(opensInApp(url), url).toBe(false);
     });
 

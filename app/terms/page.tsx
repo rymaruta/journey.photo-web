@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { siteConfig, shareOgImage } from "@/lib/utils/seo";
+import { appItunes, siteConfig, shareOgImage } from "@/lib/utils/seo";
 import { ROUTES } from "@/lib/routes";
 
 // 利用規約。**このサイトが実際にしていることだけを書く**（雛形の丸写しをしない）。
@@ -17,6 +17,7 @@ export const metadata: Metadata = {
     title: "利用規約",
     description: "Journey Photo の利用条件、投稿できるもの、禁止事項、著作権の扱いについて説明します。",
     alternates: { canonical: `${siteConfig.url}/terms` },
+    itunes: appItunes(`${siteConfig.url}/terms`),
     openGraph: {
         type: "website",
         locale: siteConfig.locale.ja,

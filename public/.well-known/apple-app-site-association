@@ -9,17 +9,19 @@
           { "/": "/spots/momiji", "exclude": true },
           { "/": "/spots/snow", "exclude": true },
           { "/": "/spots/*", "comment": "観光スポットの頁" },
+          { "/": "/photo/*/*", "exclude": true, "comment": "アプリが受けるのは /photo/<id> の1段だけ" },
           { "/": "/photo/*", "comment": "写真の頁" },
           { "/": "/users/search", "exclude": true },
           { "/": "/users/trip", "exclude": true },
+          { "/": "/users/*/*", "exclude": true, "comment": "アプリが受けるのは /users/<id> の1段だけ" },
           { "/": "/users/*", "comment": "人の頁（/users/<id>）" },
           { "/": "/users", "?": { "id": "?*" }, "comment": "人の頁（/users?id=<id>）" },
-          { "/": "/trips", "comment": "旅行プラン" },
-          { "/": "/t", "?": { "t": "?*" }, "comment": "旅行プランへのお誘い" },
-          { "/": "/j", "?": { "t": "?*" }, "comment": "共同アルバムへの招待" },
-          { "/": "/qr", "?": { "t": "?*" }, "comment": "プロフィールの QR" }
+          { "/": "/qr", "?": { "t": "?*" }, "comment": "プロフィールの QR（更新できる合図）。旅行プラン /trips・/t と共同アルバムの招待 /j はアプリに受ける口がまだ無いので載せない（2026-11-20 判断・journey.photo-ios#661 / #664）" }
         ]
       }
     ]
+  },
+  "webcredentials": {
+    "apps": ["5T76NZUL2L.com.journeyphoto.JourneyPhoto"]
   }
 }

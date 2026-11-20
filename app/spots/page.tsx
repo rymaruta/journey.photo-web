@@ -4,7 +4,7 @@ import SpotAreaIndexClient from "@/app/components/SpotAreaIndexClient";
 import { SPOTS } from "@/lib/data/spots";
 import { spotAreas } from "@/lib/data/spotLink";
 import { visibleSpots, publishableSpots } from "@/lib/utils/spotGuide";
-import { siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
+import { appItunes, siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
 import { spotAreaItemList } from "@/lib/data/spotSeo";
 import { spotCheckedClaim } from "@/lib/data/spotPageMeta";
 import { spotIndexTopics, firstSpotOgImage, spotTwitterMeta } from "@/lib/data/spotTopics";
@@ -44,6 +44,7 @@ export async function generateMetadata(): Promise<Metadata> {
         title,
         description,
         alternates: { canonical: `${siteConfig.url}/spots` },
+        itunes: appItunes(`${siteConfig.url}/spots`),
         robots: pageRobots(verified >= MIN_INDEXABLE_SPOTS),
         openGraph: {
             type: "website", url: `${siteConfig.url}/spots`, siteName: siteConfig.name, title, description,

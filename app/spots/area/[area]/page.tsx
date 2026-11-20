@@ -4,7 +4,7 @@ import SpotIndexClient from "@/app/components/SpotIndexClient";
 import { spotAreas, spotIndexItemsForArea, visibleSpotsInArea } from "@/lib/data/spotLink";
 import { spotCheckedClaim } from "@/lib/data/spotPageMeta";
 import { withPlaceholderParam } from "@/lib/server/staticParams";
-import { siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
+import { appItunes, siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
 import SpotTopicPage from "@/app/components/SpotTopicPage";
 import { TopicChips, Lang } from "@/app/components/SpotTopicLists";
 import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta, cityLinksForPrefecture, areaIntro } from "@/lib/data/spotTopics";
@@ -84,6 +84,7 @@ export async function generateMetadata({ params }: { params: Promise<{ area: str
         title,
         description,
         alternates: { canonical: url },
+        itunes: appItunes(url),
         robots: pageRobots(indexable),
         openGraph: {
             type: "website", url, siteName: siteConfig.name,

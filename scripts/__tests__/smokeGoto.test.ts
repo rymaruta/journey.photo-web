@@ -53,6 +53,12 @@ describe("gotoSettled（前の頁の移動が終わってから次へ）", () =>
         await expect(gotoSettled(page, "/x")).rejects.toThrow("ERR_CONNECTION_REFUSED");
     });
 
+    it("retryInterrupted: false なら割り込みを行き直さずそのまま投げる（割り込み自体を確かめる検査用・2026-11-20）", async () => {
+        const page = fakePage({ interruptOnce: true });
+        await expect(gotoSettled(page, "/map", undefined, { retryInterrupted: false })).rejects.toThrow("interrupted by another navigation");
+        expect(page.log).toEqual(["wait:load", "try:/map"]);
+    });
+
     it("スモークの移動は全部この口を通る（直に page.goto を呼ぶ所を残さない）", () => {
         const src = fs.readFileSync(path.join(__dirname, "..", "e2e-smoke.mjs"), "utf8");
         expect(src).toMatch(/import \{ gotoSettled \} from "\.\/lib\/smokeGoto\.mjs"/);

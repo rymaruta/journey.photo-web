@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { siteConfig, shareOgImage } from "@/lib/utils/seo";
+import { appItunes, siteConfig, shareOgImage } from "@/lib/utils/seo";
 
 // プライバシーポリシー。実際にこのサイトが行っている処理だけを書く（雛形の丸写しをしない）。
 // 内容を変えたときは「最終更新日」も必ず更新すること。
@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     title: "プライバシーポリシー",
     description: "Journey Photo における個人情報・アクセス解析・Cookie の取り扱いについて説明します。",
     alternates: { canonical: `${siteConfig.url}/privacy` },
+    itunes: appItunes(`${siteConfig.url}/privacy`),
     openGraph: {
         type: "website",
         locale: siteConfig.locale.ja,

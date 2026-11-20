@@ -17,9 +17,10 @@ import { AuthProvider } from "./auth/context";
 import { MusicProvider } from "./music/MusicContext";
 import MiniPlayer from "./components/MiniPlayer";
 import BottomNav from "./components/BottomNav";
+import AppTopBanner from "./components/AppTopBanner";
 import { LocaleProvider } from "./i18n/context";
 import { ANDROID_FLAG_SCRIPT, ANDROID_HIDE_CSS } from "../lib/utils/androidHide";
-import { siteConfig, generateWebSiteStructuredData, generateOrganizationStructuredData, INDEXABLE_ROBOTS, FEED_ALTERNATE, shareOgImage, shareImageUrl } from "../lib/utils/seo";
+import { appItunes, siteConfig, generateWebSiteStructuredData, generateOrganizationStructuredData, INDEXABLE_ROBOTS, FEED_ALTERNATE, shareOgImage, shareImageUrl } from "../lib/utils/seo";
 
 // Instagram IAB / iOS Safari でブラウザUIを除いた実際の表示領域を使う
 // viewportFit=cover でノッチ・ホームインジケーター領域の safe-area-inset を有効化
@@ -59,8 +60,9 @@ export async function generateMetadata(): Promise<Metadata> {
     // **iPhone の Safari で「アプリで開く／入手」の帯を出す**（Smart App Banner・2026-10-07）。
     // 検索から撮影地のページに来た人をアプリへつなぐ（全国の戦略「Web とアプリをつなぐ」）。
     // ホーム画面から開いた全画面（appleWebApp）では Safari が帯を出さないので、そちらの体験は変わらない。
-    // 子のページは `itunes` を書かないので、全ページに効く
-    itunes: { appId: siteConfig.iosAppId },
+    // 2026-11-20 owner 判断（札 journey.photo-ios#666）: 頁ごとに canonical と同じ URL を `app-argument` で渡す。
+    // canonical を書く頁は `appItunes(url)` で上書きする（`itunes` はオブジェクトごと差し替わる）。ここは下の canonical と同じトップの URL
+    itunes: appItunes(siteConfig.url),
     // 旧 iOS 互換のため従来名も明示（Next は標準名 mobile-web-app-capable を出力するため）
     other: {
       "apple-mobile-web-app-capable": "yes",
@@ -182,6 +184,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           **`lib/utils/assetRecovery.ts` の `isAssetElement` と同じ規則。**
           写しが2つあるのは、こちらが**チャンクより先に**動く必要があるため
           （React の部品では `<head>` の時点の失敗を拾えない）。
+
+          **頁を離れる途中の失敗では読み直さない**（2026-11-20）。WebKit（Safari）は、別の頁へ移るとき
+          読み込み中の script / CSS を打ち切り、その要素に error を出す（Chromium は出さない・手元の WebKit で確かめた）。
+          それを「チャンクが来ない」と取って `location.reload()` していたので、**読み込みが残っている頁から
+          別の頁へ移ると、移動が読み直しに割り込まれて元の頁に戻されていた**。本番の Deploy Site
+          （run 44815049595 の2回目）の smoke が WebKit で `/map` へ移る途中に落ちたのはこれ。
+          `beforeunload`（移動の始まり・WebKit では error より先に来る）と `pagehide` で印を付け、
+          10秒の間は読み直さない。移動が取りやめになった（ダウンロード・`mailto:` など）ときは10秒で元に戻る。
+          `pageshow`（bfcache から戻った）でも外す。`lib/utils/assetRecovery.ts` の `isLeavingPage` と同じ規則
           最初あちらだけ直したが、**先に登録されるこちらが発火し続けていた**
           ——測って気づいた。突き合わせは
           `app/__tests__/assetRecoveryInline.test.ts` が振る舞いで行う。
@@ -195,7 +206,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var KEY="jp_asset_reload_at";function rl(){var now=Date.now(),last=0;try{last=Number(sessionStorage.getItem(KEY)||0)}catch(x){return}if(last&&now-last<60000)return;try{sessionStorage.setItem(KEY,String(now))}catch(x){return}location.reload()}addEventListener("error",function(e){var t=e.target;if(!t||typeof t.tagName!=="string")return;var tag=t.tagName.toUpperCase();var url="";if(tag==="SCRIPT")url=t.src||"";else if(tag==="LINK"&&String(t.rel||"").toLowerCase().indexOf("stylesheet")>-1)url=t.href||"";else return;if(!url)return;var here=location.origin;if(!here)return;try{if(new URL(url,here).origin!==here)return}catch(x){return}rl()},true);addEventListener("load",function(){try{var ls=document.querySelectorAll('link[rel~="stylesheet"]');if(!ls.length)return;for(var i=0;i<ls.length;i++){var s=ls[i].sheet;if(!s)continue;try{if(s.cssRules&&s.cssRules.length)return}catch(x){return}}rl()}catch(e){}})}catch(e){}})();`,
+            __html: `(function(){try{var KEY="jp_asset_reload_at",lv=0;addEventListener("beforeunload",function(){lv=Date.now()});addEventListener("pagehide",function(){lv=Date.now()});addEventListener("pageshow",function(){lv=0});function rl(){var now=Date.now(),last=0;if(lv&&now-lv>=0&&now-lv<10000)return;try{last=Number(sessionStorage.getItem(KEY)||0)}catch(x){return}if(last&&now-last<60000)return;try{sessionStorage.setItem(KEY,String(now))}catch(x){return}location.reload()}addEventListener("error",function(e){var t=e.target;if(!t||typeof t.tagName!=="string")return;var tag=t.tagName.toUpperCase();var url="";if(tag==="SCRIPT")url=t.src||"";else if(tag==="LINK"&&String(t.rel||"").toLowerCase().indexOf("stylesheet")>-1)url=t.href||"";else return;if(!url)return;var here=location.origin;if(!here)return;try{if(new URL(url,here).origin!==here)return}catch(x){return}rl()},true);addEventListener("load",function(){try{var ls=document.querySelectorAll('link[rel~="stylesheet"]');if(!ls.length)return;for(var i=0;i<ls.length;i++){var s=ls[i].sheet;if(!s)continue;try{if(s.cssRules&&s.cssRules.length)return}catch(x){return}}rl()}catch(e){}})}catch(e){}})();`,
           }}
         />
         {/*
@@ -254,6 +265,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <LocaleProvider>
             <AuthProvider>
               <MusicProvider>
+              {/* **iPhone の Safari 以外のブラウザだけ、いちばん上にアプリの帯**（2026-11-20 owner 判断・札 journey.photo-ios#666）。
+                  頁の流れの上に置き、ヘッダーと重ねて固定しない（下へ送るとヘッダーだけが貼り付く）。Safari は Apple の帯（上の `itunes`） */}
+              <AppTopBanner />
               {/* Header: 黒一色の地に白字（iOS の `Main.dc.html`・「黒塗りの真鍮」の地は `#000`）。
                   以前は 70% の地＋ぼかし＋上からの白いにじみだったが、iOS は透けない黒 */}
               <header

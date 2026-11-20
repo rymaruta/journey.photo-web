@@ -476,6 +476,18 @@ export function generatePhotoStructuredData(photo: {
 /** サイトを運営する組織の節点の `@id`（WebSite の `publisher` が指す） */
 export const ORGANIZATION_ID = `${siteConfig.url}/#organization`;
 
+/**
+ * **Safari のアプリの帯（Smart App Banner）に渡す値**（2026-11-20 owner 判断・札 journey.photo-ios#666）。
+ *
+ * `<meta name="apple-itunes-app" content="app-id=…, app-argument=…">` になる。`app-argument` は
+ * アプリが入っている人が帯の「開く」を押したときにアプリへ渡る URL で、**頁の正規の URL（canonical）と同じもの**を渡す。
+ * Next のメタデータは `itunes` を**オブジェクトごと差し替える**ので、canonical を書く頁は必ずここを通して
+ * `itunes` も一緒に書く（`app/__tests__/smartAppBanner.test.ts` が突き合わせる）。URL が無いときは App ID だけ
+ */
+export function appItunes(url?: string | null): { appId: string; appArgument?: string } {
+    return url ? { appId: siteConfig.iosAppId, appArgument: url } : { appId: siteConfig.iosAppId };
+}
+
 /** App Store のアプリの頁（`siteConfig.iosAppId` から組む。`AppInstallCard` の `APP_STORE_URL` と同じ） */
 export const APP_STORE_PAGE_URL = `https://apps.apple.com/jp/app/id${siteConfig.iosAppId}`;
 
@@ -615,6 +627,7 @@ export function appPageMetadata(path: string, title: string) {
     return {
         title,
         alternates: { canonical: `${siteConfig.url}${path}` },
+        itunes: appItunes(`${siteConfig.url}${path}`),
         // 検索結果に出さない。リンクは辿ってよい（サイト内の回遊は残す）
         robots: { index: false, follow: true },
     };

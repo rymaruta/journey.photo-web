@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteConfig, generateHomeStructuredData, FEED_ALTERNATE, shareOgImage, shareImageUrl, HOME_TITLE, HOME_DESCRIPTION } from "../lib/utils/seo";
+import { appItunes, siteConfig, generateHomeStructuredData, FEED_ALTERNATE, shareOgImage, shareImageUrl, HOME_TITLE, HOME_DESCRIPTION } from "../lib/utils/seo";
 import { loadAllPhotos } from "../lib/server/photos";
 import GalleryPageClient from "./GalleryPageClient";
 import HomeSpotEntry from "./components/HomeSpotEntry";
@@ -25,6 +25,8 @@ export async function generateMetadata(): Promise<Metadata> {
             // （実際そうなっていて、フィードはどのページからも辿れなかった）
             ...FEED_ALTERNATE,
         },
+        // Safari のアプリの帯の「開く」で、アプリへこの頁の URL を渡す（2026-11-20 owner 判断・`appItunes`）
+        itunes: appItunes(siteConfig.url),
         openGraph: {
             type: "website",
             locale: "ja_JP",

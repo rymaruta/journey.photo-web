@@ -21,8 +21,11 @@
 //   - **当たり判定は自前**（`japanMapHit.ts`）: 形の中は必ずその県・形の外は輪郭から 16px 以内で最も近い県・触れている県を優先する粘り
 //   - 各県は本物のリンク（行き先は県の頁・`ROUTES.SPOT_AREA`）。JS が効く前・新しいタブ・読み上げの「リンク」はそのまま県の頁へ行く。
 //     JS が効いたあと、押す・Enter は頁を移動せず、その場に一覧（下の帯）を出す
-//   - 帯は**常設の枠**（スマホで 164px・押し出さない・地図の高さは変えない）。選んでいないときは、押すと何が出るかの一言と一覧への近道
-//     （2026-11-12 owner「なんも押してないのに県を選ぶというのわかりづらい」: 命令の見出し「県を選ぶ」をやめた）
+//   - 帯は**県を選んだときだけ出す**（スマホで 164px の枠・地図の下に貼り付く・地図の高さは変えない）。
+//     **2026-11-20 owner 判断**「このでかい枠が常に出てきて嫌だ」: 何も選んでいないときの空の枠（見出しと一言と一覧への近道）をやめ、
+//     地図を全部見せる。案内は地図の上の固定欄（36px）の小さな1行だけ（「地方を押すと、県の観光スポットが出ます」）。
+//     一覧への近道は地図の下の「県の一覧から選ぶ」1つだけ（二重に出さない）。閉じると枠の無い状態に戻る
+//     （2026-11-12 owner「なんも押してないのに県を選ぶというのわかりづらい」: 命令の「県を選ぶ」は使わない）
 //   - 県名: 全国は**地方名の札（押せるボタン・当たり 44px・`›` つき）**・拡大した地方は県の中に 14px（`prefectureRegionLabels.ts`・引き出し線は廃止）。
 //     2026-11-12 owner「ガイドもないし」: 地方名がただの字で、押せると分からなかった。札にして、1回押せばその地方が開く。
 //     札は指で押す近道なので読み上げ・Tab からは外す（同じ操作は上の地方チップが実ボタンで持つ。二重に読ませない）
@@ -158,7 +161,6 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     const svgRef = useRef<SVGSVGElement>(null);
     const wrapRef = useRef<HTMLDivElement>(null);
     const sheetRef = useRef<HTMLDivElement>(null);
-    const listBtnRef = useRef<HTMLButtonElement>(null);
     const ringRef = useRef<HTMLDivElement>(null);
     const progRef = useRef<HTMLDivElement>(null);
     const tipRef = useRef<HTMLDivElement>(null);
@@ -552,16 +554,29 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     useEffect(() => { const g = gestureRef.current; return () => { g?.reset(); }; }, []);
 
     // ---- クリック ----
+    /**
+     * 県のリンクの click（キーボードの Enter・読み上げの操作）。**`<Link>` の `onClick` に渡す**＝Next の移動より先に止める。
+     *
+     * 2026-11-20 に直した: 以前は枠（親）の `onClick` で `preventDefault()` していたが、React の click は
+     * リンク（子）から親へ上がるので、**先に `<Link>` が自分の移動（県の頁へ・`startTransition` の中）を始めていた**。
+     * 帯は開くが、県の頁の取り寄せが終わった時点で頁ごと県の頁へ移ってしまう（Enter で開いて読んでいると勝手に移る）。
+     * 本番の Deploy Site（run 44815049595 の1回目）の smoke はこれで落ちた: Enter のあと Esc までの間に移動が終わり、
+     * ホームの地図が無くなって `home-japan-map-wrap` が null になった。`<Link>` は `onClick` を呼んだあと
+     * `defaultPrevented` を見て移動をやめる（next/dist/client/app-dir/link.js）
+     */
+    const onPrefLinkClick = (e: React.MouseEvent<Element>) => {
+        const modifier = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+        const slug = slugOf(e.currentTarget);
+        if (!slug) return;
+        // 修飾キーつき・中ボタンは本物のリンクとして県の頁へ（これだけ「移動」として数える）
+        if (modifier || e.button !== 0) { track("nav_click", { area: "home_entry", dest: "map_pref" }); return; }
+        e.preventDefault();
+        selectPref(slug, e.detail === 0);
+    };
     const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
         const modifier = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
-        const slug = slugOf(e.target);
-        if (slug) {
-            // キーボード（Enter）・読み上げの操作: 修飾キーつきは本物のリンクとして県の頁へ（これだけ「移動」として数える）
-            if (modifier || e.button !== 0) { track("nav_click", { area: "home_entry", dest: "map_pref" }); return; }
-            e.preventDefault();
-            selectPref(slug, e.detail === 0);
-            return;
-        }
+        // 県のリンクの上の click は `onPrefLinkClick`（リンク側）で済んでいる
+        if (slugOf(e.target)) return;
         const m = toMap(e.clientX, e.clientY);
         if (modifier && m.inside) {
             // 修飾キーつきのクリック（新しいタブ）: 県の上なら、その県の頁を新しいタブで開く
@@ -709,8 +724,10 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
         if (hov?.k === "region") return <span>触れている　<b>{hov.region}</b></span>;
         if (hov) return <span>触れている　<b>{stage !== null ? `${regionOf(hov.slug)}　›　` : ""}{NAME.get(hov.slug)}</b></span>;
         if (tracing) return <span>触れている　<span className="text-text-3">（どの県にも当たっていません）</span></span>;
-        if (stage !== null) return <span><b>{stage}</b> を表示中</span>;
-        return <span>全国　地方を押すと開きます</span>;
+        // 2026-11-20 owner 判断: 何も選んでいないときの案内は、空の枠ではなくここ（地図の上の端）の小さな1行だけ。命令ではなく、押すと何が出るか
+        if (sel) return <span><b>{stage ?? NAME.get(sel)}</b> を表示中</span>;
+        if (stage !== null) return <span className="text-text-3" data-testid="home-japan-map-guide"><b>{stage}</b>　県を押すと、観光スポットが出ます</span>;
+        return <span className="text-text-3" data-testid="home-japan-map-guide">地方を押すと、県の観光スポットが出ます</span>;
     })();
 
     const tabIdx = (slug: string): number | undefined => (rove === null ? undefined : tabStop === slug ? 0 : -1);
@@ -792,6 +809,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                                         aria-expanded={rove === null ? undefined : sel === sh[0]}
                                         aria-controls={sel === sh[0] ? SHEET_ID : undefined}
                                         tabIndex={tabIdx(sh[0])}
+                                        onClick={onPrefLinkClick}
                                     >
                                         {/* 当たりの箱（読み上げ・焦点の枠のための形）。`<use>` で形を写すと、写しが `jm-sh` の塗りを持って上から描き直してしまう（触れた・選んだ県の色が隠れた・2026-11-09 実測） */}
                                         <rect className="jm-hit" x={hitBox(sh)[0]} y={hitBox(sh)[1]} width={hitBox(sh)[2]} height={hitBox(sh)[3]} />
@@ -864,82 +882,62 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                     </div>
                 </div>
 
-                {/* 帯（スマホは地図の下に貼り付く常設の枠 164px・広い画面は右の札）。押し出さない・地図の高さは変えない */}
-                <div
-                    id={SHEET_ID}
-                    ref={sheetRef}
-                    tabIndex={-1}
-                    role="region"
-                    aria-label={selName ? `${selName}の観光スポット` : "観光スポットの一覧"}
-                    data-open={sel ? "true" : "false"}
-                    className="jm-sheet md:mt-0 md:sticky md:top-20"
-                    data-testid="home-japan-map-panel"
-                >
-                    {sel && selName ? (
-                        <>
-                            <div className="flex items-start justify-between gap-2">
-                                <div className="min-w-0">
-                                    <h3 className="m-0 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "28px" }}>{selName}</h3>
-                                    <p className="m-0 mt-0.5 text-text-2 tabular-nums" style={{ fontSize: "13px", lineHeight: "18px" }}>観光スポット {selCount}件</p>
-                                </div>
-                                <button type="button" className="jm-close" aria-label="観光スポットの一覧を閉じる" data-testid="home-japan-map-close" onClick={() => closeSheet(true)}>
-                                    <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
-                                </button>
+                {/* 帯（スマホは地図の下に貼り付く枠 164px・広い画面は右の札）。地図の高さは変えない。
+                    **県を選んだときだけ出す**（2026-11-20 owner 判断「このでかい枠が常に出てきて嫌だ」。何も選んでいないときは枠を出さず、地図を全部見せる） */}
+                {sel && selName && (
+                    <div
+                        id={SHEET_ID}
+                        ref={sheetRef}
+                        tabIndex={-1}
+                        role="region"
+                        aria-label={`${selName}の観光スポット`}
+                        data-open="true"
+                        className="jm-sheet md:mt-0 md:sticky md:top-20"
+                        data-testid="home-japan-map-panel"
+                    >
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                                <h3 className="m-0 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "28px" }}>{selName}</h3>
+                                <p className="m-0 mt-0.5 text-text-2 tabular-nums" style={{ fontSize: "13px", lineHeight: "18px" }}>観光スポット {selCount}件</p>
                             </div>
-                            {selCount === 0 && <p className="m-0 mt-1 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>この県の観光スポットは、まだ登録がありません。近くの県を見る</p>}
-                            {selTops.length > 0 && (
-                                <p className="jm-names-line m-0 mt-1 truncate text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>{selTops.map((t) => t[1]).join("・")} ほか</p>
-                            )}
-                            {selTops.length > 0 && (
-                                <ul className="jm-spots m-0 mt-2 p-0 list-none" data-testid="home-japan-map-spots">
-                                    {selTops.map((t) => (
-                                        <li key={t[0]}>
-                                            <Link href={`/spots/${t[0]}`} prefetch={false} className="jm-spot" onClick={rememberMap}>
-                                                <span className="min-w-0">
-                                                    <span className="block truncate font-semibold text-white" style={{ fontSize: "15px", lineHeight: "20px" }}>{t[1]}</span>
-                                                    {t[2] && <span className="block truncate text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>{t[2]}</span>}
-                                                </span>
-                                                <span aria-hidden="true" className="text-text-3">›</span>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            {selCount > 0 && (
-                                <TrackedLink href={ROUTES.SPOT_AREA(sel)} className="jm-open" data-testid="home-japan-map-open" navArea="home_entry" navDest="map_pref" onClick={rememberMap}>
-                                    <span>{selName}の観光スポットをすべて見る</span><span aria-hidden="true">›</span>
-                                </TrackedLink>
-                            )}
-                            <div className={`jm-near${selCount === 0 ? " jm-near-keep" : ""}`}>
-                                <p className="m-0 mt-2.5 text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>近くの県</p>
-                                <div className="mt-1 flex flex-wrap gap-1.5">
-                                    {selNear.map((n) => (
-                                        <button key={n} type="button" className="jm-chip" onClick={() => { focusSheetPending.current = true; selectPref(n, true); }}>{NAME.get(n)}</button>
-                                    ))}
-                                </div>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            {/* 何も選んでいないとき: 命令（「県を選ぶ」）ではなく、押すとここに何が出るか（2026-11-12 owner） */}
-                            <h3 className="m-0 font-serif font-bold text-white" style={{ fontSize: "20px", lineHeight: "26px" }}>{stage ? `${stage}の県` : "県の観光スポット"}</h3>
-                            <p className="m-0 mt-0.5 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }} data-testid="home-japan-map-panel-note">
-                                {stage ? "県を押すと、ここに観光スポットが出ます" : "地方を押し、県を押すと、ここに出ます"}
-                            </p>
-                            <button
-                                ref={listBtnRef}
-                                type="button"
-                                className="jm-tlink"
-                                aria-expanded={listOpen}
-                                aria-controls={LIST_ID}
-                                data-testid="home-japan-map-list-toggle"
-                                onClick={() => setListOpen((o) => !o)}
-                            >
-                                県の一覧から選ぶ <span aria-hidden="true">{listOpen ? "‹" : "›"}</span>
+                            <button type="button" className="jm-close" aria-label="観光スポットの一覧を閉じる" data-testid="home-japan-map-close" onClick={() => closeSheet(true)}>
+                                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" /></svg>
                             </button>
-                        </>
-                    )}
-                </div>
+                        </div>
+                        {selCount === 0 && <p className="m-0 mt-1 text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>この県の観光スポットは、まだ登録がありません。近くの県を見る</p>}
+                        {selTops.length > 0 && (
+                            <p className="jm-names-line m-0 mt-1 truncate text-text-2" style={{ fontSize: "13px", lineHeight: "18px" }}>{selTops.map((t) => t[1]).join("・")} ほか</p>
+                        )}
+                        {selTops.length > 0 && (
+                            <ul className="jm-spots m-0 mt-2 p-0 list-none" data-testid="home-japan-map-spots">
+                                {selTops.map((t) => (
+                                    <li key={t[0]}>
+                                        <Link href={`/spots/${t[0]}`} prefetch={false} className="jm-spot" onClick={rememberMap}>
+                                            <span className="min-w-0">
+                                                <span className="block truncate font-semibold text-white" style={{ fontSize: "15px", lineHeight: "20px" }}>{t[1]}</span>
+                                                {t[2] && <span className="block truncate text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>{t[2]}</span>}
+                                            </span>
+                                            <span aria-hidden="true" className="text-text-3">›</span>
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                        {selCount > 0 && (
+                            <TrackedLink href={ROUTES.SPOT_AREA(sel)} className="jm-open" data-testid="home-japan-map-open" navArea="home_entry" navDest="map_pref" onClick={rememberMap}>
+                                <span>{selName}の観光スポットをすべて見る</span><span aria-hidden="true">›</span>
+                            </TrackedLink>
+                        )}
+                        <div className={`jm-near${selCount === 0 ? " jm-near-keep" : ""}`}>
+                            <p className="m-0 mt-2.5 text-text-3" style={{ fontSize: "12px", lineHeight: "16px" }}>近くの県</p>
+                            <div className="mt-1 flex flex-wrap gap-1.5">
+                                {selNear.map((n) => (
+                                    <button key={n} type="button" className="jm-chip" onClick={() => { focusSheetPending.current = true; selectPref(n, true); }}>{NAME.get(n)}</button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {/* 開閉・拡大の確定を読み上げる（焦点は動かさない）。なぞり中の名前は読まない */}
                 <p className="sr-only" role="status" aria-live="polite" data-testid="home-japan-map-status">{announce}</p>
 
@@ -948,6 +946,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                     <button
                         type="button"
                         className="jm-tlink jm-tlink-b"
+                        data-testid="home-japan-map-list-toggle"
                         aria-expanded={listOpen}
                         aria-controls={LIST_ID}
                         onClick={() => setListOpen((o) => !o)}

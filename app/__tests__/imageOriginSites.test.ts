@@ -173,6 +173,7 @@ const EXEMPT: Array<[string, string, string]> = [
     // (a2) 自分のサイトに置いた固定の資産（写真ではない）
     ["app/components/Footer.tsx", '"/logo-aperture.png"', "フッターとiOSアプリ案内の固定ロゴ。public/配下のサイト相対パスなので配信ドメインの変換は不要"],
     ["app/components/AppInstallCard.tsx", '"/logo-aperture.png"', "iOSアプリのご案内の札の固定ロゴ（2026-11-06・ホーム・記事・フッターに置く）。同じサイト相対パス"],
+    ["app/components/AppTopBanner.tsx", '"/icon-192.png?v=aperture"', "iPhone の Safari 以外の頁の上の帯のアプリのアイコン（2026-11-20・札 #666）。public/配下のサイト相対パス"],
     ["app/components/OpenInAppButton.tsx", '"/logo-aperture.png"', "観光スポットの頁の「アプリで保存」の固定ロゴ（2026-11-18）。同じサイト相対パス"],
     ["app/search/SpotSearchResults.tsx", "src", "公式観光スポットの検索用サムネイル。spot-search.jsonのimage.srcはサイト内の固定画像パスで、利用者の投稿画像ではない"],
     ["app/components/AuthPhotoBand.tsx", '"/logo-aperture.png"', "ログイン・登録の画面の固定ロゴ（public/配下のサイト相対パス）"],

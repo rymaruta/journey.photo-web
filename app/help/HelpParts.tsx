@@ -12,7 +12,7 @@ import React from "react";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { ROUTES } from "@/lib/routes";
-import { siteConfig, generateBreadcrumbStructuredData, shareOgImage, shareImageUrl, INDEXABLE_ROBOTS } from "@/lib/utils/seo";
+import { appItunes, siteConfig, generateBreadcrumbStructuredData, shareOgImage, shareImageUrl, INDEXABLE_ROBOTS } from "@/lib/utils/seo";
 
 /** JSON-LD を `<script>` に埋める形（`</script>` で閉じられないように。`SpotTopicPage` と同じ） */
 const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
@@ -65,6 +65,7 @@ export function helpMetadata(path: string, title: string, description: string): 
         title,
         description,
         alternates: { canonical: url },
+        itunes: appItunes(url),
         robots: INDEXABLE_ROBOTS,
         openGraph: {
             type: "website",
