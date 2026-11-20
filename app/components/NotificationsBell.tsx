@@ -1141,7 +1141,7 @@ export default function NotificationsBell() {
                     role="dialog"
                     aria-modal="true"
                     aria-label={locale === "en" ? "Notifications" : "通知"}
-                    className="fixed left-0 right-0 bottom-0 top-[var(--header-h)] z-50 flex flex-col bg-bg"
+                    className="fixed left-0 right-0 bottom-0 top-[calc(var(--header-h)_+_var(--app-banner-h,0px))] z-50 flex flex-col bg-bg"
                     // ホームインジケーターの下に一覧の最後の行が隠れないように
                     style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
                 >

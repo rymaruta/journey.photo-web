@@ -18,7 +18,7 @@ import {
     collectionCopy,
     type CollectionType,
 } from "../utils/collections";
-import { siteConfig, publicImageUrl, pageRobots, shareImageUrl } from "../utils/seo";
+import { appItunes, siteConfig, publicImageUrl, pageRobots, shareImageUrl } from "../utils/seo";
 import { withPlaceholderParam } from "./staticParams";
 
 /** 静的エクスポート用: そのタイプの全 slug を列挙（列挙外のパスは 404） */
@@ -59,6 +59,7 @@ export async function collectionMetadata(type: CollectionType, slug: string): Pr
         description,
         keywords: [label, "旅", "写真", "フォトギャラリー"].filter(Boolean),
         alternates: { canonical: url },
+        itunes: appItunes(url),
         // 写真が少ないページは検索エンジンに載せない。定型文だけのページを
         // 大量に作ると「中身の薄いサイト」と判断され、サイト全体の評価が
         // 下がる。サイト内から辿る分には見られる。
@@ -104,6 +105,7 @@ export async function collectionIndexMetadata(type: CollectionType): Promise<Met
         title,
         description,
         alternates: { canonical: url },
+        itunes: appItunes(url),
         robots: pageRobots(isIndexableCollectionIndex(entries.length)),
         openGraph: {
             type: "website",

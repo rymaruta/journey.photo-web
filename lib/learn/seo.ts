@@ -9,7 +9,7 @@
 //   政府・医療の権威あるサイトに限っていて、このサイトでは出ない
 
 import type { Metadata } from "next";
-import { siteConfig, shareOgImage, shareImageUrl, INDEXABLE_ROBOTS, ORGANIZATION_ID, SITE_SHORT_NAME } from "@/lib/utils/seo";
+import { appItunes, siteConfig, shareOgImage, shareImageUrl, INDEXABLE_ROBOTS, ORGANIZATION_ID, SITE_SHORT_NAME } from "@/lib/utils/seo";
 
 export function learnMetadata(path: string, title: string, description: string, type: "website" | "article"): Metadata {
     const url = `${siteConfig.url}${path}`;
@@ -17,6 +17,7 @@ export function learnMetadata(path: string, title: string, description: string, 
         title,
         description,
         alternates: { canonical: url },
+        itunes: appItunes(url),
         robots: INDEXABLE_ROBOTS,
         openGraph: {
             type,

@@ -4,7 +4,7 @@ import PhotoPageClient from "./PhotoPageClient";
 import type { Metadata } from "next";
 import { splitStoredDate } from "@/lib/utils/photoDate";
 import { ja } from "../../i18n/labels";
-import { siteConfig, publicImageUrl } from "@/lib/utils/seo";
+import { appItunes, siteConfig, publicImageUrl } from "@/lib/utils/seo";
 import { getLocalizedParagraphs } from "@/lib/data/photos";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { initialRelatedFor } from "@/lib/utils/related";
@@ -222,6 +222,8 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
             // 「2言語版がある」と申告しながら中身は1つ、という状態だった。
             // 言語切替の UI は R-1 で削除済みで、別URLの英語版は存在しない。
         },
+        // Safari のアプリの帯の「開く」で、アプリへこの写真の URL を渡す（2026-11-20 owner 判断・`appItunes`）
+        itunes: appItunes(pageUrl),
     };
 }
 

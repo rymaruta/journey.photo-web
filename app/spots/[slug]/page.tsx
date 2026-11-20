@@ -3,7 +3,7 @@ import SpotGuidePage from "@/app/components/SpotGuidePage";
 import { SPOTS } from "@/lib/data/spots";
 import { visibleSpots, isPublished } from "@/lib/utils/spotGuide";
 import { withPlaceholderParam } from "@/lib/server/staticParams";
-import { siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
+import { appItunes, siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
 import { spotLinkedPhoto } from "@/lib/data/spotSeo";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { spotCoverImage } from "@/lib/data/spotImages";
@@ -76,6 +76,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
         title: { absolute: title },
         description,
         alternates: { canonical: url },
+        itunes: appItunes(url),
         // **下書きは検索に出さない**（リンクは辿らせる。確かめたら外れる）
         robots: pageRobots(verified),
         openGraph: {

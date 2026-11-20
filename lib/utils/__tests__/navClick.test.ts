@@ -18,7 +18,8 @@ describe("nav_click の仕様", () => {
 
     it("app_store_click の placement に spot_detail がある（既存の値も残る）", () => {
         // spot_open_app は観光スポットの頁の「アプリで保存」（2026-11-18・札 journey.photo-ios#545）
-        expect([...APP_STORE_PLACEMENTS]).toEqual(["footer", "banner", "article", "home", "spot_detail", "spot_open_app"]);
+        // top_banner・header は iPhone の上の帯とヘッダーの「アプリ」（2026-11-20・札 journey.photo-ios#666）
+        expect([...APP_STORE_PLACEMENTS]).toEqual(["footer", "banner", "article", "home", "spot_detail", "spot_open_app", "top_banner", "header"]);
         expect(sanitizeParams("app_store_click", { placement: "spot_detail" })).toEqual({ placement: "spot_detail" });
     });
 

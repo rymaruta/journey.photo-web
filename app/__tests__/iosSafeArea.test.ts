@@ -40,7 +40,8 @@ describe("上の安全領域（ホーム画面から起動したとき）", () =
             const src = code(f);
             expect(src, f).not.toMatch(/top-\[64px\]/);
             expect(src, f).not.toMatch(/top-\[72px\]/);
-            expect(src, f).toContain("top-[var(--header-h)]");
+            // 上のアプリの帯（`AppTopBanner`・2026-11-20 札 #666）が見えている間は、その高さ（`--app-banner-h`）も足す
+            expect(src, f).toContain("top-[calc(var(--header-h)_+_var(--app-banner-h,0px))]");
         }
         const css = read("app/globals.css");
         expect(css).toMatch(/--header-h:\s*calc\(64px \+ env\(safe-area-inset-top/);
