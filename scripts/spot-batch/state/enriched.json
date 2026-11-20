@@ -616,5 +616,270 @@
    "https://www.seki.co.jp/mus/",
    "https://www.seki.co.jp/mus/contents/rodin"
   ]
+ },
+ {
+  "slug": "sada-jinja",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%BD%90%E5%A4%AA%E7%A5%9E%E7%A4%BE",
+   "https://sadajinjya.jp/",
+   "https://sadajinjya.jp/?m=wp&WID=1716"
+  ]
+ },
+ {
+  "slug": "tosa-jinja",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%9C%9F%E4%BD%90%E7%A5%9E%E7%A4%BE",
+   "https://www.wikidata.org/wiki/Q704890",
+   "https://tosajinja.com/",
+   "https://tosajinja.com/gokigan/",
+   "https://tosajinja.com/gosaijin/"
+  ]
+ },
+ {
+  "slug": "hoshi-onsen",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%B3%95%E5%B8%AB%E6%B8%A9%E6%B3%89",
+   "https://www.wikidata.org/wiki/Q11555123",
+   "https://hoshi-onsen.com/",
+   "https://hoshi-onsen.com/about/"
+  ]
+ },
+ {
+  "slug": "jodoji-onomichi",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%B5%84%E5%9C%9F%E5%AF%BA_%28%E5%B0%BE%E9%81%93%E5%B8%82%29",
+   "https://www.wikidata.org/wiki/Q3191227",
+   "https://ermjp.com/j/temple/",
+   "https://ermjp.com/j/temple/histry/index.htm",
+   "https://ermjp.com/j/temple/haikan/index.htm",
+   "https://ermjp.com/j/temple/gokito/index.htm"
+  ]
+ },
+ {
+  "slug": "buttsuji",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%BD%9B%E9%80%9A%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q2928994",
+   "https://buttsuji.or.jp/",
+   "https://buttsuji.or.jp/%e6%ad%b4%e5%8f%b2/"
+  ]
+ },
+ {
+  "slug": "kokawadera",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E7%B2%89%E6%B2%B3%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q5358314",
+   "https://www.kokawadera.org/",
+   "https://www.kokawadera.org/history/"
+  ]
+ },
+ {
+  "slug": "himi-seaside-botanical-garden",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%B0%B7%E8%A6%8B%E5%B8%82%E6%B5%B7%E6%B5%9C%E6%A4%8D%E7%89%A9%E5%9C%92",
+   "https://www.wikidata.org/wiki/Q5682337",
+   "https://www.himi-kaihin.com/",
+   "https://www.himi-kaihin.com/guide/",
+   "https://www.himi-kaihin.com/guide/price.php",
+   "https://www.himi-kaihin.com/guide/floormap.php"
+  ]
+ },
+ {
+  "slug": "toro-iseki",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E7%99%BB%E5%91%82%E9%81%BA%E8%B7%A1",
+   "https://www.wikidata.org/wiki/Q673607",
+   "https://www.shizuoka-toromuseum.jp/en/about-torosite-en/"
+  ]
+ },
+ {
+  "slug": "hakata-port-tower",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%8D%9A%E5%A4%9A%E3%83%9D%E3%83%BC%E3%83%88%E3%82%BF%E3%83%AF%E3%83%BC",
+   "https://www.wikidata.org/wiki/Q1568000",
+   "https://www.city.fukuoka.lg.jp/kowan/somu/hakata-port/port_museum.html#02"
+  ]
+ },
+ {
+  "slug": "toji",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%9D%B1%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q1046403",
+   "https://toji.or.jp/",
+   "https://toji.or.jp/history/"
+  ]
+ },
+ {
+  "slug": "kinowa-no-ki",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%9F%8E%E8%BC%AA%E6%9F%B5",
+   "https://www.wikidata.org/wiki/Q11426288",
+   "https://www.city.sakata.lg.jp/bunka/bunkazai/bunkazaishisetsu/kinowasakuato.html"
+  ]
+ },
+ {
+  "slug": "kamakura-gu",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E9%8E%8C%E5%80%89%E5%AE%AE",
+   "https://www.wikidata.org/wiki/Q710351",
+   "https://www.kamakuraguu.jp/"
+  ]
+ },
+ {
+  "slug": "uenohara-iseki",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%B8%8A%E9%87%8E%E5%8E%9F%E9%81%BA%E8%B7%A1",
+   "https://www.wikidata.org/wiki/Q2687767",
+   "https://www.jomon-no-mori.jp/jomon-no-mori/introduction/",
+   "https://www.jomon-no-mori.jp/jomon-no-mori/tour/tenjikan/"
+  ]
+ },
+ {
+  "slug": "onominato-jinja",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%A4%A7%E9%87%8E%E6%B9%8A%E7%A5%9E%E7%A4%BE",
+   "https://www.wikidata.org/wiki/Q11439679",
+   "https://oonominato.or.jp/",
+   "https://oonominato.or.jp/about/",
+   "https://oonominato.or.jp/about/history/"
+  ]
+ },
+ {
+  "slug": "manpukuji-uji",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E8%90%AC%E7%A6%8F%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q576318",
+   "https://www.obakusan.or.jp/",
+   "https://www.obakusan.or.jp/about/"
+  ]
+ },
+ {
+  "slug": "obama-onsen",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%B0%8F%E6%B5%9C%E6%B8%A9%E6%B3%89",
+   "https://www.wikidata.org/wiki/Q7074611",
+   "https://obama.or.jp/"
+  ]
+ },
+ {
+  "slug": "kobe-nunobiki-herb-garden",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%B8%83%E5%BC%95%E3%83%8F%E3%83%BC%E3%83%96%E5%9C%92",
+   "https://www.wikidata.org/wiki/Q7069905",
+   "https://www.kobeherb.com/",
+   "https://www.kobeherb.com/infomation/facilities/"
+  ]
+ },
+ {
+  "slug": "utsukushigahara-open-air-museum",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E7%BE%8E%E3%83%B6%E5%8E%9F%E9%AB%98%E5%8E%9F%E7%BE%8E%E8%A1%93%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q11608719",
+   "https://www.utsukushi-oam.jp/",
+   "https://www.utsukushi-oam.jp/mp/gaiyou"
+  ]
+ },
+ {
+  "slug": "miyoshi-mononoke-museum",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%B9%AF%E6%9C%AC%E8%B1%AA%E4%B8%80%E8%A8%98%E5%BF%B5%E6%97%A5%E6%9C%AC%E5%A6%96%E6%80%AA%E5%8D%9A%E7%89%A9%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q106678254",
+   "https://miyoshi-mononoke.jp/",
+   "https://miyoshi-mononoke.jp/museumguide/",
+   "https://miyoshi-mononoke.jp/introduction/"
+  ]
+ },
+ {
+  "slug": "saitama-momas",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%9F%BC%E7%8E%89%E7%9C%8C%E7%AB%8B%E8%BF%91%E4%BB%A3%E7%BE%8E%E8%A1%93%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q11426772",
+   "https://pref.spec.ed.jp/momas/",
+   "https://pref.spec.ed.jp/momas/%E7%BE%8E%E8%A1%93%E9%A4%A8%E6%A6%82%E8%A6%81",
+   "https://pref.spec.ed.jp/momas/%E5%8F%8E%E8%94%B5%E5%93%81%E7%B4%B9%E4%BB%8B"
+  ]
+ },
+ {
+  "slug": "morioka-hachimangu",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E7%9B%9B%E5%B2%A1%E5%85%AB%E5%B9%A1%E5%AE%AE",
+   "https://www.wikidata.org/wiki/Q11581351",
+   "https://morioka8man.jp/",
+   "https://morioka8man.jp/info-skk/",
+   "https://morioka8man.jp/%e3%81%8a%e5%ae%88%e3%82%8a%e9%81%b8%e6%8a%9e%e7%94%bb%e9%9d%a2/"
+  ]
+ },
+ {
+  "slug": "koizumigata-park",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E7%A7%8B%E7%94%B0%E7%9C%8C%E7%AB%8B%E5%B0%8F%E6%B3%89%E6%BD%9F%E5%85%AC%E5%9C%92",
+   "https://www.wikidata.org/wiki/Q11595460",
+   "https://koizumigatakouen.wixsite.com/koizumigatapark",
+   "https://koizumigatakouen.wixsite.com/koizumigatapark/%E5%85%AC%E5%9C%92%E3%81%AE%E6%A6%82%E8%A6%81"
+  ]
+ },
+ {
+  "slug": "mishima-yukio-literary-museum",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%B8%89%E5%B3%B6%E7%94%B1%E7%B4%80%E5%A4%AB%E6%96%87%E5%AD%A6%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q21654770",
+   "https://www.mishimayukio.jp/",
+   "https://www.mishimayukio.jp/about/"
+  ]
+ },
+ {
+  "slug": "tokamachi-city-museum",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%8D%81%E6%97%A5%E7%94%BA%E5%B8%82%E5%8D%9A%E7%89%A9%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q15867362",
+   "https://www.tokamachi-museum.jp/",
+   "https://www.tokamachi-museum.jp/outline/"
+  ]
+ },
+ {
+  "slug": "ycam-yamaguchi",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%B1%B1%E5%8F%A3%E6%83%85%E5%A0%B1%E8%8A%B8%E8%A1%93%E3%82%BB%E3%83%B3%E3%82%BF%E3%83%BC",
+   "https://www.wikidata.org/wiki/Q11466848",
+   "https://www.ycam.jp/",
+   "https://www.ycam.jp/guide/",
+   "https://www.ycam.jp/aboutus/"
+  ]
+ },
+ {
+  "slug": "shikoku-aquarium",
+  "date": "2026-11-20",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%9B%9B%E5%9B%BD%E6%B0%B4%E6%97%8F%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q66432954",
+   "https://shikoku-aquarium.jp/",
+   "https://shikoku-aquarium.jp/about/",
+   "https://shikoku-aquarium.jp/information/"
+  ]
  }
 ]
