@@ -882,8 +882,9 @@ body {
 .jm-list-g { margin-bottom: 10px; }
 .jm-list-h { margin-bottom: 4px; font-size: 12px; letter-spacing: 0.1em; color: var(--color-accent); font-weight: 600; }
 
-/* **県を選ぶ帯**（2026-11-09）。スマホは地図の下に貼り付く**常設の枠 164px**（`position: sticky`・下のタブ・再生バーの上）。
-   選んでも地図を押し出さない・高さは変えない（当たりの計算が動かない）。中身だけ入れ替わる。広い画面（768px〜）は右の札（`md:sticky md:top-20`・高さは中身なり） */
+/* **県を選ぶ帯**（2026-11-09）。スマホは地図の下に貼り付く**枠 164px**（`position: sticky`・下のタブ・再生バーの上）。
+   **県を選んだときだけ出す**（2026-11-20 owner 判断「このでかい枠が常に出てきて嫌だ」。選んでいないときは枠を出さず、地図を全部見せる）。
+   地図の高さは変えない（当たりの計算が動かない）。広い画面（768px〜）は右の札（`md:sticky md:top-20`・高さは中身なり） */
 .jm-sheet { border-radius: 16px; background: var(--color-surface); box-shadow: inset 0 0 0 1px var(--color-line); padding: 12px 16px; min-height: 164px; }
 .jm-sheet:focus { outline: none; }
 .jm-sheet:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
