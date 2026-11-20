@@ -554,16 +554,29 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
     useEffect(() => { const g = gestureRef.current; return () => { g?.reset(); }; }, []);
 
     // ---- クリック ----
+    /**
+     * 県のリンクの click（キーボードの Enter・読み上げの操作）。**`<Link>` の `onClick` に渡す**＝Next の移動より先に止める。
+     *
+     * 2026-11-20 に直した: 以前は枠（親）の `onClick` で `preventDefault()` していたが、React の click は
+     * リンク（子）から親へ上がるので、**先に `<Link>` が自分の移動（県の頁へ・`startTransition` の中）を始めていた**。
+     * 帯は開くが、県の頁の取り寄せが終わった時点で頁ごと県の頁へ移ってしまう（Enter で開いて読んでいると勝手に移る）。
+     * 本番の Deploy Site（run 44815049595 の1回目）の smoke はこれで落ちた: Enter のあと Esc までの間に移動が終わり、
+     * ホームの地図が無くなって `home-japan-map-wrap` が null になった。`<Link>` は `onClick` を呼んだあと
+     * `defaultPrevented` を見て移動をやめる（next/dist/client/app-dir/link.js）
+     */
+    const onPrefLinkClick = (e: React.MouseEvent<Element>) => {
+        const modifier = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
+        const slug = slugOf(e.currentTarget);
+        if (!slug) return;
+        // 修飾キーつき・中ボタンは本物のリンクとして県の頁へ（これだけ「移動」として数える）
+        if (modifier || e.button !== 0) { track("nav_click", { area: "home_entry", dest: "map_pref" }); return; }
+        e.preventDefault();
+        selectPref(slug, e.detail === 0);
+    };
     const onClick = (e: React.MouseEvent<HTMLDivElement>) => {
         const modifier = e.metaKey || e.ctrlKey || e.shiftKey || e.altKey;
-        const slug = slugOf(e.target);
-        if (slug) {
-            // キーボード（Enter）・読み上げの操作: 修飾キーつきは本物のリンクとして県の頁へ（これだけ「移動」として数える）
-            if (modifier || e.button !== 0) { track("nav_click", { area: "home_entry", dest: "map_pref" }); return; }
-            e.preventDefault();
-            selectPref(slug, e.detail === 0);
-            return;
-        }
+        // 県のリンクの上の click は `onPrefLinkClick`（リンク側）で済んでいる
+        if (slugOf(e.target)) return;
         const m = toMap(e.clientX, e.clientY);
         if (modifier && m.inside) {
             // 修飾キーつきのクリック（新しいタブ）: 県の上なら、その県の頁を新しいタブで開く
@@ -796,6 +809,7 @@ export default function HomeJapanMap({ areas, tops = {} }: { areas: readonly Hom
                                         aria-expanded={rove === null ? undefined : sel === sh[0]}
                                         aria-controls={sel === sh[0] ? SHEET_ID : undefined}
                                         tabIndex={tabIdx(sh[0])}
+                                        onClick={onPrefLinkClick}
                                     >
                                         {/* 当たりの箱（読み上げ・焦点の枠のための形）。`<use>` で形を写すと、写しが `jm-sh` の塗りを持って上から描き直してしまう（触れた・選んだ県の色が隠れた・2026-11-09 実測） */}
                                         <rect className="jm-hit" x={hitBox(sh)[0]} y={hitBox(sh)[1]} width={hitBox(sh)[2]} height={hitBox(sh)[3]} />

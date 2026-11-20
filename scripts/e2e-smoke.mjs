@@ -1521,11 +1521,17 @@ async function runHomeMapChecks(browser, eng) {
     check(`[${eng}] 地図(PC): 矢印キーで隣の県へ焦点が動く（開かない）`, !!moved && moved !== "tochigi" && (await dsheet.count()) === 0, String(moved));
     await dpage.keyboard.press("Enter");
     await dpage.waitForFunction(() => (document.querySelector('[data-testid="home-japan-map-panel"]') ? "true" : "false") === "true", null, { timeout: 5000 }).catch(() => {});
+    // **帯が開いたあとも頁が移らないこと**を、県の頁の取り寄せが終わるまで待ってから見る（2026-11-20）。
+    // 以前は Enter で `<Link>` の移動（県の頁へ）も裏で始まっていて、帯が開いた直後に見ると「/」のまま＝通り、
+    // 取り寄せが Esc より先に終わった回だけ頁ごと県の頁へ移って、次の Esc の行が null で落ちた（run 44815049595 の1回目）。
+    // 取り寄せ（`/spots/area/…` の RSC）は sealed の手元のサーバーから来るので、通信が静まれば決着している
+    await dpage.waitForLoadState("networkidle", { timeout: 5000 }).catch(() => {});
+    await dpage.waitForTimeout(300);
     const en = await dpage.evaluate(() => ({ path: location.pathname, hash: location.hash, focus: document.activeElement?.getAttribute("data-testid"), title: document.querySelector('[data-testid="home-japan-map-panel"] h3')?.textContent }));
     check(`[${eng}] 地図(PC): Enter で頁を移動せず帯が開き、焦点が帯へ移る`, en.path === "/" && /^#pref=/.test(en.hash) && en.focus === "home-japan-map-panel", JSON.stringify(en));
     await dpage.keyboard.press("Escape");
     await dpage.waitForFunction(() => (document.querySelector('[data-testid="home-japan-map-panel"]') ? "true" : "false") === "false", null, { timeout: 5000 }).catch(() => {});
-    const esc = await dpage.evaluate(() => ({ open: (document.querySelector('[data-testid="home-japan-map-panel"]') ? "true" : "false"), focus: document.activeElement?.getAttribute("data-s"), hash: location.hash, stage: document.querySelector('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage") }));
+    const esc = await dpage.evaluate(() => ({ open: (document.querySelector('[data-testid="home-japan-map-panel"]') ? "true" : "false"), focus: document.activeElement?.getAttribute("data-s"), hash: location.hash, stage: document.querySelector('[data-testid="home-japan-map-wrap"]')?.getAttribute("data-stage") ?? `(地図が無い: ${location.pathname})` }));
     check(`[${eng}] 地図(PC): Esc で帯が閉じて焦点が県のリンクへ戻る（地方は拡大のまま）`, esc.open === "false" && esc.focus === moved && esc.hash === "" && esc.stage === "関東", JSON.stringify(esc));
     await dpage.keyboard.press("Escape");
     const esc2 = await dpage.locator('[data-testid="home-japan-map-wrap"]').getAttribute("data-stage");
