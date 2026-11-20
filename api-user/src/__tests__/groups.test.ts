@@ -138,6 +138,9 @@ async function createBy(owner: string, memberIds: string[], name?: string): Prom
 const say = (sub: string, g: string, text: string) => api(sub, "POST /groups/{groupId}/messages", { groupId: g }, { text });
 const read = (sub: string, g: string) => api(sub, "GET /groups/{groupId}/messages", { groupId: g });
 const texts = (r: Res) => (json(r).messages as Array<{ text?: string }>).map((m) => m.text).filter(Boolean);
+const n2 = (id: string) => id.slice(-3);
+/** 1日の歯止めの行の日付（`groups.ts` の `dayOf` と同じ JST） */
+const today = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
 /** 知らせの「3分に1回まで」を外す（続けて送る試験のため） */
 const resetQuiet = (g: string) => {
     const row = store.get(`group#${g}`)!;
@@ -167,9 +170,32 @@ describe("作る（POST /groups）", () => {
         expect(body.members.map((m: { id: string }) => m.id)).toEqual([A, B, C]);
         expect(body.group.displayName).toBe("べに、しろ");
         expect(body.notAdded).toBe(0);
-        // 入った2人に「入れました」の知らせ（本文は載せない）
-        expect(mockPush).toHaveBeenCalledTimes(2);
-        expect(mockPush.mock.calls.map((c) => (c[1] as { body: string }).body)).toEqual(["あお があなたをグループに入れました", "あお があなたをグループに入れました"]);
+        // 🔴 入った2人に「入れました」の知らせ。**`sendPush` は1回（接続1本）で2人の端末へ**。題は名前が無ければ「グループ」
+        expect(mockPush).toHaveBeenCalledTimes(1);
+        const [tokens, msg] = mockPush.mock.calls[0] as [string[], { title: string; body: string; threadId?: string }];
+        expect(tokens.sort()).toEqual([`tok-${B}`, `tok-${C}`].sort());
+        expect(msg).toMatchObject({ title: "グループ", body: "あお があなたをグループに入れました", threadId: body.group.groupId });
+    });
+
+    it("🔴 29人を入れて作っても、知らせは `sendPush` 1回（1人ずつ送ると関数の上限 15 秒を越える）", async () => {
+        const many = Array.from({ length: 29 }, (_, n) => uid(0x200 + n));
+        for (const id of many) {
+            users.set(id, { userId: id, displayName: `人${n2(id)}` });
+            store.set(`devices#${id}`, { id: `devices#${id}`, tokens: [`tok-${id}`] });
+            mutual(A, id);
+        }
+        await api(A, "POST /groups", {}, { memberIds: many, name: "大人数" });
+        expect(mockPush).toHaveBeenCalledTimes(1);
+        expect((mockPush.mock.calls[0][0] as string[]).length).toBe(29);
+        expect((mockPush.mock.calls[0][1] as { title: string }).title).toBe("大人数");
+    });
+
+    it("招待の数が足りず 429 で作れなかったときは、作る数（`groupNew`）を戻す", async () => {
+        follow(A, B); follow(A, C);   // 2人とも A をフォローしていない → 2人とも招待
+        store.set(`dmday#${A}#${today()}`, { id: `dmday#${A}#${today()}`, newConv: 20 });
+        const r = await api(A, "POST /groups", {}, { memberIds: [B, C] });
+        expect(r.statusCode).toBe(429);
+        expect(store.get(`dmday#${A}#${today()}`)!.groupNew).toBe(0);
     });
 
     it("作った時に入った人には「作りました」の1行から見える", async () => {
@@ -342,10 +368,12 @@ describe("🔴 4. 抜けたら読めない", () => {
         expect(json(r).canSend).toBe(false);
         expect(texts(r)).toEqual(["外す前"]);
         expect((await say(C, g, "戻して")).statusCode).toBe(404);
-        // 外された人を戻せるのは作った人だけ
-        follow(B, C);
+        // 🔴 外された人を戻せるのは作った人だけ（作った人でない人からは、招待にもならない）
+        mutual(B, C);
         const back = await api(B, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [C] });
         expect(json(back).added).toEqual([]);
+        expect(json(back).invitedNow).toEqual([]);
+        expect(json(back).notAdded).toBe(1);
     });
 });
 
@@ -550,5 +578,199 @@ describe("名前・写真・通報・退会", () => {
         expect(d.members.map((m: { id: string }) => m.id)).toEqual([B, C]);
         expect(d.isOwner).toBe(true);
         expect(JSON.stringify(json(await read(B, g)))).not.toContain(A);
+    });
+});
+
+describe("確かめ役の指摘（2026-11-20）", () => {
+    /** A が B・C と作り、名前「金沢」を付け、C を外す。外したあとに名前を変え、話を続ける */
+    async function removedC() {
+        mutual(A, B); mutual(A, C);
+        const g = await createBy(A, [B, C], "金沢");
+        await say(B, g, "外す前のBの話");
+        await api(A, "DELETE /groups/{groupId}/members/{uid}", { groupId: g, uid: C });
+        await api(A, "PUT /groups/{groupId}", { groupId: g }, { name: "外したあとの名前" });
+        await say(A, g, "外したあとの話");
+        return g;
+    }
+
+    it("🔴 1. 外された人の受信箱に、外されたあとの話・今の名前・顔・人数を出さない。未読は0", async () => {
+        const g = await removedC();
+        const box = json(await api(C, "GET /groups"));
+        const row = box.groups.find((x: { groupId: string }) => x.groupId === g);
+        expect(row).toMatchObject({ state: "removed", unread: 0, name: "金沢", displayName: "金沢", faces: [] });
+        expect(row.last).toBeUndefined();
+        expect(row.memberCount).toBeUndefined();
+        const raw = JSON.stringify(box);
+        expect(raw).not.toContain("外したあと");
+        expect(raw).not.toContain(B);
+    });
+
+    it("🔴 7. 外された人の詳しいと会話に、今の名前・人数・メンバーを返さない（見える範囲の通の送り手だけ）", async () => {
+        const g = await removedC();
+        const d = await api(C, "GET /groups/{groupId}", { groupId: g });
+        expect(json(d)).toEqual({ state: "removed", group: { groupId: g, name: "金沢", displayName: "金沢", faces: [] } });
+        const m = json(await read(C, g));
+        expect(m.members.map((x: { id: string }) => x.id).sort()).toEqual([A, B].sort());   // A は「作った」の1行・B は話の送り手
+        const chat = json(await read(A, g));
+        expect(m.seq).toBeLessThan(chat.seq);
+        expect(JSON.stringify(m)).not.toContain("外したあと");
+        // 送り手でない人（D）は、外したあとに入っても出ない
+        mutual(A, D);
+        await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [D] });
+        expect(JSON.stringify(json(await read(C, g)).members)).not.toContain(D);
+    });
+
+    it("🔴 2. 退会した人の通が受信箱の最後の1通だったら、残った会話の最後の1通で作り直す", async () => {
+        mutual(A, B); mutual(A, C);
+        const g = await createBy(A, [B, C]);
+        await say(A, g, "Aの話");
+        await say(B, g, "退会する人の最後の話");
+        await purgeGroupsFor(B);
+        const row = store.get(`group#${g}`)!;
+        expect((row.last as { from: string; excerpt: string })).toMatchObject({ from: A, excerpt: "Aの話" });
+        expect(JSON.stringify(row)).not.toContain(B);
+        expect(JSON.stringify(json(await api(C, "GET /groups")))).not.toContain("退会する人");
+    });
+
+    it("2. 退会した人を指す「足した」の1行も会話から消す", async () => {
+        mutual(A, B); mutual(A, C); mutual(A, D);
+        const g = await createBy(A, [B, C]);
+        await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [D] });
+        expect(JSON.stringify(store.get(`groupchat#${g}`))).toContain(D);
+        await purgeGroupsFor(D);
+        expect(JSON.stringify(store.get(`groupchat#${g}`))).not.toContain(D);
+        // 誰も指さなくなった「足した」の1行は残さない
+        const evs = (json(await read(A, g)).messages as Array<{ event?: { type: string } }>).map((m) => m.event?.type).filter(Boolean);
+        expect(evs).not.toContain("added");
+        expect(JSON.stringify(store.get(`group#${g}`))).not.toContain(D);
+    });
+
+    it("🔴 4. 抜けた人は、入れ直しても招待になる（知らせは鳴らない・会話は見えない・1日 20 人の数に入る）", async () => {
+        mutual(A, B); mutual(A, C);
+        const g = await createBy(A, [B, C]);
+        await api(B, "DELETE /groups/{groupId}/members/{uid}", { groupId: g, uid: B });
+        mockPush.mockClear();
+        const before = (store.get(`dmday#${A}#${today()}`)?.newConv as number | undefined) ?? 0;
+        const r = await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [B] });
+        expect(json(r).added).toEqual([]);
+        expect(json(r).invitedNow).toEqual([B]);
+        expect(mockPush).not.toHaveBeenCalled();
+        expect((await read(B, g)).statusCode).toBe(404);
+        expect(store.get(`dmday#${A}#${today()}`)!.newConv).toBe(before + 1);
+        // 断ったら、もう招待し直せない
+        await api(B, "POST /groups/{groupId}/decline", { groupId: g });
+        const again = await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [B] });
+        expect(json(again).invitedNow).toEqual([]);
+        expect(json(again).notAdded).toBe(1);
+    });
+
+    it("🔴 4. 外された人を作った人が戻すときも招待になる。参加すると、戻ってからの話だけ見える", async () => {
+        mutual(A, B); mutual(A, C);
+        const g = await createBy(A, [B, C]);
+        await api(A, "DELETE /groups/{groupId}/members/{uid}", { groupId: g, uid: C });
+        await say(A, g, "いない間の話");
+        mockPush.mockClear();
+        const r = await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [C] });
+        expect(json(r).invitedNow).toEqual([C]);
+        expect(json(r).added).toEqual([]);
+        expect(mockPush).not.toHaveBeenCalled();
+        // 招待の棚に出て、外されたグループの行は受信箱から外れる
+        const box = json(await api(C, "GET /groups"));
+        expect(box.invites.map((x: { groupId: string }) => x.groupId)).toEqual([g]);
+        expect(box.groups).toEqual([]);
+        expect((await api(C, "POST /groups/{groupId}/join", { groupId: g })).statusCode).toBe(200);
+        await say(A, g, "戻ってからの話");
+        expect(texts(await read(C, g))).toEqual(["戻ってからの話"]);
+        expect(store.get(`groupmembers#${g}`)!.removed).toEqual([]);
+    });
+
+    it("5. 他の人の通と同じ id で送っても、他人の通を返さず、自分の通として足す", async () => {
+        mutual(A, B); mutual(A, C);
+        const g = await createBy(A, [B, C]);
+        await api(B, "POST /groups/{groupId}/messages", { groupId: g }, { text: "Bの通", id: "same-id-0001" });
+        const r = await api(A, "POST /groups/{groupId}/messages", { groupId: g }, { text: "Aの通", id: "same-id-0001" });
+        expect(r.statusCode).toBe(200);
+        expect(json(r).message).toMatchObject({ text: "Aの通", mine: true, from: A });
+        expect(texts(await read(C, g))).toEqual(["Bの通", "Aの通"]);
+        const ids = (json(await read(C, g)).messages as Array<{ id: string }>).map((m) => m.id);
+        expect(new Set(ids).size).toBe(ids.length);
+    });
+
+    it("同じ id を同時に2回送っても、1通だけ入り、数は1だけ進む", async () => {
+        mutual(A, B); mutual(A, C);
+        const g = await createBy(A, [B, C]);
+        const body = { text: "同時", id: "client-same-1" };
+        await Promise.all([
+            api(A, "POST /groups/{groupId}/messages", { groupId: g }, body),
+            api(A, "POST /groups/{groupId}/messages", { groupId: g }, body),
+        ]);
+        expect(texts(await read(A, g))).toEqual(["同時"]);
+        expect(store.get(`dmday#${A}#${today()}`)!.groupSent).toBe(1);
+    });
+
+    it("🔴 6. 名前の変更は送る 1日 300 通に1通として数える。超えたら 429 で変わらない。同じ名前なら数えない", async () => {
+        mutual(A, B); mutual(A, C);
+        const g = await createBy(A, [B, C], "はじめ");
+        await api(B, "PUT /groups/{groupId}", { groupId: g }, { name: "はじめ" });
+        expect(store.get(`dmday#${B}#${today()}`)?.groupSent ?? 0).toBe(0);
+        await api(B, "PUT /groups/{groupId}", { groupId: g }, { name: "つぎ" });
+        expect(store.get(`dmday#${B}#${today()}`)!.groupSent).toBe(1);
+        store.set(`dmday#${B}#${today()}`, { id: `dmday#${B}#${today()}`, groupSent: 300 });
+        const r = await api(B, "PUT /groups/{groupId}", { groupId: g }, { name: "あらし", muted: true });
+        expect(r.statusCode).toBe(429);
+        expect(json(r).code).toBe("dailyLimit");
+        const d = json(await api(A, "GET /groups/{groupId}", { groupId: g }));
+        expect(d.group.name).toBe("つぎ");
+        // 429 のときは知らせの設定も書かない
+        expect((store.get(`groupmembers#${g}`)!.members as Array<{ id: string; muted?: boolean }>).find((m) => m.id === B)!.muted).toBeUndefined();
+    });
+
+    it("空き席は門を通った人の数で見る（通らない人が混じっても、通る人は入る）", async () => {
+        const many = Array.from({ length: 28 }, (_, n) => uid(0x300 + n));
+        for (const id of many) { users.set(id, { userId: id, displayName: `人${n2(id)}` }); mutual(A, id); }
+        const g = await createBy(A, many);   // 29 人
+        mutual(A, D);                         // D は入れる。X は A がフォローしていないので通らない
+        const r = await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [X, D] });
+        expect(r.statusCode).toBe(200);
+        expect(json(r).added).toEqual([D]);
+        expect(json(r).notAdded).toBe(1);
+    });
+
+    it("参加するときも 50 の枠を見る（書くときに確かめる）", async () => {
+        mutual(A, B);
+        follow(A, C);
+        const g = await createBy(A, [B, C]);
+        const list = Array.from({ length: 50 }, (_, n) => `${(0x400 + n).toString(16).padStart(8, "0")}-0000-4000-8000-000000000000`);
+        store.set(`groupsjoined#${C}`, { ...store.get(`groupsjoined#${C}`)!, list });
+        const r = await api(C, "POST /groups/{groupId}/join", { groupId: g });
+        expect(r.statusCode).toBe(403);
+        expect((store.get(`groupmembers#${g}`)!.members as Array<{ id: string }>).map((m) => m.id)).not.toContain(C);
+    });
+
+    it("あとから足された人は、足されたあとの話から見える（入る前の話は見えない）", async () => {
+        mutual(A, B); mutual(A, C); mutual(A, D);
+        const g = await createBy(A, [B, C]);
+        await say(A, g, "Dが入る前");
+        await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [D] });
+        await say(B, g, "Dが入った後");
+        const r = json(await read(D, g));
+        expect(texts({ statusCode: 200, body: JSON.stringify(r) })).toEqual(["Dが入った後"]);
+        expect((r.messages as Array<{ event?: { type: string } }>).map((m) => m.event?.type)).toContain("added");
+        const m = (store.get(`groupmembers#${g}`)!.members as Array<{ id: string; from: number }>).find((x) => x.id === D)!;
+        expect(m.from).toBeLessThan(1000);
+    });
+
+    it("5. 会話の追記でも、他の人の通と同じ id は送り直しと取り違えない（新しい id で足す）", async () => {
+        const { appendGroupChat, draftText, readGroupChat } = await import("../groupChat");
+        const g = "11111111-2222-4333-8444-555555555555";
+        await appendGroupChat(g, [draftText(B, "Bの通", undefined, "clash-id-0001")]);
+        const r = await appendGroupChat(g, [draftText(A, "Aの通", undefined, "clash-id-0001")]);
+        expect(r.duplicate).toBe(false);
+        expect(r.messages[0]).toMatchObject({ from: A, text: "Aの通" });
+        expect(r.messages[0].id).not.toBe("clash-id-0001");
+        expect((await readGroupChat(g)).items.map((m) => m.text)).toEqual(["Bの通", "Aの通"]);
+        // 自分の送り直しは、今までどおり1通のまま
+        const again = await appendGroupChat(g, [draftText(B, "Bの通", undefined, "clash-id-0001")]);
+        expect(again.duplicate).toBe(true);
     });
 });

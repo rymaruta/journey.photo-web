@@ -53,9 +53,13 @@ import {
  *   - **ブロックの間柄の人は入れない**: 入れられる人が、メンバー・招待中の人・入れる人の誰かとブロックの間柄なら、
  *     その人は入らない（理由は言わない＝数だけ `notAdded` で返す）。参加するときにも確かめ直す
  *   - 断った人は、そのグループからは誰も招待し直せない。外された人を戻せるのは作った人だけ
+ *   - **抜けた人・外された人を入れ直すときは、必ず招待**（そのまま入れない・知らせを鳴らさない・1日 20 人に数える）
+ *   - 外された人には、外された時の名前の控えと、外されるまでの話（とその送り手）だけを見せる。今の名前・顔・人数・
+ *     メンバー・外されたあとの最後の通は見せない
  *   - **抜けられる**（抜けたら読めない・受信箱から消える）。**外せるのは作った人だけ**。外された人は外されるまでの話を
  *     読めるが、送れない。作った人が抜けたら、いちばん前から居る人が作った人になる。最後の1人が抜けたらグループを消す
- *   - 名前は誰でも変えられる（案「安全と決まり」・LINE と同じ。変えた人の名前が会話に残る）。20 字まで。無くてもよい
+ *   - 名前は誰でも変えられる（案「安全と決まり」・LINE と同じ。変えた人の名前が会話に残る）。20 字まで。無くてもよい。
+ *     変えるたびに送る 1 日 300 通（`groupSent`）に1通として数える（全員の会話に1行出るので、送るのと同じ重さ）
  *   - 入る前の話は見せない（入った時の通し番号より後だけ）
  *   - ブロックの間柄の人の通は、見る人の画面から外す（消さない・DM と同じ）
  *   - **写真は今の DM と同じ**: 送れるのは送る人に今見せてよい写真の札だけ（`readVisiblePhoto`）。読む人ごとに見せてよいかを
@@ -243,7 +247,12 @@ async function refreshSummary(groupId: string, r: MembersRow): Promise<void> {
 }
 
 type JoinedInvite = { g: string; by: string; t: string };
-type Joined = { list: string[]; reads: Record<string, number>; invites: JoinedInvite[]; removed: string[]; left: string[] };
+/** 外された時の控え（外された人には、外された時に知っていた名前だけを見せる。今の名前・顔・人数は見せない） */
+type RemovedInfo = { t: string; name?: string };
+type Joined = {
+    list: string[]; reads: Record<string, number>; invites: JoinedInvite[]; removed: string[]; left: string[];
+    removedInfo: Record<string, RemovedInfo>;
+};
 
 function parseJoined(item: Record<string, unknown> | undefined): Joined {
     const gids = (v: unknown) => (Array.isArray(v) ? (v as unknown[]).filter(isGroupId) : []);
@@ -252,13 +261,30 @@ function parseJoined(item: Record<string, unknown> | undefined): Joined {
     if (raw && typeof raw === "object" && !Array.isArray(raw)) {
         for (const [k, v] of Object.entries(raw as Record<string, unknown>)) if (isGroupId(k) && num(v)) reads[k] = v;
     }
+    const removedInfo: Record<string, RemovedInfo> = {};
+    const rawInfo = item?.removedInfo;
+    if (rawInfo && typeof rawInfo === "object" && !Array.isArray(rawInfo)) {
+        for (const [k, v] of Object.entries(rawInfo as Record<string, unknown>)) {
+            const x = v as Partial<RemovedInfo> | null;
+            if (isGroupId(k) && x && str(x.t)) removedInfo[k] = { t: x.t, ...(str(x.name) && x.name ? { name: x.name } : {}) };
+        }
+    }
     const invites = Array.isArray(item?.invites)
         ? (item!.invites as unknown[]).filter((x): x is JoinedInvite => {
             const i = x as Partial<JoinedInvite> | null;
             return !!i && isGroupId(i.g) && str(i.by) && str(i.t);
         }).map((i) => ({ g: i.g, by: i.by, t: i.t }))
         : [];
-    return { list: gids(item?.list), reads, invites, removed: gids(item?.removed), left: gids(item?.left) };
+    const removed = gids(item?.removed);
+    for (const k of Object.keys(removedInfo)) if (!removed.includes(k)) delete removedInfo[k];
+    return { list: gids(item?.list), reads, invites, removed, left: gids(item?.left), removedInfo };
+}
+
+/** 外されたグループの印を受信箱から外す（控えも一緒に） */
+function dropRemoved(j: Joined, g: string): Pick<Joined, "removed" | "removedInfo"> {
+    const { [g]: _gone, ...removedInfo } = j.removedInfo;
+    void _gone;
+    return { removed: j.removed.filter((x) => x !== g), removedInfo };
 }
 
 async function readJoined(uid: string): Promise<Joined> {
@@ -314,6 +340,44 @@ export async function reserveGroupDaily(uid: string, field: "groupSent" | "group
     }
 }
 
+/**
+ * 進めた数を戻す（作るのが途中で止まった・枠で入れなかった人の招待・同じ id の送り直しが同時に来た）。
+ * **戻せなくても本体は止めない**（数が多めに残るのは厳しい側）
+ */
+async function releaseGroupDaily(uid: string, field: "groupSent" | "groupNew" | "newConv", k = 1): Promise<void> {
+    if (k <= 0) return;
+    await ddb.send(new UpdateCommand({
+        TableName: PHOTOS_TABLE,
+        Key: { id: dmDayKey(uid, dayOf()) },
+        UpdateExpression: "ADD #f :k",
+        ConditionExpression: "attribute_exists(#f)",
+        ExpressionAttributeNames: { "#f": field },
+        ExpressionAttributeValues: { ":k": -k },
+    })).catch((e) => console.error(`groups: 1日の数を戻せませんでした（${field}）:`, errName(e)));
+}
+
+/**
+ * 入った人の「見え始める位置」の仮の値。メンバーの行に入れた**あとで**会話の番号を読み、`settleFrom` で本当の値に直す
+ * （先に読むと、読んでから入るまでの間に書かれた通が見えてしまう）。仮の間は1通も見えない
+ */
+const PENDING_FROM = Number.MAX_SAFE_INTEGER;
+
+/** `ids` の見え始める位置を、今の会話の番号に直す。直した番号を返す */
+async function settleFrom(groupId: string, ids: readonly string[]): Promise<number> {
+    const seq = await currentSeq(groupId);
+    await updateMembers(groupId, (cur) => {
+        if (!cur) return null;
+        let changed = false;
+        const members = cur.members.map((m) => {
+            if (!ids.includes(m.id) || m.from !== PENDING_FROM) return m;
+            changed = true;
+            return { ...m, from: seq };
+        });
+        return changed ? { ...cur, members } : null;
+    });
+    return seq;
+}
+
 // ---------------------------------------------------------------------------
 // 名前
 // ---------------------------------------------------------------------------
@@ -364,7 +428,10 @@ async function gateTargets(actor: string, row: MembersRow, candidates: readonly 
         // **入れる人が相手をフォローしている**（今の DM の新しい会話と同じ門）
         if (!await isFollowing(c, actor)) return null;
         const [hidden, followsBack, joined] = await Promise.all([hiddenUserIds(c), isFollowing(actor, c), readJoined(c)]);
-        const direct = followsBack || await isCloseFriendOf(c, actor);
+        // 🔴 **抜けた人・外された人は、必ず招待**（本人が「参加する」を押すまで入らない・知らせも鳴らない・1日 20 人の数に入る・
+        // 断ったら招待し直せない）。そのまま入れると、抜けた人を何度でも引き戻して毎回知らせを鳴らせてしまう
+        const wasHere = row.removed.some((x) => x.id === c) || joined.left.includes(row.groupId);
+        const direct = !wasHere && (followsBack || await isCloseFriendOf(c, actor));
         if (direct ? !joined.list.includes(row.groupId) && joined.list.length >= GROUPS_JOINED_MAX
             : liveJoinedInvites(joined, now).filter((i) => i.g !== row.groupId).length >= GROUP_INVITES_MAX) return null;
         return { c, hidden, direct };
@@ -398,8 +465,9 @@ function targetIds(v: unknown, me: string): string[] | null {
  */
 async function admit(groupId: string, actor: string, gate: Gate, fromSeq?: number): Promise<{ direct: string[]; invite: string[]; full: boolean }> {
     const now = new Date().toISOString();
-    // 作るときは 0（「作りました」の1行から見える）。あとから足すときは今の番号（入る前の話は見せない）
-    const from = fromSeq ?? await currentSeq(groupId);
+    // 作るときは 0（「作りました」の1行から見える）。あとから足すときは、メンバーの行に入れた**あとの**番号
+    // （`settleFrom`。入る前の話は見せない）
+    let from = fromSeq ?? PENDING_FROM;
     let direct: string[] = [];
     let invite: string[] = [];
     let full = false;
@@ -423,8 +491,10 @@ async function admit(groupId: string, actor: string, gate: Gate, fromSeq?: numbe
             }
         }
         if (direct.length === 0 && invite.length === 0) return null;
-        return { ...r, members, invited, removed: r.removed.filter((x) => !direct.includes(x.id) && !invite.includes(x.id)) };
+        // 外された印は、招待では外さない（参加したときに外す。招待が切れたあとも「作った人だけが戻せる」を保つ）
+        return { ...r, members, invited, removed: r.removed.filter((x) => !direct.includes(x.id)) };
     });
+    if (fromSeq === undefined && direct.length > 0) from = await settleFrom(groupId, direct);
     const undo: string[] = [];
     for (const id of direct) {
         let over = false;
@@ -434,7 +504,7 @@ async function admit(groupId: string, actor: string, gate: Gate, fromSeq?: numbe
             if (j.list.length >= GROUPS_JOINED_MAX) { over = true; return null; }
             return {
                 ...j, list: [groupId, ...j.list], reads: { ...j.reads, [groupId]: from },
-                invites: j.invites.filter((i) => i.g !== groupId), removed: j.removed.filter((g) => g !== groupId),
+                invites: j.invites.filter((i) => i.g !== groupId), ...dropRemoved(j, groupId),
             };
         });
         if (over) undo.push(id);
@@ -445,7 +515,8 @@ async function admit(groupId: string, actor: string, gate: Gate, fromSeq?: numbe
             over = false;
             const live = liveJoinedInvites(j).filter((i) => i.g !== groupId);
             if (live.length >= GROUP_INVITES_MAX) { over = true; return null; }
-            return { ...j, invites: [{ g: groupId, by: actor, t: now }, ...live] };
+            // 外されたグループの行は受信箱から外し、招待の棚に出す（同じグループが2か所に出ない）
+            return { ...j, invites: [{ g: groupId, by: actor, t: now }, ...live], ...dropRemoved(j, groupId) };
         });
         if (over) undo.push(id);
     }
@@ -560,6 +631,19 @@ function groupView(s: Summary, me: string, names: Map<string, PeerInfo>) {
     };
 }
 
+/** 外された人に見せるグループ（外された時に知っていた名前だけ。今の名前・顔・人数・最後の通は出さない） */
+function removedView(groupId: string, info: RemovedInfo | undefined, createdAt: string) {
+    return {
+        groupId,
+        name: info?.name ?? null,
+        displayName: info?.name ?? "外されたグループ",
+        faces: [] as Array<{ id: string; name: string }>,
+        state: "removed" as const,
+        unread: 0,
+        updatedAt: info?.t ?? createdAt,
+    };
+}
+
 /** 1通を画面に出す形（写真は読む人ごとの札） */
 function shapeMessage(m: GroupMessage, me: string, quotes: Map<string, unknown>) {
     return {
@@ -598,21 +682,28 @@ async function inbox(me: string) {
             if (s) rows.set(s.groupId, s);
         }
     }
-    const nameIds = [...rows.values()].flatMap((s) => [...s.faceIds, ...(s.last ? [s.last.from] : [])]);
-    const names = await peerInfos([...new Set([...nameIds, ...invites.map((i) => i.by)])]);
-    const item = (g: string, state: "member" | "removed") => {
+    // 外されたグループの行（`group#`）は名前や最後の通を読むのに使わない（在るかを見るだけ）
+    const memberRows = joined.list.map((g) => rows.get(g)).filter((s): s is Summary => !!s);
+    const nameIds = memberRows.flatMap((s) => [...s.faceIds, ...(s.last ? [s.last.from] : [])]);
+    const inviteIds = invites.flatMap((i) => [i.by, ...(rows.get(i.g)?.faceIds ?? [])]);
+    const names = await peerInfos([...new Set([...nameIds, ...inviteIds])]);
+    const item = (g: string) => {
         const s = rows.get(g);
         if (!s) return null;
         const last = s.last && !hidden.has(s.last.from) ? s.last : undefined;
         return {
             ...groupView(s, me, names),
-            state,
-            unread: state === "member" ? Math.max(0, s.seq - (joined.reads[g] ?? s.seq)) : 0,
+            state: "member" as const,
+            unread: Math.max(0, s.seq - (joined.reads[g] ?? s.seq)),
             ...(last ? { last: { ...last, fromName: nameIn(names, last.from), mine: last.from === me } } : {}),
             updatedAt: last?.t ?? s.createdAt,
         };
     };
-    const groups = [...joined.list.map((g) => item(g, "member")), ...removed.map((g) => item(g, "removed"))]
+    const groups = [
+        ...joined.list.map((g) => item(g)),
+        // 🔴 外された人には、外されたあとの話（最後の通）・今の名前・顔・人数を見せない。外された時の名前の控えだけ。未読は0
+        ...removed.map((g) => (rows.has(g) ? removedView(g, joined.removedInfo[g], rows.get(g)!.createdAt) : null)),
+    ]
         .filter((x): x is NonNullable<typeof x> => !!x)
         .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : a.updatedAt > b.updatedAt ? -1 : 0));
     const inv = invites.map((i) => {
@@ -649,9 +740,25 @@ async function create(me: string, body: Record<string, unknown>) {
     if (gate.invite.length > 0 && !await reserveGroupDaily(me, "newConv", GROUP_DAILY_INVITES, gate.invite.length)) {
         gate.notAdded += gate.invite.length;
         gate.invite = [];
-        if (gate.direct.length === 0) return jsonError(429, "今日はこれ以上招待できません。明日またお試しください", "dailyLimit");
+        if (gate.direct.length === 0) {
+            // 作らなかったので、作る数は戻す
+            await releaseGroupDaily(me, "groupNew");
+            return jsonError(429, "今日はこれ以上招待できません。明日またお試しください", "dailyLimit");
+        }
     }
-    // 本体（会話の「作りました」→ メンバー → 受信箱の行 → 自分の一覧）。人は `admit` で足す（枠と一覧を同じ道で見る）
+    // 先に自分の一覧に席を取る（50 の枠を書くときにも確かめる。同時に作っても 50 を越えない）
+    let over = false;
+    await updateJoined(me, (j) => {
+        over = false;
+        if (j.list.length >= GROUPS_JOINED_MAX) { over = true; return null; }
+        return { ...j, list: [groupId, ...j.list.filter((g) => g !== groupId)], reads: { ...j.reads, [groupId]: 0 } };
+    });
+    if (over) {
+        await releaseGroupDaily(me, "groupNew");
+        await releaseGroupDaily(me, "newConv", gate.invite.length);
+        return jsonError(403, `入れるグループは${GROUPS_JOINED_MAX}個までです。使わないグループから抜けてください`, "joinedFull");
+    }
+    // 本体（会話の「作りました」→ メンバー → 受信箱の行）。人は `admit` で足す（枠と一覧を同じ道で見る）
     const { seq, messages: createdEv } = await appendGroupChat(groupId, [draftEvent(me, { type: "created" })]);
     await ddb.send(new PutCommand({
         TableName: PHOTOS_TABLE,
@@ -669,8 +776,10 @@ async function create(me: string, body: Record<string, unknown>) {
         },
         ConditionExpression: "attribute_not_exists(id)",
     }));
-    await updateJoined(me, (j) => ({ ...j, list: [groupId, ...j.list.filter((g) => g !== groupId)], reads: { ...j.reads, [groupId]: seq } }));
+    await markRead(me, groupId, seq);
     const added = await admit(groupId, me, gate, 0);
+    // 枠で入れなかった人の招待の数は戻す
+    await releaseGroupDaily(me, "newConv", gate.invite.length - added.invite.length);
     const notAdded = gate.notAdded + (gate.direct.length + gate.invite.length - added.direct.length - added.invite.length);
     const r = await readMembers(groupId);
     if (!r) return jsonError(500, "うまくいきませんでした。もう一度お試しください");
@@ -685,11 +794,11 @@ async function afterAdded(groupId: string, actor: string, direct: string[], kind
     if (kind === "added") await postEvent(groupId, draftEvent(actor, { type: "added", targets: direct }));
     const s = await readSummary(groupId);
     if (!s) return;
-    const names = await peerInfos([actor, ...s.faceIds]);
-    // そのまま入った人は入れた人をフォロー（か親しい友達）している。ブロックの間柄は門で外してある
-    for (const id of direct) {
-        await pushTo([id], groupId, { title: displayNameFor(s, id, names), body: `${nameIn(names, actor)} があなたをグループに入れました` });
-    }
+    const names = await peerInfos([actor]);
+    // そのまま入った人は入れた人をフォロー（か親しい友達）している。ブロックの間柄は門で外してある。
+    // 🔴 **宛先全員に同じ文面で `sendPush` を1回（接続1本）**。1人ずつ送ると 29 人で関数の上限 15 秒を越える。
+    // そのため題は受け取る人ごとの呼び名にせず、名前が無ければ「グループ」とだけ言う
+    await pushTo(direct, groupId, { title: s.name ?? "グループ", body: `${nameIn(names, actor)} があなたをグループに入れました` });
 }
 
 /**
@@ -739,8 +848,11 @@ async function detail(me: string, groupId: string) {
         });
     }
     if (windowOf(r, me)?.state === "removed") {
-        const names = await peerInfos(s.faceIds);
-        return ok({ state: "removed", group: groupView(s, me, names) });
+        // 今の名前・顔・人数・メンバーは返さない（外された時の名前の控えだけ）
+        const j = await readJoined(me);
+        const { state: _s, unread: _u, updatedAt: _t, ...group } = removedView(groupId, j.removedInfo[groupId], s.createdAt);
+        void _s; void _u; void _t;
+        return ok({ state: "removed", group });
     }
     return notFound();
 }
@@ -754,13 +866,16 @@ async function readMessages(me: string, groupId: string) {
     const visible = chat.items.filter((m) => m.n > w.from && m.n <= w.to && !hidden.has(m.from));
     const quotes = await photoQuotesFor(me, visible.map((m) => m.photoId).filter(str));
     if (w.state === "member" && chat.seq > 0) await markRead(me, groupId, chat.seq);
-    const names = await peerInfos([...new Set([...r.members.map((m) => m.id), ...visible.map((m) => m.from)])]);
+    // 外された人には今のメンバーを返さない（見える範囲の通の送り手だけ）
+    const who = [...new Set([...(w.state === "member" ? r.members.map((m) => m.id) : []), ...visible.map((m) => m.from)])];
+    const names = await peerInfos(who);
     return ok({
         state: w.state,
         canSend: w.state === "member",
-        seq: chat.seq,
+        // 外された人には、外されたあとに進んだ番号も見せない
+        seq: w.state === "member" ? chat.seq : Math.min(chat.seq, w.to),
         messages: visible.map((m) => shapeMessage(m, me, quotes as Map<string, unknown>)),
-        members: [...new Set([...r.members.map((m) => m.id), ...visible.map((m) => m.from)])].map((id) => ({ id, name: nameIn(names, id) })),
+        members: who.map((id) => ({ id, name: nameIn(names, id) })),
     });
 }
 
@@ -775,13 +890,15 @@ async function send(me: string, groupId: string, body: Record<string, unknown>) 
     const photoId = body.photoId === undefined || body.photoId === null ? undefined : isPhotoId(body.photoId) ? body.photoId : null;
     if (photoId === null) return jsonError(400, "不正なリクエスト", "badRequest");
     if (!text && !photoId) return jsonError(400, "メッセージを入力してください", "empty");
-    const msgId = isMessageId(body.id) ? body.id : undefined;
+    let msgId = isMessageId(body.id) ? body.id : undefined;
     const r = await readMembers(groupId);
     if (!r || !memberOf(r, me)) return notFound();
-    // 送り直し: もう入っていれば数を進めずに同じ通を返す
+    // 送り直し: **自分の**同じ id の通がもう入っていれば、数を進めずに同じ通を返す。
+    // 他の人の通と id がぶつかったら、その id は使わない（他人の通を自分の送り直しとして返さない）
     if (msgId) {
         const prior = (await readGroupChat(groupId)).items.find((m) => m.id === msgId);
-        if (prior) return ok({ message: shapeMessage(prior, me, new Map()) });
+        if (prior && prior.from === me) return ok({ message: shapeMessage(prior, me, new Map()) });
+        if (prior) msgId = undefined;
     }
     // 写真は**送る人に今見せてよい写真だけ**（DM と同じ門）
     if (photoId && !await readVisiblePhoto(photoId, me)) return jsonError(404, "写真が見つかりません", "photoNotFound");
@@ -791,6 +908,8 @@ async function send(me: string, groupId: string, body: Record<string, unknown>) 
     }
     const { seq, messages, duplicate, items } = await appendGroupChat(groupId, [draftText(me, text || undefined, photoId, msgId)]);
     const msg = messages[0];
+    // 同じ id が同時に2回来て、どちらも数を進めていた: 書かなかった方の数を戻す
+    if (duplicate) await releaseGroupDaily(me, "groupSent");
     await markRead(me, groupId, seq);
     if (!duplicate) await notifyMessage(me, groupId, r, seq, msg, items);
     const quotes = msg.photoId ? await photoQuotesFor(me, [msg.photoId]) : new Map();
@@ -827,14 +946,20 @@ async function addMembers(me: string, groupId: string, body: Record<string, unkn
     const targets = targetIds(body.userIds, me);
     if (!targets || targets.length === 0) return jsonError(400, "足す人を選んでください", "badRequest");
     const fresh = targets.filter((t) => !memberOf(r, t) && !liveInvites(r).some((i) => i.id === t));
-    if (seatsUsed(r) + fresh.length > GROUP_MEMBERS_MAX) return jsonError(403, `グループは${GROUP_MEMBERS_MAX}人までです`, "full");
+    if (seatsUsed(r) >= GROUP_MEMBERS_MAX) return jsonError(403, `グループは${GROUP_MEMBERS_MAX}人までです`, "full");
     const gate = await gateTargets(me, r, fresh);
+    // 空き席は、門を通った人の数で見る（通らない人のせいで、通る人まで断らない）
+    if (seatsUsed(r) + gate.direct.length + gate.invite.length > GROUP_MEMBERS_MAX) {
+        return jsonError(403, `グループは${GROUP_MEMBERS_MAX}人までです`, "full");
+    }
     if (gate.invite.length > 0 && !await reserveGroupDaily(me, "newConv", GROUP_DAILY_INVITES, gate.invite.length)) {
         gate.notAdded += gate.invite.length;
         gate.invite = [];
         if (gate.direct.length === 0) return jsonError(429, "今日はこれ以上招待できません。明日またお試しください", "dailyLimit");
     }
     const added = await admit(groupId, me, gate);
+    // 枠で入れなかった人の招待の数は戻す
+    await releaseGroupDaily(me, "newConv", gate.invite.length - added.invite.length);
     if (added.full && added.direct.length + added.invite.length === 0) {
         return jsonError(403, `グループは${GROUP_MEMBERS_MAX}人までです`, "full");
     }
@@ -857,14 +982,16 @@ async function update(me: string, groupId: string, body: Record<string, unknown>
     if (!wantsName && !wantsMute) return jsonError(400, "不正なリクエスト", "badRequest");
     if (wantsMute && typeof body.muted !== "boolean") return jsonError(400, "不正なリクエスト", "badRequest");
     if (wantsName && body.name !== null && typeof body.name !== "string") return jsonError(400, "不正なリクエスト", "badRequest");
-    if (wantsMute) {
-        await updateMembers(groupId, (cur) => {
-            if (!cur || !memberOf(cur, me)) return null;
-            return { ...cur, members: cur.members.map((m) => (m.id !== me ? m : body.muted ? { ...m, muted: true as const } : { id: m.id, at: m.at, by: m.by, from: m.from })) };
-        });
-    }
     if (wantsName) {
         const name = typeof body.name === "string" ? sanitizeText(body.name, GROUP_NAME_MAX) : undefined;
+        // 🔴 名前を変えると全員の会話に1行が出る（送るのと同じ重さ）。**送る 1日 300 通（`groupSent`）に1通として数える**。
+        // 新しい欄を作らない（承認された欄は2つだけ）・別の回数を覚えさせない。同じ名前なら数えない
+        const before = await readSummary(groupId);
+        if (before && (before.name ?? "") !== (name ?? "")
+            && !await reserveGroupDaily(me, "groupSent", GROUP_DAILY_SENT)) {
+            return jsonError(429, "今日はこれ以上変えられません。明日またお試しください", "dailyLimit");
+        }
+        const reserved = !!before && (before.name ?? "") !== (name ?? "");
         let changed = false;
         await updateSummary(groupId, (s) => {
             changed = (s.name ?? "") !== (name ?? "");
@@ -873,10 +1000,17 @@ async function update(me: string, groupId: string, body: Record<string, unknown>
             void _old;
             return { ...rest, ...(name ? { name } : {}) };
         });
+        if (reserved && !changed) await releaseGroupDaily(me, "groupSent");
         if (changed) {
             const ev: GroupEvent = { type: "renamed", ...(name ? { name } : {}) };
             await postEvent(groupId, draftEvent(me, ev));
         }
+    }
+    if (wantsMute) {
+        await updateMembers(groupId, (cur) => {
+            if (!cur || !memberOf(cur, me)) return null;
+            return { ...cur, members: cur.members.map((m) => (m.id !== me ? m : body.muted ? { ...m, muted: true as const } : { id: m.id, at: m.at, by: m.by, from: m.from })) };
+        });
     }
     const [after, s] = await Promise.all([readMembers(groupId), readSummary(groupId)]);
     return after && s && memberOf(after, me) ? ok(await detailBody(me, after, s)) : notFound();
@@ -888,17 +1022,23 @@ async function join(me: string, groupId: string) {
     if (!r) return notFound();
     if (memberOf(r, me)) return ok({ groupId, joined: true, already: true });
     if (!liveInvites(r).some((i) => i.id === me)) return notFound();
-    const joined = await readJoined(me);
-    if (joined.list.length >= GROUPS_JOINED_MAX) {
-        return jsonError(403, `入れるグループは${GROUPS_JOINED_MAX}個までです。使わないグループから抜けてください`, "joinedFull");
-    }
     // 招待のあとにブロックの間柄になった人が居れば入れない（理由は言わない・招待は外す）
     const hidden = await hiddenUserIds(me);
     if (r.members.some((m) => hidden.has(m.id))) {
         await dropInvite(groupId, me, false);
         return notFound();
     }
-    const from = await currentSeq(groupId);
+    // 先に自分の一覧に席を取る（50 の枠を**書くときに**確かめる。同時に2つへ参加しても 50 を越えない）
+    let over = false;
+    let reserved = false;
+    await updateJoined(me, (j) => {
+        over = false; reserved = false;
+        if (j.list.includes(groupId)) return null;
+        if (j.list.length >= GROUPS_JOINED_MAX) { over = true; return null; }
+        reserved = true;
+        return { ...j, list: [groupId, ...j.list] };
+    });
+    if (over) return jsonError(403, `入れるグループは${GROUPS_JOINED_MAX}個までです。使わないグループから抜けてください`, "joinedFull");
     let moved = false;
     await updateMembers(groupId, (cur) => {
         moved = false;
@@ -906,15 +1046,22 @@ async function join(me: string, groupId: string) {
         moved = true;
         const now = new Date().toISOString();
         const inv = cur.invited.find((i) => i.id === me)!;
-        return { ...cur, invited: cur.invited.filter((i) => i.id !== me), members: [...cur.members, { id: me, at: now, by: inv.by, from }] };
+        return {
+            ...cur, invited: cur.invited.filter((i) => i.id !== me),
+            // 見え始める位置は、入れたあとに決める（`settleFrom`）。外された印はここで外す（戻ってきた）
+            members: [...cur.members, { id: me, at: now, by: inv.by, from: PENDING_FROM }],
+            removed: cur.removed.filter((x) => x.id !== me),
+        };
     });
     if (!moved) {
+        if (reserved) await updateJoined(me, (j) => (j.list.includes(groupId) ? { ...j, list: j.list.filter((g) => g !== groupId) } : null));
         const again = await readMembers(groupId);
         return again && memberOf(again, me) ? ok({ groupId, joined: true, already: true }) : notFound();
     }
+    const from = await settleFrom(groupId, [me]);
     await updateJoined(me, (j) => ({
         ...j, list: [groupId, ...j.list.filter((g) => g !== groupId)], reads: { ...j.reads, [groupId]: from },
-        invites: j.invites.filter((i) => i.g !== groupId), left: j.left.filter((g) => g !== groupId),
+        invites: j.invites.filter((i) => i.g !== groupId), left: j.left.filter((g) => g !== groupId), ...dropRemoved(j, groupId),
     }));
     const seq = await postEvent(groupId, draftEvent(me, { type: "joined" }));
     await markRead(me, groupId, seq);
@@ -1014,7 +1161,7 @@ async function removeMember(me: string, groupId: string, target: string | undefi
         }
         const j = await readJoined(me);
         if (!j.removed.includes(groupId)) return notFound();
-        await updateJoined(me, (x) => ({ ...x, removed: x.removed.filter((g) => g !== groupId), reads: withoutRead(x.reads, groupId), left: remember(x.left, groupId) }));
+        await updateJoined(me, (x) => ({ ...x, ...dropRemoved(x, groupId), reads: withoutRead(x.reads, groupId), left: remember(x.left, groupId) }));
         return ok({ ok: true });
     }
     if (!r || !memberOf(r, me)) return notFound();
@@ -1037,11 +1184,16 @@ async function removeMember(me: string, groupId: string, target: string | undefi
         };
     });
     if (!done) return ok({ ok: true });
-    await updateJoined(who, (j) => ({
-        ...j, list: j.list.filter((g) => g !== groupId),
-        removed: [groupId, ...j.removed.filter((g) => g !== groupId)].slice(0, GROUPS_REMOVED_KEEP),
-        left: remember(j.left, groupId),
-    }));
+    const named = (await readSummary(groupId))?.name;
+    const info: RemovedInfo = { t: new Date().toISOString(), ...(named ? { name: named } : {}) };
+    await updateJoined(who, (j) => {
+        const removed = [groupId, ...j.removed.filter((g) => g !== groupId)].slice(0, GROUPS_REMOVED_KEEP);
+        const removedInfo = Object.fromEntries(Object.entries({ ...j.removedInfo, [groupId]: info }).filter(([g]) => removed.includes(g)));
+        return {
+            ...j, list: j.list.filter((g) => g !== groupId), reads: withoutRead(j.reads, groupId),
+            removed, removedInfo, left: remember(j.left, groupId),
+        };
+    });
     await postEvent(groupId, draftEvent(me, { type: "removed", targets: [who] }));
     const after = await readMembers(groupId);
     if (after) await refreshSummary(groupId, after);
@@ -1151,7 +1303,15 @@ export async function purgeGroupsFor(uid: string): Promise<void> {
                     declined: cur.declined.filter((x) => x !== uid), removed: cur.removed.filter((x) => x.id !== uid),
                 };
             });
-            await stripGroupChatFrom(groupId, uid);
+            const kept = await stripGroupChatFrom(groupId, uid);
+            // 🔴 受信箱の行（`group#`）の最後の1通が本人のものなら、残った会話の最後の1通で作り直す
+            // （退会した人の抜粋と id を、みんなの受信箱に残さない）
+            await updateSummary(groupId, (s) => {
+                if (s.last?.from !== uid) return null;
+                const { last: _gone, ...rest } = s;
+                void _gone;
+                return kept?.last ? { ...rest, last: kept.last } : rest;
+            });
         } catch (e) {
             console.error(`purgeGroupsFor: グループの掃除に失敗（${groupId}）:`, errName(e));
         }

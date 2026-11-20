@@ -92,10 +92,13 @@ export async function appendGroupChat(groupId: string, drafts: DraftMessage[]):
     let duplicate = false;
     let all: GroupMessage[] = [];
     if (drafts.length === 0) return { seq, messages: written, duplicate, items: all };
+    // 同じ id を**別の人**が使っていたら、その通とは別の通として新しい id で足す（他人の通を「自分の送り直し」と取り違えない）
+    let mine = drafts;
     await updateUserRow(groupChatKey(groupId), groupId, (item) => {
         const items = groupChatItemsOf(item);
         const base = seqOf(item);
-        const known = drafts.map((d) => items.find((m) => m.id === d.id)).filter((m): m is GroupMessage => !!m);
+        mine = drafts.map((d) => (items.some((m) => m.id === d.id && m.from !== d.from) ? { ...d, id: randomUUID() } : d));
+        const known = mine.map((d) => items.find((m) => m.id === d.id && m.from === d.from)).filter((m): m is GroupMessage => !!m);
         if (known.length > 0) {
             duplicate = true;
             written = known;
@@ -104,8 +107,8 @@ export async function appendGroupChat(groupId: string, drafts: DraftMessage[]):
             return null;
         }
         duplicate = false;
-        written = drafts.map((d, i) => ({ ...d, n: base + i + 1 }));
-        seq = base + drafts.length;
+        written = mine.map((d, i) => ({ ...d, n: base + i + 1 }));
+        seq = base + mine.length;
         all = trimGroupChat([...items, ...written]);
         return { groupId, items: all, seq, last: lastOfGroupMessage(written[written.length - 1]) };
     });
@@ -118,14 +121,25 @@ export async function readGroupChat(groupId: string): Promise<{ items: GroupMess
     return { items: groupChatItemsOf(item), seq: seqOf(item) };
 }
 
-/** 退会: その人の通を会話から外す（本人が書いた文を残さない） */
-export async function stripGroupChatFrom(groupId: string, uid: string): Promise<void> {
+/**
+ * 退会: その人の通を会話から外す（本人が書いた文を残さない）。真ん中の1行の `targets` からも外し、
+ * 外して誰も残らない「足した・外した」の1行は消す。**残った会話の最後の1通を返す**（受信箱の行を作り直すため。
+ * 会話が無ければ null・通が1つも残らなければ `last` 無し）
+ */
+export async function stripGroupChatFrom(groupId: string, uid: string): Promise<{ last?: GroupLast } | null> {
+    let out: { last?: GroupLast } | null = null;
     await updateUserRow(groupChatKey(groupId), groupId, (item) => {
+        out = null;
         if (!item) return null;
         const items = groupChatItemsOf(item);
-        const kept = items.filter((m) => m.from !== uid);
-        if (kept.length === items.length) return null;
+        const kept = items
+            .filter((m) => m.from !== uid)
+            .map((m) => (m.event?.targets?.includes(uid) ? { ...m, event: { ...m.event, targets: m.event.targets.filter((x) => x !== uid) } } : m))
+            .filter((m) => !(m.event?.targets && m.event.targets.length === 0));
         const last = kept.length > 0 ? lastOfGroupMessage(kept[kept.length - 1]) : undefined;
+        out = last ? { last } : {};
+        if (JSON.stringify(kept) === JSON.stringify(items)) return null;
         return { groupId, items: kept, seq: seqOf(item), ...(last ? { last } : {}) };
     });
+    return out;
 }
