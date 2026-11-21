@@ -141,6 +141,17 @@ const texts = (r: Res) => (json(r).messages as Array<{ text?: string }>).map((m)
 const n2 = (id: string) => id.slice(-3);
 /** 1日の歯止めの行の日付（`groups.ts` の `dayOf` と同じ JST） */
 const today = () => new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+/** フォローを外す（`follower` が `target` を） */
+const unfollow = (follower: string, target: string) => store.delete(`follow#${target}#${follower}`);
+/**
+ * `who` がいったん抜けてから、A が入れ直す。**招待が生まれるのはこの道だけ**（入れられるのは相互フォローの人だけで、
+ * 相互フォローの人はそのまま入る。抜けた人・外された人を入れ直すときだけ、相互フォローでも招待になる）
+ */
+async function reinvite(g: string, who: string) {
+    await api(who, "DELETE /groups/{groupId}/members/{uid}", { groupId: g, uid: who });
+    const r = await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [who] });
+    expect(json(r).invitedNow, r.body).toEqual([who]);
+}
 /** 知らせの「3分に1回まで」を外す（続けて送る試験のため） */
 const resetQuiet = (g: string) => {
     const row = store.get(`group#${g}`)!;
@@ -190,12 +201,13 @@ describe("作る（POST /groups）", () => {
         expect((mockPush.mock.calls[0][1] as { title: string }).title).toBe("大人数");
     });
 
-    it("招待の数が足りず 429 で作れなかったときは、作る数（`groupNew`）を戻す", async () => {
-        follow(A, B); follow(A, C);   // 2人とも A をフォローしていない → 2人とも招待
-        store.set(`dmday#${A}#${today()}`, { id: `dmday#${A}#${today()}`, newConv: 20 });
+    it("🔴 片方だけのフォローの人しか選んでいなければ作れず、作る数も進まない（招待にもしない）", async () => {
+        follow(A, B); follow(A, C);   // A は2人をフォローしているが、2人は A をフォローしていない
         const r = await api(A, "POST /groups", {}, { memberIds: [B, C] });
-        expect(r.statusCode).toBe(429);
-        expect(store.get(`dmday#${A}#${today()}`)!.groupNew).toBe(0);
+        expect(r.statusCode).toBe(404);
+        expect(store.get(`dmday#${A}#${today()}`)?.groupNew).toBeUndefined();
+        expect(store.get(`groupsjoined#${B}`)).toBeUndefined();
+        expect(store.get(`groupsjoined#${C}`)).toBeUndefined();
     });
 
     it("作った時に入った人には「作りました」の1行から見える", async () => {
@@ -218,6 +230,27 @@ describe("作る（POST /groups）", () => {
         expect(r.statusCode).toBe(201);
         expect(json(r).members.map((m: { id: string }) => m.id)).toEqual([A, B]);
         expect(json(r).invited).toEqual([]);
+        expect(json(r).notAdded).toBe(1);
+    });
+
+    it("🔴 相互フォローでない人は、入れる人がフォローしていても入らず、招待にもならない（2026-11-20 owner）", async () => {
+        mutual(A, B);
+        follow(A, C);   // A は C をフォローしているが、C は A をフォローしていない
+        const r = await api(A, "POST /groups", {}, { memberIds: [B, C] });
+        expect(r.statusCode).toBe(201);
+        expect(json(r).members.map((m: { id: string }) => m.id)).toEqual([A, B]);
+        expect(json(r).invited).toEqual([]);
+        expect(json(r).notAdded).toBe(1);
+        expect(json(await api(C, "GET /groups")).invites).toEqual([]);
+        expect(mockPush.mock.calls.flatMap((c) => c[0] as string[])).not.toContain(`tok-${C}`);
+    });
+
+    it("🔴 親しい友達に入れていても、相互フォローでなければ入らない", async () => {
+        mutual(A, B);
+        follow(A, C);
+        store.set(`closefriends#${C}`, { id: `closefriends#${C}`, list: [A] });
+        const r = await api(A, "POST /groups", {}, { memberIds: [B, C] });
+        expect(json(r).members.map((m: { id: string }) => m.id)).toEqual([A, B]);
         expect(json(r).notAdded).toBe(1);
     });
 
@@ -284,9 +317,9 @@ describe("🔴 2. ブロックしている人を入れられない", () => {
     });
 
     it("招待に参加するとき: 招待のあとにブロックの間柄になったら入れない", async () => {
-        mutual(A, B);
-        follow(A, C);   // A は C をフォロー・C は A をフォローしていない → 招待
+        mutual(A, B); mutual(A, C);
         const g = await createBy(A, [B, C]);
+        await reinvite(g, C);
         block(B, C);
         const r = await api(C, "POST /groups/{groupId}/join", { groupId: g });
         expect(r.statusCode).toBe(404);
@@ -319,10 +352,9 @@ describe("🔴 3. 30人を超えられない", () => {
     });
 
     it("招待中の人も 30 人の中で数える", async () => {
-        const g = await createBy(A, many.slice(0, 28));   // 29 人
-        follow(A, C);   // C は A をフォローしていない → 招待（30 人目の席を使う）
-        const r1 = await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [C] });
-        expect(json(r1).invitedNow).toEqual([C]);
+        mutual(A, C);
+        const g = await createBy(A, [...many.slice(0, 28), C]);   // 30 人
+        await reinvite(g, C);   // C が抜けて 29 人 → 入れ直すと招待（30 人目の席を使う）
         const r2 = await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [many[29]] });
         expect(r2.statusCode).toBe(403);
     });
@@ -418,10 +450,11 @@ describe("🔴 5. 送信の上限", () => {
 });
 
 describe("🔴 6. 招待の承諾前は中身が見えない", () => {
-    it("入れる人をフォローしていない人は招待になり、参加するまで会話は 404、詳しいは名前・入れた人・人数だけ", async () => {
-        mutual(A, B);
-        follow(A, C);   // C は A をフォローしていない
+    it("抜けた人を入れ直すと招待になり、参加するまで会話は 404、詳しいは名前・入れた人・人数だけ", async () => {
+        mutual(A, B); mutual(A, C);
         const g = await createBy(A, [B, C]);
+        mockPush.mockClear();
+        await reinvite(g, C);
         await say(A, g, "参加前の話");
         expect(mockPush.mock.calls.flatMap((c) => c[0] as string[])).not.toContain(`tok-${C}`);   // 招待では知らせない
 
@@ -450,9 +483,9 @@ describe("🔴 6. 招待の承諾前は中身が見えない", () => {
     });
 
     it("断ると、同じグループからは招待し直せない", async () => {
-        mutual(A, B);
-        follow(A, C);
+        mutual(A, B); mutual(A, C);
         const g = await createBy(A, [B, C]);
+        await reinvite(g, C);
         expect((await api(C, "POST /groups/{groupId}/decline", { groupId: g })).statusCode).toBe(200);
         const r = await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [C] });
         expect(json(r).invitedNow).toEqual([]);
@@ -460,11 +493,24 @@ describe("🔴 6. 招待の承諾前は中身が見えない", () => {
         expect((await api(C, "POST /groups/{groupId}/join", { groupId: g })).statusCode).toBe(404);
     });
 
-    it("親しい友達に入れている人からはそのまま入る", async () => {
-        mutual(A, B);
-        follow(A, C);
-        store.set(`closefriends#${C}`, { id: `closefriends#${C}`, list: [A] });
+    it("🔴 参加するとき、招待した人と今も相互フォローかを確かめ直す（外れていれば 403 `notMutualFollow`・招待は残る）", async () => {
+        mutual(A, B); mutual(A, C);
         const g = await createBy(A, [B, C]);
+        await reinvite(g, C);
+        unfollow(C, A);   // 招待のあとに C が A のフォローを外した
+        const r = await api(C, "POST /groups/{groupId}/join", { groupId: g });
+        expect(r.statusCode).toBe(403);
+        expect(json(r).code).toBe("notMutualFollow");
+        expect((await read(C, g)).statusCode).toBe(404);
+        expect((store.get(`groupmembers#${g}`)!.members as Array<{ id: string }>).map((m) => m.id)).not.toContain(C);
+        expect(json(await api(C, "GET /groups")).invites).toHaveLength(1);
+        // 招待した側（A）が外した場合も同じ
+        follow(C, A);
+        unfollow(A, C);
+        expect(json(await api(C, "POST /groups/{groupId}/join", { groupId: g })).code).toBe("notMutualFollow");
+        // 相互フォローに戻れば、残っている招待からそのまま参加できる
+        follow(A, C);
+        expect((await api(C, "POST /groups/{groupId}/join", { groupId: g })).statusCode).toBe(200);
         expect((await read(C, g)).statusCode).toBe(200);
     });
 });
@@ -737,9 +783,9 @@ describe("確かめ役の指摘（2026-11-20）", () => {
     });
 
     it("参加するときも 50 の枠を見る（書くときに確かめる）", async () => {
-        mutual(A, B);
-        follow(A, C);
+        mutual(A, B); mutual(A, C);
         const g = await createBy(A, [B, C]);
+        await reinvite(g, C);
         const list = Array.from({ length: 50 }, (_, n) => `${(0x400 + n).toString(16).padStart(8, "0")}-0000-4000-8000-000000000000`);
         store.set(`groupsjoined#${C}`, { ...store.get(`groupsjoined#${C}`)!, list });
         const r = await api(C, "POST /groups/{groupId}/join", { groupId: g });
@@ -772,5 +818,39 @@ describe("確かめ役の指摘（2026-11-20）", () => {
         // 自分の送り直しは、今までどおり1通のまま
         const again = await appendGroupChat(g, [draftText(B, "Bの通", undefined, "clash-id-0001")]);
         expect(again.duplicate).toBe(true);
+    });
+});
+
+describe("🔴 相互フォローだけ（2026-11-20 owner「相互フォローじゃないと話せない方がいい」）", () => {
+    it("人を足すとき: 相互フォローの人はそのまま入り、片方だけのフォローの人は招待にもならない", async () => {
+        mutual(A, B); mutual(A, C); mutual(A, D);
+        follow(A, E);   // A → E だけ
+        follow(X, A);   // X → A だけ
+        const g = await createBy(A, [B, C]);
+        const r = await api(A, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [D, E, X] });
+        expect(r.statusCode).toBe(200);
+        expect(json(r).added).toEqual([D]);
+        expect(json(r).invitedNow).toEqual([]);
+        expect(json(r).notAdded).toBe(2);
+        expect(json(await api(E, "GET /groups")).invites).toEqual([]);
+        expect(json(await api(X, "GET /groups")).invites).toEqual([]);
+    });
+
+    it("相互フォローかは、足す人との間で見る（作った人と相互でも、足す人と相互でなければ入らない）", async () => {
+        mutual(A, B); mutual(A, C); mutual(A, D);
+        follow(B, D);   // B → D だけ（D は B をフォローしていない）
+        const g = await createBy(A, [B, C]);
+        const r = await api(B, "POST /groups/{groupId}/members", { groupId: g }, { userIds: [D] });
+        expect(json(r).added).toEqual([]);
+        expect(json(r).notAdded).toBe(1);
+    });
+
+    it("入ったあとにフォローを外しても、メンバーからは外さない（読める・送れる）", async () => {
+        mutual(A, B); mutual(A, C);
+        const g = await createBy(A, [B, C]);
+        unfollow(B, A); unfollow(A, B);
+        expect((await say(B, g, "まだいる")).statusCode).toBe(200);
+        expect(texts(await read(A, g))).toEqual(["まだいる"]);
+        expect(json(await api(A, "GET /groups/{groupId}", { groupId: g })).members.map((m: { id: string }) => m.id)).toContain(B);
     });
 });
