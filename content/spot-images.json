@@ -88026,5 +88026,1835 @@
       "width": 960,
       "height": 1440
     }
+  },
+  "tanagura-castle": {
+    "wikidata": "",
+    "file": "File:Tanakura Castle hori.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Tanakura_Castle_hori.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Tanakura_Castle_hori.JPG/1280px-Tanakura_Castle_hori.JPG",
+    "author": "Saigen Jiro",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "licenseCode": "cc0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/tanagura-castle.jpg",
+      "width": 960,
+      "height": 638
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/Tanakura_Castle_hori.JPG/1280px-Tanakura_Castle_hori.JPG",
+      "width": 1280,
+      "height": 851
+    }
+  },
+  "hiyama-nihonmatsu": {
+    "wikidata": "",
+    "file": "File:ススキが広がる（日山）２.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E3%82%B9%E3%82%B9%E3%82%AD%E3%81%8C%E5%BA%83%E3%81%8C%E3%82%8B%EF%BC%88%E6%97%A5%E5%B1%B1%EF%BC%89%EF%BC%92.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/%E3%82%B9%E3%82%B9%E3%82%AD%E3%81%8C%E5%BA%83%E3%81%8C%E3%82%8B%EF%BC%88%E6%97%A5%E5%B1%B1%EF%BC%89%EF%BC%92.jpg/1280px-%E3%82%B9%E3%82%B9%E3%82%AD%E3%81%8C%E5%BA%83%E3%81%8C%E3%82%8B%EF%BC%88%E6%97%A5%E5%B1%B1%EF%BC%89%EF%BC%92.jpg",
+    "author": "Koda6029",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/hiyama-nihonmatsu.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a6/%E3%82%B9%E3%82%B9%E3%82%AD%E3%81%8C%E5%BA%83%E3%81%8C%E3%82%8B%EF%BC%88%E6%97%A5%E5%B1%B1%EF%BC%89%EF%BC%92.jpg/1280px-%E3%82%B9%E3%82%B9%E3%82%AD%E3%81%8C%E5%BA%83%E3%81%8C%E3%82%8B%EF%BC%88%E6%97%A5%E5%B1%B1%EF%BC%89%EF%BC%92.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "miyahata-iseki": {
+    "wikidata": "",
+    "file": "File:Miyahata Site.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Miyahata_Site.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Miyahata_Site.jpg/1280px-Miyahata_Site.jpg",
+    "author": "Ty19080914",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/miyahata-iseki.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Miyahata_Site.jpg/1280px-Miyahata_Site.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "nanatsugatake": {
+    "wikidata": "",
+    "file": "File:Mt. Nanatsugatake 0811.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Mt._Nanatsugatake_0811.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Mt._Nanatsugatake_0811.JPG/1280px-Mt._Nanatsugatake_0811.JPG",
+    "author": "Qwert1234",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/nanatsugatake.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Mt._Nanatsugatake_0811.JPG/1280px-Mt._Nanatsugatake_0811.JPG",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "oiso-jinja-omihachiman": {
+    "wikidata": "",
+    "file": "File:Oisojinnjya.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Oisojinnjya.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Oisojinnjya.JPG/1280px-Oisojinnjya.JPG",
+    "author": "にっしー小隊",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/oiso-jinja-omihachiman.jpg",
+      "width": 960,
+      "height": 540
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Oisojinnjya.JPG/1280px-Oisojinnjya.JPG",
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "kojinyama-hikone": {
+    "wikidata": "",
+    "file": "File:Mount Kojin, Hikone 20111204.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Mount_Kojin,_Hikone_20111204.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Mount_Kojin%2C_Hikone_20111204.JPG/1280px-Mount_Kojin%2C_Hikone_20111204.JPG",
+    "author": "Kyoww",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kojinyama-hikone.jpg",
+      "width": 960,
+      "height": 520
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/88/Mount_Kojin%2C_Hikone_20111204.JPG/1280px-Mount_Kojin%2C_Hikone_20111204.JPG",
+      "width": 1280,
+      "height": 693
+    }
+  },
+  "kishitsu-jinja": {
+    "wikidata": "",
+    "file": "File:Kishitsu Shrine.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Kishitsu_Shrine.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Kishitsu_Shrine.jpg/1280px-Kishitsu_Shrine.jpg",
+    "author": "Yuki",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kishitsu-jinja.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Kishitsu_Shrine.jpg/1280px-Kishitsu_Shrine.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "osasahara-jinja": {
+    "wikidata": "",
+    "file": "File:Shiga Oosasahara.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Shiga_Oosasahara.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Shiga_Oosasahara.jpg/1280px-Shiga_Oosasahara.jpg",
+    "author": "Yusuke.ogawa at Japanese Wikipedia",
+    "license": "Public domain (PD-user-at-project)",
+    "licenseCode": "PD-user-at-project",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/osasahara-jinja.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/66/Shiga_Oosasahara.jpg/1280px-Shiga_Oosasahara.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "shibisan": {
+    "wikidata": "",
+    "file": "File:Shibisan from Miyanojo.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Shibisan_from_Miyanojo.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Shibisan_from_Miyanojo.JPG/1280px-Shibisan_from_Miyanojo.JPG",
+    "author": "Sanjo",
+    "license": "Public domain (PD-self)",
+    "licenseCode": "PD-self",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/shibisan.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/eb/Shibisan_from_Miyanojo.JPG/1280px-Shibisan_from_Miyanojo.JPG",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "jominesan": {
+    "wikidata": "",
+    "file": "File:宝登山から両神山と城峯山.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E5%AE%9D%E7%99%BB%E5%B1%B1%E3%81%8B%E3%82%89%E4%B8%A1%E7%A5%9E%E5%B1%B1%E3%81%A8%E5%9F%8E%E5%B3%AF%E5%B1%B1.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/%E5%AE%9D%E7%99%BB%E5%B1%B1%E3%81%8B%E3%82%89%E4%B8%A1%E7%A5%9E%E5%B1%B1%E3%81%A8%E5%9F%8E%E5%B3%AF%E5%B1%B1.jpg/1280px-%E5%AE%9D%E7%99%BB%E5%B1%B1%E3%81%8B%E3%82%89%E4%B8%A1%E7%A5%9E%E5%B1%B1%E3%81%A8%E5%9F%8E%E5%B3%AF%E5%B1%B1.jpg",
+    "author": "Koda6029",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/jominesan.jpg",
+      "width": 960,
+      "height": 721
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dc/%E5%AE%9D%E7%99%BB%E5%B1%B1%E3%81%8B%E3%82%89%E4%B8%A1%E7%A5%9E%E5%B1%B1%E3%81%A8%E5%9F%8E%E5%B3%AF%E5%B1%B1.jpg/1280px-%E5%AE%9D%E7%99%BB%E5%B1%B1%E3%81%8B%E3%82%89%E4%B8%A1%E7%A5%9E%E5%B1%B1%E3%81%A8%E5%9F%8E%E5%B3%AF%E5%B1%B1.jpg",
+      "width": 1280,
+      "height": 961
+    }
+  },
+  "urawa-museum-saitama": {
+    "wikidata": "",
+    "file": "File:Saitama Municipal Urawa Museum 2011.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Saitama_Municipal_Urawa_Museum_2011.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Saitama_Municipal_Urawa_Museum_2011.jpg/1280px-Saitama_Municipal_Urawa_Museum_2011.jpg",
+    "author": "Wiiii",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/urawa-museum-saitama.jpg",
+      "width": 960,
+      "height": 767
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1a/Saitama_Municipal_Urawa_Museum_2011.jpg/1280px-Saitama_Municipal_Urawa_Museum_2011.jpg",
+      "width": 1280,
+      "height": 1022
+    }
+  },
+  "wado-iseki-chichibu": {
+    "wikidata": "",
+    "file": "File:Wado-CopperMineSite-WadōkaichinMonument.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Wado-CopperMineSite-Wad%C5%8DkaichinMonument.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Wado-CopperMineSite-Wad%C5%8DkaichinMonument.jpg/1280px-Wado-CopperMineSite-Wad%C5%8DkaichinMonument.jpg",
+    "author": "Bryanmackinnon",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "licenseCode": "cc-by-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/wado-iseki-chichibu.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/50/Wado-CopperMineSite-Wad%C5%8DkaichinMonument.jpg/1280px-Wado-CopperMineSite-Wad%C5%8DkaichinMonument.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "musashi-kyuryo-forest-park": {
+    "wikidata": "",
+    "file": "File:国営武蔵丘陵森林公園西口20260516-IMG 6328.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E5%9B%BD%E5%96%B6%E6%AD%A6%E8%94%B5%E4%B8%98%E9%99%B5%E6%A3%AE%E6%9E%97%E5%85%AC%E5%9C%92%E8%A5%BF%E5%8F%A320260516-IMG_6328.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/%E5%9B%BD%E5%96%B6%E6%AD%A6%E8%94%B5%E4%B8%98%E9%99%B5%E6%A3%AE%E6%9E%97%E5%85%AC%E5%9C%92%E8%A5%BF%E5%8F%A320260516-IMG_6328.jpg/1280px-%E5%9B%BD%E5%96%B6%E6%AD%A6%E8%94%B5%E4%B8%98%E9%99%B5%E6%A3%AE%E6%9E%97%E5%85%AC%E5%9C%92%E8%A5%BF%E5%8F%A320260516-IMG_6328.jpg",
+    "author": "くろふね",
+    "license": "CC BY 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+    "licenseCode": "cc-by-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/musashi-kyuryo-forest-park.jpg",
+      "width": 960,
+      "height": 641
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/%E5%9B%BD%E5%96%B6%E6%AD%A6%E8%94%B5%E4%B8%98%E9%99%B5%E6%A3%AE%E6%9E%97%E5%85%AC%E5%9C%92%E8%A5%BF%E5%8F%A320260516-IMG_6328.jpg/1280px-%E5%9B%BD%E5%96%B6%E6%AD%A6%E8%94%B5%E4%B8%98%E9%99%B5%E6%A3%AE%E6%9E%97%E5%85%AC%E5%9C%92%E8%A5%BF%E5%8F%A320260516-IMG_6328.jpg",
+      "width": 1280,
+      "height": 854
+    }
+  },
+  "miyoshino-jinja-kawagoe": {
+    "wikidata": "",
+    "file": "File:Miyoshino Shrine-2006-02-12 1.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Miyoshino_Shrine-2006-02-12_1.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Miyoshino_Shrine-2006-02-12_1.jpg/1280px-Miyoshino_Shrine-2006-02-12_1.jpg",
+    "author": "Syohei Arai",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/miyoshino-jinja-kawagoe.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Miyoshino_Shrine-2006-02-12_1.jpg/1280px-Miyoshino_Shrine-2006-02-12_1.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "nakain-kawagoe": {
+    "wikidata": "",
+    "file": "File:Naka-in Temple.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Naka-in_Temple.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Naka-in_Temple.JPG/1280px-Naka-in_Temple.JPG",
+    "author": "Abasaa",
+    "license": "Public domain (PD-self)",
+    "licenseCode": "PD-self",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/nakain-kawagoe.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ad/Naka-in_Temple.JPG/1280px-Naka-in_Temple.JPG",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "ishito-kabazakura": {
+    "wikidata": "",
+    "file": "File:Kitamoto Ishitokabazakura Side 2.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Kitamoto_Ishitokabazakura_Side_2.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Kitamoto_Ishitokabazakura_Side_2.JPG/1280px-Kitamoto_Ishitokabazakura_Side_2.JPG",
+    "author": "京浜にけ",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/ishito-kabazakura.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/94/Kitamoto_Ishitokabazakura_Side_2.JPG/1280px-Kitamoto_Ishitokabazakura_Side_2.JPG",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "namase-fuji": {
+    "wikidata": "",
+    "file": "File:生瀬富士.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E7%94%9F%E7%80%AC%E5%AF%8C%E5%A3%AB.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/%E7%94%9F%E7%80%AC%E5%AF%8C%E5%A3%AB.jpg/1280px-%E7%94%9F%E7%80%AC%E5%AF%8C%E5%A3%AB.jpg",
+    "author": "Koda6029",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/namase-fuji.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/%E7%94%9F%E7%80%AC%E5%AF%8C%E5%A3%AB.jpg/1280px-%E7%94%9F%E7%80%AC%E5%AF%8C%E5%A3%AB.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "ogushi-kaizuka": {
+    "wikidata": "",
+    "file": "File:Ogushikaizuka park 03.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ogushikaizuka_park_03.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Ogushikaizuka_park_03.jpg/1280px-Ogushikaizuka_park_03.jpg",
+    "author": "Motokoka",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/ogushi-kaizuka.jpg",
+      "width": 960,
+      "height": 641
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/25/Ogushikaizuka_park_03.jpg/1280px-Ogushikaizuka_park_03.jpg",
+      "width": 1280,
+      "height": 854
+    }
+  },
+  "ikisu-jinja": {
+    "wikidata": "",
+    "file": "File:Ikisu-jinja haiden.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ikisu-jinja_haiden.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Ikisu-jinja_haiden.JPG/1280px-Ikisu-jinja_haiden.JPG",
+    "author": "Saigen Jiro",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "licenseCode": "cc0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/ikisu-jinja.jpg",
+      "width": 960,
+      "height": 638
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/27/Ikisu-jinja_haiden.JPG/1280px-Ikisu-jinja_haiden.JPG",
+      "width": 1280,
+      "height": 851
+    }
+  },
+  "shimodate-haguro-jinja": {
+    "wikidata": "",
+    "file": "File:Shimodate Haguro-jinja ac (1).jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Shimodate_Haguro-jinja_ac_(1).jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Shimodate_Haguro-jinja_ac_%281%29.jpg/1280px-Shimodate_Haguro-jinja_ac_%281%29.jpg",
+    "author": "Asturio Cantabrio",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/shimodate-haguro-jinja.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Shimodate_Haguro-jinja_ac_%281%29.jpg/1280px-Shimodate_Haguro-jinja_ac_%281%29.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "museum-park-ibaraki-nature": {
+    "wikidata": "",
+    "file": "File:Ibaraki Nature Museum entrance.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ibaraki_Nature_Museum_entrance.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Ibaraki_Nature_Museum_entrance.jpg/1280px-Ibaraki_Nature_Museum_entrance.jpg",
+    "author": "Qurren",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/museum-park-ibaraki-nature.jpg",
+      "width": 960,
+      "height": 718
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Ibaraki_Nature_Museum_entrance.jpg/1280px-Ibaraki_Nature_Museum_entrance.jpg",
+      "width": 1280,
+      "height": 957
+    }
+  },
+  "osugi-jinja-inashiki": {
+    "wikidata": "",
+    "file": "File:Ousugi-shrine Inashiki-city Japan.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ousugi-shrine_Inashiki-city_Japan.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Ousugi-shrine_Inashiki-city_Japan.jpg/1280px-Ousugi-shrine_Inashiki-city_Japan.jpg",
+    "author": "katorisi",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "licenseCode": "cc-by-2.5",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/osugi-jinja-inashiki.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f7/Ousugi-shrine_Inashiki-city_Japan.jpg/1280px-Ousugi-shrine_Inashiki-city_Japan.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "hitachi-kuni-sosha-gu": {
+    "wikidata": "",
+    "file": "File:Soshagu (Ishioka) haiden.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Soshagu_(Ishioka)_haiden.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Soshagu_%28Ishioka%29_haiden.JPG/1280px-Soshagu_%28Ishioka%29_haiden.JPG",
+    "author": "Saigen Jiro",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "licenseCode": "cc0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/hitachi-kuni-sosha-gu.jpg",
+      "width": 960,
+      "height": 634
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Soshagu_%28Ishioka%29_haiden.JPG/1280px-Soshagu_%28Ishioka%29_haiden.JPG",
+      "width": 1280,
+      "height": 845
+    }
+  },
+  "hitachi-kozan": {
+    "wikidata": "",
+    "file": "File:日立鉱山.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E6%97%A5%E7%AB%8B%E9%89%B1%E5%B1%B1.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/%E6%97%A5%E7%AB%8B%E9%89%B1%E5%B1%B1.jpg/960px-%E6%97%A5%E7%AB%8B%E9%89%B1%E5%B1%B1.jpg",
+    "author": "T.ito",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/hitachi-kozan.jpg",
+      "width": 960,
+      "height": 640
+    }
+  },
+  "iwabitsu-yama": {
+    "wikidata": "",
+    "file": "File:Mount Iwabitsu 2018-09 2.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Mount_Iwabitsu_2018-09_2.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Mount_Iwabitsu_2018-09_2.jpg/1280px-Mount_Iwabitsu_2018-09_2.jpg",
+    "author": "Qurren",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/iwabitsu-yama.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Mount_Iwabitsu_2018-09_2.jpg/1280px-Mount_Iwabitsu_2018-09_2.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "agatsuma-keikoku": {
+    "wikidata": "",
+    "file": "File:Agatsuma Valley 01.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Agatsuma_Valley_01.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Agatsuma_Valley_01.jpg/1280px-Agatsuma_Valley_01.jpg",
+    "author": "Kuru man from Japan",
+    "license": "CC BY 2.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.0",
+    "licenseCode": "cc-by-2.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/agatsuma-keikoku.jpg",
+      "width": 960,
+      "height": 1280
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/96/Agatsuma_Valley_01.jpg/1280px-Agatsuma_Valley_01.jpg",
+      "width": 1280,
+      "height": 1707
+    }
+  },
+  "yaze-iseki": {
+    "wikidata": "",
+    "file": "File:Yaze site reconstructed pit dwelling.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Yaze_site_reconstructed_pit_dwelling.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Yaze_site_reconstructed_pit_dwelling.jpg/1280px-Yaze_site_reconstructed_pit_dwelling.jpg",
+    "author": "MChew",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/yaze-iseki.jpg",
+      "width": 960,
+      "height": 683
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Yaze_site_reconstructed_pit_dwelling.jpg/1280px-Yaze_site_reconstructed_pit_dwelling.jpg",
+      "width": 1280,
+      "height": 910
+    }
+  },
+  "sebayashi-no-renkon": {
+    "wikidata": "",
+    "file": "File:Ripple Marks in Sebayashi.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ripple_Marks_in_Sebayashi.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Ripple_Marks_in_Sebayashi.jpg/1280px-Ripple_Marks_in_Sebayashi.jpg",
+    "author": "さかおり",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/sebayashi-no-renkon.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/37/Ripple_Marks_in_Sebayashi.jpg/1280px-Ripple_Marks_in_Sebayashi.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "ishima-anan": {
+    "wikidata": "",
+    "file": "File:伊島 蒲生田岬より望む - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E4%BC%8A%E5%B3%B6_%E8%92%B2%E7%94%9F%E7%94%B0%E5%B2%AC%E3%82%88%E3%82%8A%E6%9C%9B%E3%82%80_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/%E4%BC%8A%E5%B3%B6_%E8%92%B2%E7%94%9F%E7%94%B0%E5%B2%AC%E3%82%88%E3%82%8A%E6%9C%9B%E3%82%80_-_panoramio.jpg/1280px-%E4%BC%8A%E5%B3%B6_%E8%92%B2%E7%94%9F%E7%94%B0%E5%B2%AC%E3%82%88%E3%82%8A%E6%9C%9B%E3%82%80_-_panoramio.jpg",
+    "author": "akiakane",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "licenseCode": "cc-by-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/ishima-anan.jpg",
+      "width": 960,
+      "height": 716
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/%E4%BC%8A%E5%B3%B6_%E8%92%B2%E7%94%9F%E7%94%B0%E5%B2%AC%E3%82%88%E3%82%8A%E6%9C%9B%E3%82%80_-_panoramio.jpg/1280px-%E4%BC%8A%E5%B3%B6_%E8%92%B2%E7%94%9F%E7%94%B0%E5%B2%AC%E3%82%88%E3%82%8A%E6%9C%9B%E3%82%80_-_panoramio.jpg",
+      "width": 1280,
+      "height": 954
+    }
+  },
+  "kotsu-san": {
+    "wikidata": "",
+    "file": "File:高越山.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E9%AB%98%E8%B6%8A%E5%B1%B1.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/31/%E9%AB%98%E8%B6%8A%E5%B1%B1.jpg/960px-%E9%AB%98%E8%B6%8A%E5%B1%B1.jpg",
+    "author": "Dokudami",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kotsu-san.jpg",
+      "width": 960,
+      "height": 720
+    }
+  },
+  "tokushima-jo-hakubutsukan": {
+    "wikidata": "",
+    "file": "File:Tokushima castle museum02s3872.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Tokushima_castle_museum02s3872.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Tokushima_castle_museum02s3872.jpg/1280px-Tokushima_castle_museum02s3872.jpg",
+    "author": "663highland",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "licenseCode": "cc-by-2.5",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/tokushima-jo-hakubutsukan.jpg",
+      "width": 960,
+      "height": 643
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Tokushima_castle_museum02s3872.jpg/1280px-Tokushima_castle_museum02s3872.jpg",
+      "width": 1280,
+      "height": 857
+    }
+  },
+  "torin-in-naruto": {
+    "wikidata": "",
+    "file": "File:Tourinin 20250311 1a.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Tourinin_20250311_1a.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Tourinin_20250311_1a.jpg/1280px-Tourinin_20250311_1a.jpg",
+    "author": "Araiyasushige",
+    "license": "CC0",
+    "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+    "licenseCode": "cc0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/torin-in-naruto.jpg",
+      "width": 960,
+      "height": 543
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Tourinin_20250311_1a.jpg/1280px-Tourinin_20250311_1a.jpg",
+      "width": 1280,
+      "height": 724
+    }
+  },
+  "isui-en": {
+    "wikidata": "",
+    "file": "File:Isuien and Nandaimon.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Isuien_and_Nandaimon.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Isuien_and_Nandaimon.JPG/1280px-Isuien_and_Nandaimon.JPG",
+    "author": "Kimon Berlin ( Gribeco )",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/isui-en.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/af/Isuien_and_Nandaimon.JPG/1280px-Isuien_and_Nandaimon.JPG",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "uda-mikumari-jinja": {
+    "wikidata": "",
+    "file": "File:Udamikumari Shr Kami.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Udamikumari_Shr_Kami.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Udamikumari_Shr_Kami.jpg/1280px-Udamikumari_Shr_Kami.jpg",
+    "author": "Tawashi2006",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/uda-mikumari-jinja.jpg",
+      "width": 960,
+      "height": 576
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Udamikumari_Shr_Kami.jpg/1280px-Udamikumari_Shr_Kami.jpg",
+      "width": 1280,
+      "height": 768
+    }
+  },
+  "futai-ji": {
+    "wikidata": "",
+    "file": "File:140531 Futaiji Nara Japan04s3.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:140531_Futaiji_Nara_Japan04s3.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/140531_Futaiji_Nara_Japan04s3.jpg/1280px-140531_Futaiji_Nara_Japan04s3.jpg",
+    "author": "663highland",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "licenseCode": "cc-by-2.5",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/futai-ji.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/59/140531_Futaiji_Nara_Japan04s3.jpg/1280px-140531_Futaiji_Nara_Japan04s3.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "byakugo-ji": {
+    "wikidata": "",
+    "file": "File:Byakugoji (Nara) Hondo01.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Byakugoji_(Nara)_Hondo01.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Byakugoji_%28Nara%29_Hondo01.jpg/1280px-Byakugoji_%28Nara%29_Hondo01.jpg",
+    "author": "Hamachidori",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/byakugo-ji.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Byakugoji_%28Nara%29_Hondo01.jpg/1280px-Byakugoji_%28Nara%29_Hondo01.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "asuka-shiryokan": {
+    "wikidata": "",
+    "file": "File:Asuka-Garden 201906a.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Asuka-Garden_201906a.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Asuka-Garden_201906a.jpg/1280px-Asuka-Garden_201906a.jpg",
+    "author": "8-hachiro",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/asuka-shiryokan.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Asuka-Garden_201906a.jpg/1280px-Asuka-Garden_201906a.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "yoshino-jingu": {
+    "wikidata": "",
+    "file": "File:Yoshino-jingu Shrine 吉野神宮8 - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Yoshino-jingu_Shrine_%E5%90%89%E9%87%8E%E7%A5%9E%E5%AE%AE8_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Yoshino-jingu_Shrine_%E5%90%89%E9%87%8E%E7%A5%9E%E5%AE%AE8_-_panoramio.jpg/1280px-Yoshino-jingu_Shrine_%E5%90%89%E9%87%8E%E7%A5%9E%E5%AE%AE8_-_panoramio.jpg",
+    "author": "baggio4ever",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "licenseCode": "cc-by-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/yoshino-jingu.jpg",
+      "width": 960,
+      "height": 540
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Yoshino-jingu_Shrine_%E5%90%89%E9%87%8E%E7%A5%9E%E5%AE%AE8_-_panoramio.jpg/1280px-Yoshino-jingu_Shrine_%E5%90%89%E9%87%8E%E7%A5%9E%E5%AE%AE8_-_panoramio.jpg",
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "tamukeyama-hachimangu": {
+    "wikidata": "",
+    "file": "File:Tamukeyama-hachimangu.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Tamukeyama-hachimangu.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Tamukeyama-hachimangu.jpg/1280px-Tamukeyama-hachimangu.jpg",
+    "author": "Christophe95",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/tamukeyama-hachimangu.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Tamukeyama-hachimangu.jpg/1280px-Tamukeyama-hachimangu.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "ikoma-taisha": {
+    "wikidata": "",
+    "file": "File:往馬坐伊古麻都比古神社(往馬大社) 生駒市壱分町 Ikoma-ni-imasu-ikomatsuhiko-jinja (Ikoma-taisha) 2013.8.28 - panoramio (1).jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E5%BE%80%E9%A6%AC%E5%9D%90%E4%BC%8A%E5%8F%A4%E9%BA%BB%E9%83%BD%E6%AF%94%E5%8F%A4%E7%A5%9E%E7%A4%BE(%E5%BE%80%E9%A6%AC%E5%A4%A7%E7%A4%BE)_%E7%94%9F%E9%A7%92%E5%B8%82%E5%A3%B1%E5%88%86%E7%94%BA_Ikoma-ni-imasu-ikomatsuhiko-jinja_(Ikoma-taisha)_2013.8.28_-_panoramio_(1).jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/%E5%BE%80%E9%A6%AC%E5%9D%90%E4%BC%8A%E5%8F%A4%E9%BA%BB%E9%83%BD%E6%AF%94%E5%8F%A4%E7%A5%9E%E7%A4%BE%28%E5%BE%80%E9%A6%AC%E5%A4%A7%E7%A4%BE%29_%E7%94%9F%E9%A7%92%E5%B8%82%E5%A3%B1%E5%88%86%E7%94%BA_Ikoma-ni-imasu-ikomatsuhiko-jinja_%28Ikoma-taisha%29_2013.8.28_-_panoramio_%281%29.jpg/1280px-%E5%BE%80%E9%A6%AC%E5%9D%90%E4%BC%8A%E5%8F%A4%E9%BA%BB%E9%83%BD%E6%AF%94%E5%8F%A4%E7%A5%9E%E7%A4%BE%28%E5%BE%80%E9%A6%AC%E5%A4%A7%E7%A4%BE%29_%E7%94%9F%E9%A7%92%E5%B8%82%E5%A3%B1%E5%88%86%E7%94%BA_Ikoma-ni-imasu-ikomatsuhiko-jinja_%28Ikoma-taisha%29_2013.8.28_-_panoramio_%281%29.jpg",
+    "author": "Nankou Oronain (as36…",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/ikoma-taisha.jpg",
+      "width": 960,
+      "height": 636
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/45/%E5%BE%80%E9%A6%AC%E5%9D%90%E4%BC%8A%E5%8F%A4%E9%BA%BB%E9%83%BD%E6%AF%94%E5%8F%A4%E7%A5%9E%E7%A4%BE%28%E5%BE%80%E9%A6%AC%E5%A4%A7%E7%A4%BE%29_%E7%94%9F%E9%A7%92%E5%B8%82%E5%A3%B1%E5%88%86%E7%94%BA_Ikoma-ni-imasu-ikomatsuhiko-jinja_%28Ikoma-taisha%29_2013.8.28_-_panoramio_%281%29.jpg/1280px-%E5%BE%80%E9%A6%AC%E5%9D%90%E4%BC%8A%E5%8F%A4%E9%BA%BB%E9%83%BD%E6%AF%94%E5%8F%A4%E7%A5%9E%E7%A4%BE%28%E5%BE%80%E9%A6%AC%E5%A4%A7%E7%A4%BE%29_%E7%94%9F%E9%A7%92%E5%B8%82%E5%A3%B1%E5%88%86%E7%94%BA_Ikoma-ni-imasu-ikomatsuhiko-jinja_%28Ikoma-taisha%29_2013.8.28_-_panoramio_%281%29.jpg",
+      "width": 1280,
+      "height": 848
+    }
+  },
+  "abe-monjuin": {
+    "wikidata": "",
+    "file": "File:Abe Monjuin Hondo01.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Abe_Monjuin_Hondo01.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Abe_Monjuin_Hondo01.jpg/1280px-Abe_Monjuin_Hondo01.jpg",
+    "author": "Tawashi2006",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/abe-monjuin.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e2/Abe_Monjuin_Hondo01.jpg/1280px-Abe_Monjuin_Hondo01.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "zuirakuen": {
+    "wikidata": "",
+    "file": "File:Zuiraku-en.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Zuiraku-en.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Zuiraku-en.jpg/960px-Zuiraku-en.jpg",
+    "author": "MChew",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/zuirakuen.jpg",
+      "width": 960,
+      "height": 1440
+    }
+  },
+  "sannohe-castle": {
+    "wikidata": "",
+    "file": "File:三戸城温故館.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E4%B8%89%E6%88%B8%E5%9F%8E%E6%B8%A9%E6%95%85%E9%A4%A8.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/%E4%B8%89%E6%88%B8%E5%9F%8E%E6%B8%A9%E6%95%85%E9%A4%A8.JPG/1280px-%E4%B8%89%E6%88%B8%E5%9F%8E%E6%B8%A9%E6%95%85%E9%A4%A8.JPG",
+    "author": "小池 隆",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "licenseCode": "cc-by-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/sannohe-castle.jpg",
+      "width": 960,
+      "height": 1440
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/%E4%B8%89%E6%88%B8%E5%9F%8E%E6%B8%A9%E6%95%85%E9%A4%A8.JPG/1280px-%E4%B8%89%E6%88%B8%E5%9F%8E%E6%B8%A9%E6%95%85%E9%A4%A8.JPG",
+      "width": 1280,
+      "height": 1920
+    }
+  },
+  "misawa-aviation-science-museum": {
+    "wikidata": "",
+    "file": "File:151101 Misawa Aviation & Science Museum, Aomori Japan03s3.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:151101_Misawa_Aviation_%26_Science_Museum,_Aomori_Japan03s3.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/151101_Misawa_Aviation_%26_Science_Museum%2C_Aomori_Japan03s3.jpg/1280px-151101_Misawa_Aviation_%26_Science_Museum%2C_Aomori_Japan03s3.jpg",
+    "author": "663highland",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "licenseCode": "cc-by-2.5",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/misawa-aviation-science-museum.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/151101_Misawa_Aviation_%26_Science_Museum%2C_Aomori_Japan03s3.jpg/1280px-151101_Misawa_Aviation_%26_Science_Museum%2C_Aomori_Japan03s3.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "aomori-forest-museum": {
+    "wikidata": "",
+    "file": "File:Aomori City Forestry Museum.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Aomori_City_Forestry_Museum.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Aomori_City_Forestry_Museum.jpg/1280px-Aomori_City_Forestry_Museum.jpg",
+    "author": "Mccunicano",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/aomori-forest-museum.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Aomori_City_Forestry_Museum.jpg/1280px-Aomori_City_Forestry_Museum.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "kanenarien": {
+    "wikidata": "",
+    "file": "File:Kanehiranari-en.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Kanehiranari-en.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Kanehiranari-en.jpg/1280px-Kanehiranari-en.jpg",
+    "author": "MChew",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kanenarien.jpg",
+      "width": 960,
+      "height": 722
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Kanehiranari-en.jpg/1280px-Kanehiranari-en.jpg",
+      "width": 1280,
+      "height": 962
+    }
+  },
+  "yumiharidake": {
+    "wikidata": "",
+    "file": "File:Mount Yumihari south observatory.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Mount_Yumihari_south_observatory.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Mount_Yumihari_south_observatory.jpg/1280px-Mount_Yumihari_south_observatory.jpg",
+    "author": "Totti",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/yumiharidake.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a7/Mount_Yumihari_south_observatory.jpg/1280px-Mount_Yumihari_south_observatory.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "kabashima-nagasaki": {
+    "wikidata": "",
+    "file": "File:樺島灯台 - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E6%A8%BA%E5%B3%B6%E7%81%AF%E5%8F%B0_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/%E6%A8%BA%E5%B3%B6%E7%81%AF%E5%8F%B0_-_panoramio.jpg/1280px-%E6%A8%BA%E5%B3%B6%E7%81%AF%E5%8F%B0_-_panoramio.jpg",
+    "author": "sk01",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kabashima-nagasaki.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/%E6%A8%BA%E5%B3%B6%E7%81%AF%E5%8F%B0_-_panoramio.jpg/1280px-%E6%A8%BA%E5%B3%B6%E7%81%AF%E5%8F%B0_-_panoramio.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "senpukuji-cave": {
+    "wikidata": "",
+    "file": "File:泉福寺洞窟.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E6%B3%89%E7%A6%8F%E5%AF%BA%E6%B4%9E%E7%AA%9F.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/%E6%B3%89%E7%A6%8F%E5%AF%BA%E6%B4%9E%E7%AA%9F.jpg/1280px-%E6%B3%89%E7%A6%8F%E5%AF%BA%E6%B4%9E%E7%AA%9F.jpg",
+    "author": "Dyamasan",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/senpukuji-cave.jpg",
+      "width": 960,
+      "height": 643
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c0/%E6%B3%89%E7%A6%8F%E5%AF%BA%E6%B4%9E%E7%AA%9F.jpg/1280px-%E6%B3%89%E7%A6%8F%E5%AF%BA%E6%B4%9E%E7%AA%9F.jpg",
+      "width": 1280,
+      "height": 857
+    }
+  },
+  "kaminoshima-church": {
+    "wikidata": "",
+    "file": "File:Kaminoshima Church 20221201.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Kaminoshima_Church_20221201.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Kaminoshima_Church_20221201.jpg/1280px-Kaminoshima_Church_20221201.jpg",
+    "author": "Marine-Blue",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kaminoshima-church.jpg",
+      "width": 960,
+      "height": 639
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Kaminoshima_Church_20221201.jpg/1280px-Kaminoshima_Church_20221201.jpg",
+      "width": 1280,
+      "height": 852
+    }
+  },
+  "onidake": {
+    "wikidata": "",
+    "file": "File:Ondake 2015-12-13.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ondake_2015-12-13.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Ondake_2015-12-13.jpg/1280px-Ondake_2015-12-13.jpg",
+    "author": "Hisenv",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/onidake.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Ondake_2015-12-13.jpg/1280px-Ondake_2015-12-13.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "azuchi-oshima": {
+    "wikidata": "",
+    "file": "File:大バエから見た鯨島と的山（あづち）大島 - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E5%A4%A7%E3%83%90%E3%82%A8%E3%81%8B%E3%82%89%E8%A6%8B%E3%81%9F%E9%AF%A8%E5%B3%B6%E3%81%A8%E7%9A%84%E5%B1%B1%EF%BC%88%E3%81%82%E3%81%A5%E3%81%A1%EF%BC%89%E5%A4%A7%E5%B3%B6_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/%E5%A4%A7%E3%83%90%E3%82%A8%E3%81%8B%E3%82%89%E8%A6%8B%E3%81%9F%E9%AF%A8%E5%B3%B6%E3%81%A8%E7%9A%84%E5%B1%B1%EF%BC%88%E3%81%82%E3%81%A5%E3%81%A1%EF%BC%89%E5%A4%A7%E5%B3%B6_-_panoramio.jpg/1280px-%E5%A4%A7%E3%83%90%E3%82%A8%E3%81%8B%E3%82%89%E8%A6%8B%E3%81%9F%E9%AF%A8%E5%B3%B6%E3%81%A8%E7%9A%84%E5%B1%B1%EF%BC%88%E3%81%82%E3%81%A5%E3%81%A1%EF%BC%89%E5%A4%A7%E5%B3%B6_-_panoramio.jpg",
+    "author": "mahlervv",
+    "license": "CC BY 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by/3.0",
+    "licenseCode": "cc-by-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/azuchi-oshima.jpg",
+      "width": 960,
+      "height": 638
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/%E5%A4%A7%E3%83%90%E3%82%A8%E3%81%8B%E3%82%89%E8%A6%8B%E3%81%9F%E9%AF%A8%E5%B3%B6%E3%81%A8%E7%9A%84%E5%B1%B1%EF%BC%88%E3%81%82%E3%81%A5%E3%81%A1%EF%BC%89%E5%A4%A7%E5%B3%B6_-_panoramio.jpg/1280px-%E5%A4%A7%E3%83%90%E3%82%A8%E3%81%8B%E3%82%89%E8%A6%8B%E3%81%9F%E9%AF%A8%E5%B3%B6%E3%81%A8%E7%9A%84%E5%B1%B1%EF%BC%88%E3%81%82%E3%81%A5%E3%81%A1%EF%BC%89%E5%A4%A7%E5%B3%B6_-_panoramio.jpg",
+      "width": 1280,
+      "height": 851
+    }
+  },
+  "fukujuji-kitakyushu": {
+    "wikidata": "",
+    "file": "File:Fukuju-ji - Buddha Hall.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Fukuju-ji_-_Buddha_Hall.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Fukuju-ji_-_Buddha_Hall.jpg/1280px-Fukuju-ji_-_Buddha_Hall.jpg",
+    "author": "STA3816",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/fukujuji-kitakyushu.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/20/Fukuju-ji_-_Buddha_Hall.jpg/1280px-Fukuju-ji_-_Buddha_Hall.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "zendoji-kurume": {
+    "wikidata": "",
+    "file": "File:Zendoji Temple Sanmon Gate.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Zendoji_Temple_Sanmon_Gate.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Zendoji_Temple_Sanmon_Gate.jpg/1280px-Zendoji_Temple_Sanmon_Gate.jpg",
+    "author": "Fuwuyuan",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/zendoji-kurume.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Zendoji_Temple_Sanmon_Gate.jpg/1280px-Zendoji_Temple_Sanmon_Gate.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "kurume-city-museum-of-art": {
+    "wikidata": "",
+    "file": "File:バラの中の美術館 - panoramio.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E3%83%90%E3%83%A9%E3%81%AE%E4%B8%AD%E3%81%AE%E7%BE%8E%E8%A1%93%E9%A4%A8_-_panoramio.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/%E3%83%90%E3%83%A9%E3%81%AE%E4%B8%AD%E3%81%AE%E7%BE%8E%E8%A1%93%E9%A4%A8_-_panoramio.jpg/1280px-%E3%83%90%E3%83%A9%E3%81%AE%E4%B8%AD%E3%81%AE%E7%BE%8E%E8%A1%93%E9%A4%A8_-_panoramio.jpg",
+    "author": "UltraH",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kurume-city-museum-of-art.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/13/%E3%83%90%E3%83%A9%E3%81%AE%E4%B8%AD%E3%81%AE%E7%BE%8E%E8%A1%93%E9%A4%A8_-_panoramio.jpg/1280px-%E3%83%90%E3%83%A9%E3%81%AE%E4%B8%AD%E3%81%AE%E7%BE%8E%E8%A1%93%E9%A4%A8_-_panoramio.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "tachiarai-peace-memorial-museum": {
+    "wikidata": "",
+    "file": "File:Chikuzen Municipal Tachiarai Peace Memorial Museum 2023.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Chikuzen_Municipal_Tachiarai_Peace_Memorial_Museum_2023.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Chikuzen_Municipal_Tachiarai_Peace_Memorial_Museum_2023.JPG/1280px-Chikuzen_Municipal_Tachiarai_Peace_Memorial_Museum_2023.JPG",
+    "author": "hyolee2",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/tachiarai-peace-memorial-museum.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Chikuzen_Municipal_Tachiarai_Peace_Memorial_Museum_2023.JPG/1280px-Chikuzen_Municipal_Tachiarai_Peace_Memorial_Museum_2023.JPG",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "kukiyama": {
+    "wikidata": "",
+    "file": "File:Kukiyama.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Kukiyama.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Kukiyama.jpg/1280px-Kukiyama.jpg",
+    "author": "Uraomote yamaneko",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kukiyama.jpg",
+      "width": 960,
+      "height": 717
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b2/Kukiyama.jpg/1280px-Kukiyama.jpg",
+      "width": 1280,
+      "height": 956
+    }
+  },
+  "hinatayama-hokuto": {
+    "wikidata": "",
+    "file": "File:氷瀑になりかけの錦滝.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E6%B0%B7%E7%80%91%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%8B%E3%81%91%E3%81%AE%E9%8C%A6%E6%BB%9D.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/%E6%B0%B7%E7%80%91%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%8B%E3%81%91%E3%81%AE%E9%8C%A6%E6%BB%9D.jpg/1280px-%E6%B0%B7%E7%80%91%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%8B%E3%81%91%E3%81%AE%E9%8C%A6%E6%BB%9D.jpg",
+    "author": "Koda6029",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/hinatayama-hokuto.jpg",
+      "width": 960,
+      "height": 1280
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/%E6%B0%B7%E7%80%91%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%8B%E3%81%91%E3%81%AE%E9%8C%A6%E6%BB%9D.jpg/1280px-%E6%B0%B7%E7%80%91%E3%81%AB%E3%81%AA%E3%82%8A%E3%81%8B%E3%81%91%E3%81%AE%E9%8C%A6%E6%BB%9D.jpg",
+      "width": 1280,
+      "height": 1707
+    }
+  },
+  "mikaburi-jo": {
+    "wikidata": "",
+    "file": "File:Ruins of Mikaburi Castle 20130413, 002.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ruins_of_Mikaburi_Castle_20130413,_002.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Ruins_of_Mikaburi_Castle_20130413%2C_002.jpg/1280px-Ruins_of_Mikaburi_Castle_20130413%2C_002.jpg",
+    "author": "長岡外史",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/mikaburi-jo.jpg",
+      "width": 960,
+      "height": 540
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/53/Ruins_of_Mikaburi_Castle_20130413%2C_002.jpg/1280px-Ruins_of_Mikaburi_Castle_20130413%2C_002.jpg",
+      "width": 1280,
+      "height": 720
+    }
+  },
+  "niigata-city-museum-of-history": {
+    "wikidata": "",
+    "file": "File:160716 Niigata City History Museum Main Building Niigata Japan01bs5.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:160716_Niigata_City_History_Museum_Main_Building_Niigata_Japan01bs5.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/160716_Niigata_City_History_Museum_Main_Building_Niigata_Japan01bs5.jpg/1280px-160716_Niigata_City_History_Museum_Main_Building_Niigata_Japan01bs5.jpg",
+    "author": "663highland",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "licenseCode": "cc-by-2.5",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/niigata-city-museum-of-history.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e5/160716_Niigata_City_History_Museum_Main_Building_Niigata_Japan01bs5.jpg/1280px-160716_Niigata_City_History_Museum_Main_Building_Niigata_Japan01bs5.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "rengebuji-sado": {
+    "wikidata": "",
+    "file": "File:蓮華峰寺.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E8%93%AE%E8%8F%AF%E5%B3%B0%E5%AF%BA.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/%E8%93%AE%E8%8F%AF%E5%B3%B0%E5%AF%BA.jpg/1280px-%E8%93%AE%E8%8F%AF%E5%B3%B0%E5%AF%BA.jpg",
+    "author": "水乃",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/rengebuji-sado.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/%E8%93%AE%E8%8F%AF%E5%B3%B0%E5%AF%BA.jpg/1280px-%E8%93%AE%E8%8F%AF%E5%B3%B0%E5%AF%BA.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "minakamiyama-matsushiro": {
+    "wikidata": "",
+    "file": "File:Minakami-jinjya 1.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Minakami-jinjya_1.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Minakami-jinjya_1.jpg/1280px-Minakami-jinjya_1.jpg",
+    "author": "Thirteen-fri",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/minakamiyama-matsushiro.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6e/Minakami-jinjya_1.jpg/1280px-Minakami-jinjya_1.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "nagiso-dake": {
+    "wikidata": "",
+    "file": "File:Mount Nagiso from south winter.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Mount_Nagiso_from_south_winter.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mount_Nagiso_from_south_winter.jpg/1280px-Mount_Nagiso_from_south_winter.jpg",
+    "author": "Alpsdake",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/nagiso-dake.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/Mount_Nagiso_from_south_winter.jpg/1280px-Mount_Nagiso_from_south_winter.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "okawairi-yama": {
+    "wikidata": "",
+    "file": "File:Mount Okawairi from Mount Yoko s2.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Mount_Okawairi_from_Mount_Yoko_s2.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Mount_Okawairi_from_Mount_Yoko_s2.jpg/1280px-Mount_Okawairi_from_Mount_Yoko_s2.jpg",
+    "author": "Alpsdake",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/okawairi-yama.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Mount_Okawairi_from_Mount_Yoko_s2.jpg/1280px-Mount_Okawairi_from_Mount_Yoko_s2.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "okuchausu-yama": {
+    "wikidata": "",
+    "file": "File:Mount Okuchausu (from Mount Hijiri).JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Mount_Okuchausu_(from_Mount_Hijiri).JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Mount_Okuchausu_%28from_Mount_Hijiri%29.JPG/1280px-Mount_Okuchausu_%28from_Mount_Hijiri%29.JPG",
+    "author": "Alpsdake",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/okuchausu-yama.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Mount_Okuchausu_%28from_Mount_Hijiri%29.JPG/1280px-Mount_Okuchausu_%28from_Mount_Hijiri%29.JPG",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "wakayama-botanical-park-ryokka": {
+    "wikidata": "",
+    "file": "File:Ryokka Center Shibahu Hiroba.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ryokka_Center_Shibahu_Hiroba.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Ryokka_Center_Shibahu_Hiroba.JPG/1280px-Ryokka_Center_Shibahu_Hiroba.JPG",
+    "author": "Ymitsu",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/wakayama-botanical-park-ryokka.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Ryokka_Center_Shibahu_Hiroba.JPG/1280px-Ryokka_Center_Shibahu_Hiroba.JPG",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "hinomisaki-hidaka": {
+    "wikidata": "",
+    "file": "File:Mihama hinomisaki.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Mihama_hinomisaki.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Mihama_hinomisaki.jpg/1280px-Mihama_hinomisaki.jpg",
+    "author": "Opqr",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/hinomisaki-hidaka.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Mihama_hinomisaki.jpg/1280px-Mihama_hinomisaki.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "kushimoto-okyo-rosetsu-kan": {
+    "wikidata": "",
+    "file": "File:Kushimoto oukyo rosetsu.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Kushimoto_oukyo_rosetsu.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Kushimoto_oukyo_rosetsu.JPG/1280px-Kushimoto_oukyo_rosetsu.JPG",
+    "author": "Opqr",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kushimoto-okyo-rosetsu-kan.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0b/Kushimoto_oukyo_rosetsu.JPG/1280px-Kushimoto_oukyo_rosetsu.JPG",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "tanabe-city-museum-of-art": {
+    "wikidata": "",
+    "file": "File:131222 Tanabe City Museum of Art Wakayama pref Japan01bs3.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:131222_Tanabe_City_Museum_of_Art_Wakayama_pref_Japan01bs3.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/131222_Tanabe_City_Museum_of_Art_Wakayama_pref_Japan01bs3.jpg/1280px-131222_Tanabe_City_Museum_of_Art_Wakayama_pref_Japan01bs3.jpg",
+    "author": "663highland",
+    "license": "CC BY 2.5",
+    "licenseUrl": "https://creativecommons.org/licenses/by/2.5",
+    "licenseCode": "cc-by-2.5",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/tanabe-city-museum-of-art.jpg",
+      "width": 960,
+      "height": 638
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cc/131222_Tanabe_City_Museum_of_Art_Wakayama_pref_Japan01bs3.jpg/1280px-131222_Tanabe_City_Museum_of_Art_Wakayama_pref_Japan01bs3.jpg",
+      "width": 1280,
+      "height": 851
+    }
+  },
+  "kishu-toshogu": {
+    "wikidata": "",
+    "file": "File:Kisyu Toshogu tomon.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Kisyu_Toshogu_tomon.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Kisyu_Toshogu_tomon.jpg/1280px-Kisyu_Toshogu_tomon.jpg",
+    "author": "I, KENPEI",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kishu-toshogu.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/72/Kisyu_Toshogu_tomon.jpg/1280px-Kisyu_Toshogu_tomon.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "isoma-iwakage-iseki": {
+    "wikidata": "",
+    "file": "File:Isoma Rock Shelter Site A.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Isoma_Rock_Shelter_Site_A.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Isoma_Rock_Shelter_Site_A.jpg/1280px-Isoma_Rock_Shelter_Site_A.jpg",
+    "author": "さかおり",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/isoma-iwakage-iseki.jpg",
+      "width": 960,
+      "height": 640
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Isoma_Rock_Shelter_Site_A.jpg/1280px-Isoma_Rock_Shelter_Site_A.jpg",
+      "width": 1280,
+      "height": 853
+    }
+  },
+  "suda-hachiman-jinja": {
+    "wikidata": "",
+    "file": "File:Suda-hachiman-jinja haiden.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Suda-hachiman-jinja_haiden.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Suda-hachiman-jinja_haiden.jpg/1280px-Suda-hachiman-jinja_haiden.jpg",
+    "author": "I, KENPEI",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/suda-hachiman-jinja.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Suda-hachiman-jinja_haiden.jpg/1280px-Suda-hachiman-jinja_haiden.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "ichijokaku": {
+    "wikidata": "",
+    "file": "File:Ichiujyokaku2018.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Ichiujyokaku2018.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Ichiujyokaku2018.jpg/1280px-Ichiujyokaku2018.jpg",
+    "author": "アラツク",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/ichijokaku.jpg",
+      "width": 960,
+      "height": 443
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/95/Ichiujyokaku2018.jpg/1280px-Ichiujyokaku2018.jpg",
+      "width": 1280,
+      "height": 591
+    }
+  },
+  "araho-jinja": {
+    "wikidata": "",
+    "file": "File:Araho-jinja 03.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Araho-jinja_03.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Araho-jinja_03.jpg/1280px-Araho-jinja_03.jpg",
+    "author": "STA3816",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/araho-jinja.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Araho-jinja_03.jpg/1280px-Araho-jinja_03.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "anegawa-jo": {
+    "wikidata": "",
+    "file": "File:Moat of Anegawa Castle Ruins 2024.jpg",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Moat_of_Anegawa_Castle_Ruins_2024.jpg",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Moat_of_Anegawa_Castle_Ruins_2024.jpg/1280px-Moat_of_Anegawa_Castle_Ruins_2024.jpg",
+    "author": "Peka",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/anegawa-jo.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4a/Moat_of_Anegawa_Castle_Ruins_2024.jpg/1280px-Moat_of_Anegawa_Castle_Ruins_2024.jpg",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "kii-jo": {
+    "wikidata": "",
+    "file": "File:基肄城 水門.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:%E5%9F%BA%E8%82%84%E5%9F%8E_%E6%B0%B4%E9%96%80.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/%E5%9F%BA%E8%82%84%E5%9F%8E_%E6%B0%B4%E9%96%80.JPG/1280px-%E5%9F%BA%E8%82%84%E5%9F%8E_%E6%B0%B4%E9%96%80.JPG",
+    "author": "Wxrx",
+    "license": "CC BY-SA 3.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0",
+    "licenseCode": "cc-by-sa-3.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/kii-jo.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/%E5%9F%BA%E8%82%84%E5%9F%8E_%E6%B0%B4%E9%96%80.JPG/1280px-%E5%9F%BA%E8%82%84%E5%9F%8E_%E6%B0%B4%E9%96%80.JPG",
+      "width": 1280,
+      "height": 960
+    }
+  },
+  "koudenji-saga": {
+    "wikidata": "",
+    "file": "File:Kodenji Saga gate.JPG",
+    "pageUrl": "https://commons.wikimedia.org/wiki/File:Kodenji_Saga_gate.JPG",
+    "thumbUrl": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Kodenji_Saga_gate.JPG/1280px-Kodenji_Saga_gate.JPG",
+    "author": "Pekachu",
+    "license": "CC BY-SA 4.0",
+    "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0",
+    "licenseCode": "cc-by-sa-4.0",
+    "method": "commons-sample",
+    "pickedBy": "visual-review",
+    "fetchedAt": "2026-11-21",
+    "reviewedBy": null,
+    "local": {
+      "src": "/images/spots/koudenji-saga.jpg",
+      "width": 960,
+      "height": 720
+    },
+    "large": {
+      "src": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d1/Kodenji_Saga_gate.JPG/1280px-Kodenji_Saga_gate.JPG",
+      "width": 1280,
+      "height": 960
+    }
   }
 }
