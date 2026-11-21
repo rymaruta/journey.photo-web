@@ -6,8 +6,7 @@ import { JSON_HEADERS, getUserId, jsonError } from "./http";
 import { assertLiveCaller } from "./liveCaller";
 import { blocksId, hiddenUserIds, ids as idsOf } from "./blockCheck";
 import { isFollowing } from "./followCheck";
-import { readUserList, UserListError, updateUserRow } from "./userList";
-import { closeFriendsId, isUserId as isCloseFriendId } from "./closeFriends";
+import { UserListError, updateUserRow } from "./userList";
 import { isUserId } from "./userId";
 import { dmDayKey, peerInfos, DM_DAILY_NEW_CONVS, type PeerInfo } from "./dm";
 import { cleanMultilineText } from "./textClean";
@@ -47,9 +46,16 @@ import {
  *
  *   - **メンバーでない人には、グループの有無も教えない**（404）。読む・送る・名前・人を足す、どの口も
  *   - **人数は 30 人まで**（招待中の人も数える）。1回に足せるのは 29 人まで
- *   - **入れられるのは、入れる人がフォローしている人だけ**（今の DM の「新しい会話」と同じ門）
- *   - 入れられる人が入れる人をフォロー（か親しい友達）していれば、そのまま入る（知らせ1通）。そうでなければ
- *     **招待**（リクエストの棚・知らせなし）。**「参加する」を押すまで、会話は1通も見えない**（招待中は名前・入れた人・人数だけ）
+ *   - 🔴 **入れられるのは、入れる人と相互フォローの人だけ**（2026-11-20 owner「相互フォローじゃないと話せない方がいい」）。
+ *     片方だけのフォローの人は招待にもせず、`notAdded` に数える。作る・人を足す・1対1に人を足す、どれも同じ門（`isMutualFollow`）。
+ *     1対1の DM（`dm.ts`）の決まりは変えていない
+ *   - 相互フォローの人は、そのまま入る（知らせ1通）。抜けた人・外された人を入れ直すときだけ**招待**（リクエストの棚・知らせなし）。
+ *     **「参加する」を押すまで、会話は1通も見えない**（招待中は名前・入れた人・人数だけ）。参加するときに、招待した人と
+ *     今も相互フォローかを確かめ直す（外れていれば 403 `notMutualFollow`・招待は残す）
+ *   - **入ったあとにフォローを外しても、メンバーからは外さない**（今は何もしない）。理由: フォローを外すたびに黙って
+ *     グループから消えると、外した人の操作がメンバー全員に知れる（「抜けました」が出る）・旅の途中の連絡が切れる・
+ *     フォローの付け外しを繰り返すと出入りの知らせが鳴り続ける。話したくなければ本人が抜ける・ブロックする（ブロックの
+ *     間柄の人の通は互いに見えない）・作った人が外す、で足りる
  *   - **ブロックの間柄の人は入れない**: 入れられる人が、メンバー・招待中の人・入れる人の誰かとブロックの間柄なら、
  *     その人は入らない（理由は言わない＝数だけ `notAdded` で返す）。参加するときにも確かめ直す
  *   - 断った人は、そのグループからは誰も招待し直せない。外された人を戻せるのは作った人だけ
@@ -401,14 +407,14 @@ const facesFor = (s: Pick<Summary, "faceIds">, viewer: string, names: Map<string
 // 人を入れる門
 // ---------------------------------------------------------------------------
 
-/** 相手（`owner`）の親しい友達に `who` が居るか。**読めなければ居ない扱い**（招待に倒す＝厳しい側・`dm.ts` と同じ） */
-async function isCloseFriendOf(owner: string, who: string): Promise<boolean> {
-    try {
-        return (await readUserList(closeFriendsId(owner), isCloseFriendId, `closefriends#${owner}`)).includes(who);
-    } catch (e) {
-        console.error("groups: 親しい友達を確かめられませんでした:", errName(e));
-        return false;
-    }
+/**
+ * 2人が相互フォロー（お互いにフォローしている）か。🔴 **グループに入れられるのは、入れる人と相互フォローの人だけ**
+ * （2026-11-20 owner「相互フォローじゃないと話せない方がいい」）。作る・人を足す・1対1に人を足す、どれも同じ門。
+ * 1対1の DM（`dm.ts`）の決まりは別で、変えていない。読めなければ投げる（`isFollowing` と同じ・入れない側に倒れる）
+ */
+export async function isMutualFollow(a: string, b: string): Promise<boolean> {
+    const [aFollowsB, bFollowsA] = await Promise.all([isFollowing(b, a), isFollowing(a, b)]);
+    return aFollowsB && bFollowsA;
 }
 
 type Gate = { direct: string[]; invite: string[]; notAdded: number };
@@ -425,13 +431,13 @@ async function gateTargets(actor: string, row: MembersRow, candidates: readonly 
     const checked = await Promise.all(candidates.map(async (c) => {
         if (infos.get(c)?.deleted || row.declined.includes(c)) return null;
         if (!isOwner && row.removed.some((x) => x.id === c)) return null;
-        // **入れる人が相手をフォローしている**（今の DM の新しい会話と同じ門）
-        if (!await isFollowing(c, actor)) return null;
-        const [hidden, followsBack, joined] = await Promise.all([hiddenUserIds(c), isFollowing(actor, c), readJoined(c)]);
-        // 🔴 **抜けた人・外された人は、必ず招待**（本人が「参加する」を押すまで入らない・知らせも鳴らない・1日 20 人の数に入る・
+        // 🔴 **入れる人と相互フォローの人だけ**。片方だけのフォローの人は招待にもしない（理由は言わず `notAdded` に数える）
+        if (!await isMutualFollow(actor, c)) return null;
+        const [hidden, joined] = await Promise.all([hiddenUserIds(c), readJoined(c)]);
+        // 🔴 **抜けた人・外された人は、相互フォローでも必ず招待**（本人が「参加する」を押すまで入らない・知らせも鳴らない・1日 20 人の数に入る・
         // 断ったら招待し直せない）。そのまま入れると、抜けた人を何度でも引き戻して毎回知らせを鳴らせてしまう
         const wasHere = row.removed.some((x) => x.id === c) || joined.left.includes(row.groupId);
-        const direct = !wasHere && (followsBack || await isCloseFriendOf(c, actor));
+        const direct = !wasHere;
         if (direct ? !joined.list.includes(row.groupId) && joined.list.length >= GROUPS_JOINED_MAX
             : liveJoinedInvites(joined, now).filter((i) => i.g !== row.groupId).length >= GROUP_INVITES_MAX) return null;
         return { c, hidden, direct };
@@ -1027,6 +1033,12 @@ async function join(me: string, groupId: string) {
     if (r.members.some((m) => hidden.has(m.id))) {
         await dropInvite(groupId, me, false);
         return notFound();
+    }
+    // 🔴 招待した人と、今も相互フォローかを確かめ直す（招待のあとにどちらかがフォローを外したら参加できない）。
+    // 招待は消さない（フォローし直せば、そのまま参加できる）。フォローの有無はプロフィールでも見えるので、理由を言ってよい
+    const inviter = liveInvites(r).find((i) => i.id === me)!.by;
+    if (!await isMutualFollow(me, inviter)) {
+        return jsonError(403, "招待した人と相互フォローになると参加できます", "notMutualFollow");
     }
     // 先に自分の一覧に席を取る（50 の枠を**書くときに**確かめる。同時に2つへ参加しても 50 を越えない）
     let over = false;
