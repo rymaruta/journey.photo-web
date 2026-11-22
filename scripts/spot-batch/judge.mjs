@@ -22,6 +22,8 @@ const DESIG = ["国宝", "重要文化財", "名勝", "天然記念物", "特別
 const BANNED = ["撮りどき", "撮影地", "この場所", "ガイド", "捨て", "**"];
 // 記事の題と名前が違うが、記事の中の呼び名と照らして同じ対象と確かめたもの
 const SUBJECT_OK = new Set(JSON.parse(fs.readFileSync(at("subject_ok.json"), "utf8")));
+// 記事に県名の語は無いが、記事が書く市町村はその県にしか無いと親が確かめたもの（region_ok.json・無ければ空）。市町村の照合は免除しない（2026-11-22 owner 承認）
+const REGION_OK = new Set(fs.existsSync(at("region_ok.json")) ? JSON.parse(fs.readFileSync(at("region_ok.json"), "utf8")) : []);
 const seenSlug = new Set(), seenQ = new Set(), seenName = new Set();
 const out = [];
 for (const r of rows) {
@@ -38,7 +40,7 @@ for (const r of rows) {
     if (a.disambig) p.push("曖昧さ回避の記事");
     if (!SUBJECT_OK.has(r.slug) && !sameSubject({ name: r.name }, a.title)) p.push(`記事の題「${a.title}」と名前「${r.name}」が合わない`);
     if (r.region?.country !== "日本" || !(prefsOf.get(r.qid) ?? new Set([a.pref])).has(r.region?.prefecture)) p.push("県が候補と違う");
-    if (!regionNames(r.region).some((n) => text.includes(n))) p.push("記事に県名が無い");
+    if (!REGION_OK.has(r.slug) && !regionNames(r.region).some((n) => text.includes(n))) p.push("記事に県名が無い");
     const cities = placeNames(r.region?.city); if (cities.length && !cities.some((n) => text.includes(n))) p.push(`記事に市町村「${r.region?.city}」が無い`);
     if ((r.summary ?? "").length < 40) p.push(`紹介文が40字未満(${(r.summary ?? "").length})`);
     if ((r.description ?? "").length < 60) p.push(`説明が60字未満(${(r.description ?? "").length})`);
