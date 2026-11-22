@@ -93,7 +93,7 @@ _back = {r["qid"] for r in load(os.path.join(STATE, "skipped.json"), []) if r.ge
 save("prev_qids.json", sorted(set(load(os.path.join(STATE, "seen-qids.json"))) - _back), indent=None)
 if _back:
     print("前に上限で見送った候補を戻す", len(_back))
-for f, empty in (("subject_ok.json", []), ("drops.json", {}), ("ids.json", {}), ("sites.json", {})):
+for f, empty in (("subject_ok.json", []), ("region_ok.json", []), ("drops.json", {}), ("ids.json", {}), ("sites.json", {})):
     if not os.path.exists(f):
         save(f, empty)
 pub = {}

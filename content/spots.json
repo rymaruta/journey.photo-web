@@ -325111,5 +325111,368 @@
       ],
       "imageChecked": false
     }
+  },
+  {
+    "spotId": "sp_df93f23eda08",
+    "slug": "sanjo-ohashi",
+    "name": "三条大橋",
+    "nameEn": "Sanjo Ohashi Bridge",
+    "reading": "さんじょうおおはし",
+    "aliases": [],
+    "address": "京都府京都市",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市"
+    },
+    "coords": {
+      "lat": 35.01,
+      "lng": 135.77
+    },
+    "category": "橋",
+    "summary": "京都市の三条通にある橋で、一級河川の鴨川に架かっています。江戸時代には東海道五十三次の西の起点でした。",
+    "description": "最初に橋が架けられた時期は室町時代といわれ、天正17年（1589年）には豊臣秀吉の命で石柱の橋に改修されました。現在の橋本体は1950年（昭和25年）4月に完成した鋼の橋で、橋長73メートル、幅員16.7メートルです。木製欄干は2022年（令和4年）秋から2024年（令和6年）にかけて更新されています。※最新の情報は自治体や観光協会の案内でご確認ください。",
+    "highlights": [
+      "東海道五十三次の西の起点",
+      "池田屋事件で付いたとされる刀傷の跡がある擬宝珠",
+      "弥次郎兵衛と喜多八の像",
+      "三条大橋から七条大橋間の鴨川・花の回廊"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、明るい光の中で橋と鴨川を写せます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、欄干の細部まで写し取りやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の斜めの光は、欄干や擬宝珠に陰影をつけてくれます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光で、橋と川の景色が柔らかい色合いになります。"
+      }
+    ],
+    "compositionTips": [
+      "擬宝珠や欄干の細部を前景に入れると、橋の歴史が伝わる構図になります。",
+      "弥次郎兵衛と喜多八の像を入れると、『東海道中膝栗毛』ゆかりの橋であることが伝わります。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-22",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-22T00:00:00.000Z",
+    "updatedAt": "2026-11-22T02:13:23.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-22",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E4%B8%89%E6%9D%A1%E5%A4%A7%E6%A9%8B",
+          "title": "Wikipedia「三条大橋」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3087620",
+          "title": "Wikidata「Q3087620」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_c8497b130be8",
+    "slug": "katsura-rikyu",
+    "name": "桂離宮",
+    "nameEn": "Katsura Imperial Villa",
+    "reading": "かつらりきゅう",
+    "aliases": [
+      "桂別業"
+    ],
+    "address": "京都府京都市西京区桂",
+    "region": {
+      "country": "日本",
+      "prefecture": "京都府",
+      "city": "京都市西京区"
+    },
+    "coords": {
+      "lat": 34.98,
+      "lng": 135.71
+    },
+    "category": "庭園",
+    "summary": "京都市西京区桂にある皇室関連施設で、江戸時代の17世紀に八条宮家の別邸として創設された建築群と回遊式庭園からなります。",
+    "description": "池には大小5つの島があり、古書院、中書院、新御殿の書院群と、松琴亭、賞花亭、笑意軒、月波楼の4棟の茶屋が配されています。参観は予約制で、宮内庁職員の案内が付くグループ行動となり、写真撮影などでグループから大きく離れたり大きく遅れたりすることはできません。※最新の情報は、参観の予約・休み・時間を含め、宮内庁の参観案内でご確認ください。",
+    "highlights": [
+      "古書院の広縁から張り出した月見台",
+      "池の周囲に点在する松琴亭・賞花亭・笑意軒・月波楼の茶屋",
+      "新御殿の桂棚",
+      "桂川の水を引いた池と洲浜・石橋・石燈籠"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "月波楼は夏向きの茶屋とされ、夏の庭歩きの目印になります。"
+      },
+      {
+        "season": "winter",
+        "text": "松琴亭は冬向きの茶屋とされ、冬の庭歩きの目印になります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "参観は1回1時間弱で、時間帯によって光の向きが変わります。予約した回の光に合わせて撮り方を考えてみてください。"
+      },
+      {
+        "time": "day",
+        "text": "参観する回の時刻は予約のときに決まります。その時刻の光に合わせて、撮り方を考えてみてください。"
+      }
+    ],
+    "compositionTips": [
+      "案内の職員に付いて歩くため、撮影はグループの動きに合わせて進めます。",
+      "池の景色は、道筋の途中で急に展望が開ける所があり、歩く先々で切り取る場所が変わります。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-22",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-22T00:00:00.000Z",
+    "updatedAt": "2026-11-22T02:13:23.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-22",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E6%A1%82%E9%9B%A2%E5%AE%AE",
+          "title": "Wikipedia「桂離宮」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q1736808",
+          "title": "Wikidata「Q1736808」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_cf7a895ed84a",
+    "slug": "ken-domon-museum-of-photography",
+    "name": "土門拳写真美術館",
+    "nameEn": "Ken Domon Museum of Photography",
+    "reading": "どもんけんしゃしんびじゅつかん",
+    "aliases": [
+      "土門拳記念館"
+    ],
+    "address": "山形県酒田市",
+    "region": {
+      "country": "日本",
+      "prefecture": "山形県",
+      "city": "酒田市"
+    },
+    "coords": {
+      "lat": 38.89,
+      "lng": 139.82
+    },
+    "category": "建築",
+    "summary": "写真家・土門拳の作品を所蔵・研究・展示する酒田市立の美術館で、日本初の写真専門の美術館です。",
+    "description": "約13万5千点におよぶ土門作品のすべてを所蔵しています。建物の設計は谷口吉生で、1984年（昭和59年）に吉田五十八賞を受賞しました。中庭にはイサム・ノグチによる彫刻があり、庭園は勅使河原宏が手掛けています。館内の撮影の決まりは現地でご確認ください。※最新の情報は美術館の公式サイトや酒田市の案内でご確認ください。",
+    "highlights": [
+      "谷口吉生が設計した建物",
+      "中庭のイサム・ノグチによる彫刻",
+      "勅使河原宏が手掛けた庭園",
+      "入口正面の亀倉雄策による銘板"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、明るい光の中で建物と庭園を写せます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、建物の輪郭をすっきり写せます。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "昼の明るい光で、建物の細部と庭園を写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、建物の外観に陰影をつけてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "建物の外観と、庭園や中庭の彫刻の組み合わせを考えてみてください。撮れる範囲は現地の案内に従ってください。",
+      "館内の撮影の可否は、現地の案内に従って確かめてください。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-22",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-22T00:00:00.000Z",
+    "updatedAt": "2026-11-22T02:13:23.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-22",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E5%9C%9F%E9%96%80%E6%8B%B3%E5%86%99%E7%9C%9F%E7%BE%8E%E8%A1%93%E9%A4%A8",
+          "title": "Wikipedia「土門拳写真美術館」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q3539675",
+          "title": "Wikidata「Q3539675」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_e10c3c9817f5",
+    "slug": "tachibanayama",
+    "name": "立花山",
+    "nameEn": "Mount Tachibana",
+    "reading": "たちばなやま",
+    "aliases": [
+      "井楼山"
+    ],
+    "address": "福岡県福岡市東区、糟屋郡新宮町、久山町",
+    "region": {
+      "country": "日本",
+      "prefecture": "福岡県",
+      "city": "福岡市東区"
+    },
+    "coords": {
+      "lat": 33.68,
+      "lng": 130.47
+    },
+    "category": "山岳",
+    "summary": "福岡市東区、糟屋郡新宮町および久山町にまたがる標高367.1メートルの山で、クスノキの巨木と中世の立花山城の跡で知られます。",
+    "description": "最高峰は井楼山で、山腹はクスノキが優勢な照葉樹林に覆われています。6合目以上は立花山クスノキ原始林として、1928年に国の天然記念物に、1956年には特別天然記念物に指定されました。登山道は北の新宮町立花口と西の東区下原からあり、いずれも麓からは40〜50分で井楼山頂上に至ります。",
+    "highlights": [
+      "立花山クスノキ原始林",
+      "立花山大クス",
+      "立花山城跡に残る石垣と古井戸",
+      "玄界灘から博多湾、福岡市街まで見渡せる山頂"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は照葉樹林の緑の中を歩く、森の景色が撮れます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの景色まで写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "morning",
+        "text": "朝の光が森に差し込む、登山道の景色を写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光で、山頂からの景色に陰影が出ます。"
+      }
+    ],
+    "compositionTips": [
+      "山頂は平らで西側が開けているので、街と海を一緒に収める構図が組めます。",
+      "クスノキの巨木は、見上げる構図にすると大きさが伝わります。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-22",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-22T00:00:00.000Z",
+    "updatedAt": "2026-11-22T02:13:23.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-22",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E7%AB%8B%E8%8A%B1%E5%B1%B1",
+          "title": "Wikipedia「立花山」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11598155",
+          "title": "Wikidata「Q11598155」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
+  },
+  {
+    "spotId": "sp_57022f9d7207",
+    "slug": "kadokura-misaki",
+    "name": "門倉岬",
+    "nameEn": "Cape Kadokura",
+    "reading": "かどくらみさき",
+    "aliases": [
+      "門倉崎"
+    ],
+    "address": "鹿児島県南種子町",
+    "region": {
+      "country": "日本",
+      "prefecture": "鹿児島県",
+      "city": "南種子町"
+    },
+    "coords": {
+      "lat": 30.34,
+      "lng": 130.88
+    },
+    "category": "岬",
+    "summary": "種子島の最南端にある岬で、西側は東シナ海、東側は太平洋に面しています。海食による高さ約50メートルの断崖があります。",
+    "description": "岬の西側は屋久島が見渡せる景勝地で、岬には鉄砲伝来紀功碑や御崎神社があり、南蛮船の形状を模した展望台や遊歩道が整備されています。交通として、南種子町のコミュニティバス西之線に「門倉岬」の停留所があると記されています。運行の有無や時刻は南種子町の案内でご確認ください。※最新の情報は自治体や観光協会の案内でご確認ください。",
+    "highlights": [
+      "海食による高さ約50メートルの断崖",
+      "屋久島が見渡せる景勝地",
+      "鉄砲伝来紀功碑",
+      "南蛮船の形状を模した展望台"
+    ],
+    "seasonalGuide": [
+      {
+        "season": "summer",
+        "text": "夏は日が長く、海辺で明るい光が得られます。"
+      },
+      {
+        "season": "winter",
+        "text": "冬は空気が澄む日に、遠くの島影まで写しやすくなります。"
+      }
+    ],
+    "timeOfDayGuide": [
+      {
+        "time": "day",
+        "text": "昼の明るい光で、屋久島方面の海と断崖を写せます。"
+      },
+      {
+        "time": "goldenHour",
+        "text": "夕方の斜めの光は、断崖や海に陰影をつけてくれます。"
+      }
+    ],
+    "compositionTips": [
+      "断崖と海を一緒に入れると、岬の高さが伝わります。",
+      "南蛮船を模した展望台は、岬の景色と合わせて写せます。"
+    ],
+    "status": "published",
+    "draftedAt": "2026-11-22",
+    "draftedBy": "claude",
+    "createdAt": "2026-11-22T00:00:00.000Z",
+    "updatedAt": "2026-11-22T02:13:23.000Z",
+    "aiCheck": {
+      "checkedAt": "2026-11-22",
+      "delegatedBy": "rymaruta",
+      "sources": [
+        {
+          "url": "https://ja.wikipedia.org/wiki/%E9%96%80%E5%80%89%E5%B4%8E",
+          "title": "Wikipedia「門倉崎」"
+        },
+        {
+          "url": "https://www.wikidata.org/wiki/Q11654948",
+          "title": "Wikidata「Q11654948」（座標・所在地）"
+        }
+      ],
+      "imageChecked": false
+    }
   }
 ]
