@@ -311,6 +311,16 @@ describe("Pro・サポーター（第2段階）: 出してよいのは番号・�
     });
 });
 
+describe("Apple でサインインの番号（appleSub・札 journey.photo-ios#601）", () => {
+    it("本人の応答にも公開の応答にも出さない（中の印）", async () => {
+        mockSend.mockResolvedValueOnce(stored({ appleSub: "001234.apple" }));
+        const mine = await getMine();
+        expect(JSON.parse(mine.body)).not.toHaveProperty("appleSub");
+        expect(mine.body).not.toContain("001234.apple");
+        expect(toPublicProfile({ userId: "u1", appleSub: "001234.apple" } as never)).not.toHaveProperty("appleSub");
+    });
+});
+
 describe("光と天気の知らせを受け取るか（lightAlert）", () => {
     it("既定は「受け取る」。本人の応答には常に真偽で載る・公開には出さない", async () => {
         mockSend.mockResolvedValueOnce(stored({}));
