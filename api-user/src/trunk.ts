@@ -55,9 +55,10 @@ import { goneIfDeleted } from "./liveCaller";
  *     dealt[]        配った写真の指紋の台帳（新しい順・最新 3000 件）。**写真やラベルを消しても消さない**
  *     daily          { day: 日本時間の YYYY-MM-DD, count }（その日に配った投稿の数＝ラベルか硬貨を配った数）
  *     coins          硬貨の枚数（0〜99）。公開の投稿1件につき1枚（2026-10-17 次の版）
- *     coinLog[]      24時間以内に硬貨を配った投稿 { k: 写真の id か束の鍵, a: 秒 }（取り消し用・古いものは書くたびに落とす）
+ *     coinLog[]      24時間以内に硬貨を配った投稿 { k: 写真の id か束の鍵, a: 秒, f?: 1 }（取り消し用・古いものは書くたびに落とす。
+ *                    f は同じ投稿でかけらも配った印・#713）
  *     parts[]        持っている部品の id（`trunkParts.ts`・新しい順）
- *     fragments      かけらの数（ガチャで持っている部品が出たら +1・5つで交換）
+ *     fragments      かけらの数（ガチャで持っている部品が出たら +1・投稿のお礼で +1（#713）・5つで交換）
  *     equipped       付けている部品 { handle, corner, lock, lining, tag, charm, key, pins[≤3], patches[≤2] }
  *     tagPicks       手荷物タグの枠ごとに載せるラベルの id（2026-11-08 owner 承認・札 #501）。"" はおまかせ・"_" はタグを外した枠。
  *                    無ければ全部おまかせ（今までの行はそのまま）。はがした・無いラベルは読むときに無視する（`effectiveTagPicks`）
@@ -309,7 +310,7 @@ export type TrunkDoc = {
     groups: string[];
     coins: number;
     /** 24時間以内に硬貨を配った投稿（取り消し用）。`a` は秒 */
-    coinLog: { k: string; a: number }[];
+    coinLog: { k: string; a: number; f?: 1 }[];
     parts: string[];
     fragments: number;
     equipped: Equipped;
@@ -478,10 +479,10 @@ export function parseTrunk(item: Record<string, unknown> | undefined, ledger?: R
         },
         coins: Math.min(COINS_MAX, count(item?.coins)),
         coinLog: Array.isArray(lg?.coinLog)
-            ? (lg!.coinLog as unknown[]).filter((e): e is { k: string; a: number } =>
+            ? (lg!.coinLog as unknown[]).filter((e): e is { k: string; a: number; f?: unknown } =>
                 !!e && typeof e === "object" && typeof (e as { k?: unknown }).k === "string"
                 && typeof (e as { a?: unknown }).a === "number")
-                .map((e) => ({ k: e.k, a: e.a }))
+                .map((e) => (e.f === 1 ? { k: e.k, a: e.a, f: 1 as const } : { k: e.k, a: e.a }))
             : [],
         parts,
         fragments: count(item?.fragments),
@@ -968,6 +969,11 @@ export type DealOutcome = {
     /** この投稿で配った硬貨の枚数（0 か 1）。savePhoto・写真の編集の応答にそのまま載る */
     coin: 0 | 1;
     /**
+     * この投稿で配ったかけらの数（0 か 1・#713）。硬貨と同じ歯止め（指紋・束・1日3件）を通った投稿に1つ。
+     * savePhoto・写真の編集の応答にそのまま載る（古いアプリは知らない項目として読み飛ばす）
+     */
+    fragment: 0 | 1;
+    /**
      * とおまわり号（`camper.ts`・2026-10-18 段2）: この投稿で新しく届いた部品の id（図鑑の並び）。
      * 届かなかった回は項目ごと無い。savePhoto・写真の編集の応答にそのまま載る
      */
@@ -975,7 +981,7 @@ export type DealOutcome = {
 };
 
 /** 配らなかったときの形 */
-export const noDeal = (labelSkipped: DealOutcome["labelSkipped"]): DealOutcome => ({ label: null, labelSkipped, coin: 0 });
+export const noDeal = (labelSkipped: DealOutcome["labelSkipped"]): DealOutcome => ({ label: null, labelSkipped, coin: 0, fragment: 0 });
 
 /** 硬貨の取り消しの控えの鍵（束なら束の鍵＝`g:`、そうでなければ写真の id。id は `:` を持たないので混ざらない） */
 const coinKeyOf = (l: TrunkLabel) => l.groupId ?? l.id;
@@ -993,6 +999,10 @@ const freshCoinLog = (log: TrunkDoc["coinLog"], now: Date) =>
  * - その日に3件配った → 配らない（`daily`）
  * ここまでがラベルと硬貨に共通の歯止め。通った投稿には:
  * - 硬貨を1枚（99 枚なら配らない）。**受け取らない設定・手持ちがいっぱいでも配る**
+ * - かけらを1つ（#713・2026-11-23 owner「カケラはおすすめにしよう」）。硬貨と同じ歯止め・同じ日の数（`daily`）で
+ *   1日3つまで。新しい欄は足さない（`fragments` に +1）。2026-11-23 判断: かけらは**硬貨と一緒にだけ**配る
+ *   （硬貨が 99 枚で配れない回は配らない）。こうすると取り消しの控え（`coinLog`）がいつも在り、「99 枚で手持ちも
+ *   いっぱいなら何も書かない」の決まりも今のまま。控えに `f: 1` を付け、取り消しのときにかけらも戻す
  * - ラベルを1枚。受け取らない設定 → `off`・手持ちが上限 → `full`（貼ったものは数えない）
  * どちらか1つでも配れたら、指紋・束・日の数を台帳に載せる（2026-10-17 判断: 硬貨だけ配った投稿も
  * 「報いを受け取った投稿」として台帳に載せる。載せないと、受け取らない設定のまま消して上げ直すと
@@ -1012,7 +1022,7 @@ export function dealInto(
         const ok = self || (!!existing.placeOk && !!opts.siblingPlaces?.has(placeKey(existing.place)));
         const next = setPlaceOk(doc, (l) => l.id === label.id, () => ok);
         const shown = next ? (next.pocket.find((l) => l.id === label.id) ?? next.stuck.find((l) => l.id === label.id)!) : existing;
-        return { doc: next, outcome: { label: stripInternal(shown), coin: 0 } };
+        return { doc: next, outcome: { label: stripInternal(shown), coin: 0, fragment: 0 } };
     }
     const skip = (why: DealOutcome["labelSkipped"]) => ({ doc: null, outcome: noDeal(doc.receiveLabels ? why : "off") });
     // 束は台帳で見る（手持ちから消しても、同じ束の別の写真には配らない）。台帳を入れる前に配った分は手持ち・貼った方で見る
@@ -1027,6 +1037,8 @@ export function dealInto(
     if (todayCount >= DAILY_DEAL_MAX) return skip("daily");
 
     const coin: 0 | 1 = doc.coins < COINS_MAX ? 1 : 0;
+    // かけら（#713）: 硬貨と一緒に1つ（上の `daily` が1日3つの線・硬貨と同じ数え方）
+    const fragment: 0 | 1 = coin;
     let labelSkipped: DealOutcome["labelSkipped"] = !doc.receiveLabels ? "off"
         : doc.pocket.length >= limit ? "full" : undefined;
     if (labelSkipped && !coin) return { doc: null, outcome: noDeal(labelSkipped) };
@@ -1036,9 +1048,10 @@ export function dealInto(
         dealt: [fingerprint, ...doc.dealt],   // 上限（古い順に落とす）は serialize で切る
         daily: { day, count: todayCount + 1 },
         ...(label.groupId ? { groups: [label.groupId, ...doc.groups] } : {}),
+        fragments: doc.fragments + fragment,
         ...(coin ? {
             coins: doc.coins + 1,
-            coinLog: [{ k: coinKeyOf(label), a: Math.floor(now.getTime() / 1000) }, ...freshCoinLog(doc.coinLog, now)],
+            coinLog: [{ k: coinKeyOf(label), a: Math.floor(now.getTime() / 1000), f: 1 as const }, ...freshCoinLog(doc.coinLog, now)],
         } : {}),
     };
     if (!labelSkipped) {
@@ -1053,12 +1066,12 @@ export function dealInto(
             // 好きなデザインで作るまでの進み（#706）。**ラベルを配れた投稿だけ**数える（硬貨だけの回は数えない）
             custom: advanceCustom(doc.custom, !!opts.pro, given.id, now),
         };
-        if (fitsBudget(next)) return { doc: next, outcome: { label: stripInternal(given), coin } };
+        if (fitsBudget(next)) return { doc: next, outcome: { label: stripInternal(given), coin, fragment } };
         labelSkipped = "storage";
     }
-    // ラベルは配れない。硬貨だけ配る（1行に入らなければ何も配らない）
+    // ラベルは配れない。硬貨とかけらだけ配る（1行に入らなければ何も配らない）
     if (!coin || !fitsBudget(base)) return { doc: null, outcome: noDeal(labelSkipped) };
-    return { doc: base, outcome: { label: null, labelSkipped, coin } };
+    return { doc: base, outcome: { label: null, labelSkipped, coin, fragment } };
 }
 
 /** 何投稿ごとに好きなデザインで作れるか（無料 3・Pro 2） */
@@ -1980,6 +1993,7 @@ export const settingsMutation = (b: Record<string, unknown>, ticketOk = true): M
  * - **硬貨**も同じ時刻の線で取り消す（`coinLog` に控えのある投稿だけ）。まだ持っていれば1枚減らし、
  *   0 枚（もう使った）なら何もしない。控えはどちらでも消す。2026-10-17 判断: 硬貨は見分けが付かないので
  *   「その投稿の硬貨を使ったか」は数で見る（1枚でも持っていれば、それを戻す）
+ * - **かけら**（#713）も、控えに `f: 1` があれば同じ線で1つ減らす（0 なら何もしない・交換に使った分は戻さない）
  */
 export function revokeFrom(
     doc: TrunkDoc,
@@ -2017,6 +2031,7 @@ export function revokeFrom(
         ...(dropCoin ? {
             coins: Math.max(0, doc.coins - 1),
             coinLog: doc.coinLog.filter((e) => e !== coinEntry),
+            ...(coinEntry?.f === 1 ? { fragments: Math.max(0, doc.fragments - 1) } : {}),
         } : {}),
         ...(dropTrip && doc.camper ? {
             camper: { ...doc.camper, trips: Math.max(0, doc.camper.trips - 1), tripLog: doc.camper.tripLog.filter((e) => e !== tripEntry) },
