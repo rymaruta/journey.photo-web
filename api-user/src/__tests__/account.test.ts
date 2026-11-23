@@ -906,11 +906,21 @@ describe("deleteAccount: 消し残しを作らない", () => {
             expect(removed?.input.ExpressionAttributeNames).toEqual({ "#f": "appleSub" });
         });
 
+        it("パスワードを決めた印（password#<uid>・「サインインの方法」）も、墓石の後に消す", async () => {
+            setupApple({ userId: "me" });
+            expect((await invoke(deleteAccount, ev("me"))).statusCode).toBe(200);
+            const del = sent().find((c) => c.constructor.name === "DeleteCommand" && c.input.Key?.userId === "password#me");
+            expect(del).toBeDefined();
+            expect(sent().indexOf(del!)).toBeGreaterThan(sent().findIndex((c) => c.constructor.name === "PutCommand" && c.input.Item?.userId === "me"));
+        });
+
         it("🔴 取り消しが落ちたら 500。墓石を書かず、ユーザー名も結び付けもそのまま（押し直せば続きから）", async () => {
             mockAppleRevoke.mockResolvedValue("failed");
             setupApple({ userId: "me", username: "ryuhei", appleSub: "001.apple" }, { cognitoSub: "me", cognitoUsername: "u-me", refreshToken: "r.1" });
             const res = await invoke(deleteAccount, ev("me"));
             expect(res.statusCode).toBe(500);
+            // 2026-11-23 owner の文（Google も同じ文）
+            expect(JSON.parse(res.body).error).toBe("連携が解除できず、退会できませんでした。少し待ってからお試しください");
             expect(tombPut()).toBeUndefined();
             expect(users.get("apple#001.apple")).toMatchObject({ refreshToken: "r.1", cognitoSub: "me" });
             expect(deletedDdbIds()).not.toContain("username#ryuhei");

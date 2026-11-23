@@ -43,9 +43,24 @@ describe("Apple の取り消しの関数を呼べるのは退会だけ", () => {
         expect(users).toEqual(["deleteAccount"]);
     });
 
-    it("ほかの設定（別のスタック）にも、取り消しの関数を呼ぶ権限は無い", () => {
+    it("ほかの設定（別のスタック）にも、取り消しの関数を呼ぶ権限は無い（「サインインの方法」の解除だけは例外）", () => {
         for (const f of readdirSync(dir).filter((n) => /^serverless\.[\w-]+\.yml$/.test(n))) {
-            expect(strip(readFileSync(join(dir, f), "utf8")), f).not.toMatch(/arn:aws:lambda:[^\s]*-appleRevoke/);
+            let text = strip(readFileSync(join(dir, f), "utf8"));
+            if (f === "serverless.apple-signin.yml") {
+                // 2026-11-23 owner の決定（札 journey.photo-ios#601）: 本人が設定の「サインインの方法」で Apple の連携を解除するとき、
+                // 先に Apple の取り消しをする。呼べるのは解除だけの役 `SigninMethodsRole` の1か所で、その役を使うのは解除の口だけ
+                const at = text.indexOf("\n    SigninMethodsRole:\n");
+                expect(at, "解除だけの役が無い").toBeGreaterThan(0);
+                const after = text.slice(at + 1);
+                const end = after.slice(1).search(/\n {4}[A-Z]\w+:\n/);
+                const methodsRole = end < 0 ? after : after.slice(0, end + 1);
+                expect([...methodsRole.matchAll(/arn:aws:lambda:[^\s]+/g)].map((m) => m[0]))
+                    .toEqual(["arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-appleRevoke"]);
+                const users = [...text.matchAll(/\n {2}(\w+):\n {4}handler:[^\n]*\n(?: {4}#[^\n]*\n)* {4}role: SigninMethodsRole\n/g)].map((m) => m[1]);
+                expect(users, "解除だけの役を、解除の口のほかが使っている").toEqual(["signinMethodsRemove"]);
+                text = text.replace(methodsRole, "");
+            }
+            expect(text, f).not.toMatch(/arn:aws:lambda:[^\s]*-appleRevoke/);
         }
     });
 });

@@ -36,6 +36,23 @@ export const isProvider = (v: unknown): v is Provider => typeof v === "string" &
 export const federatedKey = (provider: Provider, sub: string) => `${provider}#${sub}`;
 /** プロフィールの行の欄の名前（`appleSub`） */
 export const subField = (provider: Provider) => `${provider}Sub` as const;
+/**
+ * プロフィールの行の「本人が外した」印の欄の名前（`appleUnlinkedAt`）。
+ * 2026-11-23 判断（札 journey.photo-ios#601・owner「心当たりが無ければ、こちらから外せます」）: 本人が外した提供元には、
+ * メールが同じでも**自動ではもう結ばない**（外したのに、次にその提供元で入ると黙って結び直される、を作らない）
+ */
+export const unlinkedField = (provider: Provider) => `${provider}UnlinkedAt` as const;
+/**
+ * プロフィールの行の「外のアカウントで新しく作った人」の印（`federatedSignup: "apple"`）。
+ * この人はメールのパスワードを知らない（本人も知らない乱数・`createCognitoUser`）。「サインインの方法」で最後の1つを
+ * 外させないために見る（`signinMethods.ts`）。パスワードを設定し直したら `passwordKey` の行ができる
+ */
+export const FEDERATED_SIGNUP_FIELD = "federatedSignup";
+/**
+ * メールのパスワードを本人が決めた印の行（`password#<uid>`・中身は時刻だけ）。Cognito の PostConfirmation の
+ * `PostConfirmation_ConfirmForgotPassword`（パスワードの再設定）で `api/src/cognitoTrigger.ts` が書く
+ */
+export const passwordKey = (uid: string) => `password#${uid}`;
 /** 使った nonce の行の鍵 */
 export const nonceKey = (provider: Provider, nonceHash: string) => `nonce#${provider}#${nonceHash}`;
 
@@ -175,6 +192,8 @@ export async function findLinkableEmailUser(provider: Provider, email: string): 
             if (await isAdminUser(u.Username)) return null;
             const profile = await getRow<Record<string, unknown>>(sub);
             if (profile && typeof profile[subField(provider)] === "string") return null;
+            // 🔴 本人が「サインインの方法」で外した提供元には、自動で結び直さない（`unlinkedField`）
+            if (profile && profile[unlinkedField(provider)] !== undefined) return null;
             return { username: u.Username, sub };
         }
     }
@@ -246,6 +265,8 @@ export type FederatedRow = {
     provider?: string;
     cognitoUsername?: string;
     cognitoSub?: string;
+    /** どう結んだか（`LinkResult["via"]` の `email`・`new`） */
+    linkedBy?: string;
     refreshToken?: string;
     claimedAt?: number;
     ticketHash?: string;
@@ -254,11 +275,16 @@ export type FederatedRow = {
 
 export const readFederatedRow = (provider: Provider, sub: string) => getRow<FederatedRow>(federatedKey(provider, sub));
 
-async function createProfile(sub: string, displayName: string | undefined): Promise<void> {
+async function createProfile(sub: string, displayName: string | undefined, signupVia?: Provider): Promise<void> {
     try {
         await ddb.send(new PutCommand({
             TableName: USERS_TABLE,
-            Item: { userId: sub, createdAt: new Date(federatedDeps.now()).toISOString(), ...(displayName ? { displayName } : {}) },
+            Item: {
+                userId: sub, createdAt: new Date(federatedDeps.now()).toISOString(),
+                ...(displayName ? { displayName } : {}),
+                // 外のアカウントで新しく作った人（メールのパスワードを持たない）の印（`FEDERATED_SIGNUP_FIELD`）
+                ...(signupVia ? { [FEDERATED_SIGNUP_FIELD]: signupVia } : {}),
+            },
             ConditionExpression: "attribute_not_exists(userId)",
         }));
     } catch (e) {
@@ -302,7 +328,7 @@ export async function linkOrCreate(identity: FederatedIdentity, displayName: str
         if (await cognitoUserExists(row.cognitoUsername)) {
             // 前の回で、結び付けの行を書いたあとプロフィールの書き込みが落ちていても、ここで直す
             // （2026-11-23 確かめ役の指摘。どちらも何度呼んでも同じ: 無いときだけ作る・同じ番号なら書き直すだけ）
-            await createProfile(row.cognitoSub, displayName);
+            await createProfile(row.cognitoSub, displayName, row.linkedBy === "new" ? identity.provider : undefined);
             await markProfile(identity.provider, row.cognitoSub, identity.sub, displayName);
             return { username: row.cognitoUsername, sub: row.cognitoSub, via: "known" };
         }
@@ -358,7 +384,7 @@ export async function linkOrCreate(identity: FederatedIdentity, displayName: str
         })).catch(() => undefined);
         throw e;
     }
-    if (via === "new") await createProfile(user.sub, displayName);
+    if (via === "new") await createProfile(user.sub, displayName, identity.provider);
     await markProfile(identity.provider, user.sub, identity.sub, displayName);
     if (via === "email") {
         // 🔴 メールで自動で結んだことを残し、持ち主に知らせる（`federatedNotice.ts`）。ログに人の情報は出さない
@@ -540,4 +566,7 @@ export async function unlinkAfterDelete(uid: string, profile: ProfileLike, ttl: 
             }
         }
     }
+    // パスワードを決めた印（`passwordKey`・「サインインの方法」）も消す（退会した人の行を残さない）
+    await ddb.send(new DeleteCommand({ TableName: USERS_TABLE, Key: { userId: passwordKey(uid) } }))
+        .catch((e) => console.error(`deleteAccount: パスワードの印を片付けられませんでした（${uid}）:`, errName(e)));
 }

@@ -107,9 +107,24 @@ describe("postConfirmation", () => {
     });
 
     it("確認以外のトリガー（管理者による確認など）では何もしない", async () => {
-        await invoke(event("PostConfirmation_ConfirmForgotPassword"));
+        await invoke(event("PostConfirmation_AdminConfirmSignUp"));
         expect(mockCognitoSend).not.toHaveBeenCalled();
         expect(mockDdbSend).not.toHaveBeenCalled();
+    });
+
+    // 「サインインの方法」（札 journey.photo-ios#601）: Apple・Google で作った人がパスワードを決めたら、最後の Apple・Google を外せる。
+    // その印（`password#<sub>`）。グループもプロフィールも触らない
+    it("パスワードの再設定では、パスワードを決めた印の行だけを書く（プロフィールには触らない）", async () => {
+        await invoke(event("PostConfirmation_ConfirmForgotPassword"));
+        expect(mockCognitoSend).not.toHaveBeenCalled();
+        expect(mockDdbSend).toHaveBeenCalledTimes(1);
+        const input = inputOf(mockDdbSend);
+        expect(input.TableName).toBe("users-test");
+        expect(input.Item.userId).toBe("password#sub-1");
+        expect(Object.keys(input.Item).sort()).toEqual(["setAt", "userId"]);
+        // 書けなくても投げない
+        mockDdbSend.mockReset().mockRejectedValue(new Error("boom"));
+        await expect(invoke(event("PostConfirmation_ConfirmForgotPassword"))).resolves.toBeTruthy();
     });
 
     it("sub が無ければプロフィールは作らない（グループ追加はする）", async () => {

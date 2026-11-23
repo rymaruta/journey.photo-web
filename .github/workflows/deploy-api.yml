@@ -402,10 +402,19 @@ jobs:
           APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
           APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
           APNS_HOST: ${{ needs.config.outputs.apnsHost }}
+          # メールで知らせる（SES・2026-11-23 owner）。🔴 リポジトリの変数 `SIGNIN_EMAIL_ENABLED` が true のときだけ、
+          # SES の資格（ドメイン・DKIM）と送る権限を作り、メールを送る（既定は送らない）。送り元は `SIGNIN_EMAIL_FROM`（無ければ no-reply@journey-photo.com）。
+          # 準備（DNS の DKIM・送れる宛先の制限を外す申請）は iOS の `docs/APPLE_SIGNIN.md`
+          SIGNIN_EMAIL_ENABLED: ${{ vars.SIGNIN_EMAIL_ENABLED }}
+          SIGNIN_EMAIL_FROM: ${{ vars.SIGNIN_EMAIL_FROM }}
         run: |
           set -euo pipefail
           extra=()
           ready=false
+          if [ "${SIGNIN_EMAIL_ENABLED:-}" = "true" ]; then
+            from="${SIGNIN_EMAIL_FROM:-no-reply@journey-photo.com}"
+            extra+=(--param "signinEmailEnabled=true" --param "signinEmailFrom=$from" --param "signinEmailDomain=${from#*@}")
+          fi
           # 鍵の置き場は、このジョブの `APPLE_SIGNIN_KEY_SOURCE`（1か所）で決まる
           if [ "$APPLE_SIGNIN_KEY_SOURCE" = "ssm" ]; then
             extra+=(--param "appleSigninKeyParam=/journey-photo/${{ needs.config.outputs.envName }}/apple-signin/private-key")

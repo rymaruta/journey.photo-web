@@ -123,6 +123,46 @@ functions:
       APPLE_SIGNIN_KEY_PARAM: ${param:appleSigninKeyParam, ''}
       APNS_TOPIC: ${param:apnsTopic, ''}
       APNS_HOST: ${param:apnsHost, ''}
+      # メールでも知らせる（SES・2026-11-23 owner）。宛先は Cognito のそのアカウントのメール（sub で探す）。
+      # 🔴 送るのは変数 `SIGNIN_EMAIL_ENABLED` が true の環境だけ（既定は送らない。SES の準備は iOS の `docs/APPLE_SIGNIN.md`）
+      COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
+      SIGNIN_EMAIL_ENABLED: ${param:signinEmailEnabled, 'false'}
+      SIGNIN_EMAIL_FROM: ${param:signinEmailFrom, 'no-reply@journey-photo.com'}
+
+  # 「サインインの方法」（`src/signinMethods.ts`・2026-11-23 owner）。ログイン必須。本人が Apple・Google のつながりを外す。
+  # 🔴 最後に残る入り方は外させない（409）。Apple の取り消しは鍵を持つ `appleRevoke` に頼む（この関数は鍵を持たない）。
+  # 流量は user API の段の経路ごとの設定（`serverless.yml` の `AppleSigninOn`）
+  signinMethodsList:
+    handler: src/signinMethods.listSigninMethods
+    # 読むだけの役（取り消しの関数は呼べない）
+    role: SigninMethodsReadRole
+    environment:
+      COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
+    events:
+      - httpApi:
+          path: /user/signin-methods
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+
+  signinMethodsRemove:
+    handler: src/signinMethods.removeSigninMethod
+    role: SigninMethodsRole
+    # Apple の取り消し（`appleRevoke` は最大 10 秒）を待つ
+    timeout: 15
+    environment:
+      COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
+      APPLE_REVOKE_FUNCTION: ${self:service}-${sls:stage}-appleRevoke
+    events:
+      - httpApi:
+          path: /user/signin-methods/{provider}
+          method: DELETE
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
 
   # CUSTOM_AUTH のトリガー3つ（1つの関数）。鍵は持たない（券を照らして消すだけ）
   appleAuthChallenge:
@@ -149,7 +189,115 @@ resources:
     HasAlarmTopic:
       Fn::Not:
         - Fn::Equals: ["${param:alarmTopicArn, ''}", ""]
+    # メールで知らせる（SES）。🔴 変数 `SIGNIN_EMAIL_ENABLED` が true のときだけ、SES の資格（ドメイン・DKIM）と送る権限を作る
+    SigninEmailOn:
+      Fn::Equals: ["${param:signinEmailEnabled, 'false'}", "true"]
+    # 🔴 SES のドメインの登録はアカウントと地域で1つだけ（staging と本番は同じ AWS アカウントの東京）。2つのスタックで作ると
+    #    後から配る方が落ちるので、**本番のスタックだけが作る**。staging は本番が作った登録を使う（送る権限は両方に付ける）
+    SigninEmailIdentityOn:
+      Fn::And:
+        - Condition: SigninEmailOn
+        - Fn::Equals: ["${sls:stage}", "prod"]
+  Outputs:
+    # DKIM の DNS に入れる CNAME（3組）。owner が DNS に入れる（手順は iOS の `docs/APPLE_SIGNIN.md`）
+    SigninEmailDkim1:
+      Condition: SigninEmailIdentityOn
+      Value:
+        Fn::Join: [" CNAME ", [{ "Fn::GetAtt": [SigninEmailIdentity, DkimDNSTokenName1] }, { "Fn::GetAtt": [SigninEmailIdentity, DkimDNSTokenValue1] }]]
+    SigninEmailDkim2:
+      Condition: SigninEmailIdentityOn
+      Value:
+        Fn::Join: [" CNAME ", [{ "Fn::GetAtt": [SigninEmailIdentity, DkimDNSTokenName2] }, { "Fn::GetAtt": [SigninEmailIdentity, DkimDNSTokenValue2] }]]
+    SigninEmailDkim3:
+      Condition: SigninEmailIdentityOn
+      Value:
+        Fn::Join: [" CNAME ", [{ "Fn::GetAtt": [SigninEmailIdentity, DkimDNSTokenName3] }, { "Fn::GetAtt": [SigninEmailIdentity, DkimDNSTokenValue3] }]]
   Resources:
+    # SES の資格（送り元のドメイン）と DKIM（2026-11-23 owner「メールで知らせる」）。ドメインの確かめは DKIM の CNAME を DNS に
+    # 入れると済む。🔴 送れる宛先の制限（サンドボックス）を外す申請は CloudFormation の外（手順書）
+    SigninEmailIdentity:
+      Type: AWS::SES::EmailIdentity
+      Condition: SigninEmailIdentityOn
+      Properties:
+        EmailIdentity: ${param:signinEmailDomain, 'journey-photo.com'}
+        DkimSigningAttributes:
+          NextSigningKeyLength: RSA_2048_BIT
+
+    # 「サインインの方法」の一覧（読むだけ）。users 表を読み、メールを見るため Cognito を sub で探すだけ
+    SigninMethodsReadRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-methods-read
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: signinMethodsRead
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+                - Effect: Allow
+                  Action:
+                    - cognito-idp:ListUsers
+                  Resource: arn:aws:cognito-idp:${aws:region}:${aws:accountId}:userpool/${param:cognitoUserPoolId}
+
+    # 「サインインの方法」の解除（`signinMethodsRemove` だけが使う）。users 表のプロフィールと `apple#`・`google#` の行を読み書きし、
+    # メールを見るため Cognito を sub で探し、Apple の取り消しを `appleRevoke` に頼むだけ
+    SigninMethodsRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-methods
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: signinMethods
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:UpdateItem
+                    - dynamodb:DeleteItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+                - Effect: Allow
+                  Action:
+                    - cognito-idp:ListUsers
+                  Resource: arn:aws:cognito-idp:${aws:region}:${aws:accountId}:userpool/${param:cognitoUserPoolId}
+                # 🔴 鍵はこの関数に置かない。取り消しは鍵を持つ関数に頼む（退会のほかに呼べるのはここだけ。
+                #    2026-11-23 owner の決定「Apple の取り消しをしてから連携を解除」・`appleRevokeInvokeScope.test.ts`）
+                - Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource: arn:aws:lambda:${aws:region}:${aws:accountId}:function:${self:service}-${sls:stage}-appleRevoke
+
     # 使えるかを返すだけ。何も読まない
     AppleStatusRole:
       Type: AWS::IAM::Role
@@ -217,6 +365,23 @@ resources:
                     - ssm:GetParameter
                   Resource:
                     - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/journey-photo/${sls:stage}/apple-signin/*
+                # メールの宛先（そのアカウントのメール）を sub で探す
+                - Effect: Allow
+                  Action:
+                    - cognito-idp:ListUsers
+                  Resource: arn:aws:cognito-idp:${aws:region}:${aws:accountId}:userpool/${param:cognitoUserPoolId}
+                # 🔴 メールを送るのは、決めた送り元からだけ（SES を作る環境だけ）
+                - Fn::If:
+                    - SigninEmailOn
+                    - Effect: Allow
+                      Action:
+                        - ses:SendEmail
+                      Resource:
+                        - arn:aws:ses:${aws:region}:${aws:accountId}:identity/${param:signinEmailDomain, 'journey-photo.com'}
+                      Condition:
+                        StringEquals:
+                          ses:FromAddress: ${param:signinEmailFrom, 'no-reply@journey-photo.com'}
+                    - Ref: AWS::NoValue
 
     # 🔴 退会の取り消しの関数が落ち続けたら知らせる（2026-11-23 確かめ役の3回目）。落ちると退会は 500 で止まる（やり直しで通る）が、
     # 続くなら鍵や Apple の側がおかしい。15 分の間に3回以上落ちた 5 分の枠が2つ続いたら鳴る。
