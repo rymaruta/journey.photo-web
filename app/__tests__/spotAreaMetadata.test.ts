@@ -54,7 +54,10 @@ describe("県ページの題と説明", () => {
     it("公開済み2件の県: 「N選」で検索に出す", async () => {
         ledger.spots = [spot("a"), spot("b")];
         const m = await meta();
-        expect(m.title).toBe("香川県の観光スポット2選");
+        // 2026-11-23（#701）: 検索に出す県の題はサイト名を付けない完全な形・名所の名前を添える。
+        // この2件は写真が無いので「写真と」は付けない（`withPhotoWord`）
+        expect(m.title).toEqual({ absolute: "香川県の観光スポット2選｜a、b" });
+        expect(String(m.description).startsWith("香川県の観光スポット2か所。a、b。")).toBe(true);
         // 2026-10-22: undefined はレイアウトの googlebot の指定（max-image-preview: large）を消す
         expect(m.robots).toEqual(INDEXABLE_ROBOTS);
     });
@@ -111,5 +114,5 @@ describe("県の頁と観光スポットの入口の OGP の画像", () => {
         const m = await spotsMeta();
         const images = (m.openGraph as { images?: Array<{ url: string }> }).images;
         expect(images?.[0]?.url).toBe("https://journey-photo.com/spots/ritsurin.jpg");
-    });
+    }, 30_000); // `/spots` の頁を初めて読み込むので5秒を超える（main でも並べて流すと 5.3〜6.1秒で時間切れだった・2026-11-23）
 });

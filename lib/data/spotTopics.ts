@@ -769,14 +769,42 @@ export const THEME_TITLE_MAX = 33;
  */
 export function themeTitle(heading: string, cards: readonly TopicCard[]): string {
     const n = cards.length;
-    const head = n > 0 ? `${heading}${n}選` : heading;
-    const [a, b] = cards.map((c) => c.name);
-    const cands = [
-        ...(a && b && n > 2 ? [`${head}｜${a}・${b}ほか`] : []),
-        ...(a && b && n === 2 ? [`${head}｜${a}・${b}`] : []),
-        ...(a && n > 1 ? [`${head}｜${a}ほか`] : []),
-    ];
-    return cands.find((x) => titleWidth(x) <= THEME_TITLE_MAX) ?? head;
+    const h = withPhotoWord(heading, cards);
+    const head = n > 0 ? `${h}${n}選` : h;
+    return fitTitle(titleWithNames(head, cards, n), head);
+}
+
+/**
+ * 題の見出しに「写真と」を入れる（2026-11-23・owner OK・札 #701）。
+ *
+ * 11-13 に題の「撮影スポット」を「観光スポット」に替えた日から、平均の順位が約11位 → 20〜22位に落ちた。
+ * 検索語の約17%（表示）・約24%（クリック）が「写真」「撮影」を含み、「観光」を含むのは約3%。
+ * 画面の見出しは「観光スポット」のまま、検索の題だけ「〇〇の写真と観光スポット」にする。
+ * **写真が1枚も無い組は付けない**（写真の無い頁が「写真と」と名乗ると中身と食い違う）
+ */
+export function withPhotoWord(heading: string, cards: readonly Pick<TopicCard, "cover">[]): string {
+    return cards.some((c) => c.cover) ? heading.replace(/の観光スポット$/, "の写真と観光スポット") : heading;
+}
+
+/**
+ * 県の頁の題（2026-11-23・#701）。テーマの頁と同じく**サイト名の template を外した完全な形**で、
+ * 名所の名前を添える。全角換算 `THEME_TITLE_MAX` に収まる形を上から選ぶ:
+ *   岡山県の写真と観光スポット55選｜備中松山城、醍醐桜ほか → …｜備中松山城ほか → 岡山県の写真と観光スポット55選
+ * 名前は `topicCards` の並び（写真のあるものが先）の先頭から
+ */
+export function areaTitle(name: string, n: number, cards: readonly TopicCard[]): string {
+    const head = `${withPhotoWord(`${name}の観光スポット`, cards)}${n}選`;
+    return fitTitle(titleWithNames(head, cards, n), head);
+}
+
+/**
+ * 県の頁の説明の頭（2026-11-23・#701）。「〇〇の観光スポットN か所を写真で紹介。A、B、Cなど。」
+ * 写真が1枚も無い県は「を写真で紹介」を付けない。名前の区切りは「、」（名前の中の「・」と見分ける）
+ */
+export function areaDescriptionLead(name: string, n: number, cards: readonly TopicCard[]): string {
+    const photo = cards.some((c) => c.cover) ? "を写真で紹介" : "";
+    const nm = names(cards);
+    return `${name}の観光スポット${n}か所${photo}。${nm ? `${nm}${n > 3 ? "など" : ""}。` : ""}`;
 }
 
 /** テーマの頁の説明の長さ（字）。撮影スポットの頁（`SPOT_DESCRIPTION_TARGET`）と同じ 120 */
@@ -793,7 +821,9 @@ export const THEME_DESCRIPTION_MAX = 120;
 export function themeDescription(t: ThemeTopic, cards: readonly TopicCard[]): string {
     const n = t.spots.length;
     const nm = names(cards);
-    const lead = `${nm ? `${nm}${n > 3 ? "など" : ""}、` : ""}${t.place.name}の${t.category}の観光スポット${n}か所。`;
+    // 「を写真で紹介」は写真のある組だけ（2026-11-23・#701。題の「写真と」と同じ線）
+    const photo = cards.some((c) => c.cover) ? "を写真で紹介" : "";
+    const lead = `${nm ? `${nm}${n > 3 ? "など" : ""}、` : ""}${t.place.name}の${t.category}の観光スポット${n}か所${photo}。`;
     const b = themeBreakdown(t);
     const seasonal = seasonalCount(t.spots);
     const tips = tipCount(t.spots);
@@ -802,7 +832,8 @@ export function themeDescription(t: ThemeTopic, cards: readonly TopicCard[]): st
         ...(tips > 0 ? [`${tips === n ? "全か所" : `${tips}か所`}に撮り方のこつ`] : []),
     ];
     const parts = [
-        ...(b.length > 0 ? [`多いのは${b.map(([x, k]) => `${x}${k}か所`).join("・")}。`] : []),
+        // 区切りは「、」（2026-11-23・#701。名前の中の「・」——チンクエ・テッレ——と見分ける）
+        ...(b.length > 0 ? [`多いのは${b.map(([x, k]) => `${x}${k}か所`).join("、")}。`] : []),
         ...(guides.length > 0 ? [`${guides.join("、")}。`] : []),
     ];
     let out = lead;
