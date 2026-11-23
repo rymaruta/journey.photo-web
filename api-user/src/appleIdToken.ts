@@ -9,26 +9,32 @@
  * 部品を足さない（`node:crypto` だけ）。鍵の形を扱う所はここだけにし、口（`appleSignin.ts`）と
  * Cognito のトリガー（`appleAuthTrigger.ts`）はここを呼ぶ。
  *
- * 🔴 鍵（.p8）・Key ID・Team ID は**コードに書かない**。`deploy-api.yml` が GitHub の Secrets から
- *    `--param` で渡し、関数の環境変数で受ける（APNs の鍵と同じ渡し方・`apns.ts`）。
- *    鍵が無い環境では `appleConfigFromEnv` が「使えない」を返し、口は 503・アプリはボタンを出さない
+ * 🔴 鍵（.p8）は**コードに書かない**。2026-11-23 owner: 新しい鍵は作らず、**APNs の鍵（Key ID `DDYJB5893J`）に
+ *    Sign in with Apple を足した**。だから鍵は APNs と同じもの・同じ環境変数（`APNS_KEY_ID`・`APNS_TEAM_ID`・
+ *    `APNS_PRIVATE_KEY`。`deploy-api.yml` が Secrets の `APNS_PRIVATE_KEY` から `--param` で渡す）を読む。
+ *    もう1つの置き方として、SSM パラメータストアの SecureString（`APPLE_SIGNIN_KEY_PARAM` に名前）を実行時に読める
+ *    （`loadAppleConfig`。置き換えの手順は iOS の `docs/APPLE_SIGNIN.md`）。
+ *    鍵が無い環境では「使えない」を返し、口は 503・アプリはボタンを出さない
  */
 import { createPrivateKey, createPublicKey, sign, verify } from "node:crypto";
+import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 
 export const APPLE_ISSUER = "https://appleid.apple.com";
 export const APPLE_KEYS_URL = "https://appleid.apple.com/auth/keys";
 export const APPLE_TOKEN_URL = "https://appleid.apple.com/auth/token";
 export const APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
 
-/** users 表の Apple の行の鍵（`apple#<Apple の sub>`）。`#` を含む行は人の行ではない（`userSearch.ts`） */
-export const appleKey = (appleSub: string) => `apple#${appleSub}`;
-
 /** identity token の長さの上限。実物は 1KB 前後。これを超えるものは読まずに断る（ログイン不要の口で重い処理をさせない） */
 export const MAX_TOKEN_LENGTH = 4096;
 /** 時計のずれの許し（秒） */
 const CLOCK_SKEW_SEC = 60;
-/** Apple の公開鍵の控えの寿命。Apple は鍵を入れ替えるので、知らない kid が来たら控えを捨てて1回だけ取り直す */
+/** Apple の公開鍵の控えの寿命。Apple は鍵を入れ替えるので、知らない kid が来たら取り直す */
 const KEYS_TTL_MS = 60 * 60 * 1000;
+/**
+ * 取り直しの間（ミリ秒）。**知らない kid の token を送り続けて、Apple への問い合わせを起こさせない**
+ * （ログイン不要の口・2026-11-23 確かめ役の指摘）。取り直してから 60 秒は、知らない kid は控えだけで断る
+ */
+export const KEYS_REFETCH_MIN_MS = 60 * 1000;
 /** Apple に問い合わせるときの待ちの上限 */
 const APPLE_TIMEOUT_MS = 5000;
 
@@ -69,10 +75,16 @@ export type FetchLike = (url: string, init?: {
 const defaultFetch: FetchLike = (url, init) => fetch(url, init);
 
 let keysCache: { at: number; keys: Jwk[] } | null = null;
+/** 最後に取りに行った時刻（失敗した回も数える。Apple が落ちているときに叩き続けない） */
+let lastKeysFetchAt = -Infinity;
+/** 取りに行っている途中の回（同時に来た回はこれを待つ。待たずに断ると、起動直後の同時のサインインが落ちる） */
+let keysInflight: Promise<Jwk[]> | null = null;
 
 /** 試験から控えを消す */
 export function resetAppleKeysCache(): void {
     keysCache = null;
+    lastKeysFetchAt = -Infinity;
+    keysInflight = null;
 }
 
 async function fetchAppleKeys(fetchImpl: FetchLike): Promise<Jwk[]> {
@@ -89,15 +101,27 @@ function isRsaJwk(k: unknown): k is Jwk {
     return !!j && j.kty === "RSA" && typeof j.kid === "string" && typeof j.n === "string" && typeof j.e === "string";
 }
 
-/** kid の鍵を返す。控えに無ければ1回だけ取り直す（Apple の鍵の入れ替え） */
+/** kid の鍵を返す。控えに無ければ取り直す（Apple の鍵の入れ替え）。ただし取り直しは 60 秒に1回まで */
 async function appleJwk(kid: string, fetchImpl: FetchLike, now: number): Promise<Jwk | undefined> {
-    if (keysCache && now - keysCache.at < KEYS_TTL_MS) {
-        const hit = keysCache.keys.find((k) => k.kid === kid);
+    const fresh = keysCache && now - keysCache.at < KEYS_TTL_MS;
+    if (fresh) {
+        const hit = keysCache!.keys.find((k) => k.kid === kid);
         if (hit) return hit;
     }
-    const keys = await fetchAppleKeys(fetchImpl);
-    keysCache = { at: now, keys };
-    return keys.find((k) => k.kid === kid);
+    if (keysInflight) return (await keysInflight).find((k) => k.kid === kid);
+    if (now - lastKeysFetchAt < KEYS_REFETCH_MIN_MS) {
+        // 取り直したばかり。控えが古くても、控えにある鍵なら使う（Apple の鍵の入れ替えは日単位）
+        return keysCache?.keys.find((k) => k.kid === kid);
+    }
+    lastKeysFetchAt = now;
+    keysInflight = fetchAppleKeys(fetchImpl);
+    try {
+        const keys = await keysInflight;
+        keysCache = { at: now, keys };
+        return keys.find((k) => k.kid === kid);
+    } finally {
+        keysInflight = null;
+    }
 }
 
 function b64urlJson(part: string): Record<string, unknown> {
@@ -117,7 +141,7 @@ function truthy(v: unknown): boolean {
  * identity token を確かめる。署名（RS256・Apple の公開鍵）・発行元・宛先（このアプリの Bundle ID）・期限を見る。
  * どれかが合わなければ `AppleTokenError` を投げる。
  *
- * @param clientIds 受け付ける宛先（`aud`）。本番は `com.journeyphoto.JourneyPhoto`、staging は `.staging`
+ * @param clientIds 受け付ける宛先（`aud`）。本番の Bundle ID `com.journeyphoto.JourneyPhoto`
  */
 export async function verifyAppleIdentityToken(
     token: unknown,
@@ -173,23 +197,78 @@ export type AppleKeyConfig = {
     privateKey: string;
 };
 
+type Env = Record<string, string | undefined>;
+
+/** 鍵の文字を PEM に戻す（`\n` の文字のまま入っていることがある）。鍵として読めなければ空 */
+function pemOf(raw: string | undefined): string {
+    const pem = (raw ?? "").replace(/\\n/g, "\n").trim();
+    if (!pem.includes("PRIVATE KEY")) return "";
+    try {
+        createPrivateKey(pem);
+    } catch {
+        return "";
+    }
+    return pem;
+}
+
 /**
- * 環境変数から設定を読む。**どれか1つでも欠けていれば null**（＝この環境では使えない）。
+ * 環境変数から設定を読む（鍵も環境変数にある形）。**どれか1つでも欠けていれば null**（＝この環境では使えない）。
  * 鍵が無いと、退会のときに Apple の更新トークンを取り消せない（Apple の決まり）ので、
- * 確かめだけできても「使える」とは言わない
+ * 確かめだけできても「使える」とは言わない。
+ *
+ * 2026-11-23 owner: 鍵は APNs の鍵（`APNS_*`）を使う。宛先だけが Apple でサインインのもの
  */
-export function appleConfigFromEnv(env: Record<string, string | undefined> = process.env): AppleKeyConfig | null {
-    const clientId = (env.APPLE_SIGNIN_CLIENT_ID ?? "").trim();
-    const teamId = (env.APPLE_SIGNIN_TEAM_ID ?? "").trim();
-    const keyId = (env.APPLE_SIGNIN_KEY_ID ?? "").trim();
-    const privateKey = (env.APPLE_SIGNIN_PRIVATE_KEY ?? "").replace(/\\n/g, "\n").trim();
-    if (!clientId || !teamId || !keyId || !privateKey.includes("PRIVATE KEY")) return null;
+export function appleConfigFromEnv(env: Env = process.env, privateKeyOverride?: string): AppleKeyConfig | null {
+    const clientId = appleClientIdsFromEnv(env)[0] ?? "";
+    const teamId = (env.APNS_TEAM_ID ?? "").trim();
+    const keyId = (env.APNS_KEY_ID ?? "").trim();
+    const privateKey = pemOf(privateKeyOverride ?? env.APNS_PRIVATE_KEY);
+    if (!clientId || !teamId || !keyId || !privateKey) return null;
     return { clientId, teamId, keyId, privateKey };
 }
 
 /** 受け付ける宛先（トリガーは鍵を持たないので、宛先だけ読む） */
-export function appleClientIdsFromEnv(env: Record<string, string | undefined> = process.env): string[] {
+export function appleClientIdsFromEnv(env: Env = process.env): string[] {
     return (env.APPLE_SIGNIN_CLIENT_ID ?? "").split(",").map((s) => s.trim()).filter(Boolean);
+}
+
+/** SSM の読み手（試験で差し替える） */
+export const appleKeyDeps: { getParameter: (name: string) => Promise<string | undefined> } = {
+    getParameter: async (name) => {
+        ssm ??= new SSMClient({ region: process.env.AWS_REGION ?? "ap-northeast-1" });
+        const res = await ssm.send(new GetParameterCommand({ Name: name, WithDecryption: true }));
+        return res.Parameter?.Value;
+    },
+};
+let ssm: SSMClient | null = null;
+/** SSM から読んだ鍵の控え（`weatherKit.ts` と同じ間合い: 読めたら5分・読めなかったら1分） */
+let ssmCache: { at: number; pem: string } | null = null;
+const SSM_KEY_TTL_MS = 5 * 60 * 1000;
+const SSM_MISS_TTL_MS = 60 * 1000;
+
+export function resetAppleKeyConfigCache(): void {
+    ssmCache = null;
+}
+
+/**
+ * 設定を読む（口が使うのはこちら）。
+ * - `APPLE_SIGNIN_KEY_PARAM`（SSM の SecureString の名前）があれば、鍵はそこから読む（環境変数に鍵を置かない形）
+ * - 無ければ環境変数の `APNS_PRIVATE_KEY`
+ * 読めなければ null（投げない）
+ */
+export async function loadAppleConfig(env: Env = process.env, now: number = Date.now()): Promise<AppleKeyConfig | null> {
+    const param = (env.APPLE_SIGNIN_KEY_PARAM ?? "").trim();
+    if (!param) return appleConfigFromEnv(env);
+    if (!ssmCache || now - ssmCache.at >= (ssmCache.pem ? SSM_KEY_TTL_MS : SSM_MISS_TTL_MS)) {
+        let pem = "";
+        try {
+            pem = pemOf(await appleKeyDeps.getParameter(param));
+        } catch (e) {
+            console.warn("apple signin: 鍵（SSM）を読めませんでした:", (e as { name?: string })?.name);
+        }
+        ssmCache = { at: now, pem };
+    }
+    return ssmCache.pem ? appleConfigFromEnv(env, ssmCache.pem) : null;
 }
 
 /**

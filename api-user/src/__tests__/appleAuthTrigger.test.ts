@@ -1,39 +1,24 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { resetAppleKeysCache } from "../appleIdToken";
-import { CLIENT_ID, fakeApple, makeToken } from "./appleTestKit";
+import { fakeUsersTable, makeToken } from "./appleTestKit";
 
 /**
- * 「Apple でサインイン」の Cognito のトリガー（CUSTOM_AUTH・札 journey.photo-ios#601）。
- * 🔴 ここが true を返すと Cognito がトークンを出す。通してよいのは「Apple の token が正しく、
- *    その Apple の人がこの Cognito の利用者に結ばれていて、その token を初めて使う」ときだけ
+ * 外のアカウントでのサインインの Cognito のトリガー（CUSTOM_AUTH・札 journey.photo-ios#601）。
+ * 🔴 ここが true を返すと Cognito がトークンを出す。通してよいのは「`POST /auth/apple` が出した券が合い、
+ *    期限内で、その券の行がこの Cognito の利用者を指していて、まだ使っていない」ときだけ
  */
 const db = vi.hoisted(() => ({ send: vi.fn() }));
 vi.mock("../dynamodb", () => ({ ddb: db, PHOTOS_TABLE: "photos-test" }));
 
-import { handler, triggerDeps, CHALLENGE, type AuthChallengeEvent } from "../appleAuthTrigger";
+import { handler, CHALLENGE, type AuthChallengeEvent } from "../appleAuthTrigger";
+import { federatedDeps, issueTicket, ticketAnswer } from "../federatedAccount";
 
-let rows: Map<string, Record<string, unknown>>;
+let users = fakeUsersTable();
 
 beforeEach(() => {
-    resetAppleKeysCache();
-    triggerDeps.fetchImpl = fakeApple().fetchImpl;
-    triggerDeps.clientIds = () => [CLIENT_ID];
-    triggerDeps.now = () => Date.now();
-    rows = new Map([["apple#001234.apple", { userId: "apple#001234.apple", cognitoUsername: "uuid-1", cognitoSub: "sub-1" }]]);
-    db.send.mockReset().mockImplementation(async (c: { constructor: { name: string }; input: Record<string, any> }) => {
-        const key = c.input.Key.userId;
-        const row = rows.get(key);
-        if (c.constructor.name === "GetCommand") return { Item: row };
-        if (c.constructor.name === "UpdateCommand") {
-            const v = c.input.ExpressionAttributeValues;
-            if (!row || row.cognitoUsername !== v[":u"] || row.lastNonce === v[":n"]) {
-                throw Object.assign(new Error("cc"), { name: "ConditionalCheckFailedException" });
-            }
-            rows.set(key, { ...row, lastNonce: v[":n"] });
-            return {};
-        }
-        throw new Error("知らない命令");
-    });
+    users = fakeUsersTable();
+    users.table.set("apple#001234.apple", { userId: "apple#001234.apple", cognitoUsername: "uuid-1", cognitoSub: "sub-1" });
+    federatedDeps.now = () => Date.now();
+    db.send.mockReset().mockImplementation(users.send);
 });
 
 const ev = (triggerSource: string, request: AuthChallengeEvent["request"] = {}, userName = "uuid-1"): AuthChallengeEvent =>
@@ -65,46 +50,52 @@ describe("Define（次の段）", () => {
 });
 
 describe("Create（問い）", () => {
-    it("問いの中身は無い（答えは Apple の token）", async () => {
+    it("問いの中身は無い（答えは `POST /auth/apple` が出した券）", async () => {
         const r = (await handler(ev("CreateAuthChallenge_Authentication", { challengeName: CHALLENGE }))).response;
-        expect(r.publicChallengeParameters).toEqual({ provider: "apple" });
-        expect(r.challengeMetadata).toBe("APPLE_ID_TOKEN");
+        expect(r.publicChallengeParameters).toEqual({ kind: "ticket" });
+        expect(r.challengeMetadata).toBe("FEDERATED_TICKET");
     });
 });
 
-describe("Verify（答えの確かめ）", () => {
-    it("正しい token で、結ばれた利用者なら通し、使った nonce を書く", async () => {
-        expect(await verifyAnswer(makeToken())).toBe(true);
-        expect(rows.get("apple#001234.apple")?.lastNonce).toBe("n0nce");
+describe("Verify（券を照らして消す）", () => {
+    it("出した券で、結ばれた利用者なら通し、券を消す", async () => {
+        const answer = await issueTicket("apple", "001234.apple");
+        expect(await verifyAnswer(answer)).toBe(true);
+        expect(users.table.get("apple#001234.apple")!.ticketHash).toBeUndefined();
     });
 
-    it("🔴 同じ token（同じ nonce）は2回目を通さない", async () => {
-        expect(await verifyAnswer(makeToken())).toBe(true);
+    it("🔴 同じ券は2回目を通さない（使い回し）", async () => {
+        const answer = await issueTicket("apple", "001234.apple");
+        expect(await verifyAnswer(answer)).toBe(true);
+        expect(await verifyAnswer(answer)).toBe(false);
+    });
+
+    it("🔴 Apple の identity token をそのまま答えても通らない（前の作りの抜け道）", async () => {
+        await issueTicket("apple", "001234.apple");
         expect(await verifyAnswer(makeToken())).toBe(false);
-        expect(await verifyAnswer(makeToken({ nonce: "n2" }))).toBe(true);
     });
 
-    it("🔴 その Apple の人が別の利用者に結ばれていれば通さない（他人のアカウントに入れない）", async () => {
-        expect(await verifyAnswer(makeToken(), "uuid-other")).toBe(false);
-        expect(await verifyAnswer(makeToken(), "uuid-1", "sub-other")).toBe(false);
-        expect(await verifyAnswer(makeToken({ sub: "unknown.apple" }))).toBe(false);
+    it("🔴 その券の行が別の利用者を指していれば通さない（他人のアカウントに入れない）", async () => {
+        const answer = await issueTicket("apple", "001234.apple");
+        expect(await verifyAnswer(answer, "uuid-other")).toBe(false);
+        expect(await verifyAnswer(answer, "uuid-1", "sub-other")).toBe(false);
+        expect(await verifyAnswer(answer.replace("001234.apple", "unknown.apple"))).toBe(false);
     });
 
-    it("確かめられない token・nonce の無い token・別のアプリあては通さない", async () => {
-        expect(await verifyAnswer("garbage")).toBe(false);
-        expect(await verifyAnswer(makeToken({ nonce: undefined }))).toBe(false);
-        expect(await verifyAnswer(makeToken({ aud: "com.other" }))).toBe(false);
+    it("期限切れ・違う券・形の壊れた答えは通さない", async () => {
+        const answer = await issueTicket("apple", "001234.apple");
+        expect(await verifyAnswer(ticketAnswer("apple", "001234.apple", "B".repeat(43)))).toBe(false);
         expect(await verifyAnswer(undefined)).toBe(false);
-    });
-
-    it("宛先が設定されていない環境では通さない", async () => {
-        triggerDeps.clientIds = () => [];
-        expect(await verifyAnswer(makeToken())).toBe(false);
+        expect(await verifyAnswer("garbage")).toBe(false);
+        const t0 = Date.now();
+        federatedDeps.now = () => t0 + 5 * 60 * 1000 + 1;
+        expect(await verifyAnswer(answer)).toBe(false);
     });
 
     it("表が落ちても投げずに「通さない」で返す（投げると文が端末に出る）", async () => {
+        const answer = await issueTicket("apple", "001234.apple");
         db.send.mockRejectedValue(Object.assign(new Error("boom"), { name: "InternalServerError" }));
-        await expect(verifyAnswer(makeToken())).resolves.toBe(false);
+        await expect(verifyAnswer(answer)).resolves.toBe(false);
     });
 });
 

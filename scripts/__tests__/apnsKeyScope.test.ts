@@ -89,7 +89,18 @@ const sendsPush = (handler: string) =>
     /\b(?:pushNotification|refreshBadges|refreshBadgesQuietly|applyToProfile|alertOne|notifyInspiredOnce|sendDm)\s*\(/.test(handlerBody("api-user", handler))
     // 旅行プランの共有（`tripShare.ts`）は口が9つでも関数は1つ（`handler` が道で分ける）。知らせは中の `notify` が
     // `sendPush` で直に送るので、`handler` の本文には出てこない。別のスタックまで見張りを広げたとき（#552）に足した
-    || (handler === "src/tripShare.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/tripShare.ts"), "utf8")));
+    || (handler === "src/tripShare.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/tripShare.ts"), "utf8")))
+    // 「Apple でサインイン」（札 journey.photo-ios#601）: メールで自動で結んだとき、持ち主の端末へ `sendPush` で知らせる
+    // （`federatedAccount.ts` の `pushLinkedNotice`。`linkOrCreate` の中なので `handler` の本文には出てこない）
+    || (handler === "src/appleSignin.startAppleSignin" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/federatedAccount.ts"), "utf8")));
+
+/**
+ * 通知は送らないが、**同じ鍵で Apple の client secret を作る**関数（2026-11-23 owner: 新しい鍵は作らず、APNs の鍵に
+ * Sign in with Apple を足した）。退会で Apple の更新トークンを取り消す（`federatedAccount.ts` の `revokeLinkedTokens`）。
+ * 要るのは鍵・Key ID・Team ID の3つだけ（送り先の topic・host は要らない）
+ */
+const APPLE_SIGNIN_KEY_USERS = new Map([["deleteAccount", "src/account.deleteAccount"]]);
+const APPLE_KEY_VARS = ["APNS_PRIVATE_KEY", "APNS_KEY_ID", "APNS_TEAM_ID"];
 // `notifyInspiredOnce` は「この写真を見て撮影」の知らせ（`inspired.ts`）。写真の保存・更新が呼ぶ
 // `sendDm` は DM の送信（`dm.ts`。受け取った人の端末へ送る。リクエストには送らない）。
 // `alertOne` は光と天気の知らせ（`lightForecast.ts` の `sendLightAlerts`）。お知らせの一覧には
@@ -144,16 +155,25 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
 
     it("鍵を持つ関数は、通知を積むものだけ", () => {
         const extra = [...fns]
-            .filter(([, v]) => v.vars.includes(KEY) && !sendsPush(v.handler))
+            .filter(([n, v]) => v.vars.includes(KEY) && !sendsPush(v.handler) && APPLE_SIGNIN_KEY_USERS.get(n) !== v.handler)
             .map(([n]) => n);
         expect(extra, "送らない関数に秘密鍵を配っている").toEqual([]);
+    });
+
+    it("Apple の取り消しに鍵を使う関数は、鍵・Key ID・Team ID の3つを持ち、本当に取り消しを呼んでいる", () => {
+        for (const [name, handler] of APPLE_SIGNIN_KEY_USERS) {
+            const fn = fns.get(name);
+            expect(fn?.handler, name).toBe(handler);
+            expect(fn!.vars.filter((v) => APPLE_KEY_VARS.includes(v)).sort(), name).toEqual([...APPLE_KEY_VARS].sort());
+            expect(handlerBody("api-user", handler), name).toMatch(/\brevokeLinkedTokens\s*\(/);
+        }
     });
 
     // 走査が空振りしていないことの自己確認（0件どうしの一致で緑にならない）
     it("通知を積む関数を1つ以上見つけている", () => {
         const sending = [...fns].filter(([, v]) => sendsPush(v.handler)).map(([n]) => n).sort();
         expect(sending).toEqual([
-            "answerStory", "appStoreNotification", "createStory", "dm", "followUser", "getMyBadges", "likePhoto", "postComment", "postStoryReply",
+            "answerStory", "appStoreNotification", "appleSigninStart", "createStory", "dm", "followUser", "getMyBadges", "likePhoto", "postComment", "postStoryReply",
             "recordPurchase", "savePhoto", "sendLightAlerts", "tripShare", "updatePhotoVisibility",
         ]);
     });
@@ -163,7 +183,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
     // `apnsConfigured()` が false）
     it("鍵を配る関数には、5つ全部を配る", () => {
         const partial = [...fns]
-            .filter(([, v]) => v.vars.length > 0 && v.vars.length < ALL_VARS.length)
+            .filter(([n, v]) => v.vars.length > 0 && v.vars.length < ALL_VARS.length && !APPLE_SIGNIN_KEY_USERS.has(n))
             .map(([n, v]) => `${n}: ${ALL_VARS.filter((x) => !v.vars.includes(x)).join(",")} が無い`);
         expect(partial).toEqual([]);
     });

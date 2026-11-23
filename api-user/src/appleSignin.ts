@@ -3,72 +3,47 @@
  *
  * ## 流れ（押す回数は2回: ボタン → Face ID）
  *
- * 1. アプリが Apple の標準シートで identity token・認可コード・（初回だけ）名前を受け取る
- * 2. `POST /auth/apple`（ログイン不要）: token を Apple の公開鍵で確かめ、**今の Cognito の利用者**を決める
- *    （結ぶ・作る）。認可コードを Apple の更新トークンに替えて控える。答えは Cognito のユーザー名だけ
- * 3. アプリが Cognito の CUSTOM_AUTH でそのユーザー名にログインし、同じ identity token を答えとして出す。
- *    確かめは Cognito のトリガー（`appleAuthTrigger.ts`）がもう一度する。
+ * 1. アプリが乱数の nonce（元の値）を作り、その **SHA-256** を Apple の頼みに入れる。Apple の標準シートで
+ *    identity token（中の `nonce` は SHA-256）・認可コード・（初回だけ）名前を受け取る
+ * 2. `POST /auth/apple`（ログイン不要）: token を Apple の公開鍵で確かめ、**元の値の SHA-256 が token の nonce と同じか**
+ *    を照らし、使った nonce を1回きりにする（`useNonce`）。**今の Cognito の利用者**を決め（結ぶ・作る）、
+ *    認可コードを Apple の更新トークンに替えて控える。答えは Cognito のユーザー名と**使い捨ての券**（5分）
+ * 3. アプリが Cognito の CUSTOM_AUTH でそのユーザー名にログインし、券を答えに出す。
+ *    Cognito のトリガー（`appleAuthTrigger.ts`）が券を照らして消す（1回きり）。
  *    → 出てくるのは今と同じ Cognito のトークン。API の認可・トークンの更新・退会の流れはそのまま使える
  *
- * ## 行（users 表・新しい表と GSI は作らない）
+ * 🔴 盗まれた identity token だけでは入れない（元の nonce が要る）。元の nonce ごと盗まれても、使った nonce は
+ *    2回通らない。券は乱数で、行には SHA-256 だけを置く。
  *
- * - `apple#<Apple の sub>` … { cognitoUsername, cognitoSub, refreshToken?, linkedAt, linkedBy, lastNonce? }
- *   🔴 `#` を含む行は人の行ではない（`userSearch.ts` の `isReservationItem` が検索から外す）
- * - プロフィールの行に `appleSub`（公開の答えには出さない: `toPublicProfile` は項目を選んで返し、
- *   本人の答え（`withBadgeFields`）からも落とす）
+ * 行・結び方・券は提供元によらない土台（`federatedAccount.ts`。次の Google・#715 も同じ所を使う）。
+ * ここが持つのは Apple の token の確かめ・認可コードの交換・退会のときの取り消しだけ。
  *
- * ## 結び方（2026-11-14 の案のとおり）
- *
- * - Apple が**確かめ済み**としたメールが、**確かめ済み**のメールのアカウントと同じなら、そのアカウントに結ぶ
- * - メールを非公開にした人（転送アドレス）・合うアカウントが無い人は、新しいアカウントを作る
- * - 名前は Apple が最初の1回しか渡さないので、そのときだけ表示名に入れる（名前のある人は上書きしない）
- *
- * 退会のときは `POST /auth/apple/revoke` で Apple の更新トークンを取り消す（Apple の決まり）。
+ * 退会のときの取り消しは、サーバーの退会（`account.ts` の `deleteAccount`）が `appleRevoker` で行う
+ * （Web や古いアプリから退会しても漏れない）。
  */
-import type { APIGatewayProxyHandlerV2, APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
-import { randomBytes, randomUUID } from "node:crypto";
+import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
+import { jsonError, JSON_HEADERS } from "./http";
 import {
-    AdminAddUserToGroupCommand, AdminCreateUserCommand, AdminGetUserCommand, AdminSetUserPasswordCommand,
-    CognitoIdentityProviderClient, ListUsersCommand,
-    type AttributeType,
-} from "@aws-sdk/client-cognito-identity-provider";
-import { DeleteCommand, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb } from "./dynamodb";
-import { requireEnv } from "./env";
-import { JSON_HEADERS, getUserId, jsonError } from "./http";
-import {
-    appleConfigFromEnv, appleKey, exchangeAppleCode, revokeAppleToken, verifyAppleIdentityToken,
+    exchangeAppleCode, loadAppleConfig, revokeAppleToken, verifyAppleIdentityToken,
     AppleTokenError, type AppleClaims, type AppleKeyConfig, type FetchLike,
 } from "./appleIdToken";
-
-const USERS_TABLE = requireEnv("USERS_TABLE");
-
-/** 投稿・編集ができる利用者のグループ（`api/src/cognitoTrigger.ts` と同じ。`admin` は絶対に入れない） */
-export const USER_GROUP = "user";
-
-/** 表示名の上限（プロフィール編集と同じ） */
-export const DISPLAY_NAME_MAX = 100;
+import {
+    cleanDisplayName, federatedDeps, issueTicket, linkOrCreate, saveRefreshToken, useNonce, LinkBusyError,
+    type Revoker,
+} from "./federatedAccount";
 
 export const UNAVAILABLE_MESSAGE = "Apple でのサインインは今は使えません";
 export const INVALID_TOKEN_MESSAGE = "Apple でのサインインを確かめられませんでした。もう一度お試しください";
+export const BUSY_MESSAGE = "サインインの途中です。少し待ってからもう一度お試しください";
 
-/** 外へ話す口（試験で差し替える） */
+/** 外へ話す口（試験で差し替える）。Cognito と時計は `federatedDeps` */
 export const appleDeps: {
-    idp: { send: (cmd: unknown) => Promise<unknown> };
     fetchImpl?: FetchLike;
-    config: () => AppleKeyConfig | null;
-    poolId: () => string;
+    config: () => Promise<AppleKeyConfig | null>;
 } = {
-    idp: new CognitoIdentityProviderClient({ region: process.env.AWS_REGION ?? "ap-northeast-1" }) as unknown as { send: (cmd: unknown) => Promise<unknown> },
     fetchImpl: undefined,
-    config: () => appleConfigFromEnv(),
-    poolId: () => (process.env.COGNITO_USER_POOL_ID ?? "").trim(),
+    config: () => loadAppleConfig(),
 };
-
-/** この環境で使えるか（鍵・宛先・プールがそろっている） */
-export function isAppleSigninAvailable(): boolean {
-    return appleDeps.config() !== null && appleDeps.poolId() !== "";
-}
 
 const ok = (body: unknown) => ({
     statusCode: 200,
@@ -76,220 +51,21 @@ const ok = (body: unknown) => ({
     body: JSON.stringify(body),
 });
 
-type AppleRow = {
-    userId: string;
-    cognitoUsername?: string;
-    cognitoSub?: string;
-    refreshToken?: string;
-};
-
 const errName = (e: unknown) => (e as { name?: string } | null)?.name ?? "";
 
-// ────────────────────────────── 表示名
-
-/** 名前を整える（前後の空白・制御文字を落とし、上限で切る）。空なら undefined */
-export function cleanDisplayName(raw: unknown): string | undefined {
-    if (typeof raw !== "string") return undefined;
-    // 制御文字（改行・タブを含む）は空白にする
-    // eslint-disable-next-line no-control-regex
-    const s = raw.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
-    if (!s) return undefined;
-    return [...s].slice(0, DISPLAY_NAME_MAX).join("");
-}
-
-// ────────────────────────────── Cognito
-
-function attr(attrs: AttributeType[] | undefined, name: string): string | undefined {
-    return attrs?.find((a) => a.Name === name)?.Value;
-}
-
-/** ListUsers の絞り込みに入れる値（`"` と `\` を逃がす） */
-export function filterValue(v: string): string {
-    return v.replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
-}
-
-type CognitoUser = { username: string; sub: string };
-
 /**
- * 確かめ済みのメールで、確かめ済み・有効な利用者を探す。
- * 🔴 **確かめていないメールのアカウントには結ばない**（他人がそのメールで登録だけしていた、を乗っ取らせない）
+ * `GET /auth/apple/status`（ログイン不要）。アプリはこれが `available: true` のときだけボタンを出す。
+ * 🔴 この関数には鍵を配らない。`deploy-api.yml` が「そろっているか」の真偽だけ（`APPLE_SIGNIN_READY`）を渡す
  */
-export async function findVerifiedEmailUser(email: string): Promise<CognitoUser | null> {
-    const variants = [...new Set([email, email.toLowerCase()])];
-    for (const e of variants) {
-        const res = await appleDeps.idp.send(new ListUsersCommand({
-            UserPoolId: appleDeps.poolId(),
-            Filter: `email = "${filterValue(e)}"`,
-            Limit: 10,
-        })) as { Users?: { Username?: string; Enabled?: boolean; UserStatus?: string; Attributes?: AttributeType[] }[] };
-        for (const u of res.Users ?? []) {
-            const sub = attr(u.Attributes, "sub");
-            if (!u.Username || !sub) continue;
-            if (u.Enabled === false || u.UserStatus !== "CONFIRMED") continue;
-            if (attr(u.Attributes, "email_verified") !== "true") continue;
-            return { username: u.Username, sub };
-        }
-    }
-    return null;
-}
+export const getAppleSigninStatus: APIGatewayProxyHandlerV2 = async () =>
+    ok({ available: process.env.APPLE_SIGNIN_READY === "true" && federatedDeps.poolId() !== "" });
 
-/** Cognito にまだ居るか（退会で消えた利用者を指す古い行を見分ける） */
-async function cognitoUserExists(username: string): Promise<boolean> {
-    try {
-        await appleDeps.idp.send(new AdminGetUserCommand({ UserPoolId: appleDeps.poolId(), Username: username }));
-        return true;
-    } catch (e) {
-        if (errName(e) === "UserNotFoundException") return false;
-        throw e;
-    }
-}
+type StartBody = { identityToken?: unknown; nonce?: unknown; authorizationCode?: unknown; displayName?: unknown };
 
-/**
- * 新しい利用者を作る。ユーザー名は UUID（メールの登録と同じ・`AuthGateway.signUp`）。
- * パスワードは本人も知らない長い乱数にして「確認済み」にする（CUSTOM_AUTH は確認済みの利用者にしか通らない）。
- * あとでメールのパスワードを使いたくなったら「パスワードを忘れた」で決められる（メールが届く人だけ）
- */
-async function createCognitoUser(claims: AppleClaims): Promise<CognitoUser> {
-    const username = randomUUID();
-    const pool = appleDeps.poolId();
-    const emailAttrs: AttributeType[] = claims.email
-        ? [{ Name: "email", Value: claims.email }, { Name: "email_verified", Value: claims.emailVerified ? "true" : "false" }]
-        : [];
-    let created: { User?: { Attributes?: AttributeType[] } };
-    try {
-        created = await appleDeps.idp.send(new AdminCreateUserCommand({
-            UserPoolId: pool, Username: username, UserAttributes: emailAttrs, MessageAction: "SUPPRESS",
-        })) as typeof created;
-    } catch (e) {
-        // 確かめ済みのメールを別の（有効でない）利用者が持っていた。メール無しで作る（取り上げない）
-        if (errName(e) !== "AliasExistsException" || emailAttrs.length === 0) throw e;
-        created = await appleDeps.idp.send(new AdminCreateUserCommand({
-            UserPoolId: pool, Username: username, UserAttributes: [], MessageAction: "SUPPRESS",
-        })) as typeof created;
-    }
-    const sub = attr(created.User?.Attributes, "sub");
-    if (!sub) throw new Error("AdminCreateUser: sub がありません");
-    await appleDeps.idp.send(new AdminSetUserPasswordCommand({
-        UserPoolId: pool, Username: username, Password: randomPassword(), Permanent: true,
-    }));
-    // メールの登録は PostConfirmation のトリガーが `user` グループに入れる。管理者の作成ではトリガーが動かないので、ここで入れる
-    await appleDeps.idp.send(new AdminAddUserToGroupCommand({ UserPoolId: pool, Username: username, GroupName: USER_GROUP }));
-    return { username, sub };
-}
-
-/** プールのパスワードの決まり（大小の英字・数字・記号・8字以上）を満たす、本人も知らない乱数 */
-export function randomPassword(): string {
-    return `Aa1!${randomBytes(30).toString("base64url")}`;
-}
-
-// ────────────────────────────── users 表
-
-async function getRow<T>(userId: string): Promise<T | undefined> {
-    const res = await ddb.send(new GetCommand({ TableName: USERS_TABLE, Key: { userId }, ConsistentRead: true }));
-    return res.Item as T | undefined;
-}
-
-/** プロフィールの行を作る（無ければ）。名前は初回だけ */
-async function createProfile(sub: string, displayName: string | undefined): Promise<void> {
-    try {
-        await ddb.send(new PutCommand({
-            TableName: USERS_TABLE,
-            Item: { userId: sub, createdAt: new Date().toISOString(), ...(displayName ? { displayName } : {}) },
-            ConditionExpression: "attribute_not_exists(userId)",
-        }));
-    } catch (e) {
-        if (errName(e) !== "ConditionalCheckFailedException") throw e;
-    }
-}
-
-/** プロフィールに Apple の番号を書く。名前は**無いときだけ**入れる（本人が付けた名前を上書きしない） */
-async function markProfile(sub: string, appleSub: string, displayName: string | undefined): Promise<void> {
-    try {
-        await ddb.send(new UpdateCommand({
-            TableName: USERS_TABLE,
-            Key: { userId: sub },
-            UpdateExpression: displayName
-                ? "SET appleSub = :a, displayName = if_not_exists(displayName, :n)"
-                : "SET appleSub = :a",
-            // 退会した人（墓石）の行は書き換えない
-            ConditionExpression: "attribute_exists(userId) AND attribute_not_exists(deletedAt)",
-            ExpressionAttributeValues: { ":a": appleSub, ...(displayName ? { ":n": displayName } : {}) },
-        }));
-    } catch (e) {
-        if (errName(e) !== "ConditionalCheckFailedException") throw e;
-    }
-}
-
-export type LinkResult = { username: string; sub: string; via: "apple" | "email" | "new" };
-
-/**
- * Apple の利用者を Cognito の利用者に結ぶ（無ければ作る）。
- * 1. 前に結んだ行があり、その利用者がまだ居れば、それ
- * 2. 確かめ済みのメールが、確かめ済みのメールのアカウントと同じなら、そこへ結ぶ
- * 3. それ以外は新しく作る
- */
-export async function linkOrCreate(claims: AppleClaims, displayName: string | undefined): Promise<LinkResult> {
-    const key = appleKey(claims.sub);
-    const row = await getRow<AppleRow>(key);
-    if (row?.cognitoUsername && row.cognitoSub) {
-        if (await cognitoUserExists(row.cognitoUsername)) {
-            return { username: row.cognitoUsername, sub: row.cognitoSub, via: "apple" };
-        }
-        // 退会で消えた利用者を指す古い行。消して作り直す（退会した人は新しい人として始める）
-        await ddb.send(new DeleteCommand({ TableName: USERS_TABLE, Key: { userId: key } }));
-    }
-
-    let user: CognitoUser | null = null;
-    let via: LinkResult["via"] = "new";
-    if (claims.email && claims.emailVerified && !claims.isPrivateEmail) {
-        user = await findVerifiedEmailUser(claims.email);
-        if (user) via = "email";
-    }
-    if (!user) user = await createCognitoUser(claims);
-
-    try {
-        await ddb.send(new PutCommand({
-            TableName: USERS_TABLE,
-            Item: {
-                userId: key, cognitoUsername: user.username, cognitoSub: user.sub,
-                linkedAt: new Date().toISOString(), linkedBy: via,
-            },
-            ConditionExpression: "attribute_not_exists(userId)",
-        }));
-    } catch (e) {
-        if (errName(e) !== "ConditionalCheckFailedException") throw e;
-        // 同じ Apple の人が2つの端末で同時に押した。先に書けた方に合わせる
-        const won = await getRow<AppleRow>(key);
-        if (won?.cognitoUsername && won.cognitoSub) return { username: won.cognitoUsername, sub: won.cognitoSub, via: "apple" };
-        throw e;
-    }
-    if (via === "new") await createProfile(user.sub, displayName);
-    await markProfile(user.sub, claims.sub, displayName);
-    return { username: user.username, sub: user.sub, via };
-}
-
-/** 更新トークンを行に書く（新しいものに入れ替える） */
-async function saveRefreshToken(appleSub: string, refreshToken: string): Promise<void> {
-    await ddb.send(new UpdateCommand({
-        TableName: USERS_TABLE,
-        Key: { userId: appleKey(appleSub) },
-        UpdateExpression: "SET refreshToken = :t, tokenAt = :at",
-        ConditionExpression: "attribute_exists(userId)",
-        ExpressionAttributeValues: { ":t": refreshToken, ":at": new Date().toISOString() },
-    }));
-}
-
-// ────────────────────────────── 口
-
-/** `GET /auth/apple/status`（ログイン不要）。アプリはこれが `available: true` のときだけボタンを出す */
-export const getAppleSigninStatus: APIGatewayProxyHandlerV2 = async () => ok({ available: isAppleSigninAvailable() });
-
-type StartBody = { identityToken?: unknown; authorizationCode?: unknown; displayName?: unknown };
-
-/** `POST /auth/apple`（ログイン不要）。答えは Cognito のユーザー名だけ */
+/** `POST /auth/apple`（ログイン不要）。答えは Cognito のユーザー名と、CUSTOM_AUTH に出す使い捨ての券 */
 export const startAppleSignin: APIGatewayProxyHandlerV2 = async (event) => {
-    const cfg = appleDeps.config();
-    if (!cfg || !appleDeps.poolId()) return jsonError(503, UNAVAILABLE_MESSAGE, "apple_signin_unavailable");
+    const cfg = await appleDeps.config();
+    if (!cfg || !federatedDeps.poolId()) return jsonError(503, UNAVAILABLE_MESSAGE, "apple_signin_unavailable");
 
     let body: StartBody;
     try {
@@ -303,66 +79,56 @@ export const startAppleSignin: APIGatewayProxyHandlerV2 = async (event) => {
     try {
         claims = await verifyAppleIdentityToken(body.identityToken, { clientIds: [cfg.clientId], fetchImpl: appleDeps.fetchImpl });
     } catch (e) {
-        if (!(e instanceof AppleTokenError)) console.error("startAppleSignin: verify", e);
+        if (!(e instanceof AppleTokenError)) console.error("startAppleSignin: verify", errName(e));
         else console.warn(`startAppleSignin: ${e.reason}`);
         return jsonError(401, INVALID_TOKEN_MESSAGE, "apple_token_invalid");
     }
-    // アプリはいつも nonce を入れる。無い token は使い回しを止められないので受けない（`appleAuthTrigger.ts`）
-    if (!claims.nonce) return jsonError(401, INVALID_TOKEN_MESSAGE, "apple_token_invalid");
 
     try {
-        const linked = await linkOrCreate(claims, cleanDisplayName(body.displayName));
+        // 🔴 元の nonce を照らし、1回きりにする（盗まれた token の使い回しを止める）
+        if (!(await useNonce("apple", body.nonce, claims.nonce))) {
+            console.warn("startAppleSignin: nonce");
+            return jsonError(401, INVALID_TOKEN_MESSAGE, "apple_token_invalid");
+        }
+        const linked = await linkOrCreate({
+            provider: "apple", sub: claims.sub, email: claims.email,
+            emailVerified: claims.emailVerified, isPrivateEmail: claims.isPrivateEmail,
+        }, cleanDisplayName(body.displayName));
         const code = typeof body.authorizationCode === "string" && body.authorizationCode.length <= 1024
             ? body.authorizationCode : "";
         if (code) {
             // 取れなくてもログインは止めない（次のログインでまた取る）
             try {
                 const refresh = await exchangeAppleCode(cfg, code, appleDeps.fetchImpl);
-                if (refresh) await saveRefreshToken(claims.sub, refresh);
+                if (refresh) await saveRefreshToken("apple", claims.sub, refresh);
             } catch (e) {
                 console.warn("startAppleSignin: token exchange", errName(e));
             }
         }
+        const challengeAnswer = await issueTicket("apple", claims.sub);
         // 数え方は登録の1行と同じ形（uid・メールは出さない・`api/src/cognitoTrigger.ts` の signupMetricLine）
         if (linked.via === "new") console.log(JSON.stringify({ metric: "signup", platform: "ios", from: "apple" }));
-        return ok({ username: linked.username, created: linked.via === "new" });
+        return ok({ username: linked.username, challengeAnswer, created: linked.via === "new" });
     } catch (e) {
+        if (e instanceof LinkBusyError) return jsonError(409, BUSY_MESSAGE, "apple_signin_busy");
         console.error("startAppleSignin:", errName(e));
         return jsonError(500, "サインインを完了できませんでした。しばらくしてからもう一度お試しください");
     }
 };
 
 /**
- * `POST /auth/apple/revoke`（ログインの口）。退会の前にアプリが呼ぶ。
- * Apple の更新トークンを取り消し、Apple の行とプロフィールの `appleSub` を消す。
- * Apple で入っていない人は何もせず `revoked: false`
+ * 退会のときに Apple の更新トークンを取り消す（Apple の決まり）。`account.ts` の `deleteAccount` が呼ぶ。
+ * - `revoked`: 取り消せた（Apple は知らない・取り消し済みのトークンにも 200 を返す）
+ * - `failed`: Apple が断った・届かなかった（退会を止めて、やり直してもらう）
+ * - `unavailable`: この環境に鍵が無い（退会は止めない。行と墓石の番号を残し、期限で消える）
  */
-export const revokeAppleSignin: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) => {
-    const uid = getUserId(event);
-    if (!uid) return jsonError(401, "認証が必要です");
+export const appleRevoker: Revoker = async (refreshToken) => {
+    const cfg = await appleDeps.config();
+    if (!cfg) return "unavailable";
     try {
-        const profile = await getRow<{ appleSub?: unknown }>(uid);
-        const appleSub = typeof profile?.appleSub === "string" ? profile.appleSub : "";
-        if (!appleSub) return ok({ revoked: false });
-        const row = await getRow<AppleRow>(appleKey(appleSub));
-        // 🔴 行が呼んだ本人のものでなければ触らない
-        if (row && row.cognitoSub !== uid) return ok({ revoked: false });
-        if (row?.refreshToken) {
-            const cfg = appleDeps.config();
-            if (!cfg) return jsonError(503, UNAVAILABLE_MESSAGE, "apple_signin_unavailable");
-            if (!(await revokeAppleToken(cfg, row.refreshToken, appleDeps.fetchImpl))) {
-                return jsonError(502, "Apple との連携を解除できませんでした。もう一度お試しください", "apple_revoke_failed");
-            }
-        }
-        if (row) await ddb.send(new DeleteCommand({ TableName: USERS_TABLE, Key: { userId: appleKey(appleSub) } }));
-        await ddb.send(new UpdateCommand({
-            TableName: USERS_TABLE, Key: { userId: uid },
-            UpdateExpression: "REMOVE appleSub",
-            ConditionExpression: "attribute_exists(userId)",
-        })).catch((e) => { if (errName(e) !== "ConditionalCheckFailedException") throw e; });
-        return ok({ revoked: true });
+        return (await revokeAppleToken(cfg, refreshToken, appleDeps.fetchImpl)) ? "revoked" : "failed";
     } catch (e) {
-        console.error("revokeAppleSignin:", errName(e));
-        return jsonError(500, "Apple との連携を解除できませんでした。もう一度お試しください");
+        console.warn("appleRevoker:", errName(e));
+        return "failed";
     }
 };

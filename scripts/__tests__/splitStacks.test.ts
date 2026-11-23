@@ -123,7 +123,7 @@ describe("別のスタック（api-user/serverless.*.yml）", () => {
                 expect(AUTH_IMPORT).toContain("CognitoAuthorizerId");
             });
 
-            it("deploy-api.yml がこのスタックを配る（spot-wants 以外は user API の後）", () => {
+            it("deploy-api.yml がこのスタックを配る（spot-wants と apple-signin 以外は user API の後）", () => {
                 const wf = readFileSync(join(ROOT, ".github/workflows/deploy-api.yml"), "utf8");
                 // user API のジョブの中で見る（管理 API のジョブにも同じ書き方の段がある）
                 const job = wf.indexOf("\n  deploy-user-api:");
@@ -135,7 +135,8 @@ describe("別のスタック（api-user/serverless.*.yml）", () => {
                 const mine = listed ? job + stacksLine!.index : wf.indexOf(`--config ${file} `, job);
                 expect(user).toBeGreaterThan(0);
                 expect(mine, `${file} を配る段が無い`).toBeGreaterThan(0);
-                if (file === "serverless.spot-wants.yml") expect(mine).toBeLessThan(user);
+                // 段の流量の設定（RouteSettings）を user API が付ける経路は、経路が先に要る
+                if (file === "serverless.spot-wants.yml" || file === "serverless.apple-signin.yml") expect(mine).toBeLessThan(user);
                 else expect(mine).toBeGreaterThan(user);
             });
         });

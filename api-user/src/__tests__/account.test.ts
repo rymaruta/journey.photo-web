@@ -19,6 +19,10 @@ vi.mock("@aws-sdk/client-s3", () => ({
 const mockRebuild = vi.hoisted(() => vi.fn());
 vi.mock("../rebuild", () => ({ requestSiteRebuild: mockRebuild }));
 
+// Apple の更新トークンの取り消し（`appleSignin.ts` の `appleRevoker`）。Apple には話しかけない
+const mockAppleRevoke = vi.hoisted(() => vi.fn());
+vi.mock("../appleSignin", () => ({ appleRevoker: mockAppleRevoke }));
+
 vi.stubEnv("UPLOAD_BUCKET", "bucket-test");
 vi.stubEnv("USERS_TABLE", "users-test");
 const { deleteAccount, tombstoneTtl, TOMBSTONE_RETENTION_DAYS } = await import("../account");
@@ -52,6 +56,7 @@ function deletedS3Keys(): string[] {
 }
 
 beforeEach(() => {
+    mockAppleRevoke.mockReset().mockResolvedValue("revoked");
     mockRebuild.mockReset().mockResolvedValue(true);
     mockDdbSend.mockReset();
     mockS3Send.mockReset().mockResolvedValue({});
@@ -858,22 +863,86 @@ describe("deleteAccount: 消し残しを作らない", () => {
         expect(tomb!.username).toBe("ryuhei");
     });
 
-    // 「Apple でサインイン」の人（札 journey.photo-ios#601）: 退会の途中で止まった人のやり直しでは、
-    // Apple の更新トークンの取り消し（`POST /auth/apple/revoke`）が墓石の後に来る。番号が無いと取り消せない
-    it("墓石に Apple の番号を残す（取り消しのやり直しのため）。無い人には足さない", async () => {
-        const tombOf = () => mockDdbSend.mock.calls
-            .map((c) => c[0] as { constructor: { name: string }; input: Record<string, unknown> })
-            .filter((c) => c.constructor.name === "PutCommand")
-            .map((c) => c.input.Item as Record<string, unknown>)
-            .find((it) => it?.userId === "me");
-        setupWithPhoto({ id: "p1", userId: "me", src: "https://cdn.test/uploads/p1.jpg" }, { userId: "me", appleSub: "001.apple" });
-        await invoke(deleteAccount, ev("me"));
-        expect(tombOf()!.appleSub).toBe("001.apple");
+    // 「Apple でサインイン」の人（札 journey.photo-ios#601・2026-11-23 確かめ役の指摘）:
+    // 取り消しはサーバーの退会の中で行う（Web・古いアプリからでも漏れない）。退会が落ちたら結び付けは残る順番
+    describe("Apple でサインインの結び付け", () => {
+        /* eslint-disable @typescript-eslint/no-explicit-any */
+        type Cmd = { constructor: { name: string }; input: Record<string, any> };
+        let users: Map<string, Record<string, any>>;
+        const sent = () => mockDdbSend.mock.calls.map((c) => c[0] as Cmd);
+        const tombPut = () => sent().find((c) => c.constructor.name === "PutCommand" && c.input.Item?.userId === "me")?.input.Item;
+        function setupApple(profile: Record<string, unknown>, appleRow?: Record<string, unknown>) {
+            users = new Map(appleRow ? [["apple#001.apple", { userId: "apple#001.apple", ...appleRow }]] : []);
+            mockDdbSend.mockImplementation(async (cmd: Cmd) => {
+                const name = cmd.constructor.name;
+                const key = cmd.input.Key as { id?: string; userId?: string } | undefined;
+                if (name === "QueryCommand") return { Items: [] };
+                if (key?.userId?.startsWith("apple#")) {
+                    if (name === "GetCommand") return { Item: users.get(key.userId) };
+                    if (name === "DeleteCommand") users.delete(key.userId);
+                    if (name === "UpdateCommand") {
+                        const row = { ...users.get(key.userId) };
+                        if (cmd.input.UpdateExpression.includes("REMOVE refreshToken")) delete row.refreshToken;
+                        if (cmd.input.UpdateExpression.includes("#ttl")) row.ttl = cmd.input.ExpressionAttributeValues[":ttl"];
+                        users.set(key.userId, row);
+                    }
+                    return {};
+                }
+                if (name === "GetCommand" && key?.userId === "me") return { Item: profile };
+                return {};
+            });
+        }
 
-        mockDdbSend.mockReset();
-        setupWithPhoto({ id: "p1", userId: "me", src: "https://cdn.test/uploads/p1.jpg" }, { userId: "me" });
-        await invoke(deleteAccount, ev("me"));
-        expect(tombOf()).not.toHaveProperty("appleSub");
+        it("Apple の更新トークンを取り消し、行を消し、墓石の番号も消す", async () => {
+            setupApple({ userId: "me", appleSub: "001.apple" }, { cognitoSub: "me", cognitoUsername: "u-me", refreshToken: "r.1" });
+            const res = await invoke(deleteAccount, ev("me"));
+            expect(res.statusCode).toBe(200);
+            expect(mockAppleRevoke).toHaveBeenCalledWith("r.1");
+            expect(users.has("apple#001.apple")).toBe(false);
+            // 墓石には一度書き（落ちたときのやり直しの手がかり）、片付けたら消す
+            expect(tombPut()!.appleSub).toBe("001.apple");
+            const removed = sent().find((c) => c.constructor.name === "UpdateCommand" && c.input.Key?.userId === "me"
+                && c.input.UpdateExpression === "REMOVE #f");
+            expect(removed?.input.ExpressionAttributeNames).toEqual({ "#f": "appleSub" });
+        });
+
+        it("🔴 取り消しが落ちたら 500。墓石を書かず、ユーザー名も結び付けもそのまま（押し直せば続きから）", async () => {
+            mockAppleRevoke.mockResolvedValue("failed");
+            setupApple({ userId: "me", username: "ryuhei", appleSub: "001.apple" }, { cognitoSub: "me", cognitoUsername: "u-me", refreshToken: "r.1" });
+            const res = await invoke(deleteAccount, ev("me"));
+            expect(res.statusCode).toBe(500);
+            expect(tombPut()).toBeUndefined();
+            expect(users.get("apple#001.apple")).toMatchObject({ refreshToken: "r.1", cognitoSub: "me" });
+            expect(deletedDdbIds()).not.toContain("username#ryuhei");
+        });
+
+        it("やり直し（取り消し済みで行だけ残っている）は Apple に問い合わせずに片付ける", async () => {
+            setupApple({ userId: "me", deletedAt: "x", appleSub: "001.apple" }, { cognitoSub: "me", cognitoUsername: "u-me" });
+            expect((await invoke(deleteAccount, ev("me"))).statusCode).toBe(200);
+            expect(mockAppleRevoke).not.toHaveBeenCalled();
+            expect(users.has("apple#001.apple")).toBe(false);
+        });
+
+        it("鍵が無い環境（unavailable）は退会を止めない。行は期限を付けて残し、墓石の番号も残す", async () => {
+            mockAppleRevoke.mockResolvedValue("unavailable");
+            setupApple({ userId: "me", appleSub: "001.apple" }, { cognitoSub: "me", cognitoUsername: "u-me", refreshToken: "r.1" });
+            expect((await invoke(deleteAccount, ev("me"))).statusCode).toBe(200);
+            expect(users.get("apple#001.apple")).toMatchObject({ refreshToken: "r.1", ttl: tombPut()!.ttl });
+            expect(sent().some((c) => c.input.UpdateExpression === "REMOVE #f")).toBe(false);
+        });
+
+        it("🔴 行が別の人のものなら触らない。Apple で入っていない人は何もしない", async () => {
+            setupApple({ userId: "me", appleSub: "001.apple" }, { cognitoSub: "someone", cognitoUsername: "u-x", refreshToken: "r.x" });
+            expect((await invoke(deleteAccount, ev("me"))).statusCode).toBe(200);
+            expect(mockAppleRevoke).not.toHaveBeenCalled();
+            expect(users.get("apple#001.apple")).toMatchObject({ refreshToken: "r.x" });
+
+            mockDdbSend.mockReset();
+            setupApple({ userId: "me" });
+            expect((await invoke(deleteAccount, ev("me"))).statusCode).toBe(200);
+            expect(tombPut()).not.toHaveProperty("appleSub");
+            expect(mockAppleRevoke).not.toHaveBeenCalled();
+        });
     });
 
     // プロフィールが読めないまま墓石で上書きすると、同じく handle が消える。

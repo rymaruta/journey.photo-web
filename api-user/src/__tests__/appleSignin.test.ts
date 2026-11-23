@@ -1,93 +1,73 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { resetAppleKeysCache } from "../appleIdToken";
-import { CLIENT_ID, fakeApple, makeToken, p8Pem } from "./appleTestKit";
+import { CLIENT_ID, fakeApple, fakeUsersTable, makeToken, p8Pem } from "./appleTestKit";
 
 /**
- * 「Apple でサインイン」の口（札 journey.photo-ios#601）。
- * 結び方（同じ確かめ済みのメール・非公開のメール・前に結んだ人）・取り消し・鍵が無いときを見る
+ * 「Apple でサインイン」の口（札 journey.photo-ios#601）と、提供元によらない土台（`federatedAccount.ts`）。
+ * nonce の照らし・使い回し・券・結び方（同じ確かめ済みのメール・管理者・別の ID と結び済み・非公開のメール）・
+ * 同時に2回・鍵が無いときを見る。users 表は条件式まで真似る（`fakeUsersTable`）
  */
 const db = vi.hoisted(() => ({ send: vi.fn() }));
 vi.mock("../dynamodb", () => ({ ddb: db, PHOTOS_TABLE: "photos-test" }));
 
+import { appleDeps, appleRevoker, getAppleSigninStatus, startAppleSignin } from "../appleSignin";
 import {
-    appleDeps, getAppleSigninStatus, startAppleSignin, revokeAppleSignin, cleanDisplayName, filterValue,
-    randomPassword, USER_GROUP,
-} from "../appleSignin";
+    federatedDeps, cleanDisplayName, filterValue, randomPassword, consumeTicket, parseTicketAnswer, ticketAnswer,
+    revokeLinkedTokens, markProfile, USER_GROUP, TICKET_TTL_MS, CLAIM_STALE_MS,
+} from "../federatedAccount";
 
 type Result = { statusCode: number; body: string };
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const call = (fn: unknown, event: unknown): Promise<Result> => (fn as any)(event, {}, () => undefined);
 const bodyOf = (r: Result) => JSON.parse(r.body);
-const post = (body: unknown) => ({ body: JSON.stringify(body) });
-const authed = (sub: string) => ({ requestContext: { authorizer: { jwt: { claims: { sub } } } } });
 
-const cfg = { clientId: CLIENT_ID, teamId: "TEAM123456", keyId: "KEY1234567", privateKey: p8Pem };
+const cfg = { clientId: CLIENT_ID, teamId: "TEAM123456", keyId: "DDYJB5893J", privateKey: p8Pem };
+const RAW = "raw-nonce-0123456789abcdef";
+const sha = (s: string) => createHash("sha256").update(s).digest("hex");
+/** アプリと同じ形: Apple には SHA-256、サーバーには元の値 */
+const signIn = (claims: Record<string, unknown> = {}, extra: Record<string, unknown> = {}, raw = RAW) =>
+    call(startAppleSignin, { body: JSON.stringify({ identityToken: makeToken({ nonce: sha(raw), ...claims }), nonce: raw, ...extra }) });
 
-/** 命令の名前と中身 */
 const cmd = (c: unknown) => ({ name: (c as { constructor: { name: string } }).constructor.name, input: (c as { input: Record<string, any> }).input });
-const dbCalls = () => db.send.mock.calls.map((c) => cmd(c[0]));
 let idpCalls: { name: string; input: Record<string, any> }[] = [];
 let idpReply: (name: string, input: Record<string, any>) => unknown;
 let apple = fakeApple();
-
-/** users 表の中身（鍵 → 行） */
-let table: Map<string, Record<string, any>>;
-
-function conditionFailed() {
-    return Object.assign(new Error("cc"), { name: "ConditionalCheckFailedException" });
-}
+let users = fakeUsersTable();
+let notified: { sub: string; provider: string }[] = [];
+let nonceSeq = 0;
+const freshRaw = () => `raw-nonce-${String(++nonceSeq).padStart(16, "0")}`;
 
 beforeEach(() => {
     resetAppleKeysCache();
-    table = new Map();
+    users = fakeUsersTable();
     apple = fakeApple();
     idpCalls = [];
+    notified = [];
     idpReply = () => ({});
-    appleDeps.config = () => cfg;
-    appleDeps.poolId = () => "ap-northeast-1_TEST";
+    vi.stubEnv("APPLE_SIGNIN_READY", "true");
+    appleDeps.config = async () => cfg;
     appleDeps.fetchImpl = apple.fetchImpl;
-    appleDeps.idp = {
+    federatedDeps.poolId = () => "ap-northeast-1_TEST";
+    federatedDeps.now = () => Date.now();
+    federatedDeps.notifyLinked = async (sub, provider) => { notified.push({ sub, provider }); };
+    federatedDeps.idp = {
         send: async (c: unknown) => {
             const { name, input } = cmd(c);
             idpCalls.push({ name, input });
             return idpReply(name, input);
         },
     };
-    // users 表の代わり（Get・Put・Update・Delete の条件は使う分だけ真似る）
-    db.send.mockReset().mockImplementation(async (c: unknown) => {
-        const { name, input } = cmd(c);
-        const key = input.Key?.userId ?? input.Item?.userId;
-        const row = table.get(key);
-        if (name === "GetCommand") return { Item: row };
-        if (name === "PutCommand") {
-            if (input.ConditionExpression?.includes("attribute_not_exists(userId)") && row) throw conditionFailed();
-            table.set(key, { ...input.Item });
-            return {};
-        }
-        if (name === "DeleteCommand") {
-            table.delete(key);
-            return {};
-        }
-        if (name === "UpdateCommand") {
-            if (input.ConditionExpression?.includes("attribute_exists(userId)") && !row) throw conditionFailed();
-            if (input.ConditionExpression?.includes("attribute_not_exists(deletedAt)") && row?.deletedAt) throw conditionFailed();
-            const next = { ...(row ?? { userId: key }) };
-            const v = input.ExpressionAttributeValues ?? {};
-            if (input.UpdateExpression.startsWith("REMOVE appleSub")) delete next.appleSub;
-            if (input.UpdateExpression.includes("appleSub = :a")) next.appleSub = v[":a"];
-            if (input.UpdateExpression.includes("if_not_exists(displayName")) next.displayName ??= v[":n"];
-            if (input.UpdateExpression.includes("refreshToken = :t")) next.refreshToken = v[":t"];
-            table.set(key, next);
-            return {};
-        }
-        throw new Error(`知らない命令 ${name}`);
-    });
+    db.send.mockReset().mockImplementation(users.send);
 });
+afterEach(() => vi.unstubAllEnvs());
 
 /** Cognito の利用者の一覧の答え */
-const listed = (users: { username: string; sub: string; verified?: boolean; status?: string; enabled?: boolean }[]) =>
+const listed = (list: { username: string; sub: string; verified?: boolean; status?: string; enabled?: boolean }[]) =>
     ({
-        Users: users.map((u) => ({
+        Users: list.map((u) => ({
             Username: u.username, Enabled: u.enabled ?? true, UserStatus: u.status ?? "CONFIRMED",
             Attributes: [{ Name: "sub", Value: u.sub }, { Name: "email_verified", Value: u.verified === false ? "false" : "true" }],
         })),
@@ -99,209 +79,372 @@ const createdReply = (name: string, input: Record<string, any>) => {
     if (name === "AdminCreateUserCommand") return { User: { Username: input.Username, Attributes: [{ Name: "sub", Value: "sub-new" }] } };
     return {};
 };
+const names = () => idpCalls.map((c) => c.name);
 
 describe("使えるか（GET /auth/apple/status）", () => {
-    it("鍵とプールがそろっていれば true、鍵が無ければ false", async () => {
+    it("deploy が渡す「そろっているか」の真偽とプールで決める（鍵は読まない）", async () => {
         expect(bodyOf(await call(getAppleSigninStatus, {}))).toEqual({ available: true });
-        appleDeps.config = () => null;
+        vi.stubEnv("APPLE_SIGNIN_READY", "");
         expect(bodyOf(await call(getAppleSigninStatus, {}))).toEqual({ available: false });
-        appleDeps.config = () => cfg;
-        appleDeps.poolId = () => "";
+        vi.stubEnv("APPLE_SIGNIN_READY", "true");
+        federatedDeps.poolId = () => "";
         expect(bodyOf(await call(getAppleSigninStatus, {}))).toEqual({ available: false });
+    });
+});
+
+describe("nonce と使い回し（2026-11-23 確かめ役の指摘 1）", () => {
+    beforeEach(() => { idpReply = createdReply; });
+
+    it("元の nonce の SHA-256 が token の nonce と同じなら通り、使い捨ての券を返す", async () => {
+        const res = await signIn({ is_private_email: "true" });
+        expect(res.statusCode).toBe(200);
+        const b = bodyOf(res);
+        expect(b.username).toMatch(/^[0-9a-f-]{36}$/);
+        expect(parseTicketAnswer(b.challengeAnswer)).toMatchObject({ provider: "apple", sub: "001234.apple" });
+        // 使った nonce は1回きりの行に残る（期限付き）
+        expect(users.table.get(`nonce#apple#${sha(RAW)}`)).toMatchObject({ ttl: expect.any(Number) });
+    });
+
+    it("🔴 同じ token と元の nonce をもう一度送っても通らない（使い回し）", async () => {
+        const token = makeToken({ nonce: sha(RAW), is_private_email: "true" });
+        const body = JSON.stringify({ identityToken: token, nonce: RAW });
+        expect((await call(startAppleSignin, { body })).statusCode).toBe(200);
+        const before = idpCalls.length;
+        const again = await call(startAppleSignin, { body });
+        expect(again.statusCode).toBe(401);
+        expect(bodyOf(again).code).toBe("apple_token_invalid");
+        // 2回目は利用者を探しも作りもしない
+        expect(idpCalls.length).toBe(before);
+    });
+
+    it("🔴 token だけ盗まれても通らない（元の nonce が無い・違う・token の nonce をそのまま送る）", async () => {
+        const token = makeToken({ nonce: sha(RAW) });
+        for (const nonce of [undefined, "", "x".repeat(20), sha(RAW), 123]) {
+            const res = await call(startAppleSignin, { body: JSON.stringify({ identityToken: token, nonce }) });
+            expect(res.statusCode, String(nonce)).toBe(401);
+        }
+        // nonce の無い token も通さない
+        const noNonce = await call(startAppleSignin, { body: JSON.stringify({ identityToken: makeToken({ nonce: undefined }), nonce: RAW }) });
+        expect(noNonce.statusCode).toBe(401);
+        expect(idpCalls).toHaveLength(0);
+    });
+});
+
+describe("券（CUSTOM_AUTH の答え）", () => {
+    beforeEach(() => { idpReply = createdReply; });
+
+    it("券の行には SHA-256 だけ。照らせば1回だけ通り、2回目は通らない", async () => {
+        const b = bodyOf(await signIn({ is_private_email: "true" }));
+        const row = users.table.get("apple#001234.apple")!;
+        const ticket = parseTicketAnswer(b.challengeAnswer)!.ticket;
+        expect(row.ticketHash).toBe(sha(ticket));
+        expect(JSON.stringify(row)).not.toContain(ticket);
+        expect(await consumeTicket(b.challengeAnswer, b.username, "sub-new")).toBe(true);
+        expect(await consumeTicket(b.challengeAnswer, b.username, "sub-new")).toBe(false);
+    });
+
+    it("🔴 同じ券で同時に2回来ても、通るのは1回だけ（読んでから消すまでの間を条件で守る）", async () => {
+        const b = bodyOf(await signIn({ is_private_email: "true" }));
+        const results = await Promise.all([1, 2, 3].map(() => consumeTicket(b.challengeAnswer, b.username, "sub-new")));
+        expect(results.filter(Boolean)).toHaveLength(1);
+    });
+
+    it("🔴 違う券・期限切れ・別の利用者・形の壊れた答えは通らない", async () => {
+        const b = bodyOf(await signIn({ is_private_email: "true" }));
+        const p = parseTicketAnswer(b.challengeAnswer)!;
+        const wrong = ticketAnswer("apple", p.sub, "A".repeat(43));
+        expect(await consumeTicket(wrong, b.username, "sub-new")).toBe(false);
+        expect(await consumeTicket(b.challengeAnswer, "someone-else", "sub-new")).toBe(false);
+        expect(await consumeTicket(b.challengeAnswer, b.username, "sub-other")).toBe(false);
+        for (const bad of [undefined, "", "apple", "apple:x", "evil:001234.apple:" + p.ticket, makeToken()]) {
+            expect(await consumeTicket(bad, b.username, "sub-new"), String(bad)).toBe(false);
+        }
+        const t0 = Date.now();
+        federatedDeps.now = () => t0 + TICKET_TTL_MS + 1;
+        expect(await consumeTicket(b.challengeAnswer, b.username, "sub-new")).toBe(false);
+        // 外したもので券は消えていない（期限内なら本人は使える）
+        federatedDeps.now = () => t0;
+        expect(await consumeTicket(b.challengeAnswer, b.username, "sub-new")).toBe(true);
+    });
+
+    it("新しくサインインすると、前の券は使えなくなる", async () => {
+        const first = bodyOf(await signIn({ is_private_email: "true" }));
+        await signIn({ is_private_email: "true" }, {}, freshRaw());
+        expect(await consumeTicket(first.challengeAnswer, first.username, "sub-new")).toBe(false);
     });
 });
 
 describe("サインイン（POST /auth/apple）", () => {
     it("鍵が無い環境は 503 で「使えません」（Apple にも Cognito にも話しかけない）", async () => {
-        appleDeps.config = () => null;
-        const r = await call(startAppleSignin, post({ identityToken: makeToken() }));
-        expect(r.statusCode).toBe(503);
-        expect(bodyOf(r).code).toBe("apple_signin_unavailable");
+        appleDeps.config = async () => null;
+        const res = await signIn();
+        expect(res.statusCode).toBe(503);
+        expect(bodyOf(res).code).toBe("apple_signin_unavailable");
         expect(apple.calls).toHaveLength(0);
         expect(idpCalls).toHaveLength(0);
     });
 
-    it("確かめられない token・nonce の無い token は 401（利用者を作らない）", async () => {
-        for (const token of ["nope", makeToken({ aud: "com.other" }), makeToken({ nonce: undefined })]) {
-            const r = await call(startAppleSignin, post({ identityToken: token }));
-            expect(r.statusCode).toBe(401);
-            expect(bodyOf(r).code).toBe("apple_token_invalid");
-        }
+    it("確かめられない token は 401（利用者を作らない）", async () => {
+        const res = await call(startAppleSignin, { body: JSON.stringify({ identityToken: makeToken({ aud: "evil", nonce: sha(RAW) }), nonce: RAW }) });
+        expect(res.statusCode).toBe(401);
         expect(idpCalls).toHaveLength(0);
-        expect(table.size).toBe(0);
     });
 
     it("壊れた本文は 400", async () => {
         expect((await call(startAppleSignin, { body: "{" })).statusCode).toBe(400);
     });
 
-    it("確かめ済みのメールが、確かめ済みのアカウントと同じなら、そのアカウントに結ぶ（新しく作らない）", async () => {
-        table.set("sub-taro", { userId: "sub-taro", displayName: "たろう" });
-        idpReply = (name) => (name === "ListUsersCommand" ? listed([{ username: "uuid-taro", sub: "sub-taro" }]) : {});
-        const r = await call(startAppleSignin, post({ identityToken: makeToken(), displayName: "Taro Yamada" }));
-        expect(r.statusCode).toBe(200);
-        expect(bodyOf(r)).toEqual({ username: "uuid-taro", created: false });
-        expect(idpCalls.map((c) => c.name)).toEqual(["ListUsersCommand"]);
-        expect(idpCalls[0].input.Filter).toBe("email = \"taro@example.com\"");
-        expect(table.get("apple#001234.apple")).toMatchObject({ cognitoUsername: "uuid-taro", cognitoSub: "sub-taro", linkedBy: "email" });
-        // プロフィールには Apple の番号。本人が付けた名前は上書きしない
-        expect(table.get("sub-taro")).toMatchObject({ appleSub: "001234.apple", displayName: "たろう" });
+    it("確かめ済みのメールが、確かめ済みのアカウントと同じなら、そのアカウントに結ぶ。持ち主の端末に知らせる", async () => {
+        idpReply = (name) => (name === "ListUsersCommand" ? listed([{ username: "old-user", sub: "sub-old" }]) : { Groups: [] });
+        users.table.set("sub-old", { userId: "sub-old", displayName: "前の名前" });
+        const res = await signIn({}, { displayName: "山田 太郎" });
+        expect(res.statusCode).toBe(200);
+        expect(bodyOf(res)).toMatchObject({ username: "old-user", created: false });
+        expect(names()).not.toContain("AdminCreateUserCommand");
+        expect(users.table.get("apple#001234.apple")).toMatchObject({ cognitoUsername: "old-user", cognitoSub: "sub-old", linkedBy: "email" });
+        // 名前は上書きしない
+        expect(users.table.get("sub-old")).toMatchObject({ appleSub: "001234.apple", displayName: "前の名前" });
+        expect(notified).toEqual([{ sub: "sub-old", provider: "apple" }]);
+    });
+
+    it("🔴 admin グループの人には、メールが同じでも自動で結ばない（新しいアカウント）", async () => {
+        idpReply = (name, input) => {
+            if (name === "ListUsersCommand") return listed([{ username: "admin-user", sub: "sub-admin" }]);
+            if (name === "AdminListGroupsForUserCommand") return { Groups: [{ GroupName: "user" }, { GroupName: "admin" }] };
+            // メールは管理者が持っているので、メール付きでは作れない（Cognito の別名の決まり）
+            if (name === "AdminCreateUserCommand" && input.UserAttributes.length) throw Object.assign(new Error("alias"), { name: "AliasExistsException" });
+            return createdReply(name, input);
+        };
+        const res = await signIn();
+        expect(res.statusCode).toBe(200);
+        expect(bodyOf(res).created).toBe(true);
+        expect(users.table.get("apple#001234.apple")!.cognitoSub).toBe("sub-new");
+        expect(users.table.get("sub-admin")).toBeUndefined();
+        expect(notified).toHaveLength(0);
+    });
+
+    it("🔴 別の Apple ID と結び済みのアカウントには自動で結ばない。番号も上書きしない", async () => {
+        idpReply = (name, input) => {
+            if (name === "ListUsersCommand") return listed([{ username: "old-user", sub: "sub-old" }]);
+            if (name === "AdminListGroupsForUserCommand") return { Groups: [] };
+            if (name === "AdminCreateUserCommand") return createdReply(name, input);
+            return {};
+        };
+        users.table.set("sub-old", { userId: "sub-old", appleSub: "999.other" });
+        const res = await signIn();
+        expect(bodyOf(res).created).toBe(true);
+        expect(users.table.get("sub-old")!.appleSub).toBe("999.other");
+    });
+
+    it("🔴 プロフィールの番号は、別の Apple ID のものを上書きしない（同時に結んだときの守り）", async () => {
+        users.table.set("sub-old", { userId: "sub-old", appleSub: "999.other" });
+        await markProfile("apple", "sub-old", "001234.apple", undefined);
+        expect(users.table.get("sub-old")!.appleSub).toBe("999.other");
+        users.table.set("sub-2", { userId: "sub-2" });
+        await markProfile("apple", "sub-2", "001234.apple", "名前");
+        expect(users.table.get("sub-2")).toMatchObject({ appleSub: "001234.apple", displayName: "名前" });
     });
 
     it("同じメールでも、アカウント側のメールが確かめていなければ結ばない（新しいアカウント）", async () => {
         idpReply = (name, input) => (name === "ListUsersCommand"
-            ? listed([{ username: "uuid-x", sub: "sub-x", verified: false }, { username: "uuid-y", sub: "sub-y", status: "UNCONFIRMED" }])
+            ? listed([{ username: "old-user", sub: "sub-old", verified: false }])
             : createdReply(name, input));
-        const r = await call(startAppleSignin, post({ identityToken: makeToken() }));
-        expect(bodyOf(r).created).toBe(true);
-        expect(table.get("apple#001234.apple")).toMatchObject({ cognitoSub: "sub-new", linkedBy: "new" });
+        const res = await signIn();
+        expect(bodyOf(res).created).toBe(true);
+        expect(names()).toContain("AdminCreateUserCommand");
     });
 
     it("Apple がメールを確かめていなければ、同じメールのアカウントを探さない", async () => {
         idpReply = createdReply;
-        await call(startAppleSignin, post({ identityToken: makeToken({ email_verified: "false" }) }));
-        expect(idpCalls.map((c) => c.name)).not.toContain("ListUsersCommand");
+        await signIn({ email_verified: "false" });
+        expect(names()).not.toContain("ListUsersCommand");
     });
 
     it("メールを非公開にした人は新しいアカウント。確認済みにし、user グループに入れ、名前は初回に入れる", async () => {
         idpReply = createdReply;
-        const r = await call(startAppleSignin, post({
-            identityToken: makeToken({ email: "abc@privaterelay.appleid.com", is_private_email: true }),
-            displayName: "  山田\n太郎  ",
-        }));
-        expect(r.statusCode).toBe(200);
-        const body = bodyOf(r);
-        expect(body.created).toBe(true);
-        expect(body.username).toMatch(/^[0-9a-f-]{36}$/);
-        const names = idpCalls.map((c) => c.name);
-        expect(names).not.toContain("ListUsersCommand");
-        expect(names).toEqual(["AdminCreateUserCommand", "AdminSetUserPasswordCommand", "AdminAddUserToGroupCommand"]);
-        const create = idpCalls[0].input;
+        const res = await signIn({ email: "x@privaterelay.appleid.com", is_private_email: "true" }, { displayName: " 山田\n太郎 " });
+        expect(res.statusCode).toBe(200);
+        expect(bodyOf(res).created).toBe(true);
+        expect(names()).not.toContain("ListUsersCommand");
+        const create = idpCalls.find((c) => c.name === "AdminCreateUserCommand")!.input;
         expect(create.MessageAction).toBe("SUPPRESS");
-        expect(create.UserAttributes).toEqual([
-            { Name: "email", Value: "abc@privaterelay.appleid.com" }, { Name: "email_verified", Value: "true" },
-        ]);
-        expect(idpCalls[1].input.Permanent).toBe(true);
-        expect(idpCalls[2].input.GroupName).toBe(USER_GROUP);
-        expect(USER_GROUP).toBe("user");
-        expect(table.get("sub-new")).toMatchObject({ userId: "sub-new", displayName: "山田 太郎", appleSub: "001234.apple" });
+        expect(idpCalls.find((c) => c.name === "AdminSetUserPasswordCommand")!.input.Permanent).toBe(true);
+        expect(idpCalls.find((c) => c.name === "AdminAddUserToGroupCommand")!.input.GroupName).toBe(USER_GROUP);
+        expect(users.table.get("sub-new")).toMatchObject({ displayName: "山田 太郎", appleSub: "001234.apple" });
     });
 
     it("2回目からは前に結んだアカウント（Cognito に居れば）。作らない・探さない", async () => {
-        table.set("apple#001234.apple", { userId: "apple#001234.apple", cognitoUsername: "uuid-1", cognitoSub: "sub-1" });
-        const r = await call(startAppleSignin, post({ identityToken: makeToken() }));
-        expect(bodyOf(r)).toEqual({ username: "uuid-1", created: false });
-        expect(idpCalls.map((c) => c.name)).toEqual(["AdminGetUserCommand"]);
+        users.table.set("apple#001234.apple", { userId: "apple#001234.apple", cognitoUsername: "u1", cognitoSub: "s1" });
+        const res = await signIn();
+        expect(bodyOf(res)).toMatchObject({ username: "u1", created: false });
+        expect(names()).toEqual(["AdminGetUserCommand"]);
     });
 
     it("前に結んだアカウントが退会で消えていたら、古い行を消して新しく作る", async () => {
-        table.set("apple#001234.apple", { userId: "apple#001234.apple", cognitoUsername: "uuid-gone", cognitoSub: "sub-gone" });
+        users.table.set("apple#001234.apple", { userId: "apple#001234.apple", cognitoUsername: "gone", cognitoSub: "s-gone" });
         idpReply = (name, input) => {
-            if (name === "AdminGetUserCommand") throw Object.assign(new Error("x"), { name: "UserNotFoundException" });
+            if (name === "AdminGetUserCommand") throw Object.assign(new Error("nf"), { name: "UserNotFoundException" });
             return createdReply(name, input);
         };
-        const r = await call(startAppleSignin, post({ identityToken: makeToken() }));
-        expect(bodyOf(r).created).toBe(true);
-        expect(table.get("apple#001234.apple")).toMatchObject({ cognitoUsername: bodyOf(r).username, cognitoSub: "sub-new" });
+        const res = await signIn({ is_private_email: "true" });
+        expect(bodyOf(res).created).toBe(true);
+        expect(users.table.get("apple#001234.apple")).toMatchObject({ cognitoSub: "sub-new" });
     });
 
     it("認可コードを Apple の更新トークンに替えて行に控える。答えに更新トークンは出さない", async () => {
-        apple = fakeApple({ refreshToken: "r.apple.9" });
-        appleDeps.fetchImpl = apple.fetchImpl;
         idpReply = createdReply;
-        const r = await call(startAppleSignin, post({ identityToken: makeToken(), authorizationCode: "c.1" }));
-        expect(table.get("apple#001234.apple")?.refreshToken).toBe("r.apple.9");
-        expect(r.body).not.toContain("r.apple.9");
+        const res = await signIn({ is_private_email: "true" }, { authorizationCode: "c.1" });
+        expect(users.table.get("apple#001234.apple")!.refreshToken).toBe("r.apple.1");
+        expect(res.body).not.toContain("r.apple.1");
     });
 
     it("更新トークンが取れなくてもログインは止めない", async () => {
         apple = fakeApple({ tokenStatus: 400 });
         appleDeps.fetchImpl = apple.fetchImpl;
         idpReply = createdReply;
-        const r = await call(startAppleSignin, post({ identityToken: makeToken(), authorizationCode: "c.1" }));
-        expect(r.statusCode).toBe(200);
-        expect(table.get("apple#001234.apple")?.refreshToken).toBeUndefined();
+        const res = await signIn({ is_private_email: "true" }, { authorizationCode: "c.1" });
+        expect(res.statusCode).toBe(200);
+        expect(users.table.get("apple#001234.apple")!.refreshToken).toBeUndefined();
     });
 });
 
-describe("退会の取り消し（POST /auth/apple/revoke）", () => {
-    it("Apple で入っていない人は何もしない", async () => {
-        table.set("sub-1", { userId: "sub-1" });
-        const r = await call(revokeAppleSignin, authed("sub-1"));
-        expect(bodyOf(r)).toEqual({ revoked: false });
-        expect(apple.calls).toHaveLength(0);
+describe("同時に2回来たとき（2026-11-23 確かめ役の指摘）", () => {
+    it("🔴 先に行を取った回だけが利用者を作る。後の回は 409 で、Cognito に何も作らない", async () => {
+        idpReply = createdReply;
+        users.table.set("apple#001234.apple", { userId: "apple#001234.apple", provider: "apple", claimedAt: Date.now() });
+        const res = await signIn({ is_private_email: "true" });
+        expect(res.statusCode).toBe(409);
+        expect(bodyOf(res).code).toBe("apple_signin_busy");
+        expect(names()).not.toContain("AdminCreateUserCommand");
     });
 
-    it("Apple の更新トークンを取り消し、Apple の行とプロフィールの番号を消す", async () => {
-        table.set("sub-1", { userId: "sub-1", appleSub: "a.1" });
-        table.set("apple#a.1", { userId: "apple#a.1", cognitoSub: "sub-1", cognitoUsername: "u-1", refreshToken: "r.1" });
-        const r = await call(revokeAppleSignin, authed("sub-1"));
-        expect(bodyOf(r)).toEqual({ revoked: true });
-        expect(apple.calls.map((c) => c.url)).toEqual(["https://appleid.apple.com/auth/revoke"]);
-        expect(new URLSearchParams(apple.calls[0].body).get("token")).toBe("r.1");
-        expect(table.has("apple#a.1")).toBe(false);
-        expect(table.get("sub-1")?.appleSub).toBeUndefined();
+    it("🔴 2つの端末で同時に押しても、Cognito の利用者は1人しか作らない", async () => {
+        idpReply = createdReply;
+        const results = await Promise.all([signIn({ is_private_email: "true" }, {}, freshRaw()), signIn({ is_private_email: "true" }, {}, freshRaw())]);
+        expect(results.map((r) => r.statusCode).sort()).toEqual([200, 409]);
+        expect(names().filter((n) => n === "AdminCreateUserCommand")).toHaveLength(1);
     });
 
-    it("退会の墓石に残った番号でも取り消せる（退会の途中で止まった人のやり直し）", async () => {
-        table.set("sub-1", { userId: "sub-1", deletedAt: "2026-11-23T00:00:00Z", appleSub: "a.1" });
-        table.set("apple#a.1", { userId: "apple#a.1", cognitoSub: "sub-1", refreshToken: "r.1" });
-        expect(bodyOf(await call(revokeAppleSignin, authed("sub-1")))).toEqual({ revoked: true });
-        expect(table.has("apple#a.1")).toBe(false);
+    it("落ちた回の古い印は取り直せる", async () => {
+        idpReply = createdReply;
+        users.table.set("apple#001234.apple", { userId: "apple#001234.apple", provider: "apple", claimedAt: Date.now() - CLAIM_STALE_MS - 1 });
+        expect((await signIn({ is_private_email: "true" })).statusCode).toBe(200);
     });
 
-    it("Apple が失敗したら 502 で、行は残す（やり直せる）", async () => {
-        apple = fakeApple({ revokeStatus: 500 });
-        appleDeps.fetchImpl = apple.fetchImpl;
-        table.set("sub-1", { userId: "sub-1", appleSub: "a.1" });
-        table.set("apple#a.1", { userId: "apple#a.1", cognitoSub: "sub-1", refreshToken: "r.1" });
-        const r = await call(revokeAppleSignin, authed("sub-1"));
-        expect(r.statusCode).toBe(502);
-        expect(table.get("apple#a.1")?.refreshToken).toBe("r.1");
+    it("🔴 作ったあとで行に書けなかったら、作った利用者を消し、印も外す（結び先の無い利用者を残さない）", async () => {
+        idpReply = createdReply;
+        db.send.mockImplementation(async (c: unknown) => {
+            const { name, input } = cmd(c);
+            if (name === "UpdateCommand" && input.UpdateExpression?.startsWith("SET cognitoUsername")) {
+                throw Object.assign(new Error("boom"), { name: "InternalServerError" });
+            }
+            return users.send(c);
+        });
+        const res = await signIn({ is_private_email: "true" });
+        expect(res.statusCode).toBe(500);
+        const created = idpCalls.find((c) => c.name === "AdminCreateUserCommand")!.input.Username;
+        expect(idpCalls.find((c) => c.name === "AdminDeleteUserCommand")?.input.Username).toBe(created);
+        expect(users.table.has("apple#001234.apple")).toBe(false);
     });
 
-    it("🔴 行が別の人のものなら触らない", async () => {
-        table.set("sub-1", { userId: "sub-1", appleSub: "a.2" });
-        table.set("apple#a.2", { userId: "apple#a.2", cognitoSub: "sub-2", refreshToken: "r.2" });
-        expect(bodyOf(await call(revokeAppleSignin, authed("sub-1")))).toEqual({ revoked: false });
-        expect(apple.calls).toHaveLength(0);
-        expect(table.has("apple#a.2")).toBe(true);
+    it("作る途中（パスワード・グループ）で落ちても、作りかけの利用者を消す", async () => {
+        idpReply = (name, input) => {
+            if (name === "AdminAddUserToGroupCommand") throw Object.assign(new Error("x"), { name: "TooManyRequestsException" });
+            return createdReply(name, input);
+        };
+        expect((await signIn({ is_private_email: "true" })).statusCode).toBe(500);
+        expect(names()).toContain("AdminDeleteUserCommand");
+        expect(users.table.has("apple#001234.apple")).toBe(false);
+    });
+});
+
+describe("退会のときの取り消し（appleRevoker・revokeLinkedTokens）", () => {
+    it("Apple に更新トークンを取り消しとして送る。成功で revoked、失敗で failed、鍵が無ければ unavailable", async () => {
+        expect(await appleRevoker("r.1")).toBe("revoked");
+        expect(new URLSearchParams(apple.calls.at(-1)!.body).get("token")).toBe("r.1");
+        appleDeps.fetchImpl = fakeApple({ revokeStatus: 500 }).fetchImpl;
+        expect(await appleRevoker("r.1")).toBe("failed");
+        appleDeps.fetchImpl = async () => { throw new Error("net"); };
+        expect(await appleRevoker("r.1")).toBe("failed");
+        appleDeps.config = async () => null;
+        expect(await appleRevoker("r.1")).toBe("unavailable");
     });
 
-    it("鍵が無い環境で、取り消すトークンがあれば 503（黙って消さない）", async () => {
-        appleDeps.config = () => null;
-        table.set("sub-1", { userId: "sub-1", appleSub: "a.1" });
-        table.set("apple#a.1", { userId: "apple#a.1", cognitoSub: "sub-1", refreshToken: "r.1" });
-        expect((await call(revokeAppleSignin, authed("sub-1"))).statusCode).toBe(503);
-        expect(table.has("apple#a.1")).toBe(true);
+    it("取り消したら行からトークンだけ消す（結び付けは残す）。何度呼んでも同じ", async () => {
+        users.table.set("apple#a", { userId: "apple#a", cognitoSub: "me", cognitoUsername: "u", refreshToken: "r.1" });
+        const revoke = vi.fn(async () => "revoked" as const);
+        expect(await revokeLinkedTokens("me", { appleSub: "a" }, { apple: revoke })).toBe(true);
+        expect(await revokeLinkedTokens("me", { appleSub: "a" }, { apple: revoke })).toBe(true);
+        expect(revoke).toHaveBeenCalledTimes(1);
+        expect(users.table.get("apple#a")).toMatchObject({ cognitoSub: "me" });
+        expect(users.table.get("apple#a")!.refreshToken).toBeUndefined();
     });
 });
 
 describe("小さな部品", () => {
     it("名前は空白を整え、100 字で切る。空なら無し", () => {
-        expect(cleanDisplayName(" a\tb ")).toBe("a b");
+        expect(cleanDisplayName("  山田\t太郎 ")).toBe("山田 太郎");
+        expect(cleanDisplayName("あ".repeat(150))).toHaveLength(100);
         expect(cleanDisplayName("   ")).toBeUndefined();
-        expect(cleanDisplayName(42)).toBeUndefined();
-        expect([...cleanDisplayName("あ".repeat(150))!]).toHaveLength(100);
+        expect(cleanDisplayName(1)).toBeUndefined();
     });
 
     it("検索の絞り込みの値は \" と \\ を逃がす", () => {
-        expect(filterValue("a\"b\\c")).toBe("a\\\"b\\\\c");
+        expect(filterValue('a"b\\c')).toBe('a\\"b\\\\c');
     });
 
     it("本人も知らないパスワードはプールの決まり（大小英字・数字・記号）を満たし、毎回違う", () => {
-        const p = randomPassword();
-        expect(p).toMatch(/[A-Z]/);
-        expect(p).toMatch(/[a-z]/);
-        expect(p).toMatch(/[0-9]/);
-        expect(p).toMatch(/[^A-Za-z0-9]/);
-        expect(p.length).toBeGreaterThanOrEqual(40);
-        expect(randomPassword()).not.toBe(p);
+        const a = randomPassword();
+        expect(a).toMatch(/[a-z]/);
+        expect(a).toMatch(/[A-Z]/);
+        expect(a).toMatch(/[0-9]/);
+        expect(a).toMatch(/[^A-Za-z0-9]/);
+        expect(a.length).toBeGreaterThanOrEqual(40);
+        expect(randomPassword()).not.toBe(a);
     });
 
     it("db の命令は users 表だけに向く", async () => {
         idpReply = createdReply;
-        await call(startAppleSignin, post({ identityToken: makeToken() }));
-        expect(new Set(dbCalls().map((c) => c.input.TableName))).toEqual(new Set([process.env.USERS_TABLE]));
+        await signIn({ is_private_email: "true" });
+        for (const c of db.send.mock.calls) expect(cmd(c[0]).input.TableName).toBe("test-photo-gallery-users");
+    });
+});
+
+describe("配り方（serverless.apple-signin.yml・deploy-api.yml・serverless.yml）", () => {
+    const root = join(__dirname, "..", "..", "..");
+    const yml = readFileSync(join(root, "api-user", "serverless.apple-signin.yml"), "utf8");
+    const userYml = readFileSync(join(root, "api-user", "serverless.yml"), "utf8");
+    const wf = readFileSync(join(root, ".github", "workflows", "deploy-api.yml"), "utf8");
+    const fnBlock = (name: string) => yml.slice(yml.indexOf(`  ${name}:`), yml.indexOf("\n  # ", yml.indexOf(`  ${name}:`) + 5));
+    const step = wf.slice(wf.indexOf("- name: Serverless deploy（Apple でサインイン"), wf.indexOf("- name: Serverless deploy\n", wf.indexOf("Apple でサインイン・別スタック")));
+
+    it("🔴 スタックは明示の切り替え（変数 APPLE_SIGNIN_ENABLED が true）のときだけ配る。既定は配らない", () => {
+        expect(step).toContain("if: ${{ vars.APPLE_SIGNIN_ENABLED == 'true' }}");
+        // 鍵の有無では決めない（鍵はもうある）
+        expect(step).not.toMatch(/exit 0/);
+    });
+
+    it("鍵は APNs の鍵（Secrets の APNS_PRIVATE_KEY）。専用の鍵の Secrets は使わない。1行にした値はログで伏せる", () => {
+        expect(step).toContain("secrets.APNS_PRIVATE_KEY");
+        expect(wf).not.toContain("APPLE_SIGNIN_PRIVATE_KEY");
+        expect(wf).not.toContain("APPLE_SIGNIN_KEY_ID");
+        expect(step).toMatch(/echo "::add-mask::\$apns_key"\n\s+extra\+=\(--param "apnsPrivateKey=\$apns_key"\)/);
+    });
+
+    it("🔴 使えるかの口には鍵を配らない（真偽だけ）", () => {
+        const status = fnBlock("appleSigninStatus");
+        expect(status).toContain("APPLE_SIGNIN_READY: ${param:appleSigninReady, 'false'}");
+        expect(status).not.toMatch(/APNS_|PRIVATE_KEY/);
+    });
+
+    it("取り消しの口は無い（退会の中で取り消す）", () => {
+        expect(yml).not.toContain("/auth/apple/revoke");
+    });
+
+    it("🔴 POST /auth/apple は段の流量で絞る（スタックを配る環境だけ）", () => {
+        const settings = userYml.slice(userYml.indexOf("  Conditions:"));
+        expect(settings).toMatch(/AppleSigninOn:\n\s+Fn::Equals: \["\$\{param:appleSigninEnabled, 'false'\}", "true"\]/);
+        expect(settings).toMatch(/- AppleSigninOn\n[\s\S]*"POST \/auth\/apple":\n\s+ThrottlingRateLimit: \d+\n\s+ThrottlingBurstLimit: \d+/);
+        expect(wf).toMatch(/if \[ "\$\{APPLE_SIGNIN_ENABLED:-\}" = "true" \]; then extra\+=\(--param "appleSigninEnabled=true"\); fi/);
     });
 });

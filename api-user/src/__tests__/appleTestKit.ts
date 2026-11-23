@@ -53,3 +53,89 @@ export function fakeApple(opts: { tokenStatus?: number; revokeStatus?: number; r
     };
     return { fetchImpl, calls };
 }
+
+// ────────────────────────────── users 表の代わり
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type Row = Record<string, any>;
+type Input = Record<string, any>;
+
+export function conditionFailed(): Error {
+    return Object.assign(new Error("cc"), { name: "ConditionalCheckFailedException" });
+}
+
+/**
+ * DynamoDB の条件式を、使う分だけ評価する（`attribute_exists`・`attribute_not_exists`・`=`・`<>`・`<`・AND・OR・括弧）。
+ * 🔴 条件を真似ずに常に通すと、「1回きり」「上書きしない」を確かめたつもりで何も見ていない試験になる
+ */
+export function evalCondition(expr: string | undefined, row: Row | undefined, names: Input = {}, values: Input = {}): boolean {
+    if (!expr) return true;
+    const tokens = expr.match(/attribute_not_exists|attribute_exists|<>|[()=<,]|AND|OR|NOT|[#:]?[A-Za-z_][A-Za-z0-9_]*/g) ?? [];
+    let i = 0;
+    const name = (t: string) => (t.startsWith("#") ? names[t] : t);
+    const operand = (t: string) => (t.startsWith(":") ? values[t] : row?.[name(t)]);
+    const primary = (): boolean => {
+        const t = tokens[i++];
+        if (t === "(") { const v = or(); i++; return v; }
+        if (t === "NOT") return !primary();
+        if (t === "attribute_exists" || t === "attribute_not_exists") {
+            i++; const a = name(tokens[i++]); i++;
+            const has = row !== undefined && row[a] !== undefined;
+            return t === "attribute_exists" ? has : !has;
+        }
+        const left = operand(t);
+        const op = tokens[i++];
+        const right = operand(tokens[i++]);
+        if (op === "=") return left !== undefined && left === right;
+        if (op === "<>") return left !== right;
+        if (op === "<") return left !== undefined && left < right;
+        throw new Error(`知らない条件: ${expr}`);
+    };
+    const and = (): boolean => { let v = primary(); while (tokens[i] === "AND") { i++; const r = primary(); v = v && r; } return v; };
+    const or = (): boolean => { let v = and(); while (tokens[i] === "OR") { i++; const r = and(); v = v || r; } return v; };
+    return or();
+}
+
+/** 更新式（SET a = :v, b = if_not_exists(b, :n) / REMOVE a, b）を当てる */
+export function applyUpdate(row: Row, expr: string, names: Input = {}, values: Input = {}): Row {
+    const out = { ...row };
+    const name = (t: string) => (t.startsWith("#") ? names[t] : t);
+    for (const m of expr.matchAll(/(SET|REMOVE)\s+(.*?)(?=\s+(?:SET|REMOVE)\s+|$)/g)) {
+        for (const part of m[2].split(/,(?![^(]*\))/).map((p) => p.trim()).filter(Boolean)) {
+            if (m[1] === "REMOVE") { delete out[name(part)]; continue; }
+            const [lhs, rhs] = part.split("=").map((p) => p.trim());
+            const ine = rhs.match(/^if_not_exists\(([#\w]+),\s*(:\w+)\)$/);
+            out[name(lhs)] = ine ? (out[name(ine[1])] ?? values[ine[2]]) : values[rhs];
+        }
+    }
+    return out;
+}
+
+/** users 表の代わり。`send` を `ddb.send` に差し込む。`table` を見て中身を確かめる */
+export function fakeUsersTable() {
+    const table = new Map<string, Row>();
+    const send = async (c: unknown) => {
+        const name = (c as { constructor: { name: string } }).constructor.name;
+        const input = (c as { input: Input }).input;
+        const key = input.Key?.userId ?? input.Item?.userId;
+        const row = table.get(key);
+        const ok = () => evalCondition(input.ConditionExpression, row, input.ExpressionAttributeNames, input.ExpressionAttributeValues);
+        switch (name) {
+            case "GetCommand": return { Item: row ? { ...row } : undefined };
+            case "PutCommand":
+                if (!ok()) throw conditionFailed();
+                table.set(key, { ...input.Item });
+                return {};
+            case "UpdateCommand":
+                if (!ok()) throw conditionFailed();
+                table.set(key, applyUpdate(row ?? { userId: key }, input.UpdateExpression, input.ExpressionAttributeNames, input.ExpressionAttributeValues));
+                return {};
+            case "DeleteCommand":
+                if (!ok()) throw conditionFailed();
+                table.delete(key);
+                return {};
+            default: throw new Error(`知らない命令 ${name}`);
+        }
+    };
+    return { table, send };
+}

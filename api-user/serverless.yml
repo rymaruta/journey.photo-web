@@ -933,6 +933,13 @@ functions:
       REBUILD_REPO: ${param:rebuildRepo, ''}
       REBUILD_DISPATCH_TOKEN: ${param:rebuildToken, ''}
       REBUILD_MONTHLY_MAX: ${param:rebuildMonthlyMax, ''}
+      # 「Apple でサインイン」の人の退会で、Apple の更新トークンを取り消す（Apple の決まり・札 journey.photo-ios#601）。
+      # 2026-11-23 owner: 鍵は APNs の鍵（Sign in with Apple を足した）。宛先は本番の Bundle ID（APNs の topic と同じ値）。
+      # 鍵が無い環境では取り消さず、退会は止めない（`federatedAccount.ts` の `revokeLinkedTokens`）
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
+      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
+      APPLE_SIGNIN_CLIENT_ID: ${param:apnsTopic, ''}
     # 既定の6秒だと、写真の多い人の退会が途中で打ち切られる。
     # 呼び出し側は HTTP のステータスを見て Cognito 側の削除に進むかを決めるので、
     # 途中で切れると「削除に失敗しました」と出たまま写真だけ半分消えた状態になる。
@@ -1218,10 +1225,28 @@ resources:
   # 🔴 経路 `POST /spots/wants` は別のスタック（`serverless.spot-wants.yml`）が足す。
   #    段の経路ごとの設定は経路ができてからでないと付けられないので、`deploy-api.yml` は
   #    あちらを先に配る（スタックをまたぐ DependsOn は書けない）
+  #
+  # 「Apple でサインイン」の口（ログイン不要・札 journey.photo-ios#601）も同じく絞る（2026-11-23 確かめ役の指摘 2）。
+  # 経路 `POST /auth/apple` は別のスタック（`serverless.apple-signin.yml`）が足し、**そのスタックを配る環境でだけ**
+  # 在る（`deploy-api.yml` の `APPLE_SIGNIN_ENABLED`）。無い経路に設定を付けると反映が落ちるので、
+  # `appleSigninEnabled` が true のときだけ足す（`AppleSigninOn`）
+  Conditions:
+    AppleSigninOn:
+      Fn::Equals: ["${param:appleSigninEnabled, 'false'}", "true"]
+
   extensions:
     HttpApiStage:
       Properties:
         RouteSettings:
-          "POST /spots/wants":
-            ThrottlingRateLimit: 10
-            ThrottlingBurstLimit: 20
+          Fn::If:
+            - AppleSigninOn
+            - "POST /spots/wants":
+                ThrottlingRateLimit: 10
+                ThrottlingBurstLimit: 20
+              # サインインは1人で1分に数回。秒 5 件・瞬間 10 件を越えた分は 429（Apple への問い合わせ・利用者の作成をさせない）
+              "POST /auth/apple":
+                ThrottlingRateLimit: 5
+                ThrottlingBurstLimit: 10
+            - "POST /spots/wants":
+                ThrottlingRateLimit: 10
+                ThrottlingBurstLimit: 20

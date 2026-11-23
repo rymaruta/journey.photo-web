@@ -2,7 +2,8 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { verify } from "node:crypto";
 import {
     verifyAppleIdentityToken, resetAppleKeysCache, appleConfigFromEnv, appleClientIdsFromEnv, appleClientSecret,
-    exchangeAppleCode, revokeAppleToken, appleKey, AppleTokenError, MAX_TOKEN_LENGTH,
+    exchangeAppleCode, revokeAppleToken, AppleTokenError, MAX_TOKEN_LENGTH, KEYS_REFETCH_MIN_MS,
+    loadAppleConfig, appleKeyDeps, resetAppleKeyConfigCache,
 } from "../appleIdToken";
 import { CLIENT_ID, fakeApple, jwks, makeToken, otherPrivate, p8Pem, p8Public } from "./appleTestKit";
 
@@ -23,7 +24,10 @@ const reason = async (p: Promise<unknown>) => {
     }
 };
 
-beforeEach(() => resetAppleKeysCache());
+beforeEach(() => {
+    resetAppleKeysCache();
+    resetAppleKeyConfigCache();
+});
 
 describe("identity token の確かめ", () => {
     it("Apple の鍵で署名された、このアプリあての token を通し、中身を読む", async () => {
@@ -78,14 +82,40 @@ describe("identity token の確かめ", () => {
         expect(apple.calls).toHaveLength(0);
     });
 
-    it("知らない kid は鍵を1回だけ取り直す（Apple の鍵の入れ替え）。それでも無ければ落とす", async () => {
+    it("知らない kid は鍵を取り直す（Apple の鍵の入れ替え）。それでも無ければ落とす", async () => {
         let round = 0;
         const apple = fakeApple({ keys: () => (++round === 1 ? { keys: [{ ...jwks().keys[0], kid: "OLD" }] } : jwks()) });
-        await verifyWith(makeToken({}, { header: { kid: "OLD" } }), apple.fetchImpl).catch(() => undefined);
-        // 控えには OLD しか無い。新しい kid の token で取り直して通る
-        await expect(verifyWith(makeToken(), apple.fetchImpl)).resolves.toMatchObject({ sub: "001234.apple" });
+        const t0 = Date.now();
+        const at = (token: string, now: number) => verifyAppleIdentityToken(token, { clientIds: [CLIENT_ID], fetchImpl: apple.fetchImpl, now });
+        await at(makeToken({}, { header: { kid: "OLD" } }), t0).catch(() => undefined);
+        // 控えには OLD しか無い。60 秒たてば、新しい kid の token で取り直して通る
+        await expect(at(makeToken(), t0 + KEYS_REFETCH_MIN_MS)).resolves.toMatchObject({ sub: "001234.apple" });
         expect(apple.calls.filter((c) => c.url.endsWith("/auth/keys"))).toHaveLength(2);
-        expect(await reason(verifyWith(makeToken({}, { header: { kid: "NOPE" } }), apple.fetchImpl))).toBe("unknown kid");
+        expect(await reason(at(makeToken({}, { header: { kid: "NOPE" } }), t0 + 3 * KEYS_REFETCH_MIN_MS))).toBe("unknown kid");
+    });
+
+    it("🔴 知らない kid を送り続けても、Apple への取り直しは 60 秒に1回まで", async () => {
+        const apple = fakeApple();
+        const t0 = Date.now();
+        const at = (now: number) => verifyAppleIdentityToken(makeToken({}, { header: { kid: "NOPE" } }),
+            { clientIds: [CLIENT_ID], fetchImpl: apple.fetchImpl, now });
+        for (let i = 0; i < 20; i++) expect(await reason(at(t0 + i * 1000))).toBe("unknown kid");
+        const fetches = () => apple.calls.filter((c) => c.url.endsWith("/auth/keys")).length;
+        expect(fetches()).toBe(1);
+        // 60 秒たったら、もう1回だけ取りに行く
+        await reason(at(t0 + KEYS_REFETCH_MIN_MS));
+        expect(fetches()).toBe(2);
+        // 控えにある鍵は、取り直しを待たずに使える
+        await expect(verifyAppleIdentityToken(makeToken(), { clientIds: [CLIENT_ID], fetchImpl: apple.fetchImpl, now: t0 + KEYS_REFETCH_MIN_MS + 1 }))
+            .resolves.toMatchObject({ sub: "001234.apple" });
+        expect(fetches()).toBe(2);
+    });
+
+    it("起動直後に同時に来ても、鍵の取りに行きを待って両方通る（取りに行くのは1回）", async () => {
+        const apple = fakeApple();
+        const results = await Promise.all([1, 2, 3].map(() => verifyWith(makeToken(), apple.fetchImpl)));
+        expect(results.map((r) => r.sub)).toEqual(["001234.apple", "001234.apple", "001234.apple"]);
+        expect(apple.calls.filter((c) => c.url.endsWith("/auth/keys"))).toHaveLength(1);
     });
 
     it("鍵は控えて使い回す（ログインのたびに Apple に問い合わせない）", async () => {
@@ -96,15 +126,15 @@ describe("identity token の確かめ", () => {
     });
 });
 
-describe("鍵の設定", () => {
+describe("鍵の設定（2026-11-23 owner: 鍵は APNs の鍵を使う）", () => {
     const full = {
-        APPLE_SIGNIN_CLIENT_ID: CLIENT_ID, APPLE_SIGNIN_TEAM_ID: "TEAM123456", APPLE_SIGNIN_KEY_ID: "KEY1234567",
-        APPLE_SIGNIN_PRIVATE_KEY: p8Pem.replace(/\n/g, "\\n"),
+        APPLE_SIGNIN_CLIENT_ID: CLIENT_ID, APNS_TEAM_ID: "TEAM123456", APNS_KEY_ID: "DDYJB5893J",
+        APNS_PRIVATE_KEY: p8Pem.replace(/\n/g, "\\n"),
     };
 
-    it("全部そろえば使える。鍵の改行（\\n で渡す）を戻す", () => {
+    it("APNs の鍵・Key ID・Team ID と宛先がそろえば使える。鍵の改行（\\n で渡す）を戻す", () => {
         const cfg = appleConfigFromEnv(full);
-        expect(cfg).not.toBeNull();
+        expect(cfg).toMatchObject({ clientId: CLIENT_ID, teamId: "TEAM123456", keyId: "DDYJB5893J" });
         expect(cfg!.privateKey).toContain("\n");
         expect(cfg!.privateKey).not.toContain("\\n");
     });
@@ -114,7 +144,10 @@ describe("鍵の設定", () => {
         for (const k of Object.keys(full)) {
             expect(appleConfigFromEnv({ ...full, [k]: "" }), k).toBeNull();
         }
-        expect(appleConfigFromEnv({ ...full, APPLE_SIGNIN_PRIVATE_KEY: "-----BEGIN" })).toBeNull();
+        expect(appleConfigFromEnv({ ...full, APNS_PRIVATE_KEY: "-----BEGIN" })).toBeNull();
+        expect(appleConfigFromEnv({ ...full, APNS_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\\nxx\\n-----END PRIVATE KEY-----" })).toBeNull();
+        // 前の名前（専用の鍵）は読まない
+        expect(appleConfigFromEnv({ APPLE_SIGNIN_CLIENT_ID: CLIENT_ID, APPLE_SIGNIN_TEAM_ID: "T", APPLE_SIGNIN_KEY_ID: "K", APPLE_SIGNIN_PRIVATE_KEY: p8Pem })).toBeNull();
     });
 
     it("宛先は鍵が無くても読める（トリガーは鍵を持たない）", () => {
@@ -122,8 +155,29 @@ describe("鍵の設定", () => {
         expect(appleClientIdsFromEnv({})).toEqual([]);
     });
 
-    it("行の鍵は apple#<sub>（# を含む＝人の行ではない）", () => {
-        expect(appleKey("001.x")).toBe("apple#001.x");
+    it("SSM の SecureString の名前があれば、鍵は実行時にそこから読む（環境変数の鍵は使わない）。控えは5分", async () => {
+        const reads: string[] = [];
+        appleKeyDeps.getParameter = async (name) => { reads.push(name); return p8Pem; };
+        const env = { ...full, APNS_PRIVATE_KEY: "", APPLE_SIGNIN_KEY_PARAM: "/journey-photo/prod/apple-signin/private-key" };
+        const t0 = Date.now();
+        expect(await loadAppleConfig(env, t0)).toMatchObject({ keyId: "DDYJB5893J", privateKey: p8Pem.trim() });
+        expect(await loadAppleConfig(env, t0 + 60_000)).not.toBeNull();
+        expect(reads).toEqual(["/journey-photo/prod/apple-signin/private-key"]);
+        await loadAppleConfig(env, t0 + 5 * 60_000);
+        expect(reads).toHaveLength(2);
+    });
+
+    it("SSM を読めない・鍵として読めないなら使えない（投げない）", async () => {
+        appleKeyDeps.getParameter = async () => { throw Object.assign(new Error("x"), { name: "ParameterNotFound" }); };
+        const env = { ...full, APPLE_SIGNIN_KEY_PARAM: "/x" };
+        expect(await loadAppleConfig(env)).toBeNull();
+        resetAppleKeyConfigCache();
+        appleKeyDeps.getParameter = async () => "not a key";
+        expect(await loadAppleConfig(env)).toBeNull();
+    });
+
+    it("SSM の名前が無ければ環境変数の鍵", async () => {
+        expect(await loadAppleConfig(full)).not.toBeNull();
     });
 });
 

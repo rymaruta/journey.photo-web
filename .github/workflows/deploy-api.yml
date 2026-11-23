@@ -376,6 +376,56 @@ jobs:
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "siteBucket=${{ needs.config.outputs.siteBucket }}"
 
+      # 「Apple でサインイン」の口と Cognito のトリガー（札 journey.photo-ios#601・`api-user/serverless.apple-signin.yml`）は**別のスタック**。
+      # 🔴 **リポジトリの変数 `APPLE_SIGNIN_ENABLED` が `true` のときだけ配る（既定は配らない）。** このスタックは
+      #    Cognito のプールにトリガー3つを付ける（本番のログイン全体に関わる・owner の承認が要る変更）。
+      #    鍵（APNs の鍵に Sign in with Apple を足したもの・2026-11-23 owner）はもうあるので、鍵の有無では決めない。
+      #    owner の OK のあとに変数を true にする（手順は iOS の `docs/APPLE_SIGNIN.md`。`ALLOW_CUSTOM_AUTH` の手順もそこ）。
+      #    配らない環境のアプリはボタンを出さない（`GET /auth/apple/status` が無い＝404）。
+      # 🔴 **user API より先に配る。** user API の段は経路 `POST /auth/apple` に流量の設定を付ける（`appleSigninEnabled`）ので、
+      #    経路が先に要る（みんなの「行きたい」と同じ）。このスタックは user API が書き出す HttpApiId を取り込むので、
+      #    user API のスタックは前から在ること
+      # 宛先（Bundle ID）は APNs の topic と同じ値。staging の App ID は無い（staging の束はシミュレーターだけ）
+      - name: Serverless deploy（Apple でサインイン・別スタック）
+        if: ${{ vars.APPLE_SIGNIN_ENABLED == 'true' }}
+        working-directory: api-user
+        env:
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+          APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
+          APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
+          APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
+          APNS_HOST: ${{ needs.config.outputs.apnsHost }}
+          # 鍵を SSM の SecureString に置いたとき、その名前（`/journey-photo/<stage>/apple-signin/…`）。空なら環境変数の鍵
+          APPLE_SIGNIN_KEY_PARAM: ${{ vars.APPLE_SIGNIN_KEY_PARAM }}
+        run: |
+          set -euo pipefail
+          extra=()
+          ready=false
+          if [ -n "${APPLE_SIGNIN_KEY_PARAM:-}" ]; then
+            extra+=(--param "appleSigninKeyParam=$APPLE_SIGNIN_KEY_PARAM")
+            ready=true
+          elif [ -n "${APNS_PRIVATE_KEY:-}" ]; then
+            # 改行のまま渡すと1行目しか届かない（札 journey.photo-ios#585）。`\n` にして渡し、`appleIdToken.ts` が戻す
+            apns_key="$(bash ../scripts/apns-key-param.sh)"
+            # 🔴 1行にした値は Secrets の元の値と形が違い、Actions が自動で伏せない。ログに出ないよう伏せる
+            echo "::add-mask::$apns_key"
+            extra+=(--param "apnsPrivateKey=$apns_key")
+            ready=true
+          fi
+          echo "Apple でサインイン: 鍵 $([ "$ready" = true ] && echo 'あり' || echo '(なし・ボタンは出ない)')"
+          npx serverless@3 deploy --config serverless.apple-signin.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
+            --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
+            --param "cognitoPoolName=${{ needs.config.outputs.cognitoPoolName }}" \
+            --param "appleSigninClientId=$APNS_TOPIC" \
+            --param "appleSigninReady=$ready" \
+            --param "apnsKeyId=$APNS_KEY_ID" \
+            --param "apnsTeamId=$APNS_TEAM_ID" \
+            --param "apnsTopic=$APNS_TOPIC" \
+            --param "apnsHost=$APNS_HOST" \
+            ${extra[@]+"${extra[@]}"}
+
       - name: Serverless deploy
         working-directory: api-user
         env:
@@ -408,9 +458,12 @@ jobs:
           # 意見箱のログインしていない口の、IP の目印を作る鍵（HMAC・札 journey.photo-ios#546）。
           # **未登録でも何も壊れない**——空なら旗ごと渡さず、鍵なしの目印に落ちる（`feedback.ts` の `ipBucket`）
           FEEDBACK_IP_KEY: ${{ secrets.FEEDBACK_IP_KEY }}
+          # 「Apple でサインイン」のスタックを配る環境か（上の段）。true なら段の流量の設定に `POST /auth/apple` を足す
+          APPLE_SIGNIN_ENABLED: ${{ vars.APPLE_SIGNIN_ENABLED }}
         run: |
           set -euo pipefail
           extra=()
+          if [ "${APPLE_SIGNIN_ENABLED:-}" = "true" ]; then extra+=(--param "appleSigninEnabled=true"); fi
           if [ -n "$REBUILD_REPO" ]; then extra+=(--param "rebuildRepo=$REBUILD_REPO"); fi
           if [ -n "$REBUILD_TOKEN" ]; then extra+=(--param "rebuildToken=$REBUILD_TOKEN"); fi
           if [ -n "${REBUILD_MONTHLY_MAX:-}" ]; then extra+=(--param "rebuildMonthlyMax=$REBUILD_MONTHLY_MAX"); fi
@@ -544,35 +597,3 @@ jobs:
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "usersTable=${{ needs.config.outputs.usersTable }}"
 
-      # 「Apple でサインイン」の口と Cognito のトリガー（札 journey.photo-ios#601・`api-user/serverless.apple-signin.yml`）は**別のスタック**。
-      # 🔴 **Apple の鍵（Secrets の `APPLE_SIGNIN_PRIVATE_KEY`）が入っている環境でだけ配る。** このスタックは
-      #    Cognito のプールにトリガー3つを付ける（本番のログイン全体に関わる・owner の承認が要る変更）。
-      #    鍵が入るまでは段ごと飛ばすので、マージしてもプールは変わらない。鍵が無い環境のアプリはボタンを出さない
-      #    （`GET /auth/apple/status` が無い＝404、または `available: false`）。
-      #    手順と、別に要る「アプリのクライアントに ALLOW_CUSTOM_AUTH を足す」は iOS の `docs/APPLE_SIGNIN.md`。
-      # **user API の後に配る**（HttpApiId と認可を取り込む）。
-      # 宛先（Bundle ID）は APNs の topic と同じ値、Team ID も APNs と同じチーム。Key ID は Secrets の `APPLE_SIGNIN_KEY_ID`
-      - name: Serverless deploy（Apple でサインイン・別スタック）
-        working-directory: api-user
-        env:
-          APPLE_SIGNIN_PRIVATE_KEY: ${{ secrets.APPLE_SIGNIN_PRIVATE_KEY }}
-          APPLE_SIGNIN_KEY_ID: ${{ secrets.APPLE_SIGNIN_KEY_ID }}
-          APPLE_SIGNIN_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
-          APPLE_SIGNIN_CLIENT_ID: ${{ needs.config.outputs.apnsTopic }}
-        run: |
-          set -euo pipefail
-          if [ -z "${APPLE_SIGNIN_PRIVATE_KEY:-}" ] || [ -z "${APPLE_SIGNIN_KEY_ID:-}" ]; then
-            echo "Apple でサインイン: 鍵が未登録なので配らない（Cognito のプールは変えない）"
-            exit 0
-          fi
-          # 改行のまま渡すと1行目しか届かない（札 journey.photo-ios#585）。APNs の鍵と同じく `\n` にして渡し、`appleIdToken.ts` が戻す
-          apple_key="$(APNS_PRIVATE_KEY="$APPLE_SIGNIN_PRIVATE_KEY" bash ../scripts/apns-key-param.sh)"
-          npx serverless@3 deploy --config serverless.apple-signin.yml --stage ${{ needs.config.outputs.envName }} \
-            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
-            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
-            --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
-            --param "cognitoPoolName=${{ needs.config.outputs.cognitoPoolName }}" \
-            --param "appleSigninClientId=$APPLE_SIGNIN_CLIENT_ID" \
-            --param "appleSigninTeamId=$APPLE_SIGNIN_TEAM_ID" \
-            --param "appleSigninKeyId=$APPLE_SIGNIN_KEY_ID" \
-            --param "appleSigninPrivateKey=$apple_key"
