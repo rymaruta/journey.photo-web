@@ -59,6 +59,7 @@ const KNOWN = {
         "photo-gallery-trip-ai-prod-", "photo-gallery-trip-ai-staging-",
         "photo-gallery-groups-prod-", "photo-gallery-groups-staging-",
         "photo-gallery-apple-signin-prod-", "photo-gallery-apple-signin-staging-",
+        "photo-gallery-google-signin-prod-", "photo-gallery-google-signin-staging-",
     ],
 };
 

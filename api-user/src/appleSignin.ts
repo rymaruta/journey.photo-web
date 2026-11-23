@@ -55,10 +55,15 @@ const errName = (e: unknown) => (e as { name?: string } | null)?.name ?? "";
 
 /**
  * `GET /auth/apple/status`（ログイン不要）。アプリはこれが `available: true` のときだけボタンを出す。
- * 🔴 この関数には鍵を配らない。`deploy-api.yml` が「そろっているか」の真偽だけ（`APPLE_SIGNIN_READY`）を渡す
+ * 🔴 この関数の環境変数には鍵を置かない。
+ * - 鍵を SSM に置いた形（本線・`APPLE_SIGNIN_KEY_PARAM`）: SSM から読めるかを見て、真偽だけ返す（鍵は答えに出さない）
+ * - 鍵を環境変数に置いた形: `deploy-api.yml` が「そろっているか」の真偽だけ（`APPLE_SIGNIN_READY`）を渡す
  */
-export const getAppleSigninStatus: APIGatewayProxyHandlerV2 = async () =>
-    ok({ available: process.env.APPLE_SIGNIN_READY === "true" && federatedDeps.poolId() !== "" });
+export const getAppleSigninStatus: APIGatewayProxyHandlerV2 = async () => {
+    if (federatedDeps.poolId() === "") return ok({ available: false });
+    if ((process.env.APPLE_SIGNIN_KEY_PARAM ?? "").trim()) return ok({ available: (await appleDeps.config()) !== null });
+    return ok({ available: process.env.APPLE_SIGNIN_READY === "true" });
+};
 
 type StartBody = { identityToken?: unknown; nonce?: unknown; authorizationCode?: unknown; displayName?: unknown };
 
@@ -119,16 +124,31 @@ export const startAppleSignin: APIGatewayProxyHandlerV2 = async (event) => {
 /**
  * 退会のときに Apple の更新トークンを取り消す（Apple の決まり）。`account.ts` の `deleteAccount` が呼ぶ。
  * - `revoked`: 取り消せた（Apple は知らない・取り消し済みのトークンにも 200 を返す）
- * - `failed`: Apple が断った・届かなかった（退会を止めて、やり直してもらう）
- * - `unavailable`: この環境に鍵が無い（退会は止めない。行と墓石の番号を残し、期限で消える）
+ * - `failed`: Apple が落ちている（5xx）・届かない・時間切れ。退会を止めて、やり直してもらう（直れば通る）
+ * - `rejected`: Apple が断った（4xx。鍵や頼みの形の問題で、やり直しても変わらない）。2026-11-23 確かめ役の指摘で、
+ *   退会を止めない（止めると退会がずっとできなくなる）。見張りに出し、行は残す
+ * - `unavailable`: この環境に鍵が無い（退会は止めない。行と墓石の番号を残す）
  */
 export const appleRevoker: Revoker = async (refreshToken) => {
     const cfg = await appleDeps.config();
     if (!cfg) return "unavailable";
     try {
-        return (await revokeAppleToken(cfg, refreshToken, appleDeps.fetchImpl)) ? "revoked" : "failed";
+        const res = await revokeAppleToken(cfg, refreshToken, appleDeps.fetchImpl);
+        if (res.ok) return "revoked";
+        return res.status >= 400 && res.status < 500 ? "rejected" : "failed";
     } catch (e) {
         console.warn("appleRevoker:", errName(e));
         return "failed";
     }
+};
+
+/**
+ * 取り消しだけをする関数（HTTP の口ではない）。user API の退会が `federatedRevokeClient.ts` から呼ぶ。
+ * 受けるのは「この更新トークンを取り消して」だけ（誰のものかは見ない・取り消すことしかできない）
+ */
+export const revokeTokenHandler = async (event: { provider?: unknown; refreshToken?: unknown }): Promise<{ result: string }> => {
+    if (event?.provider !== "apple" || typeof event.refreshToken !== "string" || !event.refreshToken || event.refreshToken.length > 2048) {
+        return { result: "rejected" };
+    }
+    return { result: await appleRevoker(event.refreshToken) };
 };

@@ -139,3 +139,27 @@ export function fakeUsersTable() {
     };
     return { table, send };
 }
+
+// ────────────────────────────── Google（札 journey.photo-ios#715）
+
+export const GOOGLE_CLIENT_ID = "280167931666-24o92d38usbft3ouk3jc4dk8tvgh3t8p.apps.googleusercontent.com";
+
+/** Google の ID トークンの代わり（Apple の代わりと同じ鍵で署名する。鍵の一覧は `fakeGoogle` が返す） */
+export function makeGoogleToken(claims: Record<string, unknown> = {}, opts: { key?: KeyObject; header?: Record<string, unknown>; nowSec?: number } = {}): string {
+    return makeToken({
+        iss: "https://accounts.google.com", aud: GOOGLE_CLIENT_ID, sub: "1098765432101234567890",
+        email: "taro@gmail.com", email_verified: true, name: "山田 太郎", ...claims,
+    }, opts);
+}
+
+/** Google の公開鍵の口の代わり */
+export function fakeGoogle(opts: { keys?: () => unknown } = {}) {
+    const calls: Call[] = [];
+    const fetchImpl: FetchLike = async (url, init) => {
+        calls.push({ url, body: init?.body });
+        const reply = (status: number, body: unknown) => ({ ok: status >= 200 && status < 300, status, json: async () => body });
+        if (url === "https://www.googleapis.com/oauth2/v3/certs") return reply(200, (opts.keys ?? jwks)());
+        return reply(404, {});
+    };
+    return { fetchImpl, calls };
+}

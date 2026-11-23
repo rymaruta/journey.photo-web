@@ -19,9 +19,9 @@ vi.mock("@aws-sdk/client-s3", () => ({
 const mockRebuild = vi.hoisted(() => vi.fn());
 vi.mock("../rebuild", () => ({ requestSiteRebuild: mockRebuild }));
 
-// Apple の更新トークンの取り消し（`appleSignin.ts` の `appleRevoker`）。Apple には話しかけない
+// Apple の更新トークンの取り消し（Apple のスタックの関数に頼む・`federatedRevokeClient.ts`）。Apple には話しかけない
 const mockAppleRevoke = vi.hoisted(() => vi.fn());
-vi.mock("../appleSignin", () => ({ appleRevoker: mockAppleRevoke }));
+vi.mock("../federatedRevokeClient", () => ({ appleRevokeViaStack: mockAppleRevoke }));
 
 vi.stubEnv("UPLOAD_BUCKET", "bucket-test");
 vi.stubEnv("USERS_TABLE", "users-test");
@@ -921,6 +921,14 @@ describe("deleteAccount: 消し残しを作らない", () => {
             expect((await invoke(deleteAccount, ev("me"))).statusCode).toBe(200);
             expect(mockAppleRevoke).not.toHaveBeenCalled();
             expect(users.has("apple#001.apple")).toBe(false);
+        });
+
+        it("🔴 Apple が 4xx で断った（rejected）なら退会は止めない。行は残す", async () => {
+            mockAppleRevoke.mockResolvedValue("rejected");
+            setupApple({ userId: "me", appleSub: "001.apple" }, { cognitoSub: "me", cognitoUsername: "u-me", refreshToken: "r.1" });
+            expect((await invoke(deleteAccount, ev("me"))).statusCode).toBe(200);
+            expect(tombPut()).toBeDefined();
+            expect(users.get("apple#001.apple")).toMatchObject({ refreshToken: "r.1" });
         });
 
         it("鍵が無い環境（unavailable）は退会を止めない。行は期限を付けて残し、墓石の番号も残す", async () => {

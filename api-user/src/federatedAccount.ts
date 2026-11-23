@@ -6,7 +6,8 @@
  *
  * - 行（users 表・新しい表と GSI は作らない）
  *   - `<provider>#<sub>` … { provider, cognitoUsername, cognitoSub, linkedAt, linkedBy, refreshToken?, ticketHash?, ticketExpiresAt? }
- *   - `nonce#<provider>#<sha256>` … 使った nonce（1回きり・`ttl` 付き）
+ *   - `nonce#<provider>#<sha256>` … 使った nonce（1回きり・`ttl` 付き。🔴 users 表の TTL はまだ無効（#295）なので、
+ *     有効にするまでは消えずに残る。中身は SHA-256 と時刻だけ）
  *   - プロフィールの行に `<provider>Sub`（例 `appleSub`。公開の答えにも本人の答えにも出さない）
  *   🔴 `#` を含む行は人の行ではない（`userSearch.ts` の `isReservationItem` が検索から外す）
  * - 結び方（`linkOrCreate`）
@@ -22,8 +23,9 @@ import {
 import { DeleteCommand, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb } from "./dynamodb";
 import { requireEnv } from "./env";
-import { sendPush } from "./apns";
+import { apnsConfigured, sendPush, useApnsPrivateKey } from "./apns";
 import { deviceTokens } from "./devices";
+import { loadSigningKeyPem } from "./appleIdToken";
 
 const USERS_TABLE = requireEnv("USERS_TABLE");
 
@@ -47,7 +49,10 @@ export const ADMIN_GROUP = "admin";
 export const DISPLAY_NAME_MAX = 100;
 /** 券の寿命 */
 export const TICKET_TTL_MS = 5 * 60 * 1000;
-/** 使った nonce を覚える日数（token の寿命より十分長く。`ttl` は users 表の TTL の欄・`account.ts` の墓石と同じ） */
+/**
+ * 使った nonce を覚える長さ（token の寿命より十分長く）。`ttl` は users 表の TTL の欄（`account.ts` の墓石と同じ）。
+ * 🔴 TTL はまだ無効（#295）なので、今は消えない（有効にすればこの期限で消える）
+ */
 export const NONCE_KEEP_SEC = 24 * 60 * 60;
 /** 結ぶ途中の印（同時に2回来たとき、後から来た方を待たせる）の寿命 */
 export const CLAIM_STALE_MS = 60 * 1000;
@@ -73,6 +78,8 @@ const PROVIDER_LABEL: Record<Provider, string> = { apple: "Apple", google: "Goog
 async function pushLinkedNotice(cognitoSub: string, provider: Provider): Promise<void> {
     const tokens = await deviceTokens(cognitoSub);
     if (tokens.length === 0) return;
+    // 鍵を SSM に置いた口（環境変数に鍵が無い）では、実行時に読んだ鍵で送る（同じ APNs の鍵・`apns.ts`）
+    if (!apnsConfigured()) useApnsPrivateKey((await federatedDeps.pushKey())?.trim() ?? "");
     const name = PROVIDER_LABEL[provider];
     await sendPush(tokens, {
         title: `${name} でのサインインを追加しました`,
@@ -86,11 +93,14 @@ export const federatedDeps: {
     poolId: () => string;
     now: () => number;
     notifyLinked: (cognitoSub: string, provider: Provider) => Promise<void>;
+    /** 知らせのプッシュの鍵（環境変数に無いとき）。Apple でサインインの鍵と同じ APNs の鍵 */
+    pushKey: () => Promise<string | undefined>;
 } = {
     idp: new CognitoIdentityProviderClient({ region: process.env.AWS_REGION ?? "ap-northeast-1" }) as unknown as { send: (cmd: unknown) => Promise<unknown> },
     poolId: () => (process.env.COGNITO_USER_POOL_ID ?? "").trim(),
     now: () => Date.now(),
     notifyLinked: pushLinkedNotice,
+    pushKey: async () => loadSigningKeyPem(),
 };
 
 /** 結ぶ途中で、別の回が先に始めている（少し待ってもう一度） */
@@ -311,6 +321,10 @@ export async function linkOrCreate(identity: FederatedIdentity, displayName: str
     const row = await getRow<FederatedRow>(key);
     if (row?.cognitoUsername && row.cognitoSub) {
         if (await cognitoUserExists(row.cognitoUsername)) {
+            // 前の回で、結び付けの行を書いたあとプロフィールの書き込みが落ちていても、ここで直す
+            // （2026-11-23 確かめ役の指摘。どちらも何度呼んでも同じ: 無いときだけ作る・同じ番号なら書き直すだけ）
+            await createProfile(row.cognitoSub, displayName);
+            await markProfile(identity.provider, row.cognitoSub, identity.sub, displayName);
             return { username: row.cognitoUsername, sub: row.cognitoSub, via: "known" };
         }
         // 退会で消えた利用者を指す古い行。消して作り直す（条件付き: 同時に作り直している回とぶつけない）
@@ -451,7 +465,7 @@ export async function consumeTicket(answer: unknown, cognitoUsername: string, co
 // ────────────────────────────── 退会
 
 /** 提供元の更新トークンを取り消す口（Apple は `appleSignin.ts` の `appleRevoker`） */
-export type Revoker = (refreshToken: string) => Promise<"revoked" | "failed" | "unavailable">;
+export type Revoker = (refreshToken: string) => Promise<"revoked" | "failed" | "rejected" | "unavailable">;
 
 type ProfileLike = Record<string, unknown> | undefined;
 
@@ -472,8 +486,11 @@ export function linkedFields(profile: ProfileLike): Record<string, string> {
  * 退会の前半（**墓石を書く前**・`deleteAccount`）: 結び付けた提供元の更新トークンを取り消す。
  *
  * - 取り消せたら、行からトークンだけ消す（結び付けの行は残す。退会が後で落ちても、また同じ ID で入れる）
- * - 提供元が断った・届かなかったら `false`。退会はここで止まり（500）、結び付けはそのまま残る。押し直せば続きから
- * - この環境に鍵が無い（`unavailable`）ときは止めない。トークンは行に残り、墓石の番号と一緒に期限で消える
+ * - 提供元が落ちている・届かない（`failed`・5xx と時間切れだけ）なら `false`。退会はここで止まり（500）、
+ *   結び付けはそのまま残る。押し直せば続きから
+ * - 提供元が断った（`rejected`・4xx）・この環境に鍵が無い（`unavailable`）ときは止めない（2026-11-23 確かめ役の指摘:
+ *   止めると退会がずっとできない）。`console.error` で見張りに出し、トークンは行に残す。行と墓石の番号には
+ *   墓石と同じ `ttl` を付けるが、🔴 users 表の TTL はまだ無効（#295）なので、今は消えずに残る
  *
  * 何度呼んでも同じ結果になる（取り消し済みならトークンが無いので何もしない）
  */
@@ -487,8 +504,8 @@ export async function revokeLinkedTokens(
         const revoker = revokers[provider];
         const result = revoker ? await revoker(row.refreshToken) : "unavailable";
         if (result === "failed") return false;
-        if (result === "unavailable") {
-            console.error(`deleteAccount: ${provider} の鍵が無く、更新トークンを取り消せません（行は期限まで残す）`);
+        if (result === "unavailable" || result === "rejected") {
+            console.error(`deleteAccount: ${provider} の更新トークンを取り消せませんでした（${result}）。退会は進め、行は残す`);
             continue;
         }
         await ddb.send(new UpdateCommand({
@@ -504,8 +521,9 @@ export async function revokeLinkedTokens(
 
 /**
  * 退会の後半（**墓石を書いた後**）: 結び付けの行を消し、墓石の番号も消す（取り消し済みのものだけ）。
- * 取り消しが済んでいない（鍵が無かった）ものは、行に墓石と同じ期限（`ttl`）を付けて残す。
- * **投げない**（墓石の後なので退会は止めない。残っても期限で消え、`linkOrCreate` は消えた利用者を指す行を作り直す）
+ * 取り消しが済んでいない（鍵が無かった・断られた）ものは、行に墓石と同じ `ttl` を付けて残す
+ * （🔴 users 表の TTL はまだ無効（#295）なので、今は消えない）。
+ * **投げない**（墓石の後なので退会は止めない。行が残っても、`linkOrCreate` は消えた利用者を指す行を作り直す）
  */
 export async function unlinkAfterDelete(uid: string, profile: ProfileLike, ttl: number): Promise<void> {
     for (const { provider, sub } of linkedSubs(profile)) {

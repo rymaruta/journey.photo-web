@@ -94,15 +94,20 @@ const sendsPush = (handler: string) =>
     || (handler === "src/groups.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/groups.ts"), "utf8")))
     // 「Apple でサインイン」（札 journey.photo-ios#601）: メールで自動で結んだとき、持ち主の端末へ `sendPush` で知らせる
     // （`federatedAccount.ts` の `pushLinkedNotice`。`linkOrCreate` の中なので `handler` の本文には出てこない）
-    || (handler === "src/appleSignin.startAppleSignin" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/federatedAccount.ts"), "utf8")));
+    || ((handler === "src/appleSignin.startAppleSignin" || handler === "src/googleSignin.startGoogleSignin")
+        && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/federatedAccount.ts"), "utf8")));
 
 /**
  * 通知は送らないが、**同じ鍵で Apple の client secret を作る**関数（2026-11-23 owner: 新しい鍵は作らず、APNs の鍵に
- * Sign in with Apple を足した）。退会で Apple の更新トークンを取り消す（`federatedAccount.ts` の `revokeLinkedTokens`）。
- * 要るのは鍵・Key ID・Team ID の3つだけ（送り先の topic・host は要らない）
+ * Sign in with Apple を足した・札 journey.photo-ios#601）。「Apple でサインイン」のスタックの中だけ。
+ * - `appleRevoke`: 退会の取り消し。鍵・Key ID・Team ID の3つ（送り先の topic・host は要らない）
+ * - `appleSigninStatus`: 鍵を SSM から読めるかを見るだけ。Key ID・Team ID（秘密ではない）だけで、鍵は持たない
  */
-const APPLE_SIGNIN_KEY_USERS = new Map([["deleteAccount", "src/account.deleteAccount"]]);
-const APPLE_KEY_VARS = ["APNS_PRIVATE_KEY", "APNS_KEY_ID", "APNS_TEAM_ID"];
+const APPLE_KEY_HOLDERS: Record<string, { handler: string; vars: string[] }> = {
+    appleRevoke: { handler: "src/appleSignin.revokeTokenHandler", vars: ["APNS_KEY_ID", "APNS_PRIVATE_KEY", "APNS_TEAM_ID"] },
+    appleSigninStatus: { handler: "src/appleSignin.getAppleSigninStatus", vars: ["APNS_KEY_ID", "APNS_TEAM_ID"] },
+};
+const appleHolder = (name: string, handler: string) => APPLE_KEY_HOLDERS[name]?.handler === handler;
 // `notifyInspiredOnce` は「この写真を見て撮影」の知らせ（`inspired.ts`）。写真の保存・更新が呼ぶ
 // `sendDm` は DM の送信（`dm.ts`。受け取った人の端末へ送る。リクエストには送らない）。
 // `alertOne` は光と天気の知らせ（`lightForecast.ts` の `sendLightAlerts`）。お知らせの一覧には
@@ -157,17 +162,16 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
 
     it("鍵を持つ関数は、通知を積むものだけ", () => {
         const extra = [...fns]
-            .filter(([n, v]) => v.vars.includes(KEY) && !sendsPush(v.handler) && APPLE_SIGNIN_KEY_USERS.get(n) !== v.handler)
+            .filter(([n, v]) => v.vars.includes(KEY) && !sendsPush(v.handler) && !appleHolder(n, v.handler))
             .map(([n]) => n);
         expect(extra, "送らない関数に秘密鍵を配っている").toEqual([]);
     });
 
-    it("Apple の取り消しに鍵を使う関数は、鍵・Key ID・Team ID の3つを持ち、本当に取り消しを呼んでいる", () => {
-        for (const [name, handler] of APPLE_SIGNIN_KEY_USERS) {
+    it("Apple の鍵を使う関数は、決めた変数だけを持つ（鍵を持つのは取り消しの関数だけ）", () => {
+        for (const [name, want] of Object.entries(APPLE_KEY_HOLDERS)) {
             const fn = fns.get(name);
-            expect(fn?.handler, name).toBe(handler);
-            expect(fn!.vars.filter((v) => APPLE_KEY_VARS.includes(v)).sort(), name).toEqual([...APPLE_KEY_VARS].sort());
-            expect(handlerBody("api-user", handler), name).toMatch(/\brevokeLinkedTokens\s*\(/);
+            expect(fn?.handler, name).toBe(want.handler);
+            expect([...fn!.vars].sort(), name).toEqual(want.vars);
         }
     });
 
@@ -175,7 +179,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
     it("通知を積む関数を1つ以上見つけている", () => {
         const sending = [...fns].filter(([, v]) => sendsPush(v.handler)).map(([n]) => n).sort();
         expect(sending).toEqual([
-            "answerStory", "appStoreNotification", "appleSigninStart", "createStory", "dm", "followUser", "getMyBadges", "groups", "likePhoto", "postComment", "postStoryReply",
+            "answerStory", "appStoreNotification", "appleSigninStart", "createStory", "dm", "followUser", "getMyBadges", "googleSigninStart", "groups", "likePhoto", "postComment", "postStoryReply",
             "recordPurchase", "savePhoto", "sendLightAlerts", "tripShare", "updatePhotoVisibility",
         ]);
     });
@@ -185,7 +189,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
     // `apnsConfigured()` が false）
     it("鍵を配る関数には、5つ全部を配る", () => {
         const partial = [...fns]
-            .filter(([n, v]) => v.vars.length > 0 && v.vars.length < ALL_VARS.length && !APPLE_SIGNIN_KEY_USERS.has(n))
+            .filter(([n, v]) => v.vars.length > 0 && v.vars.length < ALL_VARS.length && !appleHolder(n, v.handler))
             .map(([n, v]) => `${n}: ${ALL_VARS.filter((x) => !v.vars.includes(x)).join(",")} が無い`);
         expect(partial).toEqual([]);
     });

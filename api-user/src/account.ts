@@ -25,7 +25,7 @@ import { forgetAppStoreLinks } from "./supporterStore";
 import { qrKey, qrOfKey, isValidQrToken } from "./profileQr";
 import { aiUseKeysForCleanup } from "./tripAiKeys";
 import { linkedFields, revokeLinkedTokens, unlinkAfterDelete } from "./federatedAccount";
-import { appleRevoker } from "./appleSignin";
+import { appleRevokeViaStack } from "./federatedRevokeClient";
 
 // 退会（アカウント削除）。DELETE /user/account、認証必須、呼び出し元の sub のみ対象。
 // 不可逆な破壊操作のため「確実に引ける範囲を確実に消す」方針:
@@ -563,7 +563,7 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         // アプリが前に呼ぶのではなく、ここで行う（Web や古いアプリから退会しても漏れない）。
         // 🔴 **墓石より前・ユーザー名の解放より前。** 取り消しが落ちたら 500 で止め、結び付けの行はそのまま残る
         //    （押し直せば続きから）。結び付けの行を消すのは墓石の後（下の `unlinkAfterDelete`）
-        if (!await revokeLinkedTokens(uid, federated, { apple: appleRevoker })) {
+        if (!await revokeLinkedTokens(uid, federated, { apple: appleRevokeViaStack })) {
             return jsonError(500, "Apple との連携を解除できませんでした。アカウントはまだ削除されていません。時間をおいてもう一度お試しください");
         }
         if (handle && !await releaseOwnUsername(handle, uid)) {

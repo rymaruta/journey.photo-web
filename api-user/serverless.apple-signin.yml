@@ -58,12 +58,16 @@ custom:
 
 functions:
   # 使えるか。**未認証で呼べる口。** アプリは `available: true` のときだけボタンを出す。
-  # 🔴 **鍵は配らない。** `deploy-api.yml` が「そろっているか」の真偽（`appleSigninReady`）だけを渡す（2026-11-23 確かめ役の指摘）
+  # 🔴 **環境変数に鍵を置かない。** 鍵を SSM に置く形（本線）では、SSM から読めるかを見て真偽だけ返す。
+  #    環境変数に置く形では、`deploy-api.yml` が「そろっているか」の真偽（`appleSigninReady`）だけを渡す
   appleSigninStatus:
     handler: src/appleSignin.getAppleSigninStatus
     role: AppleStatusRole
     environment:
       APPLE_SIGNIN_READY: ${param:appleSigninReady, 'false'}
+      APPLE_SIGNIN_KEY_PARAM: ${param:appleSigninKeyParam, ''}
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
       COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
     events:
       - httpApi:
@@ -79,13 +83,13 @@ functions:
     # Apple の公開鍵・認可コードの交換（それぞれ最大5秒）と Cognito の作成まで待つ
     timeout: 15
     environment:
-      # 鍵は APNs の鍵（2026-11-23 owner）。`appleSigninKeyParam`（SSM の SecureString の名前）を渡せば、
-      # 鍵は環境変数ではなく実行時にそこから読む（`appleIdToken.ts` の `loadAppleConfig`）
+      # 鍵は APNs の鍵（2026-11-23 owner）。置き場は `deploy-api.yml` の1か所（`APPLE_SIGNIN_KEY_SOURCE`）で決まる:
+      # SSM（本線・`appleSigninKeyParam` に名前。環境変数の鍵は空）か、環境変数（`apnsPrivateKey`）
       APNS_KEY_ID: ${param:apnsKeyId, ''}
       APNS_TEAM_ID: ${param:apnsTeamId, ''}
       APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
       APPLE_SIGNIN_KEY_PARAM: ${param:appleSigninKeyParam, ''}
-      # メールで自動で結んだとき、持ち主の端末へ知らせる（`federatedAccount.ts` の `pushLinkedNotice`）
+      # メールで自動で結んだとき、持ち主の端末へ知らせる（`federatedAccount.ts` の `pushLinkedNotice`。SSM の形では読んだ鍵で送る）
       APNS_TOPIC: ${param:apnsTopic, ''}
       APNS_HOST: ${param:apnsHost, ''}
       COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
@@ -93,6 +97,19 @@ functions:
       - httpApi:
           path: /auth/apple
           method: POST
+
+  # 退会のときに Apple の更新トークンを取り消す（HTTP の口ではない）。user API の `deleteAccount` が呼ぶ
+  # （`federatedRevokeClient.ts`。名前 `photo-gallery-apple-signin-<stage>-appleRevoke` を user API が知っている）。
+  # 鍵を持つのはこのスタックだけ（user API には置かない）
+  appleRevoke:
+    handler: src/appleSignin.revokeTokenHandler
+    role: AppleRevokeRole
+    timeout: 10
+    environment:
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
+      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
+      APPLE_SIGNIN_KEY_PARAM: ${param:appleSigninKeyParam, ''}
 
   # CUSTOM_AUTH のトリガー3つ（1つの関数）。鍵は持たない（券を照らして消すだけ）
   appleAuthChallenge:
@@ -139,6 +156,41 @@ resources:
                     - logs:PutLogEvents
                   Resource:
                     - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # 鍵を SSM に置いたとき、読めるかを見る（答えは真偽だけ）
+                - Effect: Allow
+                  Action:
+                    - ssm:GetParameter
+                  Resource:
+                    - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/journey-photo/${sls:stage}/apple-signin/*
+
+    # 取り消しの関数。鍵（SSM）を読み、Apple に頼むだけ（表も Cognito も触らない）
+    AppleRevokeRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-revoke
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: appleRevoke
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - ssm:GetParameter
+                  Resource:
+                    - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/journey-photo/${sls:stage}/apple-signin/*
 
     # 結ぶ・作る口。users 表の読み書きと、このプールの利用者の作成・検索・作りかけの削除だけ
     AppleSigninRole:
@@ -202,7 +254,7 @@ resources:
                     - cognito-idp:AdminDeleteUser
                   Resource: arn:aws:cognito-idp:${aws:region}:${aws:accountId}:userpool/${param:cognitoUserPoolId}
 
-    # トリガー。`apple#<sub>` の行の券を読んで消すだけ（Google を足すときは `google#*` を足す）
+    # トリガー。`apple#<sub>`・`google#<sub>` の行の券を読んで消すだけ（Google でログイン・#715 も同じトリガー）
     AppleTriggerRole:
       Type: AWS::IAM::Role
       Properties:
@@ -235,3 +287,4 @@ resources:
                     ForAllValues:StringLike:
                       dynamodb:LeadingKeys:
                         - apple#*
+                        - google#*

@@ -934,12 +934,9 @@ functions:
       REBUILD_DISPATCH_TOKEN: ${param:rebuildToken, ''}
       REBUILD_MONTHLY_MAX: ${param:rebuildMonthlyMax, ''}
       # 「Apple でサインイン」の人の退会で、Apple の更新トークンを取り消す（Apple の決まり・札 journey.photo-ios#601）。
-      # 2026-11-23 owner: 鍵は APNs の鍵（Sign in with Apple を足した）。宛先は本番の Bundle ID（APNs の topic と同じ値）。
-      # 鍵が無い環境では取り消さず、退会は止めない（`federatedAccount.ts` の `revokeLinkedTokens`）
-      APNS_KEY_ID: ${param:apnsKeyId, ''}
-      APNS_TEAM_ID: ${param:apnsTeamId, ''}
-      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
-      APPLE_SIGNIN_CLIENT_ID: ${param:apnsTopic, ''}
+      # 🔴 鍵は user API に置かない。取り消しは Apple のスタックの関数に頼む（`federatedRevokeClient.ts`・
+      #    呼ぶ権限は下の `AppleRevokeInvokePolicy`）。スタックが無い環境では取り消さず、退会は止めない
+      APPLE_REVOKE_FUNCTION: photo-gallery-apple-signin-${sls:stage}-appleRevoke
     # 既定の6秒だと、写真の多い人の退会が途中で打ち切られる。
     # 呼び出し側は HTTP のステータスを見て Cognito 側の削除に進むかを決めるので、
     # 途中で切れると「削除に失敗しました」と出たまま写真だけ半分消えた状態になる。
@@ -1211,6 +1208,24 @@ resources:
   # 1つの HTTP API に置ける認可は 10 個まで。スタックごとに作ると増える一方なので、ここ1つにまとめる。
   # 🔴 取り込んでいるスタックがある間は、この認可を作り直す変更（名前の付け替えなど）は反映が落ちる。
   #    変えるときは、先に取り込む側を外す
+    # 退会（`deleteAccount`）から、Apple のスタックの取り消しの関数を呼ぶ権限（札 journey.photo-ios#601）。
+    # provider の役に足すと、別のスタックの provider と突き合わせる試験（`splitStacks.test.ts`）の外になるので、
+    # 役に付ける方針（IAM::Policy）で足す。呼べるのはこの1つの関数だけ（「渡した更新トークンを取り消す」しかできない）
+    AppleRevokeInvokePolicy:
+      Type: AWS::IAM::Policy
+      Properties:
+        PolicyName: ${self:service}-${sls:stage}-apple-revoke-invoke
+        Roles:
+          - Ref: IamRoleLambdaExecution
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - lambda:InvokeFunction
+              Resource:
+                - arn:aws:lambda:${aws:region}:${aws:accountId}:function:photo-gallery-apple-signin-${sls:stage}-appleRevoke
+
   Outputs:
     CognitoAuthorizerId:
       Description: user API の Cognito の JWT の認可（別スタックの経路が使う）
@@ -1230,23 +1245,41 @@ resources:
   # 経路 `POST /auth/apple` は別のスタック（`serverless.apple-signin.yml`）が足し、**そのスタックを配る環境でだけ**
   # 在る（`deploy-api.yml` の `APPLE_SIGNIN_ENABLED`）。無い経路に設定を付けると反映が落ちるので、
   # `appleSigninEnabled` が true のときだけ足す（`AppleSigninOn`）
+  #
+  # 「Google でログイン」の口（札 journey.photo-ios#715）も同じ。スタックは Apple と Google の両方を配る環境だけ
+  # （`deploy-api.yml`・トリガーは Apple のスタック）なので、`googleSigninEnabled` は Apple と両方 true のときだけ効く
   Conditions:
     AppleSigninOn:
       Fn::Equals: ["${param:appleSigninEnabled, 'false'}", "true"]
+    GoogleSigninOn:
+      Fn::And:
+        - Condition: AppleSigninOn
+        - Fn::Equals: ["${param:googleSigninEnabled, 'false'}", "true"]
 
   extensions:
     HttpApiStage:
       Properties:
         RouteSettings:
           Fn::If:
-            - AppleSigninOn
+            - GoogleSigninOn
             - "POST /spots/wants":
                 ThrottlingRateLimit: 10
                 ThrottlingBurstLimit: 20
-              # サインインは1人で1分に数回。秒 5 件・瞬間 10 件を越えた分は 429（Apple への問い合わせ・利用者の作成をさせない）
               "POST /auth/apple":
                 ThrottlingRateLimit: 5
                 ThrottlingBurstLimit: 10
-            - "POST /spots/wants":
-                ThrottlingRateLimit: 10
-                ThrottlingBurstLimit: 20
+              "POST /auth/google":
+                ThrottlingRateLimit: 5
+                ThrottlingBurstLimit: 10
+            - Fn::If:
+                - AppleSigninOn
+                - "POST /spots/wants":
+                    ThrottlingRateLimit: 10
+                    ThrottlingBurstLimit: 20
+                  # サインインは1人で1分に数回。秒 5 件・瞬間 10 件を越えた分は 429（提供元への問い合わせ・利用者の作成をさせない）
+                  "POST /auth/apple":
+                    ThrottlingRateLimit: 5
+                    ThrottlingBurstLimit: 10
+                - "POST /spots/wants":
+                    ThrottlingRateLimit: 10
+                    ThrottlingBurstLimit: 20

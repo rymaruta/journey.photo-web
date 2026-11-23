@@ -13,7 +13,8 @@ import { CLIENT_ID, fakeApple, fakeUsersTable, makeToken, p8Pem } from "./appleT
 const db = vi.hoisted(() => ({ send: vi.fn() }));
 vi.mock("../dynamodb", () => ({ ddb: db, PHOTOS_TABLE: "photos-test" }));
 
-import { appleDeps, appleRevoker, getAppleSigninStatus, startAppleSignin } from "../appleSignin";
+import { appleDeps, appleRevoker, getAppleSigninStatus, revokeTokenHandler, startAppleSignin } from "../appleSignin";
+import { appleRevokeViaStack, revokeClientDeps } from "../federatedRevokeClient";
 import {
     federatedDeps, cleanDisplayName, filterValue, randomPassword, consumeTicket, parseTicketAnswer, ticketAnswer,
     revokeLinkedTokens, markProfile, USER_GROUP, TICKET_TTL_MS, CLAIM_STALE_MS,
@@ -89,6 +90,54 @@ describe("使えるか（GET /auth/apple/status）", () => {
         vi.stubEnv("APPLE_SIGNIN_READY", "true");
         federatedDeps.poolId = () => "";
         expect(bodyOf(await call(getAppleSigninStatus, {}))).toEqual({ available: false });
+    });
+});
+
+describe("使えるか: 鍵を SSM に置く形（本線）", () => {
+    it("SSM から読めるかだけを見る（読めなければ false）。答えに鍵は出ない", async () => {
+        vi.stubEnv("APPLE_SIGNIN_READY", "");
+        vi.stubEnv("APPLE_SIGNIN_KEY_PARAM", "/journey-photo/prod/apple-signin/private-key");
+        const res = await call(getAppleSigninStatus, {});
+        expect(bodyOf(res)).toEqual({ available: true });
+        expect(res.body).not.toContain("PRIVATE");
+        appleDeps.config = async () => null;
+        expect(bodyOf(await call(getAppleSigninStatus, {}))).toEqual({ available: false });
+    });
+});
+
+describe("退会の取り消しを Apple のスタックに頼む（federatedRevokeClient・revokeTokenHandler）", () => {
+    afterEach(() => {
+        revokeClientDeps.functionName = () => (process.env.APPLE_REVOKE_FUNCTION ?? "").trim();
+    });
+
+    it("取り消しの関数は、渡された更新トークンを Apple に取り消しとして送るだけ。形の違う頼みは断る", async () => {
+        expect(await revokeTokenHandler({ provider: "apple", refreshToken: "r.9" })).toEqual({ result: "revoked" });
+        expect(new URLSearchParams(apple.calls.at(-1)!.body).get("token")).toBe("r.9");
+        for (const bad of [{}, { provider: "google", refreshToken: "x" }, { provider: "apple", refreshToken: "" }, { provider: "apple", refreshToken: 1 }]) {
+            expect(await revokeTokenHandler(bad as never)).toEqual({ result: "rejected" });
+        }
+    });
+
+    it("user API 側は関数を呼んで結果を読む。関数が無い・権限が無いは unavailable、混雑・壊れた答えは failed", async () => {
+        const calls: { fn: string; payload: string }[] = [];
+        revokeClientDeps.functionName = () => "photo-gallery-apple-signin-prod-appleRevoke";
+        revokeClientDeps.invoke = async (fn, payload) => { calls.push({ fn, payload }); return { payload: JSON.stringify(await revokeTokenHandler(JSON.parse(payload))) }; };
+        expect(await appleRevokeViaStack("r.1")).toBe("revoked");
+        expect(JSON.parse(calls[0].payload)).toEqual({ provider: "apple", refreshToken: "r.1" });
+        appleDeps.fetchImpl = fakeApple({ revokeStatus: 400 }).fetchImpl;
+        expect(await appleRevokeViaStack("r.1")).toBe("rejected");
+        for (const name of ["ResourceNotFoundException", "AccessDeniedException"]) {
+            revokeClientDeps.invoke = async () => { throw Object.assign(new Error("x"), { name }); };
+            expect(await appleRevokeViaStack("r.1"), name).toBe("unavailable");
+        }
+        revokeClientDeps.invoke = async () => { throw Object.assign(new Error("x"), { name: "TooManyRequestsException" }); };
+        expect(await appleRevokeViaStack("r.1")).toBe("failed");
+        revokeClientDeps.invoke = async () => ({ functionError: "Unhandled" });
+        expect(await appleRevokeViaStack("r.1")).toBe("failed");
+        revokeClientDeps.invoke = async () => ({ payload: '{"result":"ok"}' });
+        expect(await appleRevokeViaStack("r.1")).toBe("failed");
+        revokeClientDeps.functionName = () => "";
+        expect(await appleRevokeViaStack("r.1")).toBe("unavailable");
     });
 });
 
@@ -280,6 +329,16 @@ describe("サインイン（POST /auth/apple）", () => {
         expect(names()).toEqual(["AdminGetUserCommand"]);
     });
 
+    it("前の回でプロフィールの書き込みが落ちていても、次のサインインで直る（無いときだけ作る・番号を書く）", async () => {
+        users.table.set("apple#001234.apple", { userId: "apple#001234.apple", cognitoUsername: "u1", cognitoSub: "s1" });
+        await signIn({}, { displayName: "山田" });
+        expect(users.table.get("s1")).toMatchObject({ appleSub: "001234.apple", displayName: "山田" });
+        // 本人が付けた名前は上書きしない
+        users.table.set("s1", { userId: "s1", appleSub: "001234.apple", displayName: "自分の名前" });
+        await signIn({}, { displayName: "山田" }, freshRaw());
+        expect(users.table.get("s1")!.displayName).toBe("自分の名前");
+    });
+
     it("前に結んだアカウントが退会で消えていたら、古い行を消して新しく作る", async () => {
         users.table.set("apple#001234.apple", { userId: "apple#001234.apple", cognitoUsername: "gone", cognitoSub: "s-gone" });
         idpReply = (name, input) => {
@@ -347,6 +406,20 @@ describe("同時に2回来たとき（2026-11-23 確かめ役の指摘）", () =
         expect(users.table.has("apple#001234.apple")).toBe(false);
     });
 
+    it("🔴 メールで結んだ回で行に書けなかったら、印は外すが、結んだ相手（既にある利用者）は消さない", async () => {
+        idpReply = (name) => (name === "ListUsersCommand" ? listed([{ username: "old-user", sub: "sub-old" }]) : { Groups: [] });
+        db.send.mockImplementation(async (c: unknown) => {
+            const { name, input } = cmd(c);
+            if (name === "UpdateCommand" && input.UpdateExpression?.startsWith("SET cognitoUsername")) {
+                throw Object.assign(new Error("boom"), { name: "InternalServerError" });
+            }
+            return users.send(c);
+        });
+        expect((await signIn()).statusCode).toBe(500);
+        expect(names()).not.toContain("AdminDeleteUserCommand");
+        expect(users.table.has("apple#001234.apple")).toBe(false);
+    });
+
     it("作る途中（パスワード・グループ）で落ちても、作りかけの利用者を消す", async () => {
         idpReply = (name, input) => {
             if (name === "AdminAddUserToGroupCommand") throw Object.assign(new Error("x"), { name: "TooManyRequestsException" });
@@ -364,10 +437,30 @@ describe("退会のときの取り消し（appleRevoker・revokeLinkedTokens）"
         expect(new URLSearchParams(apple.calls.at(-1)!.body).get("token")).toBe("r.1");
         appleDeps.fetchImpl = fakeApple({ revokeStatus: 500 }).fetchImpl;
         expect(await appleRevoker("r.1")).toBe("failed");
+        appleDeps.fetchImpl = fakeApple({ revokeStatus: 503 }).fetchImpl;
+        expect(await appleRevoker("r.1")).toBe("failed");
+        // 🔴 4xx は断られた（やり直しても変わらない）。退会を止めない側
+        for (const status of [400, 401, 403]) {
+            appleDeps.fetchImpl = fakeApple({ revokeStatus: status }).fetchImpl;
+            expect(await appleRevoker("r.1"), String(status)).toBe("rejected");
+        }
         appleDeps.fetchImpl = async () => { throw new Error("net"); };
         expect(await appleRevoker("r.1")).toBe("failed");
         appleDeps.config = async () => null;
         expect(await appleRevoker("r.1")).toBe("unavailable");
+    });
+
+    it("🔴 Apple が 4xx で断っても退会は止めない（true）。見張りに出し、トークンは行に残す", async () => {
+        users.table.set("apple#a", { userId: "apple#a", cognitoSub: "me", cognitoUsername: "u", refreshToken: "r.1" });
+        appleDeps.fetchImpl = fakeApple({ revokeStatus: 400 }).fetchImpl;
+        const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
+        expect(await revokeLinkedTokens("me", { appleSub: "a" }, { apple: appleRevoker })).toBe(true);
+        expect(err.mock.calls.some((c) => String(c[0]).includes("rejected"))).toBe(true);
+        err.mockRestore();
+        expect(users.table.get("apple#a")!.refreshToken).toBe("r.1");
+        // 5xx は止める（やり直せば通る）
+        appleDeps.fetchImpl = fakeApple({ revokeStatus: 502 }).fetchImpl;
+        expect(await revokeLinkedTokens("me", { appleSub: "a" }, { apple: appleRevoker })).toBe(false);
     });
 
     it("取り消したら行からトークンだけ消す（結び付けは残す）。何度呼んでも同じ", async () => {
@@ -434,11 +527,23 @@ describe("配り方（serverless.apple-signin.yml・deploy-api.yml・serverless.
     it("🔴 使えるかの口には鍵を配らない（真偽だけ）", () => {
         const status = fnBlock("appleSigninStatus");
         expect(status).toContain("APPLE_SIGNIN_READY: ${param:appleSigninReady, 'false'}");
-        expect(status).not.toMatch(/APNS_|PRIVATE_KEY/);
+        expect(status).not.toMatch(/PRIVATE_KEY|apnsPrivateKey/);
     });
 
     it("取り消しの口は無い（退会の中で取り消す）", () => {
         expect(yml).not.toContain("/auth/apple/revoke");
+    });
+
+    it("🔴 鍵の置き場を決めるのは deploy-api.yml の1か所（APPLE_SIGNIN_KEY_SOURCE・本線は ssm）。user API には鍵を置かない", () => {
+        expect(wf.match(/^\s+APPLE_SIGNIN_KEY_SOURCE: (\w+)$/gm)).toEqual(["      APPLE_SIGNIN_KEY_SOURCE: ssm"]);
+        expect(step).toContain('appleSigninKeyParam=/journey-photo/${{ needs.config.outputs.envName }}/apple-signin/private-key');
+        const del = userYml.slice(userYml.indexOf("  deleteAccount:"), userYml.indexOf("\n  # ", userYml.indexOf("  deleteAccount:") + 5));
+        expect(del).not.toMatch(/APNS_PRIVATE_KEY|apnsPrivateKey|APPLE_SIGNIN_KEY_PARAM/);
+        expect(del).toContain("APPLE_REVOKE_FUNCTION: photo-gallery-apple-signin-${sls:stage}-appleRevoke");
+        // 呼べるのはその1つの関数だけ
+        const pol = userYml.slice(userYml.indexOf("    AppleRevokeInvokePolicy:"), userYml.indexOf("  Outputs:"));
+        expect(pol).toMatch(/- lambda:InvokeFunction\n\s+Resource:\n\s+- arn:aws:lambda:\$\{aws:region\}:\$\{aws:accountId\}:function:photo-gallery-apple-signin-\$\{sls:stage\}-appleRevoke\n/);
+        expect(yml).toMatch(/^  appleRevoke:\n\s+handler: src\/appleSignin.revokeTokenHandler/m);
     });
 
     it("🔴 POST /auth/apple は段の流量で絞る（スタックを配る環境だけ）", () => {
