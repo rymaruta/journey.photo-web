@@ -83,15 +83,14 @@ functions:
     # Apple の公開鍵・認可コードの交換（それぞれ最大5秒）と Cognito の作成まで待つ
     timeout: 15
     environment:
-      # 鍵は APNs の鍵（2026-11-23 owner）。置き場は `deploy-api.yml` の1か所（`APPLE_SIGNIN_KEY_SOURCE`）で決まる:
-      # SSM（本線・`appleSigninKeyParam` に名前。環境変数の鍵は空）か、環境変数（`apnsPrivateKey`）
+      # 鍵は APNs の鍵（2026-11-23 owner）。Apple の client secret（認可コードの交換）に使う。置き場は `deploy-api.yml` の1か所
+      # （`APPLE_SIGNIN_KEY_SOURCE`）で決まる: SSM（本線・`appleSigninKeyParam` に名前。環境変数の鍵は空）か、環境変数（`apnsPrivateKey`）
       APNS_KEY_ID: ${param:apnsKeyId, ''}
       APNS_TEAM_ID: ${param:apnsTeamId, ''}
       APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
       APPLE_SIGNIN_KEY_PARAM: ${param:appleSigninKeyParam, ''}
-      # メールで自動で結んだとき、持ち主の端末へ知らせる（`federatedAccount.ts` の `pushLinkedNotice`。SSM の形では読んだ鍵で送る）
-      APNS_TOPIC: ${param:apnsTopic, ''}
-      APNS_HOST: ${param:apnsHost, ''}
+      # メールで自動で結んだときの知らせは、知らせだけの関数（下の `linkNotice`）に頼む（`federatedNoticeClient.ts`）
+      FEDERATED_NOTICE_FUNCTION: ${self:service}-${sls:stage}-linkNotice
       COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
     events:
       - httpApi:
@@ -110,6 +109,20 @@ functions:
       APNS_TEAM_ID: ${param:apnsTeamId, ''}
       APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
       APPLE_SIGNIN_KEY_PARAM: ${param:appleSigninKeyParam, ''}
+
+  # 「メールで自動で結んだ」知らせを持ち主の端末へ送る（HTTP の口ではない・`federatedNotice.ts`）。
+  # Apple と Google のサインインの口が待たずに呼ぶ。🔴 知らせのプッシュの鍵（APNs の鍵）を持つのは、この中ではここだけ
+  linkNotice:
+    handler: src/federatedNotice.linkNoticeHandler
+    role: LinkNoticeRole
+    timeout: 10
+    environment:
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
+      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
+      APPLE_SIGNIN_KEY_PARAM: ${param:appleSigninKeyParam, ''}
+      APNS_TOPIC: ${param:apnsTopic, ''}
+      APNS_HOST: ${param:apnsHost, ''}
 
   # CUSTOM_AUTH のトリガー3つ（1つの関数）。鍵は持たない（券を照らして消すだけ）
   appleAuthChallenge:
@@ -132,6 +145,10 @@ functions:
           existing: true
 
 resources:
+  Conditions:
+    HasAlarmTopic:
+      Fn::Not:
+        - Fn::Equals: ["${param:alarmTopicArn, ''}", ""]
   Resources:
     # 使えるかを返すだけ。何も読まない
     AppleStatusRole:
@@ -162,6 +179,70 @@ resources:
                     - ssm:GetParameter
                   Resource:
                     - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/journey-photo/${sls:stage}/apple-signin/*
+
+    # 知らせの関数。端末（`devices#<uid>`）を読み、鍵（SSM）を読んで APNs に送るだけ
+    LinkNoticeRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-notice
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: linkNotice
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - devices#*
+                - Effect: Allow
+                  Action:
+                    - ssm:GetParameter
+                  Resource:
+                    - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/journey-photo/${sls:stage}/apple-signin/*
+
+    # 🔴 退会の取り消しの関数が落ち続けたら知らせる（2026-11-23 確かめ役の3回目）。落ちると退会は 500 で止まる（やり直しで通る）が、
+    # 続くなら鍵や Apple の側がおかしい。15 分の間に3回以上落ちた 5 分の枠が2つ続いたら鳴る。
+    # 知らせ先（SNS の宛先）はまだ無いので `alarmTopicArn` を渡したときだけ付ける（無ければ CloudWatch の画面に赤く出るだけ）
+    AppleRevokeErrorsAlarm:
+      Type: AWS::CloudWatch::Alarm
+      Properties:
+        AlarmName: ${self:service}-${sls:stage}-appleRevoke-errors
+        AlarmDescription: Apple の更新トークンの取り消し（退会）の関数が落ち続けている。退会が止まっている（札 journey.photo-ios#601）
+        Namespace: AWS/Lambda
+        MetricName: Errors
+        Dimensions:
+          - Name: FunctionName
+            Value: ${self:service}-${sls:stage}-appleRevoke
+        Statistic: Sum
+        Period: 300
+        EvaluationPeriods: 3
+        DatapointsToAlarm: 2
+        Threshold: 3
+        ComparisonOperator: GreaterThanOrEqualToThreshold
+        TreatMissingData: notBreaching
+        AlarmActions:
+          Fn::If:
+            - HasAlarmTopic
+            - ["${param:alarmTopicArn, ''}"]
+            - Ref: AWS::NoValue
 
     # 取り消しの関数。鍵（SSM）を読み、Apple に頼むだけ（表も Cognito も触らない）
     AppleRevokeRole:

@@ -441,32 +441,14 @@ jobs:
         working-directory: api-user
         env:
           GOOGLE_SIGNIN_CLIENT_ID: 280167931666-24o92d38usbft3ouk3jc4dk8tvgh3t8p.apps.googleusercontent.com
-          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
-          APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
-          APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
-          APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
-          APNS_HOST: ${{ needs.config.outputs.apnsHost }}
+        # 🔴 鍵は渡さない（Google の口は鍵を持たない。メールで結んだときの知らせは Apple のスタックの `linkNotice` に頼む）
         run: |
           set -euo pipefail
-          extra=()
-          # 知らせのプッシュの鍵の置き場は Apple と同じ（このジョブの `APPLE_SIGNIN_KEY_SOURCE`）
-          if [ "$APPLE_SIGNIN_KEY_SOURCE" = "ssm" ]; then
-            extra+=(--param "appleSigninKeyParam=/journey-photo/${{ needs.config.outputs.envName }}/apple-signin/private-key")
-          elif [ "$APPLE_SIGNIN_KEY_SOURCE" = "env" ] && [ -n "${APNS_PRIVATE_KEY:-}" ]; then
-            apns_key="$(bash ../scripts/apns-key-param.sh)"
-            echo "::add-mask::$apns_key"
-            extra+=(--param "apnsPrivateKey=$apns_key")
-          fi
           npx serverless@3 deploy --config serverless.google-signin.yml --stage ${{ needs.config.outputs.envName }} \
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "usersTable=${{ needs.config.outputs.usersTable }}" \
             --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
-            --param "googleSigninClientId=$GOOGLE_SIGNIN_CLIENT_ID" \
-            --param "apnsKeyId=$APNS_KEY_ID" \
-            --param "apnsTeamId=$APNS_TEAM_ID" \
-            --param "apnsTopic=$APNS_TOPIC" \
-            --param "apnsHost=$APNS_HOST" \
-            ${extra[@]+"${extra[@]}"}
+            --param "googleSigninClientId=$GOOGLE_SIGNIN_CLIENT_ID"
 
       - name: Serverless deploy
         working-directory: api-user

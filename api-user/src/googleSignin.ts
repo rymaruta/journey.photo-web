@@ -11,7 +11,8 @@
  * 3. アプリが Cognito の CUSTOM_AUTH でそのユーザー名にログインし、券を答えに出す（トリガーは Apple と同じ）
  *
  * 結び方: Google が確かめ済みとし、Google が持ち主を確かめられるメール（Gmail か Google Workspace の組織のメール・
- * `googleIdToken.ts` の `emailAuthoritative`）が、確かめ済みのアカウントのメールと同じなら結ぶ。それ以外は新しく作る。
+ * `googleIdToken.ts` の `emailAuthoritative`）が、確かめ済みのアカウントのメールと同じなら結ぶ。それ以外は新しく作り、
+ * そのときメールは利用者に入れない（Apple の転送アドレスは入れる。あちらは Apple が届け先を持つ）。
  * 退会: Google の更新トークンは受け取らないので、取り消すものは無い（行と墓石の番号は `unlinkAfterDelete` が消す）。
  */
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
@@ -71,10 +72,15 @@ export const startGoogleSignin: APIGatewayProxyHandlerV2 = async (event) => {
             console.warn("startGoogleSignin: nonce");
             return jsonError(401, INVALID_TOKEN_MESSAGE, "google_token_invalid");
         }
+        // 🔴 持ち主を Google が確かめられないメール（Gmail でも Workspace でもない）は、**新しい利用者にも入れない**
+        //    （2026-11-23 確かめ役の3回目）。確かめ済みとして入れると、そのメールの本当の持ち主が後からメールで登録できなくなり、
+        //    同じメールのアカウントとも結ばない。入れるのは Google が持ち主を確かめられるメールだけ
+        const authoritative = claims.emailAuthoritative;
         const linked = await linkOrCreate({
-            provider: "google", sub: claims.sub, email: claims.email, emailVerified: claims.emailVerified,
-            // 持ち主を Google が確かめられないメールでは、同じメールのアカウントを探さない（Apple の転送アドレスと同じ扱い）
-            isPrivateEmail: !claims.emailAuthoritative,
+            provider: "google", sub: claims.sub,
+            email: authoritative ? claims.email : undefined,
+            emailVerified: authoritative,
+            isPrivateEmail: false,
         }, cleanDisplayName(body.displayName) ?? cleanDisplayName(claims.name));
         const challengeAnswer = await issueTicket("google", claims.sub);
         if (linked.via === "new") console.log(JSON.stringify({ metric: "signup", platform: "ios", from: "google" }));
