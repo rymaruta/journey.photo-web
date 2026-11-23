@@ -1,5 +1,5 @@
 /**
- * 「Apple でサインイン」の Cognito のトリガー（CUSTOM_AUTH・札 journey.photo-ios#601）。
+ * 外のアカウントでのサインイン（Apple・札 journey.photo-ios#601。次に Google・#715）の Cognito のトリガー（CUSTOM_AUTH）。
  *
  * 1つの関数で3つ（Define・Create・Verify）を受ける。`triggerSource` で分ける。
  * 1つにまとめたのは、既にあるプールにトリガーを付ける serverless の仕組み（`existing: true`）が
@@ -8,19 +8,16 @@
  *
  * - Define: 1回目は CUSTOM_CHALLENGE を出す。CUSTOM_CHALLENGE が1回だけ通っていればトークンを出す。
  *   それ以外（SRP の段が混じる・2回目の答え・利用者がいない）は全部断る
- * - Create: 問いの中身は無い（答えはアプリが Apple から受け取った identity token）
- * - Verify: token を Apple の公開鍵で確かめ、`apple#<sub>` の行がこの Cognito の利用者を指していて、
- *   その nonce をまだ使っていなければ通す（同じ token の使い回しを止める）
+ * - Create: 問いの中身は無い（答えは `POST /auth/apple` が出した使い捨ての券）
+ * - Verify: 券を照らして消す（`federatedAccount.ts` の `consumeTicket`）。券の行がこの Cognito の利用者を指し、
+ *   期限内で、合っていて（時間の差が出ない比べ方）、まだ使っていないときだけ通す。
+ *   2026-11-23 確かめ役の指摘で、identity token をここで確かめ直す形（直前の nonce と違えば通る）から改めた。
+ *   盗まれた token が期限内なら再び通っていた
  *
  * 🔴 **投げない。** トリガーが投げると、その文が Cognito の答えに乗って端末へ出る。何があっても「通さない」で返す。
  * 🔴 ほかの流れ（メールとパスワードの SRP）はこのトリガーを通らない（CUSTOM_AUTH のときだけ Cognito が呼ぶ）。
  */
-import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
-import { ddb } from "./dynamodb";
-import { requireEnv } from "./env";
-import { appleClientIdsFromEnv, appleKey, verifyAppleIdentityToken, type FetchLike } from "./appleIdToken";
-
-const USERS_TABLE = requireEnv("USERS_TABLE");
+import { consumeTicket } from "./federatedAccount";
 
 export const CHALLENGE = "CUSTOM_CHALLENGE";
 
@@ -37,13 +34,6 @@ export type AuthChallengeEvent = {
         challengeAnswer?: string;
     };
     response: Record<string, unknown>;
-};
-
-/** 試験で差し替える口 */
-export const triggerDeps: { fetchImpl?: FetchLike; clientIds: () => string[]; now: () => number } = {
-    fetchImpl: undefined,
-    clientIds: () => appleClientIdsFromEnv(),
-    now: () => Date.now(),
 };
 
 /** Define: 次の段を決める */
@@ -70,17 +60,17 @@ export function defineChallenge(event: AuthChallengeEvent): AuthChallengeEvent {
     return fail();
 }
 
-/** Create: 問いを作る（中身は無い。アプリは identity token を答える） */
+/** Create: 問いを作る（中身は無い。アプリは `POST /auth/apple` が出した券を答える） */
 export function createChallenge(event: AuthChallengeEvent): AuthChallengeEvent {
     if (event.request.challengeName === CHALLENGE) {
-        event.response.publicChallengeParameters = { provider: "apple" };
-        event.response.privateChallengeParameters = { provider: "apple" };
-        event.response.challengeMetadata = "APPLE_ID_TOKEN";
+        event.response.publicChallengeParameters = { kind: "ticket" };
+        event.response.privateChallengeParameters = { kind: "ticket" };
+        event.response.challengeMetadata = "FEDERATED_TICKET";
     }
     return event;
 }
 
-/** Verify: 答え（identity token）を確かめる */
+/** Verify: 答え（券）を照らして消す */
 export async function verifyChallenge(event: AuthChallengeEvent): Promise<AuthChallengeEvent> {
     event.response.answerCorrect = await isCorrect(event).catch((e) => {
         console.warn("appleAuthTrigger verify:", (e as { reason?: string; name?: string })?.reason ?? (e as { name?: string })?.name);
@@ -90,33 +80,10 @@ export async function verifyChallenge(event: AuthChallengeEvent): Promise<AuthCh
 }
 
 async function isCorrect(event: AuthChallengeEvent): Promise<boolean> {
-    const clientIds = triggerDeps.clientIds();
     const username = event.userName;
     const cognitoSub = event.request.userAttributes?.sub;
-    if (clientIds.length === 0 || !username || !cognitoSub) return false;
-    const claims = await verifyAppleIdentityToken(event.request.challengeAnswer, {
-        clientIds, now: triggerDeps.now(), fetchImpl: triggerDeps.fetchImpl,
-    });
-    if (!claims.nonce) return false;
-    const key = appleKey(claims.sub);
-    const res = await ddb.send(new GetCommand({ TableName: USERS_TABLE, Key: { userId: key }, ConsistentRead: true }));
-    const row = res.Item as { cognitoUsername?: string; cognitoSub?: string } | undefined;
-    // 🔴 その Apple の人が結ばれているのは、いまログインしようとしている Cognito の利用者か
-    if (!row || row.cognitoUsername !== username || row.cognitoSub !== cognitoSub) return false;
-    // 同じ nonce（＝同じ token）は1回しか通さない
-    try {
-        await ddb.send(new UpdateCommand({
-            TableName: USERS_TABLE,
-            Key: { userId: key },
-            UpdateExpression: "SET lastNonce = :n, signedInAt = :at",
-            ConditionExpression: "cognitoUsername = :u AND (attribute_not_exists(lastNonce) OR lastNonce <> :n)",
-            ExpressionAttributeValues: { ":n": claims.nonce, ":u": username, ":at": new Date(triggerDeps.now()).toISOString() },
-        }));
-    } catch (e) {
-        if ((e as { name?: string }).name === "ConditionalCheckFailedException") return false;
-        throw e;
-    }
-    return true;
+    if (!username || !cognitoSub) return false;
+    return consumeTicket(event.request.challengeAnswer, username, cognitoSub);
 }
 
 /** Cognito が呼ぶ1つの入口 */

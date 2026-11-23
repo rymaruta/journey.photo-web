@@ -1,23 +1,25 @@
-# 「Apple でサインイン」の口と Cognito のトリガー（札 journey.photo-ios#601・2026-11-23 owner「すすめたい！」・`src/appleSignin.ts`）を、
+# 外のアカウントでのサインイン（「Apple でサインイン」・札 journey.photo-ios#601・2026-11-23 owner「すすめたい！」。
+# 次に Google・#715）の口と Cognito のトリガー（`src/appleSignin.ts`・`src/appleAuthTrigger.ts`・土台は `src/federatedAccount.ts`）を、
 # user API とは**別のスタック**で配る（CLAUDE.md「サーバーの口は機能ごとのスタックに足す」・札 #552）。
 #
 # 作りは `serverless.profile-qr.yml` と同じ:
 #   - 新しい HTTP API は作らず、user API が書き出す HttpApiId を取り込んで**経路だけ**足す（URL は user API と同じ）
-#   - ログインの要る口は、user API が書き出す Cognito の認可（`CognitoAuthorizerId`）を使う
 #
 # 🔴 **このスタックを配ると、本番の Cognito のプールが変わる**（トリガー3つ: Define・Create・Verify）。
-#    owner の承認が要る設定変更。`deploy-api.yml` は **Apple の鍵（Secrets の `APPLE_SIGNIN_PRIVATE_KEY`）が
-#    入っている環境でだけ**このスタックを配る。鍵が入るまでは、マージしてもプールは変わらない。
+#    owner の承認が要る設定変更。`deploy-api.yml` は**リポジトリの変数 `APPLE_SIGNIN_ENABLED` が `true` のときだけ**
+#    このスタックを配る（既定は配らない）。鍵（APNs の鍵に Sign in with Apple を足したもの・2026-11-23 owner）は
+#    もうあるので、鍵の有無では決めない。
 #    もう1つ、アプリのクライアントに `ALLOW_CUSTOM_AUTH` を足す変更は CloudFormation の外にある
 #    （クライアントはこの仕組みで作っていない）。手順は iOS の `docs/APPLE_SIGNIN.md`。
 #
 # 🔴 トリガーは**1つの関数**で3つ受ける（`src/appleAuthTrigger.ts` の注記）。serverless の
 #    `existing: true` は関数ごとにプールを `UpdateUserPool` で書き換え、**ほかの関数のトリガー
 #    （PostConfirmation・photo-gallery-api）は残す**（その関数の ARN の項目だけ入れ替える）。
+#    それでもプールのほかの設定が戻らないかは、付ける前後に `describe-user-pool` を比べる（手順書）。
 #
-# 戻すとき: `aws cloudformation delete-stack --stack-name photo-gallery-apple-signin-<stage>`。
-#    消してもプールのトリガーの項目は残ることがあるので、`aws cognito-idp describe-user-pool` で
-#    LambdaConfig を見て、Define・Create・Verify が残っていたら外す（PostConfirmation は残す）。
+# 戻すとき（順番を守る・手順書）: アプリのクライアントから `ALLOW_CUSTOM_AUTH` を外す →
+#    `APPLE_SIGNIN_ENABLED` を false に → `aws cloudformation delete-stack --stack-name photo-gallery-apple-signin-<stage>` →
+#    `aws cognito-idp describe-user-pool` で LambdaConfig を見て、Define・Create・Verify が残っていたら外す（PostConfirmation は残す）。
 service: photo-gallery-apple-signin
 
 frameworkVersion: '3'
@@ -36,7 +38,7 @@ provider:
     # `dynamodb.ts` が読み込みのときに要る（写真の表は読み書きしない）
     PHOTOS_TABLE: ${param:photosTable}
     USERS_TABLE: ${param:usersTable}
-    # 宛先（Bundle ID。identity token の `aud`）。本番 `com.journeyphoto.JourneyPhoto`・staging `….staging`。
+    # 宛先（Bundle ID。identity token の `aud`）。本番 `com.journeyphoto.JourneyPhoto`（staging の App ID は無い）。
     # 秘密ではない（APNs の topic と同じ値・`deploy-api.yml`）
     APPLE_SIGNIN_CLIENT_ID: ${param:appleSigninClientId, ''}
   httpApi:
@@ -55,58 +57,44 @@ custom:
       - '@aws-sdk/*'
 
 functions:
-  # 使えるか（鍵がそろっているか）。**未認証で呼べる口。** アプリは `available: true` のときだけボタンを出す
+  # 使えるか。**未認証で呼べる口。** アプリは `available: true` のときだけボタンを出す。
+  # 🔴 **鍵は配らない。** `deploy-api.yml` が「そろっているか」の真偽（`appleSigninReady`）だけを渡す（2026-11-23 確かめ役の指摘）
   appleSigninStatus:
     handler: src/appleSignin.getAppleSigninStatus
     role: AppleStatusRole
     environment:
-      APPLE_SIGNIN_TEAM_ID: ${param:appleSigninTeamId, ''}
-      APPLE_SIGNIN_KEY_ID: ${param:appleSigninKeyId, ''}
-      # 鍵があるかを見るだけ。使わないが、「そろっているか」を1か所（`appleConfigFromEnv`）で決めるために渡す
-      APPLE_SIGNIN_PRIVATE_KEY: ${param:appleSigninPrivateKey, ''}
+      APPLE_SIGNIN_READY: ${param:appleSigninReady, 'false'}
       COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
     events:
       - httpApi:
           path: /auth/apple/status
           method: GET
 
-  # identity token を確かめ、Cognito の利用者に結ぶ（無ければ作る）。**未認証で呼べる口。**
-  # 守りは Apple の署名（このアプリの Bundle ID あての、期限内の token しか通らない）
+  # identity token と元の nonce を確かめ、Cognito の利用者に結び（無ければ作る）、使い捨ての券を返す。**未認証で呼べる口。**
+  # 守りは Apple の署名（このアプリの Bundle ID あての、期限内の token）・nonce の照らし（1回きり）・
+  # 流量（user API の段の `POST /auth/apple`。秒 5 件）
   appleSigninStart:
     handler: src/appleSignin.startAppleSignin
     role: AppleSigninRole
     # Apple の公開鍵・認可コードの交換（それぞれ最大5秒）と Cognito の作成まで待つ
     timeout: 15
     environment:
-      APPLE_SIGNIN_TEAM_ID: ${param:appleSigninTeamId, ''}
-      APPLE_SIGNIN_KEY_ID: ${param:appleSigninKeyId, ''}
-      APPLE_SIGNIN_PRIVATE_KEY: ${param:appleSigninPrivateKey, ''}
+      # 鍵は APNs の鍵（2026-11-23 owner）。`appleSigninKeyParam`（SSM の SecureString の名前）を渡せば、
+      # 鍵は環境変数ではなく実行時にそこから読む（`appleIdToken.ts` の `loadAppleConfig`）
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
+      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
+      APPLE_SIGNIN_KEY_PARAM: ${param:appleSigninKeyParam, ''}
+      # メールで自動で結んだとき、持ち主の端末へ知らせる（`federatedAccount.ts` の `pushLinkedNotice`）
+      APNS_TOPIC: ${param:apnsTopic, ''}
+      APNS_HOST: ${param:apnsHost, ''}
       COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
     events:
       - httpApi:
           path: /auth/apple
           method: POST
 
-  # 退会の前に Apple の更新トークンを取り消す。ログインの口
-  appleSigninRevoke:
-    handler: src/appleSignin.revokeAppleSignin
-    role: AppleSigninRole
-    timeout: 10
-    environment:
-      APPLE_SIGNIN_TEAM_ID: ${param:appleSigninTeamId, ''}
-      APPLE_SIGNIN_KEY_ID: ${param:appleSigninKeyId, ''}
-      APPLE_SIGNIN_PRIVATE_KEY: ${param:appleSigninPrivateKey, ''}
-      COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
-    events:
-      - httpApi:
-          path: /auth/apple/revoke
-          method: POST
-          authorizer:
-            type: jwt
-            id:
-              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
-
-  # CUSTOM_AUTH のトリガー3つ（1つの関数）。鍵は持たない（確かめは公開鍵だけで済む）
+  # CUSTOM_AUTH のトリガー3つ（1つの関数）。鍵は持たない（券を照らして消すだけ）
   appleAuthChallenge:
     handler: src/appleAuthTrigger.handler
     role: AppleTriggerRole
@@ -152,7 +140,7 @@ resources:
                   Resource:
                     - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
 
-    # 結ぶ・作る・取り消す口。users 表の読み書きと、このプールの利用者の作成・検索だけ
+    # 結ぶ・作る口。users 表の読み書きと、このプールの利用者の作成・検索・作りかけの削除だけ
     AppleSigninRole:
       Type: AWS::IAM::Role
       Properties:
@@ -175,7 +163,7 @@ resources:
                     - logs:PutLogEvents
                   Resource:
                     - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
-                # `apple#<sub>` の行と、プロフィールの行（`appleSub`・初回の表示名）
+                # `apple#<sub>`・`nonce#apple#…` の行と、プロフィールの行（`appleSub`・初回の表示名）
                 - Effect: Allow
                   Action:
                     - dynamodb:GetItem
@@ -184,6 +172,22 @@ resources:
                     - dynamodb:DeleteItem
                   Resource:
                     - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+                # 知らせを送る端末（`devices#<uid>` を読むだけ）
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - devices#*
+                # 鍵を SSM の SecureString に置いたとき（`appleSigninKeyParam`）。この道の下だけ読める
+                - Effect: Allow
+                  Action:
+                    - ssm:GetParameter
+                  Resource:
+                    - arn:aws:ssm:${aws:region}:${aws:accountId}:parameter/journey-photo/${sls:stage}/apple-signin/*
                 # 🔴 グループは `user` だけ入れる（`admin` に入れる道を持たせないのはハンドラ側の固定値。IAM は GroupName を絞れない）
                 - Effect: Allow
                   Action:
@@ -192,9 +196,13 @@ resources:
                     - cognito-idp:AdminCreateUser
                     - cognito-idp:AdminSetUserPassword
                     - cognito-idp:AdminAddUserToGroup
+                    # 🔴 `admin` の人にはメールで自動で結ばない（見るだけ）
+                    - cognito-idp:AdminListGroupsForUser
+                    # 作りかけ・結べなかった利用者を残さない（自分が作った利用者だけ消す。ハンドラ側の決まり）
+                    - cognito-idp:AdminDeleteUser
                   Resource: arn:aws:cognito-idp:${aws:region}:${aws:accountId}:userpool/${param:cognitoUserPoolId}
 
-    # トリガー。`apple#<sub>` の行を読み、使った nonce を書くだけ
+    # トリガー。`apple#<sub>` の行の券を読んで消すだけ（Google を足すときは `google#*` を足す）
     AppleTriggerRole:
       Type: AWS::IAM::Role
       Properties:
