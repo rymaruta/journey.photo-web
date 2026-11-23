@@ -240,6 +240,30 @@ describe("DELETE /user/signin-methods/{provider}", () => {
         expect(users.table.get(ME)).not.toHaveProperty("appleUnlinkedSub");
     });
 
+    it("控えの欄が書けなくても（条件以外の失敗）解除は 200 で済ませ、人の情報の無いログに出すだけ", async () => {
+        seed({ appleSub: "001.apple" }, { "apple#001.apple": appleRow() });
+        revokeResult = "rejected";
+        db.send.mockImplementation(async (c: any) => {
+            if (c.constructor.name === "UpdateCommand" && c.input.Key.userId === ME && c.input.UpdateExpression === "SET #k = :s") {
+                throw Object.assign(new Error("t"), { name: "ProvisionedThroughputExceededException" });
+            }
+            return users.send(c);
+        });
+        const logged: string[] = [];
+        const spy = vi.spyOn(console, "error").mockImplementation((...a: unknown[]) => { logged.push(a.map(String).join(" ")); });
+        try {
+            expect((await call(removeSigninMethod, ev("apple"))).statusCode).toBe(200);
+        } finally {
+            spy.mockRestore();
+        }
+        expect(users.table.get("apple#001.apple")!.unlinkedAt).toBeDefined();
+        const line = logged.find((l) => l.includes("federated_unlink_note_failed"));
+        expect(line).toBeDefined();
+        expect(line).not.toContain(ME);
+        expect(line).not.toContain("001.apple");
+        expect(line).not.toContain("taro@example.com");
+    });
+
     it("🔴 解除して残した行では入れない。解除の前に出した券も通さない", async () => {
         seed({}, { "apple#001.apple": appleRow({ unlinkedAt: "2026-11-23T00:00:00Z" }) });
         await expect(linkOrCreate(identity({ sub: "001.apple" }), undefined)).rejects.toBeInstanceOf(UnlinkedProviderError);

@@ -367,6 +367,23 @@ describe("サインイン（POST /auth/apple）", () => {
     });
 });
 
+describe("「サインインの方法」で解除した Apple ID（2026-11-23 確かめ役の見直し）", () => {
+    it("🔴 解除して行を残した ID で入り直すと 409（code apple_signin_unlinked）。Cognito に何も作らない", async () => {
+        idpReply = createdReply;
+        users.table.set("sub-me", { userId: "sub-me" });
+        users.table.set("apple#001234.apple", {
+            userId: "apple#001234.apple", provider: "apple", cognitoUsername: "u-me", cognitoSub: "sub-me", unlinkedAt: "2026-11-23T00:00:00Z",
+        });
+        const res = await signIn({ is_private_email: "true" });
+        expect(res.statusCode).toBe(409);
+        expect(bodyOf(res)).toEqual({
+            error: "この Apple ID の連携は解除されています。メールアドレスでログインしてください",
+            code: "apple_signin_unlinked",
+        });
+        expect(names()).not.toContain("AdminCreateUserCommand");
+    });
+});
+
 describe("同時に2回来たとき（2026-11-23 確かめ役の指摘）", () => {
     it("🔴 先に行を取った回だけが利用者を作る。後の回は 409 で、Cognito に何も作らない", async () => {
         idpReply = createdReply;

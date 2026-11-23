@@ -234,7 +234,12 @@ export const removeSigninMethod: APIGatewayProxyHandlerV2WithJWTAuthorizer = asy
                 ConditionExpression: "attribute_not_exists(deletedAt)",
                 ExpressionAttributeNames: { "#k": unlinkedSubField(provider) },
                 ExpressionAttributeValues: { ":s": target.sub },
-            })).catch((e) => { if (errName(e) !== "ConditionalCheckFailedException") throw e; });
+            })).catch((e) => {
+                // 控えが書けなくても解除は済んでいる（行には解除の印がある）。投げずに見張りに出すだけ（人の情報は出さない）
+                if (errName(e) !== "ConditionalCheckFailedException") {
+                    console.error(JSON.stringify({ metric: "federated_unlink_note_failed", provider, error: errName(e) }));
+                }
+            });
         } else {
             await ddb.send(new DeleteCommand({
                 TableName: USERS_TABLE, Key: { userId: key },
