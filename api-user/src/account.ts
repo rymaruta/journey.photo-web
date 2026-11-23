@@ -24,6 +24,8 @@ import { readUserList } from "./userList";
 import { forgetAppStoreLinks } from "./supporterStore";
 import { qrKey, qrOfKey, isValidQrToken } from "./profileQr";
 import { aiUseKeysForCleanup } from "./tripAiKeys";
+import { linkedFields, revokeLinkedTokens, unlinkAfterDelete } from "./federatedAccount";
+import { appleRevokeViaStack } from "./federatedRevokeClient";
 
 // 退会（アカウント削除）。DELETE /user/account、認証必須、呼び出し元の sub のみ対象。
 // 不可逆な破壊操作のため「確実に引ける範囲を確実に消す」方針:
@@ -529,12 +531,15 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         //    いるので、押し直せば続きから消える）。写真の消し残しで止めるのと
         //    同じ考え方。
         let handle = "";
+        // 外のアカウント（Apple など）の結び付け（`federatedAccount.ts`・札 journey.photo-ios#601）。墓石に残す（下の注記）
+        let federated: Record<string, string> = {};
         let profileWasLive = false;
         // Pro の取引と人の結び付け（`appstore#…`）を消すのに使う（`supporterStore.ts`）
         let supporterRow: unknown;
         try {
             const prof = await ddb.send(new GetCommand({ TableName: USERS_TABLE, Key: { userId: uid } }));
             handle = typeof prof.Item?.username === "string" ? prof.Item.username : "";
+            federated = linkedFields(prof.Item);
             profileWasLive = !!prof.Item && !isDeletedProfile(prof.Item);
             supporterRow = prof.Item?.supporter;
         } catch (e) {
@@ -554,6 +559,13 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         // 成功扱いなので、残りは全部一時的な失敗。押し直せば続きから消える。
         // 墓石より**前**で止めるので、やり直しは生きたプロフィール行から
         // handle を読み直せる。
+        // **Apple など外のアカウントの更新トークンを取り消す**（Apple の決まり・札 journey.photo-ios#601）。
+        // アプリが前に呼ぶのではなく、ここで行う（Web や古いアプリから退会しても漏れない）。
+        // 🔴 **墓石より前・ユーザー名の解放より前。** 取り消しが落ちたら 500 で止め、結び付けの行はそのまま残る
+        //    （押し直せば続きから）。結び付けの行を消すのは墓石の後（下の `unlinkAfterDelete`）
+        if (!await revokeLinkedTokens(uid, federated, { apple: appleRevokeViaStack })) {
+            return jsonError(500, "連携が解除できず、退会できませんでした。少し待ってからお試しください");
+        }
         if (handle && !await releaseOwnUsername(handle, uid)) {
             return jsonError(500, "ユーザー名の解放を完了できませんでした。アカウントはまだ削除されていません。時間をおいてもう一度お試しください");
         }
@@ -594,8 +606,13 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
                 // 検索に漏れないことは userSearch.ts の toHit が墓石を弾いて
                 // 担保する（そこにテストがある）。
                 ...(handle ? { username: handle } : {}),
+                // **Apple などの番号も墓石に残す。** 墓石の後で落ちたときのやり直しで、どの行を片付けるかが
+                // 分からなくなるため。片付けが済めば `unlinkAfterDelete` が墓石から消す（#295: 墓石には要るものだけ）
+                ...federated,
             },
         }));
+        // 結び付けの行を消し、墓石の番号も消す（取り消し済みのものだけ。投げない）
+        await unlinkAfterDelete(uid, federated, tombstoneTtl(deletedAt));
 
         // Pro の取引と人の結び付けを消す（投げない・退会は止めない）。
         // サブスクリプションそのものは Apple 側に残るので、解約は本人が App Store で行う

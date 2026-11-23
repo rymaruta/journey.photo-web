@@ -65,6 +65,20 @@ async function createProfileIfMissing(userId: string): Promise<void> {
     }
 }
 
+/**
+ * メールのパスワードを本人が決めた印（`password#<sub>`・中身は時刻だけ。`api-user/src/federatedAccount.ts` の `passwordKey`）。
+ * **投げない**（パスワードの再設定そのものは Cognito で済んでいる。印が書けなくても、外せないと断られるだけ）
+ */
+export async function markPasswordSet(sub: string): Promise<void> {
+    try {
+        await ddb.send(new PutItemCommand({
+            TableName: USERS_TABLE,
+            Item: marshall({ userId: `password#${sub}`, setAt: new Date().toISOString() }),
+        }));
+    } catch (e) {
+        console.error("markPasswordSet error:", (e as { name?: string }).name);
+    }
+}
 
 /**
  * `user` グループへ入れる。**何があっても投げない。**
@@ -125,6 +139,13 @@ async function addToUserGroup(
 // Cognito PostConfirmation トリガー
 // メール確認完了後に "user" グループへ追加し、プロフィール行を作る
 export const postConfirmation = async (event: PostConfirmationEvent): Promise<PostConfirmationEvent> => {
+    // パスワードの再設定（本人がメールのパスワードを決めた）。Apple・Google で新しく作った人もメールで入れるようになったので、
+    // 印の行を書く（「サインインの方法」で最後の Apple・Google を外せるかを見る・`api-user/src/signinMethods.ts`・札 journey.photo-ios#601）
+    if (event.triggerSource === "PostConfirmation_ConfirmForgotPassword") {
+        const sub = event.request?.userAttributes?.sub;
+        if (sub) await markPasswordSet(sub);
+        return event;
+    }
     // confirmSignUp 以外のトリガー（admin確認など）は対象外
     if (event.triggerSource !== "PostConfirmation_ConfirmSignUp") {
         return event;

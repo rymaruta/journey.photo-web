@@ -1242,6 +1242,15 @@ function withBadgeFields<T extends object>(p: T): T & ReturnType<typeof badgeFie
     delete rest.badges;
     delete rest.displayBadge;
     delete rest.proMarkStyle;
+    // Apple でサインインの結び付け（`appleSignin.ts`）。中の印なので本人の答えにも出さない（札 journey.photo-ios#601）
+    delete rest.appleSub;
+    // Google でログイン（#715）・「サインインの方法」（外した印・外のアカウントで作った印）も中の印（2026-11-23）
+    delete rest.googleSub;
+    delete rest.appleUnlinkedAt;
+    delete rest.googleUnlinkedAt;
+    delete rest.federatedSignup;
+    delete rest.appleUnlinkedSub;
+    delete rest.googleUnlinkedSub;
     // 生の `supporter` は本人向けの形（`owner: true`）に置き換える。下の公開の形の `badgeFields` は、
     // 載せるときは同じ値・Sandbox のときは項目ごと出さないので、ここの値がそのまま残る。
     // 2026-10-10 判断: 下の return の行を変えないのは、別の枝（`claude/removable-name-marks`）が

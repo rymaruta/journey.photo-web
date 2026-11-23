@@ -1,0 +1,154 @@
+# 「Google でログイン」の口（札 journey.photo-ios#715・2026-11-23 owner「Google でサインインも必要」・`src/googleSignin.ts`）を、
+# user API とは**別のスタック**で配る（CLAUDE.md「サーバーの口は機能ごとのスタックに足す」・札 #552）。
+#
+# 🔴 **Cognito のトリガーはここに置かない。** CUSTOM_AUTH のトリガー（券を照らして消す）は「Apple でサインイン」の
+#    スタック（`serverless.apple-signin.yml`）の1つだけで、Apple と Google の両方を受ける（行は提供元の欄で分かれる・
+#    `src/federatedAccount.ts`）。プールを書き換えるのはあちらだけ。
+#    だから `deploy-api.yml` は **`GOOGLE_SIGNIN_ENABLED` と `APPLE_SIGNIN_ENABLED` の両方が true のときだけ**配る
+#    （審査指針 4.8: 他社のログインを置くなら Apple でサインインも置く。既定は配らない）。
+#
+# 秘密の値は無い（iOS のクライアント ID は公開の値）。鍵も持たない: メールで自動で結んだときの知らせは、Apple のスタックの
+# 知らせだけの関数（`linkNotice`）に頼む。
+#
+# 戻すとき: アプリのクライアントの `ALLOW_CUSTOM_AUTH` は Apple と共有なので触らない。`GOOGLE_SIGNIN_ENABLED` を false にし、
+#   `aws cloudformation delete-stack --stack-name photo-gallery-google-signin-<stage>`。Cognito のプールは変わらない。
+service: photo-gallery-google-signin
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ap-northeast-1
+  # user API と同じ（`scripts/__tests__/logRetention.test.ts`）
+  logRetentionInDays: 90
+  versionFunctions: false
+  environment:
+    # `dynamodb.ts` が読み込みのときに要る
+    PHOTOS_TABLE: ${param:photosTable}
+    USERS_TABLE: ${param:usersTable}
+    # 宛先（iOS のクライアント ID。ID トークンの `aud`）。秘密ではない
+    GOOGLE_SIGNIN_CLIENT_ID: ${param:googleSigninClientId, ''}
+    COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
+  httpApi:
+    # user API の HTTP API に経路を足す（新しい API は作らない）
+    id:
+      Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node22
+    platform: node
+    exclude:
+      - '@aws-sdk/*'
+
+functions:
+  # 使えるか。**未認証で呼べる口。** アプリは `available: true` のときだけボタンを出す
+  googleSigninStatus:
+    handler: src/googleSignin.getGoogleSigninStatus
+    role: GoogleStatusRole
+    events:
+      - httpApi:
+          path: /auth/google/status
+          method: GET
+
+  # ID トークンと元の nonce を確かめ、Cognito の利用者に結び（無ければ作る）、使い捨ての券を返す。**未認証で呼べる口。**
+  # 守りは Google の署名（このアプリのクライアント ID あての、期限内の token）・nonce の照らし（1回きり）・
+  # 流量（user API の段の `POST /auth/google`。秒 5 件）
+  googleSigninStart:
+    handler: src/googleSignin.startGoogleSignin
+    role: GoogleSigninRole
+    # Google の公開鍵（最大5秒）と Cognito の作成まで待つ
+    timeout: 15
+    environment:
+      # メールで自動で結んだときの知らせは、Apple のスタックの知らせだけの関数に頼む（`federatedNoticeClient.ts`）。
+      # 🔴 この関数は APNs の鍵を持たない（2026-11-23 確かめ役の3回目）
+      FEDERATED_NOTICE_FUNCTION: photo-gallery-apple-signin-${sls:stage}-linkNotice
+    events:
+      - httpApi:
+          path: /auth/google
+          method: POST
+
+resources:
+  Resources:
+    # 使えるかを返すだけ。何も読まない
+    GoogleStatusRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-status
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: googleSigninStatus
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+
+    # 結ぶ・作る口。Apple の口と同じ権限（users 表・このプールの利用者・知らせを頼む）
+    GoogleSigninRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-signin
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: googleSignin
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # `google#<sub>`・`nonce#google#…` の行と、プロフィールの行（`googleSub`・初回の表示名）
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                    - dynamodb:DeleteItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+                # メールで結んだときの知らせを、Apple のスタックの知らせだけの関数に頼む（鍵はこの役に無い）
+                - Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource:
+                    - arn:aws:lambda:${aws:region}:${aws:accountId}:function:photo-gallery-apple-signin-${sls:stage}-linkNotice
+                # 🔴 グループは `user` だけ入れる（ハンドラ側の固定値）
+                - Effect: Allow
+                  Action:
+                    - cognito-idp:ListUsers
+                    - cognito-idp:AdminGetUser
+                    - cognito-idp:AdminCreateUser
+                    - cognito-idp:AdminSetUserPassword
+                    - cognito-idp:AdminAddUserToGroup
+                    # 🔴 `admin` の人にはメールで自動で結ばない（見るだけ）
+                    - cognito-idp:AdminListGroupsForUser
+                    # 作りかけ・結べなかった利用者を残さない（自分が作った利用者だけ消す。ハンドラ側の決まり）
+                    - cognito-idp:AdminDeleteUser
+                  Resource: arn:aws:cognito-idp:${aws:region}:${aws:accountId}:userpool/${param:cognitoUserPoolId}
