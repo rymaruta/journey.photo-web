@@ -28,7 +28,7 @@ import {
     AppleTokenError, type AppleClaims, type AppleKeyConfig, type FetchLike,
 } from "./appleIdToken";
 import {
-    cleanDisplayName, federatedDeps, issueTicket, linkOrCreate, saveRefreshToken, useNonce, LinkBusyError,
+    cleanDisplayName, federatedDeps, issueTicket, linkOrCreate, saveRefreshToken, useNonce as claimNonce, LinkBusyError, UnlinkedProviderError, unlinkedMessage,
     type Revoker,
 } from "./federatedAccount";
 
@@ -91,7 +91,7 @@ export const startAppleSignin: APIGatewayProxyHandlerV2 = async (event) => {
 
     try {
         // 🔴 元の nonce を照らし、1回きりにする（盗まれた token の使い回しを止める）
-        if (!(await useNonce("apple", body.nonce, claims.nonce))) {
+        if (!(await claimNonce("apple", body.nonce, claims.nonce))) {
             console.warn("startAppleSignin: nonce");
             return jsonError(401, INVALID_TOKEN_MESSAGE, "apple_token_invalid");
         }
@@ -116,6 +116,8 @@ export const startAppleSignin: APIGatewayProxyHandlerV2 = async (event) => {
         return ok({ username: linked.username, challengeAnswer, created: linked.via === "new" });
     } catch (e) {
         if (e instanceof LinkBusyError) return jsonError(409, BUSY_MESSAGE, "apple_signin_busy");
+        // 本人が「サインインの方法」で解除した提供元（2026-11-23 確かめ役の指摘: 黙って空の別アカウントを作らない）
+        if (e instanceof UnlinkedProviderError) return jsonError(409, unlinkedMessage("apple"), "apple_signin_unlinked");
         console.error("startAppleSignin:", errName(e));
         return jsonError(500, "サインインできませんでした。少し待ってからお試しください");
     }

@@ -19,7 +19,7 @@ import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { jsonError, JSON_HEADERS } from "./http";
 import type { FetchLike } from "./oidcToken";
 import { googleClientIdsFromEnv, verifyGoogleIdToken, GoogleTokenError, type GoogleClaims } from "./googleIdToken";
-import { cleanDisplayName, federatedDeps, issueTicket, linkOrCreate, useNonce, LinkBusyError } from "./federatedAccount";
+import { cleanDisplayName, federatedDeps, issueTicket, linkOrCreate, useNonce as claimNonce, LinkBusyError, UnlinkedProviderError, unlinkedMessage } from "./federatedAccount";
 
 export const UNAVAILABLE_MESSAGE = "今は Google でログインできません";
 export const INVALID_TOKEN_MESSAGE = "ログインできませんでした。もう一度お試しください";
@@ -68,7 +68,7 @@ export const startGoogleSignin: APIGatewayProxyHandlerV2 = async (event) => {
 
     try {
         // 🔴 元の nonce を照らし、1回きりにする（盗まれた ID トークンの使い回しを止める）
-        if (!(await useNonce("google", body.nonce, claims.nonce))) {
+        if (!(await claimNonce("google", body.nonce, claims.nonce))) {
             console.warn("startGoogleSignin: nonce");
             return jsonError(401, INVALID_TOKEN_MESSAGE, "google_token_invalid");
         }
@@ -87,6 +87,8 @@ export const startGoogleSignin: APIGatewayProxyHandlerV2 = async (event) => {
         return ok({ username: linked.username, challengeAnswer, created: linked.via === "new" });
     } catch (e) {
         if (e instanceof LinkBusyError) return jsonError(409, BUSY_MESSAGE, "google_signin_busy");
+        // 本人が「サインインの方法」で解除した提供元（2026-11-23 確かめ役の指摘: 黙って空の別アカウントを作らない）
+        if (e instanceof UnlinkedProviderError) return jsonError(409, unlinkedMessage("google"), "google_signin_unlinked");
         console.error("startGoogleSignin:", errName(e));
         return jsonError(500, "ログインできませんでした。少し待ってからお試しください");
     }
