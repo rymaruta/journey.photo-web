@@ -154,6 +154,9 @@ export async function updatePhotoFields(id: string, updates: Record<string, unkn
  */
 export async function deletePhotoById(id: string): Promise<void> {
     await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { id: `comments#${id}` } }));
+    // 写真の見られた回数（`views#<id>`・札 journey.photo-ios#707・鍵の形は `api-user/src/photoViews.ts` の `viewsId`）。
+    // 行より先に消す（`comments#` と同じ理由）
+    await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { id: `views#${id}` } }));
     await ddb.send(new DeleteCommand({ TableName: TABLE, Key: { id } }));
 }
 

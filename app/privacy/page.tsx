@@ -29,7 +29,7 @@ import { siteConfig, shareOgImage } from "@/lib/utils/seo";
 // 11節のログの保存期間（90日）は `api/serverless.yml`・`api-user/serverless.yml` の
 // `logRetentionInDays`（photo-gallery #397）。Lambda@Edge（OGP）のログは CloudFormation の外で
 // 期限が付いていないので、「全部が90日」とは書かない（`scripts/__tests__/logRetention.test.ts` の注記）。
-const LAST_UPDATED = "2026年11月20日";
+const LAST_UPDATED = "2026年11月23日";
 
 export const metadata: Metadata = {
     // サイト名は `app/layout.tsx` の `template` が付ける。ここでも足すと
@@ -399,6 +399,16 @@ export default function PrivacyPage() {
                     </ul>
 
                     <Feature
+                        title="写真の閲覧数"
+                        summary="写真の詳細や Web の写真の頁が開かれた回数を、誰が見たかを残さずに数え、投稿した本人にだけ見せます。"
+                    />
+                    <ul className="list-disc pl-5 space-y-1">
+                        <li>公開中の写真（ストーリーと、公開範囲を絞った写真を除く）の詳細をアプリで開いたとき、または Web の写真の頁を開いたときに、その写真と「アプリか Web か」だけを当サイトのサーバーへ送り、写真ごとの回数を数えます。見た方の利用者ID、名前、IPアドレス、時刻は数と一緒に保存しません。</li>
+                        <li>同じ写真を30分以内に開き直した分は数えません。そのための控え（写真のIDと開いた時刻）は、見た方の端末の中だけに保存します。投稿した本人が自分の写真を開いた分も数えません。</li>
+                        <li>数（アプリと Web の内訳と合計、数え始めた日）は、投稿した本人にだけ表示し、公開しません。写真を削除すると、その写真の数も削除します。</li>
+                    </ul>
+
+                    <Feature
                         title="端末の中だけで動く機能（iPhone アプリ）"
                         summary="次の機能は、写真や位置を当サイトのサーバーへ送りません。"
                     />
@@ -492,7 +502,7 @@ export default function PrivacyPage() {
                     <p><strong className="text-white/90">退会すると削除されるもの</strong></p>
                     <ul className="list-disc pl-5 space-y-1">
                         <li>アカウント（メールアドレスなど）、プロフィール、アイコン・カバー写真</li>
-                        <li>投稿した写真・ストーリー（アーカイブを含む）と、それらに付いたコメント・返信。公開済みのページも作り直して取り除きます</li>
+                        <li>投稿した写真・ストーリー（アーカイブを含む）と、それらに付いたコメント・返信、写真の閲覧数。公開済みのページも作り直して取り除きます</li>
                         <li>フォロー中の一覧、いいね・保存した写真の一覧、行きたい場所、旅行プラン、親しい友達、ブロック、お知らせ、ご自身が作った共同アルバムとハイライト</li>
                         <li>メッセージ（DM）の受信箱と、ご自身の側の会話</li>
                         <li>

@@ -23,6 +23,7 @@ import { readUserList } from "./userList";
 import { forgetAppStoreLinks } from "./supporterStore";
 import { qrKey, qrOfKey, isValidQrToken } from "./profileQr";
 import { aiUseKeysForCleanup } from "./tripAiKeys";
+import { viewsId } from "./photoViews";
 
 // 退会（アカウント削除）。DELETE /user/account、認証必須、呼び出し元の sub のみ対象。
 // 不可逆な破壊操作のため「確実に引ける範囲を確実に消す」方針:
@@ -433,6 +434,8 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
                     if (!await ddbDelete(PHOTOS_TABLE, { id: `storyreplies#${id}` })) itemFailures++;
                     // 票の文書（`storyvotes#<id>`）も同じ（`storyVotes.ts`）
                     if (!await ddbDelete(PHOTOS_TABLE, { id: `storyvotes#${id}` })) itemFailures++;
+                    // 写真の見られた回数（`views#<id>`・札 #707）も同じ（数だけの行・ストーリーには無いので空振り）
+                    if (!await ddbDelete(PHOTOS_TABLE, { id: viewsId(id) })) itemFailures++;
                 }
                 if (itemFailures === 0) {
                     if (!await ddbDelete(PHOTOS_TABLE, { id })) itemFailures++;

@@ -41,6 +41,5 @@ export async function readVisiblePhoto(photoId: string, viewerId: string): Promi
     return item;
 }
 
-/** 写真の ID として受ける形（`saves.ts`・`likes.ts` と同じ: 1〜128 字・行の種類の区切り `#` を含まない） */
-export const isPhotoId = (x: unknown): x is string =>
-    typeof x === "string" && x.length > 0 && x.length <= 128 && !x.includes("#");
+/** 写真の ID として受ける形。置き場は `sanitize.ts`（DB の読み書きを持たない層・写真の見られた回数の口も使う。2026-11-23） */
+export { isPhotoId } from "./sanitize";

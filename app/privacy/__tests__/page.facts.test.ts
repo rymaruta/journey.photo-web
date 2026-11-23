@@ -412,3 +412,14 @@ describe("観光スポットを払う画面（/swipe・2026-11-11）", () => {
         expect(page).toContain("「行きたい」の数を数えるための端末ごとの番号を除きます");
     });
 });
+
+// 写真の閲覧数（札 journey.photo-ios#707）。本文の「30分」は画面の重ね除けの時間（Web の `VIEW_DEDUP_MS`）と同じ
+describe("写真の閲覧数", () => {
+    it("5節に項目があり、30分の重ね除けが Web の実装と同じ", () => {
+        const s5 = sectionOf(5);
+        expect(s5).toContain("写真の詳細や Web の写真の頁が開かれた回数を、誰が見たかを残さずに数え、投稿した本人にだけ見せます。");
+        const m = read("lib/photoViews.ts").match(/export const VIEW_DEDUP_MS = (\d+) \* 60_000;/);
+        expect(m, "VIEW_DEDUP_MS が「分 × 60_000」の形で読めない").not.toBeNull();
+        expect(s5).toContain(`同じ写真を${m![1]}分以内に開き直した分は数えません`);
+    });
+});

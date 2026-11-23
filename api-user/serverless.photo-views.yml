@@ -1,0 +1,163 @@
+# 写真の見られた回数（札 journey.photo-ios#707・owner 承認 2026-11-23・`src/photoViews.ts`）の口を、user API とは**別のスタック**で配る。
+#
+# 🔴 なぜ分けたか: user API のスタック（`serverless.yml`）は CloudFormation の部品が上限 500 に近い。
+#    新しい口は機能ごとのスタックに足す（CLAUDE.md「サーバーの口は機能ごとのスタックに足す」・札 #552）。
+#
+# 🔴 口の URL は user API と同じ（`<user API>/photos/{id}/view`・`/user/photos/...`）。新しい HTTP API は作らず、
+#    user API のスタックが書き出す HttpApiId を取り込んで**経路だけ**このスタックに置く。
+#    ログインの確かめは user API が書き出す認可（`CognitoAuthorizerId`）を使う（自分で認可を作らない）。
+#
+# 🔴 **user API より先に配る**（`deploy-api.yml`・みんなの「行きたい」と同じ）。未認証で数える口 `POST /photos/{id}/view` は
+#    user API の段（`HttpApiStage`）で流量を絞る（`RouteSettings`）。段の経路ごとの設定は経路ができてからでないと付けられないので、
+#    こちらが先（スタックをまたぐ DependsOn は書けない）。2026-11-23 判断: 移したまとまり（`STACKS`）は user API の後に配る決まり
+#    なので、そこには入れずに「行きたい」の隣の段で配る（流量の絞りを API Gateway に置くのを優先した。Lambda の同時実行の予約は
+#    アカウントの枠を食うので使わない）。
+#
+# 🔴 戻すとき: このスタックを消す前に、user API の `RouteSettings` から `POST /photos/{id}/view` を外す変更を先に流す。
+#
+# 権限は関数ごとの役に絞る（既定の役を持たせない）:
+#   - 数える口（未認証）: 写真の行の GetItem と、`views#` の行の UpdateItem だけ（鍵の頭 `dynamodb:LeadingKeys` で絞る）
+#   - 読む口（持ち主）: GetItem と BatchGetItem だけ（読むだけ）
+service: photo-gallery-photo-views
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ap-northeast-1
+  # user API と同じ（`scripts/__tests__/logRetention.test.ts`）
+  logRetentionInDays: 90
+  versionFunctions: false
+  environment:
+    # 環境ごとの値。既定値は置かない——未指定ならデプロイを失敗させる
+    PHOTOS_TABLE: ${param:photosTable}
+  httpApi:
+    id:
+      Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node22
+    platform: node
+    exclude:
+      - '@aws-sdk/*'
+
+functions:
+  # **未認証で数える口。** 検索から来た人（ログインしていない）の Web の頁も数えるため。
+  # 数えた・数えなかったにかかわらず 204。流量は user API の段で絞る（上の注記）
+  recordPhotoView:
+    handler: src/photoViews.recordPhotoView
+    role: PhotoViewsRecordRole
+    memorySize: 256
+    timeout: 6
+    events:
+      - httpApi:
+          path: /photos/{id}/view
+          method: POST
+
+  # 持ち主だけ（写真の詳細の「N回 見られました」と、その内訳のシート）
+  getPhotoViews:
+    handler: src/photoViews.getPhotoViews
+    role: PhotoViewsReadRole
+    memorySize: 256
+    timeout: 6
+    events:
+      - httpApi:
+          path: /user/photos/{id}/views
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+
+  # 持ち主の写真をまとめて（マイページの「写真が見られた回数」・100 枚ずつ・足し算は画面）
+  getMyPhotoViews:
+    handler: src/photoViews.getMyPhotoViews
+    role: PhotoViewsReadRole
+    memorySize: 256
+    timeout: 10
+    events:
+      - httpApi:
+          path: /user/photos/views
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+
+resources:
+  Resources:
+    PhotoViewsRecordRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-record
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: photoViewsRecord
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # 写真の行を読む（公開か・ストーリーでないかを見る）。書かない
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                # 数の行だけ書く。写真の行・ほかの行は書き換えられない
+                - Effect: Allow
+                  Action:
+                    - dynamodb:UpdateItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - views#*
+
+    PhotoViewsReadRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-read
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: photoViewsRead
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:BatchGetItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}

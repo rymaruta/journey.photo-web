@@ -1213,7 +1213,7 @@ resources:
         Name: sls-${self:service}-${sls:stage}-CognitoAuthorizerId
 
   # API Gateway（HTTP API）の段の設定に足す（serverless が作る `HttpApiStage` に重ねる）。
-  # **みんなの「行きたい」の口だけ流量を絞る**（2026-11-11 確かめ役の指摘 5）。ほかの口は今のまま
+  # **みんなの「行きたい」の口と、写真の見られた回数を数える口だけ流量を絞る**（2026-11-11 確かめ役の指摘 5・2026-11-23 #707）。ほかの口は今のまま
   # 秒 10 件・瞬間 20 件を越えた分は API Gateway が 429 で断る（Lambda も DB も動かない）
   # 🔴 経路 `POST /spots/wants` は別のスタック（`serverless.spot-wants.yml`）が足す。
   #    段の経路ごとの設定は経路ができてからでないと付けられないので、`deploy-api.yml` は
@@ -1225,3 +1225,9 @@ resources:
           "POST /spots/wants":
             ThrottlingRateLimit: 10
             ThrottlingBurstLimit: 20
+          # 写真の見られた回数（札 journey.photo-ios#707・未認証で数える口）。経路は別のスタック
+          # （`serverless.photo-views.yml`）が足すので、あちらを先に配る（上と同じ理由）。
+          # 1枚の写真を開くたびに1回（同じ端末・同じ写真は30分に1回）なので、「行きたい」より広く取る
+          "POST /photos/{id}/view":
+            ThrottlingRateLimit: 50
+            ThrottlingBurstLimit: 100

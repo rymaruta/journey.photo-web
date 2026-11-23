@@ -112,6 +112,9 @@ describe("deleteMyPhoto", () => {
         ]));
         expect(deletedIds()).toContain("comments#p1");
         expect(deletedIds()).toContain("p1");
+        // 見られた回数の行（札 #707）も、写真の行より先に消す
+        expect(deletedIds(), "写真を消しても見られた回数の行が残る").toContain("views#p1");
+        expect(deletedIds().indexOf("views#p1")).toBeLessThan(deletedIds().indexOf("p1"));
     });
 
     // **エッジからも消す。** ここは自前で `DeleteObjectsCommand` を呼んでいて、

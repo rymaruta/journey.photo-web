@@ -376,6 +376,16 @@ jobs:
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "siteBucket=${{ needs.config.outputs.siteBucket }}"
 
+      # 写真の見られた回数（札 journey.photo-ios#707・`api-user/serverless.photo-views.yml`）も**別のスタック**で、
+      # **user API より先に配る**（上の「行きたい」と同じ理由。未認証で数える口 `POST /photos/{id}/view` に
+      # user API の段が流量の設定を付ける）。取り込む HttpApiId と認可は user API のスタックが前から書き出している
+      - name: Serverless deploy（写真の見られた回数・別スタック）
+        working-directory: api-user
+        run: |
+          set -euo pipefail
+          npx serverless@3 deploy --config serverless.photo-views.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}"
+
       - name: Serverless deploy
         working-directory: api-user
         env:

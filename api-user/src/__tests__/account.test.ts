@@ -900,6 +900,9 @@ describe("deleteAccount: コメントの消し残し", () => {
         await invoke(deleteAccount, ev("me"));
         expect(deletedDdbIds()).toContain("p1");
         expect(deletedDdbIds()).toContain("comments#p1");
+        // 写真の見られた回数の行（札 #707）も、写真の行より先に消す
+        expect(deletedDdbIds(), "退会しても見られた回数の行が残る").toContain("views#p1");
+        expect(deletedDdbIds().indexOf("views#p1")).toBeLessThan(deletedDdbIds().indexOf("p1"));
     });
 
     // **ストーリーには返信の文書が付く。** `storyreplies#<id>` は
@@ -925,7 +928,7 @@ describe("deleteAccount: コメントの消し残し", () => {
         // 票の文書（`storyvotes#<id>`）も同じ（票を入れた人の uid が残る）。
         // 行のあとにもう一度（文書 → 行 の間に通った票。`storyVotes.ts`）
         expect(deletedDdbIds().filter((k) => k.endsWith("story-1")))
-            .toEqual(["comments#story-1", "storyreplies#story-1", "storyvotes#story-1", "story-1", "storyvotes#story-1"]);
+            .toEqual(["comments#story-1", "storyreplies#story-1", "storyvotes#story-1", "views#story-1", "story-1", "storyvotes#story-1"]);
     });
 });
 

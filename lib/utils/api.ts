@@ -246,9 +246,12 @@ export async function userFetch(path: string, options?: ApiRequestInit): Promise
  * こちらを使う（間違えると 404 になり、その失敗は握り潰されて表示が空になる）。
  */
 export async function userPublicFetch(path: string, options?: ApiRequestInit): Promise<Response> {
-    const base = getUserApiBaseUrl();
-    const url = `${base}${path.startsWith("/") ? path : `/${path}`}`;
-    return fetchWithTimeout(url, options);
+    return fetchWithTimeout(userApiUrl(path), options);
+}
+
+/** ユーザーAPI の URL（`fetch` を通さずに送るもの・`navigator.sendBeacon` の宛先。写真の閲覧数 #707） */
+export function userApiUrl(path: string): string {
+    return `${getUserApiBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 /**

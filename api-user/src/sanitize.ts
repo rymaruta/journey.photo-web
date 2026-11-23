@@ -334,3 +334,7 @@ export function isRestrictedRow(row: { audience?: unknown }): boolean {
     const a = row.audience;
     return typeof a === "string" ? a.trim() !== "" : a != null;
 }
+
+/** 写真の ID として受ける形（`saves.ts`・`likes.ts` と同じ: 1〜128 字・行の種類の区切り `#` を含まない） */
+export const isPhotoId = (x: unknown): x is string =>
+    typeof x === "string" && x.length > 0 && x.length <= 128 && !x.includes("#");

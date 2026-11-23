@@ -46,9 +46,9 @@ beforeEach(() => { mockDdbSend.mockReset().mockResolvedValue({}); });
 // 残るのは「消えないデータ」だけ。**消せるようにする方を採る。**
 describe("deletePhotoById", () => {
     // 元のテストが守っていた性質（両方消える）はそのまま
-    it("写真本体とコメント文書の両方を消す", async () => {
+    it("写真本体とコメント文書と見られた回数の行を消す（札 journey.photo-ios#707）", async () => {
         await deletePhotoById("p1");
-        expect(deletedIds()).toEqual(["comments#p1", "p1"]);
+        expect(deletedIds()).toEqual(["comments#p1", "views#p1", "p1"]);
     });
 
     // **順序そのものを見る。** これが逆だと、失敗した回に手がかりが消える

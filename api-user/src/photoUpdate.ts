@@ -22,6 +22,7 @@ import { refreshBadgesQuietly } from "./badgeStore";
 import { revokeLabelQuietly, grantLabelForPhotoQuietly, refreshLabelPlaceQuietly } from "./trunk";
 import { sanitizeInspiredBy, isInspiredByClear, readVisibleSource, notifyInspiredOnce } from "./inspired";
 import { assertLiveCaller } from "./liveCaller";
+import { viewsId } from "./photoViews";
 
 /**
  * 保存する URL の土台。**呼ぶたびに読む。**
@@ -1121,6 +1122,15 @@ export const deleteMyPhoto: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
             await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: `comments#${id}` } }));
         } catch (e) {
             console.error(`deleteMyPhoto: comments delete failed for ${id}:`, e);
+            return { statusCode: 500, headers: JSON_HEADERS, body: JSON.stringify({ error: "削除に失敗しました。時間をおいてもう一度お試しください" }) };
+        }
+
+        // 3b. 見られた回数（`views#<id>`・札 #707）。数だけの行で、写真が無ければ誰も読まないが、残さない。
+        //     行より先に消す（コメントと同じ理由: 失敗しても押し直せば続きから）
+        try {
+            await ddb.send(new DeleteCommand({ TableName: PHOTOS_TABLE, Key: { id: viewsId(id) } }));
+        } catch (e) {
+            console.error(`deleteMyPhoto: views delete failed for ${id}:`, e);
             return { statusCode: 500, headers: JSON_HEADERS, body: JSON.stringify({ error: "削除に失敗しました。時間をおいてもう一度お試しください" }) };
         }
 

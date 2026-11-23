@@ -32,6 +32,7 @@ import MoreMenu from "../../components/MoreMenu";
 import type { Photo } from "@/lib/data/photos";
 import { getLocalizedParagraphs, getPreferredMapLink, makeGoogleSearch } from "@/lib/data/photos";
 import { usePhotoLikes } from "../../../lib/hooks/usePhotoLikes";
+import { usePhotoViewBeacon } from "../../../lib/photoViews";
 import { hapticTap } from "../../../lib/utils/haptics";
 import { photoAltText, relatedPhotoAlt } from "../../../lib/utils/photoAlt";
 import { photoOwnTitle, fallbackPhotoTitle, photoTitleFor } from "../../../lib/utils/photoTitle";
@@ -564,6 +565,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
 
     // 写真BGM: オーナーが1曲添えられる（全員が写真ページで再生できる）
     const isOwnPhoto = isAuthenticated && !!authUserId && photo?.userId === authUserId;
+    // 写真の閲覧数（札 journey.photo-ios#707）: 頁が1秒以上見えたら1回送る。本人・圏外・30分以内の同じ写真は送らない（`lib/photoViews.ts`）
+    usePhotoViewBeacon(photo?.id, { isOwn: isOwnPhoto, authLoading });
     // 自動の結び。本人が選んだ `spotId` が（API の取得で）付いていたら出さない。
     // 外した・戻したはこの画面で先に見せる（静的な頁は作り直しで追いつく）
     const [autoOffNow, setAutoOffNow] = useState<boolean | null>(null);

@@ -14,7 +14,7 @@ import { join } from "node:path";
  *  - 同じ経路（方法＋道）を2つのスタックが持たない（持つと後から配る方の反映が落ちる）
  *  - 移した関数は user API に残っていない（`MOVED`）
  *  - `deploy-api.yml` は user API の後に配る（取り込む値が先に要る）。例外は経路ごとの流量の設定を
- *    user API の段に付ける `spot-wants` だけで、こちらは先に配る
+ *    user API の段に付ける `spot-wants` と `photo-views`（`BEFORE_USER`）で、こちらは先に配る
  *
  * YAML パーサは使わない（`logRetention.test.ts` と同じ理由）。
  */
@@ -52,6 +52,12 @@ const MOVED: Record<string, string[]> = {
     // 移したのではなく新しい口（札 journey.photo-ios#621）。同じ段で配り、provider をそろえる決まりに乗せる
     "serverless.trip-ai.yml": ["src/tripAi.handler"],
 };
+
+/**
+ * user API より**先に**配るスタック。user API の段（`HttpApiStage`）が、このスタックの経路に流量の設定（`RouteSettings`）を付けるので、
+ * 経路が先に要る（みんなの「行きたい」・写真の見られた回数 #707）
+ */
+const BEFORE_USER = new Set(["serverless.spot-wants.yml", "serverless.photo-views.yml"]);
 
 const AUTH_IMPORT = "Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId";
 
@@ -123,7 +129,7 @@ describe("別のスタック（api-user/serverless.*.yml）", () => {
                 expect(AUTH_IMPORT).toContain("CognitoAuthorizerId");
             });
 
-            it("deploy-api.yml がこのスタックを配る（spot-wants 以外は user API の後）", () => {
+            it("deploy-api.yml がこのスタックを配る（BEFORE_USER 以外は user API の後）", () => {
                 const wf = readFileSync(join(ROOT, ".github/workflows/deploy-api.yml"), "utf8");
                 // user API のジョブの中で見る（管理 API のジョブにも同じ書き方の段がある）
                 const job = wf.indexOf("\n  deploy-user-api:");
@@ -135,7 +141,7 @@ describe("別のスタック（api-user/serverless.*.yml）", () => {
                 const mine = listed ? job + stacksLine!.index : wf.indexOf(`--config ${file} `, job);
                 expect(user).toBeGreaterThan(0);
                 expect(mine, `${file} を配る段が無い`).toBeGreaterThan(0);
-                if (file === "serverless.spot-wants.yml") expect(mine).toBeLessThan(user);
+                if (BEFORE_USER.has(file)) expect(mine).toBeLessThan(user);
                 else expect(mine).toBeGreaterThan(user);
             });
         });
