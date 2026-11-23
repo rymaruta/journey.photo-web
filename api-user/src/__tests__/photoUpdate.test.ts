@@ -1968,7 +1968,7 @@ describe("updatePhotoVisibility: 下書き → 公開で旅のトランクのラ
             return real.dealInto(real.parseTrunk({ receiveLabels: false }), real.buildLabel(p, [], now), 30, real.fingerprintOf(p), now).outcome;
         });
         const res = await invoke(event("u1", "p1", { published: true }));
-        expect(JSON.parse(res.body)).toMatchObject({ success: true, label: null, labelSkipped: "off", coin: 1 });
+        expect(JSON.parse(res.body)).toMatchObject({ success: true, label: null, labelSkipped: "off", coin: 1, fragment: 1 });
     });
 
     it("一度公開したことのある写真（firstPublishedAt あり）は、公開し直しても配らない", async () => {
