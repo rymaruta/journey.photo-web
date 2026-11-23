@@ -23,9 +23,7 @@ import {
 import { DeleteCommand, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb } from "./dynamodb";
 import { requireEnv } from "./env";
-import { apnsConfigured, sendPush, useApnsPrivateKey } from "./apns";
-import { deviceTokens } from "./devices";
-import { loadSigningKeyPem } from "./appleIdToken";
+import { requestLinkNotice } from "./federatedNoticeClient";
 
 const USERS_TABLE = requireEnv("USERS_TABLE");
 
@@ -67,40 +65,21 @@ export type FederatedIdentity = {
     isPrivateEmail: boolean;
 };
 
-/** 提供元の名前（知らせの文に出す） */
-const PROVIDER_LABEL: Record<Provider, string> = { apple: "Apple", google: "Google" };
-
-/**
- * メールで自動で結んだことを、そのアカウントの持ち主の端末へ知らせる（2026-11-23 確かめ役の指摘）。
- * 🔴 サーバーにはメールを送る仕組みが無い（Cognito の既定のメールだけ。SES は使っていない）ので、
- *    今ある知らせの仕組み（APNs のプッシュ・`apns.ts`）で送る。届かなくてもサインインは止めない
- */
-async function pushLinkedNotice(cognitoSub: string, provider: Provider): Promise<void> {
-    const tokens = await deviceTokens(cognitoSub);
-    if (tokens.length === 0) return;
-    // 鍵を SSM に置いた口（環境変数に鍵が無い）では、実行時に読んだ鍵で送る（同じ APNs の鍵・`apns.ts`）
-    if (!apnsConfigured()) useApnsPrivateKey((await federatedDeps.pushKey())?.trim() ?? "");
-    const name = PROVIDER_LABEL[provider];
-    await sendPush(tokens, {
-        title: `${name} でのサインインを追加しました`,
-        body: `このアカウントに ${name} でのサインインが結ばれました。心当たりが無いときは、パスワードを変えてください。`,
-    });
-}
-
 /** 外へ話す口（試験で差し替える） */
 export const federatedDeps: {
     idp: { send: (cmd: unknown) => Promise<unknown> };
     poolId: () => string;
     now: () => number;
+    /**
+     * メールで自動で結んだことを持ち主の端末へ知らせる。🔴 サインインの口は APNs の鍵を持たないので、
+     * 知らせだけをする関数（`federatedNotice.ts`）に頼む（`federatedNoticeClient.ts`・2026-11-23 確かめ役の3回目）
+     */
     notifyLinked: (cognitoSub: string, provider: Provider) => Promise<void>;
-    /** 知らせのプッシュの鍵（環境変数に無いとき）。Apple でサインインの鍵と同じ APNs の鍵 */
-    pushKey: () => Promise<string | undefined>;
 } = {
     idp: new CognitoIdentityProviderClient({ region: process.env.AWS_REGION ?? "ap-northeast-1" }) as unknown as { send: (cmd: unknown) => Promise<unknown> },
     poolId: () => (process.env.COGNITO_USER_POOL_ID ?? "").trim(),
     now: () => Date.now(),
-    notifyLinked: pushLinkedNotice,
-    pushKey: async () => loadSigningKeyPem(),
+    notifyLinked: requestLinkNotice,
 };
 
 /** 結ぶ途中で、別の回が先に始めている（少し待ってもう一度） */
@@ -382,7 +361,7 @@ export async function linkOrCreate(identity: FederatedIdentity, displayName: str
     if (via === "new") await createProfile(user.sub, displayName);
     await markProfile(identity.provider, user.sub, identity.sub, displayName);
     if (via === "email") {
-        // 🔴 メールで自動で結んだことを残し、持ち主に知らせる（`pushLinkedNotice`）。ログに人の情報は出さない
+        // 🔴 メールで自動で結んだことを残し、持ち主に知らせる（`federatedNotice.ts`）。ログに人の情報は出さない
         console.log(JSON.stringify({ metric: "federated_link", provider: identity.provider, via }));
         await federatedDeps.notifyLinked(user.sub, identity.provider)
             .catch((e) => console.warn("federated link notice:", errName(e)));

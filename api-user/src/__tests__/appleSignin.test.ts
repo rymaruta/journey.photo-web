@@ -540,10 +540,25 @@ describe("配り方（serverless.apple-signin.yml・deploy-api.yml・serverless.
         const del = userYml.slice(userYml.indexOf("  deleteAccount:"), userYml.indexOf("\n  # ", userYml.indexOf("  deleteAccount:") + 5));
         expect(del).not.toMatch(/APNS_PRIVATE_KEY|apnsPrivateKey|APPLE_SIGNIN_KEY_PARAM/);
         expect(del).toContain("APPLE_REVOKE_FUNCTION: photo-gallery-apple-signin-${sls:stage}-appleRevoke");
-        // 呼べるのはその1つの関数だけ
-        const pol = userYml.slice(userYml.indexOf("    AppleRevokeInvokePolicy:"), userYml.indexOf("  Outputs:"));
+        // 呼べるのはその1つの関数だけ（退会だけの役・`appleRevokeInvokeScope.test.ts`）
+        const pol = userYml.slice(userYml.indexOf("    DeleteAccountRole:"), userYml.indexOf("  Outputs:"));
         expect(pol).toMatch(/- lambda:InvokeFunction\n\s+Resource:\n\s+- arn:aws:lambda:\$\{aws:region\}:\$\{aws:accountId\}:function:photo-gallery-apple-signin-\$\{sls:stage\}-appleRevoke\n/);
         expect(yml).toMatch(/^  appleRevoke:\n\s+handler: src\/appleSignin.revokeTokenHandler/m);
+    });
+
+    it("🔴 退会の取り消しの関数が落ち続けたら鳴る（定義だけ。知らせ先は alarmTopicArn を渡したときだけ）", () => {
+        const alarm = yml.slice(yml.indexOf("    AppleRevokeErrorsAlarm:"), yml.indexOf("\n    # ", yml.indexOf("    AppleRevokeErrorsAlarm:")));
+        expect(alarm).toContain("Type: AWS::CloudWatch::Alarm");
+        expect(alarm).toMatch(/MetricName: Errors/);
+        expect(alarm).toContain("Value: ${self:service}-${sls:stage}-appleRevoke");
+        expect(alarm).toMatch(/- HasAlarmTopic/);
+    });
+
+    it("🔴 サインインの口は知らせの鍵を持たない。知らせは linkNotice に頼む（Apple の口の鍵は認可コードの交換のためだけ）", () => {
+        const start = fnBlock("appleSigninStart");
+        expect(start).not.toMatch(/APNS_TOPIC|APNS_HOST/);
+        expect(start).toContain("FEDERATED_NOTICE_FUNCTION: ${self:service}-${sls:stage}-linkNotice");
+        expect(yml).toMatch(/^  linkNotice:\n\s+handler: src\/federatedNotice.linkNoticeHandler/m);
     });
 
     it("🔴 POST /auth/apple は段の流量で絞る（スタックを配る環境だけ）", () => {

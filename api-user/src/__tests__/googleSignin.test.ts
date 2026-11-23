@@ -143,6 +143,15 @@ describe("ログイン（POST /auth/google）", () => {
         const res = await signIn({ email: "taro@example.com" });
         expect(bodyOf(res).created).toBe(true);
         expect(names()).not.toContain("ListUsersCommand");
+        // 🔴 そのメールは新しい利用者にも入れない（確かめ済みとして入れると、本当の持ち主が後から登録できない）
+        const create = idpCalls.find((c) => c.name === "AdminCreateUserCommand")!.input;
+        expect(create.UserAttributes).toEqual([]);
+    });
+
+    it("Gmail のメールは確かめ済みとして新しい利用者に入れる", async () => {
+        await signIn({ email: "new@gmail.com" });
+        const create = idpCalls.find((c) => c.name === "AdminCreateUserCommand")!.input;
+        expect(create.UserAttributes).toEqual([{ Name: "email", Value: "new@gmail.com" }, { Name: "email_verified", Value: "true" }]);
     });
 
     it("同時に2回来たら、後の回は 409（google_signin_busy）", async () => {
@@ -187,5 +196,39 @@ describe("配り方（serverless.google-signin.yml・deploy-api.yml）", () => {
     it("🔴 POST /auth/google も段の流量で絞る（両方配る環境だけ）", () => {
         expect(userYml).toMatch(/GoogleSigninOn:\n\s+Fn::And:/);
         expect(userYml).toMatch(/"POST \/auth\/google":\n\s+ThrottlingRateLimit: \d+\n\s+ThrottlingBurstLimit: \d+/);
+    });
+});
+
+describe("メールで結んだときの知らせ（鍵を持たない口から、知らせだけの関数に頼む）", () => {
+    it("サインインの口は linkNotice を待たずに呼ぶ（中身は利用者の番号と提供元だけ）", async () => {
+        const { noticeClientDeps, requestLinkNotice } = await import("../federatedNoticeClient");
+        const calls: { fn: string; payload: string }[] = [];
+        noticeClientDeps.functionName = () => "photo-gallery-apple-signin-prod-linkNotice";
+        noticeClientDeps.invoke = async (fn, payload) => { calls.push({ fn, payload }); };
+        await requestLinkNotice("sub-old", "google");
+        expect(calls).toEqual([{ fn: "photo-gallery-apple-signin-prod-linkNotice", payload: JSON.stringify({ cognitoSub: "sub-old", provider: "google" }) }]);
+        // 呼べなくても投げない（サインインは止めない）。名前が無い環境は何もしない
+        noticeClientDeps.invoke = async () => { throw Object.assign(new Error("x"), { name: "TooManyRequestsException" }); };
+        await expect(requestLinkNotice("sub-old", "google")).resolves.toBeUndefined();
+        noticeClientDeps.functionName = () => "";
+        noticeClientDeps.invoke = async () => { throw new Error("呼ばれない"); };
+        await expect(requestLinkNotice("sub-old", "google")).resolves.toBeUndefined();
+    });
+
+    it("知らせの関数は、その人の端末に提供元の名前だけの文を送る。形の違う頼みは何もしない", async () => {
+        const { linkNoticeHandler, noticeDeps } = await import("../federatedNotice");
+        const sent: { tokens: readonly string[]; msg: unknown }[] = [];
+        noticeDeps.tokens = async (uid) => (uid === "sub-old" ? ["tok1"] : []);
+        noticeDeps.pushKey = async () => "";
+        noticeDeps.push = async (tokens, msg) => { sent.push({ tokens, msg }); return { sent: tokens.length, invalid: [] }; };
+        expect(await linkNoticeHandler({ cognitoSub: "sub-old", provider: "google" })).toEqual({ sent: 1 });
+        expect(sent[0].msg).toEqual({
+            title: "Google でのサインインを追加しました",
+            body: "このアカウントに Google でのサインインが結ばれました。心当たりが無いときは、パスワードを変えてください。",
+        });
+        for (const bad of [{}, { cognitoSub: "sub-old", provider: "evil" }, { cognitoSub: 1, provider: "apple" }]) {
+            expect(await linkNoticeHandler(bad as never)).toEqual({ sent: 0 });
+        }
+        expect(sent).toHaveLength(1);
     });
 });

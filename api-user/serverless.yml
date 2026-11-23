@@ -928,6 +928,8 @@ functions:
 
   deleteAccount:
     handler: src/account.deleteAccount
+    # 退会だけの役（共通の役と同じ権限＋Apple の取り消しの関数を呼ぶ権限・下の `DeleteAccountRole`）
+    role: DeleteAccountRole
     environment:
       # 再ビルド依頼はこの関数から出す（provider には置かない。IAM-2）
       REBUILD_REPO: ${param:rebuildRepo, ''}
@@ -1208,23 +1210,44 @@ resources:
   # 1つの HTTP API に置ける認可は 10 個まで。スタックごとに作ると増える一方なので、ここ1つにまとめる。
   # 🔴 取り込んでいるスタックがある間は、この認可を作り直す変更（名前の付け替えなど）は反映が落ちる。
   #    変えるときは、先に取り込む側を外す
-    # 退会（`deleteAccount`）から、Apple のスタックの取り消しの関数を呼ぶ権限（札 journey.photo-ios#601）。
-    # provider の役に足すと、別のスタックの provider と突き合わせる試験（`splitStacks.test.ts`）の外になるので、
-    # 役に付ける方針（IAM::Policy）で足す。呼べるのはこの1つの関数だけ（「渡した更新トークンを取り消す」しかできない）
-    AppleRevokeInvokePolicy:
-      Type: AWS::IAM::Policy
+    # 退会（`deleteAccount`）だけの役（札 journey.photo-ios#601・2026-11-23 確かめ役の3回目）。
+    # 権限は**共通の役と同じ文**（`${self:provider.iam.role.statements}` をそのまま写す。手で写さないので、共通の役に
+    # 足した権限はここにも入る）に、**Apple のスタックの取り消しの関数を呼ぶ権限だけ**を足す。
+    # 共通の役には足さない（ほかの関数がその関数を呼べないように・`scripts/__tests__/appleRevokeInvokeScope.test.ts`）
+    DeleteAccountRole:
+      Type: AWS::IAM::Role
       Properties:
-        PolicyName: ${self:service}-${sls:stage}-apple-revoke-invoke
-        Roles:
-          - Ref: IamRoleLambdaExecution
-        PolicyDocument:
+        RoleName: ${self:service}-${sls:stage}-delete-account
+        AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
             - Effect: Allow
-              Action:
-                - lambda:InvokeFunction
-              Resource:
-                - arn:aws:lambda:${aws:region}:${aws:accountId}:function:photo-gallery-apple-signin-${sls:stage}-appleRevoke
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: userApiShared
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement: ${self:provider.iam.role.statements}
+          - PolicyName: deleteAccount
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                # 共通の役では serverless が自動で足すログの権限（自分の役にしたので書く）
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:CreateLogGroup
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}-deleteAccount:*
+                # Apple の更新トークンの取り消しを頼む（「渡したトークンを取り消す」しかできない1つの関数だけ）
+                - Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                  Resource:
+                    - arn:aws:lambda:${aws:region}:${aws:accountId}:function:photo-gallery-apple-signin-${sls:stage}-appleRevoke
 
   Outputs:
     CognitoAuthorizerId:

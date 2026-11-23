@@ -92,18 +92,21 @@ const sendsPush = (handler: string) =>
     || (handler === "src/tripShare.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/tripShare.ts"), "utf8")))
     // グループの DM（`groups.ts`・札 journey.photo-ios#582）も同じ形（口は 11 でも関数は1つ・中の `pushTo` が `sendPush` で直に送る）
     || (handler === "src/groups.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/groups.ts"), "utf8")))
-    // 「Apple でサインイン」（札 journey.photo-ios#601）: メールで自動で結んだとき、持ち主の端末へ `sendPush` で知らせる
-    // （`federatedAccount.ts` の `pushLinkedNotice`。`linkOrCreate` の中なので `handler` の本文には出てこない）
-    || ((handler === "src/appleSignin.startAppleSignin" || handler === "src/googleSignin.startGoogleSignin")
-        && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/federatedAccount.ts"), "utf8")));
+    // 「Apple でサインイン」「Google でログイン」（札 journey.photo-ios#601・#715）: メールで自動で結んだときの知らせは、
+    // 知らせだけの関数（`federatedNotice.ts` の `linkNoticeHandler`）が `sendPush` で送る（サインインの口は鍵を持たない）
+    || (handler === "src/federatedNotice.linkNoticeHandler"
+        && /\bsendPush\b/.test(readFileSync(resolve(ROOT, "api-user/src/federatedNotice.ts"), "utf8")));
 
 /**
  * 通知は送らないが、**同じ鍵で Apple の client secret を作る**関数（2026-11-23 owner: 新しい鍵は作らず、APNs の鍵に
  * Sign in with Apple を足した・札 journey.photo-ios#601）。「Apple でサインイン」のスタックの中だけ。
+ * - `appleSigninStart`: サインインの口（認可コードの交換）。鍵・Key ID・Team ID の3つ
  * - `appleRevoke`: 退会の取り消し。鍵・Key ID・Team ID の3つ（送り先の topic・host は要らない）
  * - `appleSigninStatus`: 鍵を SSM から読めるかを見るだけ。Key ID・Team ID（秘密ではない）だけで、鍵は持たない
  */
 const APPLE_KEY_HOLDERS: Record<string, { handler: string; vars: string[] }> = {
+    // サインインの口: 認可コードの交換で Apple の client secret を作る（知らせは送らない）
+    appleSigninStart: { handler: "src/appleSignin.startAppleSignin", vars: ["APNS_KEY_ID", "APNS_PRIVATE_KEY", "APNS_TEAM_ID"] },
     appleRevoke: { handler: "src/appleSignin.revokeTokenHandler", vars: ["APNS_KEY_ID", "APNS_PRIVATE_KEY", "APNS_TEAM_ID"] },
     appleSigninStatus: { handler: "src/appleSignin.getAppleSigninStatus", vars: ["APNS_KEY_ID", "APNS_TEAM_ID"] },
 };
@@ -179,7 +182,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
     it("通知を積む関数を1つ以上見つけている", () => {
         const sending = [...fns].filter(([, v]) => sendsPush(v.handler)).map(([n]) => n).sort();
         expect(sending).toEqual([
-            "answerStory", "appStoreNotification", "appleSigninStart", "createStory", "dm", "followUser", "getMyBadges", "googleSigninStart", "groups", "likePhoto", "postComment", "postStoryReply",
+            "answerStory", "appStoreNotification", "createStory", "dm", "followUser", "getMyBadges", "groups", "likePhoto", "linkNotice", "postComment", "postStoryReply",
             "recordPurchase", "savePhoto", "sendLightAlerts", "tripShare", "updatePhotoVisibility",
         ]);
     });
