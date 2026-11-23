@@ -310,89 +310,298 @@ describe("貼る・削除", () => {
     });
 });
 
-describe("作り直し（Pro・月3回）", () => {
+describe("作り直し（#706・全員・ラベルごとに3回）", () => {
     beforeEach(() => {
         vi.useFakeTimers({ toFake: ["Date"] });
         vi.setSystemTime(new Date("2026-10-17T03:00:00Z"));
         setTrunk({ pocket: [label("a"), label("b", { foil: true })], stuck: [] });
     });
+    const reroll = (id: string, n?: unknown) =>
+        call("POST /user/trunk/labels/{id}/reroll", { id, body: n === undefined ? undefined : { n } });
+    const pocketOf = (r: { json: Record<string, unknown> }, id: string) => (r.json.pocket as Item[]).find((l) => l.id === id)!;
 
-    it("Pro 以外は 403", async () => {
+    it("無料でも作り直せる。1回で種1つ・候補の先頭は最初の1枚・ラベルの種は新しい種に替わる", async () => {
         setProfile(FREE);
-        const r = await call("POST /user/trunk/labels/{id}/reroll", { id: "a" });
-        expect(r.status).toBe(403);
-        expect(r.json.code).toBe("proOnly");
-        expect(trunkRow()?.pendingReroll).toBeUndefined();
+        const r = await reroll("a", 1);
+        expect(r.status).toBe(200);
+        const a = pocketOf(r, "a");
+        expect(a.rr).toBe(1);
+        expect(a.cs).toHaveLength(2);
+        expect((a.cs as number[])[0]).toBe(42);
+        expect(a.seed).toBe((a.cs as number[])[1]);
+        expect(a.seed).not.toBe(42);
+        expect(r.json.pendingReroll).toBeUndefined();
     });
 
-    it("候補3つ → 選ぶ。月に3回まで・4回目は断る・回数は戻らない", async () => {
+    it("3回まで。4回目（n=4）は 400・使い切ったら 409 noRerollsLeft・月では数えない", async () => {
         setProfile(PRO);
-        for (let i = 0; i < 3; i++) {
-            const r = await call("POST /user/trunk/labels/{id}/reroll", { id: "a" });
-            expect(r.status).toBe(200);
-            const pending = r.json.pendingReroll as { labelId: string; seeds: number[] };
-            expect(pending.labelId).toBe("a");
-            expect(pending.seeds).toHaveLength(3);
-            expect((r.json.rerolls as { left: number }).left).toBe(2 - i);
-            // 1回目は候補から、2回目は今の図柄のまま（それでも回数は戻らない）
-            const current = (r.json.pocket as Item[])[0].seed as number;
-            const seed = i === 1 ? current : pending.seeds[0];
-            const c = await call("POST /user/trunk/labels/{id}/reroll/choose", { id: "a", body: { seed } });
-            expect(c.status).toBe(200);
-            expect(c.json.pendingReroll).toBeUndefined();
-            expect((c.json.pocket as Item[])[0].seed).toBe(seed);
-        }
-        const fourth = await call("POST /user/trunk/labels/{id}/reroll", { id: "a" });
-        expect(fourth.status).toBe(409);
-        expect(fourth.json.code).toBe("noRerollsLeft");
+        for (const n of [1, 2, 3]) expect((await reroll("a", n)).status).toBe(200);
+        const row = (trunkRow()?.pocket as Item[]).find((l) => l.i === "a")!;
+        expect(row.rr).toBe(3);
+        expect(row.cs as number[]).toHaveLength(4);
+        expect((await reroll("a", 4)).status).toBe(400);
+        // 別のラベルは別に3回（月の回数ではない）
+        expect((await reroll("b", 1)).status).toBe(200);
+        // 古い口（本文なし）で使い切ったラベルを頼んでも 409
+        const legacy = await reroll("a");
+        expect(legacy.status).toBe(409);
+        expect(legacy.json.code).toBe("noRerollsLeft");
     });
 
-    it("同じラベルの選びかけは回数を使わずに返す・別のラベルは 409", async () => {
+    it("同じ回の送り直しは二度数えない（種も替えない）・飛ばした回は 409 rerollOrder", async () => {
+        setProfile(FREE);
+        const first = await reroll("a", 1);
+        const again = await reroll("a", 1);
+        expect(again.status).toBe(200);
+        expect(pocketOf(again, "a")).toEqual(pocketOf(first, "a"));
+        const skip = await reroll("a", 3);
+        expect(skip.status).toBe(409);
+        expect(skip.json.code).toBe("rerollOrder");
+        expect(pocketOf(await call("GET /user/trunk"), "a").rr).toBe(1);
+    });
+
+    it("n が数でない・範囲の外は 400", async () => {
+        setProfile(FREE);
+        for (const n of [0, -1, 1.5, "1", 9]) expect((await reroll("a", n)).status).toBe(400);
+        expect(pocketIds()).toEqual(["a", "b"]);
+        expect((trunkRow()?.pocket as Item[])[0].rr).toBeUndefined();
+    });
+
+    it("候補を選ぶ（最初の1枚に戻せる）・候補にない種は 400・同じ種の押し直しは書かない", async () => {
+        setProfile(FREE);
+        await reroll("a", 1);
+        const r2 = await reroll("a", 2);
+        const cs = pocketOf(r2, "a").cs as number[];
+        const back = await call("POST /user/trunk/labels/{id}/reroll/choose", { id: "a", body: { seed: cs[0] } });
+        expect(back.status).toBe(200);
+        expect(pocketOf(back, "a").seed).toBe(42);
+        expect(pocketOf(back, "a").cs).toEqual(cs);
+        const rev = trunkRow()?.rev;
+        await call("POST /user/trunk/labels/{id}/reroll/choose", { id: "a", body: { seed: 42 } });
+        expect(trunkRow()?.rev).toBe(rev);
+        const bad = await call("POST /user/trunk/labels/{id}/reroll/choose", { id: "a", body: { seed: 999_999 } });
+        expect(bad.status).toBe(400);
+        expect(bad.json.code).toBe("badSeed");
+        // 作り直していないラベルは選べない
+        expect((await call("POST /user/trunk/labels/{id}/reroll/choose", { id: "b", body: { seed: 42 } })).json.code).toBe("noPending");
+    });
+
+    it("foil は作り直しても保つ", async () => {
+        setProfile(FREE);
+        const r = await reroll("b", 1);
+        expect(pocketOf(r, "b").foil).toBe(true);
+    });
+
+    it("貼ったら候補（cs）は消え、回数（rr）は、はがしても残る（はがして作り直し直せない）", async () => {
+        setProfile(FREE);
+        for (const n of [1, 2, 3]) await reroll("a", n);
+        const stuck = await call("POST /user/trunk/labels/{id}/stick", { id: "a" });
+        const s = (stuck.json.stuck as Item[])[0];
+        expect(s.cs).toBeUndefined();
+        expect(s.rr).toBe(3);
+        expect((await reroll("a", 1)).status).toBe(404);
+        await call("POST /user/trunk/labels/{id}/unstick", { id: "a" });
+        const again = await reroll("a", 1);
+        expect(again.status).toBe(200);
+        expect(pocketOf(again, "a").rr).toBe(3);
+        expect(pocketOf(again, "a").cs).toBeUndefined();
+        expect((await reroll("a", 4)).status).toBe(400);
+        expect((await reroll("a")).json.code).toBe("proOnly");
+    });
+
+    it("無いラベルは作り直せない（404）", async () => {
+        setProfile(FREE);
+        expect((await reroll("zz", 1)).status).toBe(404);
+    });
+});
+
+describe("古いアプリの作り直し（本文に n が無い・#706 のあとも壊れない）", () => {
+    beforeEach(() => {
+        vi.useFakeTimers({ toFake: ["Date"] });
+        vi.setSystemTime(new Date("2026-10-17T03:00:00Z"));
+        setTrunk({ pocket: [label("a"), label("b")], stuck: [], rerolls: { month: "2026-10", used: 3 } });
+    });
+
+    it("Pro: 候補3つを pendingReroll に出し、選べる（月の回数を使い切っていても）。そのラベルの回数は使い切る", async () => {
+        setProfile(PRO);
+        const r = await call("POST /user/trunk/labels/{id}/reroll", { id: "a" });
+        expect(r.status).toBe(200);
+        const pending = r.json.pendingReroll as { labelId: string; seeds: number[] };
+        expect(pending.labelId).toBe("a");
+        expect(pending.seeds).toHaveLength(3);
+        expect((r.json.rerolls as { left: number }).left).toBe(3);
+        const a = (r.json.pocket as Item[]).find((l) => l.id === "a")!;
+        expect(a.seed).toBe(42);
+        expect(a.rr).toBe(3);
+        const c = await call("POST /user/trunk/labels/{id}/reroll/choose", { id: "a", body: { seed: pending.seeds[2] } });
+        expect(c.status).toBe(200);
+        expect(c.json.pendingReroll).toBeUndefined();
+        expect((c.json.pocket as Item[]).find((l) => l.id === "a")!.seed).toBe(pending.seeds[2]);
+    });
+
+    it("Pro: 同じラベルの選びかけは回数を使わずに返す・別のラベルは 409 pendingReroll", async () => {
         setProfile(PRO);
         const a1 = await call("POST /user/trunk/labels/{id}/reroll", { id: "a" });
         const a2 = await call("POST /user/trunk/labels/{id}/reroll", { id: "a" });
         expect(a2.json.pendingReroll).toEqual(a1.json.pendingReroll);
-        expect((a2.json.rerolls as { left: number }).left).toBe(2);
         const b = await call("POST /user/trunk/labels/{id}/reroll", { id: "b" });
         expect(b.status).toBe(409);
         expect(b.json.code).toBe("pendingReroll");
     });
 
-    it("候補にない seed は 400", async () => {
+    it("新しいアプリで1回作り直したラベルは、残りの2回ぶんだけ候補を出す", async () => {
         setProfile(PRO);
-        await call("POST /user/trunk/labels/{id}/reroll", { id: "a" });
-        const r = await call("POST /user/trunk/labels/{id}/reroll/choose", { id: "a", body: { seed: 999_999 } });
-        expect(r.status).toBe(400);
-        expect(r.json.code).toBe("badSeed");
-    });
-
-    it("月が替わったら3回に戻る（繰り越しなし）", async () => {
-        setProfile(PRO);
-        setTrunk({ pocket: [label("a")], stuck: [], rerolls: { month: "2026-10", used: 3 } });
-        expect((await call("POST /user/trunk/labels/{id}/reroll", { id: "a" })).status).toBe(409);
-        // 日本時間の 11/1 0:30（UTC ではまだ 10/31）
-        vi.setSystemTime(new Date("2026-10-31T15:30:00Z"));
+        await call("POST /user/trunk/labels/{id}/reroll", { id: "a", body: { n: 1 } });
         const r = await call("POST /user/trunk/labels/{id}/reroll", { id: "a" });
+        expect((r.json.pendingReroll as { seeds: number[] }).seeds).toHaveLength(2);
+        expect((r.json.pocket as Item[]).find((l) => l.id === "a")!.cs).toHaveLength(4);
+    });
+
+    it("無料は今までどおり 403 proOnly（古い画面は Pro にしか作り直しを出さない）", async () => {
+        setProfile(FREE);
+        const r = await call("POST /user/trunk/labels/{id}/reroll", { id: "a" });
+        expect(r.status).toBe(403);
+        expect(r.json.code).toBe("proOnly");
+    });
+});
+
+describe("好きなデザインで作る（#706）", () => {
+    const customOf = async () => (await call("GET /user/trunk")).json.custom as { n: number; t: number; every: number; rerolls: number };
+
+    beforeEach(() => {
+        vi.useFakeTimers({ toFake: ["Date"] });
+        vi.setSystemTime(new Date("2026-10-17T03:00:00Z"));
+    });
+
+    it("無料は3投稿ごとに1つ（ラベルを配れた投稿だけ数える）", async () => {
+        setProfile(FREE);
+        expect(await customOf()).toEqual({ n: 0, t: 0, every: 3, rerolls: 3 });
+        await grantLabel(UID, photo("p1"));
+        await grantLabel(UID, photo("p2"));
+        expect(await customOf()).toMatchObject({ n: 2, t: 0 });
+        // 配れなかった投稿（同じ写真の送り直し）は数えない
+        await grantLabel(UID, photo("p2"));
+        expect(await customOf()).toMatchObject({ n: 2, t: 0 });
+        await grantLabel(UID, photo("p3"));
+        expect(await customOf()).toMatchObject({ n: 0, t: 1 });
+    });
+
+    it("Pro は2投稿ごと", async () => {
+        setProfile(PRO);
+        await grantLabel(UID, photo("p1"));
+        expect(await customOf()).toMatchObject({ n: 1, t: 0, every: 2 });
+        await grantLabel(UID, photo("p2"));
+        expect(await customOf()).toMatchObject({ n: 0, t: 1 });
+    });
+
+    it("硬貨だけ配れた投稿（受け取らない設定）は数えない", async () => {
+        setProfile(FREE);
+        setTrunk({ pocket: [], stuck: [], receiveLabels: false });
+        const out = await grantLabel(UID, photo("p1"));
+        expect(out.coin).toBe(1);
+        expect(trunkRow()?.custom).toBeUndefined();
+    });
+
+    it("権利は3つまで。持ちきれない間は進まない", () => {
+        expect(T.advanceCustom({ n: 2, t: 2 }, false)).toEqual({ n: 0, t: 3 });
+        expect(T.advanceCustom({ n: 0, t: 3 }, false)).toEqual({ n: 0, t: 3 });
+        expect(T.advanceCustom({ n: 1, t: 0 }, true)).toEqual({ n: 0, t: 1 });
+        // 無料で 2 まで進めてから Pro になっても、次の1投稿で届く
+        expect(T.advanceCustom({ n: 2, t: 0 }, true)).toEqual({ n: 0, t: 1 });
+        expect(T.parseTrunk({ custom: { n: 99, t: 99 } }).custom).toEqual({ n: 2, t: 3 });
+        expect(T.parseTrunk({ custom: "x" }).custom).toEqual({ n: 0, t: 0 });
+    });
+
+    it("権利1つで手持ちのラベルに形・色・絵を付ける。同じ送り直しは権利を二度使わない", async () => {
+        setProfile(FREE);
+        setTrunk({ pocket: [label("a"), label("b")], stuck: [], custom: { n: 1, t: 2 } });
+        const body = { shape: 9, palette: 11, art: 0 };
+        const r = await call("POST /user/trunk/labels/{id}/custom", { id: "a", body });
         expect(r.status).toBe(200);
-        expect(r.json.rerolls).toEqual({ left: 2, month: "2026-11" });
-        // 使い残しは繰り越さない（前の月が0回でも、今月は3回）
-        expect(trunkRow()?.rerolls).toEqual({ month: "2026-11", used: 1 });
+        expect((r.json.pocket as Item[])[0].cu).toEqual(body);
+        expect(r.json.custom).toMatchObject({ n: 1, t: 1 });
+        expect((trunkRow()?.pocket as Item[])[0].cu).toBe(9 * 144 + 11 * 12 + 0);
+        const again = await call("POST /user/trunk/labels/{id}/custom", { id: "a", body });
+        expect(again.json.custom).toMatchObject({ t: 1 });
+        // 好きなデザインのラベルは作り直さない
+        const rr = await call("POST /user/trunk/labels/{id}/reroll", { id: "a", body: { n: 1 } });
+        expect(rr.status).toBe(409);
+        expect(rr.json.code).toBe("custom");
+        // 字・種は替えない
+        expect((again.json.pocket as Item[])[0]).toMatchObject({ seed: 42, place: { name: "京都" } });
     });
 
-    it("foil は作り直しても保つ", async () => {
-        setProfile(PRO);
-        const r = await call("POST /user/trunk/labels/{id}/reroll", { id: "b" });
-        const seed = (r.json.pendingReroll as { seeds: number[] }).seeds[1];
-        const c = await call("POST /user/trunk/labels/{id}/reroll/choose", { id: "b", body: { seed } });
-        const b = (c.json.pocket as Item[]).find((l) => l.id === "b")!;
-        expect(b.foil).toBe(true);
-        expect(b.seed).toBe(seed);
+    it("権利が無ければ 409 noCustom・番号が範囲の外なら 400 badCustom・貼ったラベルは 409", async () => {
+        setProfile(FREE);
+        setTrunk({ pocket: [label("a")], stuck: [label("s")], custom: { n: 0, t: 0 } });
+        const none = await call("POST /user/trunk/labels/{id}/custom", { id: "a", body: { shape: 0, palette: 0, art: 0 } });
+        expect(none.status).toBe(409);
+        expect(none.json.code).toBe("noCustom");
+        setTrunk({ pocket: [label("a")], stuck: [label("s")], custom: { n: 0, t: 1 } });
+        for (const body of [
+            { shape: 10, palette: 0, art: 0 }, { shape: 0, palette: 12, art: 0 }, { shape: 0, palette: 0, art: 12 },
+            { shape: -1, palette: 0, art: 0 }, { shape: 1.5, palette: 0, art: 0 }, { shape: "1", palette: 0, art: 0 }, { palette: 0, art: 0 },
+        ]) {
+            const r = await call("POST /user/trunk/labels/{id}/custom", { id: "a", body });
+            expect(r.status).toBe(400);
+            expect(r.json.code).toBe("badCustom");
+        }
+        const stuck = await call("POST /user/trunk/labels/{id}/custom", { id: "s", body: { shape: 0, palette: 0, art: 0 } });
+        expect(stuck.status).toBe(409);
+        expect(stuck.json.code).toBe("notInPocket");
+        expect((await call("POST /user/trunk/labels/{id}/custom", { id: "zz", body: { shape: 0, palette: 0, art: 0 } })).status).toBe(404);
+        expect(trunkRow()?.custom).toEqual({ n: 0, t: 1 });
     });
 
-    it("貼ったラベルは作り直せない", async () => {
-        setProfile(PRO);
-        await call("POST /user/trunk/labels/{id}/stick", { id: "a" });
-        expect((await call("POST /user/trunk/labels/{id}/reroll", { id: "a" })).status).toBe(404);
+    it("24時間以内の取り消しで進みも戻る。権利になっていたら、使っていないときだけ1つ減らす", async () => {
+        setProfile(FREE);
+        await grantLabel(UID, photo("p1"));
+        expect(trunkRow()?.custom).toMatchObject({ n: 1, t: 0 });
+        await T.revokeLabelQuietly(UID, { id: "p1", createdAt: new Date().toISOString() }, "test");
+        expect(trunkRow()?.custom).toBeUndefined();
+        vi.setSystemTime(new Date("2026-10-18T03:00:00Z"));
+        for (const id of ["q1", "q2", "q3"]) await grantLabel(UID, photo(id));
+        expect(trunkRow()?.custom).toMatchObject({ n: 0, t: 1 });
+        await T.revokeLabelQuietly(UID, { id: "q3", createdAt: new Date().toISOString() }, "test");
+        expect(trunkRow()?.custom).toMatchObject({ n: 2, t: 0 });
+        // 使ったあと（権利 0・進み 0）の取り消しでは何も減らさない
+        expect(T.rewindCustom({ n: 0, t: 0 })).toEqual({ n: 0, t: 0 });
+        expect(T.rewindCustom({ n: 1, t: 2 })).toEqual({ n: 0, t: 2 });
+    });
+
+    it("権利が上限（3）で止まっていた間の投稿を取り消しても、権利は減らない（確かめ役の指摘・2026-11-23）", async () => {
+        setProfile(FREE);
+        setTrunk({ pocket: [], stuck: [], custom: { n: 0, t: 3 } });
+        await grantLabel(UID, photo("p1"));
+        expect(trunkRow()?.custom).toEqual({ n: 0, t: 3 });
+        await T.revokeLabelQuietly(UID, { id: "p1", createdAt: new Date().toISOString() }, "test");
+        expect(trunkRow()?.custom).toEqual({ n: 0, t: 3 });
+        // 控えに無い投稿は戻さない・控えは24時間で落ちる
+        expect(T.rewindCustom({ n: 1, t: 0, l: [{ k: "a", a: 1 }] }, "b")).toEqual({ n: 1, t: 0, l: [{ k: "a", a: 1 }] });
+        expect(T.rewindCustom({ n: 1, t: 0, l: [{ k: "a", a: 1 }] }, "a")).toEqual({ n: 0, t: 0 });
+        const now = new Date("2026-10-18T03:00:00Z");
+        const old = { n: 1, t: 0, l: [{ k: "x", a: Math.floor(now.getTime() / 1000) - 25 * 3600 }] };
+        expect(T.advanceCustom(old, false, "y", now).l?.map((e) => e.k)).toEqual(["y"]);
+    });
+
+    it("人のトランクにも好きなデザインを出す（地名を伏せたラベルにも）", () => {
+        const base = { ...label("a"), cu: { shape: 1, palette: 2, art: 3 } };
+        expect(T.theirLabel(0, base as never).cu).toEqual({ shape: 1, palette: 2, art: 3 });
+        expect(T.theirLabel(0, { ...base, placeOk: true } as never).cu).toEqual({ shape: 1, palette: 2, art: 3 });
+        expect(T.theirLabel(0, label("b") as never).cu).toBeUndefined();
+    });
+
+    it("保存の形: rr・cs・cu を短い形で読み戻す。壊れた値は落とす", () => {
+        const doc = T.parseTrunk({
+            pocket: [
+                { i: "a", k: "p", n: "京都", d: 5, a: 1_800_000_000, rr: 2, cs: [1, 2, 3], cu: 1439 },
+                { i: "b", k: "p", n: "京都", d: 5, a: 1_800_000_000, rr: 7, cs: [1, -2], cu: 1440 },
+            ],
+        });
+        expect(doc.pocket[0]).toMatchObject({ rr: 2, cs: [1, 2, 3], cu: { shape: 9, palette: 11, art: 11 } });
+        expect(doc.pocket[1].rr).toBeUndefined();
+        expect(doc.pocket[1].cs).toBeUndefined();
+        expect(doc.pocket[1].cu).toBeUndefined();
     });
 });
 
@@ -755,9 +964,13 @@ describe("確かめの指摘（2026-10-17）", () => {
             ...label(id, { place: { name: "高屋神社・天空の鳥居", latin: "Takaya Shrine", country: "日本" } }),
             season: "autumn", timeslot: "dawn", foil: true, groupId: T.groupKey(`trip-${id}-0000-0000-0000-000000000000`),
             id: `${id}`.padEnd(36, "0"), seed: 2_147_000_000,
+            // #706: 作り直しの回数と好きなデザインは貼ったラベルにも残る（いちばん長い桁）
+            rr: 3, cu: { shape: 9, palette: 11, art: 11 },
         });
         const doc = parseTrunk({
-            pocket: Array.from({ length: 149 }, (_, i) => real(`p${i}`)),
+            // 手持ちは作り直しの候補（cs・4つ・いちばん長い桁）も持つ（貼ったら消える）
+            pocket: Array.from({ length: 149 }, (_, i) => ({ ...real(`p${i}`), cs: [2_147_000_001, 2_147_000_002, 2_147_000_003, 2_147_000_004] })),
+            custom: { n: 2, t: 3 },
             // 置き場はいちばん長い桁（0.999・-30 度＝保存の形で [999, 999, -300]）にする
             stuck: Array.from({ length: 1200 }, (_, i) => ({ ...real(`s${i}`), pos: { x: 0.999, y: 0.999, rot: -30 } })),
             dealt: Array.from({ length: 3000 }, (_, i) => `x:${String(i).padStart(12, "0")}`),
@@ -779,9 +992,12 @@ describe("確かめの指摘（2026-10-17）", () => {
         expect(r.outcome.labelSkipped).toBeUndefined();
         expect(r.outcome.coin).toBe(1);
         expect(r.doc).not.toBeNull();
-        // 2行に分けたあとの大きさ（2026-10-17 実測: 持ち物 283,408B・台帳 103,949B。予算はどちらも 389,120B）
+        expect(r.doc!.pocket[1].cs).toHaveLength(4);
+        expect(r.doc!.stuck[0].cu).toEqual({ shape: 9, palette: 11, art: 11 });
+        // 2行に分けたあとの大きさ（2026-10-17 実測: 持ち物 283,408B・台帳 103,949B。予算はどちらも 389,120B）。
+        // 2026-11-23（#706）: 全部のラベルに作り直しの回数と好きなデザイン、手持ちに候補4つを持たせて 持ち物 313,997B
         const z = T.rowSizes(r.doc!);
-        expect(z.main).toBeLessThan(T.TRUNK_BUDGET_BYTES - 100 * 1024);
+        expect(z.main).toBeLessThan(T.TRUNK_BUDGET_BYTES - 70 * 1024);
         expect(z.ledger).toBeLessThan(T.TRUNK_BUDGET_BYTES - 250 * 1024);
     });
 
@@ -1367,13 +1583,14 @@ describe("口（serverless.trunk.yml の trunk 関数）", () => {
             "GET /user/trunk", "PUT /user/trunk/model", "PUT /user/trunk/settings",
             "POST /user/trunk/labels/{id}/stick", "DELETE /user/trunk/labels/{id}",
             "POST /user/trunk/labels/{id}/reroll", "POST /user/trunk/labels/{id}/reroll/choose",
+            "POST /user/trunk/labels/{id}/custom",
             "PUT /user/trunk/labels/{id}/place", "POST /user/trunk/labels/{id}/unstick",
             "POST /user/trunk/gacha", "POST /user/trunk/parts/exchange", "PUT /user/trunk/equip",
             "GET /users/{uid}/trunk", "POST /user/trunk/welcome", "POST /user/trunk/reward",
             // とおまわり号（2026-10-18 段2）
             "GET /user/camper", "GET /users/{uid}/camper", "POST /users/{uid}/camper/gift", "POST /users/{uid}/camper/firewood",
         ]) expect(routes).toContain(r);
-        expect(routes).toHaveLength(19);
+        expect(routes).toHaveLength(20);
         expect(block).toContain("handler: src/trunk.handler");
     });
 });
@@ -1589,11 +1806,14 @@ describe("とおまわり号の欄を落とさない（段1・2026-10-18）", ()
             ...label(id, { place: { name: "高屋神社・天空の鳥居", latin: "Takaya Shrine", country: "日本" } }),
             season: "autumn", timeslot: "dawn", foil: true, groupId: T.groupKey(`trip-${id}-0000-0000-0000-000000000000`),
             id: `${id}`.padEnd(36, "0"), seed: 2_147_000_000,
+            // #706: 作り直しの回数・好きなデザイン（いちばん長い桁）
+            rr: 3, cu: { shape: 9, palette: 11, art: 11 },
         });
         const uid = "00000000-0000-0000-0000-000000000000";
         const day = "2026-10-20";
         const doc = parseTrunk({
-            pocket: Array.from({ length: 150 }, (_, i) => real(`p${i}`)),
+            pocket: Array.from({ length: 150 }, (_, i) => ({ ...real(`p${i}`), cs: [2_147_000_001, 2_147_000_002, 2_147_000_003, 2_147_000_004] })),
+            custom: { n: 2, t: 3 },
             stuck: Array.from({ length: 1200 }, (_, i) => ({ ...real(`s${i}`), pos: { x: 0.999, y: 0.999, rot: -30 } })),
             coins: 99,
             parts: TRUNK_PARTS.map((p) => p.id),
@@ -1619,8 +1839,9 @@ describe("とおまわり号の欄を落とさない（段1・2026-10-18）", ()
         expect(doc.camper?.parts).toHaveLength(64);
         expect(doc.camper?.visits).toHaveLength(300);
         const z = T.rowSizes(doc);
-        // 2026-10-18 実測: 持ち物 296,982B・台帳 179,918B（予算はどちらも 389,120B。camper なしの最大は持ち物 283KB）
-        expect(z.main).toBeLessThan(T.TRUNK_BUDGET_BYTES - 80 * 1024);
+        // 2026-10-18 実測: 持ち物 296,982B・台帳 179,918B（予算はどちらも 389,120B。camper なしの最大は持ち物 283KB）。
+        // 2026-11-23（#706）: 作り直しの回数・好きなデザイン・候補を全部に足して 持ち物 327,605B（残り 61KB）
+        expect(z.main).toBeLessThan(T.TRUNK_BUDGET_BYTES - 55 * 1024);
         expect(z.ledger).toBeLessThan(T.TRUNK_BUDGET_BYTES - 200 * 1024);
     });
 });

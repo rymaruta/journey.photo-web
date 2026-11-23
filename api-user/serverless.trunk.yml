@@ -194,6 +194,14 @@ functions:
             type: jwt
             id:
               Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      # 好きなデザインで作る（札 journey.photo-ios#706・2026-11-23 owner 承認）。足すのは道筋（Route）だけ
+      - httpApi:
+          path: /user/trunk/labels/{id}/custom
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
       # 次の版（2026-10-17 owner「いいよ」）: 自分の手で貼る・硬貨とカプセル・部品を付ける。
       # 足すのは道筋（Route）だけ——関数・ロール・テーブル・GSI は増やさない
       - httpApi:
