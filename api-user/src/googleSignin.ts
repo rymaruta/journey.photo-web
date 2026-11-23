@@ -21,9 +21,9 @@ import type { FetchLike } from "./oidcToken";
 import { googleClientIdsFromEnv, verifyGoogleIdToken, GoogleTokenError, type GoogleClaims } from "./googleIdToken";
 import { cleanDisplayName, federatedDeps, issueTicket, linkOrCreate, useNonce, LinkBusyError } from "./federatedAccount";
 
-export const UNAVAILABLE_MESSAGE = "Google でのログインは今は使えません";
-export const INVALID_TOKEN_MESSAGE = "Google でのログインを確かめられませんでした。もう一度お試しください";
-export const BUSY_MESSAGE = "ログインの途中です。少し待ってからもう一度お試しください";
+export const UNAVAILABLE_MESSAGE = "今は Google でログインできません";
+export const INVALID_TOKEN_MESSAGE = "ログインできませんでした。もう一度お試しください";
+export const BUSY_MESSAGE = "ログイン中です。少し待ってからお試しください";
 
 export const googleDeps: { fetchImpl?: FetchLike; clientIds: () => string[] } = {
     fetchImpl: undefined,
@@ -88,6 +88,6 @@ export const startGoogleSignin: APIGatewayProxyHandlerV2 = async (event) => {
     } catch (e) {
         if (e instanceof LinkBusyError) return jsonError(409, BUSY_MESSAGE, "google_signin_busy");
         console.error("startGoogleSignin:", errName(e));
-        return jsonError(500, "ログインを完了できませんでした。しばらくしてからもう一度お試しください");
+        return jsonError(500, "ログインできませんでした。少し待ってからお試しください");
     }
 };

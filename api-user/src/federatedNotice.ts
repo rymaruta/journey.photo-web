@@ -28,8 +28,10 @@ export const noticeDeps: {
 export function linkNoticeMessage(provider: Provider): { title: string; body: string } {
     const name = PROVIDER_LABEL[provider];
     return {
-        title: `${name} でのサインインを追加しました`,
-        body: `このアカウントに ${name} でのサインインが結ばれました。心当たりが無いときは、パスワードを変えてください。`,
+        // 2026-11-23 判断（owner「結ばれました、は日常で使わない」「長すぎる」）: 題は話し言葉で短く、本文は1文だけ。
+        // Apple の決まりの呼び名は「サインイン」、Google は「ログイン」（ボタンの文と同じ）
+        title: `${name} で${provider === "apple" ? "サインイン" : "ログイン"}できます`,
+        body: "心当たりが無ければ、パスワードを変えてください。",
     };
 }
 

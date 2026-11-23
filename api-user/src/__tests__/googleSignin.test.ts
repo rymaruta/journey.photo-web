@@ -223,12 +223,22 @@ describe("メールで結んだときの知らせ（鍵を持たない口から�
         noticeDeps.push = async (tokens, msg) => { sent.push({ tokens, msg }); return { sent: tokens.length, invalid: [] }; };
         expect(await linkNoticeHandler({ cognitoSub: "sub-old", provider: "google" })).toEqual({ sent: 1 });
         expect(sent[0].msg).toEqual({
-            title: "Google でのサインインを追加しました",
-            body: "このアカウントに Google でのサインインが結ばれました。心当たりが無いときは、パスワードを変えてください。",
+            title: "Google でログインできます",
+            body: "心当たりが無ければ、パスワードを変えてください。",
         });
         for (const bad of [{}, { cognitoSub: "sub-old", provider: "evil" }, { cognitoSub: 1, provider: "apple" }]) {
             expect(await linkNoticeHandler(bad as never)).toEqual({ sent: 0 });
         }
         expect(sent).toHaveLength(1);
+    });
+
+    it("知らせの文は話し言葉で短く。Apple は「サインイン」、Google は「ログイン」（2026-11-23 owner「結ばれました、は日常で使わない」「長すぎる」）", async () => {
+        const { linkNoticeMessage } = await import("../federatedNotice");
+        expect(linkNoticeMessage("apple")).toEqual({ title: "Apple でサインインできます", body: "心当たりが無ければ、パスワードを変えてください。" });
+        expect(linkNoticeMessage("google").title).toBe("Google でログインできます");
+        for (const p of ["apple", "google"] as const) {
+            const { title, body } = linkNoticeMessage(p);
+            expect(`${title}${body}`).not.toMatch(/結ば|結び|結ぶ|連携|・/);
+        }
     });
 });
