@@ -32,9 +32,9 @@ import {
     type Revoker,
 } from "./federatedAccount";
 
-export const UNAVAILABLE_MESSAGE = "Apple でのサインインは今は使えません";
-export const INVALID_TOKEN_MESSAGE = "Apple でのサインインを確かめられませんでした。もう一度お試しください";
-export const BUSY_MESSAGE = "サインインの途中です。少し待ってからもう一度お試しください";
+export const UNAVAILABLE_MESSAGE = "今は Apple でサインインできません";
+export const INVALID_TOKEN_MESSAGE = "サインインできませんでした。もう一度お試しください";
+export const BUSY_MESSAGE = "サインイン中です。少し待ってからお試しください";
 
 /** 外へ話す口（試験で差し替える）。Cognito と時計は `federatedDeps` */
 export const appleDeps: {
@@ -117,7 +117,7 @@ export const startAppleSignin: APIGatewayProxyHandlerV2 = async (event) => {
     } catch (e) {
         if (e instanceof LinkBusyError) return jsonError(409, BUSY_MESSAGE, "apple_signin_busy");
         console.error("startAppleSignin:", errName(e));
-        return jsonError(500, "サインインを完了できませんでした。しばらくしてからもう一度お試しください");
+        return jsonError(500, "サインインできませんでした。少し待ってからお試しください");
     }
 };
 
