@@ -1724,3 +1724,43 @@ describe("退会した人（墓石）", () => {
         expect((await call("POST /user/trunk/labels/{id}/stick", { id: "a" })).status).toBe(200);
     });
 });
+
+// 札 journey.photo-ios#706 の1段目（2026-11-23）: 新しい欄を読んで書き戻すだけ。2段目を出す前に全部のスタックへ出しても、
+// 2段目から戻しても、古い Lambda が欄を消さないことを見張る
+describe("#706 の欄を落とさない（1段目）", () => {
+    const withFields = () => setTrunk({
+        pocket: [{ i: "a", k: "p", n: "京都", d: 5, a: 1_800_000_000, rr: 2, cs: [5, 6, 7], cu: 1439 }],
+        stuck: [{ i: "s", k: "p", n: "京都", d: 9, a: 1_800_000_000, rr: 3, cu: 17 }],
+        custom: { n: 1, t: 2, l: [{ k: "a", a: 1_800_000_000 }] },
+    });
+
+    it("配る・貼る・はがすの書き込みで rr・cs・cu・custom を消さない", async () => {
+        setProfile(FREE);
+        withFields();
+        await grantLabel(UID, photo("p1"));
+        await call("POST /user/trunk/labels/{id}/unstick", { id: "s" });
+        const row = trunkRow()!;
+        const byId = (id: string) => (row.pocket as Item[]).find((l) => l.i === id)!;
+        expect(byId("a")).toMatchObject({ rr: 2, cs: [5, 6, 7], cu: 1439 });
+        expect(byId("s")).toMatchObject({ rr: 3, cu: 17 });
+        expect((row.custom as Item).t).toBe(2);
+        expect((row.custom as Item).l).toEqual(expect.arrayContaining([{ k: "a", a: 1_800_000_000 }]));
+    });
+
+    it("保存の形を読み戻す。壊れた値は落とす。使っていない人の行には custom を書かない", () => {
+        const doc = T.parseTrunk({
+            pocket: [
+                { i: "a", k: "p", n: "京都", d: 5, a: 1_800_000_000, rr: 2, cs: [1, 2, 3], cu: 1439 },
+                { i: "b", k: "p", n: "京都", d: 5, a: 1_800_000_000, rr: 7, cs: [1, -2], cu: 1440 },
+            ],
+            custom: { n: 99, t: 99, l: [{ k: "a", a: 1 }, "x"] },
+        });
+        expect(doc.pocket[0]).toMatchObject({ rr: 2, cs: [1, 2, 3], cu: { shape: 9, palette: 11, art: 11 } });
+        expect(doc.pocket[1].rr).toBeUndefined();
+        expect(doc.pocket[1].cs).toBeUndefined();
+        expect(doc.pocket[1].cu).toBeUndefined();
+        expect(doc.custom).toEqual({ n: 2, t: 3, l: [{ k: "a", a: 1 }] });
+        expect(T.parseTrunk({ custom: "x" }).custom).toEqual({ n: 0, t: 0 });
+        expect(T.rowSizes(T.parseTrunk({ pocket: [] })).main).toBe(T.rowSizes(T.parseTrunk({ pocket: [], custom: { n: 0, t: 0 } })).main);
+    });
+});
