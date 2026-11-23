@@ -207,11 +207,11 @@ describe("Apple の client secret とトークンの口", () => {
 
     it("取り消しは更新トークンとして送る。失敗なら false", async () => {
         const apple = fakeApple();
-        expect(await revokeAppleToken(cfg, "r.1", apple.fetchImpl)).toBe(true);
+        expect(await revokeAppleToken(cfg, "r.1", apple.fetchImpl)).toEqual({ ok: true, status: 200 });
         const sent = new URLSearchParams(apple.calls[0].body);
         expect(apple.calls[0].url).toBe("https://appleid.apple.com/auth/revoke");
         expect(sent.get("token")).toBe("r.1");
         expect(sent.get("token_type_hint")).toBe("refresh_token");
-        expect(await revokeAppleToken(cfg, "r.1", fakeApple({ revokeStatus: 500 }).fetchImpl)).toBe(false);
+        expect(await revokeAppleToken(cfg, "r.1", fakeApple({ revokeStatus: 500 }).fetchImpl)).toEqual({ ok: false, status: 500 });
     });
 });

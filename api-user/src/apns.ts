@@ -19,7 +19,19 @@ import { createPrivateKey, sign } from "node:crypto";
 const KEY_ID = process.env.APNS_KEY_ID ?? "";
 const TEAM_ID = process.env.APNS_TEAM_ID ?? "";
 /** `.p8` の中身。改行は `\n` のまま渡ってくることがある */
-const PRIVATE_KEY = (process.env.APNS_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
+let PRIVATE_KEY = (process.env.APNS_PRIVATE_KEY ?? "").replace(/\\n/g, "\n");
+
+/**
+ * 環境変数に鍵が無い関数で、実行時に読んだ鍵（SSM）を使う（「Apple でサインイン」の口・札 journey.photo-ios#601）。
+ * 2026-11-23 owner: Apple でサインインの鍵は APNs の鍵と同じもの。その口は鍵を環境変数に置かず SSM から読むので、
+ * 知らせのプッシュもその鍵で送る。**環境変数に鍵がある関数では何もしない**（今の送る関数は変わらない）
+ */
+export function useApnsPrivateKey(pem: string): void {
+    if (PRIVATE_KEY || !pem) return;
+    PRIVATE_KEY = pem;
+    cachedToken = null;
+}
+
 /** 送り先のアプリ（Bundle ID） */
 const TOPIC = process.env.APNS_TOPIC ?? "";
 /**

@@ -16,7 +16,8 @@
  *    （`loadAppleConfig`。置き換えの手順は iOS の `docs/APPLE_SIGNIN.md`）。
  *    鍵が無い環境では「使えない」を返し、口は 503・アプリはボタンを出さない
  */
-import { createPrivateKey, createPublicKey, sign, verify } from "node:crypto";
+import { createPrivateKey, sign } from "node:crypto";
+import { defaultFetch, KeyStore, PROVIDER_TIMEOUT_MS, truthy, verifyRs256IdToken, type FetchLike } from "./oidcToken";
 import { GetParameterCommand, SSMClient } from "@aws-sdk/client-ssm";
 
 export const APPLE_ISSUER = "https://appleid.apple.com";
@@ -24,19 +25,8 @@ export const APPLE_KEYS_URL = "https://appleid.apple.com/auth/keys";
 export const APPLE_TOKEN_URL = "https://appleid.apple.com/auth/token";
 export const APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
 
-/** identity token の長さの上限。実物は 1KB 前後。これを超えるものは読まずに断る（ログイン不要の口で重い処理をさせない） */
-export const MAX_TOKEN_LENGTH = 4096;
-/** 時計のずれの許し（秒） */
-const CLOCK_SKEW_SEC = 60;
-/** Apple の公開鍵の控えの寿命。Apple は鍵を入れ替えるので、知らない kid が来たら取り直す */
-const KEYS_TTL_MS = 60 * 60 * 1000;
-/**
- * 取り直しの間（ミリ秒）。**知らない kid の token を送り続けて、Apple への問い合わせを起こさせない**
- * （ログイン不要の口・2026-11-23 確かめ役の指摘）。取り直してから 60 秒は、知らない kid は控えだけで断る
- */
-export const KEYS_REFETCH_MIN_MS = 60 * 1000;
-/** Apple に問い合わせるときの待ちの上限 */
-const APPLE_TIMEOUT_MS = 5000;
+export { MAX_TOKEN_LENGTH, KEYS_REFETCH_MIN_MS, type FetchLike } from "./oidcToken";
+const APPLE_TIMEOUT_MS = PROVIDER_TIMEOUT_MS;
 
 /** 確かめ終えた identity token の中身（使う項目だけ） */
 export type AppleClaims = {
@@ -62,84 +52,16 @@ export class AppleTokenError extends Error {
     }
 }
 
-type Jwk = { kty: string; kid: string; alg?: string; use?: string; n: string; e: string };
-
-/** fetch の口（試験で差し替える） */
-export type FetchLike = (url: string, init?: {
-    method?: string;
-    headers?: Record<string, string>;
-    body?: string;
-    signal?: AbortSignal;
-}) => Promise<{ ok: boolean; status: number; json(): Promise<unknown> }>;
-
-const defaultFetch: FetchLike = (url, init) => fetch(url, init);
-
-let keysCache: { at: number; keys: Jwk[] } | null = null;
-/** 最後に取りに行った時刻（失敗した回も数える。Apple が落ちているときに叩き続けない） */
-let lastKeysFetchAt = -Infinity;
-/** 取りに行っている途中の回（同時に来た回はこれを待つ。待たずに断ると、起動直後の同時のサインインが落ちる） */
-let keysInflight: Promise<Jwk[]> | null = null;
+const appleKeys = new KeyStore(APPLE_KEYS_URL, (reason) => new AppleTokenError(reason));
 
 /** 試験から控えを消す */
 export function resetAppleKeysCache(): void {
-    keysCache = null;
-    lastKeysFetchAt = -Infinity;
-    keysInflight = null;
-}
-
-async function fetchAppleKeys(fetchImpl: FetchLike): Promise<Jwk[]> {
-    const res = await fetchImpl(APPLE_KEYS_URL, { signal: AbortSignal.timeout(APPLE_TIMEOUT_MS) });
-    if (!res.ok) throw new AppleTokenError(`keys http ${res.status}`);
-    const body = await res.json() as { keys?: unknown };
-    const keys = Array.isArray(body.keys) ? body.keys.filter(isRsaJwk) : [];
-    if (keys.length === 0) throw new AppleTokenError("keys empty");
-    return keys;
-}
-
-function isRsaJwk(k: unknown): k is Jwk {
-    const j = k as Partial<Jwk> | null;
-    return !!j && j.kty === "RSA" && typeof j.kid === "string" && typeof j.n === "string" && typeof j.e === "string";
-}
-
-/** kid の鍵を返す。控えに無ければ取り直す（Apple の鍵の入れ替え）。ただし取り直しは 60 秒に1回まで */
-async function appleJwk(kid: string, fetchImpl: FetchLike, now: number): Promise<Jwk | undefined> {
-    const fresh = keysCache && now - keysCache.at < KEYS_TTL_MS;
-    if (fresh) {
-        const hit = keysCache!.keys.find((k) => k.kid === kid);
-        if (hit) return hit;
-    }
-    if (keysInflight) return (await keysInflight).find((k) => k.kid === kid);
-    if (now - lastKeysFetchAt < KEYS_REFETCH_MIN_MS) {
-        // 取り直したばかり。控えが古くても、控えにある鍵なら使う（Apple の鍵の入れ替えは日単位）
-        return keysCache?.keys.find((k) => k.kid === kid);
-    }
-    lastKeysFetchAt = now;
-    keysInflight = fetchAppleKeys(fetchImpl);
-    try {
-        const keys = await keysInflight;
-        keysCache = { at: now, keys };
-        return keys.find((k) => k.kid === kid);
-    } finally {
-        keysInflight = null;
-    }
-}
-
-function b64urlJson(part: string): Record<string, unknown> {
-    try {
-        const v = JSON.parse(Buffer.from(part, "base64url").toString("utf8")) as unknown;
-        if (v && typeof v === "object" && !Array.isArray(v)) return v as Record<string, unknown>;
-    } catch { /* 下で断る */ }
-    throw new AppleTokenError("malformed");
-}
-
-/** Apple は真偽を `true` と `"true"` の両方で送る */
-function truthy(v: unknown): boolean {
-    return v === true || v === "true";
+    appleKeys.reset();
 }
 
 /**
- * identity token を確かめる。署名（RS256・Apple の公開鍵）・発行元・宛先（このアプリの Bundle ID）・期限を見る。
- * どれかが合わなければ `AppleTokenError` を投げる。
+ * identity token を確かめる。署名（RS256・Apple の公開鍵）・発行元・宛先（このアプリの Bundle ID）・期限を見る
+ * （共通の部品 `oidcToken.ts`）。どれかが合わなければ `AppleTokenError` を投げる。
  *
  * @param clientIds 受け付ける宛先（`aud`）。本番の Bundle ID `com.journeyphoto.JourneyPhoto`
  */
@@ -147,31 +69,10 @@ export async function verifyAppleIdentityToken(
     token: unknown,
     opts: { clientIds: readonly string[]; now?: number; fetchImpl?: FetchLike },
 ): Promise<AppleClaims> {
-    if (typeof token !== "string" || token.length === 0 || token.length > MAX_TOKEN_LENGTH) {
-        throw new AppleTokenError("shape");
-    }
-    const parts = token.split(".");
-    if (parts.length !== 3 || parts.some((p) => !/^[A-Za-z0-9_-]+$/.test(p))) throw new AppleTokenError("shape");
-    const [h, p, s] = parts;
-    const header = b64urlJson(h);
-    // **RS256 だけ。** "none" や HS256（公開鍵を共有の秘密として使わせる）を受けない
-    if (header.alg !== "RS256" || typeof header.kid !== "string") throw new AppleTokenError("alg");
-
-    const now = opts.now ?? Date.now();
-    const jwk = await appleJwk(header.kid, opts.fetchImpl ?? defaultFetch, now);
-    if (!jwk) throw new AppleTokenError("unknown kid");
-    const publicKey = createPublicKey({ key: { kty: jwk.kty, n: jwk.n, e: jwk.e }, format: "jwk" });
-    const ok = verify("RSA-SHA256", Buffer.from(`${h}.${p}`), publicKey, Buffer.from(s, "base64url"));
-    if (!ok) throw new AppleTokenError("signature");
-
-    const c = b64urlJson(p);
-    if (c.iss !== APPLE_ISSUER) throw new AppleTokenError("iss");
-    if (typeof c.aud !== "string" || !opts.clientIds.includes(c.aud)) throw new AppleTokenError("aud");
-    const nowSec = Math.floor(now / 1000);
-    if (typeof c.exp !== "number" || c.exp + CLOCK_SKEW_SEC < nowSec) throw new AppleTokenError("expired");
-    if (typeof c.iat !== "number" || c.iat - CLOCK_SKEW_SEC > nowSec) throw new AppleTokenError("iat");
-    if (typeof c.sub !== "string" || !c.sub || c.sub.length > 255) throw new AppleTokenError("sub");
-
+    const c = await verifyRs256IdToken(token, {
+        keys: appleKeys, issuers: [APPLE_ISSUER], clientIds: opts.clientIds,
+        fail: (reason) => new AppleTokenError(reason), now: opts.now, fetchImpl: opts.fetchImpl,
+    });
     const email = typeof c.email === "string" && c.email.length <= 254 ? c.email : undefined;
     return {
         sub: c.sub,
@@ -259,6 +160,18 @@ export function resetAppleKeyConfigCache(): void {
 export async function loadAppleConfig(env: Env = process.env, now: number = Date.now()): Promise<AppleKeyConfig | null> {
     const param = (env.APPLE_SIGNIN_KEY_PARAM ?? "").trim();
     if (!param) return appleConfigFromEnv(env);
+    const pem = await loadSigningKeyPem(env, now);
+    return pem ? appleConfigFromEnv(env, pem) : null;
+}
+
+/**
+ * 鍵（PEM）だけを読む。SSM の名前（`APPLE_SIGNIN_KEY_PARAM`）があればそこから（控えは5分・読めなかった回は1分）、
+ * 無ければ環境変数の `APNS_PRIVATE_KEY`。読めなければ空。
+ * 知らせのプッシュ（同じ APNs の鍵・`federatedAccount.ts` の `pushLinkedNotice`）も使う
+ */
+export async function loadSigningKeyPem(env: Env = process.env, now: number = Date.now()): Promise<string> {
+    const param = (env.APPLE_SIGNIN_KEY_PARAM ?? "").trim();
+    if (!param) return pemOf(env.APNS_PRIVATE_KEY);
     if (!ssmCache || now - ssmCache.at >= (ssmCache.pem ? SSM_KEY_TTL_MS : SSM_MISS_TTL_MS)) {
         let pem = "";
         try {
@@ -268,7 +181,7 @@ export async function loadAppleConfig(env: Env = process.env, now: number = Date
         }
         ssmCache = { at: now, pem };
     }
-    return ssmCache.pem ? appleConfigFromEnv(env, ssmCache.pem) : null;
+    return ssmCache.pem;
 }
 
 /**
@@ -312,12 +225,12 @@ export async function exchangeAppleCode(
 }
 
 /**
- * 更新トークンを取り消す（退会のとき・Apple の決まり）。取り消せたら true。
- * Apple は知らない・取り消し済みのトークンにも 200 を返す
+ * 更新トークンを取り消す（退会のとき・Apple の決まり）。答えの HTTP の状態をそのまま返す（扱いは呼ぶ側が決める）。
+ * Apple は知らない・取り消し済みのトークンにも 200 を返す。届かない・時間切れは投げる
  */
 export async function revokeAppleToken(
     cfg: AppleKeyConfig, refreshToken: string, fetchImpl: FetchLike = defaultFetch,
-): Promise<boolean> {
+): Promise<{ ok: boolean; status: number }> {
     const res = await fetchImpl(APPLE_REVOKE_URL, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -328,5 +241,5 @@ export async function revokeAppleToken(
         signal: AbortSignal.timeout(APPLE_TIMEOUT_MS),
     });
     if (!res.ok) console.warn(`apple revoke: http ${res.status}`);
-    return res.ok;
+    return { ok: res.ok, status: res.status };
 }

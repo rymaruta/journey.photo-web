@@ -342,6 +342,13 @@ jobs:
     if: ${{ needs.config.outputs.deployUser == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # 🔴 **「Apple でサインイン」の鍵の置き場を決めるのはここ1か所**（札 journey.photo-ios#601・2026-11-23 確かめ役の指摘）。
+      #   ssm … SSM パラメータストアの SecureString `/journey-photo/<環境>/apple-signin/private-key` を実行時に読む（本線）。
+      #         関数の環境変数に鍵を置かない。owner が SecureString を作るまで、ボタンは出ない（status が false）
+      #   env … Secrets の `APNS_PRIVATE_KEY` を関数の環境変数に入れる（SSM を作るまでのつなぎに使うとき）
+      # 鍵を読むのは Apple のスタック（サインイン・取り消し）だけ。退会（user API）は取り消しをそのスタックに頼むので、どちらでも変わらない
+      APPLE_SIGNIN_KEY_SOURCE: ssm
     steps:
       - uses: actions/checkout@v4
 
@@ -395,16 +402,14 @@ jobs:
           APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
           APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
           APNS_HOST: ${{ needs.config.outputs.apnsHost }}
-          # 鍵を SSM の SecureString に置いたとき、その名前（`/journey-photo/<stage>/apple-signin/…`）。空なら環境変数の鍵
-          APPLE_SIGNIN_KEY_PARAM: ${{ vars.APPLE_SIGNIN_KEY_PARAM }}
         run: |
           set -euo pipefail
           extra=()
           ready=false
-          if [ -n "${APPLE_SIGNIN_KEY_PARAM:-}" ]; then
-            extra+=(--param "appleSigninKeyParam=$APPLE_SIGNIN_KEY_PARAM")
-            ready=true
-          elif [ -n "${APNS_PRIVATE_KEY:-}" ]; then
+          # 鍵の置き場は、このジョブの `APPLE_SIGNIN_KEY_SOURCE`（1か所）で決まる
+          if [ "$APPLE_SIGNIN_KEY_SOURCE" = "ssm" ]; then
+            extra+=(--param "appleSigninKeyParam=/journey-photo/${{ needs.config.outputs.envName }}/apple-signin/private-key")
+          elif [ "$APPLE_SIGNIN_KEY_SOURCE" = "env" ] && [ -n "${APNS_PRIVATE_KEY:-}" ]; then
             # 改行のまま渡すと1行目しか届かない（札 journey.photo-ios#585）。`\n` にして渡し、`appleIdToken.ts` が戻す
             apns_key="$(bash ../scripts/apns-key-param.sh)"
             # 🔴 1行にした値は Secrets の元の値と形が違い、Actions が自動で伏せない。ログに出ないよう伏せる
@@ -412,7 +417,7 @@ jobs:
             extra+=(--param "apnsPrivateKey=$apns_key")
             ready=true
           fi
-          echo "Apple でサインイン: 鍵 $([ "$ready" = true ] && echo 'あり' || echo '(なし・ボタンは出ない)')"
+          echo "Apple でサインイン: 鍵の置き場 $APPLE_SIGNIN_KEY_SOURCE（環境変数の鍵 $([ "$ready" = true ] && echo 'あり' || echo 'なし')）"
           npx serverless@3 deploy --config serverless.apple-signin.yml --stage ${{ needs.config.outputs.envName }} \
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "usersTable=${{ needs.config.outputs.usersTable }}" \
@@ -420,6 +425,43 @@ jobs:
             --param "cognitoPoolName=${{ needs.config.outputs.cognitoPoolName }}" \
             --param "appleSigninClientId=$APNS_TOPIC" \
             --param "appleSigninReady=$ready" \
+            --param "apnsKeyId=$APNS_KEY_ID" \
+            --param "apnsTeamId=$APNS_TEAM_ID" \
+            --param "apnsTopic=$APNS_TOPIC" \
+            --param "apnsHost=$APNS_HOST" \
+            ${extra[@]+"${extra[@]}"}
+
+      # 「Google でログイン」の口（札 journey.photo-ios#715・`api-user/serverless.google-signin.yml`）も**別のスタック**。
+      # 🔴 **`GOOGLE_SIGNIN_ENABLED` と `APPLE_SIGNIN_ENABLED` の両方が true のときだけ配る（既定は配らない）。**
+      #    CUSTOM_AUTH のトリガーは Apple のスタックだけにあり（プールを書き換えるのはあちらだけ）、審査指針 4.8 でも
+      #    Google を置くなら Apple でサインインも置く。user API の段が `POST /auth/google` に流量の設定を付けるので、user API より先に配る
+      # 宛先は iOS の OAuth クライアント ID（公開の値・owner が 2026-11-23 に作った・札 #715 のコメント）
+      - name: Serverless deploy（Google でログイン・別スタック）
+        if: ${{ vars.GOOGLE_SIGNIN_ENABLED == 'true' && vars.APPLE_SIGNIN_ENABLED == 'true' }}
+        working-directory: api-user
+        env:
+          GOOGLE_SIGNIN_CLIENT_ID: 280167931666-24o92d38usbft3ouk3jc4dk8tvgh3t8p.apps.googleusercontent.com
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+          APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
+          APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
+          APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
+          APNS_HOST: ${{ needs.config.outputs.apnsHost }}
+        run: |
+          set -euo pipefail
+          extra=()
+          # 知らせのプッシュの鍵の置き場は Apple と同じ（このジョブの `APPLE_SIGNIN_KEY_SOURCE`）
+          if [ "$APPLE_SIGNIN_KEY_SOURCE" = "ssm" ]; then
+            extra+=(--param "appleSigninKeyParam=/journey-photo/${{ needs.config.outputs.envName }}/apple-signin/private-key")
+          elif [ "$APPLE_SIGNIN_KEY_SOURCE" = "env" ] && [ -n "${APNS_PRIVATE_KEY:-}" ]; then
+            apns_key="$(bash ../scripts/apns-key-param.sh)"
+            echo "::add-mask::$apns_key"
+            extra+=(--param "apnsPrivateKey=$apns_key")
+          fi
+          npx serverless@3 deploy --config serverless.google-signin.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
+            --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
+            --param "googleSigninClientId=$GOOGLE_SIGNIN_CLIENT_ID" \
             --param "apnsKeyId=$APNS_KEY_ID" \
             --param "apnsTeamId=$APNS_TEAM_ID" \
             --param "apnsTopic=$APNS_TOPIC" \
@@ -458,12 +500,14 @@ jobs:
           # 意見箱のログインしていない口の、IP の目印を作る鍵（HMAC・札 journey.photo-ios#546）。
           # **未登録でも何も壊れない**——空なら旗ごと渡さず、鍵なしの目印に落ちる（`feedback.ts` の `ipBucket`）
           FEEDBACK_IP_KEY: ${{ secrets.FEEDBACK_IP_KEY }}
-          # 「Apple でサインイン」のスタックを配る環境か（上の段）。true なら段の流量の設定に `POST /auth/apple` を足す
+          # 「Apple でサインイン」「Google でログイン」のスタックを配る環境か（上の段）。true なら段の流量の設定に経路を足す
           APPLE_SIGNIN_ENABLED: ${{ vars.APPLE_SIGNIN_ENABLED }}
+          GOOGLE_SIGNIN_ENABLED: ${{ vars.GOOGLE_SIGNIN_ENABLED }}
         run: |
           set -euo pipefail
           extra=()
           if [ "${APPLE_SIGNIN_ENABLED:-}" = "true" ]; then extra+=(--param "appleSigninEnabled=true"); fi
+          if [ "${GOOGLE_SIGNIN_ENABLED:-}" = "true" ]; then extra+=(--param "googleSigninEnabled=true"); fi
           if [ -n "$REBUILD_REPO" ]; then extra+=(--param "rebuildRepo=$REBUILD_REPO"); fi
           if [ -n "$REBUILD_TOKEN" ]; then extra+=(--param "rebuildToken=$REBUILD_TOKEN"); fi
           if [ -n "${REBUILD_MONTHLY_MAX:-}" ]; then extra+=(--param "rebuildMonthlyMax=$REBUILD_MONTHLY_MAX"); fi
