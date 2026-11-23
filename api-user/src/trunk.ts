@@ -48,6 +48,7 @@ import { goneIfDeleted } from "./liveCaller";
  *     stuck[]        貼ったもの（新しい順）
  *     rerolls        { month: 日本時間の YYYY-MM, used }
  *     pendingReroll  { labelId, seeds[3], at }（作り直しの候補・選ぶまで）
+ *     custom         { n, t, l? }（好きなデザインで作る・札 journey.photo-ios#706）。**1段目は読んで書き戻すだけ**
  *     receiveLabels  ラベルを受け取るか（既定 true。false の間は配らない・戻してもさかのぼらない）
  *     dealt[]        配った写真の指紋の台帳（新しい順・最新 3000 件）。**写真やラベルを消しても消さない**
  *     daily          { day: 日本時間の YYYY-MM-DD, count }（その日に配った投稿の数＝ラベルか硬貨を配った数）
@@ -111,6 +112,18 @@ export const TAG_PICKS_MAX = 3;
 export const TAG_PICK_NONE = "_";
 export const REROLLS_PER_MONTH = 3;
 export const REROLL_CANDIDATES = 3;
+/**
+ * 札 journey.photo-ios#706（2026-11-23 owner 承認）の**1段目**: 新しい欄（行の `custom`・ラベルの `rr`・`cs`・`cu`）を
+ * **読んで、そのまま書き戻すだけ**（機能はまだ使わない）。とおまわり号の段1（`camper.ts`）と同じ決まり——
+ * 2段目（機能）を出したあと、まだ古い Lambda（user API の配り・写真の編集の取り消しなど）が書くと欄が消えるので、
+ * 先に全部のスタックへこの段を出してから2段目を出す（戻すときも、この段までなら欄は消えない）
+ */
+export const REROLLS_PER_LABEL = 3;
+export const CUSTOM_EVERY_FREE = 3;
+export const CUSTOM_TICKETS_MAX = 3;
+export const CUSTOM_SHAPES = 10;
+export const CUSTOM_PALETTES = 12;
+export const CUSTOM_ARTS = 12;
 /**
  * きらきら（foil）の出る確率（1万分の）。
  * 2026-10-17 判断: 2%（50枚に1枚）。公開の投稿が月に数枚の人でも、年に1枚は出会える程度
@@ -239,7 +252,22 @@ export type TrunkLabel = {
      * この印のあるラベルだけ地名と手がかりを出す。非公開・削除・絞る・撮影地の変更で外し、戻せば付け直す
      */
     placeOk?: true;
+    /**
+     * 作り直した回数（0〜`REROLLS_PER_LABEL`・#706）。**はがしても・貼り直しても残す**（はがして作り直し直す抜け道を塞ぐ）。
+     * 0 なら持たない。保存は `stored` の `rr`
+     */
+    rr?: number;
+    /**
+     * 作り直しの候補の種（最初の1枚の種が先頭・最大 `REROLLS_PER_LABEL`+1）。選べるのはこの中だけ（`chooseMutation`）。
+     * **貼ったら消す**（`stickMutation`）。保存は `cs`
+     */
+    cs?: number[];
+    /** 好きなデザインで作った形・色・絵の番号（#706・`parseCustom`）。保存は `cu`（1つの数・`customCode`） */
+    cu?: TrunkCustom;
 };
+
+/** 好きなデザインの番号（形 0〜9・色 0〜11・絵 0〜11） */
+export type TrunkCustom = { shape: number; palette: number; art: number };
 
 export type TrunkPos = { x: number; y: number; rot: number };
 
@@ -258,6 +286,8 @@ export type TrunkDoc = {
     stuck: TrunkLabel[];
     rerolls: { month: string; used: number };
     pendingReroll?: PendingReroll;
+    /** 好きなデザインで作る（#706）の進み・権利・控え。1段目は読んで書き戻すだけ */
+    custom: CustomProgress;
     receiveLabels: boolean;
     dealt: string[];
     daily: { day: string; count: number };
@@ -425,6 +455,7 @@ export function parseTrunk(item: Record<string, unknown> | undefined, ledger?: R
             used: typeof r?.used === "number" && Number.isInteger(r.used) && r.used >= 0 ? r.used : 0,
         },
         ...(pending ? { pendingReroll: pending } : {}),
+        custom: parseCustomProgress(item?.custom),
         receiveLabels: item?.receiveLabels !== false,
         dealt: strings(lg?.dealt),
         milestones: strings(lg?.milestones),
@@ -457,6 +488,33 @@ export function parseTrunk(item: Record<string, unknown> | undefined, ledger?: R
         ...camperField(item?.camper, lg),
         ...(item?.camperOnly === true ? { camperOnly: true as const } : {}),
     };
+}
+
+/**
+ * 好きなデザインで作るまでの進み（#706・行の `custom`）。
+ *
+ *     n  進み（0〜2）
+ *     t  使える権利（0〜3）
+ *     l  24時間以内に進みを数えた投稿 { k: ラベルの id, a: 秒 }（取り消し用・古いものは書くたびに落とす・無ければ項目ごと無い）。
+ *        **権利が上限で進めなかった投稿は載せない**——取り消しで権利を減らさないため（2026-11-23 確かめ役の指摘）
+ */
+export type CustomProgress = { n: number; t: number; l?: { k: string; a: number }[] };
+
+/** 進みの控え（`l`）の上限。1日3枚の歯止めのもとでは多くても6件ほど */
+const CUSTOM_LOG_MAX = 20;
+
+/** 行の `custom`（#706）。形が違えば 0・0。範囲の外は丸める */
+function parseCustomProgress(v: unknown): CustomProgress {
+    const c = v as { n?: unknown; t?: unknown; l?: unknown } | undefined;
+    const n = c && isCount(c.n) ? Math.min(c.n, CUSTOM_EVERY_FREE - 1) : 0;
+    const t = c && isCount(c.t) ? Math.min(c.t, CUSTOM_TICKETS_MAX) : 0;
+    const l = Array.isArray(c?.l)
+        ? (c!.l as unknown[]).filter((e): e is { k: string; a: number } =>
+            !!e && typeof e === "object" && typeof (e as { k?: unknown }).k === "string"
+            && typeof (e as { a?: unknown }).a === "number")
+            .map((e) => ({ k: e.k, a: e.a })).slice(0, CUSTOM_LOG_MAX)
+        : [];
+    return { n, t, ...(l.length ? { l } : {}) };
 }
 
 function camperField(main: unknown, ledger: Record<string, unknown> | undefined): { camper?: CamperDoc } {
@@ -578,6 +636,8 @@ function serializeRows(doc: TrunkDoc): { main: Record<string, unknown>; ledger: 
             stuck: doc.stuck.map(stored),
             rerolls: doc.rerolls,
             ...(doc.pendingReroll ? { pendingReroll: doc.pendingReroll } : {}),
+            // 0・0 は書かない（使っていない人の行は今までと同じ形）
+            ...(doc.custom.n || doc.custom.t || doc.custom.l?.length ? { custom: doc.custom } : {}),
             receiveLabels: doc.receiveLabels,
             coins: doc.coins,
             parts: doc.parts,
@@ -624,7 +684,7 @@ function compactEquipped(e: Equipped): Record<string, unknown> {
  *
  *     i id ・ k kind(m/t/s/p) ・ n 地名 ・ l latin ・ c 国 ・ s 季節(0-3) ・ t 時刻(0-2) ・
  *     m 節目 ・ d seed ・ a 時刻(秒) ・ f foil(1) ・ g 束の鍵 ・ o 地名を人に見せてよい(1) ・
- *     p 置き場 [x×1000, y×1000, rot×10]（整数）
+ *     p 置き場 [x×1000, y×1000, rot×10]（整数）・ rr 作り直した回数 ・ cs 候補の種 ・ cu 好きなデザイン（形×144＋色×12＋絵・1つの数）
  */
 const KIND_CODE: Record<LabelKind, string> = { milestone: "m", timeslot: "t", season: "s", place: "p" };
 const KIND_BY_CODE: Record<string, LabelKind> = { m: "milestone", t: "timeslot", s: "season", p: "place" };
@@ -647,6 +707,9 @@ function stored(l: TrunkLabel): Record<string, unknown> {
         ...(l.placeOk ? { o: 1 } : {}),
         ...(l.pos ? { p: [Math.round(l.pos.x * 1000), Math.round(l.pos.y * 1000), Math.round(l.pos.rot * 10)] } : {}),
         ...(!l.pos && isSlot(l.slot) ? { q: l.slot } : {}),
+        ...(l.rr ? { rr: l.rr } : {}),
+        ...(l.cs && l.cs.length ? { cs: l.cs } : {}),
+        ...(l.cu ? { cu: customCode(l.cu) } : {}),
     };
 }
 
@@ -674,8 +737,27 @@ function decodeLabel(v: unknown): unknown {
         ...(r.o === 1 ? { placeOk: true } : {}),
         ...(posOfStored(r.p) ? { pos: posOfStored(r.p) } : {}),
         ...(!posOfStored(r.p) && isSlot(r.q) ? { slot: r.q } : {}),
+        ...(isRerollCount(r.rr) && r.rr > 0 ? { rr: r.rr } : {}),
+        ...(Array.isArray(r.cs) && r.cs.length > 0 && r.cs.length <= REROLLS_PER_LABEL + 1 && r.cs.every(isSeed) ? { cs: r.cs } : {}),
+        ...(customOfStored(r.cu) ? { cu: customOfStored(r.cu) } : {}),
     };
 }
+
+const isRerollCount = (v: unknown): v is number => typeof v === "number" && Number.isInteger(v) && v >= 0 && v <= REROLLS_PER_LABEL;
+const isIndex = (v: unknown, n: number): v is number => typeof v === "number" && Number.isInteger(v) && v >= 0 && v < n;
+
+/**
+ * 保存の `cu` は1つの数（形×144＋色×12＋絵・0〜1439）。2026-11-23 判断: 貼った 1200 枚に持たせても1行を小さく保つ
+ * （並び `[9,11,11]` より 1枚 6B ほど小さい。`trunk.test.ts` の「いちばん大きい行」で実測）
+ */
+export const customCode = (c: TrunkCustom) => c.shape * CUSTOM_PALETTES * CUSTOM_ARTS + c.palette * CUSTOM_ARTS + c.art;
+
+/** 保存の `cu` を読む。範囲の外・形が違えば undefined（ふつうの図柄で描く） */
+function customOfStored(v: unknown): TrunkCustom | undefined {
+    if (!isIndex(v, CUSTOM_SHAPES * CUSTOM_PALETTES * CUSTOM_ARTS)) return undefined;
+    return { shape: Math.floor(v / (CUSTOM_PALETTES * CUSTOM_ARTS)), palette: Math.floor(v / CUSTOM_ARTS) % CUSTOM_PALETTES, art: v % CUSTOM_ARTS };
+}
+
 
 function posOfStored(v: unknown): TrunkPos | undefined {
     if (!Array.isArray(v) || v.length !== 3 || !v.every((n) => typeof n === "number" && Number.isFinite(n))) return undefined;
