@@ -89,7 +89,11 @@ export function spotPageTitle(
         return fit([...(where ? [`${head}（${where}）`] : []), head], head);
     }
     const pitch = n > 0 ? `作例${n}枚` : "";
-    const head = `${spot.name}の写真と観光スポット情報`;
+    // 2026-11-23（#701）: 「観光スポット情報」→「撮影の案内」。題の「撮影スポット」を「観光スポット」に替えた
+    // 11-13 から順位が約11位 → 20〜22位に落ちた。検索語の約17%（表示）が「写真」「撮影」を含み「観光」は約3%。
+    // 「撮影スポット」には戻さず、本文で使っている「撮影の案内」にする（「撮影地ガイド」は使わない語）。
+    // 写真の無い頁は「撮影の案内」と名乗らず今のまま（上の分岐）
+    const head = `${spot.name}の写真と撮影の案内`;
     return fit([
         ...(pitch && where ? [`${head}｜${pitch}（${where}）`] : []),
         ...(pitch ? [`${head}｜${pitch}`] : []),
@@ -154,7 +158,8 @@ export function spotPageDescription(
     const draft = isPublished(spot as Spot) ? "" : "【下書き・運営未確認】";
     // 2026-11-09（Web 入口ページ監査の案A）: 頭の言い方を「撮影地ガイド」から「撮影スポット」へ
     // （画面の呼び名の決め `PlaceTermWordingTests`・title の「の写真・撮影スポット」と同じ語）。URL・識別子は変えない
-    const lead = `${draft}${spotHasPhotos(facts) ? `${spot.name}の写真と観光スポット情報。` : `${spot.name}の観光スポット情報。`}`;
+    // 2026-11-23（#701）: 写真のある頁の頭は題と同じ「〇〇の写真と撮影の案内。」（`spotPageTitle` の注記）
+    const lead = `${draft}${spotHasPhotos(facts) ? `${spot.name}の写真と撮影の案内。` : `${spot.name}の観光スポット情報。`}`;
     const parts: string[] = [];
     const n = spotSampleCount(facts);
     if (n > 0) parts.push(`作例${n}枚`);
