@@ -25,7 +25,7 @@ export default function SigninMethodsPage() {
                     <li>設定の「サインインの方法」を開く</li>
                     <li>Apple か Google の「解除」を押す</li>
                 </ol>
-                <p>ほかに入る方法が無いときは、先にメールアドレスとパスワードを設定してください。</p>
+                <p>ほかに入る方法が無いときは、ログイン画面の「パスワードを忘れた」から、パスワードを設定できます。</p>
             </div>
         </main>
     );

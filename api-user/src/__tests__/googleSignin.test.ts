@@ -138,6 +138,20 @@ describe("ログイン（POST /auth/google）", () => {
         expect(names()).not.toContain("AdminCreateUserCommand");
     });
 
+    it("🔴 同じメールの持ち主が Google を解除していたら、新しく作らずに 409（google_signin_unlinked・文はログイン画面に出す）", async () => {
+        users.table.set("sub-old", { userId: "sub-old", googleUnlinkedAt: "2026-11-23T00:00:00Z" });
+        idpReply = (name, input) => (name === "ListUsersCommand" ? listedOld() : name === "AdminListGroupsForUserCommand" ? { Groups: [] } : createdReply(name, input));
+        const res = await signIn();
+        expect(res.statusCode).toBe(409);
+        expect(bodyOf(res)).toEqual({
+            error: "この Google アカウントの連携は解除されています。メールアドレスでログインしてください",
+            code: "google_signin_unlinked",
+        });
+        expect(names()).not.toContain("AdminCreateUserCommand");
+        // 途中の印は残さない（次に来た回を待たせない）
+        expect(users.table.has("google#1098765432101234567890")).toBe(false);
+    });
+
     it("🔴 Gmail でも Workspace でもないメールでは、同じメールのアカウントを探さない（新しく作る）", async () => {
         idpReply = (name, input) => (name === "ListUsersCommand" ? listedOld() : createdReply(name, input));
         const res = await signIn({ email: "taro@example.com" });

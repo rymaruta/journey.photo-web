@@ -107,6 +107,24 @@ export class LinkBusyError extends Error {
     }
 }
 
+/**
+ * 本人が「サインインの方法」で解除した提供元で、また入ろうとした（2026-11-23 確かめ役の指摘）。
+ * 黙って空の別アカウントを作らず、断る（口は 409。アプリはこの文をログイン画面に出す）
+ */
+export class UnlinkedProviderError extends Error {
+    constructor(readonly provider: Provider) {
+        super("provider unlinked");
+        this.name = "UnlinkedProviderError";
+    }
+}
+
+/** 解除した提供元で入ろうとしたときの文（ログイン画面の失敗の文） */
+export function unlinkedMessage(provider: Provider): string {
+    return provider === "apple"
+        ? "この Apple ID の連携は解除されています。メールアドレスでログインしてください"
+        : "この Google アカウントの連携は解除されています。メールアドレスでログインしてください";
+}
+
 const errName = (e: unknown) => (e as { name?: string } | null)?.name ?? "";
 export const sha256Hex = (s: string) => createHash("sha256").update(s).digest("hex");
 
@@ -200,6 +218,25 @@ export async function findLinkableEmailUser(provider: Provider, email: string): 
     return null;
 }
 
+/**
+ * このメール（確かめ済み）を持つ人が、この提供元を「サインインの方法」で解除しているか。
+ * 🔴 解除した人と同じメールで来たら、新しく作らない（メール無しで作る道も含めて・`UnlinkedProviderError`）
+ */
+export async function emailOwnerUnlinked(provider: Provider, email: string): Promise<boolean> {
+    for (const e of [...new Set([email, email.toLowerCase()])]) {
+        const res = await federatedDeps.idp.send(new ListUsersCommand({
+            UserPoolId: federatedDeps.poolId(), Filter: `email = "${filterValue(e)}"`, Limit: 10,
+        })) as { Users?: { Attributes?: AttributeType[] }[] };
+        for (const u of res.Users ?? []) {
+            const sub = attr(u.Attributes, "sub");
+            if (!sub) continue;
+            const profile = await getRow<Record<string, unknown>>(sub);
+            if (profile && profile.deletedAt === undefined && profile[unlinkedField(provider)] !== undefined) return true;
+        }
+    }
+    return false;
+}
+
 async function cognitoUserExists(username: string): Promise<boolean> {
     try {
         await federatedDeps.idp.send(new AdminGetUserCommand({ UserPoolId: federatedDeps.poolId(), Username: username }));
@@ -228,6 +265,10 @@ async function createCognitoUser(identity: FederatedIdentity): Promise<CognitoUs
     } catch (e) {
         // 確かめ済みのメールを、結ばない人（管理者・別の ID と結び済み）が持っている。メール無しで作る（取り上げない）
         if (errName(e) !== "AliasExistsException" || emailAttrs.length === 0) throw e;
+        // 🔴 ただし、そのメールの持ち主がこの提供元を解除しているなら作らない（黙って空の別アカウントを作らない）
+        if (identity.email && await emailOwnerUnlinked(identity.provider, identity.email)) {
+            throw new UnlinkedProviderError(identity.provider);
+        }
         created = await federatedDeps.idp.send(new AdminCreateUserCommand({
             UserPoolId: pool, Username: username, UserAttributes: [], MessageAction: "SUPPRESS",
         })) as typeof created;
@@ -267,6 +308,8 @@ export type FederatedRow = {
     cognitoSub?: string;
     /** どう結んだか（`LinkResult["via"]` の `email`・`new`） */
     linkedBy?: string;
+    /** 本人が「サインインの方法」で解除した時刻（取り消しが済まず、行を残したときだけ） */
+    unlinkedAt?: string;
     refreshToken?: string;
     claimedAt?: number;
     ticketHash?: string;
@@ -324,6 +367,8 @@ export type LinkResult = { username: string; sub: string; via: "known" | "email"
 export async function linkOrCreate(identity: FederatedIdentity, displayName: string | undefined): Promise<LinkResult> {
     const key = federatedKey(identity.provider, identity.sub);
     const row = await getRow<FederatedRow>(key);
+    // 🔴 解除して行だけ残した ID（取り消しが済まなかった）では入れない
+    if (row?.unlinkedAt !== undefined) throw new UnlinkedProviderError(identity.provider);
     if (row?.cognitoUsername && row.cognitoSub) {
         if (await cognitoUserExists(row.cognitoUsername)) {
             // 前の回で、結び付けの行を書いたあとプロフィールの書き込みが落ちていても、ここで直す
@@ -362,6 +407,12 @@ export async function linkOrCreate(identity: FederatedIdentity, displayName: str
         if (identity.email && identity.emailVerified && !identity.isPrivateEmail) {
             user = await findLinkableEmailUser(identity.provider, identity.email);
             if (user) via = "email";
+        }
+        // 🔴 解除した人と同じ確かめ済みのメールで来たら、作らずに断る。非公開の転送アドレスは探さない（今までどおり）が、
+        //    前に結んだ人のアドレスなら作る途中で AliasExists になり、そこで同じく断る（`createCognitoUser`）
+        if (!user && identity.email && identity.emailVerified && !identity.isPrivateEmail
+            && await emailOwnerUnlinked(identity.provider, identity.email)) {
+            throw new UnlinkedProviderError(identity.provider);
         }
         if (!user) user = await createCognitoUser(identity);
         await ddb.send(new UpdateCommand({
@@ -447,6 +498,8 @@ export async function consumeTicket(answer: unknown, cognitoUsername: string, co
     if (!parsed || !cognitoUsername || !cognitoSub) return false;
     const row = await readFederatedRow(parsed.provider, parsed.sub);
     if (!row || row.cognitoUsername !== cognitoUsername || row.cognitoSub !== cognitoSub) return false;
+    // 解除した後に残した行の券は通さない（解除の前に出した券を含めて）
+    if (row.unlinkedAt !== undefined) return false;
     if (typeof row.ticketHash !== "string" || typeof row.ticketExpiresAt !== "number") return false;
     if (row.ticketExpiresAt < federatedDeps.now()) return false;
     const got = Buffer.from(sha256Hex(parsed.ticket));
