@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import SpotIndexClient from "@/app/components/SpotIndexClient";
 import { spotAreas, spotIndexItemsForArea, visibleSpotsInArea } from "@/lib/data/spotLink";
+import { isPublished } from "@/lib/utils/spotGuide";
 import { spotCheckedClaim } from "@/lib/data/spotPageMeta";
 import { withPlaceholderParam } from "@/lib/server/staticParams";
 import { siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
@@ -61,8 +62,10 @@ export async function generateMetadata({ params }: { params: Promise<{ area: str
     // 「N選」「運営が調べた」に数えるのは**人が確かめた件数だけ**。下書きは別に数える
     // 🔴 行ごとに `spotAreaOf` で絞らない（下の説明の注記）。並べるスポットは1回だけ取る
     const spots = visibleSpotsInArea(found.slug);
-    // 名所の名前は画面のカードと同じ並び（写真のあるものが先）から取る
-    const cards = topicCards(spots);
+    // 名所の名前はテーマの頁と同じ並び（`topicCards`・写真のあるものが先）から取る。画面の一覧は台帳の順のまま。
+    // **公開済みの行だけ**から取る——N（`publishedCount`）と同じ線。下書きを建てる設定（`BUILD_DRAFT_SPOTS`）に
+    // 戻したとき、下書きの名所が題に載ったり、下書きの写真だけで「写真と」と名乗ったりしないように
+    const cards = topicCards(spots.filter(isPublished));
     // 2026-11-23（#701・owner OK）: 「岡山県の写真と観光スポット55選｜備中松山城、醍醐桜ほか」。
     // テーマの頁と同じくサイト名の template を外した完全な形（下の `title: { absolute }`）
     const title = indexable

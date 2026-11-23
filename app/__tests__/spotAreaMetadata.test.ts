@@ -114,5 +114,5 @@ describe("県の頁と観光スポットの入口の OGP の画像", () => {
         const m = await spotsMeta();
         const images = (m.openGraph as { images?: Array<{ url: string }> }).images;
         expect(images?.[0]?.url).toBe("https://journey-photo.com/spots/ritsurin.jpg");
-    });
+    }, 30_000); // `/spots` の頁を初めて読み込むので5秒を超える（main でも並べて流すと 5.3〜6.1秒で時間切れだった・2026-11-23）
 });
