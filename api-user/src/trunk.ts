@@ -46,9 +46,11 @@ import { goneIfDeleted } from "./liveCaller";
  *     lastFreeModel  最後に選んだ無料の型（Pro をやめたときに見せる型・既定 leather）
  *     pocket[]       手持ち（新しい順）
  *     stuck[]        貼ったもの（新しい順）
- *     rerolls        { month: 日本時間の YYYY-MM, used }
- *     pendingReroll  { labelId, seeds[3], at }（作り直しの候補・選ぶまで）
- *     custom         { n, t, l? }（好きなデザインで作る・札 journey.photo-ios#706）。**1段目は読んで書き戻すだけ**
+ *     rerolls        { month: 日本時間の YYYY-MM, used }（2026-11-23 からは読むだけ・数えない。Pro の月3回をやめた・#706）
+ *     pendingReroll  { labelId, seeds[], at }（古いアプリの作り直しの候補・選ぶまで。新しいアプリはラベルの `cs` を使う）
+ *     custom         { n: 進み, t: 使える権利 0〜3, l?: 24時間以内に進みを数えた投稿 }（好きなデザインで作る・#706。無ければ 0・0）
+ *                    **出す順**: 先に1段目（欄を読んで書き戻すだけ）を全部のスタックへ出してから、この2段目を出す
+ *                    （user API とトランクのスタックが別々に入れ替わる間に、古い Lambda が欄を消さないように）
  *     receiveLabels  ラベルを受け取るか（既定 true。false の間は配らない・戻してもさかのぼらない）
  *     dealt[]        配った写真の指紋の台帳（新しい順・最新 3000 件）。**写真やラベルを消しても消さない**
  *     daily          { day: 日本時間の YYYY-MM-DD, count }（その日に配った投稿の数＝ラベルか硬貨を配った数）
@@ -76,7 +78,10 @@ import { goneIfDeleted } from "./liveCaller";
  *   貼ったものは数えない。貼った一覧は最大 1200 件
  * - **集める悪用を防ぐ**（2026-10-17 owner）: 同じ写真（指紋）には一度だけ・1日3枚まで・
  *   投稿から24時間以内に写真を消したら手持ちのラベルを取り消す（`revokeLabel`）
- * - 作り直しは Pro だけ・日本時間の月に3回・繰り越しなし。候補3つを出し、選んで確定
+ * - 作り直しは**全員・ラベルごとに3回**（2026-11-23 owner 承認・札 journey.photo-ios#706。Pro の月3回はやめた）。
+ *   1回で種を1つ足し、最初の1枚と合わせた候補（`cs`・最大4）から選ぶ。回数（`rr`）ははがしても残す
+ * - 好きなデザインで作る（#706）: ラベルを配れた投稿を数え、無料は3投稿・Pro は2投稿ごとに権利を1つ（手持ちは3まで）。
+ *   権利1つで、手持ちのラベル1枚の形・色・絵を番号で選ぶ（`cu`）。字・傾き・箔は選ばせない
  * - Pro の型は Pro の間だけ選べる。やめたら `effectiveModel` を `lastFreeModel` にし、
  *   保存（`model`）は残す（再開すれば戻る）。手持ちが30を超えていても消さない
  * - 貼ったラベルは置き場 `pos` { x, y, rot } を持てる（x・y はトランク正面の 0〜1・rot は -30〜30 度）。
@@ -110,17 +115,24 @@ export const STUCK_MAX = 1200;
 export const TAG_PICKS_MAX = 3;
 /** `tagPicks` の「この枠にはタグを吊るさない」。ラベルの id の形（`LABEL_ID_RE`）に入らない文字にしてある */
 export const TAG_PICK_NONE = "_";
-export const REROLLS_PER_MONTH = 3;
-export const REROLL_CANDIDATES = 3;
 /**
- * 札 journey.photo-ios#706（2026-11-23 owner 承認）の**1段目**: 新しい欄（行の `custom`・ラベルの `rr`・`cs`・`cu`）を
- * **読んで、そのまま書き戻すだけ**（機能はまだ使わない）。とおまわり号の段1（`camper.ts`）と同じ決まり——
- * 2段目（機能）を出したあと、まだ古い Lambda（user API の配り・写真の編集の取り消しなど）が書くと欄が消えるので、
- * 先に全部のスタックへこの段を出してから2段目を出す（戻すときも、この段までなら欄は消えない）
+ * 作り直しの上限（ラベルごと・全員）。2026-11-23 owner 承認（札 journey.photo-ios#706「推奨でお願い」）:
+ * Pro の月3回をやめ、届いたラベル1枚につき3回。1回で種1つ（最初の1枚と合わせて候補は最大4つ）
  */
 export const REROLLS_PER_LABEL = 3;
+/** 古いアプリの作り直し（本文に `n` が無い）で一度に出す候補の数の上限（`legacy`） */
+export const REROLL_CANDIDATES = 3;
+/**
+ * 好きなデザインで作る（#706）: 権利を1つ得るまでの投稿の数（ラベルを配れた投稿だけ数える）。無料 3・Pro 2
+ */
 export const CUSTOM_EVERY_FREE = 3;
+export const CUSTOM_EVERY_PRO = 2;
+/** 使わずに持っておける権利の数 */
 export const CUSTOM_TICKETS_MAX = 3;
+/**
+ * 選べる数（アプリの `TrunkLabelDesign.customShapes`・`customPalettes`・`customArts` の並びの番号）。
+ * 番号の範囲はサーバーで確かめる（`parseCustom`）
+ */
 export const CUSTOM_SHAPES = 10;
 export const CUSTOM_PALETTES = 12;
 export const CUSTOM_ARTS = 12;
@@ -286,7 +298,7 @@ export type TrunkDoc = {
     stuck: TrunkLabel[];
     rerolls: { month: string; used: number };
     pendingReroll?: PendingReroll;
-    /** 好きなデザインで作る（#706）の進み・権利・控え。1段目は読んで書き戻すだけ */
+    /** 好きなデザインで作る（#706）の進み（n）と権利（t） */
     custom: CustomProgress;
     receiveLabels: boolean;
     dealt: string[];
@@ -758,6 +770,16 @@ function customOfStored(v: unknown): TrunkCustom | undefined {
     return { shape: Math.floor(v / (CUSTOM_PALETTES * CUSTOM_ARTS)), palette: Math.floor(v / CUSTOM_ARTS) % CUSTOM_PALETTES, art: v % CUSTOM_ARTS };
 }
 
+/**
+ * 本文の好きなデザイン `{ shape, palette, art }`（#706）。どれかが欠ける・整数でない・範囲の外なら 400 `badCustom`
+ */
+export function parseCustom(b: Record<string, unknown>): TrunkCustom {
+    const { shape, palette, art } = b;
+    if (!isIndex(shape, CUSTOM_SHAPES) || !isIndex(palette, CUSTOM_PALETTES) || !isIndex(art, CUSTOM_ARTS)) {
+        throw new TrunkError(400, "デザインが正しくありません", "badCustom");
+    }
+    return { shape, palette, art };
+}
 
 function posOfStored(v: unknown): TrunkPos | undefined {
     if (!Array.isArray(v) || v.length !== 3 || !v.every((n) => typeof n === "number" && Number.isFinite(n))) return undefined;
@@ -808,6 +830,17 @@ export function parseSlots(b: Record<string, unknown>): Record<string, number> {
     return Object.fromEntries(entries) as Record<string, number>;
 }
 
+/**
+ * 本文の `n`（何回目の作り直しか・#706）。無ければ undefined（古いアプリ）。1〜3 の整数でなければ 400 `badRequest`
+ */
+export function parseRerollCount(b: Record<string, unknown>): number | undefined {
+    if (b.n === undefined) return undefined;
+    if (typeof b.n !== "number" || !Number.isInteger(b.n) || b.n < 1 || b.n > REROLLS_PER_LABEL) {
+        throw new TrunkError(400, "不正なリクエスト", "badRequest");
+    }
+    return b.n;
+}
+
 /** 2行の大きさ（JSON で数えたバイト数）。テストが最大の行を実測するのにも使う */
 export function rowSizes(doc: TrunkDoc): { main: number; ledger: number } {
     const rows = serializeRows(doc);
@@ -823,11 +856,6 @@ const fitsBudget = (doc: TrunkDoc) => {
 };
 
 export const pocketLimit = (pro: boolean) => (pro ? POCKET_LIMIT_PRO : POCKET_LIMIT_FREE);
-
-/** 今月使った作り直しの回数（月が替わっていれば 0＝繰り越しなし） */
-export function rerollsUsed(doc: TrunkDoc, now: Date): number {
-    return doc.rerolls.month === jstMonth(now) ? doc.rerolls.used : 0;
-}
 
 /** Pro の型は Pro の間だけ。やめたら最後の無料の型（保存は残す） */
 export function effectiveModel(doc: TrunkDoc, pro: boolean): TrunkModel {
@@ -973,7 +1001,7 @@ const freshCoinLog = (log: TrunkDoc["coinLog"], now: Date) =>
  */
 export function dealInto(
     doc: TrunkDoc, label: TrunkLabel, limit: number, fingerprint: string, now: Date,
-    opts: { siblingPlaces?: Set<string> } = {},
+    opts: { siblingPlaces?: Set<string>; pro?: boolean } = {},
 ): { doc: TrunkDoc | null; outcome: DealOutcome } {
     const existing = doc.pocket.find((l) => l.id === label.id) ?? doc.stuck.find((l) => l.id === label.id);
     if (existing) {
@@ -1022,6 +1050,8 @@ export function dealInto(
             ...base,
             pocket: [given, ...doc.pocket],
             ...(given.milestone && msKey ? { milestones: [msKey, ...doc.milestones] } : {}),
+            // 好きなデザインで作るまでの進み（#706）。**ラベルを配れた投稿だけ**数える（硬貨だけの回は数えない）
+            custom: advanceCustom(doc.custom, !!opts.pro, given.id, now),
         };
         if (fitsBudget(next)) return { doc: next, outcome: { label: stripInternal(given), coin } };
         labelSkipped = "storage";
@@ -1029,6 +1059,41 @@ export function dealInto(
     // ラベルは配れない。硬貨だけ配る（1行に入らなければ何も配らない）
     if (!coin || !fitsBudget(base)) return { doc: null, outcome: noDeal(labelSkipped) };
     return { doc: base, outcome: { label: null, labelSkipped, coin } };
+}
+
+/** 何投稿ごとに好きなデザインで作れるか（無料 3・Pro 2） */
+export const customEvery = (pro: boolean) => (pro ? CUSTOM_EVERY_PRO : CUSTOM_EVERY_FREE);
+
+/**
+ * 1投稿ぶん進める（#706・純関数）。`n + 1` が `customEvery` に届いたら権利を1つ足して 0 に戻す。
+ * 権利が上限（3）なら進めない（持ちきれない分を貯めない・0 のまま）。
+ * 2026-11-23 判断: Pro と無料が切り替わっても進みはそのまま（届く判定だけ今の数で見る）
+ */
+export function advanceCustom(c: CustomProgress, pro: boolean, key?: string, now?: Date): CustomProgress {
+    // 24時間を過ぎた控えは落とす（取り消しの窓の外）
+    const fresh = now ? (c.l ?? []).filter((e) => now.getTime() - e.a * 1000 <= REVOKE_WINDOW_MS) : (c.l ?? []);
+    const withLog = (next: { n: number; t: number }, logged: boolean): CustomProgress => {
+        const l = logged && key && now ? [{ k: key, a: Math.floor(now.getTime() / 1000) }, ...fresh].slice(0, CUSTOM_LOG_MAX) : fresh;
+        return { ...next, ...(l.length ? { l } : {}) };
+    };
+    // 上限で止まっている間は進めない。**控えにも載せない**（取り消しで権利を減らさない）
+    if (c.t >= CUSTOM_TICKETS_MAX) return withLog({ n: 0, t: CUSTOM_TICKETS_MAX }, false);
+    return withLog(c.n + 1 >= customEvery(pro) ? { n: 0, t: c.t + 1 } : { n: c.n + 1, t: c.t }, true);
+}
+
+/**
+ * 1投稿ぶん戻す（24時間以内の取り消し・#706）。進みがあれば1つ戻す。進みが 0 でその投稿で権利になっていた
+ * かもしれないときは、**使っていない権利があるときだけ**1つ減らし、進みを「次の1投稿で権利になる」所に置く
+ * （`CUSTOM_EVERY_FREE - 1`＝2。Pro（2投稿ごと）でも次の1投稿で権利になるので同じ値でよい）
+ */
+export function rewindCustom(c: CustomProgress, key?: string): CustomProgress {
+    // 控えのある投稿だけ戻す（上限で止まっていた間の投稿・控えが落ちた古い投稿は数えていないので戻さない）
+    if (key !== undefined && !(c.l ?? []).some((e) => e.k === key)) return c;
+    const rest = (c.l ?? []).filter((e) => e.k !== key);
+    const keep = (next: { n: number; t: number }): CustomProgress => ({ ...next, ...(rest.length ? { l: rest } : {}) });
+    if (c.n > 0) return keep({ n: c.n - 1, t: c.t });
+    if (c.t > 0) return keep({ n: CUSTOM_EVERY_FREE - 1, t: c.t - 1 });
+    return keep({ n: c.n, t: c.t });
 }
 
 /** 節目の記録の鍵。「はじめての国」は国ごと（`firstCountry:フランス`） */
@@ -1071,7 +1136,8 @@ export async function grantLabel(
     // **退会した人には配らない**（二重の守り）。保存の口（`savePhoto`）が先に 410 で止めるが、
     // 配りは `trunk#`・`trunkledger#` を作り直す——退会の掃除はもう走らないので、誰も消さない
     if (isDeletedProfile(profile)) return noDeal("deleted");
-    const limit = pocketLimit(isPro(profile, now.getTime()));
+    const pro = isPro(profile, now.getTime());
+    const limit = pocketLimit(pro);
     const key = postKey(photo);
     // この投稿（束なら束ごと）を除く。索引は結果整合なので、いま書いた行が見えていてもいなくても同じ数になる
     const others = mine.filter((o) => isCountablePhoto(o) && o.id !== photo.id && postKey(o) !== key);
@@ -1101,7 +1167,7 @@ export async function grantLabel(
                 return null;
             }
             needSiblings = false;
-            const r = dealInto(doc, label, limit, fp, now, { siblingPlaces });
+            const r = dealInto(doc, label, limit, fp, now, { siblingPlaces, pro });
             outcome = r.outcome;
             // この書き込みで「地名を見せてよい」印を新しく付けたか（やり直しのたびに決め直す＝最後の1回が書いたもの）
             wroteOk = !!r.doc && hasPlaceOk(r.doc, label.id) && !hasPlaceOk(doc, label.id);
@@ -1509,8 +1575,13 @@ function view(doc: TrunkDoc, pro: boolean, now: Date) {
         stuck: doc.stuck.map(stripInternal),
         limit: pocketLimit(pro),
         isPro: pro,
-        rerolls: { left: pro ? Math.max(0, REROLLS_PER_MONTH - rerollsUsed(doc, now)) : 0, month: jstMonth(now) },
+        // 古いアプリ（1.1.x の Pro の月3回の画面）のための欄。2026-11-23 判断（#706）: 月では数えなくなったので、
+        // Pro には「作り直せる」とだけ見せる（実際の上限はラベルごとの3回・古い口は `rerollMutation` の legacy が受ける）
+        rerolls: { left: pro ? REROLLS_PER_LABEL : 0, month: jstMonth(now) },
         ...(doc.pendingReroll ? { pendingReroll: doc.pendingReroll } : {}),
+        // 好きなデザインで作る（#706）: 進み・権利・何投稿ごとか・ラベルごとの作り直しの上限。
+        // **この欄があることが新しい作り直しの印**（アプリは欄の無いサーバーでは作り直しの口を出さない）
+        custom: { n: doc.custom.n, t: doc.custom.t, every: customEvery(pro), rerolls: REROLLS_PER_LABEL },
         receiveLabels: doc.receiveLabels,
         coins: doc.coins,
         parts: doc.parts,
@@ -1578,8 +1649,10 @@ export const stickMutation = (id: string, pos?: TrunkPos, slot?: number, take = 
     const label = doc.pocket.find((l) => l.id === id);
     if (!label) throw new TrunkError(404, "ラベルが見つかりません", "notFound");
     if (doc.stuck.length >= STUCK_MAX) throw new TrunkError(409, "トランクがいっぱいです", "full");
-    const { slot: _s, ...plain } = label;
+    // 作り直しの候補（`cs`）は貼ったら消す（#706・選べるのは手持ちの間だけ）。回数（`rr`）は残す
+    const { slot: _s, cs: _c, ...plain } = label;
     void _s;
+    void _c;
     // 置き場があればそれ（番号は付けない）。無ければ、送られたおまかせの置き場の番号（2026-10-19・アプリが貼るたびに決める）。
     // **いま貼ってあるラベルがもう使っている番号は書かない**（古い画面・別の端末から重ならないように）。
     // ただし `take`（置き場が全部埋まっていて、いちばん古い番号つきのラベルから番号を移す）のときは、
@@ -1740,43 +1813,90 @@ export const removeMutation = (id: string): Mutation => (doc) => {
 };
 
 /**
- * 作り直し（Pro・月3回）。候補 seed を3つ出して `pendingReroll` に置く。
- * - 同じラベルに選びかけがあれば**そのまま返す**（回数を使わない・再送で二重に減らさない）
- * - 別のラベルに選びかけがあれば 409（先に選ぶ）。2026-10-17 判断: 黙って捨てると払った1回が消える
- * - foil は作り直しても保つ（2026-10-17 判断: 図柄だけ替える。きらきらは運で引いた「その投稿の」もの）
+ * 作り直し（#706・2026-11-23 owner 承認: 全員・ラベルごとに3回。Pro の月3回はやめた）。
+ *
+ * **新しいアプリ**は本文に `n`（何回目の作り直しか・1〜3）を送る。種を1つ作って候補（`cs`・先頭は最初の1枚の種）に足し、
+ * **ラベルの種を新しい種に替える**（最後に作ったものが選ばれた状態＝選ばずに閉じたら、いま見ている図柄で決まる）。
+ * - `n` がもう数えた回（`n <= rr`）なら何もしない（電波が切れて送り直しても二度数えない）
+ * - `n` が次の回（`rr + 1`）でなければ 409 `rerollOrder`（飛ばして数えない）
+ * - 3回を使い切ったら 409 `noRerollsLeft`。好きなデザインで作ったラベルは 409 `custom`（図柄はもう決めてある）
+ * - foil は作り直しても保つ（図柄だけ替える。きらきらは運で引いた「その投稿の」もの・2026-10-17 判断）
+ * - 応答が届かずにアプリを閉じた（圏外）ときは、サーバーでは1回数えて種も替わっている。アプリは次に読んだときに
+ *   その状態（`rr`・`cs`・`seed`）を映すだけで、回数を取り戻す口は作らない（2026-11-23 判断・確かめ役の指摘 8）
+ *
+ * **古いアプリ**（1.1.x の Pro の画面・本文に `n` が無い・`legacy`）: 残りの回数ぶん（最大 `REROLL_CANDIDATES`）の候補を
+ * 一度に出して `pendingReroll` に置き、回数を使い切る（古い画面は候補から選んで `reroll/choose` を送る）。
+ * 古い画面は Pro の人にしか出ないので、Pro でなければ今までどおり 403 `proOnly`。
+ * 同じラベルの選びかけはそのまま返す・別のラベルの選びかけは 409 `pendingReroll`（今までの返し方のまま）
  */
-export const rerollMutation = (id: string, seeds: number[]): Mutation => (doc, { pro, now }) => {
-    if (!pro) throw new TrunkError(403, "Pro の機能です", "proOnly");
-    if (!doc.pocket.some((l) => l.id === id)) throw new TrunkError(404, "ラベルが見つかりません", "notFound");
-    if (doc.pendingReroll) {
-        if (doc.pendingReroll.labelId === id) return null;
-        throw new TrunkError(409, "選びかけの作り直しがあります", "pendingReroll");
+export const rerollMutation = (id: string, n: number | undefined, seeds: number[]): Mutation => (doc, { pro, now }) => {
+    if (n === undefined && !pro) throw new TrunkError(403, "Pro の機能です", "proOnly");
+    const label = doc.pocket.find((l) => l.id === id);
+    if (!label) throw new TrunkError(404, "ラベルが見つかりません", "notFound");
+    const used = label.rr ?? 0;
+    if (n === undefined) {
+        if (doc.pendingReroll) {
+            if (doc.pendingReroll.labelId === id) return null;
+            throw new TrunkError(409, "選びかけの作り直しがあります", "pendingReroll");
+        }
+    } else if (n <= used) {
+        return null;
     }
-    const used = rerollsUsed(doc, now);
-    if (used >= REROLLS_PER_MONTH) throw new TrunkError(409, "今月の作り直しは使い切りました", "noRerollsLeft");
+    if (label.cu) throw new TrunkError(409, "好きなデザインで作ったラベルです", "custom");
+    if (used >= REROLLS_PER_LABEL) throw new TrunkError(409, "このラベルの作り直しは使い切りました", "noRerollsLeft");
+    if (n !== undefined && n !== used + 1) throw new TrunkError(409, "作り直しの順番が違います", "rerollOrder");
+    const fresh = n === undefined ? seeds.slice(0, Math.min(REROLL_CANDIDATES, REROLLS_PER_LABEL - used)) : seeds.slice(0, 1);
+    const cs = [...(label.cs ?? [label.seed]), ...fresh].slice(0, REROLLS_PER_LABEL + 1);
+    const rr = n === undefined ? REROLLS_PER_LABEL : n;
+    const next: TrunkLabel = { ...label, rr, cs, ...(n === undefined ? {} : { seed: fresh[0] }) };
     return {
         ...doc,
-        rerolls: { month: jstMonth(now), used: used + 1 },
-        pendingReroll: { labelId: id, seeds, at: now.toISOString() },
+        pocket: doc.pocket.map((l) => (l.id === id ? next : l)),
+        ...(n === undefined ? { pendingReroll: { labelId: id, seeds: fresh, at: now.toISOString() } } : {}),
     };
 };
 
 /**
- * 候補から選ぶ（今の図柄を選んでもよい＝回数は戻らない）。
- * 2026-10-17 判断: 作り直しのあとに Pro が切れても選べる（回数はもう払ってある）
+ * 候補から選ぶ（#706）。選べるのは、そのラベルの候補（`cs`）・今の種・古いアプリの選びかけ（`pendingReroll`）の種だけ。
+ * 今の種と同じなら何もしない（候補を押すたびにサーバーへ送るので、同じ押し直しは書かない）。
+ * 選びかけ（古いアプリ）はこのラベルのものなら外す。2026-10-17 判断: 作り直しのあとに Pro が切れても選べる
  */
 export const chooseMutation = (id: string, seed: unknown): Mutation => (doc) => {
-    const pending = doc.pendingReroll;
-    if (!pending || pending.labelId !== id) throw new TrunkError(404, "作り直しの候補がありません", "noPending");
     const label = doc.pocket.find((l) => l.id === id);
     if (!label) throw new TrunkError(404, "ラベルが見つかりません", "notFound");
-    if (!isSeed(seed) || (seed !== label.seed && !pending.seeds.includes(seed))) {
+    const pending = doc.pendingReroll?.labelId === id ? doc.pendingReroll : undefined;
+    if (!pending && !label.cs?.length) throw new TrunkError(404, "作り直しの候補がありません", "noPending");
+    if (!isSeed(seed) || (seed !== label.seed && !label.cs?.includes(seed) && !pending?.seeds.includes(seed))) {
         throw new TrunkError(400, "候補にない図柄です", "badSeed");
     }
+    if (seed === label.seed && !pending) return null;
     return {
         ...doc,
         pocket: doc.pocket.map((l) => (l.id === id ? { ...l, seed } : l)),
-        pendingReroll: undefined,
+        ...(pending ? { pendingReroll: undefined } : {}),
+    };
+};
+
+/**
+ * 好きなデザインで作る（#706・`POST /user/trunk/labels/{id}/custom { shape, palette, art }`）。権利を1つ使って、
+ * 手持ちのラベル1枚の形・色・絵を決める。字（地名）・傾き・刷りのずれ・箔は選ばせない（種と中身のまま）。
+ * - 同じデザインがもう付いていれば何もしない（送り直しで権利を二度使わない）
+ * - 権利が無ければ 409 `noCustom`。貼ったラベルは 409 `notInPocket`（先にはがす）・どこにも無ければ 404
+ * - 付け直し（別のデザイン）は権利をもう1つ使う
+ */
+export const customMutation = (id: string, cu: TrunkCustom): Mutation => (doc) => {
+    const label = doc.pocket.find((l) => l.id === id);
+    if (!label) {
+        if (doc.stuck.some((l) => l.id === id)) throw new TrunkError(409, "貼ったラベルです", "notInPocket");
+        throw new TrunkError(404, "ラベルが見つかりません", "notFound");
+    }
+    if (label.cu && label.cu.shape === cu.shape && label.cu.palette === cu.palette && label.cu.art === cu.art) return null;
+    if (doc.custom.t < 1) throw new TrunkError(409, "好きなデザインで作れる回数がありません", "noCustom");
+    return {
+        ...doc,
+        pocket: doc.pocket.map((l) => (l.id === id ? { ...l, cu } : l)),
+        custom: { ...doc.custom, t: doc.custom.t - 1 },
+        ...(doc.pendingReroll?.labelId === id ? { pendingReroll: undefined } : {}),
     };
 };
 
@@ -1891,6 +2011,8 @@ export function revokeFrom(
             ...(doc.pendingReroll?.labelId === label.id ? { pendingReroll: undefined } : {}),
             // タグに載せていたラベルが取り消されたら、その枠もおまかせに戻す（`unstickMutation` と同じ）
             ...(doc.tagPicks?.includes(label.id) ? { tagPicks: trimPicks(doc.tagPicks.map((p) => (p === label.id ? "" : p))) } : {}),
+            // 好きなデザインで作るまでの進みも1投稿ぶん戻す（#706・権利は使っていなければ1つ減らす）
+            custom: rewindCustom(doc.custom, label.id),
         } : {}),
         ...(dropCoin ? {
             coins: Math.max(0, doc.coins - 1),
@@ -2096,6 +2218,8 @@ export type TheirLabel = {
     foil?: true;
     pos?: TrunkPos;
     slot?: number;
+    /** 好きなデザイン（#706）。地名を伏せたラベルにも出す（形・色・絵の番号は場所も日付も言わない） */
+    cu?: TrunkCustom;
     where: { location: string } | null;
 };
 
@@ -2108,6 +2232,7 @@ export function theirLabel(index: number, l: TrunkLabel): TheirLabel {
         ...(l.foil ? { foil: true as const } : {}),
         ...(l.pos ? { pos: l.pos } : {}),
         ...(!l.pos && l.slot !== undefined ? { slot: l.slot } : {}),
+        ...(l.cu ? { cu: l.cu } : {}),
     };
     // **確かめた物だけ見せる**: 印（`placeOk`）の無いラベルと、地名がもともと空のラベルは同じ形（地名・日付なし）
     if (!l.placeOk || !l.place.name) return { ...base, place: { name: "" }, where: null };
@@ -2299,8 +2424,10 @@ async function confirmStale(doc: TrunkDoc, candidates: Map<string, string[]>, ui
  *     GET    /user/trunk                         → view ＋ posts（公開している投稿の数・古び方用）
  *     POST   /user/trunk/labels/{id}/stick       → view（本文 { x, y, rot } か { slot, take? }・どちらも無ければ置き場なし）
  *     DELETE /user/trunk/labels/{id}             → view
- *     POST   /user/trunk/labels/{id}/reroll      → view（pendingReroll に候補3つ）
+ *     POST   /user/trunk/labels/{id}/reroll { n } → view（ラベルの cs に候補を1つ足し、seed を替える・#706）
+ *                                                  本文に n が無い（古いアプリ）→ view（pendingReroll に候補・`rerollMutation`）
  *     POST   /user/trunk/labels/{id}/reroll/choose { seed } → view
+ *     POST   /user/trunk/labels/{id}/custom { shape, palette, art } → view（好きなデザインで作る・#706）
  *     PUT    /user/trunk/model { model }         → view
  *     PUT    /user/trunk/settings { receiveLabels } → view
  *     PUT    /user/trunk/labels/{id}/place { x, y, rot } → view
@@ -2317,7 +2444,7 @@ async function confirmStale(doc: TrunkDoc, candidates: Map<string, string[]>, ui
  *     POST   /users/{uid}/camper/firewood        → { added, count, part? }（`firewoodCamper`）
  *
  * 失敗は `{ error, code }`（`code` は英字の印: notFound / full / storage / proOnly / pendingReroll /
- * noRerollsLeft / noPending / badSeed / badModel / badRequest / badPlace / notStuck / noCoins /
+ * noRerollsLeft / rerollOrder / custom / noCustom / badCustom / notInPocket / noPending / badSeed / badModel / badRequest / badPlace / notStuck / noCoins /
  * badPart / owned / notEnoughFragments / badKind / notOwned。とおまわり号: deleted / notLaunched / self / tombstone /
  * blocked / notFriend / newAccount / noPost / already / daily）。
  */
@@ -2442,10 +2569,13 @@ export const handler: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) 
             case "POST /user/trunk/labels/{id}/unstick": fn = unstickMutation(id, parseSlots(body(event))); break;
             case "DELETE /user/trunk/labels/{id}": fn = removeMutation(id); break;
             case "POST /user/trunk/labels/{id}/reroll": {
-                const seeds = Array.from({ length: REROLL_CANDIDATES }, () => newSeed());
-                fn = rerollMutation(id, seeds);
+                const n = parseRerollCount(body(event));
+                // 種は書く前に引く（競合で読み直しても同じ種を足す）
+                const seeds = Array.from({ length: n === undefined ? REROLL_CANDIDATES : 1 }, () => newSeed());
+                fn = rerollMutation(id, n, seeds);
                 break;
             }
+            case "POST /user/trunk/labels/{id}/custom": fn = customMutation(id, parseCustom(body(event))); break;
             case "POST /user/trunk/labels/{id}/reroll/choose": fn = chooseMutation(id, body(event).seed); break;
             default: return jsonError(404, "見つかりません", "notFound");
         }
