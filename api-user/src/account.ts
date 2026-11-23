@@ -529,12 +529,15 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         //    いるので、押し直せば続きから消える）。写真の消し残しで止めるのと
         //    同じ考え方。
         let handle = "";
+        // Apple でサインインの結び付け（`appleSignin.ts`・札 journey.photo-ios#601）。墓石に残す（下の注記）
+        let appleSub = "";
         let profileWasLive = false;
         // Pro の取引と人の結び付け（`appstore#…`）を消すのに使う（`supporterStore.ts`）
         let supporterRow: unknown;
         try {
             const prof = await ddb.send(new GetCommand({ TableName: USERS_TABLE, Key: { userId: uid } }));
             handle = typeof prof.Item?.username === "string" ? prof.Item.username : "";
+            appleSub = typeof prof.Item?.appleSub === "string" ? prof.Item.appleSub : "";
             profileWasLive = !!prof.Item && !isDeletedProfile(prof.Item);
             supporterRow = prof.Item?.supporter;
         } catch (e) {
@@ -594,6 +597,10 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
                 // 検索に漏れないことは userSearch.ts の toHit が墓石を弾いて
                 // 担保する（そこにテストがある）。
                 ...(handle ? { username: handle } : {}),
+                // **Apple の番号も墓石に残す。** アプリは退会の前に Apple の更新トークンを取り消す
+                // （`POST /auth/apple/revoke`）が、退会の途中で止まった人（410）のやり直しでは、取り消しが
+                // 墓石の後に来る。番号が無いと、どの Apple の行かが分からず取り消せない（Apple の決まり）
+                ...(appleSub ? { appleSub } : {}),
             },
         }));
 

@@ -1,0 +1,229 @@
+# 「Apple でサインイン」の口と Cognito のトリガー（札 journey.photo-ios#601・2026-11-23 owner「すすめたい！」・`src/appleSignin.ts`）を、
+# user API とは**別のスタック**で配る（CLAUDE.md「サーバーの口は機能ごとのスタックに足す」・札 #552）。
+#
+# 作りは `serverless.profile-qr.yml` と同じ:
+#   - 新しい HTTP API は作らず、user API が書き出す HttpApiId を取り込んで**経路だけ**足す（URL は user API と同じ）
+#   - ログインの要る口は、user API が書き出す Cognito の認可（`CognitoAuthorizerId`）を使う
+#
+# 🔴 **このスタックを配ると、本番の Cognito のプールが変わる**（トリガー3つ: Define・Create・Verify）。
+#    owner の承認が要る設定変更。`deploy-api.yml` は **Apple の鍵（Secrets の `APPLE_SIGNIN_PRIVATE_KEY`）が
+#    入っている環境でだけ**このスタックを配る。鍵が入るまでは、マージしてもプールは変わらない。
+#    もう1つ、アプリのクライアントに `ALLOW_CUSTOM_AUTH` を足す変更は CloudFormation の外にある
+#    （クライアントはこの仕組みで作っていない）。手順は iOS の `docs/APPLE_SIGNIN.md`。
+#
+# 🔴 トリガーは**1つの関数**で3つ受ける（`src/appleAuthTrigger.ts` の注記）。serverless の
+#    `existing: true` は関数ごとにプールを `UpdateUserPool` で書き換え、**ほかの関数のトリガー
+#    （PostConfirmation・photo-gallery-api）は残す**（その関数の ARN の項目だけ入れ替える）。
+#
+# 戻すとき: `aws cloudformation delete-stack --stack-name photo-gallery-apple-signin-<stage>`。
+#    消してもプールのトリガーの項目は残ることがあるので、`aws cognito-idp describe-user-pool` で
+#    LambdaConfig を見て、Define・Create・Verify が残っていたら外す（PostConfirmation は残す）。
+service: photo-gallery-apple-signin
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ap-northeast-1
+  # user API と同じ（`scripts/__tests__/logRetention.test.ts`）
+  logRetentionInDays: 90
+  versionFunctions: false
+  environment:
+    # `dynamodb.ts` が読み込みのときに要る（写真の表は読み書きしない）
+    PHOTOS_TABLE: ${param:photosTable}
+    USERS_TABLE: ${param:usersTable}
+    # 宛先（Bundle ID。identity token の `aud`）。本番 `com.journeyphoto.JourneyPhoto`・staging `….staging`。
+    # 秘密ではない（APNs の topic と同じ値・`deploy-api.yml`）
+    APPLE_SIGNIN_CLIENT_ID: ${param:appleSigninClientId, ''}
+  httpApi:
+    # user API の HTTP API に経路を足す（新しい API は作らない）
+    id:
+      Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node22
+    platform: node
+    exclude:
+      - '@aws-sdk/*'
+
+functions:
+  # 使えるか（鍵がそろっているか）。**未認証で呼べる口。** アプリは `available: true` のときだけボタンを出す
+  appleSigninStatus:
+    handler: src/appleSignin.getAppleSigninStatus
+    role: AppleStatusRole
+    environment:
+      APPLE_SIGNIN_TEAM_ID: ${param:appleSigninTeamId, ''}
+      APPLE_SIGNIN_KEY_ID: ${param:appleSigninKeyId, ''}
+      # 鍵があるかを見るだけ。使わないが、「そろっているか」を1か所（`appleConfigFromEnv`）で決めるために渡す
+      APPLE_SIGNIN_PRIVATE_KEY: ${param:appleSigninPrivateKey, ''}
+      COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
+    events:
+      - httpApi:
+          path: /auth/apple/status
+          method: GET
+
+  # identity token を確かめ、Cognito の利用者に結ぶ（無ければ作る）。**未認証で呼べる口。**
+  # 守りは Apple の署名（このアプリの Bundle ID あての、期限内の token しか通らない）
+  appleSigninStart:
+    handler: src/appleSignin.startAppleSignin
+    role: AppleSigninRole
+    # Apple の公開鍵・認可コードの交換（それぞれ最大5秒）と Cognito の作成まで待つ
+    timeout: 15
+    environment:
+      APPLE_SIGNIN_TEAM_ID: ${param:appleSigninTeamId, ''}
+      APPLE_SIGNIN_KEY_ID: ${param:appleSigninKeyId, ''}
+      APPLE_SIGNIN_PRIVATE_KEY: ${param:appleSigninPrivateKey, ''}
+      COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
+    events:
+      - httpApi:
+          path: /auth/apple
+          method: POST
+
+  # 退会の前に Apple の更新トークンを取り消す。ログインの口
+  appleSigninRevoke:
+    handler: src/appleSignin.revokeAppleSignin
+    role: AppleSigninRole
+    timeout: 10
+    environment:
+      APPLE_SIGNIN_TEAM_ID: ${param:appleSigninTeamId, ''}
+      APPLE_SIGNIN_KEY_ID: ${param:appleSigninKeyId, ''}
+      APPLE_SIGNIN_PRIVATE_KEY: ${param:appleSigninPrivateKey, ''}
+      COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
+    events:
+      - httpApi:
+          path: /auth/apple/revoke
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+
+  # CUSTOM_AUTH のトリガー3つ（1つの関数）。鍵は持たない（確かめは公開鍵だけで済む）
+  appleAuthChallenge:
+    handler: src/appleAuthTrigger.handler
+    role: AppleTriggerRole
+    timeout: 10
+    events:
+      # ⚠️ existing: true は「既にあるプールを書き換える」。プール名を間違えると別環境のプールを書き換える。既定値は置かない
+      - cognitoUserPool:
+          pool: ${param:cognitoPoolName}
+          trigger: DefineAuthChallenge
+          existing: true
+      - cognitoUserPool:
+          pool: ${param:cognitoPoolName}
+          trigger: CreateAuthChallenge
+          existing: true
+      - cognitoUserPool:
+          pool: ${param:cognitoPoolName}
+          trigger: VerifyAuthChallengeResponse
+          existing: true
+
+resources:
+  Resources:
+    # 使えるかを返すだけ。何も読まない
+    AppleStatusRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-status
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: appleSigninStatus
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+
+    # 結ぶ・作る・取り消す口。users 表の読み書きと、このプールの利用者の作成・検索だけ
+    AppleSigninRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-signin
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: appleSignin
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                # `apple#<sub>` の行と、プロフィールの行（`appleSub`・初回の表示名）
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:PutItem
+                    - dynamodb:UpdateItem
+                    - dynamodb:DeleteItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+                # 🔴 グループは `user` だけ入れる（`admin` に入れる道を持たせないのはハンドラ側の固定値。IAM は GroupName を絞れない）
+                - Effect: Allow
+                  Action:
+                    - cognito-idp:ListUsers
+                    - cognito-idp:AdminGetUser
+                    - cognito-idp:AdminCreateUser
+                    - cognito-idp:AdminSetUserPassword
+                    - cognito-idp:AdminAddUserToGroup
+                  Resource: arn:aws:cognito-idp:${aws:region}:${aws:accountId}:userpool/${param:cognitoUserPoolId}
+
+    # トリガー。`apple#<sub>` の行を読み、使った nonce を書くだけ
+    AppleTriggerRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-trigger
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: appleAuthTrigger
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}*:*
+                - Effect: Allow
+                  Action:
+                    - dynamodb:GetItem
+                    - dynamodb:UpdateItem
+                  Resource:
+                    - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+                  Condition:
+                    ForAllValues:StringLike:
+                      dynamodb:LeadingKeys:
+                        - apple#*

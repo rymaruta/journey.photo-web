@@ -858,6 +858,24 @@ describe("deleteAccount: 消し残しを作らない", () => {
         expect(tomb!.username).toBe("ryuhei");
     });
 
+    // 「Apple でサインイン」の人（札 journey.photo-ios#601）: 退会の途中で止まった人のやり直しでは、
+    // Apple の更新トークンの取り消し（`POST /auth/apple/revoke`）が墓石の後に来る。番号が無いと取り消せない
+    it("墓石に Apple の番号を残す（取り消しのやり直しのため）。無い人には足さない", async () => {
+        const tombOf = () => mockDdbSend.mock.calls
+            .map((c) => c[0] as { constructor: { name: string }; input: Record<string, unknown> })
+            .filter((c) => c.constructor.name === "PutCommand")
+            .map((c) => c.input.Item as Record<string, unknown>)
+            .find((it) => it?.userId === "me");
+        setupWithPhoto({ id: "p1", userId: "me", src: "https://cdn.test/uploads/p1.jpg" }, { userId: "me", appleSub: "001.apple" });
+        await invoke(deleteAccount, ev("me"));
+        expect(tombOf()!.appleSub).toBe("001.apple");
+
+        mockDdbSend.mockReset();
+        setupWithPhoto({ id: "p1", userId: "me", src: "https://cdn.test/uploads/p1.jpg" }, { userId: "me" });
+        await invoke(deleteAccount, ev("me"));
+        expect(tombOf()).not.toHaveProperty("appleSub");
+    });
+
     // プロフィールが読めないまま墓石で上書きすると、同じく handle が消える。
     // 読めないなら止める（アカウントはまだ生きているので押し直せば続く）。
     it("プロフィールを読めなかったら 500。墓石も置かない", async () => {
