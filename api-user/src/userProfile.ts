@@ -1249,6 +1249,8 @@ function withBadgeFields<T extends object>(p: T): T & ReturnType<typeof badgeFie
     delete rest.appleUnlinkedAt;
     delete rest.googleUnlinkedAt;
     delete rest.federatedSignup;
+    delete rest.appleUnlinkedSub;
+    delete rest.googleUnlinkedSub;
     // 生の `supporter` は本人向けの形（`owner: true`）に置き換える。下の公開の形の `badgeFields` は、
     // 載せるときは同じ値・Sandbox のときは項目ごと出さないので、ここの値がそのまま残る。
     // 2026-10-10 判断: 下の return の行を変えないのは、別の枝（`claude/removable-name-marks`）が
