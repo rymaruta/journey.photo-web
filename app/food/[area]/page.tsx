@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { withPlaceholderParam } from "@/lib/server/staticParams";
-import { siteConfig, pageRobots, shareOgImage, generateBreadcrumbStructuredData } from "@/lib/utils/seo";
+import { appItunes, siteConfig, pageRobots, shareOgImage, generateBreadcrumbStructuredData } from "@/lib/utils/seo";
 import { ROUTES } from "@/lib/routes";
 import SectionHead from "@/app/components/SectionHead";
 import {
@@ -45,6 +45,7 @@ export async function generateMetadata({ params }: { params: Promise<{ area: str
         title: { absolute: title },
         description,
         alternates: { canonical: url },
+        itunes: appItunes(url),
         robots: pageRobots(isFoodIndexable(v.a)),
         openGraph: {
             type: "website", url, siteName: siteConfig.name,
@@ -71,10 +72,10 @@ function ItemCard({ item, kind }: { item: FoodItem; kind: "dish" | "souvenir" })
             )}
             {spots.length > 0 && (
                 <p className="m-0" style={{ fontSize: "14px", lineHeight: "22px" }} data-testid="food-spots">
-                    <span className="text-white/60">伝承地域の撮影スポット </span>
+                    <span className="text-white/60">伝承地域の観光スポット </span>
                     {spots.map((s, i) => (
                         <React.Fragment key={s.slug}>
-                            {i > 0 && <span className="text-white/40">、</span>}
+                            {i > 0 && <span className="text-white/60">、</span>}
                             <Link href={`/spots/${s.slug}`} prefetch={false}
                                   className="text-accent underline underline-offset-4 hover:text-accent-strong">{s.name}</Link>
                         </React.Fragment>

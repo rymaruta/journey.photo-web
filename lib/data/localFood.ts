@@ -141,7 +141,7 @@ export function foodDescription(prefName: string, a: Pick<FoodArea, "dishes" | "
     const count = a.souvenirs.length > 0 ? `郷土料理${a.dishes.length}品とお土産${a.souvenirs.length}品` : `郷土料理${a.dishes.length}品`;
     const lead = `${prefName}の${count}。${names}${a.dishes.length > 3 ? "など" : ""}。`;
     const parts = [
-        "伝承地域の撮影スポットにもつないでいます。",
+        "伝承地域の観光スポットにもつないでいます。",
         "農林水産省「うちの郷土料理」をもとに要約しました。",
     ];
     let out = lead;

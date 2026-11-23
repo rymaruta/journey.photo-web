@@ -135,14 +135,14 @@ export const ROUTES = {
     PRIVACY: "/privacy",
     TERMS: "/terms",
     /**
-     * 使い方（2026-11-12・札 journey.photo-ios#517）。目次と、機能ごとの短い頁（台帳は `lib/data/helpPages.ts`）。
-     * iOS の入口は 設定 → ヘルプと規約 → 使い方 の1か所だけ（`HELP` を開く）
-     */
-    /**
      * 県ごとの郷土料理とお土産（`app/food/[area]/page.tsx`・2026-11-23 案 B）。`area` は県の綴り。
      * `/spots/area/<県>/<x>` の下は海外の国の頁と重なるので、別の所（`/food`）に置く
      */
     FOOD: (area: string) => `/food/${encodeURIComponent(area)}`,
+    /**
+     * 使い方（2026-11-12・札 journey.photo-ios#517）。目次と、機能ごとの短い頁（台帳は `lib/data/helpPages.ts`）。
+     * iOS の入口は 設定 → ヘルプと規約 → 使い方 の1か所だけ（`HELP` を開く）
+     */
     HELP: "/help",
     HELP_PAGE: (slug: string) => `/help/${slug}`,
     /**
