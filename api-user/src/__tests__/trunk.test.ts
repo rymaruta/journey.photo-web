@@ -147,7 +147,7 @@ describe("配る（grantLabel）", () => {
         setProfile(FREE);
         setTrunk({ pocket: Array.from({ length: 30 }, (_, i) => label(`a${i}`)), stuck: [] });
         const out = await grantLabel(UID, photo("p1"));
-        expect(out).toEqual({ label: null, labelSkipped: "full", coin: 1 });
+        expect(out).toEqual({ label: null, labelSkipped: "full", coin: 1, fragment: 1 });
         expect(pocketIds()).toHaveLength(30);
     });
 
@@ -181,7 +181,7 @@ describe("配る（grantLabel）", () => {
         setProfile(FREE);
         await grantLabel(UID, photo("p1", { groupId: "g-1" }));
         const second = await grantLabel(UID, photo("p2", { groupId: "g-1" }));
-        expect(second).toEqual({ label: null, labelSkipped: "samePost", coin: 0 });
+        expect(second).toEqual({ label: null, labelSkipped: "samePost", coin: 0, fragment: 0 });
         expect(pocketIds()).toEqual(["p1"]);
         // 応答には束の印を出さない
         const got = await call("GET /user/trunk");
@@ -691,7 +691,7 @@ describe("集める悪用を防ぐ（2026-10-17 owner）", () => {
         expect(pocketIds()).toEqual([]);
         // 上げ直すと別の id になる。中身（EXIF）は同じ
         const again = await grantLabel(UID, photo("p9", exif("2026:10:01 10:00:00")));
-        expect(again).toEqual({ label: null, labelSkipped: "duplicate", coin: 0 });
+        expect(again).toEqual({ label: null, labelSkipped: "duplicate", coin: 0, fragment: 0 });
         expect(pocketIds()).toEqual([]);
         // 別の写真は配る
         expect((await grantLabel(UID, photo("p2", exif("2026:10:01 10:00:01")))).label?.id).toBe("p2");
@@ -816,7 +816,7 @@ describe("受け取らない設定（PUT /user/trunk/settings）", () => {
         const off = await call("PUT /user/trunk/settings", { body: { receiveLabels: false } });
         expect(off.status).toBe(200);
         expect(off.json.receiveLabels).toBe(false);
-        expect(await grantLabel(UID, photo("p1"))).toEqual({ label: null, labelSkipped: "off", coin: 1 });
+        expect(await grantLabel(UID, photo("p1"))).toEqual({ label: null, labelSkipped: "off", coin: 1, fragment: 1 });
         await call("PUT /user/trunk/settings", { body: { receiveLabels: true } });
         const on = await call("GET /user/trunk");
         expect(on.json.receiveLabels).toBe(true);
@@ -862,7 +862,7 @@ describe("節目は一度きり・束の台帳・下書きをあとで公開（2
         setProfile(FREE);
         await grantLabel(UID, photo("p1", { groupId: "g-1" }));
         await call("DELETE /user/trunk/labels/{id}", { id: "p1" });
-        expect(await grantLabel(UID, photo("p2", { groupId: "g-1" }))).toEqual({ label: null, labelSkipped: "samePost", coin: 0 });
+        expect(await grantLabel(UID, photo("p2", { groupId: "g-1" }))).toEqual({ label: null, labelSkipped: "samePost", coin: 0, fragment: 0 });
         expect(ledgerRow()?.groups).toEqual([T.groupKey("g-1")]);
     });
 
@@ -913,7 +913,7 @@ describe("確かめの指摘（2026-10-17）", () => {
         mockListMyPhotos.mockReturnValue(new Promise(() => undefined));
         const p = T.grantLabelQuietly(UID, photo("p1"), "test");
         await vi.advanceTimersByTimeAsync(T.TRUNK_QUIET_LIMIT_MS + 10);
-        await expect(p).resolves.toEqual({ label: null, labelSkipped: "timeout", coin: 0 });
+        await expect(p).resolves.toEqual({ label: null, labelSkipped: "timeout", coin: 0, fragment: 0 });
     });
 
     it("編集の経路（grantLabelForPhotoQuietly）も時間切れで戻る・読み直しは強い読み", async () => {
@@ -923,7 +923,7 @@ describe("確かめの指摘（2026-10-17）", () => {
             cmd.input.TableName === "photos-test" && (cmd.input.Key as Item)?.id === "p1" ? new Promise(() => undefined) : send(cmd as never));
         const p = T.grantLabelForPhotoQuietly(UID, "p1", "test");
         await vi.advanceTimersByTimeAsync(T.TRUNK_QUIET_LIMIT_MS + 10);
-        await expect(p).resolves.toEqual({ label: null, labelSkipped: "timeout", coin: 0 });
+        await expect(p).resolves.toEqual({ label: null, labelSkipped: "timeout", coin: 0, fragment: 0 });
         const read = fakeSend.mock.calls.map((c) => c[0].input).find((i) => i.Key?.id === "p1");
         expect(read?.ConsistentRead).toBe(true);
     });
@@ -932,7 +932,7 @@ describe("確かめの指摘（2026-10-17）", () => {
         setProfile(FREE);
         mockListMyPhotos.mockRejectedValue(new Error("down"));
         const err = vi.spyOn(console, "error").mockImplementation(() => undefined);
-        await expect(T.grantLabelQuietly(UID, photo("p1"), "test")).resolves.toEqual({ label: null, labelSkipped: "error", coin: 0 });
+        await expect(T.grantLabelQuietly(UID, photo("p1"), "test")).resolves.toEqual({ label: null, labelSkipped: "error", coin: 0, fragment: 0 });
         err.mockRestore();
     });
 
@@ -1317,14 +1317,14 @@ describe("硬貨（公開の投稿1件につき1枚）", () => {
     it("機能を出す前に作った写真（notNew）には配らない", async () => {
         setProfile(FREE);
         const out = await T.grantLabelQuietly(UID, photo("p1", { createdAt: "2026-09-01T00:00:00.000Z" }), "t", { requireNew: true });
-        expect(out).toEqual({ label: null, labelSkipped: "notNew", coin: 0 });
+        expect(out).toEqual({ label: null, labelSkipped: "notNew", coin: 0, fragment: 0 });
         expect(trunkRow()).toBeUndefined();
     });
 
     it("手持ちがいっぱいでも配る（ラベルは full）", async () => {
         setProfile(FREE);
         setTrunk({ pocket: Array.from({ length: 30 }, (_, i) => label(`a${i}`)), stuck: [] });
-        expect(await grantLabel(UID, photo("p1"))).toEqual({ label: null, labelSkipped: "full", coin: 1 });
+        expect(await grantLabel(UID, photo("p1"))).toEqual({ label: null, labelSkipped: "full", coin: 1, fragment: 1 });
         expect(coins()).toBe(1);
         expect(pocketIds()).toHaveLength(30);
         // 硬貨を配った投稿は台帳に載る（同じ写真の再送でもう1枚にならない）
@@ -1334,8 +1334,8 @@ describe("硬貨（公開の投稿1件につき1枚）", () => {
     it("受け取らない設定でも配る（受け取らない設定はラベルのこと）。上げ直しでは配らない", async () => {
         setProfile(FREE);
         await call("PUT /user/trunk/settings", { body: { receiveLabels: false } });
-        expect(await grantLabel(UID, photo("p1", exif("2026:02:02 00:00:00")))).toEqual({ label: null, labelSkipped: "off", coin: 1 });
-        expect(await grantLabel(UID, photo("p2", exif("2026:02:02 00:00:00")))).toEqual({ label: null, labelSkipped: "off", coin: 0 });
+        expect(await grantLabel(UID, photo("p1", exif("2026:02:02 00:00:00")))).toEqual({ label: null, labelSkipped: "off", coin: 1, fragment: 1 });
+        expect(await grantLabel(UID, photo("p2", exif("2026:02:02 00:00:00")))).toEqual({ label: null, labelSkipped: "off", coin: 0, fragment: 0 });
         expect(pocketIds()).toEqual([]);
         expect(coins()).toBe(1);
     });
@@ -1352,7 +1352,7 @@ describe("硬貨（公開の投稿1件につき1枚）", () => {
         expect(T.COINS_MAX).toBe(99);
         store.delete(`photos-test|${T.trunkLedgerId(UID)}`);
         setTrunk({ pocket: Array.from({ length: 30 }, (_, i) => label(`a${i}`)), stuck: [], coins: 99, dealt: [] });
-        expect(await grantLabel(UID, photo("p3"))).toEqual({ label: null, labelSkipped: "full", coin: 0 });
+        expect(await grantLabel(UID, photo("p3"))).toEqual({ label: null, labelSkipped: "full", coin: 0, fragment: 0 });
         // 何も書かない（古い形の1行のまま・台帳の行も作らない）
         expect(trunkRow()?.rev).toBe(1);
         expect(ledgerRow()).toBeUndefined();
@@ -1879,7 +1879,7 @@ describe("見直しで守りの無かった2か所（2026-10-17）", () => {
         expect(z.ledger).toBeGreaterThan(T.TRUNK_BUDGET_BYTES);
         const r = dealInto(doc, label("new") as never, 30, "i:new", new Date());
         expect(r.doc).toBeNull();
-        expect(r.outcome).toEqual({ label: null, labelSkipped: "storage", coin: 0 });
+        expect(r.outcome).toEqual({ label: null, labelSkipped: "storage", coin: 0, fragment: 0 });
     });
 });
 
@@ -1898,7 +1898,7 @@ describe("退会した人（墓石）", () => {
     it("grantLabel は配らない（trunk# も trunkledger# も作り直さない）", async () => {
         setProfile(TOMB);
         const out = await grantLabel(UID, photo("p1"));
-        expect(out).toEqual({ label: null, labelSkipped: "deleted", coin: 0 });
+        expect(out).toEqual({ label: null, labelSkipped: "deleted", coin: 0, fragment: 0 });
         expect(writes()).toEqual([]);
         expect(trunkRow()).toBeUndefined();
         expect(ledgerRow()).toBeUndefined();
@@ -1983,5 +1983,94 @@ describe("#706 の欄を落とさない（1段目）", () => {
         expect(doc.custom).toEqual({ n: 2, t: 3, l: [{ k: "a", a: 1 }] });
         expect(T.parseTrunk({ custom: "x" }).custom).toEqual({ n: 0, t: 0 });
         expect(T.rowSizes(T.parseTrunk({ pocket: [] })).main).toBe(T.rowSizes(T.parseTrunk({ pocket: [], custom: { n: 0, t: 0 } })).main);
+    });
+});
+
+/**
+ * **投稿のお礼のかけら**（#713・2026-11-23 owner「カケラはおすすめにしよう」）。
+ * 硬貨 +1 と一緒にかけら +1。1日3つまで（硬貨と同じ日の数 `daily`）。新しい欄は足さない
+ */
+describe("かけら（投稿のお礼・#713）", () => {
+    const D1 = new Date("2026-11-23T03:00:00.000Z");   // 日本時間 11/23 12:00
+    const D2 = new Date("2026-11-24T03:00:00.000Z");   // 日本時間 11/24 12:00
+    const frags = () => trunkRow()?.fragments;
+
+    it("公開の投稿で1つ配る。応答に fragment: 1・行の fragments が +1・控えに f: 1", async () => {
+        setProfile(FREE);
+        const out = await grantLabel(UID, photo("p1"), D1);
+        expect(out.fragment).toBe(1);
+        expect(out.coin).toBe(1);
+        expect(frags()).toBe(1);
+        expect((ledgerRow()?.coinLog as { k: string; f?: number }[])[0]).toMatchObject({ k: "p1", f: 1 });
+        const got = await call("GET /user/trunk");
+        expect(got.json.fragments).toBe(1);
+    });
+
+    it("1日3つで止まる（硬貨と同じ数え方）。4件目は fragment: 0", async () => {
+        setProfile(FREE);
+        for (const id of ["p1", "p2", "p3"]) expect((await grantLabel(UID, photo(id), D1)).fragment).toBe(1);
+        const fourth = await grantLabel(UID, photo("p4"), D1);
+        expect(fourth).toMatchObject({ labelSkipped: "daily", coin: 0, fragment: 0 });
+        expect(frags()).toBe(3);
+    });
+
+    it("日が替わると戻る（日本時間の日の区切り）", async () => {
+        setProfile(FREE);
+        for (const id of ["p1", "p2", "p3", "p4"]) await grantLabel(UID, photo(id), D1);
+        expect(frags()).toBe(3);
+        expect((await grantLabel(UID, photo("q1"), D2)).fragment).toBe(1);
+        expect(frags()).toBe(4);
+    });
+
+    it("再送・同じ束には配らない。硬貨が 99 枚の回は配らない（硬貨と一緒にだけ）", async () => {
+        setProfile(FREE);
+        expect((await grantLabel(UID, photo("p1"), D1)).fragment).toBe(1);
+        expect((await grantLabel(UID, photo("p1"), D1)).fragment).toBe(0);   // 再送
+        expect((await grantLabel(UID, photo("g1", { groupId: "trip" }), D1)).fragment).toBe(1);
+        expect((await grantLabel(UID, photo("g2", { groupId: "trip" }), D1)).fragment).toBe(0);   // 同じ束
+        expect(frags()).toBe(2);
+        setTrunk({ pocket: [], stuck: [], coins: 99, fragments: 2 });
+        store.delete(`photos-test|${T.trunkLedgerId(UID)}`);
+        const out = await grantLabel(UID, photo("p9"), D2);
+        expect(out).toMatchObject({ coin: 0, fragment: 0 });
+        expect(frags()).toBe(2);
+    });
+
+    it("古い形の行（fragments の欄なし・台帳が trunk# の中・控えに f なし）でも壊れず配る", async () => {
+        setProfile(FREE);
+        const old = Math.floor(D1.getTime() / 1000) - 60;
+        setTrunk({ pocket: [], stuck: [], coins: 4, dealt: ["i:x"], coinLog: [{ k: "old", a: old }], daily: { day: "2026-11-23", count: 1 } });
+        const out = await grantLabel(UID, photo("p1"), D1);
+        expect(out).toMatchObject({ coin: 1, fragment: 1 });
+        expect(frags()).toBe(1);
+        expect(trunkRow()?.coins).toBe(5);
+        expect(ledgerRow()?.daily).toEqual({ day: "2026-11-23", count: 2 });
+        // 控えに f の無い古い投稿を取り消しても、かけらは減らさない（硬貨だけ戻す）
+        const doc = parseTrunk(trunkRow()!, ledgerRow());
+        const r = T.revokeFrom(doc, { photoId: "old" }, D1)!;
+        expect(r.coins).toBe(4);
+        expect(r.fragments).toBe(1);
+        // 新しい欄は足さない（かけらの数は前からある fragments・控えは前からある coinLog）
+        expect(Object.keys(trunkRow()!).filter((k) => /frag/i.test(k))).toEqual(["fragments"]);
+        expect(Object.keys(ledgerRow()!).filter((k) => /frag/i.test(k))).toEqual([]);
+    });
+
+    it("24時間以内に消したら、硬貨と一緒にかけらも戻す（0 なら何もしない）", async () => {
+        setProfile(FREE);
+        await grantLabel(UID, photo("p1"));
+        expect(frags()).toBe(1);
+        await T.revokeLabelQuietly(UID, { id: "p1", createdAt: new Date().toISOString() }, "test");
+        expect(frags()).toBe(0);
+        expect(trunkRow()?.coins).toBe(0);
+        // かけらを使い切っていたら何もしない
+        await grantLabel(UID, photo("p2"));
+        setTrunk({ ...trunkRow()!, fragments: 0 });
+        await T.revokeLabelQuietly(UID, { id: "p2", createdAt: new Date().toISOString() }, "test");
+        expect(frags()).toBe(0);
+    });
+
+    it("控えの f は読み書きで残る・1 以外は捨てる", () => {
+        const doc = parseTrunk({}, { coinLog: [{ k: "a", a: 1, f: 1 }, { k: "b", a: 2, f: "x" }, { k: "c", a: 3 }] });
+        expect(doc.coinLog).toEqual([{ k: "a", a: 1, f: 1 }, { k: "b", a: 2 }, { k: "c", a: 3 }]);
     });
 });
