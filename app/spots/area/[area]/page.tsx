@@ -5,7 +5,7 @@ import { spotCheckedClaim } from "@/lib/data/spotPageMeta";
 import { withPlaceholderParam } from "@/lib/server/staticParams";
 import { siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
 import SpotTopicPage from "@/app/components/SpotTopicPage";
-import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta } from "@/lib/data/spotTopics";
+import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta, topicCards, areaTitle, areaDescriptionLead } from "@/lib/data/spotTopics";
 import { OVERSEAS_SLUG } from "@/lib/data/prefectures";
 
 /** JSON-LD を `<script>` に埋める形（`SpotTopicPage.tsx` と同じ。`</script>` で閉じられないように） */
@@ -59,26 +59,35 @@ export async function generateMetadata({ params }: { params: Promise<{ area: str
     // noindex だが下書きではない——同じ条件で分けると「（下書き・1件）」と嘘を名乗る
     // （下書きを建てなくなった 2026-09-25 に、公開済み4県が全部これになった）
     // 「N選」「運営が調べた」に数えるのは**人が確かめた件数だけ**。下書きは別に数える
+    // 🔴 行ごとに `spotAreaOf` で絞らない（下の説明の注記）。並べるスポットは1回だけ取る
+    const spots = visibleSpotsInArea(found.slug);
+    // 名所の名前は画面のカードと同じ並び（写真のあるものが先）から取る
+    const cards = topicCards(spots);
+    // 2026-11-23（#701・owner OK）: 「岡山県の写真と観光スポット55選｜備中松山城、醍醐桜ほか」。
+    // テーマの頁と同じくサイト名の template を外した完全な形（下の `title: { absolute }`）
     const title = indexable
-        ? `${found.name}の観光スポット${found.publishedCount}選`
+        ? areaTitle(found.name, found.publishedCount, cards)
         : drafts === 0
             ? `${found.name}の観光スポット（${found.publishedCount}件）`
             : `${found.name}の観光スポット（下書き、${found.count}件）`;
     const description = indexable || drafts === 0
-        ? `${found.name}で写真を撮りに行ける場所のガイド（${found.publishedCount}件${drafts > 0 ? `・ほかに下書き${drafts}件` : ""}）。`
+        // 2026-11-23（#701）: 頭を「〇〇の観光スポットN か所を写真で紹介。A、B、Cなど。」に（検索語の「写真」と名所の名前）
+        ? areaDescriptionLead(found.name, found.publishedCount, cards)
+            + (drafts > 0 ? `ほかに下書き${drafts}件。` : "")
             // 2026-10-11: 「アクセスまで、運営が調べて」は実態と違った（アクセスは出典つきで数件・
             // 人が確かめたのは数件で多くは AI 照合）。在るもの（見どころ・撮影の光）と確かめ方を書く
-            + "見どころと、月ごとの日の出・日の入りなど撮影の光をまとめています。"
+            + "見どころと、月ごとの日の出、日の入りなど撮影の光をまとめています。"
             // 🔴 行ごとに `spotAreaOf` で絞らない——1行ごとに台帳全体の見える判定をやり直し、
             // 1ページ約9秒・build で 60 秒超えになった（2026-10-15・`visibleSpotsInArea` の注記）
-            + spotCheckedClaim(visibleSpotsInArea(found.slug))
+            + spotCheckedClaim(spots)
         : `${found.name}で写真を撮りに行ける場所のガイドの下書き（${found.count}件）。`
             + "運営がまだ確認していない情報を含みます。";
     const url = `${siteConfig.url}/spots/area/${found.slug}`;
     // 代表写真（2026-10-16）。共有したときに県の頁だけ絵が無かった
-    const { ogImage } = areaStructuredData(found, visibleSpotsInArea(found.slug));
+    const { ogImage } = areaStructuredData(found, spots);
     return {
-        title,
+        // 検索に出す県の題はサイト名を付けない（テーマの頁と同じ・`areaTitle`）
+        title: indexable ? { absolute: title } : title,
         description,
         alternates: { canonical: url },
         robots: pageRobots(indexable),

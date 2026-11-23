@@ -7,6 +7,7 @@ import {
     topicStructuredData, topicTitle, topicMetadata, topicLinksForSpot, spotIndexTopics,
     homeSeasonalSpots, seasonOfMonth, SEASON_TOP_CARDS, spotTopicSitemapEntries, themePath, seasonPath,
     themeBreakdown, THEME_TITLE_MAX, THEME_DESCRIPTION_MAX, TOPIC_OG_MIN_WIDTH,
+    withPhotoWord, areaTitle, areaDescriptionLead, topicCards, type TopicCard,
 } from "../spotTopics";
 import { prefectureByName, OVERSEAS_SLUG } from "../prefectures";
 import { siteConfig, INDEXABLE_ROBOTS } from "../../utils/seo";
@@ -124,7 +125,9 @@ describe("テーマ（カテゴリ × 地域）", () => {
         const n = shown.filter((s) => s.category === "寺社" && s.region?.prefecture === "京都府").length;
         expect(v.heading).toBe("京都府の寺社の観光スポット");
         // 2026-11-11（#527）: 題の後ろに載っている名所の名前（並びの先頭から・全角33以内）
-        expect(topicTitle(v).startsWith(`京都府の寺社の観光スポット${n}選｜${v.cards[0].name}`)).toBe(true);
+        // 2026-11-23（#701）: 写真のある組は題に「写真と」
+        expect(v.cards.some((c) => c.cover)).toBe(true);
+        expect(topicTitle(v).startsWith(`京都府の寺社の写真と観光スポット${n}選｜${v.cards[0].name}`)).toBe(true);
         expect(v.intro).toContain(`${n}件`);
         expect(v.intro).toContain(v.cards[0].name);
         // パンくずは県の一覧を通る
@@ -436,13 +439,14 @@ describe("テーマの頁の題・説明・導入文（2026-11-11・#527 GSC: 8�
         const v = themeView("churches", "it")!;
         const m = topicMetadata(v);
         // 以前は「イタリアの教会の撮影スポット54選 | Journey Photo 旅フォトギャラリー」（どの教会かが題に無い）
-        expect(m.title).toEqual({ absolute: `イタリアの教会の観光スポット${v.cards.length}選｜${v.cards[0].name}ほか` });
+        expect(m.title).toEqual({ absolute: `イタリアの教会の写真と観光スポット${v.cards.length}選｜${v.cards[0].name}ほか` });
         expect((m.openGraph as { title?: string }).title).toBe(topicTitle(v));
         for (const x of views) {
             const t = topicTitle(x);
-            expect(t.startsWith(`${x.heading}${x.cards.length}選`), x.path).toBe(true);
+            const head = `${withPhotoWord(x.heading, x.cards)}${x.cards.length}選`;
+            expect(t.startsWith(head), x.path).toBe(true);
             // 名前が入らない長さのときは「見出し＋N選」だけ（それより短くは削らない）
-            if (t !== `${x.heading}${x.cards.length}選`) expect(titleWidth(t), `${x.path}: ${t}`).toBeLessThanOrEqual(THEME_TITLE_MAX);
+            if (t !== head) expect(titleWidth(t), `${x.path}: ${t}`).toBeLessThanOrEqual(THEME_TITLE_MAX);
             expect(t, x.path).not.toMatch(/Journey Photo|撮りどき/);
         }
         // 名前の入った題が大半（全部が「N選」止まりなら組み方が効いていない）
@@ -453,7 +457,7 @@ describe("テーマの頁の題・説明・導入文（2026-11-11・#527 GSC: 8�
         const t = themes.find((x) => x.categorySlug === "churches" && x.place.slug === "it")!;
         const v = themeView("churches", "it")!;
         const d = topicMetadata(v).description as string;
-        expect(d.startsWith(`${v.cards[0].name}、${v.cards[1].name}、${v.cards[2].name}など、イタリアの教会の観光スポット${t.spots.length}か所。`)).toBe(true);
+        expect(d.startsWith(`${v.cards[0].name}、${v.cards[1].name}、${v.cards[2].name}など、イタリアの教会の観光スポット${t.spots.length}か所を写真で紹介。`)).toBe(true);
         const rome = t.spots.filter((s) => s.region?.city === "ローマ").length;
         expect(rome).toBeGreaterThanOrEqual(2);
         expect(d).toContain(`ローマ${rome}か所`);
@@ -509,4 +513,70 @@ describe("テーマの頁の題・説明・導入文（2026-11-11・#527 GSC: 8�
         // テーマの頁以外のカードには付けない（頁の重さを変えない）
         expect(countryView("it")!.cards.some((c) => c.tip)).toBe(false);
     });
+});
+
+/**
+ * **検索の題に「写真と」**（2026-11-23・owner OK・札 #701）。11-13 に題の「撮影スポット」を
+ * 「観光スポット」に替えた日から平均の順位が約11位 → 20〜22位に落ちた。検索語の約17%（表示）が
+ * 「写真」「撮影」を含み、「観光」は約3%。画面の見出しは「観光スポット」のまま、題と説明だけ変える
+ */
+describe("県とテーマの頁の題に「写真と」（2026-11-23・#701）", () => {
+    const card = (name: string, photo: boolean): TopicCard => ({
+        slug: name, name, region: "",
+        cover: photo ? { src: `/images/spots/${name}.jpg`, alt: name, credit: null } : null,
+    });
+
+    it("県の題: 写真があれば「〇〇の写真と観光スポットN選｜A、Bほか」・サイト名は付けない長さに収める", () => {
+        const cards = [card("備中松山城", true), card("醍醐桜", true), card("吹屋ふるさと村", false)];
+        expect(areaTitle("岡山県", 55, cards)).toBe("岡山県の写真と観光スポット55選｜備中松山城、醍醐桜ほか");
+        // 収まらなければ名前を1つに、それも駄目なら名前なし（文の途中で切らない）
+        const long = [card("あ".repeat(12), true), card("い".repeat(12), true)];
+        expect(areaTitle("岡山県", 55, long)).toBe(`岡山県の写真と観光スポット55選｜${"あ".repeat(12)}ほか`);
+        expect(areaTitle("岡山県", 55, [card("あ".repeat(30), true), card("い", true)])).toBe("岡山県の写真と観光スポット55選");
+    });
+
+    it("写真が1枚も無い組は「写真と」「を写真で紹介」と名乗らない", () => {
+        const cards = [card("八代城跡群", false), card("熊本城", false), card("通潤橋", false)];
+        expect(areaTitle("熊本県", 3, cards)).toBe("熊本県の観光スポット3選｜八代城跡群、熊本城ほか");
+        expect(areaDescriptionLead("熊本県", 3, cards)).toBe("熊本県の観光スポット3か所。八代城跡群、熊本城、通潤橋。");
+        expect(withPhotoWord("京都府の寺社の観光スポット", cards)).toBe("京都府の寺社の観光スポット");
+    });
+
+    it("県の説明の頭: 「〇〇の観光スポットN か所を写真で紹介。A、B、Cなど。」", () => {
+        const cards = [card("備中松山城", true), card("醍醐桜", true), card("吹屋ふるさと村", false), card("後楽園", false)];
+        expect(areaDescriptionLead("岡山県", 55, cards)).toBe("岡山県の観光スポット55か所を写真で紹介。備中松山城、醍醐桜、吹屋ふるさと村など。");
+    });
+
+    it("🔴 名前の区切りは「、」（名前の中の「・」——チンクエ・テッレ——と見分ける）", () => {
+        for (const t of themeTopics()) {
+            const v = themeView(t.categorySlug, t.place.slug)!;
+            const title = topicTitle(v);
+            const [a, b] = v.cards.map((c) => c.name);
+            if (a && b && title.includes(b)) expect(title, v.path).toContain(`｜${a}、${b}`);
+            expect(String(topicMetadata(v).description), v.path).not.toMatch(/\d+か所・/);
+        }
+    });
+
+    it("実データの県の頁: 題は「写真と」・absolute、説明は「を写真で紹介」と名所の名前で始まる", async () => {
+        const { spotAreas, visibleSpotsInArea } = await import("../spotLink");
+        const { generateMetadata } = await import("../../../app/spots/area/[area]/page");
+        const areas = spotAreas().filter((a) => a.slug !== OVERSEAS_SLUG && a.publishedCount >= 2);
+        expect(areas.length).toBeGreaterThan(10);
+        let withPhoto = 0;
+        for (const a of areas) {
+            const cards = topicCards(visibleSpotsInArea(a.slug));
+            const m = await generateMetadata({ params: Promise.resolve({ area: a.slug }) });
+            const title = (m.title as { absolute?: string }).absolute;
+            expect(title, a.slug).toBe(areaTitle(a.name, a.publishedCount, cards));
+            expect(title, a.slug).not.toMatch(/Journey Photo/);
+            expect(String(m.description).startsWith(areaDescriptionLead(a.name, a.publishedCount, cards)), a.slug).toBe(true);
+            expect(String(m.description), a.slug).not.toContain("日の出・日の入り");
+            if (cards.some((c) => c.cover)) {
+                withPhoto++;
+                expect(title, a.slug).toContain(`${a.name}の写真と観光スポット${a.publishedCount}選`);
+            }
+        }
+        // 写真のある県が大半（全部が「写真と」無しなら組み方が効いていない）
+        expect(withPhoto / areas.length).toBeGreaterThan(0.8);
+    }, 60_000);
 });
