@@ -221,24 +221,28 @@ describe("メールで結んだときの知らせ（鍵を持たない口から�
         noticeDeps.tokens = async (uid) => (uid === "sub-old" ? ["tok1"] : []);
         noticeDeps.pushKey = async () => "";
         noticeDeps.push = async (tokens, msg) => { sent.push({ tokens, msg }); return { sent: tokens.length, invalid: [] }; };
-        expect(await linkNoticeHandler({ cognitoSub: "sub-old", provider: "google" })).toEqual({ sent: 1 });
+        noticeDeps.emailEnabled = () => false;
+        expect(await linkNoticeHandler({ cognitoSub: "sub-old", provider: "google" })).toEqual({ sent: 1, emailed: false });
+        // 2026-11-23 owner: 本文は「こちらから連携を解除できます」。押すと「サインインの方法」が開く（`type`）
         expect(sent[0].msg).toEqual({
             title: "Google でログインできます",
-            body: "心当たりが無ければ、パスワードを変えてください。",
+            body: "心当たりが無ければ、こちらから連携を解除できます。",
+            data: { type: "signin_methods" },
         });
         for (const bad of [{}, { cognitoSub: "sub-old", provider: "evil" }, { cognitoSub: 1, provider: "apple" }]) {
-            expect(await linkNoticeHandler(bad as never)).toEqual({ sent: 0 });
+            expect(await linkNoticeHandler(bad as never)).toEqual({ sent: 0, emailed: false });
         }
         expect(sent).toHaveLength(1);
     });
 
     it("知らせの文は話し言葉で短く。Apple は「サインイン」、Google は「ログイン」（2026-11-23 owner「結ばれました、は日常で使わない」「長すぎる」）", async () => {
         const { linkNoticeMessage } = await import("../federatedNotice");
-        expect(linkNoticeMessage("apple")).toEqual({ title: "Apple でサインインできます", body: "心当たりが無ければ、パスワードを変えてください。" });
+        expect(linkNoticeMessage("apple")).toMatchObject({ title: "Apple でサインインできます", body: "心当たりが無ければ、こちらから連携を解除できます。" });
         expect(linkNoticeMessage("google").title).toBe("Google でログインできます");
         for (const p of ["apple", "google"] as const) {
             const { title, body } = linkNoticeMessage(p);
-            expect(`${title}${body}`).not.toMatch(/結ば|結び|結ぶ|連携|・/);
+            // 「連携を解除」は owner の言い方（2026-11-23）。「結ばれました」「外す」は使わない
+            expect(`${title}${body}`).not.toMatch(/結ば|結び|結ぶ|外せ|外す|・|パスワード/);
         }
     });
 });

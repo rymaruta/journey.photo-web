@@ -1269,6 +1269,9 @@ resources:
   # 在る（`deploy-api.yml` の `APPLE_SIGNIN_ENABLED`）。無い経路に設定を付けると反映が落ちるので、
   # `appleSigninEnabled` が true のときだけ足す（`AppleSigninOn`）
   #
+  # 「サインインの方法」の口（`GET /user/signin-methods`・`DELETE /user/signin-methods/{provider}`）も Apple のスタックが足すので、
+  # 同じ `AppleSigninOn` のときだけ絞る（2026-11-23 owner「サインインの方法」）
+  #
   # 「Google でログイン」の口（札 journey.photo-ios#715）も同じ。スタックは Apple と Google の両方を配る環境だけ
   # （`deploy-api.yml`・トリガーは Apple のスタック）なので、`googleSigninEnabled` は Apple と両方 true のときだけ効く
   Conditions:
@@ -1294,6 +1297,12 @@ resources:
               "POST /auth/google":
                 ThrottlingRateLimit: 5
                 ThrottlingBurstLimit: 10
+              "GET /user/signin-methods":
+                ThrottlingRateLimit: 5
+                ThrottlingBurstLimit: 10
+              "DELETE /user/signin-methods/{provider}":
+                ThrottlingRateLimit: 2
+                ThrottlingBurstLimit: 5
             - Fn::If:
                 - AppleSigninOn
                 - "POST /spots/wants":
@@ -1303,6 +1312,13 @@ resources:
                   "POST /auth/apple":
                     ThrottlingRateLimit: 5
                     ThrottlingBurstLimit: 10
+                  # 「サインインの方法」（ログイン必須・`src/signinMethods.ts`）。外すのは1人で一生に数回。秒 2 件・瞬間 5 件を越えた分は 429
+                  "GET /user/signin-methods":
+                    ThrottlingRateLimit: 5
+                    ThrottlingBurstLimit: 10
+                  "DELETE /user/signin-methods/{provider}":
+                    ThrottlingRateLimit: 2
+                    ThrottlingBurstLimit: 5
                 - "POST /spots/wants":
                     ThrottlingRateLimit: 10
                     ThrottlingBurstLimit: 20

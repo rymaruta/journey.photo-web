@@ -319,6 +319,17 @@ describe("Apple でサインインの番号（appleSub・札 journey.photo-ios#6
         expect(mine.body).not.toContain("001234.apple");
         expect(toPublicProfile({ userId: "u1", appleSub: "001234.apple" } as never)).not.toHaveProperty("appleSub");
     });
+
+    it("Google の番号・外した印・外のアカウントで作った印（「サインインの方法」・2026-11-23）も出さない", async () => {
+        const marks = { googleSub: "g-999", appleUnlinkedAt: "2026-11-23T00:00:00Z", googleUnlinkedAt: "2026-11-23T00:00:01Z", federatedSignup: "apple" };
+        mockSend.mockResolvedValueOnce(stored(marks));
+        const mine = JSON.parse((await getMine()).body);
+        const pub = toPublicProfile({ userId: "u1", ...marks } as never);
+        for (const k of Object.keys(marks)) {
+            expect(mine, k).not.toHaveProperty(k);
+            expect(pub, k).not.toHaveProperty(k);
+        }
+    });
 });
 
 describe("光と天気の知らせを受け取るか（lightAlert）", () => {

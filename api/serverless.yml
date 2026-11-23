@@ -68,7 +68,7 @@ provider:
           Resource:
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
             - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}/index/*
-        # 登録完了時にプロフィール行を作る（PostConfirmation トリガー）
+        # 登録完了時にプロフィール行を作る（PostConfirmation トリガー）。パスワードの再設定では `password#<sub>` の印の行も書く（札 journey.photo-ios#601）
         - Effect: Allow
           Action:
             - dynamodb:PutItem

@@ -564,7 +564,7 @@ export const deleteAccount: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (e
         // 🔴 **墓石より前・ユーザー名の解放より前。** 取り消しが落ちたら 500 で止め、結び付けの行はそのまま残る
         //    （押し直せば続きから）。結び付けの行を消すのは墓石の後（下の `unlinkAfterDelete`）
         if (!await revokeLinkedTokens(uid, federated, { apple: appleRevokeViaStack })) {
-            return jsonError(500, "Apple でのサインインを外せず、退会できませんでした。少し待ってからお試しください");
+            return jsonError(500, "連携が解除できず、退会できませんでした。少し待ってからお試しください");
         }
         if (handle && !await releaseOwnUsername(handle, uid)) {
             return jsonError(500, "ユーザー名の解放を完了できませんでした。アカウントはまだ削除されていません。時間をおいてもう一度お試しください");

@@ -83,6 +83,9 @@ const EXEMPT: Array<[prefix: string, reason: string, calledInAccount: string]> =
     ["dminbox", "`dm.ts` の `purgeDmFor` が会話ごとの自分の側を外し、本体の受信箱も消す", "purgeDmFor"],
     // 2026-11-11・#526。「検索エンジンに表示しない」の急ぎの再ビルドの印。行は `rebuild#hidden#<uid>` で、
     // 鍵を作る関数を通して消す
+    // 2026-11-23・「サインインの方法」（札 journey.photo-ios#601）。パスワードを決めた印（`password#<uid>`）は users 表の行で、
+    // 鍵を作る関数（`passwordKey`）を通して `federatedAccount.ts` の `unlinkAfterDelete` が消す（`account.test.ts` が直に見る）
+    ["password", "`federatedAccount.ts` の `unlinkAfterDelete` が `passwordKey` で消す", "unlinkAfterDelete"],
     ["hidden", "`rebuildKeys.ts` の `searchHiddenUrgentKey`（行は `urgentRowId` で `rebuild#hidden#<uid>`）を `account.ts` が消す", "searchHiddenUrgentKey"],
 ];
 
