@@ -15,29 +15,29 @@ const base = ledger.find((s) => s.slug === "himeji-castle")!;
 describe("title（2026-10-22: 検索される型「〈名所〉 写真／撮影／撮影地」に合わせる）", () => {
     const himeji = { name: "姫路城", region: { country: "日本", prefecture: "兵庫県", city: "姫路市" } };
 
-    it("名前のすぐ後に「の写真と観光スポット情報」、押す理由（作例の節の枚数）、収まれば地名。サイト名は付けない", () => {
+    it("名前のすぐ後に「の写真と撮影の案内」、押す理由（作例の節の枚数）、収まれば地名。サイト名は付けない", () => {
         const t = spotPageTitle(himeji, { samples: 5, cover: true, light: true });
         // 🔴 作例は節に並ぶ5枚だけ（代表写真は数えない・2026-10-22 レビュー）
-        expect(t).toBe("姫路城の写真と観光スポット情報｜作例5枚（兵庫県 姫路市）");
+        expect(t).toBe("姫路城の写真と撮影の案内｜作例5枚（兵庫県 姫路市）");
         expect(t).not.toContain("Journey Photo");
         expect(titleWidth(t)).toBeLessThanOrEqual(SPOT_TITLE_MAX);
     });
 
     it("🔴 作例が0枚なら「作例」を書かない・写真が1枚も無ければ「写真」と名乗らない", () => {
-        expect(spotPageTitle(himeji, { samples: 0, cover: true, light: true })).toBe("姫路城の写真と観光スポット情報（兵庫県 姫路市）");
-        expect(spotPageTitle(himeji, { samples: 2, cover: false })).toBe("姫路城の写真と観光スポット情報｜作例2枚（兵庫県 姫路市）");
+        expect(spotPageTitle(himeji, { samples: 0, cover: true, light: true })).toBe("姫路城の写真と撮影の案内（兵庫県 姫路市）");
+        expect(spotPageTitle(himeji, { samples: 2, cover: false })).toBe("姫路城の写真と撮影の案内｜作例2枚（兵庫県 姫路市）");
         expect(spotPageTitle(himeji, { samples: 0, cover: false, light: true })).toBe("姫路城の観光スポット情報（兵庫県 姫路市）");
         expect(spotPageTitle(himeji, {})).toBe("姫路城の観光スポット情報（兵庫県 姫路市）");
     });
 
     it("短くする規則: 地域 → 作例の順に落とし、「の写真」は最後まで残す", () => {
         const abukuma = { name: "あぶくま洞", region: { country: "日本", prefecture: "福島県", city: "田村市" } };
-        expect(spotPageTitle(abukuma, { samples: 5, cover: true })).toBe("あぶくま洞の写真と観光スポット情報｜作例5枚（福島県 田村市）");
+        expect(spotPageTitle(abukuma, { samples: 5, cover: true })).toBe("あぶくま洞の写真と撮影の案内｜作例5枚（福島県 田村市）");
         const longer = { name: "国営ひたち海浜公園 みはらしの丘", region: { country: "日本", prefecture: "茨城県", city: "ひたちなか市" } };
         // 地名まで入れると 33 を超える → 地名を落とし、作例は残す
-        expect(spotPageTitle(longer, { samples: 5, cover: true })).toBe("国営ひたち海浜公園 みはらしの丘の写真と観光スポット情報｜作例5枚");
+        expect(spotPageTitle(longer, { samples: 5, cover: true })).toBe("国営ひたち海浜公園 みはらしの丘の写真と撮影の案内｜作例5枚");
         const opera = { name: "オペラ・ガルニエ（パレ・ガルニエ）", region: { country: "フランス", prefecture: "イル・ド・フランス", city: "パリ" } };
-        expect(spotPageTitle(opera, { cover: true })).toBe("オペラ・ガルニエ（パレ・ガルニエ）の写真と観光スポット情報");
+        expect(spotPageTitle(opera, { cover: true })).toBe("オペラ・ガルニエ（パレ・ガルニエ）の写真と撮影の案内");
         // 名前そのものが長い → 「〇〇の写真」（写真は落とさない）
         expect(spotPageTitle({ name: "あ".repeat(40), region: undefined }, { samples: 3 })).toBe(`${"あ".repeat(40)}の写真`);
         expect(spotPageTitle({ name: "あ".repeat(40), region: undefined }, {})).toBe(`${"あ".repeat(40)}の観光スポット情報`);
@@ -76,17 +76,17 @@ describe("title（2026-10-22: 検索される型「〈名所〉 写真／撮影�
 describe("description（名前の次に紹介文の最初の1文・押す理由はその後ろ・2026-11-11 #527）", () => {
     const plain = { ...base, seasonalGuide: undefined, timeOfDayGuide: undefined };
 
-    it("頭に「〇〇の写真・撮影地ガイド。」、すぐ後に紹介文の最初の1文、作例の節の枚数・光の表はその後ろ", () => {
+    it("頭に「〇〇の写真と撮影の案内。」、すぐ後に紹介文の最初の1文、作例の節の枚数・光の表はその後ろ", () => {
         const d = spotPageDescription(plain, { light: true, samples: 5, cover: true });
         const [s1, ...rest] = base.summary!.split("。").filter(Boolean);
-        expect(d).toBe(`姫路城の写真・撮影地ガイド。${s1}。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${rest.map((x) => `${x}。`).join("")}`);
+        expect(d).toBe(`姫路城の写真と撮影の案内。${s1}。作例5枚、月ごとの日の出・日の入り・ゴールデンアワー。${rest.map((x) => `${x}。`).join("")}`);
         // 🔴 2026-11-11（#527）: 「〈名所〉とは」「〈名所〉 場所」に、検索結果の頭で答える
-        expect(d.indexOf(s1)).toBe("姫路城の写真・撮影地ガイド。".length);
+        expect(d.indexOf(s1)).toBe("姫路城の写真と撮影の案内。".length);
         expect(d.indexOf(s1)).toBeLessThan(d.indexOf("作例5枚"));
     });
 
     it("無いものは書かない（作例0枚なら作例を書かない・写真が無ければ「写真」と名乗らない）", () => {
-        expect(spotPageDescription(plain, { samples: 0, cover: true })).toBe(`姫路城の写真・撮影地ガイド。${base.summary}`);
+        expect(spotPageDescription(plain, { samples: 0, cover: true })).toBe(`姫路城の写真と撮影の案内。${base.summary}`);
         const none = spotPageDescription(plain, { samples: 0, cover: false });
         expect(none).toBe(`姫路城の撮影地ガイド。${base.summary}`);
         expect(none).not.toContain("作例");
@@ -98,7 +98,7 @@ describe("description（名前の次に紹介文の最初の1文・押す理由�
             { samples: 1, computed: "日の入りは6月が西北西寄り、12月が西南西寄り" },
         );
         const [s1, ...rest] = base.summary!.split("。").filter(Boolean);
-        expect(d).toBe(`姫路城の写真・撮影地ガイド。${s1}。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${rest.map((x) => `${x}。`).join("")}`);
+        expect(d).toBe(`姫路城の写真と撮影の案内。${s1}。作例1枚、季節ごとの景色（春・冬）、時間帯ごとの撮り方。日の入りは6月が西北西寄り、12月が西南西寄り。${rest.map((x) => `${x}。`).join("")}`);
     });
 
     it("🔴 閉鎖・運休・見学できない季節は並べない（公開中の台帳の実例で）", () => {
