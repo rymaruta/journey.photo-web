@@ -11,7 +11,10 @@ const db = vi.hoisted(() => ({ send: vi.fn() }));
 vi.mock("../dynamodb", () => ({ ddb: db, PHOTOS_TABLE: "photos-test" }));
 
 import { listSigninMethods, removeSigninMethod, methodsDeps, LAST_METHOD_MESSAGE, LAST_METHOD_NO_EMAIL_MESSAGE } from "../signinMethods";
-import { federatedDeps, findLinkableEmailUser, linkOrCreate, consumeTicket, UnlinkedProviderError, type FederatedIdentity } from "../federatedAccount";
+import {
+    federatedDeps, findLinkableEmailUser, linkOrCreate, consumeTicket, linkedFields, revokeLinkedTokens, unlinkAfterDelete,
+    UnlinkedProviderError, type FederatedIdentity,
+} from "../federatedAccount";
 import { linkNoticeHandler, linkNoticeEmail, noticeDeps, fromHeader, SIGNIN_METHODS_URL } from "../federatedNotice";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -64,7 +67,7 @@ beforeEach(() => {
 });
 
 describe("GET /user/signin-methods", () => {
-    it("メールで作った人: メールは入れる、つながっている Apple は外せる、Google はつながっていない", async () => {
+    it("メールで作った人: メールは入れる、連携している Apple は解除できる、Google は連携していない", async () => {
         seed({ appleSub: "001.apple" }, { "apple#001.apple": appleRow() });
         const r = await call(listSigninMethods, ev());
         expect(r.statusCode).toBe(200);
@@ -74,14 +77,14 @@ describe("GET /user/signin-methods", () => {
         expect(method(r, "google")).toEqual({ id: "google", linked: false, removable: false });
     });
 
-    it("🔴 Apple で新しく作った人（パスワードを知らない）: メールでは入れず、Apple は最後の1つなので外せない（理由つき）", async () => {
+    it("🔴 Apple で新しく作った人（パスワードを知らない）: メールでは入れず、Apple は最後の1つなので解除できない（理由つき）", async () => {
         seed({ appleSub: "001.apple", federatedSignup: "apple" }, { "apple#001.apple": appleRow({ linkedBy: "new" }) });
         const r = await call(listSigninMethods, ev());
         expect(method(r, "email").linked).toBe(false);
         expect(method(r, "apple")).toEqual({ id: "apple", linked: true, removable: false, blockedReason: LAST_METHOD_MESSAGE });
     });
 
-    it("Apple で作った人でも、パスワードを決め直していればメールで入れるので外せる", async () => {
+    it("Apple で作った人でも、パスワードを決め直していればメールで入れるので解除できる", async () => {
         seed({ appleSub: "001.apple", federatedSignup: "apple" }, { "apple#001.apple": appleRow({ linkedBy: "new" }) }, true);
         const r = await call(listSigninMethods, ev());
         expect(method(r, "email").linked).toBe(true);
@@ -163,7 +166,7 @@ describe("DELETE /user/signin-methods/{provider}", () => {
         expect(JSON.stringify([...users.table])).toBe(before);
     });
 
-    it("Apple で作った人が Google もつないでいれば Apple は外せる。外すと作った印をプロフィールに残し、次の Google は外せない", async () => {
+    it("Apple で作った人が Google も連携していれば Apple は解除できる。解除すると作った印をプロフィールに残し、次の Google は解除できない", async () => {
         seed({ appleSub: "001.apple", googleSub: "g-1" }, { "apple#001.apple": appleRow({ linkedBy: "new" }), "google#g-1": googleRow() });
         expect((await call(removeSigninMethod, ev("apple"))).statusCode).toBe(200);
         expect(users.table.get(ME)!.federatedSignup).toBe("apple");
@@ -216,6 +219,25 @@ describe("DELETE /user/signin-methods/{provider}", () => {
             expect(kept).not.toHaveProperty("ticketHash");
             expect(users.table.get(ME)).not.toHaveProperty("appleSub");
         }
+    });
+
+    it("🔴 残した行の番号をプロフィールに控え、退会の取り消しと掃除がその行も扱う", async () => {
+        seed({ appleSub: "001.apple" }, { "apple#001.apple": appleRow() });
+        revokeResult = "rejected";
+        expect((await call(removeSigninMethod, ev("apple"))).statusCode).toBe(200);
+        const profile = users.table.get(ME)!;
+        expect(profile.appleUnlinkedSub).toBe("001.apple");
+        // 退会（account.ts と同じ順: 墓石に写す → 取り消す → 墓石 → 掃除）
+        const fields = linkedFields(profile);
+        expect(fields).toEqual({ appleUnlinkedSub: "001.apple" });
+        revokeResult = "revoked";
+        revoked = [];
+        expect(await revokeLinkedTokens(ME, fields, methodsDeps.revokers)).toBe(true);
+        expect(revoked).toEqual(["r.apple"]);
+        users.table.set(ME, { userId: ME, deletedAt: "2026-11-24T00:00:00Z", ...fields });
+        await unlinkAfterDelete(ME, fields, 123);
+        expect(users.table.has("apple#001.apple")).toBe(false);
+        expect(users.table.get(ME)).not.toHaveProperty("appleUnlinkedSub");
     });
 
     it("🔴 解除して残した行では入れない。解除の前に出した券も通さない", async () => {
@@ -277,9 +299,11 @@ describe("DELETE /user/signin-methods/{provider}", () => {
 describe("🔴 解除した後に、もう一度その提供元で入る（2026-11-23 確かめ役の指摘: 黙って空の別アカウントを作らない）", () => {
     let created: string[] = [];
     let aliasExists = false;
+    let ownerGone = false;
     beforeEach(() => {
         created = [];
         aliasExists = false;
+        ownerGone = false;
         const base = federatedDeps.idp.send;
         federatedDeps.idp = {
             send: async (c: any) => {
@@ -290,6 +314,7 @@ describe("🔴 解除した後に、もう一度その提供元で入る（2026-
                     return { User: { Attributes: [{ Name: "sub", Value: "sub-new" }] } };
                 }
                 if (name === "AdminListGroupsForUserCommand") return { Groups: [] };
+                if (name === "AdminGetUserCommand" && ownerGone) throw Object.assign(new Error("n"), { name: "UserNotFoundException" });
                 return base(c);
             },
         };
@@ -317,6 +342,32 @@ describe("🔴 解除した後に、もう一度その提供元で入る（2026-
         expect(created).toHaveLength(1);   // メール付きの1回目だけ。メール無しの2回目は作らない
     });
 
+    it("🔴 解除して残した行でも、持ち主が退会していれば（Cognito に居ない・プロフィールが墓石）消して作り直す", async () => {
+        // Cognito に居ない
+        seed({}, { "apple#001.apple": appleRow({ unlinkedAt: "2026-11-23T00:00:00Z" }) });
+        users.table.delete(ME);
+        ownerGone = true;
+        await expect(linkOrCreate(identity({ sub: "001.apple", email: undefined, emailVerified: false }), undefined))
+            .resolves.toMatchObject({ via: "new", sub: "sub-new" });
+        expect(users.table.get("apple#001.apple")).toMatchObject({ cognitoSub: "sub-new" });
+        expect(users.table.get("apple#001.apple")).not.toHaveProperty("unlinkedAt");
+
+        // Cognito にはまだ居るが、プロフィールが墓石（退会の途中で Cognito を消せなかった）
+        users = fakeUsersTable();
+        db.send.mockReset().mockImplementation(users.send);
+        ownerGone = false;
+        created = [];
+        seed({ deletedAt: "2026-11-23T01:00:00Z" }, { "apple#001.apple": appleRow({ unlinkedAt: "2026-11-23T00:00:00Z" }) });
+        await expect(linkOrCreate(identity({ sub: "001.apple", email: undefined, emailVerified: false }), undefined))
+            .resolves.toMatchObject({ via: "new" });
+        expect(created).toHaveLength(1);
+    });
+
+    it("🔴 同じメールの持ち主が退会済み（墓石）なら、解除の印があっても断らない", async () => {
+        seed({ deletedAt: "2026-11-23T01:00:00Z", appleUnlinkedAt: "2026-11-23T00:00:00Z" });
+        await expect(linkOrCreate(identity({ sub: "004.apple" }), undefined)).resolves.toMatchObject({ via: "new" });
+    });
+
     it("解除していない提供元・別のメールなら今までどおり", async () => {
         seed({ appleUnlinkedAt: "2026-11-23T00:00:00Z" });
         await expect(linkOrCreate(identity({ provider: "google", sub: "g-2" }), undefined)).resolves.toMatchObject({ via: "email" });
@@ -336,7 +387,7 @@ describe("メールでの知らせ（SES・2026-11-23 owner）", () => {
         noticeDeps.from = () => "no-reply@journey-photo.com";
     });
 
-    it("題は短く、本文は「こちらから外せます」とリンク1つ。差出人は journey.photo。HTML とテキストの両方", async () => {
+    it("題は短く、本文は「こちらから連携を解除できます」とリンク1つ。差出人は journey.photo。HTML とテキストの両方", async () => {
         expect(await linkNoticeHandler({ cognitoSub: ME, provider: "apple" })).toEqual({ sent: 0, emailed: true });
         expect(sent[0].from).toBe("\"journey.photo\" <no-reply@journey-photo.com>");
         expect(sent[0].msg.to).toBe("taro@example.com");

@@ -321,7 +321,8 @@ describe("Apple でサインインの番号（appleSub・札 journey.photo-ios#6
     });
 
     it("Google の番号・外した印・外のアカウントで作った印（「サインインの方法」・2026-11-23）も出さない", async () => {
-        const marks = { googleSub: "g-999", appleUnlinkedAt: "2026-11-23T00:00:00Z", googleUnlinkedAt: "2026-11-23T00:00:01Z", federatedSignup: "apple" };
+        const marks = { googleSub: "g-999", appleUnlinkedAt: "2026-11-23T00:00:00Z", googleUnlinkedAt: "2026-11-23T00:00:01Z", federatedSignup: "apple",
+            appleUnlinkedSub: "001.apple", googleUnlinkedSub: "g-1" };
         mockSend.mockResolvedValueOnce(stored(marks));
         const mine = JSON.parse((await getMine()).body);
         const pub = toPublicProfile({ userId: "u1", ...marks } as never);

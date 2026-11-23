@@ -43,6 +43,11 @@ export const subField = (provider: Provider) => `${provider}Sub` as const;
  */
 export const unlinkedField = (provider: Provider) => `${provider}UnlinkedAt` as const;
 /**
+ * プロフィールの行の「解除したが、取り消しが済まずに残した結び付けの行」の番号（`appleUnlinkedSub`）。
+ * 2026-11-23 確かめ役の指摘: 残した行を退会の取り消しと掃除が見つけられるよう、プロフィールに控える（`cleanupSubs`）
+ */
+export const unlinkedSubField = (provider: Provider) => `${provider}UnlinkedSub` as const;
+/**
  * プロフィールの行の「外のアカウントで新しく作った人」の印（`federatedSignup: "apple"`）。
  * この人はメールのパスワードを知らない（本人も知らない乱数・`createCognitoUser`）。「サインインの方法」で最後の1つを
  * 外させないために見る（`signinMethods.ts`）。パスワードを設定し直したら `passwordKey` の行ができる
@@ -237,6 +242,14 @@ export async function emailOwnerUnlinked(provider: Provider, email: string): Pro
     return false;
 }
 
+/** 結び付けの行の持ち主が生きているか（Cognito に居て、プロフィールが墓石でない） */
+async function ownerAlive(row: FederatedRow): Promise<boolean> {
+    if (!row.cognitoUsername || !row.cognitoSub) return false;
+    if (!(await cognitoUserExists(row.cognitoUsername))) return false;
+    const profile = await getRow<Record<string, unknown>>(row.cognitoSub);
+    return !(profile && profile.deletedAt !== undefined);
+}
+
 async function cognitoUserExists(username: string): Promise<boolean> {
     try {
         await federatedDeps.idp.send(new AdminGetUserCommand({ UserPoolId: federatedDeps.poolId(), Username: username }));
@@ -366,9 +379,18 @@ export type LinkResult = { username: string; sub: string; via: "known" | "email"
  */
 export async function linkOrCreate(identity: FederatedIdentity, displayName: string | undefined): Promise<LinkResult> {
     const key = federatedKey(identity.provider, identity.sub);
-    const row = await getRow<FederatedRow>(key);
-    // 🔴 解除して行だけ残した ID（取り消しが済まなかった）では入れない
-    if (row?.unlinkedAt !== undefined) throw new UnlinkedProviderError(identity.provider);
+    let row = await getRow<FederatedRow>(key);
+    // 🔴 解除して行だけ残した ID（取り消しが済まなかった）では入れない。ただし断るのは**持ち主が生きているときだけ**
+    //    （Cognito に居て、プロフィールが墓石でない）。持ち主が退会していれば、消えた利用者を指す古い行として消し、
+    //    新しく作り直す（2026-11-23 確かめ役の指摘: 退会した後も同じ Apple ID で二度と入れない、を作らない。users 表の TTL は無効・#295）
+    if (row?.unlinkedAt !== undefined) {
+        if (await ownerAlive(row)) throw new UnlinkedProviderError(identity.provider);
+        await ddb.send(new DeleteCommand({
+            TableName: USERS_TABLE, Key: { userId: key },
+            ConditionExpression: "attribute_exists(unlinkedAt)",
+        })).catch((e) => { if (errName(e) !== "ConditionalCheckFailedException") throw e; });
+        row = undefined;
+    }
     if (row?.cognitoUsername && row.cognitoSub) {
         if (await cognitoUserExists(row.cognitoUsername)) {
             // 前の回で、結び付けの行を書いたあとプロフィールの書き込みが落ちていても、ここで直す
@@ -535,9 +557,22 @@ export function linkedSubs(profile: ProfileLike): { provider: Provider; sub: str
     });
 }
 
-/** プロフィールの結び付けの欄だけ（`{ appleSub: "…" }`）。墓石に写す */
+/**
+ * 退会で取り消しと掃除をする行（結び付けている行と、解除したが取り消しが済まずに残した行・`unlinkedSubField`）。
+ * `field` はプロフィール（墓石）のどの欄に番号があるか
+ */
+export function cleanupSubs(profile: ProfileLike): { provider: Provider; sub: string; field: string }[] {
+    const linked = linkedSubs(profile).map(({ provider, sub }) => ({ provider, sub, field: subField(provider) as string }));
+    const kept = PROVIDERS.flatMap((provider) => {
+        const sub = profile?.[unlinkedSubField(provider)];
+        return typeof sub === "string" && sub ? [{ provider, sub, field: unlinkedSubField(provider) as string }] : [];
+    });
+    return [...linked, ...kept];
+}
+
+/** プロフィールの結び付けの欄だけ（`{ appleSub: "…", appleUnlinkedSub: "…" }`）。墓石に写す */
 export function linkedFields(profile: ProfileLike): Record<string, string> {
-    return Object.fromEntries(linkedSubs(profile).map(({ provider, sub }) => [subField(provider), sub]));
+    return Object.fromEntries(cleanupSubs(profile).map(({ field, sub }) => [field, sub]));
 }
 
 /**
@@ -555,7 +590,7 @@ export function linkedFields(profile: ProfileLike): Record<string, string> {
 export async function revokeLinkedTokens(
     uid: string, profile: ProfileLike, revokers: Partial<Record<Provider, Revoker>>,
 ): Promise<boolean> {
-    for (const { provider, sub } of linkedSubs(profile)) {
+    for (const { provider, sub } of cleanupSubs(profile)) {
         const row = await readFederatedRow(provider, sub);
         // 🔴 行が呼んだ本人のものでなければ触らない
         if (!row || row.cognitoSub !== uid || typeof row.refreshToken !== "string") continue;
@@ -584,7 +619,7 @@ export async function revokeLinkedTokens(
  * **投げない**（墓石の後なので退会は止めない。行が残っても、`linkOrCreate` は消えた利用者を指す行を作り直す）
  */
 export async function unlinkAfterDelete(uid: string, profile: ProfileLike, ttl: number): Promise<void> {
-    for (const { provider, sub } of linkedSubs(profile)) {
+    for (const { provider, sub, field } of cleanupSubs(profile)) {
         try {
             const key = federatedKey(provider, sub);
             const row = await readFederatedRow(provider, sub);
@@ -610,7 +645,7 @@ export async function unlinkAfterDelete(uid: string, profile: ProfileLike, ttl: 
                 TableName: USERS_TABLE, Key: { userId: uid },
                 UpdateExpression: "REMOVE #f",
                 ConditionExpression: "attribute_exists(deletedAt) AND #f = :s",
-                ExpressionAttributeNames: { "#f": subField(provider) },
+                ExpressionAttributeNames: { "#f": field },
                 ExpressionAttributeValues: { ":s": sub },
             }));
         } catch (e) {

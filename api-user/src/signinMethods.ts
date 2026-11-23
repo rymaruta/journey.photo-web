@@ -25,7 +25,7 @@ import { getUserId, jsonError, JSON_HEADERS } from "./http";
 import { isUserId } from "./userId";
 import { assertLiveCaller } from "./liveCaller";
 import {
-    federatedDeps, federatedKey, filterValue, isProvider, linkedSubs, passwordKey, readFederatedRow, subField, unlinkedField,
+    federatedDeps, federatedKey, filterValue, isProvider, linkedSubs, passwordKey, readFederatedRow, subField, unlinkedField, unlinkedSubField,
     FEDERATED_SIGNUP_FIELD, PROVIDERS, type FederatedRow, type Provider, type Revoker,
 } from "./federatedAccount";
 import { appleRevokeViaStack } from "./federatedRevokeClient";
@@ -100,6 +100,8 @@ async function loadState(uid: string): Promise<State | null> {
         const row = await readFederatedRow(provider, sub);
         // 🔴 行が別の人を指していれば、この人のつながりとして数えない
         if (row && row.cognitoSub !== undefined && row.cognitoSub !== uid) continue;
+        // 本番は Apple・Google のサインインをまだ有効にしていない（`APPLE_SIGNIN_ENABLED` が false・2026-11-23）ので、
+        // 行の無い・`linkedBy` の無い連携は本番には無い見込み（本番の DB は読んでいない）。それでも守りとして残す。
         // 🔴 2026-11-23 確かめ役の指摘: 結び付けの行が無い・どう結んだか（`linkedBy`）が無い連携は、どちらで作った人か
         //    分からない。安全側に倒して「外の提供元で作った人」と扱い、パスワードを決めた印を求める
         //    （メールで作った人を間違えて止めても解除が断られるだけ。逆に間違えると、最後の入り方を外して戻れなくなる）
@@ -224,6 +226,14 @@ export const removeSigninMethod: APIGatewayProxyHandlerV2WithJWTAuthorizer = asy
                     ":at": new Date(now).toISOString(), ":uid": uid,
                     ":ttl": Math.floor(now / 1000) + UNLINKED_ROW_KEEP_DAYS * 24 * 60 * 60,
                 },
+            })).catch((e) => { if (errName(e) !== "ConditionalCheckFailedException") throw e; });
+            // 残した行の番号をプロフィールに控える。退会のときに取り消しと掃除がこの行も扱う（`cleanupSubs`）
+            await ddb.send(new UpdateCommand({
+                TableName: USERS_TABLE, Key: { userId: uid },
+                UpdateExpression: "SET #k = :s",
+                ConditionExpression: "attribute_not_exists(deletedAt)",
+                ExpressionAttributeNames: { "#k": unlinkedSubField(provider) },
+                ExpressionAttributeValues: { ":s": target.sub },
             })).catch((e) => { if (errName(e) !== "ConditionalCheckFailedException") throw e; });
         } else {
             await ddb.send(new DeleteCommand({
