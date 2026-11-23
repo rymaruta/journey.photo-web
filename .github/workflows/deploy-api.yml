@@ -342,6 +342,13 @@ jobs:
     if: ${{ needs.config.outputs.deployUser == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    env:
+      # 🔴 **「Apple でサインイン」の鍵の置き場を決めるのはここ1か所**（札 journey.photo-ios#601・2026-11-23 確かめ役の指摘）。
+      #   ssm … SSM パラメータストアの SecureString `/journey-photo/<環境>/apple-signin/private-key` を実行時に読む（本線）。
+      #         関数の環境変数に鍵を置かない。owner が SecureString を作るまで、ボタンは出ない（status が false）
+      #   env … Secrets の `APNS_PRIVATE_KEY` を関数の環境変数に入れる（SSM を作るまでのつなぎに使うとき）
+      # 鍵を読むのは Apple のスタック（サインイン・取り消し）だけ。退会（user API）は取り消しをそのスタックに頼むので、どちらでも変わらない
+      APPLE_SIGNIN_KEY_SOURCE: ssm
     steps:
       - uses: actions/checkout@v4
 
@@ -376,6 +383,82 @@ jobs:
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "siteBucket=${{ needs.config.outputs.siteBucket }}"
 
+      # 「Apple でサインイン」の口と Cognito のトリガー（札 journey.photo-ios#601・`api-user/serverless.apple-signin.yml`）は**別のスタック**。
+      # 🔴 **リポジトリの変数 `APPLE_SIGNIN_ENABLED` が `true` のときだけ配る（既定は配らない）。** このスタックは
+      #    Cognito のプールにトリガー3つを付ける（本番のログイン全体に関わる・owner の承認が要る変更）。
+      #    鍵（APNs の鍵に Sign in with Apple を足したもの・2026-11-23 owner）はもうあるので、鍵の有無では決めない。
+      #    owner の OK のあとに変数を true にする（手順は iOS の `docs/APPLE_SIGNIN.md`。`ALLOW_CUSTOM_AUTH` の手順もそこ）。
+      #    配らない環境のアプリはボタンを出さない（`GET /auth/apple/status` が無い＝404）。
+      # 🔴 **user API より先に配る。** user API の段は経路 `POST /auth/apple` に流量の設定を付ける（`appleSigninEnabled`）ので、
+      #    経路が先に要る（みんなの「行きたい」と同じ）。このスタックは user API が書き出す HttpApiId を取り込むので、
+      #    user API のスタックは前から在ること
+      # 宛先（Bundle ID）は APNs の topic と同じ値。staging の App ID は無い（staging の束はシミュレーターだけ）
+      - name: Serverless deploy（Apple でサインイン・別スタック）
+        if: ${{ vars.APPLE_SIGNIN_ENABLED == 'true' }}
+        working-directory: api-user
+        env:
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+          APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
+          APNS_TEAM_ID: ${{ needs.config.outputs.apnsTeamId }}
+          APNS_TOPIC: ${{ needs.config.outputs.apnsTopic }}
+          APNS_HOST: ${{ needs.config.outputs.apnsHost }}
+          # メールで知らせる（SES・2026-11-23 owner）。🔴 リポジトリの変数 `SIGNIN_EMAIL_ENABLED` が true のときだけ、
+          # SES の資格（ドメイン・DKIM）と送る権限を作り、メールを送る（既定は送らない）。送り元は `SIGNIN_EMAIL_FROM`（無ければ no-reply@journey-photo.com）。
+          # 準備（DNS の DKIM・送れる宛先の制限を外す申請）は iOS の `docs/APPLE_SIGNIN.md`
+          SIGNIN_EMAIL_ENABLED: ${{ vars.SIGNIN_EMAIL_ENABLED }}
+          SIGNIN_EMAIL_FROM: ${{ vars.SIGNIN_EMAIL_FROM }}
+        run: |
+          set -euo pipefail
+          extra=()
+          ready=false
+          if [ "${SIGNIN_EMAIL_ENABLED:-}" = "true" ]; then
+            from="${SIGNIN_EMAIL_FROM:-no-reply@journey-photo.com}"
+            extra+=(--param "signinEmailEnabled=true" --param "signinEmailFrom=$from" --param "signinEmailDomain=${from#*@}")
+          fi
+          # 鍵の置き場は、このジョブの `APPLE_SIGNIN_KEY_SOURCE`（1か所）で決まる
+          if [ "$APPLE_SIGNIN_KEY_SOURCE" = "ssm" ]; then
+            extra+=(--param "appleSigninKeyParam=/journey-photo/${{ needs.config.outputs.envName }}/apple-signin/private-key")
+          elif [ "$APPLE_SIGNIN_KEY_SOURCE" = "env" ] && [ -n "${APNS_PRIVATE_KEY:-}" ]; then
+            # 改行のまま渡すと1行目しか届かない（札 journey.photo-ios#585）。`\n` にして渡し、`appleIdToken.ts` が戻す
+            apns_key="$(bash ../scripts/apns-key-param.sh)"
+            # 🔴 1行にした値は Secrets の元の値と形が違い、Actions が自動で伏せない。ログに出ないよう伏せる
+            echo "::add-mask::$apns_key"
+            extra+=(--param "apnsPrivateKey=$apns_key")
+            ready=true
+          fi
+          echo "Apple でサインイン: 鍵の置き場 $APPLE_SIGNIN_KEY_SOURCE（環境変数の鍵 $([ "$ready" = true ] && echo 'あり' || echo 'なし')）"
+          npx serverless@3 deploy --config serverless.apple-signin.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
+            --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
+            --param "cognitoPoolName=${{ needs.config.outputs.cognitoPoolName }}" \
+            --param "appleSigninClientId=$APNS_TOPIC" \
+            --param "appleSigninReady=$ready" \
+            --param "apnsKeyId=$APNS_KEY_ID" \
+            --param "apnsTeamId=$APNS_TEAM_ID" \
+            --param "apnsTopic=$APNS_TOPIC" \
+            --param "apnsHost=$APNS_HOST" \
+            ${extra[@]+"${extra[@]}"}
+
+      # 「Google でログイン」の口（札 journey.photo-ios#715・`api-user/serverless.google-signin.yml`）も**別のスタック**。
+      # 🔴 **`GOOGLE_SIGNIN_ENABLED` と `APPLE_SIGNIN_ENABLED` の両方が true のときだけ配る（既定は配らない）。**
+      #    CUSTOM_AUTH のトリガーは Apple のスタックだけにあり（プールを書き換えるのはあちらだけ）、審査指針 4.8 でも
+      #    Google を置くなら Apple でサインインも置く。user API の段が `POST /auth/google` に流量の設定を付けるので、user API より先に配る
+      # 宛先は iOS の OAuth クライアント ID（公開の値・owner が 2026-11-23 に作った・札 #715 のコメント）
+      - name: Serverless deploy（Google でログイン・別スタック）
+        if: ${{ vars.GOOGLE_SIGNIN_ENABLED == 'true' && vars.APPLE_SIGNIN_ENABLED == 'true' }}
+        working-directory: api-user
+        env:
+          GOOGLE_SIGNIN_CLIENT_ID: 280167931666-24o92d38usbft3ouk3jc4dk8tvgh3t8p.apps.googleusercontent.com
+        # 🔴 鍵は渡さない（Google の口は鍵を持たない。メールで結んだときの知らせは Apple のスタックの `linkNotice` に頼む）
+        run: |
+          set -euo pipefail
+          npx serverless@3 deploy --config serverless.google-signin.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
+            --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
+            --param "googleSigninClientId=$GOOGLE_SIGNIN_CLIENT_ID"
+
       - name: Serverless deploy
         working-directory: api-user
         env:
@@ -408,9 +491,14 @@ jobs:
           # 意見箱のログインしていない口の、IP の目印を作る鍵（HMAC・札 journey.photo-ios#546）。
           # **未登録でも何も壊れない**——空なら旗ごと渡さず、鍵なしの目印に落ちる（`feedback.ts` の `ipBucket`）
           FEEDBACK_IP_KEY: ${{ secrets.FEEDBACK_IP_KEY }}
+          # 「Apple でサインイン」「Google でログイン」のスタックを配る環境か（上の段）。true なら段の流量の設定に経路を足す
+          APPLE_SIGNIN_ENABLED: ${{ vars.APPLE_SIGNIN_ENABLED }}
+          GOOGLE_SIGNIN_ENABLED: ${{ vars.GOOGLE_SIGNIN_ENABLED }}
         run: |
           set -euo pipefail
           extra=()
+          if [ "${APPLE_SIGNIN_ENABLED:-}" = "true" ]; then extra+=(--param "appleSigninEnabled=true"); fi
+          if [ "${GOOGLE_SIGNIN_ENABLED:-}" = "true" ]; then extra+=(--param "googleSigninEnabled=true"); fi
           if [ -n "$REBUILD_REPO" ]; then extra+=(--param "rebuildRepo=$REBUILD_REPO"); fi
           if [ -n "$REBUILD_TOKEN" ]; then extra+=(--param "rebuildToken=$REBUILD_TOKEN"); fi
           if [ -n "${REBUILD_MONTHLY_MAX:-}" ]; then extra+=(--param "rebuildMonthlyMax=$REBUILD_MONTHLY_MAX"); fi
@@ -543,3 +631,4 @@ jobs:
           npx serverless@3 deploy --config serverless.profile-qr.yml --stage ${{ needs.config.outputs.envName }} \
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "usersTable=${{ needs.config.outputs.usersTable }}"
+

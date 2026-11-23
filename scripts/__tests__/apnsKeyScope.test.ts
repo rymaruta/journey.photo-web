@@ -89,7 +89,26 @@ const sendsPush = (handler: string) =>
     /\b(?:pushNotification|refreshBadges|refreshBadgesQuietly|applyToProfile|alertOne|notifyInspiredOnce|sendDm)\s*\(/.test(handlerBody("api-user", handler))
     // 旅行プランの共有（`tripShare.ts`）は口が9つでも関数は1つ（`handler` が道で分ける）。知らせは中の `notify` が
     // `sendPush` で直に送るので、`handler` の本文には出てこない。別のスタックまで見張りを広げたとき（#552）に足した
-    || (handler === "src/tripShare.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/tripShare.ts"), "utf8")));
+    || (handler === "src/tripShare.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/tripShare.ts"), "utf8")))
+    // 「Apple でサインイン」「Google でログイン」（札 journey.photo-ios#601・#715）: メールで自動で結んだときの知らせは、
+    // 知らせだけの関数（`federatedNotice.ts` の `linkNoticeHandler`）が `sendPush` で送る（サインインの口は鍵を持たない）
+    || (handler === "src/federatedNotice.linkNoticeHandler"
+        && /\bsendPush\b/.test(readFileSync(resolve(ROOT, "api-user/src/federatedNotice.ts"), "utf8")));
+
+/**
+ * 通知は送らないが、**同じ鍵で Apple の client secret を作る**関数（2026-11-23 owner: 新しい鍵は作らず、APNs の鍵に
+ * Sign in with Apple を足した・札 journey.photo-ios#601）。「Apple でサインイン」のスタックの中だけ。
+ * - `appleSigninStart`: サインインの口（認可コードの交換）。鍵・Key ID・Team ID の3つ
+ * - `appleRevoke`: 退会の取り消し。鍵・Key ID・Team ID の3つ（送り先の topic・host は要らない）
+ * - `appleSigninStatus`: 鍵を SSM から読めるかを見るだけ。Key ID・Team ID（秘密ではない）だけで、鍵は持たない
+ */
+const APPLE_KEY_HOLDERS: Record<string, { handler: string; vars: string[] }> = {
+    // サインインの口: 認可コードの交換で Apple の client secret を作る（知らせは送らない）
+    appleSigninStart: { handler: "src/appleSignin.startAppleSignin", vars: ["APNS_KEY_ID", "APNS_PRIVATE_KEY", "APNS_TEAM_ID"] },
+    appleRevoke: { handler: "src/appleSignin.revokeTokenHandler", vars: ["APNS_KEY_ID", "APNS_PRIVATE_KEY", "APNS_TEAM_ID"] },
+    appleSigninStatus: { handler: "src/appleSignin.getAppleSigninStatus", vars: ["APNS_KEY_ID", "APNS_TEAM_ID"] },
+};
+const appleHolder = (name: string, handler: string) => APPLE_KEY_HOLDERS[name]?.handler === handler;
 // `notifyInspiredOnce` は「この写真を見て撮影」の知らせ（`inspired.ts`）。写真の保存・更新が呼ぶ
 // `sendDm` は DM の送信（`dm.ts`。受け取った人の端末へ送る。リクエストには送らない）。
 // `alertOne` は光と天気の知らせ（`lightForecast.ts` の `sendLightAlerts`）。お知らせの一覧には
@@ -144,16 +163,24 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
 
     it("鍵を持つ関数は、通知を積むものだけ", () => {
         const extra = [...fns]
-            .filter(([, v]) => v.vars.includes(KEY) && !sendsPush(v.handler))
+            .filter(([n, v]) => v.vars.includes(KEY) && !sendsPush(v.handler) && !appleHolder(n, v.handler))
             .map(([n]) => n);
         expect(extra, "送らない関数に秘密鍵を配っている").toEqual([]);
+    });
+
+    it("Apple の鍵を使う関数は、決めた変数だけを持つ（鍵を持つのは取り消しの関数だけ）", () => {
+        for (const [name, want] of Object.entries(APPLE_KEY_HOLDERS)) {
+            const fn = fns.get(name);
+            expect(fn?.handler, name).toBe(want.handler);
+            expect([...fn!.vars].sort(), name).toEqual(want.vars);
+        }
     });
 
     // 走査が空振りしていないことの自己確認（0件どうしの一致で緑にならない）
     it("通知を積む関数を1つ以上見つけている", () => {
         const sending = [...fns].filter(([, v]) => sendsPush(v.handler)).map(([n]) => n).sort();
         expect(sending).toEqual([
-            "answerStory", "appStoreNotification", "createStory", "dm", "followUser", "getMyBadges", "likePhoto", "postComment", "postStoryReply",
+            "answerStory", "appStoreNotification", "createStory", "dm", "followUser", "getMyBadges", "likePhoto", "linkNotice", "postComment", "postStoryReply",
             "recordPurchase", "savePhoto", "sendLightAlerts", "tripShare", "updatePhotoVisibility",
         ]);
     });
@@ -163,7 +190,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
     // `apnsConfigured()` が false）
     it("鍵を配る関数には、5つ全部を配る", () => {
         const partial = [...fns]
-            .filter(([, v]) => v.vars.length > 0 && v.vars.length < ALL_VARS.length)
+            .filter(([n, v]) => v.vars.length > 0 && v.vars.length < ALL_VARS.length && !appleHolder(n, v.handler))
             .map(([n, v]) => `${n}: ${ALL_VARS.filter((x) => !v.vars.includes(x)).join(",")} が無い`);
         expect(partial).toEqual([]);
     });

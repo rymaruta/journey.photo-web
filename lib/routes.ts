@@ -110,6 +110,8 @@ export const ROUTES = {
     SWIPE: "/swipe",
     PRIVACY: "/privacy",
     TERMS: "/terms",
+    /** 「サインインの方法」の案内（Apple・Google の連携を知らせるメールのリンクの行き先・札 journey.photo-ios#601） */
+    SIGNIN_METHODS: "/signin-methods",
     /**
      * 使い方（2026-11-12・札 journey.photo-ios#517）。目次と、機能ごとの短い頁（台帳は `lib/data/helpPages.ts`）。
      * iOS の入口は 設定 → ヘルプと規約 → 使い方 の1か所だけ（`HELP` を開く）
