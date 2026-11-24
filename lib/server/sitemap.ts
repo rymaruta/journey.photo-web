@@ -16,6 +16,7 @@ import { ROUTES } from "../routes";
 import { LEARN_ARTICLES } from "../data/learn/articles";
 import { HELP_PAGES, HELP_LAST_MODIFIED } from "../data/helpPages";
 import { PREFECTURES } from "../data/prefectures";
+import { foodAreas, isFoodIndexable } from "../data/localFood";
 
 /**
  * 2026-11-09: サイトマップを**種類別に分けた**（`/sitemap.xml` は束ねる索引、各種類は `/sitemap-<種類>.xml`）。
@@ -58,7 +59,7 @@ export type SitemapKind = (typeof SITEMAP_KINDS)[number];
 /** 種類の説明（索引・テスト・運用メモ用） */
 export const SITEMAP_KIND_LABEL: Record<SitemapKind, string> = {
     spots: "スポット詳細（/spots/<slug>）",
-    areas: "県別・エリア・市・国の一覧（/spots と /spots/area・/spots/city）",
+    areas: "県別・エリア・市・国の一覧（/spots と /spots/area・/spots/city）と県の郷土料理（/food）",
     hubs: "テーマ・季節・紅葉/桜/雪景色のハブ（/spots/theme・season・momiji・sakura・snow）",
     today: "今日の日の出・日の入り（/today と47県）",
     learn: "写真とカメラの教科書・構図ガイド",
@@ -264,7 +265,16 @@ export async function sitemapGroups(): Promise<Record<SitemapKind, MetadataRoute
 
     return {
         spots: spotUrls,
-        areas: [...spotIndexUrls, ...spotAreaUrls, ...topicUrls.filter((e) => isAreaLike(e.url, baseUrl))],
+        areas: [
+            ...spotIndexUrls, ...spotAreaUrls, ...topicUrls.filter((e) => isAreaLike(e.url, baseUrl)),
+            // 郷土料理とお土産（2026-11-23・`/food/<県>`）。検索に出す県だけ・日付は確かめた日
+            ...foodAreas().filter(isFoodIndexable).map((a) => ({
+                url: `${baseUrl}${ROUTES.FOOD(a.area)}`,
+                ...lm(a.aiCheck?.checkedAt),
+                changeFrequency: "monthly" as const,
+                priority: 0.5,
+            })),
+        ],
         hubs: topicUrls.filter((e) => !isAreaLike(e.url, baseUrl)),
         today: todayUrls,
         learn: [
