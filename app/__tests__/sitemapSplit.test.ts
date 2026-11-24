@@ -13,6 +13,7 @@ import { spotTopicSitemapEntries } from "../../lib/data/spotTopics";
 import { PREFECTURES } from "../../lib/data/prefectures";
 import { HELP_PAGES } from "../../lib/data/helpPages";
 import { LEARN_ARTICLES } from "../../lib/data/learn/articles";
+import { foodAreas, isFoodIndexable } from "../../lib/data/localFood";
 import type { Photo } from "../../lib/data/photos";
 
 /**
@@ -64,7 +65,8 @@ describe("サイトマップを種類別に分ける", () => {
             spotTopicSitemapEntries(base).length +
             1 + LEARN_ARTICLES.filter((a) => a.modified).length + 1 /* 教科書の一覧 と 構図ガイド */ +
             1 + PREFECTURES.length /* 今日の日の出 */ +
-            1 + HELP_PAGES.length /* 使い方の目次と各頁（2026-11-12） */;
+            1 + HELP_PAGES.length /* 使い方の目次と各頁（2026-11-12） */ +
+            foodAreas().filter(isFoodIndexable).length /* 県の郷土料理（2026-11-23・/food/<県>） */;
         expect(urls.length).toBe(expected);
     }, T);
 
@@ -72,7 +74,7 @@ describe("サイトマップを種類別に分ける", () => {
         const g = await sitemapGroups();
         const path = (u: string) => u.slice(base.length);
         const isSpotDetail = (p: string) => /^\/spots\/[^/]+$/.test(p);
-        const isIndexOrArea = (p: string) => p === "/spots" || p.startsWith("/spots/area/") || p.startsWith("/spots/city/");
+        const isIndexOrArea = (p: string) => p === "/spots" || p.startsWith("/spots/area/") || p.startsWith("/spots/city/") || p.startsWith("/food/");
         expect(g.spots.map((e) => path(e.url)).every(isSpotDetail), "spots に詳細以外がある").toBe(true);
         expect(g.areas.map((e) => path(e.url)).every(isIndexOrArea), "areas に一覧以外がある").toBe(true);
         expect(g.areas.some((e) => path(e.url) === "/spots"), "/spots が areas に無い").toBe(true);
