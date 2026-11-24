@@ -467,7 +467,8 @@ describe("市区町村の頁（2026-11-05）", () => {
         const t = cityTopics()[0];
         const v = cityView(t.prefSlug, t.city)!;
         expect(v.heading).toBe(`${t.prefName}${t.city}の観光スポット`);
-        expect(topicTitle(v)).toBe(`${v.heading}${v.cards.length}選`);
+        // 2026-11-24（#701）: 題は「〇〇市の写真と観光スポットN選｜名所ほか」（見出しはそのまま）
+        expect(topicTitle(v)).toMatch(new RegExp(`^${t.prefName}${t.city}の(写真と)?観光スポット${v.cards.length}選`));
         expect(v.intro).toContain(`${t.spots.length}件`);
         expect(v.crumbs[0].href).toBe(`/spots/area/${t.prefSlug}`);
         expect(v.cards.map((c) => c.slug).sort()).toEqual(t.spots.map((s) => s.slug).sort());
@@ -499,7 +500,8 @@ describe("季節 × 種類の頁（2026-11-05）", () => {
         const t = seasonThemeTopics()[0];
         const v = seasonThemeView(t.season, t.categorySlug)!;
         expect(v.path).toBe(`/spots/season/${t.season}/theme/${t.categorySlug}`);
-        expect(topicTitle(v)).toMatch(/^[春夏秋冬]の.+の観光スポット\d+選$/);
+        // 2026-11-24（#701）: 「春の寺社の写真と観光スポットN選｜名所ほか」
+        expect(topicTitle(v)).toMatch(/^[春夏秋冬]の.+の(写真と)?観光スポット\d+選(｜.+ほか)?$/);
         const paths = seasonThemeTopics().map((x) => x.season + "/" + x.categorySlug);
         expect(new Set(paths).size).toBe(paths.length);
         expect(seasonThemeView("autumn", "zzz")).toBeNull();
@@ -894,4 +896,39 @@ describe("県とテーマの頁の題に「写真と」（2026-11-23・#701）",
         // 写真のある県が大半（全部が「写真と」無しなら組み方が効いていない）
         expect(withPhoto / areas.length).toBeGreaterThan(0.8);
     }, 60_000);
+});
+
+describe("市区町村・季節×種類・国の頁の検索の題（2026-11-24・#701）", () => {
+    const check = (view: ReturnType<typeof cityView>) => {
+        expect(view).not.toBeNull();
+        const v = view!;
+        const t = topicTitle(v);
+        const meta = topicMetadata(v);
+        // サイト名の template を外した完全な形（県・テーマの頁と同じ）
+        expect(meta.title).toEqual({ absolute: t });
+        expect(titleWidth(t)).toBeLessThanOrEqual(Math.max(THEME_TITLE_MAX, titleWidth(`${v.heading}${v.cards.length}選`)));
+        expect(t).toContain(`${v.cards.length}選`);
+        // 写真のある組は「の写真と観光スポット」、写真の無い組は「写真と」と名乗らない
+        if (v.cards.some((c) => c.cover)) expect(t).toContain("の写真と観光スポット");
+        else expect(t).not.toContain("写真と");
+        // 画面の見出しは「観光スポット」のまま
+        expect(v.heading).toMatch(/の観光スポット$/);
+    };
+    it("市区町村の頁", () => {
+        const all = cityTopics();
+        expect(all.length).toBeGreaterThan(0);
+        for (const t of all) check(cityView(t.prefSlug, t.city));
+    });
+    it("季節 × 種類の頁", () => {
+        const all = seasonThemeTopics();
+        expect(all.length).toBeGreaterThan(0);
+        for (const t of all) check(seasonThemeView(t.season, t.categorySlug));
+    });
+    it("国の頁（検索に出す国だけ題を組む）", () => {
+        for (const t of countryTopics()) {
+            const v = countryView(t.code)!;
+            if (t.spots.length >= MIN_INDEXABLE_COUNTRY) check(v);
+            else expect(v.title).toBeUndefined();
+        }
+    });
 });
