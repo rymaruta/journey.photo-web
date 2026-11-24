@@ -1,0 +1,196 @@
+# グループの DM（2026-11-20・札 journey.photo-ios#582・`src/groups.ts`・`src/groupChat.ts`）の口を、user API とは**別のスタック**で配る。
+# owner 承認（2026-11-12「いいよ」・2026-11-20「いいよ」）。CLAUDE.md「サーバーの口は機能ごとのスタックに足す」（札 #552）。
+#
+# - 口は 11 でも関数は 1 つ（道は `event.routeKey` で分ける・`dm.ts` と同じ形）。部品を増やさない
+# - 知らせ（APNs）も同じ関数から送る。別の Lambda・非同期の呼び出し・SQS は使わない（札 #582 の承認の中身）
+# - 🔴 口の URL は今の user API と同じ。新しい HTTP API は作らず、user API のスタックが書き出す HttpApiId を
+#   取り込んで**経路だけ**このスタックに置く。ログインの確かめは user API が書き出す認可（`CognitoAuthorizerId`）を使う。
+#   環境変数と既定の役の権限は user API と同じもの（下の provider・`scripts/__tests__/splitStacks.test.ts` が突き合わせる）。
+#   写真の札（`readVisiblePhoto`・`photoQuotesFor`）は写真の行を id で読むので、DM と同じ既定の役で動かす。
+#   このスタックを配るのは user API の**直後**（`deploy-api.yml` の `STACKS`）
+# - 🔴 戻すときは `aws cloudformation delete-stack --stack-name photo-gallery-groups-<stage>` で消す
+#   （user API には戻さない。もともと user API に無い口）
+service: photo-gallery-groups
+
+frameworkVersion: '3'
+
+plugins:
+  - serverless-esbuild
+
+provider:
+  name: aws
+  runtime: nodejs22.x
+  region: ap-northeast-1
+  # user API と同じ（`scripts/__tests__/logRetention.test.ts`）
+  logRetentionInDays: 90
+  versionFunctions: false
+  # 🔴 環境変数と既定の役（role を書かない関数）の権限は **user API の provider と同じ**にしてある
+  #    （`scripts/__tests__/splitStacks.test.ts` が user API と突き合わせる）。
+  #    user API の provider を変えたら、ここも同じに直す
+  environment:
+    UPLOAD_BUCKET: ${param:uploadBucket}
+    CLOUDFRONT_URL: ${param:cloudfrontUrl}
+    CLOUDFRONT_DISTRIBUTION_ID: ${param:cloudfrontDistributionId, ''}
+    PHOTOS_TABLE: ${param:photosTable}
+    USERS_TABLE: ${param:usersTable}
+    APPSTORE_ENVIRONMENTS: ${param:appStoreEnvironments, ''}
+  httpApi:
+    id:
+      Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-HttpApiId
+  iam:
+    role:
+      statements:
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+          Resource:
+            - arn:aws:s3:::${param:uploadBucket}/uploads/*
+            - arn:aws:s3:::${param:uploadBucket}/profiles/*
+        - Effect: Allow
+          Action:
+            - dynamodb:PutItem
+            - dynamodb:Query
+            - dynamodb:GetItem
+            - dynamodb:UpdateItem
+            - dynamodb:Scan
+            - dynamodb:DeleteItem
+            - dynamodb:ConditionCheckItem
+            - dynamodb:BatchGetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}/index/*
+        - Effect: Allow
+          Action:
+            - s3:DeleteObject
+          Resource:
+            - arn:aws:s3:::${param:uploadBucket}/uploads/*
+            - arn:aws:s3:::${param:uploadBucket}/profiles/*
+            - arn:aws:s3:::${param:uploadBucket}/private/*
+        - Effect: Allow
+          Action:
+            - s3:GetObject
+          Resource:
+            - arn:aws:s3:::${param:uploadBucket}/uploads/*
+            - arn:aws:s3:::${param:uploadBucket}/private/*
+        - Effect: Allow
+          Action:
+            - s3:PutObject
+          Resource:
+            - arn:aws:s3:::${param:uploadBucket}/private/*
+        - Effect: Allow
+          Action:
+            - cloudfront:CreateInvalidation
+          Resource:
+            - arn:aws:cloudfront::${aws:accountId}:distribution/*
+        - Effect: Allow
+          Action:
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:DeleteItem
+            - dynamodb:Scan
+            - dynamodb:BatchGetItem
+          Resource:
+            - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:usersTable}
+
+custom:
+  esbuild:
+    bundle: true
+    minify: true
+    sourcemap: false
+    target: node22
+    platform: node
+    exclude:
+      - '@aws-sdk/*'
+
+functions:
+  # **11 の口を1つの関数に束ねる**（`groups.handler` が `event.routeKey` で分ける）。**全部認証必要**。
+  # **プッシュの鍵は送る口（送る・人を足す）があるのでこの関数に配る**（provider には置かない・IAM-2）。未設定でも本筋は通る
+  groups:
+    handler: src/groups.handler
+    environment:
+      APNS_KEY_ID: ${param:apnsKeyId, ''}
+      APNS_TEAM_ID: ${param:apnsTeamId, ''}
+      APNS_PRIVATE_KEY: ${param:apnsPrivateKey, ''}
+      APNS_TOPIC: ${param:apnsTopic, ''}
+      APNS_HOST: ${param:apnsHost, ''}
+    # 送信は「歯止め → 会話 → 受信箱の行 → 知らせ（接続1本・締め切り2秒）」と続けて書く。作る・人を足すは 29 人ぶんの
+    # 門（フォロー・ブロック・一覧の枠）を読む。既定の 6 秒では足りないことがあるので 15 秒（`dm`・`tripShare` と同じ）
+    timeout: 15
+    events:
+      - httpApi:
+          path: /groups
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{groupId}
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{groupId}
+          method: PUT
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{groupId}/messages
+          method: GET
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{groupId}/messages
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{groupId}/members
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{groupId}/members/{uid}
+          method: DELETE
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{groupId}/join
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{groupId}/decline
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId
+      - httpApi:
+          path: /groups/{groupId}/report
+          method: POST
+          authorizer:
+            type: jwt
+            id:
+              Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId

@@ -132,17 +132,20 @@ describe("入力欄の角", () => {
         expect(bad).toEqual([]);
     });
 
-    it("欄の class の定数（inputCls・inputClass・fieldCls）は rounded-field", () => {
+    it("欄の class の定数（inputCls・inputClass・fieldCls・SETTINGS_INPUT_CLASS）は rounded-field", () => {
         const bad: string[] = [];
         let seen = 0;
         for (const [rel, src] of files()) {
-            for (const m of src.matchAll(/(?:const|let)\s+(inputCls|inputClass|fieldCls)\s*=\s*["`]([^"`]*)["`]/g)) {
+            for (const m of src.matchAll(/(?:const|let)\s+(inputCls|inputClass|fieldCls|SETTINGS_INPUT_CLASS)\s*=\s*["`]([^"`]*)["`]/g)) {
                 seen++;
                 if (!/\brounded-field\b/.test(m[2])) bad.push(`${rel} ${m[1]}`);
             }
         }
-        expect(seen).toBeGreaterThan(5);
+        // 2026-11-04: ログイン・登録・設定の下の画面の欄は部品の定数（`accountFormStyles.ts`・.ts なので上の走査の外）に寄せた。下で別に見る
+        expect(seen).toBeGreaterThan(3);
         expect(bad).toEqual([]);
+        const shared = readFileSync(join(ROOT, "app/components/accountFormStyles.ts"), "utf8");
+        expect(shared).toMatch(/SETTINGS_INPUT_CLASS =\s*"[^"]*\brounded-field\b/);
     });
 
     it("欄を包む枠（投稿の位置情報）と、欄の前の「@」も同じ角", () => {

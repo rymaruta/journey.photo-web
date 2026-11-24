@@ -13,8 +13,7 @@ import { render, screen, waitFor } from "@testing-library/react";
  * だった——「一覧から消せるようにした」ときに書いた理由（写真を1枚ずつ開いて
  * `/user/edit` まで行く必要があった）が、編集にはそのまま残っていた。
  *
- * **投稿と年表の2つのグリッドがある。** 片方だけに付くのが台帳のいちばん多い
- * 失敗なので、両方を描いて数える。
+ * iOS と同じく年表タブは廃止。投稿グリッドの編集入口を検証する。
  */
 
 const mockUserFetch = vi.hoisted(() => vi.fn());
@@ -46,7 +45,7 @@ const OWNER = "33333333-3333-4333-8333-333333333333";
 
 import UserProfileClient from "../UserProfileClient";
 
-/** 年表タブが日付で束ねられるよう、**違う月**の2枚にする */
+/** 異なる撮影日の2枚で、各写真の編集リンクを確認する */
 const photo = (id: string, date: string) => ({
     id, userId: OWNER, src: `https://cdn/${id}.jpg`, title: id,
     category: "travel", tags: [], date, createdAt: date, published: true,
@@ -87,19 +86,6 @@ describe("プロフィールの一覧から編集画面へ", () => {
         render(<UserProfileClient userId={OWNER} />);
         await waitFor(() => expect(screen.getAllByAltText("aaa").length).toBeGreaterThan(0));
         expect(screen.queryAllByLabelText("この写真を編集")).toHaveLength(0);
-    });
-
-    // **入口が2つある。** 投稿グリッドだけに付けると、年表から入った人には
-    // 出ない（台帳の「片方だけ直す」）
-    it("年表タブのカードにも出る", async () => {
-        asOwner();
-        const user = (await import("@testing-library/user-event")).default;
-        render(<UserProfileClient userId={OWNER} />);
-        await editLinks();
-        await user.click(screen.getByRole("tab", { name: /年表/ }));
-        const links = await editLinks();
-        expect(links.length, "年表のカードに編集が無い").toBeGreaterThan(0);
-        expect(links.map((a) => a.getAttribute("href"))).toContain("/user/edit?id=aaa");
     });
 
     // **先読みしないことはここでは見ない。** `next/link` は `prefetch` を

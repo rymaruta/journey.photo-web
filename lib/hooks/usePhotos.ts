@@ -2,7 +2,7 @@
 // 写真一覧をAPIから取得する共通フック（AbortController対応）
 
 import { usablePhotoRows } from "../utils/apiRows";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { Photo } from "../data/photos";
 import BASE_PHOTOS_JSON from "@/app/data/photos.json";
 import { log } from "../utils/log";
@@ -126,5 +126,14 @@ export function usePhotos() {
         return () => controller.abort();
     }, [reloadKey]);
 
-    return { photos, loading, loaded, failed };
+    /**
+     * **画面の「もう一度試す」から取り直す**（ホームの読み込めなかった知らせ・iOS の `ErrorBanner` の再試行）。
+     * 戻ってきたとき・回線が戻ったときの自動の取り直し（上）と同じ形で、失敗の印を下ろして撃ち直す
+     */
+    const retry = useCallback(() => {
+        setFailed(false);
+        setReloadKey((k) => k + 1);
+    }, []);
+
+    return { photos, loading, loaded, failed, retry };
 }

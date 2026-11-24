@@ -93,7 +93,7 @@ async function withOnePhoto() {
 describe("投稿作成画面: モックのヘッダー", () => {
     it("題・✕・下書き保存が並ぶ", async () => {
         render(<UploadPage />);
-        expect(await screen.findByRole("heading", { name: "新しい投稿を作成" })).toBeInTheDocument();
+        expect(await screen.findByRole("heading", { name: "新規投稿" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "投稿の作成をやめる" })).toBeInTheDocument();
         expect(screen.getByRole("button", { name: "下書き保存" })).toBeInTheDocument();
     });
@@ -120,6 +120,35 @@ describe("投稿作成画面: モックのヘッダー", () => {
         await userEvent.click(await screen.findByRole("button", { name: "投稿の作成をやめる" }));
         expect(mockBack, "行き先の無い back を呼んでいる").not.toHaveBeenCalled();
         expect(mockPush).toHaveBeenCalledWith("/");
+    });
+});
+
+describe("投稿作成画面: 未完了投稿の終了確認", () => {
+    it("未完了の写真があるときキャンセルすれば画面を維持する", async () => {
+        const confirm = vi.fn(() => false);
+        Object.defineProperty(window, "confirm", { configurable: true, writable: true, value: confirm });
+        try {
+            await withOnePhoto();
+            await userEvent.click(screen.getByRole("button", { name: "投稿の作成をやめる" }));
+            expect(confirm).toHaveBeenCalledWith(expect.stringContaining("投稿が完了していません"));
+            expect(mockBack).not.toHaveBeenCalled();
+            expect(mockPush).not.toHaveBeenCalled();
+        } finally {
+            Reflect.deleteProperty(window, "confirm");
+        }
+    });
+
+    it("未完了の写真があっても確認後は閉じられる", async () => {
+        const confirm = vi.fn(() => true);
+        Object.defineProperty(window, "confirm", { configurable: true, writable: true, value: confirm });
+        try {
+            await withOnePhoto();
+            await userEvent.click(screen.getByRole("button", { name: "投稿の作成をやめる" }));
+            expect(confirm).toHaveBeenCalled();
+            expect(mockPush).toHaveBeenCalledWith("/");
+        } finally {
+            Reflect.deleteProperty(window, "confirm");
+        }
     });
 });
 

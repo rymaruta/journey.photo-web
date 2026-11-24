@@ -19,6 +19,7 @@ import { isImeKey } from "../../../lib/utils/ime";
 import { log } from "../../../lib/utils/log";
 import { useMusic } from "../../music/MusicContext";
 import SongArtwork from "../../components/SongArtwork";
+import { SectionTitle } from "../../components/SectionHead";
 import { ROUTES } from "../../../lib/routes";
 import { useLoginRedirect } from "../../../lib/hooks/useLoginRedirect";
 import { publicImageUrl } from "@/lib/utils/seo";
@@ -625,7 +626,7 @@ export default function ProfileEditPage() {
             <main className="min-h-screen bg-bg text-white flex items-center justify-center">
                 {/* **事前描画で焼かれるのはこの枝**（認証を確かめる前）。
                     JS が走る前に見えるのはここなので見出しを持たせる */}
-                <h1 className="sr-only">プロフィール編集</h1>
+                <h1 className="sr-only">プロフィールの編集</h1>
                 <div className="w-10 h-10 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
             </main>
         );
@@ -664,7 +665,8 @@ export default function ProfileEditPage() {
                 )}
 
                 <h1 className="text-xl font-bold mb-6">
-                    {locale === "en" ? "Edit Profile" : "プロフィール編集"}
+                    {/* iOS `ProfileEditView` の題（2026-11-04） */}
+                    {locale === "en" ? "Edit profile" : "プロフィールの編集"}
                 </h1>
 
                 {/* カバー写真（板 ProfileEdit の上の帯・2026-10-11 に戻した）。2026-09-22 に一度外した
@@ -842,6 +844,24 @@ export default function ProfileEditPage() {
                 </div>
 
                 <div className="space-y-5">
+                    {/* 2026-11-04: 欄の順と組を iOS の `ProfileEditView` に合わせた（基本情報: 表示名 → ユーザー名 → 自己紹介 ／
+                        場所とリンク: 居住地 → Instagram → ウェブサイト ／ テーマカラー → マイBGM）。見出しは静かな節の見出し（`SectionTitle`） */}
+                    <SectionTitle id="profile-section-about" className="m-0 pt-2 -mb-3">{locale === "en" ? "About you" : "基本情報"}</SectionTitle>
+                    <div>
+                        <label className={labelClass} htmlFor="profile-display-name">
+                            {locale === "en" ? "Display name" : "表示名"}
+                        </label>
+                        <input
+                            id="profile-display-name"
+                            type="text"
+                            value={displayName}
+                            onChange={e => setDisplayName(e.target.value)}
+                            maxLength={100}
+                            placeholder={locale === "en" ? "Your name" : "名前"}
+                            className={inputClass}
+                        />
+                    </div>
+
                     <div>
                         <label className={labelClass} htmlFor="profile-username">
                             {locale === "en" ? "Username" : "ユーザー名"}
@@ -885,21 +905,6 @@ export default function ProfileEditPage() {
                     </div>
 
                     <div>
-                        <label className={labelClass} htmlFor="profile-display-name">
-                            {locale === "en" ? "Display name" : "表示名"}
-                        </label>
-                        <input
-                            id="profile-display-name"
-                            type="text"
-                            value={displayName}
-                            onChange={e => setDisplayName(e.target.value)}
-                            maxLength={100}
-                            placeholder={locale === "en" ? "Your name" : "名前"}
-                            className={inputClass}
-                        />
-                    </div>
-
-                    <div>
                         <label className={labelClass} htmlFor="profile-bio">
                             {locale === "en" ? "Bio" : "自己紹介"}
                         </label>
@@ -915,6 +920,7 @@ export default function ProfileEditPage() {
                         <div className="text-right text-xs text-white/50 mt-1">{bio.length}/300</div>
                     </div>
 
+                    <SectionTitle id="profile-section-links" className="m-0 pt-2 -mb-3">{locale === "en" ? "Location and links" : "場所とリンク"}</SectionTitle>
                     {/* 居住地（板 ProfileEdit・名前の下の「@名 · 居住地」に出る） */}
                     <div>
                         <label className={labelClass} htmlFor="profile-home-location">
@@ -932,6 +938,42 @@ export default function ProfileEditPage() {
                         />
                     </div>
 
+                    <div>
+                        <label className={labelClass} htmlFor="profile-instagram">Instagram</label>
+                        <div className="flex items-center">
+                            <span className="text-white/50 text-sm px-3 py-3 bg-surface-2 border border-r-0 border-line-strong rounded-l-field">@</span>
+                            <input
+                                id="profile-instagram"
+                                type="text"
+                                value={instagram}
+                                // 全角の「＠」（日本語キーボード）も落とす
+                                onChange={e => setInstagram(e.target.value.replace(/^[@＠]/, ""))}
+                                // iPhone は先頭を大文字にし、自動修正で英単語に置き換える。
+                                // 黙って別人のアカウントへのリンクが保存されるので切る
+                                autoCapitalize="none"
+                                autoCorrect="off"
+                                spellCheck={false}
+                                maxLength={100}
+                                placeholder="username"
+                                className={`${inputClass} rounded-l-none`}
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className={labelClass} htmlFor="profile-website">
+                            {locale === "en" ? "Website" : "ウェブサイト"}
+                        </label>
+                        <input
+                            id="profile-website"
+                            type="url"
+                            value={website}
+                            onChange={e => setWebsite(e.target.value)}
+                            maxLength={200}
+                            placeholder="https://example.com"
+                            className={inputClass}
+                        />
+                    </div>
 
                     <div>
                         {/* **ここは `<label>` にしない。** 中身は見本の丸ボタンの集まりで、
@@ -986,43 +1028,6 @@ export default function ProfileEditPage() {
                                 ? "Colors your avatar ring and accents. The last swatch opens a full color picker."
                                 : "アバターのリングなどの色になります。右端の丸を押すとパレットから自由に選べます。"}
                         </p>
-                    </div>
-
-                    <div>
-                        <label className={labelClass} htmlFor="profile-instagram">Instagram</label>
-                        <div className="flex items-center">
-                            <span className="text-white/50 text-sm px-3 py-3 bg-surface-2 border border-r-0 border-line-strong rounded-l-field">@</span>
-                            <input
-                                id="profile-instagram"
-                                type="text"
-                                value={instagram}
-                                // 全角の「＠」（日本語キーボード）も落とす
-                                onChange={e => setInstagram(e.target.value.replace(/^[@＠]/, ""))}
-                                // iPhone は先頭を大文字にし、自動修正で英単語に置き換える。
-                                // 黙って別人のアカウントへのリンクが保存されるので切る
-                                autoCapitalize="none"
-                                autoCorrect="off"
-                                spellCheck={false}
-                                maxLength={100}
-                                placeholder="username"
-                                className={`${inputClass} rounded-l-none`}
-                            />
-                        </div>
-                    </div>
-
-                    <div>
-                        <label className={labelClass} htmlFor="profile-website">
-                            {locale === "en" ? "Website" : "ウェブサイト"}
-                        </label>
-                        <input
-                            id="profile-website"
-                            type="url"
-                            value={website}
-                            onChange={e => setWebsite(e.target.value)}
-                            maxLength={200}
-                            placeholder="https://example.com"
-                            className={inputClass}
-                        />
                     </div>
 
                     {/* テーマソング */}

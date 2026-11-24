@@ -25,9 +25,14 @@ import { ChatBubbleOvalLeftIcon, ArrowUpOnSquareIcon, BookmarkIcon, BookOpenIcon
 import { BookmarkIcon as BookmarkSolidIcon } from "@heroicons/react/24/solid";
 import { usePhotoSave } from "../../../lib/hooks/usePhotoSave";
 import { useSwipe } from "../../../lib/hooks/useSwipe";
-import { formatPhotoStamp } from "../../../lib/utils/photoDate";
 import { FollowAction } from "../../components/FollowButton";
 import UserAvatar from "../../components/UserAvatar";
+import StoryAuthorAvatar from "../../components/stories/StoryAuthorAvatar";
+import VerifiedBadge from "../../components/VerifiedBadge";
+import EarlyMemberMark from "../../components/EarlyMemberMark";
+import { ProMark, NameBadge } from "../../components/ProfileNameMarks";
+import type { BadgeMap, BadgeKey } from "../../../lib/data/badges";
+import { sanitizeProfile } from "../../../lib/utils/profileShape";
 import MoreMenu from "../../components/MoreMenu";
 import type { Photo } from "@/lib/data/photos";
 import { getLocalizedParagraphs, getPreferredMapLink, makeGoogleSearch } from "@/lib/data/photos";
@@ -45,7 +50,11 @@ import { MusicalNoteIcon, XMarkIcon, MapPinIcon } from "@heroicons/react/24/outl
 import { useAuth } from "../../auth/context";
 import ReportDialog from "../../components/ReportDialog";
 import { useToast } from "../../../lib/hooks/useToast";
+import { useGuestPrompt } from "../../../lib/hooks/useGuestPrompt";
+import { track } from "../../../lib/utils/analytics";
 import { shareUrl, copyToClipboard, shareToTwitter, shareToLine } from "../../../lib/utils/share";
+import { renderShareCard, type ShareCardRatio } from "../../../lib/utils/signatureShareCard";
+import { fetchImageBytes } from "../../../lib/utils/imageBytes";
 import { siteConfig, generatePhotoStructuredData, generateBreadcrumbStructuredData } from "../../../lib/utils/seo";
 import { slugify, collectionPath, categoryLabel } from "../../../lib/utils/collections";
 import RelatedPhotos from "../../components/RelatedPhotos";
@@ -64,7 +73,7 @@ import { exifSettingsLine, exifSettingsCells } from "../../../lib/utils/exifDisp
 import { isImeKey } from "../../../lib/utils/ime";
 import { useSongSearch } from "../../../lib/hooks/useSongSearch";
 import { usablePhotoRows } from "../../../lib/utils/apiRows";
-import { sessionErrorMessage } from "../../../lib/utils/api";
+import { sessionErrorMessage, userPublicFetch } from "../../../lib/utils/api";
 import { publicImageUrl } from "@/lib/utils/seo";
 import SongSearchError from "../../components/SongSearchError";
 import SpotAutoNotice from "./SpotAutoNotice";
@@ -497,6 +506,45 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
         return allPhotos.find(p => p.id === photoId);
     }, [photoId, allPhotos]);
 
+    const authorName = photo?.displayName?.trim() || photo?.uploaderUsername?.trim() || "";
+    const showAuthorHandle = Boolean(photo?.displayName?.trim() && photo?.uploaderUsername?.trim());
+
+    // iOS authorRow と同様、公開プロフィールの確定した印だけを名前の横へ表示する。
+    // 写真の投稿データには公式・Proの権限情報がないため推測しない。
+    const [authorMarks, setAuthorMarks] = useState<{
+        userId: string; verified?: boolean; pro?: boolean; proMarkStyle?: "iris" | "plate"; earlyMark?: boolean;
+        badges?: BadgeMap; displayBadge?: BadgeKey;
+    } | null>(null);
+    useEffect(() => {
+        const ownerId = photo?.userId;
+        if (!ownerId) {
+            return;
+        }
+        const controller = new AbortController();
+        // 撮影者が切り替わった際、前の撮影者のマークを残さない。
+        setAuthorMarks(null);
+        void (async () => {
+            try {
+                const response = await userPublicFetch(`/profile/${encodeURIComponent(ownerId)}`, { signal: controller.signal });
+                if (!response.ok || controller.signal.aborted) return;
+                const profile = sanitizeProfile<Record<string, unknown>>(await response.json(), "photo author");
+                if (!profile || controller.signal.aborted || profile.userId !== ownerId) return;
+                setAuthorMarks({
+                    userId: ownerId,
+                    verified: profile.verified === true,
+                    pro: profile.pro === true,
+                    proMarkStyle: profile.proMarkStyle === "plate" ? "plate" : "iris",
+                    earlyMark: profile.earlyMark === true,
+                    badges: profile.badges as BadgeMap | undefined,
+                    displayBadge: profile.displayBadge as BadgeKey | undefined,
+                });
+            } catch {
+                // 公開プロフィールが取得できなくても写真と作者への導線は維持する。
+            }
+        })();
+        return () => controller.abort();
+    }, [photo?.userId]);
+
     /**
      * 「この写真を見て撮影」の元の写真。**追加の読み取りはしない。**
      *
@@ -578,30 +626,34 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     const [commentCount, setCommentCount] = useState<number>(typeof photo?.commentCount === "number" ? photo.commentCount : 0);
     // 吹き出しを押したら送る先（コメントの節）。2026-10-31 束 1 P11: コメントと関連写真のタブをやめ、縦に節で並べた
     const commentsRef = React.useRef<HTMLElement>(null);
+    const promptLogin = useGuestPrompt(locale);
     const { saved, pending: savePending, toggle: toggleSave } = usePhotoSave(photo?.id ?? "", isAuthenticated, authLoading);
     const handleSave = useCallback(() => {
         hapticTap();
         void toggleSave().then((r) => {
             if (r.ok) return;
             // **未ログインは「失敗」ではなく案内**（モーダル・ホームのカードと同じ文言）
+            // 2026-11-09: 「ログイン」のリンク付きの案内（いいね・フォロー・コメントと同じ見せ方）
             if (r.requiresAuth) {
-                showToast(locale === "en" ? "Log in to save photos." : "写真を保存するにはログインしてください", "error");
+                promptLogin("save");
                 return;
             }
             showToast(r.message ?? (locale === "en" ? "Couldn't save this photo. Please try again." : "保存できませんでした。もう一度お試しください"), "error");
         });
-    }, [toggleSave, showToast, locale]);
+    }, [toggleSave, showToast, locale, promptLogin]);
     // いいねを切り替える（下の ♡ と全画面の ♡・2回叩きが同じ口を通る）
     const handleLike = useCallback(() => {
         hapticTap();
         void toggleLike().then((r) => {
+            // **未ログインは失敗ではなく入口。** ハートは塗らず、ログインへのリンク付きで案内する
+            if (r.requiresAuth) { promptLogin("like"); return; }
             // 押し直しても直らない失敗（セッション切れ・通信できない）は
             // その文言をそのまま出す
             if (!r.ok) showToast(r.message ?? (locale === "en"
                 ? "Couldn't save your like. Please try again."
                 : "いいねを保存できませんでした。もう一度お試しください"), "error");
         });
-    }, [toggleLike, showToast, locale]);
+    }, [toggleLike, showToast, locale, promptLogin]);
     const { handlers: swipeHandlers } = useSwipe({
         onSwipeLeft: () => setShown((i) => (i + 1) % Math.max(1, images.length)),
         onSwipeRight: () => setShown((i) => (i - 1 + images.length) % Math.max(1, images.length)),
@@ -884,10 +936,6 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
     // 短い説明で、検索のために語を足すものではない。
     // 言い方は `fallbackPhotoTitle` 1つに置く（`<title>`・パンくず・RSS・共有も同じ）
     const fallbackHeading = fallbackPhotoTitle(locationText, locale === "en" ? "en" : "ja");
-    // 撮影日（保存された通りに出す。`createdAt` には落とさない: 投稿日と撮影日は別）。
-    // **形は iOS と同じ「2026.09.23 · 14:29」**（`PhotoMetaLine.stamp`・2026-10-21）。
-    // 時刻はカメラが書いた撮影時刻（EXIF）からだけ。画面で抜いた値を先に見る
-    const shotDate = formatPhotoStamp(photo.date, extractedExif?.DateTimeOriginal ?? photo.exif?.dateTimeOriginal) ?? "";
     const paragraphs = getLocalizedParagraphs(photo.description, locale);
 
     const preferred = getPreferredMapLink(photo);
@@ -911,7 +959,7 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
 
     const handleShare = async (e?: React.MouseEvent) => {
         if (e) e.stopPropagation();
-        const result = await shareUrl(currentUrl, shareText, paragraphs.join(" "));
+        const result = await shareUrl(currentUrl, shareText, paragraphs.join(" "), "photo");
         // cancelled（利用者が閉じた）と shared は何も出さない
         if (result === "copied") {
             showToast(locale === "en" ? "Link copied to clipboard!" : "リンクをクリップボードにコピーしました", "success");
@@ -920,11 +968,53 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
         }
     };
 
+    const handleSaveShareCard = async (ratio: ShareCardRatio) => {
+        // **持ち主だけ**（2026-11-15・札 journey.photo-ios#629）。メニューに出さないだけでなく、ここでも断る
+        if (!photo?.src || !isOwnPhoto) return;
+        try {
+            // Reuse the same-origin /uploads fallback used by StoryViewer; raw CDN URLs may reject CORS.
+            const imageBlob = await fetchImageBytes(publicImageUrl(photo.src));
+            const bitmap = await createImageBitmap(imageBlob);
+            let blob: Blob;
+            try {
+                blob = await renderShareCard(bitmap, {
+                    name: authorName || "Photographer",
+                    username: photo.uploaderUsername,
+                    location: photo.location,
+                    camera: photo.exif?.camera,
+                    lens: photo.exif?.lens,
+                    verified: authorMarks?.userId === photo.userId && authorMarks?.verified,
+                    pro: authorMarks?.userId === photo.userId && authorMarks?.pro,
+                    early: authorMarks?.userId === photo.userId && authorMarks?.earlyMark,
+                    badge: authorMarks?.userId === photo.userId ? authorMarks?.displayBadge : undefined,
+                    coords: photo.coords,
+                }, ratio);
+            } finally {
+                bitmap.close();
+            }
+            const url = URL.createObjectURL(blob);
+            try {
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = `journey-photo-${photo.id}-${ratio.replace(":", "x")}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+            } finally {
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+        } catch (error) {
+            log.warn("Share card export failed", error);
+            showToast(locale === "en" ? "Could not save the share card" : "共有カードを保存できませんでした", "error");
+        }
+    };
+
     const handleCopyLink = async (e?: React.MouseEvent) => {
         if (e) {
             e.stopPropagation();
         }
         if (await copyToClipboard(currentUrl)) {
+            track("share", { method: "copy", content_type: "photo" });
             showToast(locale === "en" ? "Link copied!" : "リンクをコピーしました");
         } else {
             showToast(locale === "en" ? "Failed to copy link" : "リンクのコピーに失敗しました", "error");
@@ -987,9 +1077,14 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                     buttonSize={44}
                     items={[
                         { key: "share", label: locale === "en" ? "Share" : "共有", onSelect: () => void handleShare() },
+                        // **共有画像の保存は持ち主だけ**（2026-11-15・札 journey.photo-ios#629）。CLAUDE.md「他人の写真は、その人のもの」:
+                        // 他人の写真の画像を手にできる道（共有カードの画像の書き出し）は持ち主だけにする。2026-11-15 まで、
+                        // ログインしていない人でも他人の写真の 1080x1350 の JPEG を落とせた（本番で確かめた）。
+                        // 持ち主の写真へ人を連れて行くもの（共有・リンクのコピー・X・LINE）は残す
+                        ...(isOwnPhoto ? (["4:5", "9:16", "1:1"] as const) : []).map(ratio => ({ key: `share-card-${ratio}`, label: locale === "en" ? `Save share image ${ratio}` : `共有画像を保存（${ratio}）`, onSelect: () => void handleSaveShareCard(ratio) })),
                         { key: "copy", label: locale === "en" ? "Copy link" : "リンクをコピー", onSelect: () => void handleCopyLink() },
-                        { key: "x", label: locale === "en" ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(currentUrl, shareText) },
-                        ...(locale === "ja" ? [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(currentUrl, shareText) }] : []),
+                        { key: "x", label: locale === "en" ? "Share on X" : "Xで共有", onSelect: () => shareToTwitter(currentUrl, shareText, "photo") },
+                        ...(locale === "ja" ? [{ key: "line", label: "LINEで共有", onSelect: () => shareToLine(currentUrl, shareText, "photo") }] : []),
                         // 撮影地マップのこの写真の位置（以前は写真の右下の丸。iOS は写真の上に地図の丸を置かない・束 1 P2）。
                         // 「この近くで撮られた写真」の節の「地図で見る」と同じ行き先——近くに写真が無い写真でも行き先を消さない
                         ...(mapHash ? [{ key: "map", label: locale === "en" ? "See on the map" : "撮影地マップで見る", href: `${ROUTES.MAP}${mapHash}` }] : []),
@@ -1157,18 +1252,14 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                 「この写真を見て撮影」→ 操作の段 → 次の旅へ → 撮影情報 → タグ → 曲 → 近くの写真 → 近くの撮影スポット → 関連 → コメント。
                 節の間は 16（iOS の `VStack(spacing: 16)`）・写真との間 20。以前は 題 → 作者 → 日時と住所 → 本文 → タグ の順 */}
             <div className="px-4 pt-5 lg:px-0 lg:pt-0 flex flex-col gap-4" data-testid="photo-details">
-                {/* 題（明朝 26・iOS `JPFont.screenTitle`・束 1 P3）と、その下の1行（日時 · 何枚目・13・text-3・等幅の数字）。
-                    `break-words`: 長い URL・連続文字でページごと横に流れるのを防ぐ。
-                    字体は `lib/utils/headingFont.ts` の並び（先頭は自前で配る Shippori Mincho B1 Bold） */}
+                {/* iOS PhotoDetailView と同様、写真詳細には撮影日付・時刻を表示しない。 */}
                 <div className="flex flex-col gap-2">
                     {titleText
                         ? <h1 className="font-bold break-words m-0" style={{ fontSize: "26px", lineHeight: 1.3, fontFamily: DISPLAY_MINCHO_STACK }}>{titleText}</h1>
                         : <h1 className="sr-only">{fallbackHeading}</h1>}
-                    {(shotDate || images.length > 1) && (
+                    {images.length > 1 && (
                         <p className="m-0 text-text-3 tabular-nums" style={{ fontSize: "13px", lineHeight: "18px" }} data-testid="photo-headline">
-                            {shotDate && <span data-testid="photo-shot-stamp">{shotDate}</span>}
-                            {shotDate && images.length > 1 && <span aria-hidden="true"> · </span>}
-                            {images.length > 1 && <span>{locale === "en" ? `${shown + 1}/${images.length}` : `${shown + 1}/${images.length}枚`}</span>}
+                            <span>{locale === "en" ? `${shown + 1}/${images.length}` : `${shown + 1}/${images.length}枚`}</span>
                         </p>
                     )}
                 </div>
@@ -1216,21 +1307,36 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                 )}
 
                 {/* 作者行（iOS の `authorRow`）: 顔 40（白8%の縁）・名前 15 semibold・@名 12 text-3 ／ 右にフォロー（C8） */}
-                {photo.userId && photo.displayName && (
-                    <div className="flex items-center gap-[10px]" data-testid="photo-author">
-                        <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
-                              className="flex-shrink-0 rounded-full inline-flex items-center justify-center"
-                              aria-label={locale === "en" ? `${photo.displayName}'s profile` : `${photo.displayName} のプロフィール`}
-                              style={{ minWidth: "44px", minHeight: "44px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}>
-                            <UserAvatar userId={photo.userId} className="w-10 h-10 ring-1 ring-line" iconClassName="w-6 h-6" />
-                        </Link>
+                {photo.userId && authorName && (
+                    <div className="flex min-w-0 items-center gap-[10px] py-1" data-testid="photo-author">
+                        <StoryAuthorAvatar userId={photo.userId} name={authorName} locale={locale === "en" ? "en" : "ja"} />
                         <div className="min-w-0 flex-1">
-                            <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
-                                  className="block text-white font-semibold truncate hover:text-white/80 transition-colors"
+                            <div className="flex min-w-0 items-center gap-1">
+                                <Link href={ROUTES.USER_PROFILE(photo.userId)} prefetch={false}
+                                  className="flex min-h-[44px] min-w-[44px] items-center text-white font-semibold hover:text-white/80 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
+                                  title={authorName}
                                   style={{ fontSize: "15px", lineHeight: "20px", touchAction: "manipulation" }}>
-                                {photo.displayName}
+                                <span className="block min-w-0 truncate">{authorName}</span>
+                                {authorMarks?.userId === photo.userId && (
+                                    <span className="inline-flex shrink-0 items-center gap-1 ml-1">
+                                        <VerifiedBadge verified={authorMarks.verified} size={16} locale={locale} />
+                                        <ProMark pro={authorMarks.pro} style={authorMarks.proMarkStyle} size={16} locale={locale === "en" ? "en" : "ja"} />
+                                        <EarlyMemberMark shown={authorMarks.earlyMark} size={16} locale={locale} />
+                                    </span>
+                                )}
                             </Link>
-                            {photo.uploaderUsername && (
+                                {authorMarks?.userId === photo.userId && authorMarks.displayBadge && (
+                                <div className="inline-flex items-center" data-testid="photo-author-selected-badge">
+                                    <NameBadge
+                                        badges={authorMarks.badges}
+                                        displayBadge={authorMarks.displayBadge}
+                                        ownerName={authorName}
+                                        locale={locale === "en" ? "en" : "ja"}
+                                    />
+                                </div>
+                            )}
+                            </div>
+                            {showAuthorHandle && (
                                 <p className="m-0 mt-0.5 text-text-3 truncate" style={{ fontSize: "12px", lineHeight: "16px" }}>@{photo.uploaderUsername}</p>
                             )}
                         </div>
@@ -1241,6 +1347,8 @@ export default function PhotoPageClient({ photoId, initialPhoto, initialRelated,
                                 isAuthenticated={isAuthenticated}
                                 locale={locale === "en" ? "en" : "ja"}
                                 variant="outline"
+                                targetName={photo.displayName}
+                                targetHandle={photo.uploaderUsername ?? undefined}
                             />
                         )}
                     </div>

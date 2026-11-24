@@ -134,7 +134,7 @@ describe("線の引き方", () => {
         await show(OWNER);
         const lab = screen.getAllByText("投稿").find((e) => e.style.fontSize)!;
         const row = lab.parentElement!.parentElement!;
-        expect(row.className, "下に1本ではない").toContain("border-b");
+        expect(row.getAttribute("data-testid")).toBe("profile-stats");
         expect(row.className, "上にも線が戻っている").not.toMatch(/border-y|border-t/);
     });
 });

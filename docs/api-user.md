@@ -1,8 +1,12 @@
 # 一般ユーザーAPI ドキュメント
 
+> 公開リポジトリのため、実際のバケット名・各種 ID・URL は書いていません。
+> `<環境>` は `prod` か `staging`、`<…-id>` などの山括弧は置き換え記号です。
+> 実際の値の取り出し方は [`CLAUDE.md`](../CLAUDE.md) の「環境ごとの値の取り出し方」。
+
 ## エンドポイント
 
-**Base URL:** `https://9qmc4qb2e4.execute-api.ap-northeast-1.amazonaws.com`  
+**Base URL:** `https://<user-api-id>.execute-api.ap-northeast-1.amazonaws.com`  
 **Lambda:** `photo-gallery-user-api-prod`  
 **認証:** Cognito JWT（`user` または `admin` グループ）
 
@@ -30,7 +34,7 @@ Content-Type: application/json
 {
   "presignedUrl": "https://...",
   "key": "uploads/{uuid}.jpg",
-  "publicUrl": "https://d1s3dwwzgxf5ni.cloudfront.net/uploads/{uuid}.jpg",
+  "publicUrl": "https://<distribution-domain>.cloudfront.net/uploads/{uuid}.jpg",
   "photoId": "{uuid}"
 }
 ```
@@ -99,18 +103,18 @@ aws lambda update-function-configuration \
 aws lambda create-function \
   --function-name photo-gallery-user-api-prod \
   --runtime nodejs22.x \
-  --role arn:aws:iam::463470976368:role/photo-gallery-api-prod-ap-northeast-1-lambdaRole \
+  --role arn:aws:iam::<account-id>:role/photo-gallery-api-prod-ap-northeast-1-lambdaRole \
   --handler index.handler \
   --zip-file fileb://user-api.zip \
   --region ap-northeast-1 \
   --environment "Variables={
-    PHOTOS_BUCKET=prod-journey-photo.com,
+    PHOTOS_BUCKET=<環境>-journey-photo.com,
     PHOTOS_KEY=app/data/photos.json,
-    UPLOAD_BUCKET=prod-journey-photo-upload,
-    CLOUDFRONT_URL=https://d1s3dwwzgxf5ni.cloudfront.net
+    UPLOAD_BUCKET=<環境>-journey-photo-upload,
+    CLOUDFRONT_URL=https://<distribution-domain>.cloudfront.net
   }"
 
-# API Gateway: prod-photo-gallery-user-api (9qmc4qb2e4)
+# API Gateway: prod-photo-gallery-user-api (<user-api-id>)
 # Cognitoオーソライザー設定済み
 # ルート: POST /upload/presigned-url, POST /upload/save
 ```

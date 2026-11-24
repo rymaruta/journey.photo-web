@@ -88,4 +88,16 @@ describe("deploy-api.yml", () => {
         expect(uses.length).toBe(all.length);
         expect(calls.length).toBe(uses.length);
     });
+    /** 段（`- name:`）ごとに切る。鍵を受け取る段は、どれも自分の中で apns-key-param.sh を通す */
+    const steps = wf.split(/\n(?=      - name: )/);
+    const keySteps = steps.filter((s) => s.includes("APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}"));
+    it.each(keySteps.map((s) => [s.match(/- name: (.+)/)![1], s]))("鍵を受け取る段「%s」は apns-key-param.sh を通す", (_name, step) => {
+        expect(step).toContain('apns_key="$(bash ../scripts/apns-key-param.sh)"');
+        expect(step).toContain('--param "apnsPrivateKey=$apns_key"');
+        expect(step).not.toMatch(/apnsPrivateKey=\$\{?APNS_PRIVATE_KEY/);
+    });
+    it("user API から移した機能の別スタック（札 #552 ②）の段も、鍵を受け取る段に入っている", () => {
+        const split = keySteps.filter((s) => /- name: .*user API から移した機能/.test(s));
+        expect(split.length).toBe(1);
+    });
 });

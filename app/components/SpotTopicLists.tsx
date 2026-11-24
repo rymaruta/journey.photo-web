@@ -10,7 +10,7 @@
 // （名前・場所・概要・写真の場所）で、木はクライアントの JS（1回だけ・キャッシュされる）が持つ。
 // 操作は無い——水和しても見た目は変わらない。
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import type { TopicCard, TopicCredit, TopicLink } from "@/lib/data/spotTopics";
 import { useLocale } from "@/app/i18n/context";
@@ -59,14 +59,19 @@ export const COMPACT_CREDIT_LINE = 24;
  * （表示の条件）が隠れていた。`compact` ではライセンスの行と作者の行の2行にし、作者の行だけを切る
  * （全文は `title`）。カードのリンクの外に置く（リンクの中にリンクを入れない）
  */
-export function TopicCreditLine({ credit, compact = false }: { credit: TopicCredit; compact?: boolean }) {
+export function TopicCreditLine({ credit, compact = false, inline = false }: {
+    credit: TopicCredit; compact?: boolean;
+    /** 段落の中に続けて置く（`<span>`・頁の下の「写真の出典」の1項目・2026-11-10）。`compact` とは併せない */
+    inline?: boolean;
+}) {
     const { locale } = useLocale();
     const photo = locale === "en" ? "Photo: " : "写真: ";
     const a = "text-white/60 underline underline-offset-2 hover:text-white";
     const style = { fontSize: "12px", lineHeight: "16px" } as const;
+    const Tag = inline ? "span" : "p";
     if (!credit.license) {
         const text = credit.text || credit.author;
-        return <p className={`m-0 text-white/60 ${compact ? "truncate" : "wrap-anywhere"}`} style={style} title={text}>{credit.text ? text : `${photo}${text}`}</p>;
+        return <Tag className={`m-0 text-white/60 ${compact ? "truncate" : "wrap-anywhere"}`} style={style} title={text} data-testid="topic-credit">{credit.text ? text : `${photo}${text}`}</Tag>;
     }
     const license = credit.licenseUrl
         ? <a href={credit.licenseUrl} target="_blank" rel="noopener noreferrer license" className={a}>{credit.license}</a>
@@ -102,21 +107,24 @@ export function TopicCreditLine({ credit, compact = false }: { credit: TopicCred
         );
     }
     return (
-        <p className="m-0 text-white/60 wrap-anywhere" style={style} data-testid="topic-credit">
+        <Tag className="m-0 text-white/60 wrap-anywhere" style={style} data-testid="topic-credit">
             {photo}{credit.author}{" / "}{license}{source}
-        </p>
+        </Tag>
     );
 }
 
 function Card({ c }: { c: TopicCard }) {
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    const showCover = !!c.cover?.src && failedSrc !== c.cover.src;
     return (
         <div className="h-full flex flex-col rounded-2xl overflow-hidden bg-surface ring-1 ring-line">
             <Link href={`/spots/${c.slug}`} prefetch={false}
                   className="group block flex-1 hover:bg-surface-2 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent">
                 <div className="relative w-full aspect-[16/10] overflow-hidden bg-surface-2">
-                    {c.cover ? (
+                    {showCover && c.cover ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={c.cover.src} alt={c.cover.alt} loading="lazy" decoding="async"
+                             onError={() => setFailedSrc(c.cover!.src)}
                              className="absolute inset-0 w-full h-full object-cover" />
                     ) : (
                         /* 代表写真が無いときは名前だけ（無関係な写真で埋めない・`SpotIndexClient` と同じ） */
@@ -126,7 +134,8 @@ function Card({ c }: { c: TopicCard }) {
                     )}
                 </div>
                 <div className="p-3 pb-2">
-                    <p className="m-0 font-serif font-bold text-white wrap-anywhere" style={{ fontSize: "18px", lineHeight: "24px" }}>{c.name}</p>
+                    {/* 2026-11-11（#527）: 名前は見出し（h2・h1 のすぐ下の段）。見た目は同じ */}
+                    <h2 className="m-0 font-serif font-bold text-white wrap-anywhere" style={{ fontSize: "18px", lineHeight: "24px" }}>{c.name}</h2>
                     {c.region && (
                         <p className="m-0 mt-0.5 text-white/60" style={{ fontSize: "12px", lineHeight: "16px" }}>{c.region}</p>
                     )}
@@ -142,10 +151,9 @@ function Card({ c }: { c: TopicCard }) {
                 </div>
             </Link>
             {/* CC BY・CC BY-SA は作者とライセンスの表示が条件。写真の下・リンクの外（本文系の最小 12） */}
-            {c.cover?.credit && (
+            {showCover && c.cover?.credit ? (
                 <div className="px-3 pb-3"><TopicCreditLine credit={c.cover.credit} /></div>
-            )}
-            {!c.cover?.credit && <div className="pb-1" />}
+            ) : <div className="pb-1" />}
         </div>
     );
 }

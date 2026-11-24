@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { userPublicFetch, userFetch, readApiError, AUTH_REQUIRED_MESSAGE } from "../utils/api";
 import { log } from "../utils/log";
+import { track } from "../utils/analytics";
 
 // フォロー。フォロー中の userId 集合はセッション内キャッシュ（useGoTo の goSet と同型）。
 
@@ -521,6 +522,8 @@ export function useFollow(targetUserId: string | undefined, isAuthenticated: boo
             if (followingCache && genAtPress === cacheGen) {
                 if (was) followingCache.delete(targetUserId); else followingCache.add(targetUserId);
             }
+            // フォローした回だけ数える（外した回は数えない）
+            if (!was) track("follow_user", {});
             return { result: was ? "unfollowed" : "followed" };
         } catch (e) {
             log.error("follow toggle error:", e);

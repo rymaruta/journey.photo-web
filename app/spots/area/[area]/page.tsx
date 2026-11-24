@@ -1,13 +1,19 @@
+import AreaBackToMap from "@/app/components/AreaBackToMap";
 import type { Metadata } from "next";
 import SpotIndexClient from "@/app/components/SpotIndexClient";
 import { spotAreas, spotIndexItemsForArea, visibleSpotsInArea } from "@/lib/data/spotLink";
 import { isPublished } from "@/lib/utils/spotGuide";
 import { spotCheckedClaim } from "@/lib/data/spotPageMeta";
 import { withPlaceholderParam } from "@/lib/server/staticParams";
-import { siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
+import { appItunes, siteConfig, pageRobots, shareOgImage } from "@/lib/utils/seo";
 import SpotTopicPage from "@/app/components/SpotTopicPage";
-import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta, topicCards, areaTitle, areaDescriptionLead } from "@/lib/data/spotTopics";
+import { TopicChips, Lang } from "@/app/components/SpotTopicLists";
+import { overseasView, topicMetadata, areaStructuredData, spotTwitterMeta, cityLinksForPrefecture, areaIntro, topicCards, areaTitle, areaDescriptionLead } from "@/lib/data/spotTopics";
 import { OVERSEAS_SLUG } from "@/lib/data/prefectures";
+import TopicFold from "@/app/components/TopicFold";
+import Link from "next/link";
+import { foodArea, foodHeading } from "@/lib/data/localFood";
+import { ROUTES } from "@/lib/routes";
 
 /** JSON-LD を `<script>` に埋める形（`SpotTopicPage.tsx` と同じ。`</script>` で閉じられないように） */
 const jsonLd = (data: unknown) => JSON.stringify(data).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
@@ -93,6 +99,7 @@ export async function generateMetadata({ params }: { params: Promise<{ area: str
         title: indexable ? { absolute: title } : title,
         description,
         alternates: { canonical: url },
+        itunes: appItunes(url),
         robots: pageRobots(indexable),
         openGraph: {
             type: "website", url, siteName: siteConfig.name,
@@ -112,15 +119,53 @@ export default async function SpotAreaPage({ params }: { params: Promise<{ area:
     if (area === OVERSEAS_SLUG) return <SpotTopicPage view={overseasView()} eyebrow="Photo spots · Outside Japan" />;
     const found = spotAreas().find((a) => a.slug === area);
     // パンくずと並べたスポットの `ItemList`（2026-10-16・切り口の頁と同じ形。県の頁だけ無かった）
-    const ld = found ? areaStructuredData(found, visibleSpotsInArea(found.slug)) : null;
+    const cityLinks = found ? cityLinksForPrefecture(found.slug) : [];
+    const inArea = found ? visibleSpotsInArea(found.slug) : [];
+    const ld = found ? areaStructuredData(found, inArea) : null;
+    // 郷土料理とお土産の頁（2026-11-23・案 B の試作）。建っている県だけ入口を出す
+    const food = found ? foodArea(found.slug) : undefined;
     return (
         <>
             {ld && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld.breadcrumb) }} />}
             {ld?.itemList && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(ld.itemList) }} />}
+            {/* 地図から来たときだけ（マウント後・サーバーの HTML には出さない） */}
+            {found && <AreaBackToMap slug={found.slug} name={found.name} />}
             <SpotIndexClient
                 spots={spotIndexItemsForArea(area)}
                 area={found ? { name: found.name, nameEn: found.nameEn } : undefined}
-            />
+                // その県の台帳から数えた事実の導入文（2026-11-11・#527）
+                intro={found ? areaIntro(inArea) : undefined}
+            >
+                {/* 市区町村でさがす（2026-11-05・5件以上の市区町村の頁。HTML の本文に出るのでクロールの入口になる）。
+                    2026-11-10 案A: 文字の札は開け閉めの段に畳む（リンクは HTML に全部残る・URL は変えない） */}
+                {found && cityLinks.length > 0 && (
+                    <section className="mt-10" data-testid="area-city-links">
+                        <div className="border-t border-line">
+                            <TopicFold id="area-by-city" title={<Lang ja={`${found.name}の市区町村でさがす`} en={`Cities in ${found.nameEn}`} />} count={cityLinks.length}>
+                                <TopicChips links={cityLinks} />
+                            </TopicFold>
+                        </div>
+                    </section>
+                )}
+                {/* 旅のお供（2026-11-23）: 郷土料理とお土産の頁へ。料理の名前は頁の先頭の4品 */}
+                {found && food && (
+                    <section className="mt-10" aria-labelledby="area-food" data-testid="area-food-link">
+                        <div className="border-t border-line pt-6">
+                            <p aria-hidden="true" className="m-0 mb-1.5 eyebrow text-accent">Local food</p>
+                            <h2 id="area-food" className="m-0 font-serif font-bold text-white" style={{ fontSize: "22px", lineHeight: "1.3" }}>
+                                <Lang ja="旅のお供" en="Local food" />
+                            </h2>
+                            <Link href={ROUTES.FOOD(found.slug)} prefetch={false}
+                                  className="mt-3 flex flex-col gap-1 rounded-xl border border-line bg-surface p-4 hover:border-line-strong min-h-[44px]">
+                                <span className="font-serif font-bold text-white" style={{ fontSize: "17px" }}>{foodHeading(found.name, food)}</span>
+                                <span className="text-text-2" style={{ fontSize: "13px", lineHeight: "20px" }}>
+                                    {food.dishes.slice(0, 4).map((d) => d.name).join("、")}など・郷土料理 {food.dishes.length}{food.souvenirs.length > 0 && `・お土産 ${food.souvenirs.length}`}
+                                </span>
+                            </Link>
+                        </div>
+                    </section>
+                )}
+            </SpotIndexClient>
         </>
     );
 }

@@ -683,3 +683,52 @@ describe("フォロー数が分かっていない間", () => {
         expect(result.current.following, "知っている方まで壊していない").toBe(1);
     });
 });
+
+
+// フォローの計測（2026-11-04）: フォローがサーバーに通った回だけ。外した回・失敗・未ログインは数えない
+describe("useFollow: follow_user の計測", () => {
+    const gtag = vi.fn();
+    const followed = () => gtag.mock.calls.filter((c) => c[1] === "follow_user");
+    beforeEach(() => {
+        gtag.mockReset();
+        sessionStorage.clear();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+    });
+
+    it("フォローした回に1回。パラメータは landing_type だけ（相手の uid を送らない）", async () => {
+        mockUserFetch
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ userIds: [] }) })
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ followers: 4 }) });
+        const useFollow = await load();
+        const { result } = renderHook(() => useFollow(TARGET, true, false));
+        await waitFor(() => expect(result.current.resolved).toBe(true));
+        await act(async () => { await result.current.toggle(); });
+        expect(followed()).toHaveLength(1);
+        expect(Object.keys(followed()[0][2])).toEqual(["landing_type"]);
+        expect(JSON.stringify(gtag.mock.calls)).not.toContain(TARGET);
+    });
+
+    it("外した回は数えない", async () => {
+        mockUserFetch
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ userIds: [TARGET] }) })
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ followers: 2 }) });
+        const useFollow = await load();
+        const { result } = renderHook(() => useFollow(TARGET, true, false));
+        await waitFor(() => expect(result.current.isFollowing).toBe(true));
+        await act(async () => { await result.current.toggle(); });
+        expect(followed()).toEqual([]);
+    });
+
+    it("サーバーが断った回・未ログインは数えない", async () => {
+        mockUserFetch
+            .mockResolvedValueOnce({ ok: true, json: async () => ({ userIds: [] }) })
+            .mockResolvedValueOnce({ ok: false, status: 500, json: async () => ({}) });
+        const useFollow = await load();
+        const a = renderHook(() => useFollow(TARGET, true, false));
+        await waitFor(() => expect(a.result.current.resolved).toBe(true));
+        await act(async () => { await a.result.current.toggle(); });
+        const b = renderHook(() => useFollow("33333333-3333-4333-8333-333333333333", false, false));
+        await act(async () => { await b.result.current.toggle(); });
+        expect(followed()).toEqual([]);
+    });
+});

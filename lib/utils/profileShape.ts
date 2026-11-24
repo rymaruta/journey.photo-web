@@ -70,6 +70,8 @@ export function sanitizeProfile<T extends object>(raw: unknown, label: string): 
         // そのまま）。中の文字列だけ整える
         songs: Array.isArray(obj.songs) ? obj.songs.map(song) : undefined,
         pinnedPhotoIds: stringList(obj.pinnedPhotoIds),
+        // 認証済みの印は真偽値 true のときだけ有効にする。
+        verified: obj.verified === true,
         // メダルと Pro（`lib/data/badges.ts`）。**持っていないメダルは名前の横に出さない**
         // ——`displayBadge` は `badges` に在る鍵のときだけ残す（サーバーも同じ判定）
         ...(() => {

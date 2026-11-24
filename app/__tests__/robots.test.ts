@@ -36,6 +36,13 @@ describe("robots.txt の出し分け", () => {
         expect(r.sitemap).toBeTruthy();
     });
 
+    it("検索ページは noindex を読ませるためクロールを許可する", async () => {
+        const r = await robotsFor("prod");
+        const disallow = [(r.rules as { disallow?: string | string[] }).disallow ?? []].flat();
+        expect(disallow).not.toContain("/search");
+        expect(disallow).toContain("/admin");
+    });
+
     it("staging は全面拒否", async () => {
         const r = await robotsFor("staging");
         expect(r.rules).toEqual({ userAgent: "*", disallow: "/" });

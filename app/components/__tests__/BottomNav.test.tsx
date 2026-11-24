@@ -18,9 +18,9 @@ vi.mock("next/navigation", () => ({
     usePathname: () => nav.pathname,
 }));
 
-const auth = vi.hoisted(() => ({ isAuthenticated: false, userId: null as string | null }));
+const auth = vi.hoisted(() => ({ isAuthenticated: false, userId: null as string | null, loading: false }));
 vi.mock("../../auth/context", () => ({
-    useAuth: () => ({ isAuthenticated: auth.isAuthenticated, userId: auth.userId }),
+    useAuth: () => ({ isAuthenticated: auth.isAuthenticated, userId: auth.userId, loading: auth.loading }),
 }));
 const localeMock = vi.hoisted(() => ({ locale: "ja" as "ja" | "en" }));
 vi.mock("../../i18n/context", () => ({ useLocale: () => ({ locale: localeMock.locale, labels: {} }) }));
@@ -32,6 +32,7 @@ beforeEach(() => {
     nav.pathname = "/";
     auth.isAuthenticated = false;
     auth.userId = null;
+    auth.loading = false;
     // 英語のテストが後始末を忘れても、次のテストへ漏らさない
     localeMock.locale = "ja";
     document.documentElement.style.removeProperty("--bottom-bar-h");
@@ -40,6 +41,8 @@ beforeEach(() => {
 describe("画面下の5つのタブ", () => {
     it("英語の文言も iOS と同じ（Search・My Page）", () => {
         localeMock.locale = "en";
+        auth.isAuthenticated = true;   // 未ログインの5つ目は Log in（2026-11-09）。My Page はログイン中の言葉
+        auth.userId = "u1";
         try {
             render(<BottomNav />);
             const bar = screen.getByRole("navigation", { name: "Main" });
@@ -50,7 +53,9 @@ describe("画面下の5つのタブ", () => {
         }
     });
 
-    it("ホーム・探す・投稿・マップ・マイページが、この並びで出る", () => {
+    it("ホーム・探す・投稿・マップ・マイページが、この並びで出る（ログイン中）", () => {
+        auth.isAuthenticated = true;
+        auth.userId = "u1";
         render(<BottomNav />);
         // 並びごと見る（`toContain` の羅列だと入れ替えが素通りする）
         const bar = screen.getByRole("navigation", { name: "メインメニュー" });
@@ -127,9 +132,51 @@ describe("画面下の5つのタブ", () => {
         expect(screen.queryByRole("dialog")).toBeNull();
     });
 
-    it("マイページの行き先は、ログインしていなければログイン", () => {
+    it("未ログインの5つ目は「ログイン」と書き、行き先はログイン（「マイページ」と書いてログインへ行かない・2026-11-09）", () => {
         render(<BottomNav />);
-        expect(screen.getByRole("link", { name: "マイページ" }).getAttribute("href")).toBe(ROUTES.LOGIN);
+        const bar = screen.getByRole("navigation", { name: "メインメニュー" });
+        expect(Array.from(bar.querySelectorAll("a,button")).map((el) => el.textContent))
+            .toEqual(["ホーム", "探す", "投稿", "マップ", "ログイン"]);
+        expect(screen.getByRole("link", { name: "ログイン" }).getAttribute("href")).toBe(ROUTES.LOGIN);
+        expect(screen.queryByRole("link", { name: "マイページ" })).toBeNull();
+    });
+
+    it("タブを押すと nav_click（area=tab・dest）。未ログインの5つ目は login・ログイン中は me・投稿は post", () => {
+        const gtag = vi.fn();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+        sessionStorage.clear();
+        const sent = () => gtag.mock.calls.filter((c) => c[1] === "nav_click").map((c) => c[2]);
+        const { unmount } = render(<BottomNav />);
+        const bar = screen.getByRole("navigation", { name: "メインメニュー" });
+        bar.addEventListener("click", (e) => e.preventDefault());
+        for (const name of ["ホーム", "探す", "マップ", "ログイン"]) fireEvent.click(screen.getByRole("link", { name }));
+        fireEvent.click(screen.getByRole("button", { name: "投稿" }));
+        expect(sent()).toEqual([
+            expect.objectContaining({ area: "tab", dest: "home" }),
+            expect.objectContaining({ area: "tab", dest: "search" }),
+            expect.objectContaining({ area: "tab", dest: "map" }),
+            expect.objectContaining({ area: "tab", dest: "login" }),
+            expect.objectContaining({ area: "tab", dest: "post" }),
+        ]);
+        unmount();
+        gtag.mockClear();
+        auth.isAuthenticated = true;
+        auth.userId = "u1";
+        render(<BottomNav />);
+        screen.getByRole("navigation", { name: "メインメニュー" }).addEventListener("click", (e) => e.preventDefault());
+        fireEvent.click(screen.getByRole("link", { name: "マイページ" }));
+        expect(sent()).toEqual([expect.objectContaining({ area: "tab", dest: "me" })]);
+    });
+
+    it("認証の判定中は「マイページ」のまま（ログイン済みの人に「ログイン」が一瞬見えない）", () => {
+        auth.loading = true;
+        try {
+            render(<BottomNav />);
+            expect(screen.getByRole("link", { name: "マイページ" })).toBeTruthy();
+            expect(screen.queryByRole("link", { name: "ログイン" })).toBeNull();
+        } finally {
+            auth.loading = false;
+        }
     });
 
     it("マイページの行き先は、ログイン中なら自分のプロフィール", () => {

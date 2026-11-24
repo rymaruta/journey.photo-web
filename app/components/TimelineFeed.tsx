@@ -1,17 +1,22 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import SignUpLoginLinks from "./SignUpLoginLinks";
 import { useAuth } from "../auth/context";
 import { usePhotos } from "../../lib/hooks/usePhotos";
 import { fetchFollowingSet, subscribeFollowingSet } from "../../lib/hooks/useFollow";
 import { timelinePhotos } from "../../lib/utils/timeline";
 import { firstPostPhotoIds } from "../../lib/utils/homeFeed";
 import { ROUTES } from "../../lib/routes";
+import { signInAskActions } from "../../lib/auth/signupBenefits";
+import { track } from "../../lib/utils/analytics";
 import HomeMosaic from "./HomeMosaic";
+import { EmptyState, ErrorState, LoadingState } from "./StateViews";
 
 type Props = { locale: string };
+
+/** 「フォロー中」の未ログイン案内を数えたか（ページを開いている間に1回）。試験が戻すための口だけ公開 */
+let guestPromptCounted = false;
+export function resetGuestPromptCounted() { guestPromptCounted = false; }
 
 /**
  * フォローしている人の写真が**投稿の新しい順に流れる**面（Instagram のホームに
@@ -31,7 +36,7 @@ type Props = { locale: string };
  */
 export default function TimelineFeed({ locale }: Props) {
     const { isAuthenticated, loading: authLoading } = useAuth();
-    const { photos, loaded: photosLoaded, failed: photosFailed } = usePhotos();
+    const { photos, loaded: photosLoaded, failed: photosFailed, retry: retryPhotos } = usePhotos();
     // はじめての投稿の印（公開の全件から・iOS と同じ・札 journey.photo-ios#537 案1）
     const firstPostIds = React.useMemo(() => firstPostPhotoIds(photos), [photos]);
     // `null` ＝ まだ分からない。**「0人」と混ぜない**（取得中に「まだ誰も
@@ -57,6 +62,15 @@ export default function TimelineFeed({ locale }: Props) {
         return () => { aborted = true; };
     }, [authLoading, isAuthenticated, reloadKey]);
 
+    // 未ログインで「フォロー中」の案内（下の `following-guest`）が**実際に出た回**を数える（2026-11-09・登録の入口の数え方）。
+    // 判定中・ログイン済みでは出さない。再描画・タブを替えて戻る（再マウント）でも**ページを開いている間に1回**
+    // （モジュールの印。再読み込みで戻る）
+    React.useEffect(() => {
+        if (authLoading || isAuthenticated || guestPromptCounted) return;
+        guestPromptCounted = true;
+        track("login_prompt", { trigger: "following_tab" });
+    }, [authLoading, isAuthenticated]);
+
     // フォロー・解除・ブロックで共有の一覧が変わったら取り直す
     // （結果をコピーして持つので、購読しないと伝わらない）
     React.useEffect(() => subscribeFollowingSet(() => setReloadKey((k) => k + 1)), []);
@@ -67,74 +81,53 @@ export default function TimelineFeed({ locale }: Props) {
     );
 
     const isJa = locale !== "en";
+    const loc = isJa ? "ja" : "en";
 
-    if (authLoading) return <Status text={isJa ? "読み込み中…" : "Loading…"} />;
+    /*
+     * **状態の形は iOS のホームと同じ**（`GalleryView.feedEmptyState`・板 Main「フォロー中が空」・`StateViews`）。
+     * 2026-11-04: 以前は文字だけの「読み込み中…」と、灰の札に入れた一文・灰の丸いボタンだった。
+     *   読み込み中 … 写真の格子の灰の骨組み（`LoadingState`）
+     *   失敗       … 三角・一文・「もう一度試す」（`ErrorState`）
+     *   空         … 明朝の見出し「フォロー中の人の写真はまだありません」・一文・主ボタン「写真や人を探す」（`EmptyState`）。
+     *                iOS は「0人」と「フォロー先がまだ上げていない」を分けない（どちらも見出しが「何が無いか」を言う）
+     */
+    if (authLoading) return <LoadingState kind="grid" locale={loc} />;
     if (!isAuthenticated) {
+        // 2026-11-09: 押しても何も起きないように見えていたので、タブの中で「ログインすると見られる」ことを言い、
+        // ログインへ進める（戻り先は今の頁・`via=follow` でログイン画面が理由を言う）
         return (
-            <Empty>
-                <p className="text-sm text-white/70 m-0">
-                    {isJa ? "ログインすると、フォローしている人の写真がここに流れます。" : "Log in to see photos from people you follow."}
-                </p>
-                {/* 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主） */}
-                <SignUpLoginLinks locale={locale} next={typeof window === "undefined" ? null : window.location.pathname}
-                                  testIdPrefix="timeline-signin" className="justify-center" />
-            </Empty>
+            <EmptyState className="py-16" testId="following-guest"
+                title={isJa ? "ログインすると、フォロー中の人の写真が見られます" : "Log in to see photos from people you follow"}
+                message={isJa ? "気になる作者をフォローすると、新しい写真がここに並びます。" : "Follow photographers you like and their new photos will appear here."}
+                // 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主）
+                {...signInAskActions(locale, typeof window === "undefined" ? null : window.location.pathname + window.location.search, "follow")} />
         );
     }
     if (followingError) {
+        // iOS は「…引き下げて読み直せます」。Web は引き下げが無いので、その代わりの「もう一度試す」を出す
         return (
-            <Empty>
-                <p className="text-sm text-white/70 m-0">
-                    {isJa ? "フォロー中の一覧を読み込めませんでした。" : "Couldn't load who you follow."}
-                </p>
-                <button type="button" onClick={() => setReloadKey((k) => k + 1)} className={pillClass} style={{ touchAction: "manipulation" }}>
-                    {isJa ? "もう一度読み込む" : "Retry"}
-                </button>
-            </Empty>
+            <ErrorState className="py-16" locale={loc}
+                message={isJa ? "フォロー中の人を読み込めませんでした。" : "Couldn't load the people you follow."}
+                onRetry={() => setReloadKey((k) => k + 1)} />
         );
     }
-    if (following === null) return <Status text={isJa ? "読み込み中…" : "Loading…"} />;
-    if (following.size === 0) {
-        return (
-            <Empty>
-                <p className="text-sm text-white/70 m-0">
-                    {isJa ? "まだ誰もフォローしていません。" : "You aren't following anyone yet."}
-                </p>
-                <Link href={ROUTES.USER_SEARCH} prefetch={false} className={pillClass}>
-                    {isJa ? "ユーザーを探す" : "Find people"}
-                </Link>
-            </Empty>
-        );
-    }
+    if (following === null) return <LoadingState kind="grid" locale={loc} />;
+    const empty = (
+        <EmptyState className="py-16" testId="following-empty"
+            title={isJa ? "フォロー中の人の写真はまだありません" : "No photos from people you follow yet"}
+            message={isJa ? "気になる作者をフォローすると、新しい写真がここに並びます。" : "Follow photographers you like and their new photos will appear here."}
+            action={{ label: isJa ? "写真や人を探す" : "Find photos and people", href: ROUTES.SEARCH }} />
+    );
+    // **0人の答えは確定しているので、写真を待たない**（待つと0人の人にだけ骨組みが出続ける）
+    if (following.size === 0) return empty;
     if (items.length === 0) {
-        // 一覧が届く前は「まだ投稿していません」と言い切らない
+        // 一覧が届く前は「まだありません」と言い切らない
         // （`photos` の初期値はビルド時のスナップショット＝週1で古い）
-        if (!photosLoaded && !photosFailed) return <Status text={isJa ? "読み込み中…" : "Loading…"} />;
-        return (
-            <Empty>
-                <p className="text-sm text-white/70 m-0">
-                    {photosFailed
-                        ? (isJa ? "写真の一覧を読み込めませんでした。" : "Couldn't load photos.")
-                        : (isJa ? "フォロー中の人は、まだ写真を投稿していません。" : "The people you follow haven't posted yet.")}
-                </p>
-            </Empty>
-        );
+        if (!photosLoaded && !photosFailed) return <LoadingState kind="grid" locale={loc} />;
+        if (!photosLoaded && photosFailed) {
+            return <ErrorState className="py-16" locale={loc} message={isJa ? "読み込めませんでした" : "Couldn't load"} onRetry={retryPhotos} />;
+        }
+        return empty;
     }
     return <HomeMosaic photos={items} locale={isJa ? "ja" : "en"} firstPostIds={firstPostIds} />;
-}
-
-const pillClass = "px-4 py-2 text-sm bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors";
-
-function Status({ text }: { text: string }) {
-    return (
-        <div className="py-16 text-center text-sm text-white/50" role="status" aria-live="polite">{text}</div>
-    );
-}
-
-function Empty({ children }: { children: React.ReactNode }) {
-    return (
-        <div className="rounded-2xl bg-surface ring-1 ring-line py-16 px-4 flex flex-col items-center justify-center gap-3 text-center">
-            {children}
-        </div>
-    );
 }

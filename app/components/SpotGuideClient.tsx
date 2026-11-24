@@ -10,19 +10,19 @@ import { commonsThumbAt, commonsSrcSet } from "@/lib/utils/commonsThumb";
 import { showsField, sourcesFor, needsVisibleCredit, usesMapHero, isVerified, isPublished, hasAiCheck } from "@/lib/utils/spotGuide";
 import { useLocale } from "@/app/i18n/context";
 import { ROUTES } from "@/lib/routes";
+import { OVERSEAS_SLUG } from "@/lib/data/prefectures";
 import { MapIcon, ArrowUpOnSquareIcon, ChevronRightIcon, ChevronLeftIcon } from "@heroicons/react/24/outline";
 import { useToast } from "@/lib/hooks/useToast";
 import { shareUrl } from "@/lib/utils/share";
 import GalleryGrid from "./GalleryGrid";
 import type { PhotoCreator } from "@/lib/utils/photoCreators";
 import SpotRows, { type SpotRow } from "./SpotRows";
-import SectionHead, { MoreLink } from "./SectionHead";
+import SectionHead from "./SectionHead";
 import { CARD, ROW_TALL, ROW_ICON_BOX, ROW_ICON, ROW_TITLE, ROW_SUB, ROW_CHEVRON } from "./rowStyles";
 import SaveSpotButton, { TILE, TILE_OFF, TILE_TEXT, TILE_ICON, TILE_MIN_H } from "./SaveSpotButton";
 import { spotUploadHref } from "@/lib/utils/spotUpload";
+import SpotNext, { NEARBY_SECTION_ID } from "./SpotNext";
 import OpenInAppButton from "./OpenInAppButton";
-import { CHIP_OFF, CHIP_SIZE } from "./chipStyles";
-import { CHIP_HIT, CHIP_ROW } from "./SpotTopicLists";
 import { lightCellText, lightLegend, type LightCalendar } from "../../lib/utils/lightCalendar";
 import { LIGHT_MAX_OFFSET, direction, guideTimes, lightDateLabel, lightNote, lightSheet, lightZone, splitGuides, type LightBlock } from "../../lib/utils/spotLight";
 import { MILKY_WAY_MIN_ALTITUDE, directionSummary, milkyWaySummary, newMoonLabels, skyLead, type SpotSky } from "../../lib/utils/spotSky";
@@ -138,6 +138,27 @@ function Head({ id, eyebrow, children }: { id: string; eyebrow?: string; childre
     return <SectionHead id={id} eyebrow={eyebrow} title={children} testId={`head-${id}`} />;
 }
 
+/**
+ * **全ページ共通の計算表を畳む**（2026-11-09・Web 入口ページ監査の案A）。
+ * 日の出・日の入り・天の川・新月の表と、その計算の注記は、どのスポットのページも同じ骨組みで、
+ * 約3,500ページで「他のページと重ならない文」が全体の約25%しか無かった（標本110の中央値）。
+ * 表は**消さず `<details>` に入れる**——閉じていても HTML に残るので検索には読まれ、リンク・構造化データも変わらない。
+ * 見えるのは、そのページ固有の要約（方角の振れ幅・天の川の見頃）と、開く行だけ。
+ * 開く行は押せる所の決まりで高さ 44（`min-h-[44px]`）。JS 無しで開く
+ */
+function CalcDetails({ summary, testId, children }: { summary: string; testId: string; children: React.ReactNode }) {
+    return (
+        <details className="group mt-1" data-testid={testId}>
+            <summary className="flex items-center gap-1.5 min-h-[44px] cursor-pointer list-none text-white/70 hover:text-white focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent rounded"
+                     style={{ fontSize: "14px", lineHeight: "20px" }}>
+                <span aria-hidden="true" className="inline-block text-white/60 transition-transform group-open:rotate-90 motion-reduce:transition-none">›</span>
+                <span>{summary}</span>
+            </summary>
+            {children}
+        </details>
+    );
+}
+
 /** 時刻帯の短い言い方（表の注記）。日本は「日本時間」、ほかは都市名 */
 function zoneLabel(timeZone: string, isJa: boolean): string {
     if (timeZone === "Asia/Tokyo") return isJa ? "日本時間" : "Japan time";
@@ -167,6 +188,7 @@ function LightTable({ light, sky, isJa }: { light: LightCalendar; sky: SpotSky |
             {swing && (
                 <p className="m-0 mb-3 text-white/85" style={{ fontSize: "15px", lineHeight: "24px" }} data-testid="spot-light-swing">{swing}</p>
             )}
+            <CalcDetails testId="spot-light-calc" summary={isJa ? "月ごとの日の出・日の入りの表（各月15日）" : "Monthly sunrise and sunset table (15th of each month)"}>
             <div className="overflow-x-auto">
                 <table className="w-full border-collapse text-left" style={{ fontSize: "13px", lineHeight: "18px" }}>
                     <caption className="sr-only">
@@ -204,6 +226,7 @@ function LightTable({ light, sky, isJa }: { light: LightCalendar; sky: SpotSky |
                     {legend.map((l) => <li key={l}>{l}</li>)}
                 </ul>
             )}
+            </CalcDetails>
         </section>
     );
 }
@@ -227,6 +250,7 @@ function NightSky({ sky, isJa }: { sky: SpotSky; isJa: boolean }) {
             <p className="m-0 mb-3 text-white/85" style={{ fontSize: "15px", lineHeight: "24px" }} data-testid="spot-milky-way-summary">
                 {milkyWaySummary(sky, isJa)}
             </p>
+            <CalcDetails testId="spot-night-sky-calc" summary={isJa ? "月ごとの時刻・今後12か月の新月・計算の方法" : "Monthly times, new moons and how it is calculated"}>
             {mw.months.length > 0 && (
                 <div className="overflow-x-auto mb-2">
                     <table className="w-full border-collapse text-left" style={{ fontSize: "13px", lineHeight: "18px" }} data-testid="spot-milky-way">
@@ -275,6 +299,7 @@ function NightSky({ sky, isJa }: { sky: SpotSky; isJa: boolean }) {
                     ? `天の川は、太陽が −18° より下（天文薄明の外）で、銀河中心（J2000 赤経 17h45m40s・赤緯 −29°00′28″）が地平線から ${MILKY_WAY_MIN_ALTITUDE}° 以上にある時間（各月15日・${zoneLabel(sky.timeZone, true)}・30分以上の月だけ）。新月は月明かりの無い夜の目安で、日付は${zoneLabel(sky.timeZone, true)}。ページを作った日から1年分で、ページを作り直すたびに更新します。月明かり・天気・光害・山の影は含みません。`
                     : `Milky Way: when the sun is below −18° (astronomical night) and the galactic centre (J2000 RA 17h45m40s, Dec −29°00′28″) is at least ${MILKY_WAY_MIN_ALTITUDE}° above the horizon (15th of each month, ${zoneLabel(sky.timeZone, false)}, months with 30 minutes or more). New-moon dates are in ${zoneLabel(sky.timeZone, false)}, for one year from when this page was built, and refresh each time it is rebuilt. Moonlight, weather, light pollution and terrain are not included.`}
             </p>
+            </CalcDetails>
         </section>
     );
 }
@@ -513,6 +538,9 @@ function Sources({ spot, field }: { spot: Spot; field: string }) {
     );
 }
 
+/** パンくずのリンク。**高さ 44px の押せる面**（以前は字の高さ約15px・2026-11-09 入口の案C） */
+const CRUMB = "inline-flex min-h-[44px] items-center hover:text-white/90";
+
 export default function SpotGuideClient({ spot, photos, creators = [], autoNote = false, nearby, locationPath, area = null, sameArea = null, pageUrl, light = null, sky = null, samples = [], topics = [], country = null, visit = null }: Props) {
     const { locale } = useLocale();
     const { showToast } = useToast();
@@ -560,14 +588,22 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
     const visitAccess = Boolean(visit && (visit.access || visit.parking)
         && !(showsField(spot, "access") && spot.access) && !(showsField(spot, "parking") && spot.parking?.note));
     const mapHref = spot.coords ? `${ROUTES.MAP}#14/${spot.coords.lat}/${spot.coords.lng}` : ROUTES.MAP;
-    // 「[都道府県] [市区町村] · N枚の写真」（iOS の `SpotScreen.subtitle`）。N は数えた値
-    const photoCountLabel = isJa ? `${photos.length}枚の写真` : (photos.length === 1 ? "1 photo" : `${photos.length} photos`);
+    // 「[都道府県] [市区町村] · N枚の写真」（iOS の `SpotScreen.subtitle`）。N は数えた値。
+    // **0枚のときは「0枚の写真」と言わない**（2026-11-09・Web 入口ページ監査の案A。標本の96%が「0枚」で、
+    // 入口の画面の最初に「無い」が出ていた）。代わりに、あるもの（作例の枚数）を言う。作例も無ければ地域だけ。
+    // 数字の見せ方は Web だけ（iOS の副題は枚数のまま・iOS の板と割らない判断は報告に書いた）
+    const photoCountLabel = photos.length > 0
+        ? (isJa ? `${photos.length}枚の写真` : (photos.length === 1 ? "1 photo" : `${photos.length} photos`))
+        : samples.length > 0
+            ? (isJa ? `作例${samples.length}枚` : (samples.length === 1 ? "1 example photo" : `${samples.length} example photos`))
+            : "";
+    const subtitle = [region, photoCountLabel].filter(Boolean).join(" · ");
 
     // 「シェア」: 共有シートが使えなければリンクをコピー（`SpotPageClient` と同じ扱い）。
     // 配るのは**サーバーが組んだ canonical**（`window.location` だとクエリが付いたまま配られる）
     const handleShare = async () => {
         const url = pageUrl ?? (typeof window === "undefined" ? "" : window.location.href.split(/[?#]/)[0]);
-        const result = await shareUrl(url, spot.name, region || undefined);
+        const result = await shareUrl(url, spot.name, region || undefined, "spot");
         if (result === "copied") {
             showToast(isJa ? "リンクをクリップボードにコピーしました" : "Link copied to clipboard!", "success");
         } else if (result === "failed") {
@@ -594,10 +630,18 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
 
     /* ── この場所の写真 ─────────────────────────
        **ここだけがユーザー投稿に触れる節。** 0枚でも上は完成している。
-       iOS と同じく**写真がある場所は本文より先**（写真が主役）、0枚の場所は本文の後ろ */
+       iOS と同じく**写真がある場所は本文より先**（写真が主役）。
+       **0枚の場所は、短い誘いを「魅力」の節の直後に1か所だけ**置く（2026-11-09・Web 入口ページ監査の案A）。
+       以前は本文・計算表・夜空の暦の後ろ（ページの終盤）に「（0）」「まだ投稿されていません」を出していて、
+       「載せる」への道が計算表の向こうにあった。最初の h2 が誘いにならないよう、本文（魅力）より前には置かない。
+       0枚のときは数字を出さず、「あなたの1枚が最初になる」と前向きに言う */
     const photosSection = (
-        <section className={photos.length > 0 ? "pt-6" : "pt-8"} aria-labelledby="spot-photos">
-            <Head id="spot-photos">{isJa ? `この観光スポットの写真（${photos.length}）` : `Photos here (${photos.length})`}</Head>
+        <section className="pt-6" aria-labelledby="spot-photos">
+            <Head id="spot-photos">
+                {photos.length > 0
+                    ? (isJa ? `この観光スポットの写真（${photos.length}）` : `Photos here (${photos.length})`)
+                    : (isJa ? "最初の1枚を投稿しませんか" : "Be the first to share a photo here")}
+            </Head>
             {/* 投稿から戻ってきた（`?posted=1`）。**この一覧はビルド時の写真**なので、
                 いま上げた写真はサイトの更新が終わるまで並ばない——並んだとは言わない */}
             {justPosted && (
@@ -644,11 +688,11 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                     </div>
                 </>
             ) : (
-                <div className="rounded-xl bg-surface ring-1 ring-line p-5 text-center">
-                    <p className="m-0 text-white/70" style={{ fontSize: "15px", lineHeight: "24px" }}>
+                <div className="rounded-xl bg-surface ring-1 ring-line p-5 text-center" data-testid="spot-photos-invite">
+                    <p className="m-0 text-white/80" style={{ fontSize: "15px", lineHeight: "24px" }}>
                         {isJa
-                            ? "この撮影地の写真は、まだ投稿されていません。"
-                            : "No photos have been shared for this spot yet."}
+                            ? "あなたの1枚が、この観光スポットの最初の写真になります。"
+                            : "Your photo could be the first one here."}
                     </p>
                     <Link href={uploadHref} prefetch={false}
                           className="mt-3 inline-flex items-center rounded-full bg-accent-fill text-ink font-medium focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
@@ -728,18 +772,18 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
 
             <div className="mx-auto w-full max-w-5xl lg:max-w-6xl px-4 sm:px-6 md:px-8 pb-10">
                 {/* ── 2. 基本情報 ─────────────────────────────── */}
-                <header className="pt-5 pb-4">
+                <header className="pt-2 pb-4">
                     {/* パンくず（構造化データの `BreadcrumbList` と同じ段）。
                         県の段は区画のページが在るときだけ */}
-                    <nav aria-label={isJa ? "パンくずリスト" : "Breadcrumb"} className="mb-2 text-white/60"
+                    <nav aria-label={isJa ? "パンくずリスト" : "Breadcrumb"} className="mb-0 flex flex-wrap items-center text-white/60"
                          style={{ fontSize: "12px", lineHeight: "18px" }}>
-                        <Link href="/" prefetch={false} className="hover:text-white/90">{isJa ? "ホーム" : "Home"}</Link>
+                        <Link href="/" prefetch={false} className={CRUMB}>{isJa ? "ホーム" : "Home"}</Link>
                         <span className="mx-1.5" aria-hidden>/</span>
-                        <Link href={ROUTES.SPOTS} prefetch={false} className="hover:text-white/90">{isJa ? "観光スポット" : "Photo spots"}</Link>
+                        <Link href={ROUTES.SPOTS} prefetch={false} className={CRUMB}>{isJa ? "観光スポット" : "Photo spots"}</Link>
                         {area && (
                             <>
                                 <span className="mx-1.5" aria-hidden>/</span>
-                                <Link href={ROUTES.SPOT_AREA(area.slug)} prefetch={false} className="hover:text-white/90">
+                                <Link href={ROUTES.SPOT_AREA(area.slug)} prefetch={false} className={CRUMB}>
                                     {isJa ? area.name : area.nameEn}
                                 </Link>
                             </>
@@ -747,7 +791,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         {country && (
                             <>
                                 <span className="mx-1.5" aria-hidden>/</span>
-                                <Link href={country.href} prefetch={false} className="hover:text-white/90">
+                                <Link href={country.href} prefetch={false} className={CRUMB}>
                                     {isJa ? country.name : country.nameEn}
                                 </Link>
                             </>
@@ -775,7 +819,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                     )}
                     <p className="m-0 mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-white/70"
                        style={{ fontSize: "13px", lineHeight: "18px" }}>
-                        <span>{region ? `${region} · ${photoCountLabel}` : photoCountLabel}</span>
+                        {subtitle && <span>{subtitle}</span>}
                         {spot.category && (
                             <span className="inline-flex items-center rounded-full bg-chip text-chip-text"
                                   style={{ fontSize: "12px", padding: "2px 8px" }}>{spot.category}</span>
@@ -829,6 +873,16 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                 <OpenInAppButton slug={spot.slug} isJa={isJa} />
                 </div>
 
+                {/* ── 3b. 次へ（2026-11-09・入口の案C）──────
+                    説明文のすぐ下に、県・近く・季節の一覧への文字リンクとアプリの札を引き上げる。
+                    元の置き場（右の柱）からは移した＝リンクは増えない（`SpotNext.tsx`） */}
+                <SpotNext
+                    isJa={isJa}
+                    list={country ? { href: country.href, name: country.name, nameEn: country.nameEn } : area ? { href: ROUTES.SPOT_AREA(area.slug), name: area.name, nameEn: area.nameEn } : null}
+                    hasNearby={nearby.length > 0}
+                    topics={topics}
+                />
+
                 {/* PC は2段組。スマホは1列（スマホを横に引き伸ばさない） */}
                 <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(0,20rem)] lg:gap-10 lg:items-start">
                     <div className="min-w-0">
@@ -860,6 +914,9 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                                 )}
                             </section>
                         )}
+
+                        {/* 0枚の場所の誘い（2026-11-09）: **魅力の節の直後**。計算表より前で、h2 が本文より先に出ない */}
+                        {photos.length === 0 && photosSection}
 
                         {/* ── 作例（Wikimedia Commons）──────────
                             投稿が0枚の場所でも、どんな写真が撮れるかが分かるように。撮影ガイドの前 */}
@@ -958,11 +1015,20 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         {visit && <VisitPhotoRules facts={visit} isJa={isJa} head={headOf} inJapan={spot.region?.country === "日本"} />}
 
                         {light && <LightTable light={light} sky={sky} isJa={isJa} />}
+                        {/* 日本のスポットは、その県の「今日の日の出・日の入り」へ（2026-11-07）。海外は県の頁が無い */}
+                        {light && area && spot.region?.country === "日本" && area.slug !== OVERSEAS_SLUG && (
+                            <p className="m-0 mt-2" data-testid="spot-today-link">
+                                <Link href={ROUTES.TODAY_PREF(area.slug)} prefetch={false}
+                                      className="inline-flex min-h-[44px] items-center text-white/60 hover:text-white transition-colors"
+                                      style={{ fontSize: "13px" }}>
+                                    {isJa ? `${area.name.replace(/[都府県]$/, "")}の今日の日の出・日の入り時刻` : `Today's sunrise and sunset in ${area.nameEn}`}
+                                    <span aria-hidden="true" className="ml-1">›</span>
+                                </Link>
+                            </p>
+                        )}
                         {sky && <NightSky sky={sky} isJa={isJa} />}
 
                         {officialSite}
-
-                        {photos.length === 0 && photosSection}
                     </div>
 
                     {/* ── 右カラム（PC）＝所在地・地図・アクセス・周辺 ──────
@@ -1037,7 +1103,7 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                         {/* ── 9. 近くの撮影スポット（登録済みのみ）── */}
                         {nearby.length > 0 && (
                             <section className="mb-7" aria-labelledby="spot-nearby">
-                                <Head id="spot-nearby">{isJa ? "近くの観光スポット" : "Nearby spots"}</Head>
+                                <Head id={NEARBY_SECTION_ID}>{isJa ? "近くの観光スポット" : "Nearby spots"}</Head>
                                 <SpotRows rows={nearby} isJa={isJa} />
                             </section>
                         )}
@@ -1050,36 +1116,10 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                                     // 英語の国名は台帳に無い（海外の区画名 Outside Japan では中身と合わない）
                                     : spot.region?.country === "日本" && area ? `More spots in ${area.nameEn}` : "More photo spots"}</Head>
                                 <SpotRows rows={sameArea.spots} isJa={isJa} />
-                                {/* 海外は国の頁へ（区画の頁は国の一覧で、スポットは並ばない） */}
-                                {/* 「すべて見る ›」は共通の `MoreLink`（13・text-2・当たり 44・2026-10-31 束 2）。以前は 12 の字だけ */}
-                                {country ? (
-                                    <div className="flex justify-end"><MoreLink href={country.href}
-                                        label={isJa ? `${country.name}の観光スポットをすべて見る` : `See all spots in ${country.nameEn}`} /></div>
-                                ) : area && (
-                                    <div className="flex justify-end"><MoreLink href={ROUTES.SPOT_AREA(area.slug)}
-                                        label={isJa ? `${area.name}の観光スポットをすべて見る` : `See all spots in ${area.nameEn}`} /></div>
-                                )}
                             </section>
                         )}
 
-                        {/* ── 11. このスポットが載っている一覧（国・テーマ・季節）── */}
-                        {topics.length > 0 && (
-                            <section className="mb-7" aria-labelledby="spot-topics" data-testid="spot-topics">
-                                <Head id="spot-topics">{isJa ? "この観光スポットが載っている一覧" : "Lists with this spot"}</Head>
-                                <ul className={CHIP_ROW} style={{ listStyle: "none" }}>
-                                    {topics.map((t) => (
-                                        <li key={t.href}>
-                                            <Link href={t.href} prefetch={false}
-                                                  className={`${CHIP_HIT} inline-flex items-center gap-1.5 rounded-full ${CHIP_OFF} transition-colors`}
-                                                  style={CHIP_SIZE}>
-                                                {!isJa && t.labelEn ? t.labelEn : t.label}
-                                                <span className="text-white/60" style={{ fontSize: "12px" }}>{t.count}</span>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </section>
-                        )}
+                        {/* ── 11. このスポットが載っている一覧（国・テーマ・季節）は「次へ」（`SpotNext`）へ移した（2026-11-09）── */}
 
                         {/* 集約ページへの導線（**`/location/*` は維持**。役割が違う） */}
                         {locationPath && (

@@ -22,12 +22,13 @@
  */
 export const INTERRUPTED = /interrupted by another navigation/i;
 
-export async function gotoSettled(page, url, options = { waitUntil: "domcontentloaded" }) {
+export async function gotoSettled(page, url, options = { waitUntil: "domcontentloaded" }, { retryInterrupted = true } = {}) {
     await settle(page);
     try {
         return await page.goto(url, options);
     } catch (e) {
-        if (!INTERRUPTED.test(String(e?.message ?? e))) throw e;
+        // `retryInterrupted: false` … 頁が自分で起こした移動に割り込まれること自体を確かめる検査（行き直して隠さない）
+        if (!retryInterrupted || !INTERRUPTED.test(String(e?.message ?? e))) throw e;
         await settle(page);
         return await page.goto(url, options);
     }

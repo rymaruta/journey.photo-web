@@ -3,7 +3,14 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { useRouter } from "next/navigation";
 import { useLocale } from "../../i18n/context";
+import { useAuth } from "../../auth/context";
+import ListPageHeader from "../../components/ListPageHeader";
+import { EmptyState, ErrorState, LoadingState } from "../../components/StateViews";
+import {
+    forgetJoinedAlbum, inviteTokenFromText, othersOf, readJoinedAlbums, type JoinedAlbum,
+} from "../../../lib/utils/joinedAlbums";
 import { useToast } from "../../../lib/hooks/useToast";
 import { useMemberGate } from "../../../lib/hooks/useMemberGate";
 import { useFocusTrap } from "../../../lib/hooks/useFocusTrap";
@@ -36,7 +43,15 @@ const inviteUrl = (token: string) =>
 export default function AlbumsPage() {
     const { locale } = useLocale();
     const { showToast } = useToast();
+    const router = useRouter();
+    const { userId } = useAuth();
     const [albums, setAlbums] = useState<Album[] | null>(null);
+    /** 招待リンクから参加する欄（iOS `AlbumsView.joinCard`）。貼ったリンクか招待コード */
+    const [inviteText, setInviteText] = useState("");
+    const [inviteError, setInviteError] = useState(false);
+    /** 参加しているアルバムの、この端末の控え（`lib/utils/joinedAlbums.ts`） */
+    const [joinedAll, setJoinedAll] = useState<JoinedAlbum[]>([]);
+    useEffect(() => { setJoinedAll(readJoinedAlbums(userId)); }, [userId]);
     const [loadError, setLoadError] = useState("");
     const [title, setTitle] = useState("");
     const [busy, setBusy] = useState(false);
@@ -132,6 +147,18 @@ export default function AlbumsPage() {
     }, []);
 
     useEffect(() => { if (gate === "ok") void load(); }, [gate, load]);
+
+    /**
+     * 貼ったリンクか招待コードを開く。**押した瞬間に参加させない**——`/j?t=` が中身を見せてから聞く
+     * （iOS `openInvite()` と同じ）。トークンが取れなければ、その場で言う
+     */
+    const openInvite = () => {
+        const token = inviteTokenFromText(inviteText);
+        if (!token) { setInviteError(true); return; }
+        setInviteError(false);
+        setInviteText("");
+        router.push(`/j?t=${encodeURIComponent(token)}`);
+    };
 
     const create = useCallback(async () => {
         const name = title.trim();
@@ -229,6 +256,9 @@ export default function AlbumsPage() {
         }
     };
 
+    /** 自分が作ったアルバムと重ならない、参加しているアルバム */
+    const joinedOthers = othersOf(joinedAll, (albums ?? []).map((a) => a.id));
+
     if (gate === "no-group") return <MemberOnlyNotice locale={locale} />;
     // **送り返さないと決めた回は、画面も出す。**
     //
@@ -243,7 +273,7 @@ export default function AlbumsPage() {
             <main className="min-h-screen bg-bg text-white flex items-center justify-center">
                 {/* **事前描画で焼かれるのはこの枝**（認証を確かめる前）。
                     JS が走る前に見えるのはここなので見出しを持たせる */}
-                <h1 className="sr-only">共同アルバム</h1>
+                <h1 className="sr-only">アルバム</h1>
                 <div className="w-12 h-12 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
             </main>
         );
@@ -252,17 +282,16 @@ export default function AlbumsPage() {
     return (
         <main className="min-h-screen bg-bg text-white px-4 py-8">
             <div className="max-w-2xl mx-auto">
-                <div className="flex items-center gap-4 mb-6">
-                    <Link href={ROUTES.HOME} aria-label="戻る" className="text-white/70">
-                        <ArrowLeftIcon className="w-5 h-5" aria-hidden="true" />
-                    </Link>
-                    <h1 className="text-lg">共同アルバム</h1>
-                </div>
-
-                <p className="text-xs text-white/60 mb-6">
-                    旅の同行者に招待リンクを配ると、同じアルバムに写真を足してもらえます。
-                    リンクを開くだけならログインは要りません。
-                </p>
+                <Link href={ROUTES.HOME} aria-label="戻る" className="inline-flex items-center text-white/70 mb-2" style={{ minHeight: 44, minWidth: 44 }}>
+                    <ArrowLeftIcon className="w-5 h-5" aria-hidden="true" />
+                </Link>
+                {/* 見出しの型は iOS `AlbumsView.header`（明朝の題 → 一行）。以前は 18 のゴシック「共同アルバム」。
+                    リンクを開くだけならログインは要らない、の断りは下の参加の札に移した（2026-11-04 判断・札 #478） */}
+                <ListPageHeader
+                    titleId="site-title"
+                    title="アルバム"
+                    description="招待リンクで、旅の仲間と写真を集めます"
+                />
 
                 <div className="flex gap-2 mb-8">
                     <label htmlFor="album-title" className="sr-only">アルバムの名前</label>
@@ -294,29 +323,70 @@ export default function AlbumsPage() {
                     </button>
                 </div>
 
+                {/* 招待リンクから参加（iOS `joinCard`: 札の中に欄と「開く」）。受け取ったリンクの貼り先が見える形にする */}
+                <section aria-labelledby="album-join-title" className="rounded-xl bg-surface ring-1 ring-line p-4 mb-8" data-testid="album-join">
+                    <h2 id="album-join-title" className="m-0 text-white font-semibold" style={{ fontSize: "15px", lineHeight: 1.4 }}>招待リンクから参加</h2>
+                    <form
+                        className="flex gap-2 mt-2.5"
+                        onSubmit={(e) => { e.preventDefault(); openInvite(); }}
+                    >
+                        <label htmlFor="album-invite" className="sr-only">リンクか招待コード</label>
+                        <input
+                            id="album-invite"
+                            value={inviteText}
+                            onChange={(e) => { setInviteText(e.target.value); setInviteError(false); }}
+                            placeholder="リンクか招待コード"
+                            inputMode="url"
+                            autoCapitalize="none"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            className="flex-1 min-w-0 bg-surface-2 rounded-field px-3 text-sm ring-1 ring-line-strong"
+                            style={{ minHeight: 44 }}
+                        />
+                        <button
+                            type="submit"
+                            disabled={!inviteText.trim()}
+                            className="rounded-full ring-1 ring-line-strong text-white text-sm px-5 disabled:opacity-50"
+                            style={{ minHeight: 44, touchAction: "manipulation" }}
+                        >
+                            開く
+                        </button>
+                    </form>
+                    {inviteError && (
+                        <p role="alert" className="m-0 mt-2 text-danger" style={{ fontSize: "12px" }}>招待リンクを読み取れませんでした</p>
+                    )}
+                    <p className="m-0 mt-2.5 text-text-3" style={{ fontSize: "12px", lineHeight: 1.5 }}>
+                        受け取ったリンク（https://journey-photo.com/j?t=…）をそのまま貼れます。リンクを開くだけならログインは要りません。
+                    </p>
+                </section>
+
                 {/* **再試行の口を出す。** `load()` は `gate` が変わったときしか
                     走らないので、無いとページを開き直すしかなかった
                     （`drafts` は再試行ボタンを持っている） */}
                 {loadError && (
-                    <div className="mb-4">
-                        <p role="alert" className="text-sm text-white/85">{loadError}</p>
-                        <button
-                            type="button"
-                            onClick={() => { setLoadError(""); void load(); }}
-                            className="mt-2 px-3 py-1.5 text-xs bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors"
-                            style={{ touchAction: "manipulation" }}
-                        >
-                            {locale === "en" ? "Retry" : "もう一度読み込む"}
-                        </button>
+                    <div className="mb-4" role="alert">
+                        <ErrorState
+                            message={loadError}
+                            onRetry={() => { setLoadError(""); void load(); }}
+                            retryLabel="もう一度読み込む"
+                            locale={locale === "en" ? "en" : "ja"}
+                        />
                     </div>
                 )}
 
                 {albums === null ? (
                     // 失敗した回は「読み込み中…」を出さない（上の1行が説明する）
-                    loadError ? null : <p className="text-sm text-white/60" aria-live="polite">読み込み中…</p>
-                ) : albums.length === 0 ? (
-                    <p className="text-sm text-white/60">まだアルバムがありません。</p>
-                ) : (
+                    loadError ? null : <LoadingState kind="rows" />
+                ) : albums.length === 0 && joinedOthers.length === 0 ? (
+                    // iOS: 何が無いか → どうすれば埋まるか → 一手（作る）。一手は名前の欄へ
+                    <EmptyState
+                        title="まだアルバムがありません"
+                        message="アルバムを作って招待リンクを送ると、仲間の写真がここに集まります"
+                        action={{ label: "アルバムを作る", onClick: () => document.getElementById("album-title")?.focus() }}
+                    />
+                ) : albums.length === 0 ? null : (
+                    <>
+                    <p className="m-0 mb-3 eyebrow text-accent eyebrow-line">作ったアルバム</p>
                     <ul className="space-y-4">
                         {albums.map((a) => (
                             <li key={a.id} className="rounded-xl bg-surface ring-1 ring-line p-4">
@@ -392,6 +462,42 @@ export default function AlbumsPage() {
                             </li>
                         ))}
                     </ul>
+                    </>
+                )}
+
+                {/* 参加しているアルバム（iOS `joinedSection`）。サーバーの一覧は自分が作った分しか返さないので、
+                    この端末が覚えている分を出す。出さないと、参加した瞬間にアルバムへの入口が消える。
+                    **抜けるのではなく、この端末の控えを消すだけ**（サーバーに「抜ける」口は無い） */}
+                {albums !== null && joinedOthers.length > 0 && (
+                    <section aria-labelledby="album-joined-title" className="mt-8" data-testid="album-joined">
+                        <h2 id="album-joined-title" className="m-0 mb-3 eyebrow text-accent eyebrow-line">参加しているアルバム</h2>
+                        <ul className="m-0 p-0 list-none">
+                            {joinedOthers.map((e) => (
+                                <li key={e.id} className="flex items-center border-b border-line">
+                                    <Link
+                                        href={`/j?t=${encodeURIComponent(e.token)}`}
+                                        prefetch={false}
+                                        className="flex-1 min-w-0 flex flex-col justify-center py-3"
+                                        style={{ minHeight: 64 }}
+                                    >
+                                        <span className={`truncate font-serif ${e.title ? "text-white" : "text-text-2"}`} style={{ fontSize: "18px" }}>
+                                            {e.title || "無題のアルバム"}
+                                        </span>
+                                        <span className="text-text-3" style={{ fontSize: "12px" }}>招待リンクから参加</span>
+                                    </Link>
+                                    <button
+                                        type="button"
+                                        onClick={() => { forgetJoinedAlbum(userId, e.id); setJoinedAll(readJoinedAlbums(userId)); }}
+                                        aria-label={`「${e.title || "無題のアルバム"}」を一覧から消す`}
+                                        className="shrink-0 text-xs text-text-2 underline decoration-white/40 underline-offset-2 px-2"
+                                        style={{ minHeight: 44, touchAction: "manipulation" }}
+                                    >
+                                        一覧から消す
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    </section>
                 )}
 
                 {/* **消す前に一度聞く。** 削除は元に戻せない。

@@ -30,6 +30,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 import HeaderNav from "../HeaderNav";
+import { ROUTES } from "@/lib/routes";
 
 // ベルは `next/dynamic` で遅れて読み込むので、試験で初めて読むときは変換の時間がかかる。既定の待ち（1 秒）では、
 // 機械が混んでいると届く前に切れる（2026-11-12 実測: 手元で 138〜300ms。全部の試験を並べて流した回では 1 秒で切れて
@@ -161,12 +162,145 @@ describe("HeaderNav - ロール別のメニュー表示", () => {
         expect(screen.getByRole("button", { name: "ユーザーを探す" })).toBeInTheDocument();
     });
 
-    it("未ログインではヘッダーは メニュー の1つだけ（アバター・ベル・探すを出さない）", () => {
+    it("未ログインではヘッダーは「ログイン」「登録」の文字リンクと メニュー だけ（アバター・ベル・探すを出さない）", () => {
         setRole("anonymous");
         render(<HeaderNav />);
         const nav = screen.getByRole("navigation", { name: "ヘッダー" });
         const controls = Array.from(nav.querySelectorAll("a, button"));
-        expect(controls.map((b) => b.getAttribute("aria-label"))).toEqual(["メニューを開く"]);
+        expect(controls.map((b) => b.getAttribute("aria-label") ?? b.textContent)).toEqual(["ログイン", "登録", "メニューを開く"]);
+    });
+});
+
+// 未ログインだけヘッダーに「ログイン」（2026-11-09 入口の案A の最小）
+describe("HeaderNav - 未ログインの「ログイン」", () => {
+    const gtag = vi.fn();
+    beforeEach(() => {
+        gtag.mockReset();
+        sessionStorage.clear();
+        (window as unknown as { gtag?: unknown }).gtag = gtag;
+        pathname.current = "/";
+    });
+
+    it("未ログインだけ出す: 文字リンク（next/link）・行き先はログイン・高さ 44px", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        const link = screen.getByRole("link", { name: "ログイン" });
+        expect(link.getAttribute("href")).toBe("/login");
+        expect((link as HTMLElement).style.minHeight).toBe("44px");
+        expect(link.tagName).toBe("A");
+    });
+
+    it("「登録」: 未ログインだけ・文字リンク（next/link）・行き先は /signup・当たり 44px（見た目 36 + 上下 4 の広げ）・白の塗りに墨", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        const link = screen.getByRole("link", { name: "登録" });
+        expect(link.getAttribute("href")).toBe("/signup");
+        expect(link.tagName).toBe("A");
+        expect(link.className, "当たりを 44px に広げる指定").toContain("before:-inset-y-[4px]");
+        expect(parseInt((link as HTMLElement).style.minHeight) + 8).toBeGreaterThanOrEqual(44);
+        expect(parseInt((link as HTMLElement).style.fontSize)).toBeGreaterThanOrEqual(12);
+        expect(link.className).toContain("bg-primary");
+        expect(link.className, "真鍮の塗りを2つ目に置かない").not.toContain("accent-fill");
+    });
+
+    // 幅の衝突を守る（2026-11-09・実測: 右側が「ログイン・登録・☰」だと約194px で、320〜375px でロゴ「Journey Photo」が切れた。
+    // owner 2026-09-23「Journey Photo を最後まで出す」）。414px 未満は「登録」だけ・ログインは下のタブにある
+    it("幅の衝突: 「ログイン」は 414px 未満では隠す（hidden + min-[414px]:inline-flex）。「登録」は常に出す（隠す指定を持たない）", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        const login = screen.getByTestId("header-login").className.split(/\s+/);
+        expect(login, "狭い画面でログインを隠す指定が無い（ロゴが切れる）").toContain("hidden");
+        expect(login).toContain("min-[414px]:inline-flex");
+        expect(login, "隠したあと広い画面で戻す指定のほかに inline-flex を素で持つと隠れない").not.toContain("inline-flex");
+        const signup = screen.getByTestId("header-signup").className.split(/\s+/);
+        expect(signup).not.toContain("hidden");
+        expect(signup.some((c) => /^max-/.test(c) || /:hidden$/.test(c))).toBe(false);
+    });
+
+    // 2026-11-20 札 journey.photo-ios#666: アプリを入れられる iPhone では「アプリ」が入るので、ロゴを切らないよう並びを詰める
+    it("iPhone: 「アプリ」を出し、「ログイン」は広い画面でも出さず、並びの隙間は 4（登録・☰ はそのまま）", () => {
+        setRole("anonymous");
+        const spy = vi.spyOn(window.navigator, "userAgent", "get").mockReturnValue(
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Mobile/15E148 Safari/604.1");
+        try {
+            render(<HeaderNav />);
+            expect(screen.getByTestId("header-app").textContent).toBe("アプリ");
+            const login = screen.getByTestId("header-login").className.split(/\s+/);
+            expect(login).toContain("hidden");
+            expect(login).not.toContain("min-[414px]:inline-flex");
+            expect(screen.getByTestId("header-signup")).toBeTruthy();
+            const nav = screen.getByRole("navigation", { name: "ヘッダー" });
+            expect(nav.className.split(/\s+/)).toContain("gap-1");
+        } finally {
+            spy.mockRestore();
+        }
+    });
+
+    it("iPhone でなければ「アプリ」を出さず、並びも今のまま", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        expect(screen.queryByTestId("header-app")).toBeNull();
+        expect(screen.getByRole("navigation", { name: "ヘッダー" }).className.split(/\s+/)).toContain("gap-2");
+    });
+
+    it("☰ の中の行は「登録」（ヘッダーと同じ呼び名・labels.ja）", async () => {
+        const { ja } = await import("../../i18n/labels");
+        expect(ja.navigation?.signup).toBe("登録");
+    });
+
+    it("ログイン済みには出さない（ログイン済みの見え方は今のまま）", () => {
+        for (const role of ["general", "admin"] as const) {
+            setRole(role);
+            const { unmount } = render(<HeaderNav />);
+            expect(screen.queryByRole("link", { name: "ログイン" })).toBeNull();
+            expect(screen.queryByRole("link", { name: "登録" })).toBeNull();
+            unmount();
+        }
+    });
+
+    it("認証の判定中は出さない（ログイン済みの人に一瞬見えない）", () => {
+        setRole("anonymous");
+        authState.current = { ...authState.current, loading: true };
+        render(<HeaderNav />);
+        expect(screen.queryByRole("link", { name: "ログイン" })).toBeNull();
+        expect(screen.queryByRole("link", { name: "登録" })).toBeNull();
+    });
+
+    it("ログイン・新規登録の画面そのものでは出さない", () => {
+        setRole("anonymous");
+        for (const p of ["/login", "/signup"]) {
+            pathname.current = p;
+            const { unmount } = render(<HeaderNav />);
+            expect(screen.queryByRole("link", { name: "ログイン" })).toBeNull();
+            expect(screen.queryByRole("link", { name: "登録" })).toBeNull();
+            unmount();
+        }
+    });
+
+    it("押すと nav_click（area=header・dest=signup）", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        const link = screen.getByRole("link", { name: "登録" });
+        link.addEventListener("click", (e) => e.preventDefault());
+        fireEvent.click(link);
+        expect(gtag.mock.calls.filter((c) => c[1] === "nav_click").map((c) => c[2])).toEqual([
+            expect.objectContaining({ area: "header", dest: "signup" }),
+        ]);
+    });
+
+    it("押すと nav_click（area=header・dest=login）。☰ の中の行は area=menu", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        const link = screen.getByRole("link", { name: "ログイン" });
+        link.addEventListener("click", (e) => e.preventDefault());
+        fireEvent.click(link);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        fireEvent.click(screen.getByRole("button", { name: "観光スポット" }));
+        const navs = gtag.mock.calls.filter((c) => c[1] === "nav_click").map((c) => c[2]);
+        expect(navs).toEqual([
+            expect.objectContaining({ area: "header", dest: "login" }),
+            expect.objectContaining({ area: "menu", dest: "spots" }),
+        ]);
     });
 });
 
@@ -217,7 +351,7 @@ describe("HeaderNav - メニュー開閉の回帰ガード", () => {
         render(<HeaderNav />);
         fireEvent.click(screen.getByLabelText("メニューを開く"));
         const dialog = screen.getByRole("dialog");
-        fireEvent.click(within(dialog).getByText("ユーザーを探す"));
+        fireEvent.click(within(dialog).getByText("観光スポット"));
         expect(mockPush).toHaveBeenCalledTimes(1);
         expect(screen.queryByRole("dialog")).toBeNull();
     });
@@ -264,7 +398,7 @@ describe("認証状態が分かるまで", () => {
         fireEvent.click(screen.getByLabelText(/メニュー|Menu/i));
 
         expect(screen.queryByRole("button", { name: /Login|ログイン/ })).toBeNull();
-        expect(screen.queryByRole("button", { name: /Sign up|新規登録/ })).toBeNull();
+        expect(screen.queryByRole("button", { name: /Sign up|^登録$|新規登録/ })).toBeNull();
         expect(screen.queryByRole("button", { name: /Logout|ログアウト/ })).toBeNull();
     });
 
@@ -456,3 +590,46 @@ describe("HeaderNav - キーボードの輪", () => {
         expect(item.className).not.toContain("focus-visible:ring-line");
     });
 });
+
+// 2026-11-09: 未ログインのいいねは端末に溜めない。以前に端末へ残ったお気に入りがあっても、
+// 未ログインのメニューに「いいねした写真」を出さない（開くと空か、ログインの案内にしかならない）
+describe("HeaderNav - いいねした写真の入口", () => {
+    it("未ログインは、端末に古いお気に入りが残っていても出さない", () => {
+        try { localStorage.setItem("photo-gallery-favorites", JSON.stringify(["p1"])); } catch { /* 無ければ出ないだけ */ }
+        setRole("anonymous");
+        render(<HeaderNav />);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        expect(menuItems().some((t) => /Favorites|いいね/.test(t)), "未ログインに出している").toBe(false);
+    });
+
+    it("ログイン済みには出す", () => {
+        setRole("general");
+        render(<HeaderNav />);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        expect(menuItems().some((t) => /Favorites|いいね/.test(t))).toBe(true);
+    });
+});
+
+// 2026-11-10 札 #515: フッターから「行きたい場所」を外した代わりに、☰ のログイン中の組（いいね・保存の下）に足す
+describe("HeaderNav - 行きたい場所の入口", () => {
+    it("ログイン中は、保存した写真のすぐ下に出て、押すと /saved-spots へ", () => {
+        setRole("general");
+        render(<HeaderNav />);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        const items = menuItems();
+        const i = items.indexOf("行きたい場所");
+        expect(i, "出していない").toBeGreaterThanOrEqual(0);
+        expect(items[i - 1]).toBe("Saved");
+        expect(items[i - 2]).toBe("Favorites");
+        fireEvent.click(screen.getByRole("button", { name: "行きたい場所" }));
+        expect(mockPush).toHaveBeenCalledWith(ROUTES.SAVED_SPOTS);
+    });
+
+    it("未ログインには出さない（本人だけの頁で、開いても空になる）", () => {
+        setRole("anonymous");
+        render(<HeaderNav />);
+        fireEvent.click(screen.getByLabelText("メニューを開く"));
+        expect(menuItems()).not.toContain("行きたい場所");
+    });
+});
+

@@ -46,7 +46,7 @@ describe("県の頁のカードの写真", () => {
         for (const item of spotIndexItemsForArea(a.slug)) expect("coords" in item, item.slug).toBe(false);
     });
 
-    it("写真・alt・作者とライセンスの表示（リンクの外）を描く。写真の無いカードは名前だけ", () => {
+    it("写真（飾り・alt は空）・作者とライセンスの表示（リンクの外）を描く。写真の無いカードは名前だけ", () => {
         const items: SpotIndexItem[] = [
             {
                 slug: "with-photo", name: "あぶくま洞", region: "福島県 田村市", stage: "published", category: "鍾乳洞",
@@ -55,15 +55,17 @@ describe("県の頁のカードの写真", () => {
             },
             { slug: "no-photo", name: "写真なし", region: "福島県", stage: "published", cover: null },
         ];
-        render(<LocaleProvider><SpotIndexClient spots={items} area={{ name: "福島県", nameEn: "Fukushima" }} /></LocaleProvider>);
-        const img = screen.getByRole("img", { name: "あぶくま洞の鍾乳石" });
+        const { container } = render(<LocaleProvider><SpotIndexClient spots={items} area={{ name: "福島県", nameEn: "Fukushima" }} /></LocaleProvider>);
+        // 札の写真は飾り（名前は札の題が言う。代替文を足すと名前を2回読む・2026-11-10 確かめ役の指摘）
+        const img = container.querySelector("img")!;
         expect(img.getAttribute("src")).toBe("/images/spots/thumb/abukumado.webp");
+        expect(img.getAttribute("alt")).toBe("");
         const credit = screen.getByTestId("topic-credit");
         expect(credit.textContent).toContain("Σ64");
         expect(within(credit).getByRole("link", { name: "CC BY 3.0" }).getAttribute("href")).toBe("https://creativecommons.org/licenses/by/3.0/");
         // 出典の表示はカードのリンクの外（リンクの中にリンクを入れない）
         expect(credit.closest("a[href='/spots/with-photo']")).toBeNull();
-        expect(screen.getAllByRole("img")).toHaveLength(1);
+        expect(container.querySelectorAll("img")).toHaveLength(1);
         expect(screen.getAllByText("写真なし").length).toBeGreaterThan(0);
     });
 });

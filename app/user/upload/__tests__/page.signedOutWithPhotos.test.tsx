@@ -91,7 +91,7 @@ describe("取り込んだ写真があるときにログインが切れたら", (
         expect(mockReplace, "取り込んだ写真ごと画面を入れ替えている").not.toHaveBeenCalled();
         // スピナーに落とさない（見えないまま止まるのは、選び直すのと同じこと）
         expect(screen.getByRole("button", { name: /投稿する/ })).toBeInTheDocument();
-        expect(screen.getByRole("heading", { name: "新しい投稿を作成" })).toBeInTheDocument();
+        expect(screen.getByRole("heading", { name: "新規投稿" })).toBeInTheDocument();
     });
 
     // **1枚も取り込んでいなければ今までどおり。** 直接開いた未ログインの人を

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { siteConfig, NOINDEX_FOLLOW_ROBOTS } from "@/lib/utils/seo";
+import { appItunes, siteConfig, NOINDEX_FOLLOW_ROBOTS } from "@/lib/utils/seo";
 import { ROUTES } from "@/lib/routes";
 
 // 「サインインの方法」の案内（札 journey.photo-ios#601・2026-11-23 owner）。
@@ -12,6 +12,8 @@ export const metadata: Metadata = {
     description: "Apple や Google との連携は、アプリの設定から解除できます。",
     alternates: { canonical: `${siteConfig.url}${ROUTES.SIGNIN_METHODS}` },
     robots: NOINDEX_FOLLOW_ROBOTS,
+    // Smart App Banner（main にだけある決まり・`app/__tests__/smartAppBanner.test.ts`）。app-argument は canonical と同じ URL
+    itunes: appItunes(`${siteConfig.url}${ROUTES.SIGNIN_METHODS}`),
 };
 
 export default function SigninMethodsPage() {

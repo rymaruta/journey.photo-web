@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { HELP_PAGES, CHECKED_APP_VERSION } from "@/lib/data/helpPages";
 import { ROUTES } from "@/lib/routes";
-import sitemap from "@/app/sitemap";
+import { allSitemapEntries } from "@/lib/server/sitemap";
 import { siteConfig } from "@/lib/utils/seo";
 
 /**
@@ -94,7 +94,7 @@ describe("/help/<slug>（各頁）", () => {
 
 describe("サイトマップ", () => {
     it("目次と全頁が載る", async () => {
-        const urls = new Set((await sitemap()).map((e) => e.url));
+        const urls = new Set((await allSitemapEntries()).map((e) => e.url));
         expect(urls.has(`${siteConfig.url}${ROUTES.HELP}`)).toBe(true);
         for (const p of HELP_PAGES) expect(urls.has(`${siteConfig.url}${ROUTES.HELP_PAGE(p.slug)}`), p.slug).toBe(true);
     });

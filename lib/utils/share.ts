@@ -2,6 +2,7 @@
 // 共有機能用のユーティリティ
 
 import { stripLoneSurrogates } from "./text";
+import { track, type ShareContentType } from "./analytics";
 
 /** 共有の結果。呼び出し側はこれを見て出すメッセージを決める。 */
 
@@ -20,12 +21,14 @@ export type ShareResult =
  * 本当に何も起きなかった（トーストも出ない、コピーにも落ちない）。
  * 利用者のキャンセルだけは区別して、何も出さない。
  */
-export async function shareUrl(url: string, title?: string, text?: string): Promise<ShareResult> {
+export async function shareUrl(url: string, title?: string, text?: string, contentType?: ShareContentType): Promise<ShareResult> {
     if (typeof window === "undefined") return "failed";
 
     if (navigator.share) {
         try {
             await navigator.share({ title: title || "", text: text || "", url });
+            // 数えるのは共有できた回だけ（閉じた・失敗は数えない）。何を共有したかを渡された呼び出しだけ
+            if (contentType) track("share", { method: "native", content_type: contentType });
             return "shared";
         } catch (error) {
             // 利用者が閉じただけ。エラー扱いしない
@@ -34,7 +37,9 @@ export async function shareUrl(url: string, title?: string, text?: string): Prom
         }
     }
 
-    return (await copyToClipboard(url)) ? "copied" : "failed";
+    const copied = await copyToClipboard(url);
+    if (copied && contentType) track("share", { method: "copy", content_type: contentType });
+    return copied ? "copied" : "failed";
 }
 
 /**
@@ -80,8 +85,9 @@ export async function copyToClipboard(text: string): Promise<boolean> {
 /**
  * Twitterで共有
  */
-export function shareToTwitter(url: string, text?: string): void {
+export function shareToTwitter(url: string, text?: string, contentType?: ShareContentType): void {
     if (typeof window === "undefined") return;
+    if (contentType) track("share", { method: "x", content_type: contentType });
     // **表示名は `encodeURIComponent` に生で渡さない。** 切り詰めが絵文字を
     // 割った表示名（修正前に保存されたもの）が混ざっていると `URIError` で
     // 投げ、ハンドラの中なので**ボタンが無反応になる**。入口は塞いだが、
@@ -98,8 +104,9 @@ export function shareToTwitter(url: string, text?: string): void {
 /**
  * LINEで共有
  */
-export function shareToLine(url: string, text?: string): void {
+export function shareToLine(url: string, text?: string, contentType?: ShareContentType): void {
     if (typeof window === "undefined") return;
+    if (contentType) track("share", { method: "line", content_type: contentType });
     const lineUrl = `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(url)}&text=${encodeURIComponent(stripLoneSurrogates(text || ""))}`;
     window.open(lineUrl, "_blank", "width=550,height=420");
 }

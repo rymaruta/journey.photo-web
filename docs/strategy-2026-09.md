@@ -191,7 +191,7 @@ CLAUDE.md の「SNS 的な競争要素は増やさない」を守ります。
 **現状は既にかなり良い**ので、足すべきものだけ書きます。
 
 現状（実測済み）:
-- S3（`prod-journey-photo-upload`）+ CloudFront + OAC。原本は直接読めない
+- S3（`<環境>-journey-photo-upload`）+ CloudFront + OAC。原本は直接読めない
 - 公開32枚すべてに サムネ(512/256)・AVIF 3種・ぼかし・代表色・実寸あり。**一覧1画面 31KB（98%削減）**
 - `/uploads/*` は `max-age=31536000` + Managed-CachingOptimized（defaultTTL 1日 / maxTTL 365日）
 - 削除時の CloudFront 無効化は全経路で実装済み（staging で実証済み）

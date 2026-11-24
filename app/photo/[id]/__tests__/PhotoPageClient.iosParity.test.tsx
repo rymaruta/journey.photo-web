@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render, screen, fireEvent, act } from "@testing-library/react";
+import { render, screen, fireEvent, act, waitFor } from "@testing-library/react";
 import type { Photo } from "@/lib/data/photos";
 
 /**
@@ -8,17 +8,23 @@ import type { Photo } from "@/lib/data/photos";
  *  - スマホでは戻る・共有・「…」を写真の上のガラスの丸（44px）に重ね、上に黒のぼかし
  *  - 写真を押すと全画面（`PhotoViewer`）。Esc で閉じ、開いたボタンへ戻る
  *  - 全画面で2回叩くといいね（いいね済みは消さない）
- *  - 撮影日は「2024.05.12 · 18:24」
+ *  - 撮影日時は表示しない（iOS PhotoDetailView と一致）
  */
 const auth = vi.hoisted(() => ({ isAuthenticated: true, userId: "viewer" as string | null, loading: false }));
 vi.mock("../../../auth/context", () => ({ useAuth: () => auth }));
 vi.mock("../../../i18n/context", () => ({ useLocale: () => ({ locale: "ja", labels: {} }) }));
 vi.mock("../../../../lib/hooks/useToast", () => ({ useToast: () => ({ showToast: vi.fn() }) }));
+const authorProfile = vi.hoisted(() => ({ data: null as Record<string, unknown> | null, calls: 0 }));
 vi.mock("../../../../lib/utils/api", async (importOriginal) => ({
     ...(await importOriginal<Record<string, unknown>>()),
     publicFetch: vi.fn(() => new Promise(() => undefined)),
     userFetch: vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })),
-    userPublicFetch: vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })),
+    userPublicFetch: vi.fn(async () => {
+        authorProfile.calls += 1;
+        return authorProfile.data
+            ? ({ ok: true, status: 200, json: async () => authorProfile.data })
+            : ({ ok: false, status: 500, json: async () => ({}) });
+    }),
 }));
 vi.mock("../../../components/CommentSection", () => ({ default: () => null }));
 vi.mock("../../../components/RelatedPhotos", () => ({ default: () => null }));
@@ -59,6 +65,8 @@ const saved = {
 };
 beforeEach(() => {
     like.liked = false;
+    authorProfile.data = null;
+    authorProfile.calls = 0;
     like.toggle.mockClear();
     ready = true;
     Object.defineProperty(HTMLImageElement.prototype, "complete", { configurable: true, get: () => ready });
@@ -69,6 +77,60 @@ afterEach(() => {
     else delete (HTMLImageElement.prototype as unknown as Record<string, unknown>).complete;
     if (saved.naturalWidth) Object.defineProperty(HTMLImageElement.prototype, "naturalWidth", saved.naturalWidth);
     else delete (HTMLImageElement.prototype as unknown as Record<string, unknown>).naturalWidth;
+});
+
+describe("写真ページ: 撮影者の表示（iOS authorRow との整合）", () => {
+    it("公開プロフィールの認証・Pro・初期メンバーマークを撮影者名の横に表示する", async () => {
+        authorProfile.data = { userId: "alice", verified: true, pro: true, proMarkStyle: "plate", earlyMark: true };
+        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
+        const author = await screen.findByTestId("photo-author");
+        expect(await screen.findByTestId("verified-badge")).toBeTruthy();
+        expect(author.querySelector('[data-testid="pro-mark"]')).not.toBeNull();
+        expect(author.querySelector('[data-testid="early-mark"]')).not.toBeNull();
+    });
+
+    it("獲得メダルが未設定なら選択メダルの操作領域を作らない", async () => {
+        authorProfile.data = { userId: "alice", verified: true, badges: {}, displayBadge: "unknown" };
+        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
+        await waitFor(() => expect(authorProfile.calls).toBeGreaterThan(0));
+        expect(screen.queryByTestId("photo-author-selected-badge")).toBeNull();
+    });
+
+    it("認証フラグが文字列でも公式マークとして扱わない", async () => {
+        authorProfile.data = { userId: "alice", verified: "true" };
+        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
+        await screen.findByText("朝の湖");
+        await waitFor(() => expect(authorProfile.calls).toBeGreaterThan(0));
+        expect(screen.queryByTestId("verified-badge")).toBeNull();
+    });
+
+    it("公開プロフィールの所有者IDが違う場合はマークを表示しない", async () => {
+        authorProfile.data = { userId: "someone-else", verified: true, pro: true, earlyMark: true };
+        render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
+        await screen.findByText("朝の湖");
+        await waitFor(() => expect(authorProfile.calls).toBeGreaterThan(0));
+        expect(screen.queryByTestId("verified-badge")).toBeNull();
+        expect(screen.queryByTestId("pro-mark")).toBeNull();
+    });
+
+    it("空白だけの表示名はユーザー名にフォールバックする", async () => {
+        render(<PhotoPageClient photoId="p1" initialPhoto={{
+            ...BASE, displayName: "   ", uploaderUsername: "alice_photo",
+        } as Photo} />);
+        const author = await screen.findByTestId("photo-author");
+        expect(author.textContent?.match(/alice_photo/g)).toHaveLength(1);
+    });
+
+    it("表示名がなくてもユーザー名があれば撮影者へのリンクを残す", async () => {
+        render(<PhotoPageClient photoId="p1" initialPhoto={{
+            ...BASE, displayName: "", uploaderUsername: "alice_photo",
+        } as Photo} />);
+        await screen.findByText("朝の湖");
+        const author = screen.getByTestId("photo-author");
+        expect(author).toHaveTextContent("alice_photo");
+        expect(author.textContent?.match(/alice_photo/g)).toHaveLength(1);
+        expect(Array.from(author.querySelectorAll("a")).some((link) => link.getAttribute("href") === "/users?id=alice" || link.getAttribute("href") === "/users/alice")).toBe(true);
+    });
 });
 
 // 2026-10-31 束 1 P1: iOS は写真の上に戻る・「…」の2つだけ（共有は「…」の中と操作の段へ）。共通の `GLASS_BTN`。
@@ -103,21 +165,38 @@ describe("写真ページ: 写真の上の戻る・「…」（A1・束 1 P1）"
     });
 });
 
-describe("写真ページ: 撮影日の1行（A6）", () => {
-    it("「2024.05.12」を等幅の数字で", async () => {
+describe("写真ページ: 撮影者の導線（iOS比較）", () => {
+    it("名前とアバターの両方からプロフィールに移動でき、名前は44pxのタップ領域を持つ", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={BASE} />);
-        const stamp = await screen.findByTestId("photo-shot-stamp");
-        expect(stamp.textContent).toBe("2024.05.12");
-        // 題の下の1行（13・text-3・等幅の数字・束 1 P4）
-        const line = stamp.closest("p")!;
-        expect(line.className).toContain("tabular-nums");
-        expect(line.className).toContain("text-text-3");
-        expect(line.style.fontSize).toBe("13px");
+        const row = await screen.findByTestId("photo-author");
+        const links = Array.from(row.querySelectorAll("a"));
+        expect(links).toHaveLength(2);
+        expect(links[0].getAttribute("href")).toBe(links[1].getAttribute("href"));
+        // StoryAvatar のリンクは44pxの Tailwind h-11 を使用する（inline minHeightは不要）。
+        expect(links[0].className).toContain("h-11");
+        expect(links[1].className).toContain("min-h-[44px]");
+        expect(links[1].className).toContain("focus-visible:outline-2");
+        expect(links[1].textContent).toContain("アリス");
+    });
+});
+
+describe("写真ページ: iOS と同様に撮影日付・時刻を表示しない", () => {
+    it("複数写真では枚数のみ表示し、撮影日時は表示しない", async () => {
+        render(<PhotoPageClient photoId="p1" initialPhoto={{
+            ...BASE,
+            extraImages: [{ src: "https://cdn.example.com/uploads/alice/b.webp" }],
+            exif: { dateTimeOriginal: "2024-05-12T18:24:00" },
+        } as Photo} />);
+        await screen.findByText("朝の湖");
+        expect(screen.getByTestId("photo-headline").textContent).toBe("1/2枚");
+        expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
+        // 撮影日時は詳細メタデータには残し、写真上の時刻バッジのみ非表示にする。
     });
 
-    it("EXIF の撮影時刻が同じ日なら「 · 18:24」を足す", async () => {
+    it("単一写真では撮影日・EXIF時刻・枚数行を表示しない", async () => {
         render(<PhotoPageClient photoId="p1" initialPhoto={{ ...BASE, exif: { dateTimeOriginal: "2024-05-12T18:24:00" } } as Photo} />);
-        expect((await screen.findByTestId("photo-shot-stamp")).textContent).toBe("2024.05.12 · 18:24");
+        expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
+        expect(screen.queryByTestId("photo-headline")).toBeNull();
     });
 });
 

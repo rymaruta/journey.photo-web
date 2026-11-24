@@ -1,0 +1,684 @@
+{
+  "$comment": "郷土料理とお土産（/food/<県>）。決まりは lib/data/localFood.ts の冒頭。文は農水省「うちの郷土料理」の本文を自前で要約したもの。お店・写真は載せない。",
+  "areas": [
+    {
+      "area": "hokkaido",
+      "status": "published",
+      "aiCheck": {
+        "checkedAt": "2026-11-23",
+        "delegatedBy": "rymaruta",
+        "method": "各品目の文を、出典の頁の本文と1文ずつ照らして確かめました（AI による照合）"
+      },
+      "intro": "北海道で受け継がれてきた郷土料理と、お土産としても売られている品を紹介します。漁や開拓の暮らしから生まれた味です。",
+      "dishes": [
+        {
+          "id": "butadon",
+          "name": "豚丼",
+          "where": "十勝地方",
+          "season": "通年",
+          "summary": "厚切りの豚肉を砂糖醤油のタレでからめてごはんにのせた丼で、帯広市が発祥の地とされます。十勝地方では家庭でも一年を通して食べられています。",
+          "spots": [
+            "taushubetsu",
+            "onneto"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」豚丼",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/butadon_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "ikameshi",
+          "name": "いかめし",
+          "where": "道南地域",
+          "season": "通年",
+          "summary": "イカの胴に米を詰めて甘辛く炊き上げた料理です。戦時中の米不足のなか、函館本線森駅の駅弁として考え出されたのが始まりといわれます。",
+          "spots": [
+            "mt-hakodate",
+            "goryokaku"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」いかめし",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/ikameshi_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "muroran-yakitori",
+          "name": "室蘭やきとり",
+          "where": "室蘭市",
+          "season": "通年",
+          "summary": "やきとりと呼ばれますが、豚肉とたまねぎを交互に串に刺して焼き、甘めのタレと洋辛子で食べる室蘭市生まれの串焼きです。",
+          "spots": [
+            "chikyu-misaki"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」室蘭やきとり",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/muroranyakitori_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "ishikari-nabe",
+          "name": "石狩鍋",
+          "where": "石狩地方",
+          "season": "冬",
+          "summary": "サケの身とあらを野菜とともに昆布だしで煮て、味噌で味を整える鍋です。石狩の漁師が大漁を祝って食べたのが起こりとされます。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」石狩鍋",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/ishikarinabe_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "jingisukan",
+          "name": "ジンギスカン",
+          "where": "道内全域",
+          "season": "通年",
+          "summary": "羊肉を野菜と一緒に焼く料理で、中央が盛り上がった専用の鍋を使います。北海道の家庭では一年中食べられ、花見やバーベキューでも楽しまれます。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ジンギスカン／成吉思汗",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/jingisukan_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "teppo-jiru",
+          "name": "てっぽう汁",
+          "where": "道東地域（主に根室地方）",
+          "season": "夏〜秋（花咲ガニの時期）",
+          "summary": "カニを入れた味噌汁で、根室地方の漁師料理として伝わってきました。カニの足を箸でつつく様子が名前の由来とされます。",
+          "spots": [
+            "nosappu-misaki",
+            "notsuke-peninsula"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」てっぽう汁",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/teppojiru_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "sanpei-jiru",
+          "name": "三平汁",
+          "where": "道内全域",
+          "season": "冬",
+          "summary": "塩漬けにしたサケやニシンなどの魚を野菜と煮込み、魚の塩気で味をつける汁物です。北海道の冬の家庭料理として親しまれています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」三平汁",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/sambeijiru_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        }
+      ],
+      "souvenirs": [
+        {
+          "id": "matsumae-zuke",
+          "name": "松前漬",
+          "where": "道南地域、松前町周辺",
+          "season": "冬・正月",
+          "summary": "細切りのスルメイカと昆布などを醤油ベースで漬け込んだ保存食です。正月料理や北海道土産の定番とされています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」松前漬",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/matsumaezuke_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "ikura-shoyu-zuke",
+          "name": "いくらの醤油漬け",
+          "where": "道内全域",
+          "season": "秋",
+          "summary": "ほぐした筋子を醤油などに漬けた家庭の味で、土産品やお取り寄せとしても人気があります。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」いくらの醤油漬け",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/ikuranoshoyuzuke_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "ruibe",
+          "name": "ルイベ",
+          "where": "石狩市、函館市、釧路市など沿岸部",
+          "season": "通年",
+          "summary": "サケやマスを凍らせたまま薄く切って食べる料理で、アイヌ民族が発祥とされます。土産店や空港でも売られています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ルイベ",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/ruibe_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "imo-mochi",
+          "name": "いももち",
+          "where": "道内全域",
+          "season": "通年",
+          "summary": "蒸したじゃがいもをつぶして片栗粉を加え、焼き上げる北海道の定番おやつです。土産店などでも販売されています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」いももち／いもだんご",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/imomochi_hokkaido.html",
+            "retrievedAt": "2026-11-23"
+          }
+        }
+      ]
+    },
+    {
+      "area": "miyagi",
+      "status": "published",
+      "aiCheck": {
+        "checkedAt": "2026-11-23",
+        "delegatedBy": "rymaruta",
+        "method": "各品目の文を、出典の頁の本文と1文ずつ照らして確かめました（AI による照合）"
+      },
+      "intro": "宮城県で受け継がれてきた郷土料理と、名産品として売られている品をまとめました。川や海の幸、餅の文化から生まれた味を紹介します。",
+      "dishes": [
+        {
+          "id": "harako-meshi",
+          "name": "はらこ飯",
+          "where": "亘理町",
+          "season": "秋（9〜11月）",
+          "summary": "サケの煮汁で炊いたご飯に、煮たサケの身と煮汁にくぐらせたいくらを盛り付けます。政宗公への献上以前から、阿武隈川のサケを獲る漁師の食事でした。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」はらこ飯",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/harako_meshi_miyagi.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "sendai-zoni",
+          "name": "仙台雑煮",
+          "where": "仙台地区および県内各地",
+          "season": "正月（三が日）",
+          "summary": "焼きハゼでとった出汁に、凍らせた細切り野菜「おひきな」やずいきを入れ、焼きハゼやはらこ、せりを餅が隠れるほどのせる正月の雑煮です。",
+          "spots": [
+            "aoba-castle",
+            "zuihoden"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」仙台雑煮",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/sendai_zouni_miyagi.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "zunda-mochi",
+          "name": "ずんだ餅",
+          "where": "県全域",
+          "season": "正月・婚礼・法事などの行事",
+          "summary": "枝豆でつくる鮮やかな緑色のずんだ餡を、つきたての餅にからめて食べます。餅にからめるときは砂糖で味付けすることが多く、来客用にもよく出されます。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ずんだ餅",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/zunda_mochi_miyagi.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "hatto-jiru",
+          "name": "はっと汁",
+          "where": "県北地域",
+          "season": "通年（地域の行事など）",
+          "summary": "耳たぶほどのかたさに練った小麦粉を薄くのばし、季節の野菜や肉と出汁で煮る汁物です。大鍋でつくって地域の行事でふるまわれることもあります。",
+          "spots": [
+            "naruko-gorge",
+            "hangan-mori"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」はっと汁",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/hatto_jiru_miyagi.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "hoya-sunomono",
+          "name": "ホヤの酢の物",
+          "where": "宮城県沿岸部",
+          "season": "初夏〜盛夏（旬）",
+          "summary": "三陸の沿岸で養殖されるホヤを、きゅうりやみょうが、青しそと合わせた酢の物です。鮮度が大切な食材なので、産地で味わうことがすすめられています。",
+          "spots": [
+            "kesennuma-oshima",
+            "kinkasan"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ホヤの酢の物",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/hoyano_sunomono_miyagi.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "azara",
+          "name": "あざら",
+          "where": "気仙沼市",
+          "season": "春",
+          "summary": "長く漬けて酸味の増した白菜の古漬けとメヌケのアラを、酒粕で煮込んだ料理です。冷めてもおいしく、翌日に煮返すとさらに味が良くなるといわれます。",
+          "spots": [
+            "anba-yama",
+            "iwaizaki"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」あざら",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/azara_miyagi.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "fusube-mochi",
+          "name": "ふすべ餅",
+          "where": "栗原市",
+          "season": "彼岸・盆・農作業の節目などのハレの日",
+          "summary": "煙でいぶしたドジョウを粉にし、すりおろした大根やごぼうと煮て醤油と唐辛子でピリ辛に仕上げ、餅を絡めます。名前は「ふすべる」に由来します。",
+          "spots": [
+            "hangan-mori"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ふすべ餅",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/fusube_mochi_miyagi.html",
+            "retrievedAt": "2026-11-23"
+          }
+        }
+      ],
+      "souvenirs": [
+        {
+          "id": "sasa-kamaboko",
+          "name": "笹かまぼこ",
+          "where": "宮城県内全域",
+          "season": null,
+          "summary": "白身魚のすり身を焼いたかまぼこで、伊達家の家紋の笹にちなんで名付けられました。宮城の名産品・土産品として親しまれています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」笹かまぼこの磯部揚げ",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/sasa_kamaboko_no_isobeage_miyagi.html",
+            "retrievedAt": "2026-11-23"
+          }
+        }
+      ]
+    },
+    {
+      "area": "kyoto",
+      "status": "published",
+      "aiCheck": {
+        "checkedAt": "2026-11-23",
+        "delegatedBy": "rymaruta",
+        "method": "各品目の文を、出典の頁の本文と1文ずつ照らして確かめました（AI による照合）"
+      },
+      "intro": "京都府の各地で受け継がれてきた郷土料理を紹介します。祭りや正月、季節の行事とともに味わわれてきた料理が並びます。",
+      "dishes": [
+        {
+          "id": "saba-zushi",
+          "name": "さばずし",
+          "where": "府内全域",
+          "season": "祭り（葵祭・祇園祭・時代祭、秋祭り）",
+          "summary": "鯖街道で運ばれた塩漬けのサバでつくるすしです。酢でしめたサバの上にすし飯を棒状にのせ、竹の皮で包んで軽く重しをし、翌日味がなじんでからいただきます。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」さばずし",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/sabazushi_kyoto.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "bara-zushi",
+          "name": "ばらずし",
+          "where": "丹後地域",
+          "season": "祭りや結婚式などの祝いの席",
+          "summary": "まつぶたと呼ぶ浅い木箱にすし飯を敷き、甘辛く炒り煮したサバのおぼろや錦糸卵などを散らすすしです。祝いの席や大勢が集まる行事で食べられます。",
+          "spots": [
+            "amanohashidate",
+            "ine-no-funaya"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ばらずし",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/barazushi_kyoto.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "shiromiso-zoni",
+          "name": "白味噌の雑煮",
+          "where": "府内全域",
+          "season": "正月（三が日）",
+          "summary": "白味噌仕立ての汁に丸餅、頭芋、大根を入れる正月の雑煮です。丸餅には円満と長寿、頭芋には子孫繁栄や立身出世の願いが込められています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」白味噌の雑煮",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/shiromisonozoni_kyoto.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "uji-kintoki",
+          "name": "宇治金時",
+          "where": "京都市、山城地域",
+          "season": "夏（通年提供）",
+          "summary": "かき氷に小倉あんと抹茶シロップをかけた冷たい甘味です。府内のカフェや茶店で一年を通して出されていますが、とくに夏に好んで食べられます。",
+          "spots": [
+            "byodoin",
+            "ujigami-jinja"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」宇治金時",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/ujikintoki_kyoto.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "hamo-yakimono",
+          "name": "はもの焼き物",
+          "where": "京都市、中丹地域、丹後地域",
+          "season": "初夏〜秋（祇園祭）",
+          "summary": "ハモをタレにつけた照り焼きや塩焼きにする料理です。小骨が多く手間がかかるため主に料亭などで味わわれ、祇園祭ではハモ料理が振る舞われます。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」はもの焼き物",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/hamonoyakimono_kyoto.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "kamonasu-dengaku",
+          "name": "賀茂なすの田楽",
+          "where": "京都市",
+          "season": "夏",
+          "summary": "輪切りにした賀茂なすを多めの油でじっくり焼き、田楽味噌をのせて味わう料理です。夏に賀茂なすが店頭に並ぶと、各家庭でつくられています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」賀茂なすの田楽",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/kamonasunodengaku_kyoto.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "minazuki",
+          "name": "水無月",
+          "where": "府内全域",
+          "season": "6月30日（夏越しの祓）",
+          "summary": "白いういろうに小豆をのせ、三角に切り分けた和菓子です。6月30日の夏越しの祓で無病息災を願って食べられ、三角は氷を、小豆の赤は邪気払いを表します。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」水無月",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/minazuki_kyoto.html",
+            "retrievedAt": "2026-11-23"
+          }
+        }
+      ],
+      "souvenirs": []
+    },
+    {
+      "area": "hiroshima",
+      "status": "published",
+      "aiCheck": {
+        "checkedAt": "2026-11-23",
+        "delegatedBy": "rymaruta",
+        "method": "各品目の文を、出典の頁の本文と1文ずつ照らして確かめました（AI による照合）"
+      },
+      "intro": "瀬戸内の海の幸を使ったご飯ものや鍋、県内の各地で親しまれる粉もの料理など、広島県に伝わる郷土の味を紹介します。土産物店でも売られる漬物もあわせてまとめました。",
+      "dishes": [
+        {
+          "id": "okonomiyaki",
+          "name": "お好み焼き",
+          "where": "県内全域",
+          "season": "通年",
+          "summary": "薄くのばした小麦粉の生地に、キャベツ・豚肉・焼きそば・卵を重ねて蒸し焼きにします。甘口のソースと青のりで食べ、県内各地に具の違う地域版があります。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」お好み焼き",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/42_7_hiroshima.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "kaki-dotenabe",
+          "name": "かきの土手鍋",
+          "where": "広島市、江田島市、宮島、呉、音戸地方など",
+          "season": "冬（かきの旬は1〜2月）",
+          "summary": "白みそと赤みそを合わせて土鍋のふちに土手のように塗り、豆腐や野菜、かきを煮ます。みそを崩して味を加減しながら食べる冬の鍋料理です。",
+          "spots": [
+            "etajima",
+            "ondo-no-seto"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」かきの土手鍋",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/42_4_hiroshima.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "anago-meshi",
+          "name": "あなご飯",
+          "where": "廿日市市宮島町、広島市",
+          "season": "通年（あなごは7〜8月・11月が美味）",
+          "summary": "かば焼きにしたあなごをそぎ切りにし、だしで炊いたご飯の上に敷き詰めます。明治34年に宮島口駅の近くで駅弁として売り出されたのが始まりです。",
+          "spots": [
+            "itsukushima-jinja",
+            "misen"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」あなご飯",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/42_30_hiroshima.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "tai-meshi",
+          "name": "鯛めし",
+          "where": "福山市、尾道市、大崎上島町など瀬戸内海沿岸地域",
+          "season": "通年（鯛の旬は3〜5月）",
+          "summary": "内臓とうろこを除いた鯛を丸ごと釜に入れ、しょうゆや酒などで味をつけて米と一緒に炊きます。もとは漁師たちが作っていた料理です。",
+          "spots": [
+            "tomonoura",
+            "osakikamijima"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」鯛めし",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/42_9_hiroshima.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "tako-meshi",
+          "name": "たこめし",
+          "where": "三原市、尾道市、福山市",
+          "season": "通年（たこの旬は6〜8月）",
+          "summary": "刻んだたこをにんじんやごぼうと合わせ、だし汁としょうゆ、酒で炊き込みます。漁師が船の上で取れたてのたこを使って作っていたご飯です。",
+          "spots": [
+            "fudekageyama",
+            "senkoji-park"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」たこめし",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/42_18_hiroshima.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "kure-nikujaga",
+          "name": "呉の肉じゃが",
+          "where": "呉市",
+          "season": "通年",
+          "summary": "じゃがいもはメークインを使い、牛肉・糸こんにゃく・玉ねぎと決まった具で作ります。海軍の教科書の作り方に近い肉じゃがとして呉市で広められています。",
+          "spots": [
+            "alley-karasukojima",
+            "haigamine"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」呉の肉じゃが",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/42_20_hiroshima.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "wakegi-nuta",
+          "name": "わけぎのぬた",
+          "where": "尾道市、三原市、呉市",
+          "season": "旬は2月末〜3月上旬",
+          "summary": "ゆでたわけぎを、白みそに砂糖・酢・みりんを合わせたものであえます。子孫繁栄の縁起物で、関西ではひな祭りに食べることが多いとされます。",
+          "spots": [
+            "jodoji-onomichi",
+            "mihara-castle"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」わけぎのぬた",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/42_5_hiroshima.html",
+            "retrievedAt": "2026-11-23"
+          }
+        }
+      ],
+      "souvenirs": [
+        {
+          "id": "hiroshimana-zuke",
+          "name": "広島菜漬",
+          "where": "県全域",
+          "season": null,
+          "summary": "白菜の一種とされる広島菜の漬物で、歯切れがよくほんのり辛い風味です。地元のスーパーや土産物店などで売られています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」広島菜漬のおにぎり／広島菜むすび",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/42_23_hiroshima.html",
+            "retrievedAt": "2026-11-23"
+          }
+        }
+      ]
+    },
+    {
+      "area": "okinawa",
+      "status": "published",
+      "aiCheck": {
+        "checkedAt": "2026-11-23",
+        "delegatedBy": "rymaruta",
+        "method": "各品目の文を、出典の頁の本文と1文ずつ照らして確かめました（AI による照合）"
+      },
+      "intro": "沖縄県で受け継がれてきた郷土料理と、お土産としても売られている品を紹介します。日々の食卓の料理から、行事で振る舞われる料理まで集めました。",
+      "dishes": [
+        {
+          "id": "okinawa-soba",
+          "name": "沖縄そば",
+          "where": "県内全域",
+          "season": "日常の食事",
+          "summary": "そば粉を使わず小麦粉とかん水で練った太めの麺に、豚骨やかつお節でとった濃いだしの汁を合わせた麺料理です。10月17日は「沖縄そばの日」とされています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」沖縄そば",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_20_okinawa.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "goya-champuru",
+          "name": "ゴーヤーチャンプルー",
+          "where": "県内全域",
+          "season": "通年",
+          "summary": "苦味のあるゴーヤーを、焼いた島豆腐や卵と一緒に炒めて食べやすくした家庭料理です。品種改良でゴーヤーが一年中出回るようになり、季節を問わず作られています。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ゴーヤーチャンプルー",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_11_okinawa.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "rafute",
+          "name": "ラフテー",
+          "where": "県内全域",
+          "season": "祝い事・法事",
+          "summary": "皮付きの豚三枚肉を砂糖・醤油・泡盛で時間をかけて煮込んだ角煮です。皮がとろけるようにやわらかく、祝い事や法事の席で振る舞われます。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ラフテー",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_6_okinawa.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "soki-jiru",
+          "name": "ソーキ汁",
+          "where": "県内全域",
+          "season": "正月",
+          "summary": "豚の骨付きあばら肉を骨から外れるほどやわらかく煮て、すまし仕立てにした汁物です。冬は大根、夏は冬瓜を入れ、今も正月に欠かせない料理です。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ソーキ汁",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_10_okinawa.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "ikasumi-jiru",
+          "name": "イカスミ汁",
+          "where": "県内全域",
+          "season": null,
+          "summary": "アオリイカと脂身の少ない豚肉、ニガナを煮込み、仕上げにイカ墨を加えた真っ黒な汁物です。イカの甘みとコクに、ニガナのほろ苦さが重なる味わいです。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」イカスミ汁",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_12_okinawa.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "kufa-jushi",
+          "name": "クファジューシー",
+          "where": "県内全域",
+          "season": "旧盆・冬至",
+          "summary": "米を豚の三枚肉や野菜と一緒に炊き込んだ、つやのある炊き込みご飯です。旧盆の精霊迎えには葉ショウガ入り、冬至には田芋か里芋入りのものが作られます。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」クファジューシー",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_4_okinawa.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "iyachi",
+          "name": "イーヤチ",
+          "where": "竹富島",
+          "season": "種子取祭（旧暦9月・10月）",
+          "summary": "もち米にもち粟や小豆を混ぜて炊き、芭蕉の葉にのせて蒸し上げる保存食です。竹富島の種子取祭の間、すぐ食べられるように用意されてきました。",
+          "spots": [
+            "taketomijima"
+          ],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」イーヤチ",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_27_okinawa.html",
+            "retrievedAt": "2026-11-23"
+          }
+        }
+      ],
+      "souvenirs": [
+        {
+          "id": "sata-andagi",
+          "name": "サーターアンダーギー",
+          "where": "県内全域",
+          "season": null,
+          "summary": "小麦粉に卵と砂糖を合わせてこね、油で揚げた沖縄風のドーナツです。揚げると生地が割れ、花が咲いたような形になります。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」サーターアンダーギー",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_8_okinawa.html",
+            "retrievedAt": "2026-11-23"
+          }
+        },
+        {
+          "id": "jimami-dofu",
+          "name": "ジーマーミ豆腐",
+          "where": "県内全域",
+          "season": null,
+          "summary": "落花生の搾り汁にいもくずを加えて練り上げた、ゴマ豆腐に似た料理です。コシが強く、とろりとした口当たりです。",
+          "spots": [],
+          "source": {
+            "title": "農林水産省「うちの郷土料理」ジーマーミ豆腐",
+            "url": "https://www.maff.go.jp/j/keikaku/syokubunka/k_ryouri/search_menu/menu/47_18_okinawa.html",
+            "retrievedAt": "2026-11-23"
+          }
+        }
+      ]
+    }
+  ]
+}

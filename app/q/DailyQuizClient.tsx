@@ -6,6 +6,7 @@ import SaveSpotButton from "../components/SaveSpotButton";
 import { useLocale } from "../i18n/context";
 import { useToast } from "../../lib/hooks/useToast";
 import { ROUTES } from "../../lib/routes";
+import { track } from "../../lib/utils/analytics";
 import { copyToClipboard, shareUrl } from "../../lib/utils/share";
 import { todayIn } from "../../lib/utils/sunTimes";
 import {
@@ -176,10 +177,11 @@ export default function DailyQuizClient() {
         // 共有シートが無い端末（PC の多く）は、**結果の文ごと**写す（URL だけだと結果が伝わらない）
         if (typeof navigator.share !== "function") {
             const ok = await copyToClipboard(`${text}\n${url}`);
+            if (ok) track("share", { method: "copy", content_type: "quiz" });
             showToast(ok ? (en ? "Result copied" : "結果をコピーしました") : (en ? "Couldn't copy." : "コピーできませんでした。"), ok ? "success" : "error");
             return;
         }
-        const result = await shareUrl(url, en ? "Where is this?" : "今日の一問", text);
+        const result = await shareUrl(url, en ? "Where is this?" : "今日の一問", text, "quiz");
         if (result === "copied") {
             // 共有シートに断られて URL だけ写った——結果の文ごと写し直す
             const ok = await copyToClipboard(`${text}\n${url}`);

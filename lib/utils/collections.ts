@@ -629,7 +629,7 @@ export function canonicalCollectionPath(type: CollectionType, slug: string): str
  * 実ビルドで `/tag/*` へ49本張っていたので要らなかった。2026-09-29 にトップを
  * 写真の並び（`HomeMosaic`）にしてチップが消え、いまは PC の右の柱（`DiscoverRail`）が
  * **検索に載るタグだけ**を張る（写真ページのタグも `/tag/*` を張る）。
- * 索引を作るならサイトマップ（`app/sitemap.ts`）と `isIndexableCollectionIndex` も一緒に。
+ * 索引を作るならサイトマップ（`lib/server/sitemap.ts`）と `isIndexableCollectionIndex` も一緒に。
  */
 export function collectionIndexPath(type: CollectionType): string {
     return `/${TYPE_PATH[type]}`;

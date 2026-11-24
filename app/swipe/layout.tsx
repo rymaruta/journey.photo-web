@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { ROUTES } from "../../lib/routes";
-import { INDEXABLE_ROBOTS, shareImageUrl, shareOgImage, siteConfig } from "../../lib/utils/seo";
+import { appItunes, INDEXABLE_ROBOTS, shareImageUrl, shareOgImage, siteConfig } from "../../lib/utils/seo";
 
 // 撮影スポットを払う（`/swipe`・2026-11-11）。**ログイン不要の公開頁で、検索に出す**（題と説明を持つ。
 // 頁の頭の見出しと説明は静的な HTML に入る・札の山は画面が `/app/data/swipe.json` から読む）。
@@ -14,6 +14,7 @@ export const metadata: Metadata = {
     title: SWIPE_TITLE,
     description: SWIPE_DESCRIPTION,
     alternates: { canonical: URL },
+    itunes: appItunes(URL),
     robots: INDEXABLE_ROBOTS,
     openGraph: {
         type: "website",

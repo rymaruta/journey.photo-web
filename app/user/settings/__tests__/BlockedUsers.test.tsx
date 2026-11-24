@@ -104,11 +104,24 @@ describe("ブロックした人の一覧と解除", () => {
         expect(screen.queryByRole("alert"), "成功したのに理由を出している").toBeNull();
     });
 
-    it("1人も居なければ何も描かない", async () => {
+    // 2026-11-04: 下の画面になったので、0人は iOS と同じく言葉で言う（以前は設定の中の節で、黙って消していた）
+    it("1人も居なければ「ブロックしている人はいません」と出す", async () => {
         listOk([]);
-        const { container } = view();
-        await waitFor(() => expect(mockUserFetch).toHaveBeenCalled());
-        expect(container.textContent).toBe("");
+        view();
+        expect(await screen.findByText("ブロックしている人はいません")).toBeInTheDocument();
+        expect(screen.queryByRole("button", { name: "解除" })).toBeNull();
+    });
+
+    it("読み込み中は灰の骨格（回る輪・文字だけにしない）", async () => {
+        mockUserFetch.mockReturnValue(new Promise(() => {}));
+        view();
+        expect(screen.getByTestId("state-loading")).toBeInTheDocument();
+    });
+
+    it("@ユーザー名を名前の下に出す（板の人の行）", async () => {
+        listOk([{ id: "u2", name: "しつこい人", username: "pesky" }]);
+        view();
+        expect(await screen.findByText("@pesky")).toBeInTheDocument();
     });
 
     // **「0人」と言い切らない。** 取得できていないだけかもしれない。

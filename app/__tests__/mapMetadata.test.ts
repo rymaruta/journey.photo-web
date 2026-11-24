@@ -15,7 +15,7 @@ describe("/map のメタデータ", () => {
     });
 
     it("sitemap に載る（lastmod はトップと同じ規則）", async () => {
-        const sitemap = (await import("../sitemap")).default;
+        const sitemap = (await import("../../lib/server/sitemap")).allSitemapEntries;
         const entries = await sitemap();
         const map = entries.find((e) => e.url.endsWith("/map"));
         expect(map, "sitemap に /map が無い").toBeTruthy();

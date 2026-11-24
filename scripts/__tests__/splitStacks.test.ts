@@ -51,6 +51,8 @@ const MOVED: Record<string, string[]> = {
     "serverless.dm.yml": ["src/dm.handler"],
     // 移したのではなく新しい口（札 journey.photo-ios#621）。同じ段で配り、provider をそろえる決まりに乗せる
     "serverless.trip-ai.yml": ["src/tripAi.handler"],
+    // 移したのではなく新しい口（グループの DM・札 journey.photo-ios#582）。同じ段で配り、provider をそろえる決まりに乗せる
+    "serverless.groups.yml": ["src/groups.handler"],
 };
 
 const AUTH_IMPORT = "Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId";

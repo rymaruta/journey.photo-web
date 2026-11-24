@@ -1,11 +1,43 @@
 import type { Metadata } from "next";
 import { appPageMetadata } from "../../lib/utils/seo";
+import { loadAllPhotos } from "../../lib/server/photos";
+import { publicImageUrl } from "../../lib/utils/seo";
 
-// このセグメントのページは "use client" なので metadata を持てず、
-// ルートのメタデータをそのまま継承していた（canonical がトップを指す）。
-// ここで上書きする。
 export const metadata: Metadata = appPageMetadata("/login", "ログイン");
 
-export default function Layout({ children }: { children: React.ReactNode }) {
-    return children;
+/**
+ * iOS SignInView に合わせ、公開写真のサムネイルだけをログイン背景に並べる。
+ * 非公開・センシティブな写真を HTML に混ぜない。失敗時は黒背景のまま。
+ */
+export default async function Layout({ children }: { children: React.ReactNode }) {
+    const photos = await loadAllPhotos().catch(() => []);
+    const tiles = photos
+        .filter((p) => p.published === true && !p.sensitive && Boolean(p.thumbSm || p.thumbSrc))
+        .slice(0, 12);
+
+    return (
+        <div className="relative isolate min-h-screen overflow-hidden bg-black">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[380px] overflow-hidden" aria-hidden="true">
+                <div className="absolute left-1/2 top-[-30px] grid w-[calc(100%_+_40px)] max-w-[520px] -translate-x-1/2 -rotate-[4deg] grid-cols-4 gap-[3px]">
+                    {Array.from({ length: 12 }, (_, index) => (
+                        <div key={index} className="h-[120px] overflow-hidden bg-white/[0.06]">
+                            {tiles[index] && (
+                                // Decorative images: intentionally small public thumbnails, not originals.
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img
+                                    src={publicImageUrl(tiles[index].thumbSm || tiles[index].thumbSrc)}
+                                    alt=""
+                                    loading={index < 4 ? "eager" : "lazy"}
+                                    decoding="async"
+                                    className="h-full w-full object-cover"
+                                />
+                            )}
+                        </div>
+                    ))}
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black" />
+            </div>
+            <div className="relative z-10">{children}</div>
+        </div>
+    );
 }

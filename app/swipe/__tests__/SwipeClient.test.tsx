@@ -148,7 +148,7 @@ describe("ログインして戻った", () => {
         show();
         const moved = await screen.findByTestId("swipe-moved");
         expect(moved.textContent).toContain("払った 2 か所を、行きたい場所に移しました");
-        expect(moved.querySelector("a")!.getAttribute("href")).toBe("/saved-spots");
+        expect(moved.querySelector("a")!.getAttribute("href")).toBe("/saved-spots/map");
         const posts = mockUserFetch.mock.calls.filter(([, init]) => (init as RequestInit | undefined)?.method === "POST");
         expect(posts.map(([path, init]) => [path, JSON.parse(String((init as RequestInit).body)).slug]))
             .toEqual([["/user/spots", "SPOT-s1"], ["/user/spots", "SPOT-s2"]]);
@@ -167,7 +167,7 @@ describe("ログインして戻った", () => {
         authState.current = { isAuthenticated: true, userId: "me", loading: false };
         show();
         await screen.findByTestId("swipe-card");
-        expect(screen.getByTestId("swipe-map").getAttribute("href")).toBe("/saved-spots");
+        expect(screen.getByTestId("swipe-map").getAttribute("href")).toBe("/saved-spots/map");
         const first = currentSlug();
         await act(async () => { fireEvent.click(screen.getByTestId("swipe-want")); });
         await waitFor(() => expect(mockUserFetch).toHaveBeenCalledWith("/user/spots", expect.objectContaining({ method: "POST", body: JSON.stringify({ slug: `SPOT-${first}` }) })));

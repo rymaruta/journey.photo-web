@@ -41,7 +41,9 @@ const EXEMPT: Array<[string, string]> = [
     ["app/user/archive/page.tsx", "自分のストーリーのアーカイブ（本人だけ）"],
     ["app/user/edit/page.tsx", "自分の写真の編集"],
     ["app/user/profile/page.tsx", "自分のプロフィール設定"],
-    ["app/user/settings/page.tsx", "設定（ログインした本人だけが描かれる）"],
+    // 2026-11-04: 設定の `<Link>` は部品（行・戻る）へ移した。部品は先読みしていないが、設定とその下の画面
+    // （ログインした本人だけが描かれる）だけで使う
+    ["app/user/settings/SettingsParts.tsx", "設定とその下の画面の部品（ログインした本人だけが描かれる）"],
     ["app/components/FollowingSheet.tsx", "フォロー一覧のシート（開くのはログイン後）"],
     ["app/components/MemberOnlyNotice.tsx", "投稿権限が無い人への案内"],
     ["app/components/NotificationsBell.tsx", "通知（ログイン中だけ出る）"],

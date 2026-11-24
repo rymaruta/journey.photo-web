@@ -94,7 +94,7 @@ describe("共同アルバム: 取得に失敗したとき", () => {
     it("本当に0件なら、今までどおり案内を出す", async () => {
         mockUserFetch.mockResolvedValue({ ok: true, json: async () => ({ albums: [] }) });
         render(<AlbumsPage />);
-        expect(await screen.findByText("まだアルバムがありません。")).toBeInTheDocument();
+        expect(await screen.findByText("まだアルバムがありません")).toBeInTheDocument();
         expect(screen.queryByRole("alert")).toBeNull();
     });
 });

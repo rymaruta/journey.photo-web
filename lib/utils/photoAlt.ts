@@ -3,7 +3,7 @@
 
 import { getLocalized, type Photo, type Locale } from "../data/photos";
 import { photoOwnTitle, photoTitleFor } from "./photoTitle";
-import { titleWithPlace } from "./titlePlace";
+import { metaPlace, titlePlaceTail } from "./metaPlace";
 
 /**
  * 写真の alt。**画像検索に出るかどうかは、ほぼここで決まる。**
@@ -39,12 +39,16 @@ export function photoAltText(photo: Photo, locale: Locale): string {
     // 言語ごとに「無題」を落とす（`{ ja: "無題", en: "Sunset" }` で h1・一覧と割れない）
     const title = photoOwnTitle(photo, locale);
     const place = typeof photo.location === "string" ? photo.location.trim() : "";
-    // **並べ方の決め方は `titleWithPlace` 1つに置く**（写真ページの `<title>` と
-    // 同じ判断。片方だけ直して `alt="オペラ・ガルニエ（オペラ・ガルニエ（パリ））"`
-    // を19ページに出した）。ここが決めるのは「（）でつなぐ」ことだけ
-    const r = titleWithPlace(title, place);
-    if (r.kind === "both") return `${r.title}（${r.place}）`;
-    return r.text || photoTitleFor(photo, locale).text;
+    // **並べ方の決め方は `titlePlaceTail`（`metaPlace.ts`）1つに置く**（写真ページの `<title>` と
+    // 同じ判断。片方だけ直して `alt="オペラ・ガルニエ（オペラ・ガルニエ（パリ））"` を19ページに出した）。
+    // 2026-11-09: 撮影地は住所の全文でなく「名前（市区町村）」まで（og:image の alt も同じ経路）。
+    // ここが決めるのは「（）でつなぐ」ことだけ。題が無ければ代わりの題（`photoTitleFor`）
+    const mp = metaPlace(place);
+    // 題が無ければ撮影地の名前だけ（住所の全文は出さない）。名前も無ければ代わりの題
+    if (!title) return mp.head || photoTitleFor(photo, locale).text;
+    // alt の括弧は1段（「海（名前、市区町村）」）。入れ子の括弧は読み上げが重い
+    const tail = titlePlaceTail(title, mp).replace(/（(.+)）$/, "、$1");
+    return tail ? `${title}（${tail}）` : title;
 }
 
 /**

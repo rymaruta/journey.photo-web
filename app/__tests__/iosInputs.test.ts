@@ -124,7 +124,7 @@ describe("#34 パスワード再設定の確認コード", () => {
 
 describe("#27 パスワードの変更", () => {
     it("<form> で送り、ユーザー名の欄を置く（iOS のキーチェーンが新しいパスワードを覚える）", () => {
-        const src = code("app/user/settings/page.tsx");
+        const src = code("app/user/settings/password/page.tsx");
         const i = src.indexOf('id="settings-new-password"');
         const formStart = src.lastIndexOf("<form", i);
         expect(formStart, "新しいパスワードの欄が <form> の中に無い").toBeGreaterThan(0);

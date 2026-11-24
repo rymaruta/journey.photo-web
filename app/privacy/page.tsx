@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { siteConfig, shareOgImage } from "@/lib/utils/seo";
+import { appItunes, siteConfig, shareOgImage } from "@/lib/utils/seo";
 
 // プライバシーポリシー。実際にこのサイトが行っている処理だけを書く（雛形の丸写しをしない）。
 // 内容を変えたときは「最終更新日」も必ず更新すること。
-// **`app/sitemap.ts` の `PRIVACY_LAST_MODIFIED` も同じ日にする**（`page.facts.test.ts` が見る）。
+// **`lib/server/sitemap.ts` の `PRIVACY_LAST_MODIFIED` も同じ日にする**（`page.facts.test.ts` が見る）。
 //
 // iPhone アプリ（App Store のプライバシーポリシー URL）もこのページを指している。
 // アプリの機能の記述は iOS リポジトリの main と、`api-user/src` の実装に合わせてある
@@ -38,6 +38,7 @@ export const metadata: Metadata = {
     title: "プライバシーポリシー",
     description: "Journey Photo における個人情報・アクセス解析・Cookie の取り扱いについて説明します。",
     alternates: { canonical: `${siteConfig.url}/privacy` },
+    itunes: appItunes(`${siteConfig.url}/privacy`),
     openGraph: {
         type: "website",
         locale: siteConfig.locale.ja,

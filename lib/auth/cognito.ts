@@ -353,6 +353,8 @@ export async function signUp(email: string, password: string): Promise<{
     username?: string;  // 確認コード送信に使うUUID
     error?: string;
     aliasExists?: boolean;
+    /** Cognito の例外の名前（計測の理由の分類にだけ使う。画面には出さない） */
+    code?: string;
 }> {
     return new Promise((resolve) => {
         try {
@@ -383,10 +385,10 @@ export async function signUp(email: string, password: string): Promise<{
                         msg = `メールアドレスの形式か、${PASSWORD_RULE_MESSAGE}`;
                     }
                     if (err.name === "UsernameExistsException" || err.name === "AliasExistsException") {
-                        resolve({ success: false, error: "このメールアドレスはすでに登録されています", aliasExists: true });
+                        resolve({ success: false, error: "このメールアドレスはすでに登録されています", aliasExists: true, code: err.name });
                         return;
                     }
-                    resolve({ success: false, error: msg });
+                    resolve({ success: false, error: msg, code: err.name });
                     return;
                 }
                 resolve({ success: true, username });
@@ -403,6 +405,8 @@ export async function confirmSignUp(username: string, code: string, clientMetada
     /** もう確認済みだった（この回で登録したのではない）。登録の数を二重に数えないために返す */
     alreadyConfirmed?: boolean;
     error?: string;
+    /** Cognito の例外の名前（計測の理由の分類にだけ使う。画面には出さない） */
+    code?: string;
 }> {
     return new Promise((resolve) => {
         try {
@@ -446,7 +450,7 @@ export async function confirmSignUp(username: string, code: string, clientMetada
                         msg = "このメールアドレスはすでに別のアカウントで使われています。" +
                             "そのアカウントでログインするか、パスワードをお忘れの場合は再設定してください。";
                     }
-                    resolve({ success: false, error: msg });
+                    resolve({ success: false, error: msg, code: err.name });
                     return;
                 }
                 resolve({ success: true });

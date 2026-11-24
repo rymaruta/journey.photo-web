@@ -3,7 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 
 // **ホームの上段のめくる札**（`HomeTopCards`・2026-10-31 束 1 H2・iOS の `HomeTopCardView`）。
-// 今週のお題 → 今日の一問 → 撮影スポット の札を、ホームの3つのタブのどれでも同じ位置（タブの直下）に
+// 今日のテーマ → 今日の一問 → 撮影スポット の札を、ホームの3つのタブのどれでも同じ位置（タブの直下）に
 // 1列で出し、「さがす」の面には出さない。以前は文字だけの帯 3 本（`QuizEntry`・`SpotsEntry`・`ThemeEntry`）
 const mockUserFetch = vi.hoisted(() => vi.fn());
 
@@ -54,15 +54,37 @@ beforeEach(async () => {
 
 const cards = () => screen.getByTestId("home-top-cards");
 const order = () => [...cards().querySelectorAll("li")].map((li) =>
-    (li.querySelector("[data-testid=home-swipe-entry],[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry]") as HTMLElement).dataset.testid);
+    (li.querySelector("[data-testid=home-swipe-entry],[data-testid=home-theme-card],[data-testid=home-quiz-entry],[data-testid=home-spots-entry],[data-testid=home-learn-entry]") as HTMLElement).dataset.testid);
+
+describe("ホームの上段の札の眉（2026-11-09・9人のレビュー）", () => {
+    it("日本語の画面は日本語の眉（THIS WEEK 等の英字を出さない）", () => {
+        render(<ToastProvider><GalleryPageClient /></ToastProvider>);
+        const text = cards().textContent ?? "";
+        // カメラ講座の札は 2026-11-12 に外した（≡ にある）
+        for (const w of ["写真を払う", "今週のお題", "観光スポット"]) expect(text, w).toContain(w);
+        expect(text, "カメラ講座の札が戻った").not.toContain("カメラ講座");
+        // 今日の一問は 2026-11-12 に「さがす」の先頭へ移した（ホームの札は最大3枚）
+        expect(text, "今日の一問の札がホームに戻った").not.toContain("今日の一問");
+        for (const w of ["WHERE TO NEXT", "THIS WEEK", "DAILY QUIZ", "PHOTO SPOTS", "PHOTO GUIDES"]) expect(text, w).not.toContain(w);
+    });
+});
 
 describe("ホームの上段の札", () => {
-    it("タブの直下に札の並び（今週のお題 → 今日の一問 → 観光スポット）", async () => {
+    // 2026-11-04: iOS と同じく「輪 → 上の札 → 切り替え」（`GalleryView.feed`）。以前はタブの直下だった
+    it("切り替えのすぐ上に札の並び（今週のお題 → 今日の一問 → 観光スポット）", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         await screen.findByTestId("home-top-cards");
-        expect(screen.getByRole("tablist").nextElementSibling).toBe(cards());
+        // 札の次は、切り替えの行の元の位置の目印（`StickyTabRow`）→ 留まる行
+        // 札のすぐ下にアプリのご案内の札（2026-11-06・Web だけ）を置く。そのあとに切り替え。
+        // 札の並び（今日のテーマ → 今日の一問 → 撮影スポット）の順序そのものは変えない
+        const next = cards().nextElementSibling as HTMLElement;
+        expect(next.getAttribute("data-testid")).toBe("app-install-card");
+        // 入口の帯（2026-11-09）は 2026-11-12 に外した（案 第10章・すぐ下の日本地図と重なる）。案内のすぐ下が切り替え
+        expect(screen.queryByTestId("home-entry-band")).toBeNull();
+        expect(next.nextElementSibling).toBe(screen.getByTestId("home-feed-row-mark"));
+        expect(screen.getByTestId("home-feed-row")).toContainElement(screen.getByRole("tablist"));
         // 2026-11-11: 撮影スポットを払う入口がいつも1枚目（iOS と同じ）
-        // 2026-11-12（案 第10章）: 札は最大3枚。今日の一問は「さがす」の先頭へ
+        // 2026-11-12（案 第10章）: 札は最大3枚。教科書の札は外し（≡ にある）、今日の一問は「さがす」の先頭へ
         expect(order()).toEqual(["home-swipe-entry", "home-theme-card", "home-spots-entry"]);
         expect(screen.queryByTestId("home-quiz-entry")).toBeNull();
     });
@@ -240,7 +262,7 @@ describe("ホームの写真のはじめての投稿の印", () => {
 });
 
 describe("ホームの観光スポットを払う札（2026-11-11）", () => {
-    it("行き先は /swipe・未ログインは「ログインなしではじめる」", async () => {
+    it("行き先は /swipe・未ログインは「ログインなしではじめる」・2回目から「続きから」", async () => {
         render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const entry = await screen.findByTestId("home-swipe-entry");
         expect(entry.getAttribute("href")).toBe("/swipe");
