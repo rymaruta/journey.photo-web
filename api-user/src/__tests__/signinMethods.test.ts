@@ -411,9 +411,9 @@ describe("メールでの知らせ（SES・2026-11-23 owner）", () => {
         noticeDeps.from = () => "no-reply@journey-photo.com";
     });
 
-    it("題は短く、本文は「こちらから連携を解除できます」とリンク1つ。差出人は journey.photo。HTML とテキストの両方", async () => {
+    it("題は短く、本文は「こちらから連携を解除できます」とリンク1つ。差出人は Journey Photo（確認コードのメールと同じ）。HTML とテキストの両方", async () => {
         expect(await linkNoticeHandler({ cognitoSub: ME, provider: "apple" })).toEqual({ sent: 0, emailed: true });
-        expect(sent[0].from).toBe("\"journey.photo\" <no-reply@journey-photo.com>");
+        expect(sent[0].from).toBe("\"Journey Photo\" <no-reply@journey-photo.com>");
         expect(sent[0].msg.to).toBe("taro@example.com");
         expect(sent[0].msg.subject).toBe("Apple でサインインできます");
         expect(sent[0].msg.text).toContain("心当たりが無ければ、こちらから連携を解除できます。");
@@ -427,7 +427,7 @@ describe("メールでの知らせ（SES・2026-11-23 owner）", () => {
             expect(`${m.subject}${m.text}${m.html}`).not.toMatch(/・|パスワード|結ば|外せ/);
         }
         expect(SIGNIN_METHODS_URL).toBe("https://journey-photo.com/signin-methods");
-        expect(fromHeader("a@b.c")).toBe("\"journey.photo\" <a@b.c>");
+        expect(fromHeader("a@b.c")).toBe("\"Journey Photo\" <a@b.c>");
     });
 
     it("🔴 変数で有効にしていない環境は送らない。宛先が無い・送れないときもプッシュとサインインは止めない", async () => {

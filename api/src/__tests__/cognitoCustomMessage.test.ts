@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { customMessageFor, handler, LOGO_URL } from "../cognitoCustomMessage";
+import { customMessageFor, handler, LOGO_URL, SITE_URL, TAGLINE, DO_NOT_SHARE } from "../cognitoCustomMessage";
 
 /**
  * **確認コードのメールの文面**（CustomMessage・2026-11-24）。
@@ -24,20 +24,52 @@ describe("文面", () => {
         }
     });
 
-    it("種類ごとに件名が違う（何のコードか分かる）", () => {
-        expect(customMessageFor("CustomMessage_SignUp", CODE)!.subject).toBe("journey.photo の登録の確認コード");
-        expect(customMessageFor("CustomMessage_ResendCode", CODE)!.subject).toBe("journey.photo の登録の確認コード（再送）");
-        expect(customMessageFor("CustomMessage_ForgotPassword", CODE)!.subject).toBe("journey.photo のパスワード再設定の確認コード");
-        expect(customMessageFor("CustomMessage_UpdateUserAttribute", CODE)!.subject).toBe("journey.photo の新しいメールアドレスの確認");
-        expect(customMessageFor("CustomMessage_VerifyUserAttribute", CODE)!.subject).toBe("journey.photo の新しいメールアドレスの確認");
+    it("種類ごとに件名が違う（何のコードか分かる）・先頭の【Journey Photo】で誰からか分かる", () => {
+        expect(customMessageFor("CustomMessage_SignUp", CODE)!.subject).toBe("【Journey Photo】登録の確認コード");
+        expect(customMessageFor("CustomMessage_ResendCode", CODE)!.subject).toBe("【Journey Photo】登録の確認コード（再送）");
+        expect(customMessageFor("CustomMessage_ForgotPassword", CODE)!.subject).toBe("【Journey Photo】パスワード再設定の確認コード");
+        expect(customMessageFor("CustomMessage_UpdateUserAttribute", CODE)!.subject).toBe("【Journey Photo】メールアドレス変更の確認コード");
+        expect(customMessageFor("CustomMessage_VerifyUserAttribute", CODE)!.subject).toBe("【Journey Photo】メールアドレス変更の確認コード");
     });
 
-    it("英語の画面の人のために英語の1行を添える・外から読むのは公式のアイコン1つだけ（CSS・字体は読まない）", () => {
+    it("名前は「Journey Photo」に揃える（古い表記の journey.photo を本文に残さない）", () => {
+        for (const s of SOURCES) {
+            const { html, subject } = customMessageFor(s, CODE)!;
+            expect(html, s).not.toMatch(/journey\.photo(?!\.official)/);
+            expect(subject, s).not.toMatch(/journey\.photo/);
+        }
+    });
+
+    it("4種類すべてに「コードを人に教えない」・心当たりが無いとき・英語の要約・サイトの言葉・返信の行き先を書く", () => {
         for (const s of SOURCES) {
             const { html } = customMessageFor(s, CODE)!;
-            expect(html, s).toMatch(/journey\.photo (sign-up|password reset|email confirmation) code|new journey\.photo sign-up code/);
-            expect(html, s).not.toMatch(/<link|url\(/);
-            expect(html.match(/https?:\/\/[^"' )]+/g), s).toEqual([LOGO_URL]);
+            expect(html, s).toContain(DO_NOT_SHARE);
+            expect(html, s).toContain("お心当たりが無い場合は");
+            expect(html, s).toMatch(/<div [^>]*lang="en">Enter this code to [^<]*Journey Photo/);
+            expect(html, s).toContain(TAGLINE);
+            expect(html, s).toContain("お問い合わせ窓口に届きます");
+        }
+        // サイトの言葉は、ログインの画面（AuthPhotoBand）と同じ文
+        const band = readFileSync(join(__dirname, "..", "..", "..", "app", "components", "AuthPhotoBand.tsx"), "utf8");
+        expect(band).toContain(TAGLINE);
+    });
+
+    it("受信箱の一覧の1行（preheader）は本文の先頭に隠し、暗い面なので color-scheme を dark と宣言する", () => {
+        for (const s of SOURCES) {
+            const { html } = customMessageFor(s, CODE)!;
+            const body = html.slice(html.indexOf("<body"));
+            expect(body, s).toMatch(/^<body[^>]*><div style="display:none;[^"]*">[^<]+/);
+            expect(html, s).toContain('<meta name="color-scheme" content="dark">');
+        }
+    });
+
+    it("外から読むのは公式のアイコン1つだけ・リンクはサイトへの1本だけ（CSS・字体は読まない）", () => {
+        for (const s of SOURCES) {
+            const { html } = customMessageFor(s, CODE)!;
+            expect(html, s).not.toMatch(/<link|url\(|<style/);
+            expect(html.match(/https?:\/\/[^"' )]+/g), s).toEqual([LOGO_URL, SITE_URL]);
+            expect(html.match(/<img /g), s).toHaveLength(1);
+            expect(html.match(/<a /g), s).toHaveLength(1);
         }
     });
 
@@ -52,8 +84,9 @@ describe("文面", () => {
         expect(existsSync(join(__dirname, "..", "..", "..", "public", "logo-aperture.png"))).toBe(true);
     });
 
-    it("期限の時間は登録（24時間）だけに書く", () => {
-        expect(customMessageFor("CustomMessage_SignUp", CODE)!.html).toContain("24時間");
+    it("期限の時間は登録（24時間・再送も同じ）だけに書く", () => {
+        expect(customMessageFor("CustomMessage_SignUp", CODE)!.html).toContain("有効期限は24時間です。");
+        expect(customMessageFor("CustomMessage_ResendCode", CODE)!.html).toContain("有効期限は24時間です。");
         expect(customMessageFor("CustomMessage_ForgotPassword", CODE)!.html).not.toMatch(/\d+時間/);
         expect(customMessageFor("CustomMessage_UpdateUserAttribute", CODE)!.html).not.toMatch(/\d+時間/);
     });
@@ -68,7 +101,7 @@ describe("文面", () => {
 describe("handler", () => {
     it("知っている種類は件名と本文を入れ、ほかの応答の欄は残す", async () => {
         const out = await handler({ triggerSource: "CustomMessage_SignUp", request: { codeParameter: CODE }, response: { smsMessage: "sms" } });
-        expect(out.response?.emailSubject).toBe("journey.photo の登録の確認コード");
+        expect(out.response?.emailSubject).toBe("【Journey Photo】登録の確認コード");
         expect(out.response?.emailMessage).toContain(CODE);
         expect(out.response?.smsMessage).toBe("sms");
     });

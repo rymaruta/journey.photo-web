@@ -80,7 +80,7 @@ describe("プールの更新の本文", () => {
         expect(p.EmailConfiguration).toEqual({
             EmailSendingAccount: "DEVELOPER",
             SourceArn: "arn:aws:ses:ap-northeast-1:123:identity/journey-photo.com",
-            From: '"journey.photo" <no-reply@journey-photo.com>',
+            From: '"Journey Photo" <no-reply@journey-photo.com>',
             ReplyToEmailAddress: mod.REPLY_TO,
         });
         // 🔴 ほかの設定は残す（UpdateUserPool は渡さなかった項目を既定値に戻す）・読み取り専用は落とす
@@ -124,9 +124,12 @@ describe("値の突き合わせ", () => {
         expect(m?.[1]).toBe(mod.REPLY_TO);
     });
 
-    it("送り元はサインインの方法の知らせ（federatedNotice.ts）と同じアドレス", () => {
+    it("送り元はサインインの方法の知らせ（federatedNotice.ts）と同じアドレス・同じ名前", () => {
         const notice = readFileSync(join(root, "api-user/src/federatedNotice.ts"), "utf8");
         expect(notice).toContain(`export const DEFAULT_FROM = "${mod.FROM_ADDRESS}";`);
+        // 差出人の名前も同じ（2026-11-24 owner: 文字ロゴと同じ「Journey Photo」に揃える）
+        expect(mod.FROM).toBe(`"Journey Photo" <${mod.FROM_ADDRESS}>`);
+        expect(notice).toContain('export const FROM_NAME = "Journey Photo";');
     });
 
     it("本番での利用の申請は取引のメールだけ・サイトの URL", () => {

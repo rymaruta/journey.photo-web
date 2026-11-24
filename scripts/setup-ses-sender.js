@@ -38,7 +38,7 @@ const REGION = "ap-northeast-1";
 const DOMAIN = "journey-photo.com";
 const FROM_ADDRESS = `no-reply@${DOMAIN}`;
 /** 差出人（`federatedNotice.ts` の `fromHeader` と同じ形） */
-const FROM = `"journey.photo" <${FROM_ADDRESS}>`;
+const FROM = `"Journey Photo" <${FROM_ADDRESS}>`;
 /** 返信先＝サイトの問い合わせ先（`deploy.yml` の `contactEmail` と同じ値・試験が突き合わせる） */
 const REPLY_TO = "journey.photo.official@gmail.com";
 /** まず見張るだけの DMARC（届け先の扱いは変えない）。結果の報告先は付けない（受け取る箱が無い） */

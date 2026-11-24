@@ -26,7 +26,7 @@ export const SIGNIN_METHODS_URL = "https://journey-photo.com/signin-methods";
 /** 送り元の既定（変数 `SIGNIN_EMAIL_FROM` で変えられる。SES でドメインを確かめてから使う） */
 export const DEFAULT_FROM = "no-reply@journey-photo.com";
 /** 差出人の名前 */
-export const FROM_NAME = "journey.photo";
+export const FROM_NAME = "Journey Photo";
 /** プッシュの中身の種類（アプリが「サインインの方法」を開く印・iOS の `AppDelegate.swift`） */
 export const PUSH_TYPE = "signin_methods";
 
@@ -89,7 +89,7 @@ export function linkNoticeMessage(provider: Provider): { title: string; body: st
     return { title: linkNoticeTitle(provider), body: LINK_NOTICE_BODY, data: { type: PUSH_TYPE } };
 }
 
-/** 差出人（`"journey.photo" <no-reply@…>`） */
+/** 差出人（`"Journey Photo" <no-reply@…>`・確認コードのメールと同じ名前・2026-11-24 owner） */
 export const fromHeader = (address: string) => `"${FROM_NAME}" <${address}>`;
 
 /** メールの文（HTML とテキストの両方）。中身は決まった文とリンクだけ（利用者の入れた文字は入れない） */
