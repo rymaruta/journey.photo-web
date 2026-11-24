@@ -134,7 +134,7 @@ describe("作例の出どころ: Flickr（2026-10-04）", () => {
         // Commons の1枚は今まで通り
         expect(within(caps[0]).getByRole("link", { name: "Wikimedia Commons" })).toBeTruthy();
         // 見出しは出ている写真の出どころを全部名乗る（Commons が先）
-        expect(screen.getByRole("heading", { name: "作例（Wikimedia Commons・Flickr より）" })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: "作例（Wikimedia Commons、Flickr より）" })).toBeTruthy();
     });
 
     it("Flickr の画像はそのまま読む（Commons の縮小版の URL を作らない）", () => {
@@ -176,9 +176,9 @@ describe("作例: サイトに置いた写真（環境省・県の観光協会�
 
     it("見出しは提供元を名乗り、前書きは「自由なライセンス」と言わない（規約に従って掲載と書く）", () => {
         view([ENV, PREF]);
-        expect(screen.getByRole("heading", { name: "作例（環境省・福岡県観光連盟 より）" })).toBeTruthy();
+        expect(screen.getByRole("heading", { name: "作例（環境省、福岡県観光連盟 より）" })).toBeTruthy();
         const text = screen.getByTestId("spot-samples").textContent!;
-        expect(text).toContain("環境省・福岡県観光連盟の写真は、提供元の利用規約に従って掲載しています。");
+        expect(text).toContain("環境省、福岡県観光連盟の写真は、提供元の利用規約に従って掲載しています。");
         expect(text).not.toContain("自由なライセンス");
     });
 

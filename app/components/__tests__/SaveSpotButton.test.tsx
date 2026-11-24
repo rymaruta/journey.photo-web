@@ -139,12 +139,77 @@ describe("行きたいボタン", () => {
         });
     });
 
-    it("未ログインならログインへのリンクを出し、聞きに行かない", () => {
+    // 2026-11-24（#432）: ログインの頁ではなく**登録の頁へ直に**。戻り先に合言葉を載せる
+    it("未ログインなら登録の頁へのリンク（戻り先は今の頁＋合言葉）を出し、聞きに行かない", () => {
         auth.isAuthenticated = false;
+        window.history.replaceState({}, "", "/spots/fushimi-inari-taisha");
         render(<SaveSpotButton slug="パリ" name="パリ" locale="ja" />);
         const link = screen.getByRole("link", { name: "行きたい" });
-        expect(link.getAttribute("href")).toContain("/login");
+        const u = new URL(link.getAttribute("href")!, "https://x.invalid");
+        expect(u.pathname).toBe("/signup");
+        expect(u.searchParams.get("via")).toBe("wish");
+        expect(u.searchParams.get("next")).toMatch(/^\/spots\/fushimi-inari-taisha\?wishAfterLogin=[0-9a-z]+$/);
         expect(fetchMock).not.toHaveBeenCalled();
+    });
+});
+
+// 登録のあとで1回だけ「行きたい」に入れる（2026-11-24・札 journey.photo-ios#432）
+describe("行きたいから登録へ（登録のあとで1回だけ保存）", () => {
+    beforeEach(() => {
+        sessionStorage.clear();
+        window.history.replaceState({}, "", "/spots/fushimi-inari-taisha");
+    });
+
+    it("押した瞬間に、このタブへ鍵とスポット（名前・絵・地名）を書く", () => {
+        auth.isAuthenticated = false;
+        render(<SaveSpotButton slug="fushimi-inari-taisha" name="伏見稲荷大社" locale="ja" kind="spot" variant="tile"
+            image="/images/spots/f.jpg" place="京都府 京都市伏見区" />);
+        const link = screen.getByRole("link", { name: "行きたい" });
+        link.addEventListener("click", (e) => e.preventDefault());
+        link.click();
+        const mark = JSON.parse(sessionStorage.getItem("jp.wishAfterLogin")!);
+        const nonce = new URL(new URL(link.getAttribute("href")!, "https://x.invalid").searchParams.get("next")!, "https://x.invalid").searchParams.get("wishAfterLogin");
+        expect(mark).toEqual(expect.objectContaining({ k: "SPOT-fushimi-inari-taisha", n: nonce, s: { name: "伏見稲荷大社", image: "/images/spots/f.jpg", place: "京都府 京都市伏見区" } }));
+    });
+
+    it("戻ってきた頁で印が合えば1回だけ保存し、印と URL の合言葉を消す", async () => {
+        sessionStorage.setItem("jp.wishAfterLogin", JSON.stringify({ k: "SPOT-fushimi-inari-taisha", n: "n1", at: Date.now(), s: { name: "伏見稲荷大社" } }));
+        window.history.replaceState({}, "", "/spots/fushimi-inari-taisha?wishAfterLogin=n1");
+        fetchMock.mockResolvedValueOnce(ok([]));
+        fetchMock.mockResolvedValueOnce(ok(["SPOT-fushimi-inari-taisha"]));
+        render(<SaveSpotButton slug="fushimi-inari-taisha" name="伏見稲荷大社" locale="ja" kind="spot" variant="tile" />);
+        await waitFor(() => expect(screen.getByRole("button", { name: "保存済み" })).toBeTruthy());
+        expect(fetchMock.mock.calls.filter((c) => c[1]?.method === "POST")).toHaveLength(1);
+        expect(sessionStorage.getItem("jp.wishAfterLogin")).toBeNull();
+        expect(window.location.search).toBe("");
+    });
+
+    it("外から付けた合言葉だけでは保存しない（このタブの印が無い・別の鍵）", async () => {
+        window.history.replaceState({}, "", "/spots/fushimi-inari-taisha?wishAfterLogin=n1");
+        fetchMock.mockResolvedValue(ok([]));
+        const { unmount } = render(<SaveSpotButton slug="fushimi-inari-taisha" name="伏見稲荷大社" locale="ja" kind="spot" variant="tile" />);
+        await screen.findByRole("button", { name: "行きたい" });
+        await new Promise((r) => setTimeout(r, 0));
+        expect(fetchMock.mock.calls.filter((c) => c[1]?.method === "POST")).toHaveLength(0);
+        expect(window.location.search).toBe("");
+        unmount();
+        sessionStorage.setItem("jp.wishAfterLogin", JSON.stringify({ k: "SPOT-other", n: "n2", at: Date.now(), s: { name: "x" } }));
+        window.history.replaceState({}, "", "/spots/fushimi-inari-taisha?wishAfterLogin=n2");
+        render(<SaveSpotButton slug="fushimi-inari-taisha" name="伏見稲荷大社" locale="ja" kind="spot" variant="tile" />);
+        await screen.findByRole("button", { name: "行きたい" });
+        await new Promise((r) => setTimeout(r, 0));
+        expect(fetchMock.mock.calls.filter((c) => c[1]?.method === "POST")).toHaveLength(0);
+    });
+
+    it("もう入っていたら外さない（押し直しにならない）", async () => {
+        sessionStorage.setItem("jp.wishAfterLogin", JSON.stringify({ k: "SPOT-fushimi-inari-taisha", n: "n1", at: Date.now(), s: { name: "伏見稲荷大社" } }));
+        window.history.replaceState({}, "", "/spots/fushimi-inari-taisha?wishAfterLogin=n1");
+        fetchMock.mockResolvedValue(ok(["SPOT-fushimi-inari-taisha"]));
+        render(<SaveSpotButton slug="fushimi-inari-taisha" name="伏見稲荷大社" locale="ja" kind="spot" variant="tile" />);
+        await screen.findByRole("button", { name: "保存済み" });
+        await new Promise((r) => setTimeout(r, 0));
+        expect(fetchMock.mock.calls.filter((c) => c[1]?.method === "POST" || c[1]?.method === "DELETE")).toHaveLength(0);
+        expect(sessionStorage.getItem("jp.wishAfterLogin")).toBeNull();
     });
 });
 

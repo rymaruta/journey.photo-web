@@ -252,6 +252,16 @@ export function safeNextPath(raw: unknown): string | null {
 }
 
 /** ログイン画面へ。戻り先を添える（省略時は既定＝自分のプロフィール） */
+/**
+ * 登録の頁へ（戻り先と来た理由つき）。`loginWithNext` と同じ決まり（2026-11-24・札 journey.photo-ios#432:
+ * 未ログインの「行きたい」は、ログインの頁ではなく登録の頁を直に開く）
+ */
+export function signupWithNext(next?: string | null, via?: LoginVia): string {
+    const safe = safeNextPath(next);
+    const base = safe ? `${ROUTES.SIGNUP}?next=${encodeURIComponent(safe)}` : ROUTES.SIGNUP;
+    return via && parseLoginVia(via) ? `${base}${safe ? "&" : "?"}via=${via}` : base;
+}
+
 export function loginWithNext(next?: string | null, via?: LoginVia): string {
     const safe = safeNextPath(next);
     const base = safe ? `${ROUTES.LOGIN}?next=${encodeURIComponent(safe)}` : ROUTES.LOGIN;

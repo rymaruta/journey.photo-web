@@ -10,7 +10,8 @@ import { FlagIcon as FlagSolid } from "@heroicons/react/24/solid";
 import { useAuth } from "../auth/context";
 import { useSavedSpots } from "../../lib/hooks/useSavedSpots";
 import { useToast } from "../../lib/hooks/useToast";
-import { loginWithNext } from "../../lib/routes";
+import { signupWithNext } from "../../lib/routes";
+import { newWishNonce, rememberWishAfterLogin, withWishMark, hasWishAfterLogin, clearWishAfterLogin } from "../../lib/utils/wishAfterLogin";
 import { spotSavedKey } from "../../lib/utils/savedSpotKey";
 import { track, WISH_VIA } from "../../lib/utils/analytics";
 
@@ -67,6 +68,8 @@ export default function SaveSpotButton({
     locale,
     kind = "location",
     variant = "pill",
+    image,
+    place,
 }: {
     slug: string;
     name: string;
@@ -75,6 +78,9 @@ export default function SaveSpotButton({
     kind?: "location" | "spot";
     /** 見た目。既定は撮影地ページの丸い札（上の注記） */
     variant?: "pill" | "tile" | "trip";
+    /** 登録の頁の上に載せるスポットの絵（小さい版）と地名（2026-11-24・#432）。無ければ名前だけ */
+    image?: string;
+    place?: string;
 }) {
     const en = locale === "en";
     const { isAuthenticated, loading: authLoading } = useAuth();
@@ -100,14 +106,46 @@ export default function SaveSpotButton({
     const tileMinH = trip ? TRIP_MIN_H : TILE_MIN_H;
     const wantLabel = tile ? (en ? "Want to go" : "行きたい") : (en ? "Save to want-to-go" : "行きたい");
 
-    // 未ログインはログインへ。**戻り先は今のページ**（押した場所に返す）
+    // 未ログインで押したとき、登録のあとで1回だけ保存するための合言葉（`wishAfterLogin.ts`・#432）
+    const [nonce] = React.useState(newWishNonce);
+    // 登録から戻ってきた頁: 保存の状態が分かったら、印が合うときだけ1回保存する
+    const autoRef = React.useRef(false);
+    React.useEffect(() => {
+        if (autoRef.current || authLoading || !isAuthenticated || saved === undefined || working) return;
+        if (!hasWishAfterLogin(key)) return;
+        autoRef.current = true;
+        clearWishAfterLogin();
+        if (saved) return; // もう入っていた（別の端末で入れたなど）
+        void (async () => {
+            const ok = await toggle(key);
+            if (!ok) {
+                showToast(en ? "Couldn't save. Please try again." : "保存できませんでした。もう一度お試しください。", "error");
+                return;
+            }
+            track("wish_tap", { signed_in: 1, kind });
+            if (kind === "spot") {
+                queueSpotWant(slug);
+                void flushSpotWants();
+            }
+            showToast(en ? `Saved ${name}` : `「${name}」を行きたい場所に保存しました`, "success");
+        })();
+    }, [authLoading, isAuthenticated, saved, working, key, toggle, showToast, en, kind, slug, name]);
+
+    // 未ログインは**登録の頁へ直に**（2026-11-24・#432。検索から来る人の多くは初めて。以前はログインの頁で、
+    // 「新規登録」はスマホで下のタブの裏に隠れていた）。戻り先は今のページに合言葉を載せた形で、
+    // 押した瞬間にこのタブへ印を書く。登録のあと戻った頁で1回だけ保存する
     if (!authLoading && !isAuthenticated) {
+        const here = typeof window === "undefined" ? null : withWishMark(window.location.pathname, nonce);
         return (
             <Link
-                href={loginWithNext(typeof window === "undefined" ? null : window.location.pathname, WISH_VIA)}
+                href={signupWithNext(here, WISH_VIA)}
                 prefetch={false}
-                // 登録までの数え方（#432）: 未ログインで押した＝登録の入口に来た
-                onClick={() => track("wish_tap", { signed_in: 0, kind })}
+                data-testid="wish-signup-link"
+                onClick={() => {
+                    rememberWishAfterLogin(key, nonce, { name, ...(image ? { image } : {}), ...(place ? { place } : {}) });
+                    // 登録までの数え方（#432）: 未ログインで押した＝登録の入口に来た
+                    track("wish_tap", { signed_in: 0, kind });
+                }}
                 className={tile ? `${base} min-w-0 ${tileOff}` : base}
                 style={{ touchAction: "manipulation", minHeight: tile ? tileMinH : 44 }}
             >
