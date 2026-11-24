@@ -187,6 +187,31 @@ describe("運用タスクの配線", () => {
         expect(scriptFor("scrub-deleted-names-staging")).toBe("scripts/scrub-deleted-names.js");
     });
 
+    // 札 journey.photo-ios#601: サインインの準備の台本。staging の口が本番のプール・表に落ちると
+    // 「staging で試したつもりで本番を書く」になる（台本も STAGE とプール名の組で止まるが、その手前で気づく）
+    it("サインインの準備の口は、それぞれの環境の値だけを受け取る", () => {
+        const want = {
+            prod: { COGNITO_USER_POOL_ID: "ap-northeast-1_ZbuhDQsWz", COGNITO_CLIENT_ID: "21cs4cd8dkttmg3snloj72u8mu", USERS_TABLE: "prod-photo-gallery-users" },
+            staging: { COGNITO_USER_POOL_ID: "ap-northeast-1_DSQ16c6vO", COGNITO_CLIENT_ID: "1qjl9c8gmqidigps55jhv4foi", USERS_TABLE: "staging-photo-gallery-users" },
+        } as const;
+        const bad: string[] = [];
+        for (const base of ["signin-readiness", "apple-signin-key", "allow-custom-auth", "users-ttl"]) {
+            for (const st of ["prod", "staging"] as const) {
+                const t = st === "prod" ? base : `${base}-staging`;
+                const env = stepEnvValues(t);
+                if (env.get("STAGE") !== st) bad.push(`${t} の STAGE が ${st} でない`);
+                for (const [k, v] of Object.entries(want[st])) {
+                    if (env.has(k) && env.get(k) !== v) bad.push(`${t} の ${k} が ${st} の値でない: ${env.get(k)}`);
+                }
+            }
+        }
+        // 鍵は Secrets から渡す（値をワークフローに書かない）
+        for (const t of ["apple-signin-key", "apple-signin-key-staging"]) {
+            if (stepEnvValues(t).get("APNS_PRIVATE_KEY") !== "${{ secrets.APNS_PRIVATE_KEY }}") bad.push(`${t} の鍵が Secrets からでない`);
+        }
+        expect(bad, bad.join(" / ")).toEqual([]);
+    });
+
     // 台帳の保留がこの口から実行される。名前が変わったら気づけるようにする
     it("owner の保留に使うタスクが揃っている", () => {
         const opt = new Set(options());
