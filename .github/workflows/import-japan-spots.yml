@@ -45,7 +45,9 @@ jobs:
         run: python -m py_compile scripts/import_japan_spots.py
       - name: Fetch Wikidata candidates
         env:
-          IMPORT_LIMIT: ${{ inputs.limit || '5000' }}
+          # PR の確かめは 30 件だけ（上の Validate と同じ式）。以前はここだけ 5000 件で、PR のたびに
+          # Wikidata へ重い問い合わせを投げて 504 で落ちていた（2026-11-24・journey.photo-web#732）
+          IMPORT_LIMIT: ${{ github.event_name == 'pull_request' && '30' || inputs.limit || '5000' }}
         run: |
           python scripts/import_japan_spots.py --limit "$IMPORT_LIMIT" --output data/imports/japan-wikidata-spots.json
       - name: Summarize result

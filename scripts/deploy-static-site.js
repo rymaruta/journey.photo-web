@@ -11,6 +11,7 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const zlib = require("zlib");
+const https = require("https");
 
 // .env.local から AWS 認証情報を読み込む
 const envLocalPath = path.resolve(__dirname, "../.env.local");
@@ -215,7 +216,31 @@ function contentTypeFor(key) {
 }
 
 const region = "ap-northeast-1";
-const s3 = new S3Client({ region });
+
+/**
+ * **同時に書く数**（2026-11-24・札 journey.photo-ios#718・#638）。
+ *
+ * 共通の JS（全部の頁が読むチャンク）が変わると、どの頁の HTML・txt にもそのチャンクの名前とビルドIDが入っているので、
+ * 約 5.4 万件（頁 約 5,800 × .html・.txt・`__next.*.txt` 約 9 件）が本当に「中身が変わった」になり、全部を書くしかない。
+ * 以前は 12 本で、1 秒あたり約 58 件。2026-11-23 の本番（run 45269456903）は 54,093 件を書く途中、14 分 40 秒で
+ * ジョブの上限 45 分に当たって止まった（その前に試験・ビルド・スモークで約 29 分）。
+ *
+ *  - **素材（`_next/static`・images）は 12 本のまま。** 一斉に書いて S3 が 503(SlowDown) を返した最中に CloudFront が
+ *    チャンクの 5xx を持つと、Safari が水和できない（`runPool` の注記）。素材は中身が変わった数件しか書かないので遅くない
+ *  - **HTML・txt は 64 本。** no-cache で配る（エッジに残るのは最大 1 秒）ので 5xx を長く持たれる心配が無い。
+ *    S3 の書き込みの上限は接頭辞ごとに 1 秒 3,500 件で、64 本でも届かない。混んだときの 503 は SDK が待って書き直す（下の `maxAttempts`）
+ *  - 接続は使い回し（keepAlive）、口の数（maxSockets）は同時に書く数より多くする。足りないと口の空き待ちで並列が効かない
+ */
+const ASSET_CONCURRENCY = 12;
+const HTML_CONCURRENCY = 64;
+const S3_MAX_SOCKETS = 96;
+
+const s3 = new S3Client({
+    region,
+    // 503(SlowDown)・通信の切れは、SDK が間を空けて書き直す（既定の 3 回では、混んだ時に1件の失敗でデプロイが止まる）
+    maxAttempts: 8,
+    requestHandler: { httpsAgent: new https.Agent({ keepAlive: true, maxSockets: S3_MAX_SOCKETS }) },
+});
 const cf = new CloudFrontClient({ region });
 
 /** Recursively collect all files under a directory, returning relative paths. */
@@ -629,6 +654,18 @@ async function deleteStaleKeys(localKeys, remoteObjects, staleSince) {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/** 段ごとの時間と、1 秒あたりの件数をログに出す（反映の前後を数字で比べるため・2026-11-24） */
+function stepTimer(now = () => Date.now()) {
+    const start = now();
+    return {
+        report(count) {
+            const sec = Math.max(0, now() - start) / 1000;
+            const rate = sec > 0 ? Math.round(count / sec) : count;
+            return `${count} 件を ${sec.toFixed(1)} 秒（${rate} 件/秒）`;
+        },
+    };
+}
 
 // 同時実行数を絞ってタスクを処理する。S3 への一斉 PutObject は 503(SlowDown) を誘発し、
 // その最中に CloudFront が取得した 5xx がエッジにキャッシュされると「一部チャンクだけ
@@ -1135,8 +1172,10 @@ async function main() {
     //         アプリ向けの JSON の `thumbUrl` が、まだ上がっていない JPEG を指す隙間を作らない（2026-10-08）
     console.log(`[deploy] Step 1/3: uploading ${assetPlan.upload.length} asset(s)（skip ${assetPlan.skip.length}：中身も付け方も同じ）...`);
     const { images: imageAssets, rest: otherAssets } = splitImagesFirst(assetPlan.upload);
-    await runPool(imageAssets, uploadFile, 12);
-    await runPool(otherAssets, uploadFile, 12);
+    const assetTimer = stepTimer();
+    await runPool(imageAssets, uploadFile, ASSET_CONCURRENCY);
+    await runPool(otherAssets, uploadFile, ASSET_CONCURRENCY);
+    console.log(`[deploy] Step 1/3 done: ${assetTimer.report(assetPlan.upload.length)}（同時 ${ASSET_CONCURRENCY}）`);
 
     // Step 2: Swap HTML — users now receive HTML pointing at the new assets.
     //         素材（Step 1）を全部上げ終えてから始めるので、どの HTML を先に
@@ -1145,7 +1184,9 @@ async function main() {
     //         S3 の段が13分を超え、ジョブの30分の上限で打ち切られた
     //         （本番は途中まで入れ替わった状態で止まった）。素材と同じ並びで書く。
     console.log(`[deploy] Step 2/3: uploading ${htmlPlan.upload.length} HTML/txt file(s)（skip ${htmlPlan.skip.length}：中身も付け方も同じ）...`);
-    await runPool(htmlPlan.upload, uploadFile, 12);
+    const htmlTimer = stepTimer();
+    await runPool(htmlPlan.upload, uploadFile, HTML_CONCURRENCY);
+    console.log(`[deploy] Step 2/3 done: ${htmlTimer.report(htmlPlan.upload.length)}（同時 ${HTML_CONCURRENCY}）`);
 
     // Step 3: Remove stale objects (assets get a grace period; see deleteStaleKeys).
     console.log("[deploy] Step 3/3: removing stale S3 objects...");
@@ -1216,7 +1257,8 @@ module.exports = {
     planUploads, putParamsFor, putParamsFingerprint, remoteEtagMap, encodeDeployState, decodeDeployState, DEPLOY_STATE_KEY, ASSET_GRACE_MS, invalidationPathsFor, changedKeys, isInvalidatable, cacheControlFor,
     bulkDeleteGuard, BULK_DELETE_RATIO, BULK_DELETE_MIN, deleteStaleKeys,
     contentTypeFor, AASA_KEY, AASA_EDGE_KEY,
-    pageCheckTargets, runnerLooksReachable };
+    pageCheckTargets, runnerLooksReachable,
+    stepTimer, ASSET_CONCURRENCY, HTML_CONCURRENCY, S3_MAX_SOCKETS, s3 };
 
 if (require.main === module) main().catch(err => {
     console.error("[deploy] ERROR:", err.message ?? err);
