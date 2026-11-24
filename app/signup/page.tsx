@@ -280,6 +280,8 @@ function SignupForm() {
     // 2026-11-04: ログインと同じ形に（iOS はログインと登録が同じ画面の切り替え・`SignInView` の `.signUp`）。
     // 写真の帯の下に直に置き、札で囲まない。主ボタンは白、2番手は線の「ログインに戻る」。
     // 欄の順は iOS と同じ メールアドレス → パスワード →（Web だけの確認の欄）→ 表示名
+    /** 「行きたい」から来た回の詰めた形（登録とコードの入力の間。完了の画面は今までどおり） */
+    const compact = Boolean(wishSpot) && step !== "done";
     const invalid = (s: Step) => (error && step === s ? { "aria-invalid": true as const, "aria-describedby": "signup-form-error" } : {});
     const spinner = <span aria-hidden="true" className="w-4 h-4 border-2 border-ink/30 border-t-ink rounded-full animate-spin" />;
     const field = (id: string, label: string, input: React.ReactNode, after?: React.ReactNode) => (
@@ -291,8 +293,11 @@ function SignupForm() {
     );
 
     return (
-        <main className="relative isolate min-h-screen overflow-hidden bg-black px-6 pt-[250px] pb-16">
-            <AuthPhotoBand />
+        // 「行きたい」から来た回は写真の帯とワードマークを置かず、押したスポットの札を頭にする（2026-11-24・#432）。
+        // 帯（上から 250）の下に並べると、375×667 でも 390×844 でも主ボタンが下のタブの裏に入り、送らないと見えなかった。
+        // 押すためのボタンは最初の画面に出す（「直感的で簡単に」）。決まりの試験は `signupFold.test.tsx`
+        <main data-testid="signup-main" className={`relative isolate min-h-screen overflow-hidden bg-black px-6 ${compact ? "pt-5" : "pt-[250px]"} pb-28`}>
+            {!compact && <AuthPhotoBand />}
 
             <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-[14px]" data-testid="signup-content">
                 {/* 画面の題は読み上げだけ（iOS は大きいワードマークが見出し） */}
@@ -301,7 +306,7 @@ function SignupForm() {
                     {step === "verify" && "メールを確認"}
                     {step === "done" && "登録完了"}
                 </h1>
-                <AuthBrand />
+                {!compact && <AuthBrand />}
 
                 {/* 「行きたい」から来た回: 押したスポットと、登録で得られるもの（2026-11-24・#432） */}
                 {wishSpot && step !== "done" && (
@@ -369,7 +374,7 @@ function SignupForm() {
                             </button>
                             </div>
                         ), (
-                            <p id="signup-password-rule" className={`mt-1.5 ${AUTH_CAPTION_CLASS}`}>英大文字・小文字・数字・記号（!@#$など）をそれぞれ1文字以上含めてください</p>
+                            <p id="signup-password-rule" className={`mt-1.5 ${AUTH_CAPTION_CLASS}`}>英大文字、小文字、数字、記号（!@#$など）をそれぞれ1文字以上含めてください</p>
                         ))}
                         <button type="submit" disabled={submitting || !email || !password}
                             className={wishSpot ? AUTH_ACCENT_PRIMARY_CLASS : AUTH_PRIMARY_CLASS} style={{ touchAction: "manipulation" }}>

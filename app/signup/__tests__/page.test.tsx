@@ -609,6 +609,19 @@ describe("SignupPage - 行きたいから登録へ", () => {
             .toHaveAttribute("href", `/login?next=${encodeURIComponent(next)}`);
     });
 
+    // 主ボタンが最初の画面で見えること（寸法は scripts/e2e-smoke.mjs の runSignupFoldChecks が 375×667・390×844 で測る）。
+    // ここでは、その形（写真の帯とワードマークを置かず、上を詰める）を固定する
+    it("行きたいから来た回は写真の帯とワードマークを置かず上を詰める（主ボタンを下のタブの裏に入れない）", async () => {
+        mark();
+        mockSearchParams = new URLSearchParams(`next=${encodeURIComponent(next)}&via=wish`);
+        render(<SignupPage />);
+        await screen.findByTestId("signup-wish");
+        expect(screen.getByTestId("signup-main").className).toMatch(/\bpt-5\b/);
+        expect(screen.getByTestId("signup-main").className).not.toMatch(/pt-\[250px\]/);
+        expect(screen.queryByTestId("login-photo-collage")).toBeNull();
+        expect(screen.queryByText("写真から、次の旅が始まる。")).toBeNull();
+    });
+
     it("外から付けた合言葉だけでは載せない（このタブの印が無い・合わない・古い）", async () => {
         mockSearchParams = new URLSearchParams(`next=${encodeURIComponent(next)}&via=wish`);
         const { unmount } = render(<SignupPage />);
