@@ -6,9 +6,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "../auth/context";
 import { useToast } from "../../lib/hooks/useToast";
 import { signUp, confirmSignUp, resendConfirmationCode } from "../../lib/auth/cognito";
-import { pendingNameKey, pendingVerifyKey } from "../../lib/utils/pendingName";
+import { pendingVerifyKey } from "../../lib/utils/pendingName";
+import { wishSpotForNext, type WishSpot } from "../../lib/utils/wishAfterLogin";
 import { safeNextPath } from "../../lib/routes";
-import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
+import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_ACCENT_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
 import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
 import { SIGNUP_BENEFIT_JA } from "../../lib/auth/loginVia";
 import { LoadingState } from "../components/StateViews";
@@ -69,6 +70,9 @@ function clearPending(em: string) {
     try { localStorage.removeItem(pendingVerifyKey(em)); } catch { /* ignore */ }
 }
 
+/** 「行きたい」から来た回に並べる、登録で得られるもの（事実だけ。見頃の知らせはアプリの機能） */
+const WISH_GETS = ["見頃が近づいたらお知らせ（アプリ）", "スマホでもパソコンでも同じ一覧", "地図に行きたい場所が並ぶ"] as const;
+
 function SignupForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -86,14 +90,19 @@ function SignupForm() {
     const loginHref = `/login?verified=1${nextPath ? `&next=${encodeURIComponent(nextPath)}` : ""}`;
     // 登録の画面に来た理由（「行きたい」から＝`via=wish`。登録までの数え方・#432）
     const fromUrl = signupFromVia(searchParams?.get("via"));
-    const { isAuthenticated, loading } = useAuth();
+    const { isAuthenticated, loading, login } = useAuth();
+    // 「行きたい」から来た回（2026-11-24・#432）: 押したスポットを上に載せる。名前と絵は URL ではなく
+    // このタブの印から読む（外のリンクの文字をそのまま出さない）。印はブラウザにしか無いので描いたあとで読む
+    const [wishSpot, setWishSpot] = useState<WishSpot | null>(null);
+    useEffect(() => { setWishSpot(wishSpotForNext(nextPath)); }, [nextPath]);
     const { showToast } = useToast();
 
     const [step, setStep] = useState<Step>("register");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
-    const [displayName, setDisplayName] = useState("");
+    // 2026-11-24（#432）: 「パスワード（確認）」と「表示名」の欄は外した（iOS と同じ。表示名はプロフィールの編集で入れる）。
+    // 打ち間違いは「表示」で見て確かめる
+    const [showPassword, setShowPassword] = useState(false);
     const [code, setCode] = useState("");
     const [cognitoUsername, setCognitoUsername] = useState(""); // signUp が返す UUID
     const [error, setError] = useState("");
@@ -154,11 +163,6 @@ function SignupForm() {
         e.preventDefault();
         setError("");
 
-        if (password !== confirmPassword) {
-            setError("パスワードが一致しません");
-            track("signup_error", { step: "form", reason: "password_mismatch" });
-            return;
-        }
         if (password.length < 8) {
             setError("パスワードは8文字以上で入力してください");
             track("signup_error", { step: "form", reason: "password_short" });
@@ -170,16 +174,6 @@ function SignupForm() {
             const result = await signUp(email, password);
             if (result.success && result.username) {
                 savePending(email, result.username, from);
-                if (displayName.trim()) {
-                    // メールアドレスで区切る。
-                    // 以前はグローバルな1キーだったので、登録を途中でやめた人の
-                    // 表示名がそのまま残り、**次にその端末でログインした別人**の
-                    // プロフィールに付いていた（共有のiPadなどで起きる）。
-                    // 本人にはどこから来た名前なのか分からない。
-                    try {
-                        localStorage.setItem(pendingNameKey(email), displayName.trim());
-                    } catch { /* ignore */ }
-                }
                 setCognitoUsername(result.username);
                 setStep("verify");
                 setResendCooldown(60);
@@ -233,6 +227,18 @@ function SignupForm() {
                 // もう確認済みだった回（`alreadyConfirmed`）は数えない（同じ人を二度数える）
                 if (!result.alreadyConfirmed) track("sign_up", { method: "email", from });
                 clearPending(email);
+                // **そのままログインして元の頁へ**（2026-11-24・#432）。以前は「登録完了 → ログインする →
+                // メールとパスワードをもう一度」だった。パスワードはこの画面で打ったものだけを使う
+                // （控えから確認コードの入力に戻った回は手元に無いので、今までどおり完了の画面）
+                if (password) {
+                    const signed = await login(email.trim(), password);
+                    if (signed.success) {
+                        track("login", { method: "email" });
+                        if (!wishSpot) showToast("登録しました", "success");
+                        // 行き先へは上の「ログイン済みなら戻り先へ」が運ぶ（履歴に残さない）
+                        return;
+                    }
+                }
                 setStep("done");
             } else {
                 setError(result.error ?? "確認に失敗しました");
@@ -296,8 +302,36 @@ function SignupForm() {
                 </h1>
                 <AuthBrand />
 
+                {/* 「行きたい」から来た回: 押したスポットと、登録で得られるもの（2026-11-24・#432） */}
+                {wishSpot && step !== "done" && (
+                    <div className="flex flex-col gap-[10px]" data-testid="signup-wish">
+                        <div className="flex items-center gap-3 rounded-xl bg-surface ring-1 ring-line p-2">
+                            {wishSpot.image && (
+                                // eslint-disable-next-line @next/next/no-img-element -- 押した頁と同じ絵（静的書き出しで next/image は使わない）
+                                <img src={wishSpot.image} alt="" className="h-12 w-16 flex-none rounded-lg object-cover" />
+                            )}
+                            <div className="min-w-0">
+                                <p className="m-0 font-serif font-semibold text-white wrap-anywhere" style={{ fontSize: "17px", lineHeight: "22px" }}>{wishSpot.name}</p>
+                                <p className="m-0 text-white/60" style={{ fontSize: "12px", lineHeight: "18px" }}>
+                                    {step === "verify" ? "確かめたら、行きたい場所に入ります" : (wishSpot.place ?? "")}
+                                </p>
+                            </div>
+                        </div>
+                        {step === "register" && (
+                            <>
+                                <p className="m-0 font-serif font-semibold text-white" style={{ fontSize: "20px", lineHeight: "28px" }}>登録して、行きたい場所に残す</p>
+                                <ul className="m-0 p-0 list-none flex flex-col gap-1 text-white/80" style={{ fontSize: "14px", lineHeight: "20px" }}>
+                                    {WISH_GETS.map((g) => (
+                                        <li key={g} className="flex items-center gap-2"><span aria-hidden="true" className="h-1.5 w-1.5 flex-none rounded-full bg-accent" />{g}</li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+                    </div>
+                )}
+
                 {/* 登録すると何ができるか（1行・2026-11-09）。ログインの画面の「理由」と対にする */}
-                {step === "register" && (
+                {step === "register" && !wishSpot && (
                     <p data-testid="signup-benefit" className="m-0 text-[14px] leading-[20px] text-white/80">{SIGNUP_BENEFIT_JA}</p>
                 )}
 
@@ -310,9 +344,10 @@ function SignupForm() {
                                 placeholder="you@example.com" disabled={submitting} className={SETTINGS_INPUT_CLASS} />
                         ))}
                         {field("signup-password", "パスワード", (
+                            <div className="relative">
                             <input
                                 id="signup-password"
-                                type="password"
+                                type={showPassword ? "text" : "password"}
                                 value={password}
                                 onChange={(e) => { noteStart(); setPassword(e.target.value); }}
                                 required
@@ -323,30 +358,26 @@ function SignupForm() {
                                 // 条件を一度も言われないまま弾かれる（新規登録の唯一の進み方）
                                 aria-describedby={error && step === "register" ? "signup-password-rule signup-form-error" : "signup-password-rule"}
                                 aria-invalid={error && step === "register" ? true : undefined}
-                                className={SETTINGS_INPUT_CLASS}
+                                className={`${SETTINGS_INPUT_CLASS} pr-16`}
                             />
+                            <button type="button" onClick={() => setShowPassword((v) => !v)}
+                                aria-pressed={showPassword} aria-controls="signup-password" data-testid="signup-password-toggle"
+                                className="absolute right-1 top-1/2 -translate-y-1/2 min-h-11 min-w-11 px-3 text-[13px] text-white/72 hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-lg"
+                                style={{ touchAction: "manipulation" }}>
+                                {showPassword ? "隠す" : "表示"}
+                            </button>
+                            </div>
                         ), (
                             <p id="signup-password-rule" className={`mt-1.5 ${AUTH_CAPTION_CLASS}`}>英大文字・小文字・数字・記号（!@#$など）をそれぞれ1文字以上含めてください</p>
                         ))}
-                        {field("signup-password-confirm", "パスワード（確認）", (
-                            <input id="signup-password-confirm" {...invalid("register")} type="password" value={confirmPassword}
-                                onChange={(e) => { noteStart(); setConfirmPassword(e.target.value); }} required autoComplete="new-password"
-                                disabled={submitting} className={SETTINGS_INPUT_CLASS} />
-                        ))}
-                        {field("signup-display-name", "表示名（あとで変えられます）", (
-                            <input id="signup-display-name" type="text" value={displayName}
-                                onChange={(e) => { noteStart(); setDisplayName(e.target.value); }} autoComplete="nickname"
-                                maxLength={50} disabled={submitting} className={SETTINGS_INPUT_CLASS} />
-                        ))}
-
-                        <button type="submit" disabled={submitting || !email || !password || !confirmPassword}
-                            className={AUTH_PRIMARY_CLASS} style={{ touchAction: "manipulation" }}>
+                        <button type="submit" disabled={submitting || !email || !password}
+                            className={wishSpot ? AUTH_ACCENT_PRIMARY_CLASS : AUTH_PRIMARY_CLASS} style={{ touchAction: "manipulation" }}>
                             {submitting && spinner}
-                            {submitting ? "送っています…" : "登録する"}
+                            {submitting ? "送っています…" : wishSpot ? "登録して保存" : "登録する"}
                         </button>
                         <Link href={nextPath ? `/login?next=${encodeURIComponent(nextPath)}` : "/login"} prefetch={false}
                             className={AUTH_OUTLINE_CLASS} style={{ touchAction: "manipulation" }}>
-                            ログインに戻る
+                            {wishSpot ? "アカウントがある人はログイン" : "ログインに戻る"}
                         </Link>
                     </form>
                 )}
@@ -371,9 +402,9 @@ function SignupForm() {
                             />
                         ))}
                         <button type="submit" disabled={submitting || code.trim().length < 6}
-                            className={AUTH_PRIMARY_CLASS} style={{ touchAction: "manipulation" }}>
+                            className={wishSpot ? AUTH_ACCENT_PRIMARY_CLASS : AUTH_PRIMARY_CLASS} style={{ touchAction: "manipulation" }}>
                             {submitting && spinner}
-                            {submitting ? "確認しています…" : "登録を完了する"}
+                            {submitting ? "確認しています…" : wishSpot ? "確認して保存" : "登録を完了する"}
                         </button>
                         {/* **届かないときの出口**と戻り道（iOS: 13・白72% の文字ボタン） */}
                         <div className="flex items-center justify-between">
