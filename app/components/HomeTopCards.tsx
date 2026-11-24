@@ -25,8 +25,9 @@ import { readSwipeStarted, readSwipeWants } from "../../lib/utils/spotSwipe";
  *              12 text-2 の一行 → 出典 12 text-3 → ›。地 #0E0E0F・白8% の縁・角 16
  *     今日のテーマ: iOS の `DailyThemeCard` の形（眉の右に #タグ・題・一言・「参加する →」44・写真は右に 35% で薄く）
  *
- * 並び（iOS の `HomeTopCard.cards` のうち Web にあるもの）: 撮影スポットを払う（いつも1枚目）→ 今週のお題 → 撮影スポット（Web だけ・残す）。
+ * 並び（iOS の `HomeTopCard.cards` のうち Web にあるもの）: 撮影スポットを払う（2026-11-11・いつも1枚目）→ 今週のお題 → 撮影スポット（Web だけ・残す）。
  * **2026-11-12（デザインの案 第10章「どこに何を置くか」）: 札は iOS と同じく最大3枚。**
+ * 写真とカメラの教科書の札（2026-11-04 追加）は外した（≡ メニューに同じ「写真とカメラの教科書」がある）。
  * 今日の一問の札は「さがす」の面の先頭へ移した（`QuizCard`・iOS も探すの段へ移した）。
  * 旅行プラン・旅の一冊・1年前・行きたい場所の季節の札は Web に無い機能（台帳の束 6）。
  *
@@ -35,7 +36,7 @@ import { readSwipeStarted, readSwipeWants } from "../../lib/utils/spotSwipe";
  * 今週もう参加した週は押せない「✓ 参加済み」（`hasJoinedTheme`・前は今日のテーマで「今日もう参加した日」）。
  *
  * **電話の幅は横にめくる**（左右 16・次の札を 24 見せる・1 枚ずつ止まる）。**PC（1024 以上）は 3 列（1 段）に並べる**
- * （PC の幅の決まり W4: めくらずに並べる）。2026-11-12 に一問の札を外して 3 枚になった。背はいちばん高い札にそろえる。
+ * （PC の幅の決まり W4: めくらずに並べる）。2026-11-12 に教科書と一問の札を外して 3 枚になった。背はいちばん高い札にそろえる。
  *
  * テーマと一問は**見ている端末の日付で決まる**ので、中身は載ったあとに入れる（静的 HTML に書き出した日の
  * テーマを焼かない・`ThemeEntry` の注記と同じ）。載るまでも札の形と行き先は出す（高さが変わらない）
@@ -95,7 +96,7 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                     <TopCard
                         href={ROUTES.SWIPE}
                         testId="home-swipe-entry"
-                        eyebrow="WHERE TO NEXT"
+                        eyebrow={en ? "WHERE TO NEXT" : "写真を払う"}
                         spoken={en ? "Swipe photos" : "写真を払う"}
                         // 題・一行は札の幅で1行に収まる長さ（2026-11-11 Playwright・390 幅で「写真を払って、…」と切れた）
                         title={en ? "Find where to go" : "行きたい場所を探す"}
@@ -117,7 +118,7 @@ export default function HomeTopCards({ locale, photos, seasonal = null }: {
                     <TopCard
                         href={ROUTES.SPOTS}
                         testId="home-spots-entry"
-                        eyebrow="PHOTO SPOTS"
+                        eyebrow={en ? "PHOTO SPOTS" : "観光スポット"}
                         spoken={en ? "Photo spots" : "観光スポット"}
                         title={en ? "Places worth shooting" : "撮りに行ける場所"}
                         line={en ? "Guides to photo spots" : "観光スポットの案内"}
@@ -173,7 +174,7 @@ export function QuizCard({ locale, testId = "search-quiz-entry" }: { locale: "ja
         <TopCard
             href={ROUTES.QUIZ}
             testId={testId}
-            eyebrow="DAILY QUIZ"
+            eyebrow={en ? "DAILY QUIZ" : "今日の一問"}
             spoken={en ? "Daily quiz" : "今日の一問"}
             title={en ? "Where is this?" : "この写真はどこ？"}
             line={quiz?.answered
@@ -187,7 +188,11 @@ export function QuizCard({ locale, testId = "search-quiz-entry" }: { locale: "ja
 
 const CARD_FACE = "flex w-full h-[116px] rounded-2xl bg-surface ring-1 ring-inset ring-line overflow-hidden text-white hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent";
 
-/** 眉（真鍮・消える線）。英字の飾りは読み上げに出さず、日本語の名前を読ませる（iOS の `JPEyebrowLine(spoken:)`） */
+/**
+ * 眉（真鍮・消える線）。英字の飾りは読み上げに出さず、日本語の名前を読ませる（iOS の `JPEyebrowLine(spoken:)`）。
+ * **日本語の画面では日本語で出す**（2026-11-09 owner 承認・9人のレビュー: 最初の画面の英語の眉 11px が多かった。
+ * 英語の画面だけ英字のまま）。字は同じ眉の形（SF 600・11・字間 0.14em）
+ */
 function Eyebrow({ text, spoken, trailing }: { text: string; spoken: string; trailing?: string }) {
     return (
         <span className="flex items-center gap-2 min-w-0">
@@ -250,7 +255,7 @@ function ThemeCard({ theme, photo, en, joined, participants }: {
                 </span>
             )}
             <span className="relative flex flex-col gap-1 min-w-0">
-                <Eyebrow text="THIS WEEK" spoken={en ? "This week's theme" : "今週のお題"} trailing={theme ? `#${theme.tag}` : undefined} />
+                <Eyebrow text={en ? "THIS WEEK" : "今週のお題"} spoken={en ? "This week's theme" : "今週のお題"} trailing={theme ? `#${theme.tag}` : undefined} />
                 <span className="flex items-center gap-2 min-w-0">
                     <span className="flex-1 min-w-0 font-serif font-bold truncate" style={{ fontSize: "18px", lineHeight: "24px" }}>
                         {theme ? (en ? theme.title.en : theme.title.ja) : "\u00a0"}

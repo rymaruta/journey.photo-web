@@ -17,8 +17,7 @@ const OWNER = "67d49a68-80f1-7083-b0e0-c767886ef868";
 beforeEach(() => { for (const k of Object.keys(profiles.current)) delete profiles.current[k]; });
 
 const page = await import("../users/[id]/page");
-// develop の sitemap は1本（`app/sitemap.ts`）
-const sitemap = (await import("../sitemap")).default;
+const { sitemapGroups } = await import("../../lib/server/sitemap");
 
 describe("検索エンジンにプロフィールを表示しない", () => {
     it("選んだ人の頁は noindex（リンクは辿らせる）", async () => {
@@ -45,10 +44,10 @@ describe("検索エンジンにプロフィールを表示しない", () => {
 
     it("選んだ人は sitemap に載せない", async () => {
         const url = `/users/${OWNER}`;
-        const shown = (await sitemap()).map((e) => e.url);
+        const shown = (await sitemapGroups()).pages.map((e) => e.url);
         expect(shown.some((u) => u.endsWith(url)), "前提: 選んでいなければ載る").toBe(true);
         profiles.current[OWNER] = { searchHidden: true };
-        const hidden = (await sitemap()).map((e) => e.url);
+        const hidden = (await sitemapGroups()).pages.map((e) => e.url);
         expect(hidden.some((u) => u.endsWith(url))).toBe(false);
     });
 });

@@ -4,6 +4,7 @@
 // ※ Google は 2022 年以降 image:loc 以外の拡張を無視するが、Bing 等は解釈する。
 //    Google 向けの主目的は「全画像 URL の網羅提示」で、既存 sitemap.xml と併用する。
 
+import { metaPlace, descriptionPlaceTail } from "@/lib/utils/metaPlace";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { siteConfig, publicImageUrl } from "@/lib/utils/seo";
 import { getLocalizedParagraphs } from "@/lib/data/photos";
@@ -11,46 +12,13 @@ import { photoOwnTitle } from "@/lib/utils/photoTitle";
 import type { Photo } from "@/lib/data/photos";
 import { truncate } from "@/lib/utils/text";
 import { metaText } from "@/lib/utils/metaText";
+import { esc } from "@/lib/utils/xmlEscape";
 import { SPOTS, type Spot } from "@/lib/data/spots";
 import { publishableSpots } from "@/lib/utils/spotGuide";
 import { spotCoverImage } from "@/lib/data/spotImages";
 import { spotSamples, spotCoverSeoSource, spotSeoImage } from "@/lib/data/spotSamples";
 
 export const dynamic = "force-static";
-
-/**
- * XML に入れてよい形にする。
- *
- * **記号を実体参照にするだけでは足りない。** XML 1.0 は C0 制御文字
- * （タブ・改行・復帰を除く U+0000-001F）を**文字参照でも書けない**ので、
- * 1文字混ざると `sitemap-images.xml` が**丸ごと** parse error になる
- * （その1件だけでなく30枚ぶんの `<image:loc>` が全部読めなくなる）。
- * HTML と JSON-LD は `JSON.stringify` が `\u000b` に逃がすので無事——
- * つまり**画面のどこにも症状が出ない**。
- *
- * 入口（`api-user/src/sanitize.ts`）にも除去は無く、API を直接叩けば確実に
- * 入る。Word や表計算からの貼り付けはセル内改行が U+000B になるので、
- * 説明文の貼り付けでも入りうる。
- */
-function esc(s: string): string {
-    return s
-        // XML 1.0 が許さない文字は落とす。1文字混ざるだけで**この XML が
-        // 丸ごと** parse error になる（その1件ではなく全件が読めなくなる）。
-        // 規定は `#x9 | #xA | #xD | [#x20-#xD7FF] | [#xE000-#xFFFD] | …` で、
-        // **C0 制御文字だけでは足りない**——`U+FFFE` / `U+FFFF` も入って
-        // いない（実測: expat が両方で parse error）。逆に C1（U+0085 など）と
-        // 非文字（U+FDD0）は XML 1.0 では合法なので落とさない。
-        // タブ・改行・復帰は残す。**ここは XML として壊さないための除去**で、
-    // 合法な空白まで落とす仕事ではない。caption を1行に均すのは
-    // `metaText` の側（`captionOf`）——2つを混ぜると、除去を広げた
-    // 変異が「見せ方が同じだから」で素通りする。
-        .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\uFFFE\uFFFF]/g, "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&apos;");
-}
 
 // 出すURLはサイトのドメインに揃える（`publicImageUrl`。同じ配信の別名で
 // 2つに割れていた——実測 30件中 11件が CloudFront の既定ドメイン）
@@ -97,7 +65,11 @@ export function captionOf(p: Photo): string {
     // 1行に均す（`metaText` の説明を参照）。XML としては改行も通るが、
     // 読み手に出るのは1行の説明文なので、出口で揃える
     const text = metaText(getLocalizedParagraphs(p.description, "ja").join(" "));
-    const loc = p.location ? `（${p.location}）` : "";
+    // **撮影地は「名前、県市」まで・説明に入っている語は足さない**（2026-11-11 札 journey.photo-ios#527）。
+    // 写真の頁の description（`descriptionPlaceTail`・2026-11-09 の判断）と同じ切り方。本番の画像サイトマップは
+    // 地図の住所の全文（「月崎, 大多喜里見線, 月崎, 市原市, 千葉県, 290-0547, 日本」）を括弧で足していた
+    const tail = descriptionPlaceTail(text, metaPlace(p.location));
+    const loc = tail ? `（${tail}）` : "";
     // **撮影地は説明のあとに足すので、そのままだと真っ先に切れる。**
     // 撮影地はこの写真の固有名詞＝説明の末尾より情報が濃いので、
     // 先に席を取ってから説明を詰める。
@@ -123,7 +95,7 @@ export type SpotImageEntry = { loc: string; images: { src: string; title: string
  * **撮影地ページ（`/spots/<slug>`）の画像**（2026-10-11・owner「検索で見つけてもらう」）。
  * 以前は投稿写真だけで、撮影地ページの代表写真・作例は1枚も載っていなかった。
  *
- * - 載せるページはサイトマップ（`app/sitemap.ts`）と同じ `publishableSpots`（下書きは載せない）
+ * - 載せるページはサイトマップ（`lib/server/sitemap.ts`）と同じ `publishableSpots`（下書きは載せない）
  * - 載せる画像は**画面に出しているものだけ**: 代表写真（`spotCoverImage`・サイト内に置いた縮小版）と
  *   作例（`spotSamples`・代表写真と同じ1枚は除く）。数え方は `SpotGuidePage` と同じ
  * - ライセンスは書かない。`<image:license>` は Google が文書から外した（`image:title`・`image:caption`・

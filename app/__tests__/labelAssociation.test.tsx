@@ -68,6 +68,9 @@ process.env.NEXT_PUBLIC_CLOUDFRONT_URL = "https://cdn.example";
 
 const ProfilePage = (await import("../user/profile/page")).default;
 const SettingsPage = (await import("../user/settings/page")).default;
+// 2026-11-04: メール2段・パスワード2つの欄は設定の下の画面へ移した
+const SettingsEmailPage = (await import("../user/settings/email/page")).default;
+const SettingsPasswordPage = (await import("../user/settings/password/page")).default;
 const UserEditPage = (await import("../user/edit/page")).default;
 const AdminEditPage = (await import("../admin/edit/page")).default;
 const DeleteAccountModal = (await import("../components/DeleteAccountModal")).default;
@@ -141,10 +144,26 @@ describe("見えているラベルは入力欄に結ばれている", () => {
         expect(container.querySelector('img[src*="/cover"]'), "カバーの欄が戻っている").toBeNull();
     });
 
-    // 移設で外に出ていた4つの入力欄（メール2段・パスワード2つ）
     it("/user/settings", async () => {
         const { container } = render(<SettingsPage />);
         await screen.findByRole("heading", { name: "設定" });
+        expect(orphanLabels(container)).toEqual([]);
+        expect(unnamedFields(container)).toEqual([]);
+        expect(danglingRefs(container)).toEqual([]);
+    });
+
+    // 移設で外に出ていた4つの入力欄（メール2段・パスワード2つ）。2026-11-04 に設定の下の画面へ
+    it("/user/settings/email", async () => {
+        const { container } = render(<SettingsEmailPage />);
+        await screen.findByLabelText("新しいメールアドレス");
+        expect(orphanLabels(container)).toEqual([]);
+        expect(unnamedFields(container)).toEqual([]);
+        expect(danglingRefs(container)).toEqual([]);
+    });
+
+    it("/user/settings/password", async () => {
+        const { container } = render(<SettingsPasswordPage />);
+        await screen.findByLabelText("新しいパスワード");
         expect(orphanLabels(container)).toEqual([]);
         expect(unnamedFields(container)).toEqual([]);
         expect(danglingRefs(container)).toEqual([]);

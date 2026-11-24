@@ -4,6 +4,7 @@ import { EmptyState } from "./StateViews";
 import type { Photo, Locale } from "@/lib/data/photos";
 import { getLabels } from "../i18n/labels";
 import { useFavorites } from "../../lib/hooks/useFavorites";
+import { useLocalFavoritesShown } from "../../lib/hooks/useLocalFavoritesShown";
 import { HeartIcon } from "@heroicons/react/24/solid";
 import { HeartIcon as HeartOutlineIcon, Square2StackIcon } from "@heroicons/react/24/outline";
 import { ROUTES } from "../../lib/routes";
@@ -277,7 +278,9 @@ const GalleryItem = React.memo(function GalleryItem({
     locale?: Locale;
 }) {
     const { isFavorite } = useFavorites();
-    const isFav = isFavorite(photo.id);
+    // 2026-11-09: 未ログイン・判定中は端末の古いお気に入りで塗らない（`useLocalFavoritesShown`）
+    const showLocalFavorites = useLocalFavoritesShown();
+    const isFav = showLocalFavorites && isFavorite(photo.id);
     /**
      * 2枚目以降の枚数（1投稿に複数枚）。**壊れた要素は数えない**
      * ——本番のデータは何でもありうるので、`src` を持つものだけ数える

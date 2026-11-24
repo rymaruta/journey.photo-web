@@ -552,7 +552,7 @@ jobs:
       - name: Serverless deploy（user API から移した機能・別スタック）
         working-directory: api-user
         env:
-          STACKS: serverless.albums.yml serverless.trips.yml serverless.notifications.yml serverless.trunk.yml serverless.stories.yml serverless.dm.yml serverless.trip-ai.yml
+          STACKS: serverless.albums.yml serverless.trips.yml serverless.notifications.yml serverless.trunk.yml serverless.stories.yml serverless.dm.yml serverless.trip-ai.yml serverless.groups.yml
           APPSTORE_ENVIRONMENTS: ${{ needs.config.outputs.appStoreEnvironments }}
           APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
           APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}
@@ -567,7 +567,8 @@ jobs:
           # プッシュの鍵は user API と同じ渡し方（無ければ旗ごと渡さない＝知らせは送らないだけ）。
           # 鍵を読むのは、そのスタックで関数ごとに `${param:apns…}` を書いた関数だけ
           if [ -n "${APNS_PRIVATE_KEY:-}" ]; then
-            # 改行のまま渡すと1行目しか届かない（札 journey.photo-ios#585・上の注記）
+            # 🔴 改行のまま渡すと serverless の `--param` が1行目（27文字）で切る（札 journey.photo-ios#585）。
+            # 改行を `\n` にして渡し、`apns.ts` が戻す。壊れた鍵ならここで止まる
             apns_key="$(bash ../scripts/apns-key-param.sh)"
             extra+=(--param "apnsPrivateKey=$apns_key")
             extra+=(--param "apnsKeyId=$APNS_KEY_ID")

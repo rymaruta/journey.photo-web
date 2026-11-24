@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useSyncExternalStore } from "react";
-import { APP_STORE_PAGE_URL as APP_STORE_URL } from "../../lib/utils/seo";
+import { APP_STORE_URL } from "./AppInstallCard";
+import { track } from "../../lib/utils/analytics";
 import { TILE_OFF } from "./SaveSpotButton";
 
 /**
@@ -78,6 +79,7 @@ export default function OpenInAppButton({ slug, isJa }: { slug: string; isJa: bo
         <a
             href={href}
             data-testid="open-in-app"
+            onClick={() => track("app_store_click", { placement: "spot_open_app" })}
             className={`mt-2.5 flex w-full max-w-xl items-center justify-center gap-2 rounded-xl px-3 font-semibold ${TILE_OFF} focus:outline-hidden focus-visible:ring-2 focus-visible:ring-accent active:scale-95 transition`}
             style={{ minHeight: 48, touchAction: "manipulation" }}
         >

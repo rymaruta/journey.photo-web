@@ -26,7 +26,7 @@ const profile = (body: Record<string, unknown>, put: { ok: boolean; status?: num
 beforeEach(() => { mockUserFetch.mockReset(); });
 
 describe("設定: 光と天気の知らせ（Pro だけ）", () => {
-    it("Pro でない人には節ごと出さない", async () => {
+    it("Pro でない人には行を出さない", async () => {
         profile({ userId: "u1", pro: false, lightAlert: true });
         const { container } = render(<LightAlertSettings locale="ja" />);
         await waitFor(() => expect(mockUserFetch).toHaveBeenCalledWith("/user/profile"));
@@ -71,17 +71,16 @@ describe("設定: 光と天気の知らせ（Pro だけ）", () => {
         expect(sw.getAttribute("aria-checked")).toBe("true");
     });
 
-    it("2行の書き出しがそろう: 入切の行は、上の行の絵と同じ幅を頭に空ける（2026-10-11）", async () => {
+    // 2026-11-04: 板 v2 は設定の行の絵を外した（iOS `JPRowLabel` に絵を渡していない）。絵が無いので字下げも要らない
+    it("行に絵を出さず、2行とも札の左右 14 から書き出す", async () => {
         profile({ userId: "u1", pro: true, lightAlert: true });
         render(<LightAlertSettings locale="ja" />);
         const link = await screen.findByRole("link", { name: /光と天気の知らせ/ });
-        const icon = link.querySelector("svg")!;
-        const sw = screen.getByRole("switch", { name: "前の晩に知らせる" });
-        const row = sw.parentElement!;
-        const indent = row.firstElementChild as HTMLElement;
-        expect(indent.getAttribute("data-testid")).toBe("light-alert-indent");
-        expect(indent.style.width).toBe(`${icon.getAttribute("width")}px`);
-        // 文の列はどちらも絵（空き）のすぐ後ろ
-        expect(link.firstElementChild).toBe(icon);
+        expect(link.querySelector("svg:not([aria-hidden])")).toBeNull();
+        expect(link.firstElementChild?.tagName).toBe("SPAN");
+        expect(screen.queryByTestId("light-alert-indent")).toBeNull();
+        const row = screen.getByRole("switch", { name: "前の晩に知らせる" }).parentElement!;
+        expect(link.className).toMatch(/px-\[14px\]/);
+        expect(row.className).toMatch(/px-\[14px\]/);
     });
 });

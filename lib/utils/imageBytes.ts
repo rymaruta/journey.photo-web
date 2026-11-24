@@ -20,7 +20,7 @@
  * 取れなければ元の URL でもう一度試す——CORS が入った環境や、
  * サイト側に `/uploads/*` が無い置き方でも動くように。
  */
-export async function fetchImageBytes(src: string): Promise<Blob> {
+async function fetchImageBytesRaw(src: string): Promise<Blob> {
     let sameOrigin = "";
     try {
         const u = new URL(src, location.href);
@@ -35,3 +35,18 @@ export async function fetchImageBytes(src: string): Promise<Blob> {
     return await res.blob();
 }
 
+
+/** iOS の in-flight 統合と同様、同じURLを並列で読み直さない。完了後は保持しない。 */
+const inFlightImages = new Map<string, Promise<Blob>>();
+
+export function fetchImageBytes(src: string): Promise<Blob> {
+    const existing = inFlightImages.get(src);
+    if (existing) return existing;
+    const pending = fetchImageBytesRaw(src);
+    inFlightImages.set(src, pending);
+    const remove = () => {
+        if (inFlightImages.get(src) === pending) inFlightImages.delete(src);
+    };
+    void pending.then(remove, remove);
+    return pending;
+}

@@ -3,29 +3,35 @@
 import React, { useEffect, useRef, useState } from "react";
 import { lockBodyScroll, unlockBodyScroll } from "@/lib/utils/scrollLock";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { XMarkIcon, Bars3Icon } from "@heroicons/react/24/outline";
 import { useAuth } from "../auth/context";
 import { useLocale } from "../i18n/context";
 import { log } from "../../lib/utils/log";
+import { track, type NavDest } from "../../lib/utils/analytics";
 import { ROUTES } from "../../lib/routes";
 import dynamic from "next/dynamic";
 import { HEADER_ICON_BTN, HEADER_ICON_BTN_STYLE, HEADER_ICON_STYLE } from "./headerIcon";
-import { useFavorites } from "../../lib/hooks/useFavorites";
 import { useFocusTrap } from "../../lib/hooks/useFocusTrap";
+import HeaderAppLink, { useAppIPhone } from "./HeaderAppLink";
 
 /**
  * **お知らせのベルは、ログインしている人のときだけ読み込む**（2026-11-11 判断・札 journey.photo-ios#527）。
  * 描くのは `isAuthenticated` のときだけ（下）なのに、部品（約1,100行・一覧・タブ・フォロー返し）は全員の最初の JS に
  * 入っていた。検索から来る人の大半はログインしていない。`ssr: false`——最初の HTML ではログインが分からず、もともと描かない
  */
-const NotificationsBell = dynamic(() => import("./NotificationsBell"), { ssr: false });
+//
+// **読み込みの間も 44px の席を取る**（`loading`）。席が無いと、ベルが届いた瞬間に隣の ☰ が左へ 44px 動く
+const NotificationsBell = dynamic(() => import("./NotificationsBell"), {
+    ssr: false,
+    loading: () => <span aria-hidden="true" data-testid="bell-placeholder" className="inline-block shrink-0" style={{ width: HEADER_ICON_BTN_STYLE.minWidth, height: HEADER_ICON_BTN_STYLE.minHeight }} />,
+});
 
 export default function HeaderNav({ className = "" }: { className?: string }) {
     const router = useRouter();
     const { isAuthenticated, isAdminUser, isGeneralUser, logout, loading } = useAuth();
     const { locale, labels } = useLocale();
-    const { favorites } = useFavorites();
 
     useEffect(() => {
         log.info("HeaderNav: 認証状態", { isAuthenticated, isAdminUser, loading });
@@ -81,7 +87,14 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
         return () => window.removeEventListener("popstate", close);
     }, [open]);
 
+    // ☰ の中の公開の入口だけ数える（`nav_click`・2026-11-09）。ログイン中の項目（保存・設定・管理）は数えない
+    const MENU_DEST: Record<string, NavDest> = {
+        [ROUTES.MAP]: "map", [ROUTES.SPOTS]: "spots", [ROUTES.USER_SEARCH]: "people",
+        [ROUTES.LEARN]: "learn", [ROUTES.LOGIN]: "login", [ROUTES.SIGNUP]: "signup",
+    };
     const handleNavigation = (href: string) => {
+        const dest = MENU_DEST[href];
+        if (dest) track("nav_click", { area: "menu", dest });
         setOpen(false);
         router.push(href);
     };
@@ -135,15 +148,60 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
         cursor: "pointer",
     };
 
+    // **アプリを入れられる iPhone では「アプリ」が1つ増える**（2026-11-20 札 journey.photo-ios#666）。ロゴ「Journey Photo」を切らないよう、
+    // 並びの隙間を 8 → 4 に詰め、「ログイン」の字リンクは下のタブに任せる（どれも当たりは 44 のまま）。
+    // 実測（390px の容れ物・2026-11-20）: 右の並び「アプリ・登録・☰」は 153px。375〜440px で切れない（「Journey Photo」は
+    // 容れ物の serif で 130・Charter でも切れない。幅の広い DejaVu Serif の太字 22px（168）だけ 375px で 14px 切れる。実機の New York はその間で、実機では見ていない）
+    const appIPhone = useAppIPhone();
+
     return (
         <nav aria-label={locale === "en" ? "Site header" : "ヘッダー"}
-             className={`site-header__nav flex items-center gap-2 flex-shrink-0 ${className}`}>
+             className={`site-header__nav flex items-center ${appIPhone ? "gap-1" : "gap-2"} flex-shrink-0 ${className}`}>
             {/* **右はお知らせ（ログイン中）とメニューの2つだけ・地を持たない**（2026-10-30 判断・束 0b C2・
                 iOS のホームのバーと同じ）。以前は左に「ユーザーを探す」の虫眼鏡を置き、お知らせとメニューを
                 地の付いたガラスの丸い札（`.header-glass`）に入れていた。探すは下の札（`BottomNav`）に任せる。
                 「ユーザーを探す」の行き先は消さず、メニューの1行に移した（下） */}
+            {/* **iPhone だけ「アプリ」**（2026-11-20 owner 判断・札 journey.photo-ios#666）。Safari にも出す。
+                上の帯を × で閉じた後も、ここから App Store へ行ける。並びの左端（お知らせ・メニューの前） */}
+            <HeaderAppLink />
             {/* 通知ベル: 「あなたの写真が誰かを旅立たせました」が届く */}
             {isAuthenticated && <NotificationsBell />}
+            {/* **未ログインの人にだけ「ログイン」の文字リンクと「登録」**（ログインは 2026-11-09 owner「任せる」・入口の案A の最小。
+                登録は同日 owner 承認「はい」・9人のレビュー: 登録の入口が ☰ の6項目目だけだった）。
+                どちらも `next/link` の文字リンク。**最初の HTML にも初回の描画にも出ない**——`AuthProvider` の初期値が `loading: true` で、
+                判定中は出さない（ログイン済みの人に一瞬出ないように・☰ の中の行と同じ判断）ので、認証が確定したあとにクライアントで出る。
+                出る瞬間にロゴの幅が動かないよう、ロゴの切れ方は「登録」だけが並んだ幅でも切れないことを実測している（下のログインの注記）。ログイン・登録の画面そのものでは出さない。
+                ログインは地の無い文字（高さ 44px・字 14px・輪は他のヘッダーの押し面と同じ白60%）。
+                登録は**白の塗りに墨の字**（板 05・写真を持つ画面の主ボタン＝白。ホームの「参加する」と同じ。見た目 36・当たり 44・字 13）。
+                2つ目の真鍮の塗りは置かない */}
+            {!loading && !isAuthenticated && !(pathname ?? "").startsWith(ROUTES.LOGIN) && !(pathname ?? "").startsWith(ROUTES.SIGNUP) && (
+                <>
+                <Link
+                    href={ROUTES.LOGIN}
+                    prefetch={false}
+                    data-testid="header-login"
+                    onClick={() => track("nav_click", { area: "header", dest: "login" })}
+                    // **414px 未満では出さない**（2026-11-09）: 右側が「ログイン・登録・☰」で約194px になり、ロゴ「Journey Photo」が
+                    // 320〜375px で切れた（実測）。ログインは下のタブにある。登録は常に残す。414px 以上は両方（実測: 400px は余白16px で薄いので 414 にした）
+                    // アプリを入れられる iPhone では出さない（右に「アプリ」が入るので・2026-11-20 札 #666。ログインは下のタブにある）
+                    className={`${appIPhone ? "hidden" : "hidden min-[414px]:inline-flex"} items-center justify-center rounded-full px-3 text-white/85 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60`}
+                    style={{ minHeight: "44px", minWidth: "44px", fontSize: "14px", lineHeight: "20px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                >
+                    {locale === "en" ? "Log in" : "ログイン"}
+                </Link>
+                <Link
+                    href={ROUTES.SIGNUP}
+                    prefetch={false}
+                    data-testid="header-signup"
+                    onClick={() => track("nav_click", { area: "header", dest: "signup" })}
+                    // 見た目 36・当たりは上下 4 ずつ広げて 44（ホームの「参加する」と同じ形）
+                    className="relative inline-flex items-center justify-center rounded-full bg-primary text-ink font-semibold whitespace-nowrap px-[14px] hover:brightness-110 transition before:absolute before:inset-x-0 before:-inset-y-[4px] before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+                    style={{ minHeight: "36px", minWidth: "44px", fontSize: "13px", lineHeight: "18px", touchAction: "manipulation", WebkitTapHighlightColor: "transparent" }}
+                >
+                    {locale === "en" ? "Sign up" : "登録"}
+                </Link>
+                </>
+            )}
             {/* **自分のアバターは出さない**（iOS のヘッダーは 探す・お知らせ・メニュー の3つ）。
                 マイページへは下部タブ（全ページ・全幅に常駐）とメニューから1タップで行ける */}
             <button
@@ -182,7 +240,7 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                     aria-modal="true"
                     aria-label={locale === "en" ? "Menu" : "メニュー"}
                     ref={panelRef}
-                    className="fixed left-0 right-0 bottom-0 top-[var(--header-h)] z-50"
+                    className="fixed left-0 right-0 bottom-0 top-[calc(var(--header-h)_+_var(--app-banner-h,0px))] z-50"
                 >
                     {/* Backdrop */}
                     <div
@@ -212,15 +270,27 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                             <ul className="flex flex-col m-0 p-0 divide-y divide-white/5" style={{ listStyle: "none" }}>
                                 {/* 撮影地マップは 2026-11-12 に外した（デザインの案 第10章「どこに何を置くか」・iOS の ≡ と同じ）。
                                     下の札（`BottomNav`・全ページ・全幅）の「マップ」と同じ所へ行く入口が2つあった。フッターの地図は残す */}
+                                {/* 撮影スポット（2026-11-05 owner「WEB版をもっと認知してもらいたい」）: 3,000 件超の入口がメニューに無かった。公開の頁なので誰にでも出す */}
+                                <li style={{ margin: 0, padding: 0 }}>
+                                    <button onClick={() => handleNavigation(ROUTES.SPOTS)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
+                                        {locale === "en" ? "Photo spots" : "観光スポット"}
+                                    </button>
+                                </li>
                                 {/* ユーザーを探す（2026-10-30 束 0b C2）: ヘッダーの虫眼鏡から移した。行き先は消さない */}
                                 <li style={{ margin: 0, padding: 0 }}>
                                     <button onClick={() => handleNavigation(ROUTES.USER_SEARCH)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
                                         {locale === "en" ? "Find people" : "ユーザーを探す"}
                                     </button>
                                 </li>
-                                {/* いいねした写真: 未ログインの初回訪問者には出さない（空ページになるため）。
-                                    ログイン中、または実際にお気に入りがある人にだけ表示する。 */}
-                                {(isAuthenticated || favorites.length > 0) && (
+                                {/* 写真とカメラの教科書（2026-11-04 owner「カメラ講座の入口が無い」）: 公開の記事なので誰にでも出す */}
+                                <li style={{ margin: 0, padding: 0 }}>
+                                    <button onClick={() => handleNavigation(ROUTES.LEARN)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
+                                        {locale === "en" ? "Photography guides" : "写真とカメラの教科書"}
+                                    </button>
+                                </li>
+                                {/* いいねした写真: **ログイン中だけ**（2026-11-09 から。未ログインのいいねは端末に溜めない・
+                                    以前に端末へ残ったお気に入りも出さない＝空の頁にしかならない） */}
+                                {isAuthenticated && (
                                     <li style={{ margin: 0, padding: 0 }}>
                                         <button onClick={() => handleNavigation(ROUTES.FAVORITES)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
                                             {navLabels.favorites || "Favorites"}
@@ -234,6 +304,15 @@ export default function HeaderNav({ className = "" }: { className?: string }) {
                                     <li style={{ margin: 0, padding: 0 }}>
                                         <button onClick={() => handleNavigation(ROUTES.SAVES)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
                                             {navLabels.saves || "Saved"}
+                                        </button>
+                                    </li>
+                                )}
+                                {/* 行きたい場所: **ログイン中だけ**（2026-11-10 札 #515）。フッターから外した代わりの入口。
+                                    いいね・保存の下（どれも「自分が取っておいたもの」）。押下は数えない（上の `MENU_DEST` の決まり） */}
+                                {isAuthenticated && (
+                                    <li style={{ margin: 0, padding: 0 }}>
+                                        <button onClick={() => handleNavigation(ROUTES.SAVED_SPOTS)} className={`${linkBase} ${inactiveClasses} w-full text-left`} style={btnStyle}>
+                                            {locale === "en" ? "Want to go" : "行きたい場所"}
                                         </button>
                                     </li>
                                 )}

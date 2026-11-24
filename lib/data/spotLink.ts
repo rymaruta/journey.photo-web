@@ -36,6 +36,7 @@ import {
     prefectureByName, type RegionName,
 } from "./prefectures";
 import { topicCardCover, type TopicCard } from "./spotTopics";
+import { hasSpotRowThumb } from "./spotThumbs";
 
 /**
  * 画面がスポットへリンクするのに要る項目**だけ**。
@@ -172,6 +173,12 @@ export type SpotPin = {
     cover: SpotLink["cover"];
     /** 下書きか公開済みか（`SpotLink.stage` と同じ） */
     stage: SpotLink["stage"];
+    /**
+     * 一覧の行の丸い印に出す写真の小さい版が在る（`hasSpotRowThumb`・場所は `spotRowThumbPath(slug)`・2026-11-04）。
+     * 無ければ鍵ごと無い。**`cover` は台帳の自前の代表写真（`coverImage`）だけを見る**ので、Commons の代表写真を持つ
+     * スポットでも `cover` は `null` のまま——一覧の行はこちらを見る。パスは載せない（`/map` に数千行ぶん乗る）
+     */
+    thumb?: true;
 };
 
 /** 地図に立てられるスポット（ページを建てられる条件を満たし、座標を持つもの） */
@@ -180,7 +187,10 @@ export function spotPins(): SpotPin[] {
     for (const spot of visibleSpots(SPOTS)) {
         if (!spot.coords) continue;
         const { slug, name, region, cover, stage } = toSpotLink(spot);
-        out.push({ slug, name, region, cover, stage, lat: spot.coords.lat, lng: spot.coords.lng });
+        out.push({
+            slug, name, region, cover, stage, lat: spot.coords.lat, lng: spot.coords.lng,
+            ...(hasSpotRowThumb(spot) ? { thumb: true as const } : {}),
+        });
     }
     return out;
 }
@@ -360,6 +370,38 @@ export function spotAreas(): SpotArea[] {
  */
 export function visibleSpotsInArea(slug: string): Spot[] {
     return visibleSpots(SPOTS).filter((s) => areaSlugOf(s) === slug);
+}
+
+/** ホームの地図のシートに出す1件（スラッグ・名前・市区町村だけ。台帳はクライアントへ渡さない） */
+export type AreaTopSpot = readonly [slug: string, name: string, city: string];
+
+/**
+ * **県ごとの上位の数件**（ホームの日本地図の「県を押すと出る一覧」・2026-11-09）。
+ *
+ * 並びは「公開済み（人の確認か AI 照合）→ 代表写真があるもの → 台帳の並び」。県の頁が見せる行
+ * （`visibleSpotsInArea`）の先頭 `limit` 件で、**台帳を1回だけ数える**（県ごとに `visibleSpots` を回さない・上の注記）。
+ * 渡すのは名前と市区町村だけ（1件約 40 バイト）。国内の県だけ（海外の一括の区画は地図に無い）
+ */
+export function topSpotsByArea(limit: number): Record<string, AreaTopSpot[]> {
+    const by = new Map<string, { s: Spot; rank: number }[]>();
+    for (const s of visibleSpots(SPOTS)) {
+        const slug = areaSlugOf(s);
+        if (!slug || slug === OVERSEAS_SLUG) continue;
+        const rank = (isPublished(s) ? 0 : 2) + (topicCardCover(s) ? 0 : 1);
+        const a = by.get(slug) ?? [];
+        a.push({ s, rank });
+        by.set(slug, a);
+    }
+    const out: Record<string, AreaTopSpot[]> = {};
+    for (const [slug, rows] of by) {
+        // 並べ替えは安定（同じ段は台帳の並びのまま）
+        out[slug] = rows
+            .map((r, i) => ({ ...r, i }))
+            .sort((a, b) => a.rank - b.rank || a.i - b.i)
+            .slice(0, limit)
+            .map(({ s }): AreaTopSpot => [s.slug, s.name, s.region?.city ?? ""]);
+    }
+    return out;
 }
 
 /** その区画のスポット。索引と同じ軽い形（`/spots/area/<slug>` が読む） */

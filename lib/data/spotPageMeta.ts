@@ -114,20 +114,52 @@ export function isClosureSeasonText(text: string): boolean {
 }
 
 /**
- * 撮影地ページの description。頭に名前、続けて**紹介文（`summary`）の最初の1文**、押す理由
- * （作例の数・季節ごとの景色・日の入りの方角・天の川）、紹介文の残り（2026-11-11・#527 で順を変えた。
+ * description の長さ（文字数）。**2026-11-09 判断**: 約120字に収める。
+ * 実測（ビルド前の台帳 3,555 頁）で 160 字超が 37%（最大 228）あり、検索結果で後ろが切れていた
+ * （検索結果に出るのは PC で約 120〜160 字・スマホで約 100〜120 字）。
+ * `SPOT_DESCRIPTION_TARGET` を超えない範囲で文を足し、**文の途中では切らない**。
+ * 最初の紹介文だけで超える頁は `SPOT_DESCRIPTION_MAX` まで許し、それでも超えれば読点で区切る
+ */
+export const SPOT_DESCRIPTION_TARGET = 120;
+export const SPOT_DESCRIPTION_MAX = 140;
+
+const closeSentence = (t: string): string => (/[。.!?！？]$/.test(t) ? t : `${t}。`);
+
+/** 「。」で文に分ける（区切りは文に残す）。空の文は捨てる */
+function sentencesOf(text: string): string[] {
+    return (text.match(/[^。！？!?]+[。！？!?]?/gu) ?? []).map((x) => x.trim()).filter(Boolean);
+}
+
+const len = (t: string): number => [...t].length;
+
+/** 1文が `room` 字に収まらないとき、読点（、）で区切って「…」で終える。区切れる所が無ければ空 */
+function clipAtComma(sentence: string, room: number): string {
+    const head = [...sentence].slice(0, Math.max(0, room - 1)).join("");
+    const i = Math.max(head.lastIndexOf("、"), head.lastIndexOf("，"));
+    return i > 8 ? `${head.slice(0, i)}…` : "";
+}
+
+/**
+ * 撮影地ページの description。頭に「〇〇の写真と撮影の案内。」（写真が無ければ「〇〇の観光スポット情報。」）、続けて**紹介文（`summary`）の最初の1文**、
+ * 押す理由（作例の数・季節ごとの景色・光の表）、計算の要約、紹介文の残り（2026-11-11・#527 で順を変えた。
  * それまでは 2026-10-22 判断で押す理由を紹介文より前に置いていた）。
  * 季節は価値判断を含まない「季節ごとの景色」と言い、閉鎖・運休を書いた季節は並べない。
  * 写真が1枚も無いスポットは「写真」と名乗らない。
  * 下書きは頭に「【下書き・運営未確認】」（共有のプレビューで確認済みに見せない）
+ *
+ * **長さ（2026-11-09）**: 約120字（`SPOT_DESCRIPTION_TARGET`）。入れる優先は
+ * 頭の1文 → 作例・案内の列挙 → 紹介文の最初の1文（必ず）→ 計算の要約（日の入りの方角・天の川）→ 紹介文の2文目以降。
+ * 収まらない文は入れない（**文の途中で切らない**）。説明が薄い頁を水増しせず、無いものは書かない。
+ * 書く順は 頭 → 紹介文の最初の1文 → 列挙 → 計算の要約 → 紹介文の残り（2026-11-11）
  */
 export function spotPageDescription(
     spot: Pick<Spot, "name" | "summary" | "seasonalGuide" | "timeOfDayGuide"> & Partial<Spot>,
     facts: SpotPageFacts = {},
 ): string {
     const draft = isPublished(spot as Spot) ? "" : "【下書き・運営未確認】";
+    // 2026-11-09（Web 入口ページ監査の案A）: 頭の言い方から「撮影地ガイド」を外した（`PlaceTermWordingTests`）。URL・識別子は変えない
     // 2026-11-23（#701）: 写真のある頁の頭は題と同じ「〇〇の写真と撮影の案内。」（`spotPageTitle` の注記）
-    const lead = spotHasPhotos(facts) ? `${spot.name}の写真と撮影の案内。` : `${spot.name}の撮影地ガイド。`;
+    const lead = `${draft}${spotHasPhotos(facts) ? `${spot.name}の写真と撮影の案内。` : `${spot.name}の観光スポット情報。`}`;
     const parts: string[] = [];
     const n = spotSampleCount(facts);
     if (n > 0) parts.push(`作例${n}枚`);
@@ -136,20 +168,49 @@ export function spotPageDescription(
     if (seasons.length) parts.push(`季節ごとの景色（${seasons.map((k) => SEASON_JA[k]).join("・")}）`);
     if (spot.timeOfDayGuide?.length) parts.push("時間帯ごとの撮り方");
     if (facts.light) parts.push("月ごとの日の出・日の入り・ゴールデンアワー");
-    const computed = facts.computed?.trim();
-    const summary = spot.summary?.trim();
-    const close = (t: string) => (/[。.!?！？]$/.test(t) ? t : `${t}。`);
-    // 2026-11-11（#527・本番の main と同じ順）: 紹介文の**最初の1文**を名前のすぐ後に置き、押す理由はその後ろ。
-    // GSC で「〈名所〉とは」「〈名所〉 場所」が10位以内でも押されず、頭の約100字が全頁でほぼ同じ列挙だった
-    const sums = summary ? (close(summary).match(/[^。！？!?]+[。！？!?]?/gu) ?? []).map((x) => x.trim()).filter(Boolean) : [];
-    return [
-        draft,
-        lead,
-        sums[0] ?? "",
-        parts.length ? `${parts.join("、")}。` : "",
-        computed ? close(computed) : "",
-        sums.slice(1).join(""),
-    ].join("");
+    const list = parts.length ? `${parts.join("、")}。` : "";
+    const computedRaw = facts.computed?.trim();
+    const computed = computedRaw ? closeSentence(computedRaw) : "";
+    const summaryRaw = spot.summary?.trim();
+    const sums = summaryRaw ? sentencesOf(closeSentence(summaryRaw)) : [];
+
+    let used = len(lead);
+    // 1. 列挙（押す理由）。紹介文の最初の1文が入る余地を残すため、先に入れて超えるなら列挙を短くする
+    let listOut = list;
+    const first = sums[0] ?? "";
+    if (listOut && first && used + len(listOut) + len(first) > SPOT_DESCRIPTION_MAX) {
+        // 列挙と紹介の最初の1文が両方は入らない。件数・光の表だけの短い形に落とす
+        const short = parts.filter((x) => x.startsWith("作例") || x.startsWith("月ごと"));
+        listOut = short.length ? `${short.join("、")}。` : "";
+        if (used + len(listOut) + len(first) > SPOT_DESCRIPTION_MAX) listOut = "";
+    }
+    used += len(listOut);
+    // 2. 紹介文: 最初の1文は必ず（長すぎれば読点で区切る）。2文目以降は収まるときだけ
+    const sumOut: string[] = [];
+    if (first) {
+        if (used + len(first) <= SPOT_DESCRIPTION_MAX) sumOut.push(first);
+        else {
+            const clipped = clipAtComma(first, SPOT_DESCRIPTION_MAX - used);
+            if (clipped) sumOut.push(clipped);
+        }
+        used += len(sumOut.join(""));
+    }
+    // 3. 計算の要約: 紹介文の最初の1文の次の優先。目標に収まるときだけ
+    const computedOut = computed && used + len(computed) <= SPOT_DESCRIPTION_TARGET ? computed : "";
+    used += len(computedOut);
+    // 4. 紹介文の2文目以降: 目標に収まるときだけ（文ごと）
+    for (const sent of sums.slice(1)) {
+        if (!sumOut.length || used + len(sent) > SPOT_DESCRIPTION_TARGET) break;
+        sumOut.push(sent);
+        used += len(sent);
+    }
+    // 2026-11-11（#527）: 書く順を 頭 → **紹介文の最初の1文** → 列挙 → 計算の要約 → 紹介文の残り に変えた。
+    // GSC（過去3か月）で、10位以内に出ていても押されていない語に「〈名所〉とは」「〈名所〉 意味」「〈名所〉 場所」
+    // 「〈名所〉 写真」が並び、検索結果に出る頭の約100字（スマホ）が全頁でほぼ同じ列挙（作例N枚、月ごとの日の出・…）
+    // だった（3,555 頁で同じ形）。その名所が何か・どこにあるかに答える紹介文を名前のすぐ後に置き、列挙は後ろへ。
+    // 入れる優先（何を入れるか）は変えていない
+    const [firstOut, ...restOut] = sumOut;
+    return `${lead}${firstOut ?? ""}${listOut}${computedOut}${restOut.join("")}`;
 }
 
 /**

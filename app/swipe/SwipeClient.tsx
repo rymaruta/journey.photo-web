@@ -28,8 +28,7 @@ import { BTN_FILL, BTN_LINE } from "../components/buttonStyles";
  *
  *  - **未ログインでも払える。** 「行きたい」は端末に撮影スポットの鍵だけ（最大 40・`lib/utils/spotSwipe.ts`）。
  *    結果（地図・旅行プラン）はログインしてから——挟む札と足元の「地図で見る」が `/login?next=/swipe&via=swipe` へ
- *  - **ログインして戻ったら**、端末の鍵を `POST /user/spots` で送って消し、「移しました」と行きたい場所への口を出す
- *    （develop には行きたい場所の地図の頁がまだ無いので一覧へ。main は `/saved-spots/map`）
+ *  - **ログインして戻ったら**、端末の鍵を `POST /user/spots` で送って消し、「移しました」と地図への口を出す
  *  - ログイン中は払った瞬間に「行きたい場所」へ（同じ口）。ひとつ戻すと、この画面で足したものだけ外す
  *  - 5枚払って「行きたい」が1つ以上なら、山の中に札を1枚だけ挟む（窓で止めない・左へ払えば続く・次は10枚あと）
  *  - 写真の上には白しか置かない。写真の出典は撮影スポットの頁と同じ決まり（`TopicCreditLine`）で写真のすぐ下に
@@ -132,10 +131,10 @@ export default function SwipeClient() {
     const upcoming = deck && deck[decisions.length + 1] ? deck[decisions.length + 1] : null;
     const wants = decisions.filter((d) => d.choice === "want").length;
     const paused = current !== null && showsSwipePause(decisions.length, wants, continuedAt);
-    const mapHref = isAuthenticated ? ROUTES.SAVED_SPOTS : loginWithNext(ROUTES.SWIPE, "swipe");
+    const mapHref = isAuthenticated ? ROUTES.SAVED_SPOTS_MAP : loginWithNext(ROUTES.SWIPE, "swipe");
     // 挟む札の主ボタン。ログインしていない人は新規登録を主にし、ログインは下の文字のリンク
     // （札 journey.photo-ios#630、2026-11-15 判断。本番の会員は約7人で、ここに来る人の多くは未登録）
-    const pauseHref = isAuthenticated ? ROUTES.SAVED_SPOTS : signupBenefitsSignupHref(ROUTES.SWIPE, "swipe");
+    const pauseHref = isAuthenticated ? ROUTES.SAVED_SPOTS_MAP : signupBenefitsSignupHref(ROUTES.SWIPE, "swipe");
 
     /**
      * ログイン中の「行きたい」で、まだサーバーの答えを待っている札（slug → 入れられたか）。
@@ -313,7 +312,7 @@ export default function SwipeClient() {
                     <p className="m-0 flex-1 text-white" style={{ fontSize: "14px", lineHeight: "20px" }}>
                         {en ? `Moved ${moved} place${moved === 1 ? "" : "s"} to your saved places.` : `払った ${moved} か所を、行きたい場所に移しました`}
                     </p>
-                    <Link href={ROUTES.SAVED_SPOTS} prefetch={false} className="flex-shrink-0 inline-flex items-center gap-1 min-h-[44px] text-accent font-semibold" style={{ fontSize: "14px" }}>
+                    <Link href={ROUTES.SAVED_SPOTS_MAP} prefetch={false} className="flex-shrink-0 inline-flex items-center gap-1 min-h-[44px] text-accent font-semibold" style={{ fontSize: "14px" }}>
                         {en ? "See on map" : "地図で見る"}
                         <ChevronRightIcon aria-hidden="true" style={{ width: 14, height: 14, strokeWidth: 2 }} />
                     </Link>

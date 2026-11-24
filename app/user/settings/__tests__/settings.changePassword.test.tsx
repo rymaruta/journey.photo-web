@@ -37,7 +37,8 @@ vi.mock("../../../../lib/auth/cognito", async (importActual) => ({
     changePassword: (...a: unknown[]) => mockChangePassword(...a),
 }));
 
-const SettingsPage = (await import("../page")).default;
+// 2026-11-04: 設定の下の画面（`/user/settings/password`）へ移した（iOS と同じく行 → 画面）
+const SettingsPage = (await import("../password/page")).default;
 const { PASSWORD_RULE_MESSAGE } = await import("../../../../lib/auth/cognito");
 
 const ok = (data: unknown) => ({ ok: true, json: async () => data });
@@ -46,12 +47,12 @@ const ok = (data: unknown) => ({ ok: true, json: async () => data });
 // 描くだけで、いまのメールアドレスを読む `getCurrentEmail` の解決を待つ
 async function openLoaded() {
     render(<SettingsPage />);
-    await screen.findByRole("heading", { name: "設定" });
+    await screen.findByRole("heading", { name: "パスワードを変える" });
 }
 
 const cur = () => screen.getByLabelText("いまのパスワード");
 const next = () => screen.getByLabelText("新しいパスワード");
-const changeBtn = () => screen.getByRole("button", { name: /パスワードを変更する/ });
+const changeBtn = () => screen.getByRole("button", { name: /^変える$/ });
 const lastToast = () => mockShowToast.mock.calls.at(-1);
 
 beforeEach(() => {

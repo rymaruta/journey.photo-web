@@ -42,8 +42,9 @@ const outDir = path.join(root, "out");
  * 全写真をパージしていた。各エッジで最初に見た人が毎回フル解像度の
  * JPEG を取り直すことになり、長いキャッシュ期間が意味を成していなかった。
  *
- * 対象は `isInvalidatable`（`/_next/static/` 以外の全部。HTML・sitemap・photos.json に
- * 加えて favicon・アイコン・images/ のような固定名の資産も）。
+ * 対象は `isInvalidatable`（**`max-age` で配るもの**＝favicon・アイコン・images/・app/data の JSON
+ * のような固定名の資産）。**no-cache で配る HTML・txt・sitemap・photos.json・feed は消さない**
+ * （2026-11-06: MinTTL 1 秒の配信で古いのが残るのは最大 1 秒。毎デプロイ 245 パスを消して課金されていた）。
  * /_next/static/ 配下は内容ハッシュ付きなので無効化は要らない。
  *
  * CloudFront のワイルドカードは末尾にしか置けないため、入れ子のページは
@@ -84,7 +85,12 @@ function invalidationPathsFor(keys) {
     // 枠に入らなかったディレクトリは実パスで消す（実パスは1リクエスト3,000本まで）。
     const dirs = [...byDir.entries()].sort((a, b) => b[1].length - a[1].length);
     for (const [dir, files] of dirs) {
-        const worthWildcard = files.length > WILDCARD_MIN_FILES && wildcards.size < MAX_WILDCARD_PATHS;
+        // HTML は拡張子あり・なしの2パスが必要。2ページ以上なら
+        // ディレクトリのワイルドカード1本の方が無料枠を節約できる。
+        // 画像などの固定名アセットは広く消さず、従来の閾値を維持する。
+        const htmlOnly = files.every((key) => key.endsWith(".html"));
+        const worthWildcard = (htmlOnly ? files.length >= 2 : files.length > WILDCARD_MIN_FILES)
+            && wildcards.size < MAX_WILDCARD_PATHS;
         if (worthWildcard) wildcards.add(`/${dir}/*`);
         else files.forEach(addExact);
     }
@@ -253,10 +259,19 @@ const NO_CACHE_KEYS = new Set([
     "sitemap.xml",
     "sitemap-images.xml",
     // フィードも写真を追加するたびに変わる。入れないと 1時間 `max-age` で配られる
-    // （無効化は `isInvalidatable` が別に見る。以前はこの一覧と .html/.txt だけが
-    // 対象だったが、いまは `/_next/static/` 以外の全部）
+    // （この一覧は no-cache で配る＝`isRevalidatedEachTime`。2026-11-06 から、これらは無効化しない）
     "feed.xml",
 ]);
+
+// 2026-11-09: サイトマップは種類別に分けた（`sitemap.xml` は索引、中身は `sitemap-<種類>.xml`・`lib/server/sitemap.ts`）。
+// 種類を足しても配るキャッシュの扱いを忘れないよう、名前の形で見る（固定の一覧にすると、足したファイルだけ
+// `max-age=3600` で配られ、さらに毎デプロイ CloudFront の無効化の対象になる）
+const SITEMAP_KEY = /^sitemap(-[a-z]+)?\.xml$/;
+
+/** 毎回たしかめさせて配るか（`no-cache`・`cacheControlFor`。アップロードの Cache-Control と、無効化の要否が同じ判定を使う） */
+function isRevalidatedEachTime(key) {
+    return isHtmlOrTxt(key) || NO_CACHE_KEYS.has(key) || SITEMAP_KEY.test(key);
+}
 
 /**
  * 差し替えたときに CloudFront から消す必要があるか。
@@ -271,6 +286,13 @@ const NO_CACHE_KEYS = new Set([
  */
 function isInvalidatable(key) {
     if (key.startsWith("_next/")) return false;
+    // **毎回たしかめさせて配るもの（`isRevalidatedEachTime`）は消さない**（2026-11-06・AWS の予算の通知を受けて）。
+    // 実測: HTML は `Cache-Control: no-cache, no-store, must-revalidate`（2026-11-11 から `no-cache`）で配り、配信は
+    // Managed-CachingOptimized（MinTTL 1 秒）。本番に2回続けて取ると 2 回目は `RefreshHit`（元に確かめ直す）で、
+    // **古い HTML が残るのは最大 1 秒**。それなのにデプロイのたびに全ページ（約 245 パス）を消していて、
+    // 月 1,000 パスの無料枠を約 4 回で使い切り、あとは 1 パス 0.005 ドル（今月 11/1〜11/6 で 4,167 パス・15.8 ドル）。
+    // 消す意味があるのは、`max-age=3600` で配る固定名の資産（favicon・アイコン・images/ ・app/data の JSON など）だけ
+    if (isRevalidatedEachTime(key)) return false;
     return true;
 }
 
@@ -284,10 +306,10 @@ function isInvalidatable(key) {
  * `no-cache` だけの頁ではこの2つが消える）。さらに毎回まるごと落とし直す（ETag での 304 が使えない）。
  * `no-cache` は「控えてよいが、使う前に必ず配信元にたしかめる」なので、**古い HTML を出さないのは今までと同じ**
  * （ブラウザは毎回 If-None-Match を送り、変わっていなければ 304 で中身を送らない）。
- * CloudFront は `no-store` でも `no-cache` でも最小 TTL（1 秒）だけ持つので、エッジの振る舞い・無効化・費用は変わらない
+ * CloudFront は `no-store` でも `no-cache` でも最小 TTL（1 秒）だけ持つので、エッジの振る舞い・無効化（しない）・費用は変わらない
  */
 function cacheControlFor(key) {
-    return isHtmlOrTxt(key) || NO_CACHE_KEYS.has(key)
+    return isRevalidatedEachTime(key)
         ? "no-cache"
         : key.startsWith("_next/")
             ? "public, max-age=31536000, immutable"
@@ -1190,7 +1212,7 @@ async function main() {
 module.exports = {
     verifyOgImage, splitImagesFirst,
     assertNoForbiddenContent, assertRobotsMatchesTarget, invalidationTargets,
-    FORBIDDEN_IN_OUTPUT, forbiddenPattern, shouldScan, classifyStaleObjects, deletesImmediately, isHtmlOrTxt,
+    FORBIDDEN_IN_OUTPUT, forbiddenPattern, shouldScan, classifyStaleObjects, deletesImmediately, isHtmlOrTxt, isRevalidatedEachTime,
     planUploads, putParamsFor, putParamsFingerprint, remoteEtagMap, encodeDeployState, decodeDeployState, DEPLOY_STATE_KEY, ASSET_GRACE_MS, invalidationPathsFor, changedKeys, isInvalidatable, cacheControlFor,
     bulkDeleteGuard, BULK_DELETE_RATIO, BULK_DELETE_MIN, deleteStaleKeys,
     contentTypeFor, AASA_KEY, AASA_EDGE_KEY,

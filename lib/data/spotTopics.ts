@@ -22,7 +22,7 @@ import { spotCoverImage, spotCoverSize } from "./spotImages";
 import { spotThumbSrc, spotThumbExists } from "./spotThumbs";
 import { COUNTRY_SHARD_KEYS } from "./spotFeedShards";
 import { REGIONS, prefectureByName, OVERSEAS_SLUG, OVERSEAS_NAME, type RegionName } from "./prefectures";
-import { siteConfig, generateItemListStructuredData, generateBreadcrumbStructuredData, pageRobots, shareOgImage, shareImageUrl } from "../utils/seo";
+import { appItunes, siteConfig, generateItemListStructuredData, generateBreadcrumbStructuredData, pageRobots, shareOgImage, shareImageUrl } from "../utils/seo";
 import { ROUTES } from "../routes";
 import { titleWidth } from "../utils/titleWidth";
 
@@ -51,10 +51,21 @@ export const SEASON_EN: Record<SpotSeason, string> = { spring: "Spring", summer:
 const SEASON_KEYWORD: Partial<Record<SpotSeason, string>> = { spring: "桜", autumn: "紅葉", winter: "雪" };
 // 夏は置かない（多いのは「緑」「青」で、季節らしさを言う語にならない・2026-10-11 台帳で数えた）
 
+/**
+ * 語を含んでいても、季節の語ではない固有名詞（地名・山名・別の花）。**判定の前に取り除く**（2026-11-07）。
+ * 例: 「桜島」「若桜（鉄道・町）」「桜井」「大雪山」「芝桜」（桜の木ではなく別の花）。台帳の実データで見つけた分だけ。
+ * 紅葉は固有名詞に紛れる形が見つかっていないので置かない
+ */
+const NOT_SEASON_WORD: Partial<Record<SpotSeason, RegExp>> = {
+    spring: /桜島|桜井|若桜|桜川|桜町|桜木町|桜田|芝桜/g,
+    winter: /大雪山|雪ノ下|雪谷/g,
+};
+
 /** その季節の案内に、その季節の語（`SEASON_KEYWORD`）がある行か。**その季節の項目だけを見る** */
 export function hasSeasonKeyword(s: Spot, season: SpotSeason): boolean {
     const kw = SEASON_KEYWORD[season];
-    return Boolean(kw) && (s.seasonalGuide ?? []).some((g) => g?.season === season && Boolean(g.text?.includes(kw!)));
+    const strip = NOT_SEASON_WORD[season];
+    return Boolean(kw) && (s.seasonalGuide ?? []).some((g) => g?.season === season && Boolean(g.text && (strip ? g.text.replace(strip, "") : g.text).includes(kw!)));
 }
 
 /** 地方 → URL の綴り（季節の地方別・テーマの地方別で共用） */
@@ -225,6 +236,9 @@ export function topicSpots(spots: readonly Spot[] = SPOTS): Spot[] {
 const countryCache = new WeakMap<readonly Spot[], CountryTopic[]>();
 const themeCache = new WeakMap<readonly Spot[], ThemeTopic[]>();
 const seasonCache = new WeakMap<readonly Spot[], SeasonTopic[]>();
+const cityCache = new WeakMap<readonly Spot[], CityTopic[]>();
+const seasonThemeCache = new WeakMap<readonly Spot[], SeasonThemeTopic[]>();
+const featureCache = new Map<FeatureKey, WeakMap<readonly Spot[], FeatureTopic[]>>();
 function memo<T>(cache: WeakMap<readonly Spot[], T>, spots: readonly Spot[], build: (s: readonly Spot[]) => T): T {
     let v = cache.get(spots);
     if (v === undefined) {
@@ -367,6 +381,164 @@ function buildSeasonTopics(spots: readonly Spot[]): SeasonTopic[] {
     }
     return out;
 }
+
+/**
+ * 市区町村の頁（2026-11-05・「○○市の撮影スポット」）。**日本の行だけ**・`MIN_TOPIC_SPOTS` 件以上の市区町村だけ。
+ * 同じ名前の市が別の県にある（府中市・伊達市）ので、鍵は**県＋市区町村**。URL は
+ * `/spots/city/<県の綴り>/<市区町村名>`（`/location/<名前>` と同じく日本語の綴り）
+ */
+export type CityTopic = { prefSlug: string; prefName: string; prefNameEn: string; region: RegionName; city: string; spots: Spot[] };
+
+export function cityTopics(spots: readonly Spot[] = SPOTS): CityTopic[] {
+    return memo(cityCache, spots, buildCityTopics);
+}
+function buildCityTopics(spots: readonly Spot[]): CityTopic[] {
+    const by = new Map<string, CityTopic>();
+    for (const s of topicSpots(spots)) {
+        if (!isJapan(s)) continue;
+        const city = (s.region?.city ?? "").trim();
+        const pref = prefectureByName(s.region?.prefecture);
+        if (!city || !pref) continue;
+        const key = `${pref.slug}/${city}`;
+        const t = by.get(key) ?? { prefSlug: pref.slug, prefName: pref.name, prefNameEn: pref.nameEn, region: pref.region, city, spots: [] };
+        t.spots.push(s);
+        by.set(key, t);
+    }
+    return [...by.values()].filter((t) => t.spots.length >= MIN_TOPIC_SPOTS)
+        .sort((a, b) => b.spots.length - a.spots.length || a.prefSlug.localeCompare(b.prefSlug) || a.city.localeCompare(b.city, "ja"));
+}
+
+export const cityHeading = (t: Pick<CityTopic, "prefName" | "city">) => `${t.prefName}${t.city}の観光スポット`;
+export const cityHeadingEn = (t: Pick<CityTopic, "prefNameEn" | "city">) => `Photo spots in ${t.city}, ${t.prefNameEn}`;
+export const cityPath = (t: Pick<CityTopic, "prefSlug" | "city">) => ROUTES.SPOT_CITY(t.prefSlug, t.city);
+
+/** 季節 × カテゴリの頁（2026-11-05・「秋の寺社の撮影スポット」）。季節の案内を持つ行のうち、そのカテゴリの `MIN_TOPIC_SPOTS` 件以上 */
+export type SeasonThemeTopic = { season: SpotSeason; category: string; categorySlug: string; spots: Spot[] };
+
+export function seasonThemeTopics(spots: readonly Spot[] = SPOTS): SeasonThemeTopic[] {
+    return memo(seasonThemeCache, spots, buildSeasonThemeTopics);
+}
+function buildSeasonThemeTopics(spots: readonly Spot[]): SeasonThemeTopic[] {
+    const by = new Map<string, SeasonThemeTopic>();
+    for (const s of topicSpots(spots)) {
+        const category = (s.category ?? "").trim();
+        const categorySlug = CATEGORY_SLUGS[category];
+        if (!categorySlug) continue;
+        for (const season of SEASONS) {
+            if (!hasSeason(s, season)) continue;
+            const key = `${season}/${categorySlug}`;
+            const t = by.get(key) ?? { season, category, categorySlug, spots: [] };
+            t.spots.push(s);
+            by.set(key, t);
+        }
+    }
+    return [...by.values()].filter((t) => t.spots.length >= MIN_TOPIC_SPOTS)
+        .sort((a, b) => SEASONS.indexOf(a.season) - SEASONS.indexOf(b.season) || b.spots.length - a.spots.length || a.category.localeCompare(b.category, "ja"));
+}
+
+export const seasonThemeHeading = (t: Pick<SeasonThemeTopic, "season" | "category">) => `${SEASON_JA[t.season]}の${t.category}の観光スポット`;
+export const seasonThemeHeadingEn = (t: Pick<SeasonThemeTopic, "season" | "categorySlug">) => `${SEASON_EN[t.season]} ${categoryEn(t.categorySlug)} photo spots`;
+export const seasonThemePath = (t: Pick<SeasonThemeTopic, "season" | "categorySlug">) => ROUTES.SPOT_SEASON_THEME(t.season, t.categorySlug);
+
+/**
+ * **季節の見どころ別の頁**——紅葉（2026-11-06 owner「紅葉シーズンで調べられることが多いから充実させて欲しい」）に、
+ * 桜（春）・雪景色（冬）を同じ作りで足した（2026-11-07）。紅葉の URL・見た目は変えない。
+ *
+ * 対象は**日本の、その季節の案内にその語（紅葉＝秋の「紅葉」・桜＝春の「桜」・雪景色＝冬の「雪」）があるスポット**
+ * （`hasSeasonKeyword`・台帳の記述だけを根拠にする）。見頃・開花・積雪の日付は台帳に無いので書かない
+ * （数えられない事実を頁に書かない）。
+ * 頁は まとめ（place なし）・地方別・県別。**地方別・県別は `MIN_TOPIC_SPOTS` 件以上だけ**（薄い頁を作らない）。
+ * 北海道は県と地方が同じ顔ぶれなので県の側だけ（`themeTopics` と同じ判断）。
+ */
+export type FeatureKey = "momiji" | "sakura" | "snow";
+export const FEATURE_KEYS: readonly FeatureKey[] = ["momiji", "sakura", "snow"];
+
+type FeatureDef = {
+    season: SpotSeason;
+    /** 頁の題に入れる語（「紅葉の撮影スポット」「桜の撮影スポット」「雪景色の撮影スポット」） */
+    noun: string;
+    nounEn: string;
+    /** 英語の題の頭（"Autumn foliage photo spots"） */
+    headEn: string;
+    /** 導入文で数える台帳の語（`SEASON_KEYWORD` と同じ） */
+    keyword: string;
+    eyebrow: string;
+    /** 題の名詞（「京都府の紅葉の名所7選」）。検索で打たれる「〇〇 紅葉 名所」「桜 名所」に合わせる（2026-11-18） */
+    titleNoun: string;
+    /** まとめの頁の題の頭（「紅葉の見頃に行きたい名所170か所」）。「紅葉 見頃」「桜 見頃」で探す人に合わせる */
+    hubLead: string;
+    /** 地方・県の頁で、名所の名前が入らないときの題の後ろ */
+    titleTail: string;
+    /** 説明の頭（「秋の紅葉の見頃に行きたい京都府の名所」）。`where` は地域の名前か「全国」。空なら「秋の紅葉の見頃に行きたい名所」 */
+    descLead: (where: string) => string;
+    /**
+     * 導入文の終わりの1文。**見頃の日付・月は台帳に無いので書かない**（季節の名前と「年や場所で前後する」ことだけ）。
+     * 2026-11-18: 「紅葉 見頃」で探す人に、頁の本文でも「見頃」の語で答える
+     */
+    peakNote: string;
+};
+export const FEATURES: Record<FeatureKey, FeatureDef> = {
+    momiji: {
+        season: "autumn", noun: "紅葉", nounEn: "Autumn foliage", headEn: "Autumn foliage photo spots", keyword: "紅葉", eyebrow: "Photo spots · Autumn foliage",
+        titleNoun: "紅葉の名所", hubLead: "紅葉の見頃に行きたい名所", titleTail: "見頃に行きたい観光スポット",
+        descLead: (where) => `秋の紅葉の見頃に行きたい${where ? `${where}の` : ""}名所`, peakNote: "紅葉の見頃は年や場所で前後します。",
+    },
+    sakura: {
+        season: "spring", noun: "桜", nounEn: "Cherry blossoms", headEn: "Cherry blossom photo spots", keyword: "桜", eyebrow: "Photo spots · Cherry blossoms",
+        titleNoun: "桜の名所", hubLead: "桜の見頃に行きたい名所", titleTail: "見頃に行きたい観光スポット",
+        descLead: (where) => `春の桜の見頃に行きたい${where ? `${where}の` : ""}名所`, peakNote: "桜の見頃は年や場所で前後します。",
+    },
+    snow: {
+        season: "winter", noun: "雪景色", nounEn: "Snow scenery", headEn: "Snow scenery photo spots", keyword: "雪", eyebrow: "Photo spots · Snow scenery",
+        titleNoun: "雪景色の名所", hubLead: "冬の雪景色を見に行きたい名所", titleTail: "冬に行きたい観光スポット",
+        descLead: (where) => `冬の雪景色を見に行きたい${where ? `${where}の` : ""}名所`, peakNote: "雪の量や見頃は年や場所で変わります。",
+    },
+};
+
+export type FeaturePlace =
+    | { kind: "prefecture"; slug: string; name: string; nameEn: string; region: RegionName }
+    | { kind: "region"; slug: string; name: string; region: RegionName };
+export type FeatureTopic = { place: FeaturePlace | null; spots: Spot[] };
+export type MomijiPlace = FeaturePlace;
+export type MomijiTopic = FeatureTopic;
+
+export function featureTopics(feature: FeatureKey, spots: readonly Spot[] = SPOTS): FeatureTopic[] {
+    let cache = featureCache.get(feature);
+    if (!cache) featureCache.set(feature, cache = new WeakMap());
+    return memo(cache, spots, (sp) => buildFeatureTopics(feature, sp));
+}
+export const momijiTopics = (spots: readonly Spot[] = SPOTS): FeatureTopic[] => featureTopics("momiji", spots);
+function buildFeatureTopics(feature: FeatureKey, spots: readonly Spot[]): FeatureTopic[] {
+    const season = FEATURES[feature].season;
+    const all = topicSpots(spots).filter((s) => isJapan(s) && hasSeasonKeyword(s, season));
+    if (all.length === 0) return [];
+    const byPref = new Map<string, FeatureTopic>();
+    const byRegion = new Map<string, FeatureTopic>();
+    for (const s of all) {
+        const pref = prefectureByName(s.region?.prefecture);
+        if (!pref) continue;
+        const pk = byPref.get(pref.slug) ?? { place: { kind: "prefecture" as const, slug: pref.slug, name: pref.name, nameEn: pref.nameEn, region: pref.region }, spots: [] };
+        pk.spots.push(s); byPref.set(pref.slug, pk);
+        const rk = byRegion.get(pref.region) ?? { place: { kind: "region" as const, slug: REGION_SLUGS[pref.region], name: REGION_LABEL[pref.region], region: pref.region }, spots: [] };
+        rk.spots.push(s); byRegion.set(pref.region, rk);
+    }
+    const prefs = [...byPref.values()].filter((t) => t.spots.length >= MIN_TOPIC_SPOTS);
+    const prefSlugs = new Set(prefs.map((t) => (t.place as { slug: string }).slug));
+    // 地方の頁: 5 件以上で、県の頁と同じ綴り（北海道）・同じ顔ぶれでないもの
+    const regions = [...byRegion.values()].filter((t) => t.spots.length >= MIN_TOPIC_SPOTS && !prefSlugs.has((t.place as { slug: string }).slug)
+        && !prefs.some((p) => p.spots.length === t.spots.length && (p.place as { region: string }).region === (t.place as { region: string }).region));
+    const order = (a: FeatureTopic, b: FeatureTopic) => b.spots.length - a.spots.length
+        || (a.place as { slug: string }).slug.localeCompare((b.place as { slug: string }).slug);
+    return [{ place: null, spots: all }, ...regions.sort(order), ...prefs.sort(order)];
+}
+
+export const featurePath = (feature: FeatureKey, t: Pick<FeatureTopic, "place">) => ROUTES.SPOT_FEATURE(feature, t.place?.slug);
+export const featureHeading = (feature: FeatureKey, t: Pick<FeatureTopic, "place">) => `${t.place ? t.place.name : ""}の${FEATURES[feature].noun}の観光スポット`.replace(/^の/, "");
+export const featureHeadingEn = (feature: FeatureKey, t: Pick<FeatureTopic, "place">) =>
+    `${FEATURES[feature].headEn}${t.place ? ` in ${t.place.kind === "prefecture" ? t.place.nameEn : REGION_EN[t.place.region]}` : ""}`;
+export const momijiPath = (t: Pick<FeatureTopic, "place">) => featurePath("momiji", t);
+export const momijiHeading = (t: Pick<FeatureTopic, "place">) => featureHeading("momiji", t);
+export const momijiHeadingEn = (t: Pick<FeatureTopic, "place">) => featureHeadingEn("momiji", t);
 
 // ─────────────────────────────────────────────────────────────
 // 題・道・導入文
@@ -690,16 +862,8 @@ export const REGION_TITLE: Record<RegionName, string> = {
     "近畿": "関西", "中国": "中国地方", "四国": "四国", "九州・沖縄": "九州・沖縄",
 };
 
-/**
- * 季節の見どころ（秋は紅葉・春は桜・冬は雪景色。夏は無い）の題・説明・導入文の言い方。
- * 本番（main）では紅葉・桜・雪景色の頁（`FEATURES`）が同じ言い方を持つ。develop にはその頁がまだ無いので、季節の頁の分だけ置く
- */
-type SeasonFeatureWords = { titleNoun: string; descLead: (where: string) => string; peakNote: string };
-export const SEASON_FEATURE_WORDS: Partial<Record<SpotSeason, SeasonFeatureWords>> = {
-    autumn: { titleNoun: "紅葉の名所", descLead: (where) => `秋の紅葉の見頃に行きたい${where ? `${where}の` : ""}名所`, peakNote: "紅葉の見頃は年や場所で前後します。" },
-    spring: { titleNoun: "桜の名所", descLead: (where) => `春の桜の見頃に行きたい${where ? `${where}の` : ""}名所`, peakNote: "桜の見頃は年や場所で前後します。" },
-    winter: { titleNoun: "雪景色の名所", descLead: (where) => `冬の雪景色を見に行きたい${where ? `${where}の` : ""}名所`, peakNote: "雪の量や見頃は年や場所で変わります。" },
-};
+/** 季節 → その季節の見どころの頁（秋は紅葉・春は桜・冬は雪景色。夏は無い） */
+export const SEASON_FEATURE: Partial<Record<SpotSeason, FeatureKey>> = { autumn: "momiji", spring: "sakura", winter: "snow" };
 
 /** 候補を上から見て、全角換算 `THEME_TITLE_MAX` に収まる最初の題。どれも収まらなければ `last` */
 function fitTitle(cands: readonly string[], last: string): string {
@@ -714,6 +878,23 @@ function titleWithNames(head: string, cards: readonly TopicCard[], n: number): s
         ...(a && b && n === 2 ? [`${head}｜${a}、${b}`] : []),
         ...(a && n > 1 ? [`${head}｜${a}ほか`] : []),
     ];
+}
+
+/**
+ * 紅葉・桜・雪景色の頁の題。
+ *   まとめ: 紅葉の見頃に行きたい名所170か所｜全国の観光スポット
+ *   地方・県: 京都府の紅葉の名所7選｜一乗寺 圓光寺、貴船神社ほか → …｜…ほか → …｜見頃に行きたい観光スポット → 京都府の紅葉の名所7選
+ * まとめの頁は一部（`FEATURE_TOP_CARDS`）だけ並べるので「N選」ではなく全体の数（「N か所」）
+ */
+export function featureTitle(feature: FeatureKey, t: FeatureTopic, cards: readonly TopicCard[]): string {
+    const def = FEATURES[feature];
+    if (!t.place) {
+        const head = `${def.hubLead}${t.spots.length}か所`;
+        return fitTitle([`${head}｜全国の観光スポット`], head);
+    }
+    const label = t.place.kind === "region" ? REGION_TITLE[t.place.region] : t.place.name;
+    const head = `${label}の${def.titleNoun}${cards.length}選`;
+    return fitTitle([...titleWithNames(head, cards, cards.length), `${head}｜${def.titleTail}`], head);
 }
 
 const regionBySlug = (slug: string): RegionName | undefined => (Object.keys(REGION_SLUGS) as RegionName[]).find((k) => REGION_SLUGS[k] === slug);
@@ -732,10 +913,10 @@ export function seasonTitle(t: SeasonTopic, cards: readonly TopicCard[]): string
     const label = !t.area ? "" : t.area === OVERSEAS_SLUG ? `${OVERSEAS_NAME}の` : r ? `${REGION_TITLE[r]}の` : `${t.areaName}の`;
     const all = cards.length >= n;
     const head = `${label}${SEASON_JA[t.season]}の観光スポット${all ? `${cards.length}選` : `${n}か所`}`;
-    const f = SEASON_FEATURE_WORDS[t.season];
+    const f = SEASON_FEATURE[t.season];
     const k = f ? t.spots.filter((s) => hasSeasonKeyword(s, t.season)).length : 0;
     return fitTitle([
-        ...(f && k >= MIN_TOPIC_SPOTS ? [`${head}｜${f.titleNoun}${k}か所も`] : []),
+        ...(f && k >= MIN_TOPIC_SPOTS ? [`${head}｜${FEATURES[f].titleNoun}${k}か所も`] : []),
         ...titleWithNames(head, cards, n),
     ], head);
 }
@@ -762,6 +943,26 @@ function fitDescription(lead: (k: number) => string, parts: readonly string[]): 
 const timeSentence = (time: number, n: number) => `${time === n ? "全か所" : `${time}か所`}に時間帯ごとの撮影の案内があります。`;
 
 /**
+ * 紅葉・桜・雪景色の頁の説明。
+ * 「秋の紅葉の見頃に行きたい京都府の名所7か所。一乗寺 圓光寺、貴船神社、仁和寺など。多いのは寺社4か所、寺院3か所。…」
+ */
+export function featureDescription(feature: FeatureKey, t: FeatureTopic, cards: readonly TopicCard[]): string {
+    const def = FEATURES[feature];
+    const n = t.spots.length;
+    const where = t.place ? t.place.name : "全国";
+    const kinds = categoryTop(t.spots);
+    const time = timeCount(t.spots);
+    return fitDescription(
+        (k) => `${def.descLead(where)}${n}か所。${k > 0 && cards.length > 0 ? `${names(cards, k)}${n > k ? "など" : ""}。` : ""}`,
+        [
+            ...(kinds.length > 0 ? [`多いのは${countsText(kinds)}。`] : []),
+            ...(time > 0 ? [timeSentence(time, n)] : []),
+            def.peakNote,
+        ],
+    );
+}
+
+/**
  * 季節の頁の説明。
  * 「秋に行きたい国内外の観光スポット1160か所。阿寺渓谷、寒霞渓、宮島 大聖院など。秋の紅葉の見頃に行きたい名所は171か所。…」
  */
@@ -769,7 +970,7 @@ export function seasonDescription(t: SeasonTopic, cards: readonly TopicCard[]): 
     const n = t.spots.length;
     const sj = SEASON_JA[t.season];
     const where = t.area ? t.areaName : "国内外";
-    const f = SEASON_FEATURE_WORDS[t.season];
+    const f = SEASON_FEATURE[t.season];
     const k = f ? t.spots.filter((s) => hasSeasonKeyword(s, t.season)).length : 0;
     const regions = t.area ? [] : (() => {
         const m = new Map<string, number>();
@@ -784,7 +985,7 @@ export function seasonDescription(t: SeasonTopic, cards: readonly TopicCard[]): 
     return fitDescription(
         (c) => `${sj}に行きたい${where}の観光スポット${n}か所。${c > 0 && cards.length > 0 ? `${names(cards, c)}${n > c ? "など" : ""}。` : ""}`,
         [
-            ...(f && k >= MIN_TOPIC_SPOTS ? [`${f.descLead("")}は${k}か所。`] : []),
+            ...(f && k >= MIN_TOPIC_SPOTS ? [`${FEATURES[f].descLead("")}は${k}か所。`] : []),
             ...(regions.length > 0 ? [`多いのは${countsText(regions)}。`] : []),
             ...(time > 0 ? [timeSentence(time, n)] : []),
         ],
@@ -802,8 +1003,8 @@ export function seasonIntro(t: SeasonTopic, cards: readonly TopicCard[]): string
     if (kw) {
         const k = t.spots.filter((s) => hasSeasonKeyword(s, t.season)).length;
         // 見頃の1文（日付は書かない・2026-11-18）
-        const f = SEASON_FEATURE_WORDS[t.season];
-        if (k > 0) text += `うち${k}件は${label}の案内に「${kw}」の記述があります。${f ? f.peakNote : ""}`;
+        const f = SEASON_FEATURE[t.season];
+        if (k > 0) text += `うち${k}件は${label}の案内に「${kw}」の記述があります。${f ? FEATURES[f].peakNote : ""}`;
     }
     if (!t.area) {
         // 全体の頁は地方の内訳（多い順に3つ）
@@ -927,6 +1128,10 @@ export function themeView(categorySlug: string, place: string, spots: readonly S
         related: [
             { heading: `${t.place.name}のほかのテーマ`, headingEn: `Other themes in ${placeEn(t.place)}`, links: samePlace.map(themeLink) },
             { heading: `ほかの地域の${t.category}`, headingEn: `${categoryEn(t.categorySlug)} in other areas`, links: sameCategory.map(themeLink) },
+            {
+                heading: `季節でさがす（${t.category}）`, headingEn: `${categoryEn(t.categorySlug)} by season`,
+                links: seasonThemeTopics(spots).filter((x) => x.categorySlug === t.categorySlug).map(seasonThemeLink),
+            },
         ].filter((g) => g.links.length > 0),
         indexable: true,
         title: themeTitle(themeHeading(t), cards),
@@ -1011,6 +1216,10 @@ export function seasonView(season: string, area: string | null, spots: readonly 
                 links: subs.filter((x) => x !== t).map(seasonLink),
             },
             { heading: "ほかの季節", headingEn: "Other seasons", links: otherSeasons.map(seasonLink) },
+            {
+                heading: `${SEASON_JA[t.season]}の観光スポットを種類でさがす`, headingEn: `${SEASON_EN[t.season]} by type`,
+                links: t.area ? [] : seasonThemeTopics(spots).filter((x) => x.season === t.season).map(seasonThemeLink),
+            },
         ].filter((g) => g.links.length > 0),
         indexable: true,
         // 題・説明は検索で打たれる語に合わせて頁ごとに組む（2026-11-18・`seasonTitle`）
@@ -1020,6 +1229,215 @@ export function seasonView(season: string, area: string | null, spots: readonly 
         lastModified: latest(t.spots),
     };
 }
+
+const cityLink = (t: CityTopic): TopicLink => ({
+    ...link(cityPath(t), `${t.prefName}${t.city}`, t.spots.length),
+    labelEn: `${t.city}, ${t.prefNameEn}`,
+});
+const seasonThemeLink = (t: SeasonThemeTopic): TopicLink => ({
+    ...link(seasonThemePath(t), `${SEASON_JA[t.season]}の${t.category}`, t.spots.length),
+    labelEn: `${SEASON_EN[t.season]} ${categoryEn(t.categorySlug)}`,
+});
+
+/** 県の頁に並べる「市区町村でさがす」（その県の市区町村の頁・件数の多い順） */
+export function cityLinksForPrefecture(prefSlug: string, spots: readonly Spot[] = SPOTS): TopicLink[] {
+    return cityTopics(spots).filter((t) => t.prefSlug === prefSlug).map((t) => ({ ...link(cityPath(t), t.city, t.spots.length), labelEn: t.city }));
+}
+
+export function cityIntro(t: CityTopic, cards: readonly TopicCard[]): string {
+    const n = t.spots.length;
+    const seasonal = seasonalCount(t.spots);
+    const kinds = categoryBreakdown(t.spots);
+    return `${t.prefName}${t.city}の観光スポットを${n}件まとめました。`
+        + (kinds ? `種類は${kinds}など。` : "")
+        + `${names(cards)}など。`
+        + (seasonal > 0 ? `うち${seasonal}件は季節ごとの撮影の案内があります。` : "");
+}
+
+/**
+ * **県の頁（`/spots/area/<県>`）の導入文**（2026-11-11・札 rymaruta/journey.photo-ios#527）。
+ * 以前は件数の1文（「撮影スポットの案内です（57件）」）だけで、47頁が同じ形だった。
+ * **その県の台帳から数えた事実だけ**を書く（決まり文句を足さない・`topicDescription` の注記と同じ線）:
+ * 種類の内訳・多い市区町村・季節の案内がある件数・「桜」「紅葉」「雪」の記述がある件数。
+ * 数が無い項目は文ごと省く。2件未満の県は空（並べる中身と同じことしか言えない）
+ */
+export function areaIntro(spots: readonly Spot[]): string {
+    if (spots.length < 2) return "";
+    const kinds = categoryBreakdown(spots);
+    const cities = new Map<string, number>();
+    for (const s of spots) if (s.region?.city) cities.set(s.region.city, (cities.get(s.region.city) ?? 0) + 1);
+    // 1件ずつしか無い市区町村は「多い」と言えないので、2件以上の所だけ
+    const topCities = [...cities.entries()].filter(([, k]) => k >= 2)
+        .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], "ja")).slice(0, 3)
+        .map(([c, k]) => `${c}${k}件`).join("・");
+    return (kinds ? `種類は${kinds}など。` : "")
+        + (topCities ? `多いのは${topCities}です。` : "")
+        + seasonFacts(spots);
+}
+
+export function seasonThemeIntro(t: SeasonThemeTopic, cards: readonly TopicCard[]): string {
+    const n = t.spots.length;
+    const label = SEASON_JA[t.season];
+    let text = `${label}の撮影の案内がある${t.category}のスポットを${n}件まとめました。${names(cards)}など。`;
+    const kw = SEASON_KEYWORD[t.season];
+    if (kw) {
+        const k = t.spots.filter((s) => hasSeasonKeyword(s, t.season)).length;
+        if (k > 0) text += `うち${k}件は${label}の案内に「${kw}」の記述があります。`;
+    }
+    return text;
+}
+
+export function cityView(prefSlug: string, city: string, spots: readonly Spot[] = SPOTS): TopicView | null {
+    const all = cityTopics(spots);
+    const t = all.find((x) => x.prefSlug === prefSlug && x.city === city);
+    if (!t) return null;
+    const cards = topicCards(t.spots);
+    const sameRegion = all.filter((x) => x.prefSlug === prefSlug && x !== t);
+    const themes = themeTopics(spots).filter((x) => x.place.kind === "prefecture" && x.place.slug === prefSlug);
+    return {
+        path: cityPath(t),
+        heading: cityHeading(t),
+        headingEn: cityHeadingEn(t),
+        intro: cityIntro(t, cards),
+        crumbs: [{ name: t.prefName, nameEn: t.prefNameEn, href: ROUTES.SPOT_AREA(t.prefSlug) }],
+        cards,
+        related: [
+            { heading: `${t.prefName}のほかの市区町村`, headingEn: `Other cities in ${t.prefNameEn}`, links: sameRegion.map(cityLink) },
+            { heading: `${t.prefName}のテーマ`, headingEn: `Themes in ${t.prefNameEn}`, links: themes.map(themeLink) },
+        ].filter((g) => g.links.length > 0),
+        indexable: true,
+        descriptionExtra: timeGuideNote(t.spots),
+        ogImage: ogImageOf(t.spots, cards),
+        lastModified: latest(t.spots),
+    };
+}
+
+export function seasonThemeView(season: string, categorySlug: string, spots: readonly Spot[] = SPOTS): TopicView | null {
+    const all = seasonThemeTopics(spots);
+    const t = all.find((x) => x.season === season && x.categorySlug === categorySlug);
+    if (!t) return null;
+    const cards = topicCards(t.spots);
+    const top = seasonTopics(spots).find((x) => x.season === t.season && x.area === null);
+    return {
+        path: seasonThemePath(t),
+        heading: seasonThemeHeading(t),
+        headingEn: seasonThemeHeadingEn(t),
+        intro: seasonThemeIntro(t, cards),
+        crumbs: top ? [{ name: seasonHeading(top), nameEn: seasonHeadingEn(top), href: seasonPath(top) }] : [],
+        cards,
+        related: [
+            { heading: `${SEASON_JA[t.season]}のほかの種類`, headingEn: `Other types in ${SEASON_EN[t.season]}`, links: all.filter((x) => x.season === t.season && x !== t).map(seasonThemeLink) },
+            { heading: `ほかの季節の${t.category}`, headingEn: `${categoryEn(t.categorySlug)} in other seasons`, links: all.filter((x) => x.categorySlug === t.categorySlug && x !== t).map(seasonThemeLink) },
+        ].filter((g) => g.links.length > 0),
+        indexable: true,
+        descriptionExtra: timeGuideNote(t.spots),
+        ogImage: ogImageOf(t.spots, cards),
+        lastModified: latest(t.spots),
+    };
+}
+
+const featureLink = (feature: FeatureKey, t: FeatureTopic): TopicLink => ({
+    ...link(featurePath(feature, t), t.place ? `${t.place.name}の${FEATURES[feature].noun}` : `${FEATURES[feature].noun}の観光スポット`, t.spots.length),
+    labelEn: t.place ? `${FEATURES[feature].nounEn} in ${t.place.kind === "prefecture" ? t.place.nameEn : REGION_EN[t.place.region]}` : FEATURES[feature].headEn,
+});
+const momijiLink = (t: FeatureTopic): TopicLink => featureLink("momiji", t);
+
+export function featureIntro(feature: FeatureKey, t: FeatureTopic, cards: readonly TopicCard[]): string {
+    const def = FEATURES[feature];
+    const n = t.spots.length;
+    const where = t.place ? `${t.place.name}で、` : "";
+    const kinds = categoryBreakdown(t.spots);
+    const time = t.spots.filter((s) => (s.timeOfDayGuide ?? []).length > 0).length;
+    // 2026-11-11 判断（札 rymaruta/journey.photo-ios#527）: まとめの頁は全部を並べない（`FEATURE_TOP_CARDS`）。
+    // 題は並べた数（「36選」）なので、導入文も「全部で N 件・この頁には M 件」と分けて言う
+    // （以前は「149件まとめました」と書き、題の「36選」と食い違っていた。`seasonIntro` と同じ言い方）
+    const lead = cards.length < n
+        ? `${where}${SEASON_JA[def.season]}の撮影の案内に「${def.keyword}」の記述があるスポットは${n}件あります。`
+            + (kinds ? `種類は${kinds}など。` : "")
+            + `この頁には${names(cards)}など${cards.length}件を載せ、ほかは地方・県の頁にあります。`
+        : `${where}${SEASON_JA[def.season]}の撮影の案内に「${def.keyword}」の記述があるスポットを${n}件まとめました。`
+            + (kinds ? `種類は${kinds}など。` : "")
+            + `${names(cards)}など。`;
+    // 一部だけ並べる頁では「うち」が並べた数のうちと読めるので、全体の数を言う
+    const timeNote = time > 0 ? `${cards.length < n ? `${n}件のうち` : "うち"}${time}件は時間帯ごとの撮影の案内もあります。` : "";
+    // 最後に「見頃」の1文（日付は書かない・2026-11-18）
+    return `${lead}${timeNote}${def.peakNote}`;
+}
+export const momijiIntro = (t: FeatureTopic, cards: readonly TopicCard[]): string => featureIntro("momiji", t, cards);
+
+/** まとめの頁に並べる数（全部は並べない・`SEASON_TOP_CARDS` と同じ理由）。地方・県の頁が無い行は全部残す */
+export const FEATURE_TOP_CARDS = 36;
+export const MOMIJI_TOP_CARDS = FEATURE_TOP_CARDS;
+
+function featureTopCards(t: FeatureTopic, subs: readonly FeatureTopic[]): TopicCard[] {
+    const covered = new Set(subs.flatMap((x) => x.spots.map((s) => s.spotId)));
+    const ranked = topicCards(t.spots);                 // 写真のあるものが先
+    const bySlug = new Map(t.spots.map((s) => [s.slug, s]));
+    const orphans = ranked.filter((c) => !covered.has(bySlug.get(c.slug)!.spotId));
+    // 地方を順に 1 件ずつ（多い地方が並びを占めない）
+    const buckets = new Map<string, TopicCard[]>();
+    for (const c of ranked.filter((c) => covered.has(bySlug.get(c.slug)!.spotId))) {
+        const r = regionOf(bySlug.get(c.slug)!) ?? "?";
+        buckets.set(r, [...(buckets.get(r) ?? []), c]);
+    }
+    const lists = [...buckets.values()];
+    const rest: TopicCard[] = [];
+    for (let i = 0; lists.some((l) => i < l.length); i++) for (const l of lists) if (i < l.length) rest.push(l[i]);
+    const keep = new Set([...orphans, ...rest.slice(0, Math.max(0, FEATURE_TOP_CARDS - orphans.length))].map((c) => c.slug));
+    return ranked.filter((c) => keep.has(c.slug));
+}
+
+export function featureView(feature: FeatureKey, place: string | null, spots: readonly Spot[] = SPOTS): TopicView | null {
+    const def = FEATURES[feature];
+    const sj = SEASON_JA[def.season];
+    const se = SEASON_EN[def.season];
+    const all = featureTopics(feature, spots);
+    const t = all.find((x) => (x.place?.slug ?? null) === place);
+    if (!t) return null;
+    const hub = all.find((x) => x.place === null)!;
+    const subs = all.filter((x) => x.place !== null);
+    const cards = t.place ? topicCards(t.spots) : featureTopCards(t, subs);
+    const seasonTop = seasonTopics(spots).find((x) => x.season === def.season && x.area === null);
+    const prefsInRegion = t.place?.kind === "region"
+        ? subs.filter((x) => x.place!.kind === "prefecture" && (x.place as { region: string }).region === t.place!.region) : [];
+    const lk = (x: FeatureTopic) => featureLink(feature, x);
+    return {
+        path: featurePath(feature, t),
+        heading: featureHeading(feature, t),
+        headingEn: featureHeadingEn(feature, t),
+        intro: featureIntro(feature, t, cards),
+        crumbs: t.place ? [{ name: `${def.noun}の観光スポット`, nameEn: def.headEn, href: featurePath(feature, hub) }] : [],
+        cards,
+        related: [
+            { heading: "地方でさがす", headingEn: "By region", links: t.place ? [] : subs.filter((x) => x.place!.kind === "region").map(lk) },
+            { heading: "県でさがす", headingEn: "By prefecture", links: t.place ? prefsInRegion.map(lk) : subs.filter((x) => x.place!.kind === "prefecture").map(lk) },
+            {
+                heading: `ほかの地方・県の${def.noun}`, headingEn: "Other areas",
+                links: t.place ? subs.filter((x) => x !== t && !prefsInRegion.includes(x)).slice(0, 12).map(lk) : [],
+            },
+            { heading: `${sj}の観光スポット`, headingEn: `${se} photo spots`, links: seasonTop ? [seasonLink(seasonTop)] : [] },
+            {
+                heading: `${sj}の観光スポットを種類でさがす`, headingEn: `${se} by type`,
+                links: seasonThemeTopics(spots).filter((x) => x.season === def.season).map(seasonThemeLink),
+            },
+            // ほかの見どころ（桜・紅葉・雪景色の行き来）。まとめの頁だけ
+            {
+                heading: "ほかの季節の見どころ", headingEn: "Other seasonal highlights",
+                links: t.place ? [] : FEATURE_KEYS.filter((k) => k !== feature).flatMap((k) => {
+                    const h = featureTopics(k, spots).find((x) => x.place === null);
+                    return h ? [featureLink(k, h)] : [];
+                }),
+            },
+        ].filter((g) => g.links.length > 0),
+        indexable: true,
+        // 題・説明は「紅葉 見頃」「〇〇 紅葉 名所」に合わせて頁ごとに組む（2026-11-18・`featureTitle`）
+        title: featureTitle(feature, t, cards),
+        description: featureDescription(feature, t, cards),
+        ogImage: ogImageOf(t.spots, cards),
+        lastModified: latest(t.spots),
+    };
+}
+export const momijiView = (place: string | null, spots: readonly Spot[] = SPOTS): TopicView | null => featureView("momiji", place, spots);
 
 /** 構造化データ（パンくず・並べたスポットの `ItemList`）。**画面に並べたものと同じ順** */
 export function topicStructuredData(view: TopicView) {
@@ -1120,12 +1538,23 @@ export function topicLinksForSpot(spot: Spot, spots: readonly Spot[] = SPOTS): T
     for (const t of themeTopics(spots)) {
         if (t.spots.some((s) => s.spotId === spot.spotId)) out.push({ ...link(themePath(t), themeHeading(t), t.spots.length), labelEn: themeHeadingEn(t) });
     }
+    const city = cityTopics(spots).find((t) => t.spots.some((x) => x.spotId === spot.spotId));
+    if (city) out.push({ ...link(cityPath(city), cityHeading(city), city.spots.length), labelEn: cityHeadingEn(city) });
     const seasons = seasonTopics(spots);
     for (const season of SEASONS) {
         if (!hasSeason(spot, season)) continue;
         const mine = seasons.filter((t) => t.season === season && t.spots.some((s) => s.spotId === spot.spotId));
         const best = mine.find((t) => t.area !== null) ?? mine.find((t) => t.area === null);
         if (best) out.push({ ...link(seasonPath(best), seasonHeading(best), best.spots.length), labelEn: seasonHeadingEn(best) });
+    }
+    // 紅葉・桜・雪景色（県の頁があればそれ、無ければ地方、無ければまとめ）
+    for (const feature of FEATURE_KEYS) {
+        const mine = featureTopics(feature, spots).filter((t) => t.spots.some((x) => x.spotId === spot.spotId));
+        const best = mine.find((t) => t.place?.kind === "prefecture") ?? mine.find((t) => t.place?.kind === "region") ?? mine[0];
+        if (best) out.push({ ...link(featurePath(feature, best), featureHeading(feature, best), best.spots.length), labelEn: featureHeadingEn(feature, best) });
+    }
+    for (const t of seasonThemeTopics(spots)) {
+        if (t.spots.some((x) => x.spotId === spot.spotId)) out.push({ ...link(seasonThemePath(t), seasonThemeHeading(t), t.spots.length), labelEn: seasonThemeHeadingEn(t) });
     }
     return out;
 }
@@ -1149,6 +1578,11 @@ export function spotCountryRef(spot: Spot, spots: readonly Spot[] = SPOTS): { hr
 export function spotIndexTopics(spots: readonly Spot[] = SPOTS): {
     seasons: TopicLink[];
     themes: Array<{ category: string; categoryEn: string; links: TopicLink[] }>;
+    seasonThemes: TopicLink[];
+    cities: TopicLink[];
+    momiji: TopicLink[];
+    sakura: TopicLink[];
+    snow: TopicLink[];
 } {
     const seasons = seasonTopics(spots).filter((t) => t.area === null)
         .map((t) => ({ ...link(seasonPath(t), seasonHeading(t), t.spots.length), labelEn: seasonHeadingEn(t) }));
@@ -1158,7 +1592,14 @@ export function spotIndexTopics(spots: readonly Spot[] = SPOTS): {
         if (!g) themes.push(g = { category: t.category, categoryEn: categoryEn(t.categorySlug), links: [] });
         g.links.push({ ...link(themePath(t), t.place.name, t.spots.length), labelEn: placeEn(t.place) });
     }
-    return { seasons, themes };
+    return {
+        seasons, themes,
+        seasonThemes: seasonThemeTopics(spots).map(seasonThemeLink),
+        cities: cityTopics(spots).map(cityLink),
+        momiji: featureTopics("momiji", spots).map((t) => featureLink("momiji", t)),
+        sakura: featureTopics("sakura", spots).map((t) => featureLink("sakura", t)),
+        snow: featureTopics("snow", spots).map((t) => featureLink("snow", t)),
+    };
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1221,20 +1662,20 @@ export function homeSeasonalSpots(now: Date, spots: readonly Spot[] = SPOTS, lim
 }
 
 // ─────────────────────────────────────────────────────────────
-// サイトマップ（`app/sitemap.ts` から1行で呼ぶ・別の枝と衝突を小さくするため関数を分ける）
+// サイトマップ（`lib/server/sitemap.ts` から1行で呼ぶ・別の枝と衝突を小さくするため関数を分ける）
 // ─────────────────────────────────────────────────────────────
 
-type SitemapEntry = { url: string; lastModified: string | Date; changeFrequency: "weekly"; priority: number };
+type SitemapEntry = { url: string; lastModified?: string | Date; changeFrequency: "weekly"; priority: number };
 
 /**
  * 切り口の頁のうち**検索に出すもの**（国は `MIN_INDEXABLE_COUNTRY` 件以上・テーマ・季節は全部）。
  * `lastModified` は**載せたスポットの更新日の最大**（ビルドの時刻にしない）
  */
 export function spotTopicSitemapEntries(baseUrl: string = siteConfig.url, spots: readonly Spot[] = SPOTS): SitemapEntry[] {
-    const now = new Date().toISOString();
+    // 日付が取れない行は lastModified を書かない（ビルドの時刻を「更新日」と申告しない・2026-11-09）
     const entry = (path: string, members: readonly Spot[], priority: number): SitemapEntry => ({
         url: `${baseUrl}${path}`,
-        lastModified: latest(members) ?? now,
+        ...(latest(members) ? { lastModified: latest(members) } : {}),
         changeFrequency: "weekly",
         priority,
     });
@@ -1242,6 +1683,10 @@ export function spotTopicSitemapEntries(baseUrl: string = siteConfig.url, spots:
         ...countryTopics(spots).filter((c) => c.spots.length >= MIN_INDEXABLE_COUNTRY).map((c) => entry(ROUTES.SPOT_COUNTRY(c.code), c.spots, 0.6)),
         ...themeTopics(spots).map((t) => entry(themePath(t), t.spots, 0.5)),
         ...seasonTopics(spots).map((t) => entry(seasonPath(t), t.spots, t.area ? 0.5 : 0.6)),
+        ...cityTopics(spots).map((t) => entry(cityPath(t), t.spots, 0.5)),
+        ...seasonThemeTopics(spots).map((t) => entry(seasonThemePath(t), t.spots, 0.5)),
+        // 紅葉・桜・雪景色（まとめは季節の全体と同じ 0.6・季節の需要が大きい）
+        ...FEATURE_KEYS.flatMap((f) => featureTopics(f, spots).map((t) => entry(featurePath(f, t), t.spots, t.place ? 0.5 : 0.6))),
     ];
 }
 
@@ -1266,6 +1711,7 @@ export function topicMetadata(view: TopicView | null) {
         title: view.title ? { absolute: title } : title,
         description,
         alternates: { canonical: url },
+        itunes: appItunes(url),
         robots: pageRobots(view.indexable),
         openGraph: {
             type: "website" as const, url, siteName: siteConfig.name,

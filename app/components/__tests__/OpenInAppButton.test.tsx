@@ -45,12 +45,16 @@ describe("isIPhone", () => {
 });
 
 describe("OpenInAppButton", () => {
-    it("iPhone には「アプリで保存」を出す", () => {
+    it("iPhone には「アプリで保存」を出し、押すと spot_open_app を1回送る", () => {
         setUA(IPHONE);
         render(<OpenInAppButton slug="abukumado" isJa />);
         const link = screen.getByRole("link", { name: "アプリで保存" });
         // jsdom のホストは localhost＝本番でないので App Store へ直に
         expect(link.getAttribute("href")).toBe(STORE);
+        link.addEventListener("click", (e) => e.preventDefault());
+        link.click();
+        expect(gtag.mock.calls.filter((c) => c[1] === "app_store_click").map((c) => c[2]))
+            .toEqual([expect.objectContaining({ placement: "spot_open_app" })]);
     });
 
     it("iPhone でなければ出さない", () => {

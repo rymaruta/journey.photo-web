@@ -43,6 +43,22 @@ export function signupBenefitsLoginHref(currentPath?: string | null, via?: Via):
     return loginWithNext(currentPath, via);
 }
 
+/**
+ * ログインのお願い（空の頁、フォロー中の並び、未ログインの反応の知らせ）に並べる2つ（札 journey.photo-ios#630、2026-11-15）。
+ * **新規登録が主（`action`）、ログインが隣（`secondaryAction`）。** 本番の会員は約7人（Cognito の見積もり）で、
+ * お願いを見る人の多くはまだ登録していない。押した先は今の登録の頁とログインの頁のまま（戻り先と via を運ぶ）
+ */
+export function signInAskActions(locale: string, currentPath?: string | null, via?: Via): {
+    action: { label: string; href: string };
+    secondaryAction: { label: string; href: string };
+} {
+    const isJa = locale !== "en";
+    return {
+        action: { label: isJa ? SIGNUP_BENEFITS_SIGNUP.ja : SIGNUP_BENEFITS_SIGNUP.en, href: signupBenefitsSignupHref(currentPath, via) },
+        secondaryAction: { label: isJa ? SIGNUP_BENEFITS_LOGIN.ja : SIGNUP_BENEFITS_LOGIN.en, href: signupBenefitsLoginHref(currentPath, via) },
+    };
+}
+
 /** 出すか。**ログインの確かめが終わって、ログインしていないと分かってから**（確かめ中にログイン済みの人へ一瞬出さない） */
 export function showsSignupBenefits(auth: { loading: boolean; isAuthenticated: boolean }): boolean {
     return !auth.loading && !auth.isAuthenticated;

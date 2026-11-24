@@ -107,6 +107,7 @@ export function imageSinks(raw: string, file: string): Sink[] {
  *       （`app/components/__tests__/imageOrigin.test.tsx`）
  */
 const EXEMPT: Array<[string, string, string]> = [
+    ["app/composition/page.tsx", "photoUrl", "端末内で選択した画像の blob: URL のみを表示し、サーバーにはアップロードしない"],
     ["app/components/SpotLinkCard.tsx", "spot.cover!.src",
      "写真詳細に出す公式ガイドの代表写真。`SpotGuideClient` と同じ値。"
      + "台帳をクライアントに載せないため、サーバー側（`lib/data/spotLink.ts`）で"
@@ -116,13 +117,17 @@ const EXEMPT: Array<[string, string, string]> = [
      + "ない**——運営が台帳（`content/spots.json`）に書いたサイト内のパスで、"
      + "CloudFront の写真URLではないので `publicImageUrl` を通す対象ではない。"
      + "権利の判断はサーバー側（`lib/data/spotLink.ts` の `toSpotLink`）で済ませてある"],
-    ["app/map/MapSpotList.tsx", "s.cover.src",
-     "地図の下の公式スポット一覧の代表写真。上と同じ値・同じ経路"],
-    ["app/components/SpotIndexClient.tsx", "s.cover!.src",
-     "県の頁（`/spots/area/<県>`）のカードの代表写真。季節・テーマの頁と同じ値"
-     + "（`topicCardCover`＝`spotCoverImage` のサイト内のパスかそのサムネ・2026-10-22）。"
+    ["app/components/SpotThumbMark.tsx", "src",
+     "観光スポットの一覧の行の丸い印（地図の下の一覧 `MapSpotList`・近くの観光スポット `SpotRows`・2026-11-04）。"
+     + "渡されるのは台帳の代表写真（`SpotPin.cover`）か、サイトに同梱した小さい版（`spotRowThumbPath(slug)`＝`/images/spots/thumb/<slug>.jpg`）だけ。"
+     + "**利用者が上げた写真ではない**。出してよいかの判断はサーバー側（`lib/data/spotThumbs.ts` の `hasSpotRowThumb`）で済ませてある"],
+    ["app/components/SpotPhotoParts.tsx", "src",
+     "観光スポットの写真の札（2026-11-10・案A）。県の頁（`/spots/area/<県>`）のカードと、`/spots` の県・国・いまの季節の札の代表写真。"
+     + "季節・テーマの頁と同じ値（`topicCardCover`＝`spotCoverImage` のサイト内のパスかそのサムネ・2026-10-22）。"
      + "利用者が上げた写真ではない。台帳をクライアントに載せないため"
-     + "サーバー側（`lib/data/spotLink.ts` の `spotIndexItemsForArea`）で解いた形から受け取る"],
+     + "サーバー側（`lib/data/spotLink.ts` の `spotIndexItemsForArea`・`lib/data/spotIndexPhotos.ts`）で解いた形から受け取る"],
+    ["app/components/SpotPhotoParts.tsx", "img.currentSrc || img.src",
+     "上の札の写真が水和の前に壊れて見えたときの読み直し（2026-11-10）。いま描いている `<img>` と同じ場所をもう1回読むだけで、新しい URL は作らない"],
     ["app/components/PhotoMap.tsx", "coverSrc",
      "地図の観光スポットのピンの写真の丸（iOS の `SpotMapMarker`・2026-10-31 束 2）。`MapSpotList` の行と同じ値"
      + "（`SpotPin.cover.src`）で、利用者が上げた写真ではない。サーバー側（`lib/data/spotLink.ts` の `spotPins`）で解いた形から受け取る"],
@@ -166,7 +171,12 @@ const EXEMPT: Array<[string, string, string]> = [
     ["app/user/profile/page.tsx", "song.previewUrl", "曲の試聴（iTunes の音源・プロフィールの一覧）"],
 
     // (a2) 自分のサイトに置いた固定の資産（写真ではない）
+    ["app/components/Footer.tsx", '"/logo-aperture.png"', "フッターとiOSアプリ案内の固定ロゴ。public/配下のサイト相対パスなので配信ドメインの変換は不要"],
+    ["app/components/AppInstallCard.tsx", '"/logo-aperture.png"', "iOSアプリのご案内の札の固定ロゴ（2026-11-06・ホーム・記事・フッターに置く）。同じサイト相対パス"],
+    ["app/components/AppTopBanner.tsx", '"/icon-192.png?v=aperture"', "iPhone の Safari 以外の頁の上の帯のアプリのアイコン（2026-11-20・札 #666）。public/配下のサイト相対パス"],
     ["app/components/OpenInAppButton.tsx", '"/logo-aperture.png"', "観光スポットの頁の「アプリで保存」の固定ロゴ（2026-11-18）。同じサイト相対パス"],
+    ["app/search/SpotSearchResults.tsx", "src", "公式観光スポットの検索用サムネイル。spot-search.jsonのimage.srcはサイト内の固定画像パスで、利用者の投稿画像ではない"],
+    ["app/components/AuthPhotoBand.tsx", '"/logo-aperture.png"', "ログイン・登録の画面の固定ロゴ（public/配下のサイト相対パス）"],
     ["app/layout.tsx", '"/logo-aperture.png"', "ヘッダーのロゴ（`public/` に置いた固定の絵。相対パスなので既にサイトのドメイン）"],
     ["app/components/ProfileNameMarks.tsx", "proMarkImage(style, size)", "Pro の印（`public/badges/` に置いた固定の SVG。相対パス）"],
     // `badgeImage` は季節の章で絵の無い年に null を返すので、一度変数に受けてから描く

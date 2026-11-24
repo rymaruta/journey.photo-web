@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, within, fireEvent } from "@testing-library/react";
 import type { Spot } from "@/lib/data/spots";
 
 /**
@@ -68,6 +68,31 @@ describe("SpotTopicPage", () => {
         expect(lic.getAttribute("rel")).toContain("license");
         expect(line.closest("a")).toBeNull();
         expect(line.className).not.toContain("truncate");
+    });
+
+    it("観光スポットカードの画像が失敗したら名前に切り替え、写真クレジットを隠す", () => {
+        const view = themeView("temples-shrines", "kinki")!;
+        const credited = view.cards.find((c) => c.cover?.credit?.license)!;
+        const { container } = render(<SpotTopicPage view={{ ...view, cards: [credited] }} eyebrow="x" />);
+        const img = container.querySelector("ul.grid img");
+        expect(img).not.toBeNull();
+        expect(screen.getByTestId("topic-credit")).toBeTruthy();
+        fireEvent.error(img!);
+        expect(container.querySelector("ul.grid img")).toBeNull();
+        expect(screen.queryByTestId("topic-credit")).toBeNull();
+        expect(screen.getByRole("link", { name: new RegExp(credited.name) })).toBeTruthy();
+    });
+
+    it("代表写真がないカードでもスポット名と詳細へのリンクを維持する", () => {
+        const view = themeView("temples-shrines", "kyoto")!;
+        const original = view.cards[0];
+        const noCover = { ...original, cover: null };
+        const { container } = render(<SpotTopicPage view={{ ...view, cards: [noCover] }} eyebrow="x" />);
+        const link = container.querySelector('ul.grid a[href="/spots/' + original.slug + '"]');
+        expect(link).not.toBeNull();
+        expect(link!.textContent).toContain(original.name);
+        expect(link!.querySelector("img")).toBeNull();
+        expect(container.querySelector('[data-testid="topic-credit"]')).toBeNull();
     });
 
     it("🔴 `/spots/area/overseas` は国の一覧（スポットのカードを積まない）", async () => {
@@ -215,7 +240,7 @@ describe("観光スポットの一覧の頁の字と節（束 2）", () => {
         expect(h1.className).not.toContain("text-2xl");
         expect(screen.getByText(view.intro).style.fontSize).toBe("15px");
         if (view.related.length > 0) {
-            const h2 = screen.getAllByRole("heading", { level: 2 })[0];
+            const h2 = screen.getByRole("heading", { level: 2, name: view.related[0].heading });
             expect(h2.style.fontSize).toBe("22px");
         }
     });
@@ -225,21 +250,49 @@ describe("観光スポットの一覧の頁の字と節（束 2）", () => {
         const { container } = render(<SpotTopicPage view={view} eyebrow="x" />);
         const card = container.querySelector("ul.grid > li > div > a")!;
         expect(card.querySelector("div.aspect-\\[16\\/10\\]")).toBeTruthy();
-        expect((card.querySelector("p.font-serif") as HTMLElement).style.fontSize).toBe("18px");
+        expect((card.querySelector("h2.font-serif") as HTMLElement).style.fontSize).toBe("18px");
     });
 
-    it("P1・P3・P5 県の頁: 題は明朝 32、戻り道は当たり 44", async () => {
+    // 2026-11-11（#527）: スポットの名前は見出し（h2）。h1 の下に段を飛ばさない
+    it("カードのスポット名は h2（切り口の頁・県の頁）", async () => {
+        const view = themeView("temples-shrines", "kyoto")!;
+        const { unmount } = render(<SpotTopicPage view={view} eyebrow="x" />);
+        const names = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+        for (const c of view.cards) expect(names, c.name).toContain(c.name);
+        expect(screen.queryAllByRole("heading", { level: 3 })).toHaveLength(0);
+        unmount();
+        const el = await SpotAreaPage({ params: Promise.resolve({ area: "kyoto" }) });
+        const { container } = render(el);
+        const cards = container.querySelectorAll('[data-testid="spot-card"]');
+        expect(cards.length).toBeGreaterThan(10);
+        for (const a of cards) expect(a.querySelector("h2")?.textContent, a.getAttribute("href") ?? "").toBeTruthy();
+    });
+
+    it("県の頁は件数の文の後ろに、その県の台帳から数えた導入文を出す（#527）", async () => {
+        const { areaIntro } = await import("@/lib/data/spotTopics");
+        const { visibleSpotsInArea } = await import("@/lib/data/spotLink");
+        const intro = areaIntro(visibleSpotsInArea("kyoto"));
+        expect(intro).toContain("種類は");
+        const el = await SpotAreaPage({ params: Promise.resolve({ area: "kyoto" }) });
+        render(el);
+        const p = screen.getByText((_, node) => node?.tagName === "P" && (node.textContent ?? "").includes(intro));
+        expect(p.textContent).toMatch(/^観光スポットの案内です（\d+件）。/);
+    });
+
+    it("P1・P3 県の頁: 題は明朝 32。頭の「← 観光スポットをさがす」は出さない（2026-11-11 owner）", async () => {
         const el = await SpotAreaPage({ params: Promise.resolve({ area: "kyoto" }) });
         render(el);
         expect(screen.getByRole("heading", { level: 1 }).className).toContain("text-4xl");
-        expect(screen.getByTestId("spots-back").className).toContain("min-h-[44px]");
+        expect(screen.queryByTestId("spots-back")).toBeNull();
+        expect(screen.queryByText("← 観光スポットをさがす")).toBeNull();
     });
 
-    it("P1・P3 入口（/spots）: 題は明朝 32、地方と季節・テーマの節は明朝 22", () => {
+    // 2026-11-10 案A: 季節・テーマなどの切り口は「ほかの切り口でさがす」の節の開け閉めの段に畳んだ
+    it("P1・P3 入口（/spots）: 題は明朝 32、地方・いまの季節・ほかの切り口・写真の出典の節は明朝 22", () => {
         render(SpotIndexPage());
         expect(screen.getByRole("heading", { level: 1 }).className).toContain("text-4xl");
-        for (const name of ["近畿", "季節でさがす", "テーマでさがす"]) {
-            expect(screen.getByRole("heading", { level: 2, name }).style.fontSize, name).toBe("22px");
+        for (const name of [/^近畿/, /の観光スポット$/, "ほかの切り口でさがす", /^写真の出典/]) {
+            expect(screen.getByRole("heading", { level: 2, name }).style.fontSize, String(name)).toBe("22px");
         }
     });
 });

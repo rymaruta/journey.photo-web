@@ -109,7 +109,10 @@ describe("置き場所", () => {
 
     it("トップの新着とおすすめ、写真の頁に配線し、登録とログインの頁は変えない", () => {
         const gallery = read("app/GalleryPageClient.tsx");
-        expect(gallery.match(/insert=\{benefitsInsert\(filteredPhotos\)\}/g)).toHaveLength(2);
+        // 新着は並びに挟む（insert）。おすすめは季節の段で並びを割っている枝では、段の後ろに置く（benefitsShown）
+        const inserted = (gallery.match(/insert=\{benefitsInsert\(filteredPhotos\)\}/g) ?? []).length;
+        const afterShelf = (gallery.match(/\{benefitsShown && \(/g) ?? []).length;
+        expect(inserted + afterShelf).toBe(2);
         expect(gallery).toContain("showsSignupBenefits({ loading: authLoading, isAuthenticated })");
         expect(read("app/photo/[id]/PhotoPageClient.tsx")).toContain("<SignUpBenefits locale=");
         expect(read("app/signup/page.tsx")).not.toContain("SignUpBenefits");

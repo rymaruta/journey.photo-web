@@ -90,6 +90,8 @@ const sendsPush = (handler: string) =>
     // 旅行プランの共有（`tripShare.ts`）は口が9つでも関数は1つ（`handler` が道で分ける）。知らせは中の `notify` が
     // `sendPush` で直に送るので、`handler` の本文には出てこない。別のスタックまで見張りを広げたとき（#552）に足した
     || (handler === "src/tripShare.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/tripShare.ts"), "utf8")))
+    // グループの DM（`groups.ts`・札 journey.photo-ios#582）も同じ形（口は 11 でも関数は1つ・中の `pushTo` が `sendPush` で直に送る）
+    || (handler === "src/groups.handler" && /\bsendPush\s*\(/.test(readFileSync(resolve(ROOT, "api-user/src/groups.ts"), "utf8")))
     // 「Apple でサインイン」「Google でログイン」（札 journey.photo-ios#601・#715）: メールで自動で結んだときの知らせは、
     // 知らせだけの関数（`federatedNotice.ts` の `linkNoticeHandler`）が `sendPush` で送る（サインインの口は鍵を持たない）
     || (handler === "src/federatedNotice.linkNoticeHandler"
@@ -180,7 +182,7 @@ describe("api-user: APNs の鍵は送る関数にだけ配る", () => {
     it("通知を積む関数を1つ以上見つけている", () => {
         const sending = [...fns].filter(([, v]) => sendsPush(v.handler)).map(([n]) => n).sort();
         expect(sending).toEqual([
-            "answerStory", "appStoreNotification", "createStory", "dm", "followUser", "getMyBadges", "likePhoto", "linkNotice", "postComment", "postStoryReply",
+            "answerStory", "appStoreNotification", "createStory", "dm", "followUser", "getMyBadges", "groups", "likePhoto", "linkNotice", "postComment", "postStoryReply",
             "recordPurchase", "savePhoto", "sendLightAlerts", "tripShare", "updatePhotoVisibility",
         ]);
     });

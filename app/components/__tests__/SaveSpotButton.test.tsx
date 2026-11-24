@@ -163,7 +163,7 @@ describe("行きたいボタンの数え方（wish_tap）", () => {
         expect(link.getAttribute("href")).toContain("via=wish");
         link.addEventListener("click", (e) => e.preventDefault());
         link.click();
-        expect(gtag).toHaveBeenCalledWith("event", "wish_tap", { signed_in: 0, kind: "spot" });
+        expect(gtag).toHaveBeenCalledWith("event", "wish_tap", expect.objectContaining({ signed_in: 0, kind: "spot" }));
         // slug は送らない
         expect(JSON.stringify(gtag.mock.calls)).not.toContain("hanauma");
     });
@@ -175,7 +175,7 @@ describe("行きたいボタンの数え方（wish_tap）", () => {
         fetchMock.mockResolvedValueOnce(ok(["パリ"]));
         btn.click();
         await waitFor(() => expect(screen.getByRole("button", { name: "保存済み" })).toBeTruthy());
-        expect(gtag).toHaveBeenCalledWith("event", "wish_tap", { signed_in: 1, kind: "location" });
+        expect(gtag).toHaveBeenCalledWith("event", "wish_tap", expect.objectContaining({ signed_in: 1, kind: "location" }));
     });
 
     it("外すときは数えない", async () => {

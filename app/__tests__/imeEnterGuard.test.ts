@@ -88,6 +88,8 @@ const EXEMPT: Record<string, { skip: number; why: string }> = {
     "app/components/CommentSection.tsx": { skip: 1, why: "Ctrl/Cmd+Enter は IME が消費しない" },
     // タグのチップ（role="switch"）を Enter で押す判定。入力欄ではない
     "app/components/FilterBar.tsx": { skip: 1, why: "チップのキー操作（入力欄ではない）" },
+    // 日本地図の枠（role="group"）の矢印・Enter。テキスト入力ではない（このファイルの input は件数の濃淡のチェックボックスだけ）
+    "app/components/HomeJapanMap.tsx": { skip: 1, why: "地図の枠のキー操作（入力欄ではない）" },
 };
 
 describe("Enter を見る入力欄は、変換中を必ず見る", () => {

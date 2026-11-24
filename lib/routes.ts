@@ -1,4 +1,5 @@
 import PHOTO_INDEX from "@/app/data/photo-index.json";
+import { parseLoginVia, type LoginVia } from "./auth/loginVia";
 
 // **`photos.json` を丸ごと読まない。** ここで要るのは id が2組だけなのに、
 // 以前は写真データを全部 import していた——JSON のモジュールは項目単位で
@@ -63,6 +64,8 @@ export const ROUTES = {
      * `/favorites` と同じ扱い（`noindexMetadata`）。
      */
     SAVED_SPOTS: "/saved-spots",
+    /** 行きたい場所を地図で見る（iOS の `SavedSpotsMapView`）。`SAVED_SPOTS` の下・本人だけ・noindex */
+    SAVED_SPOTS_MAP: "/saved-spots/map",
     /**
      * 旅行プラン。**行きたい場所を「いつ・どの順で回るか」に並べる面**で、
      * `SAVED_SPOTS`（保存しただけの一覧）とは別。
@@ -96,6 +99,18 @@ export const ROUTES = {
     /** 季節の撮影スポット（`/spots/season/<season>`）と、その地方別（`/spots/season/<season>/<region>`） */
     SPOT_SEASON: (season: string, region?: string) =>
         `/spots/season/${encodeURIComponent(season)}${region ? `/${encodeURIComponent(region)}` : ""}`,
+    /** 市区町村の撮影スポット（`/spots/city/<県の綴り>/<市区町村名>`・日本語の綴り） */
+    SPOT_CITY: (pref: string, city: string) => `/spots/city/${encodeURIComponent(pref)}/${encodeURIComponent(city)}`,
+    /** 季節 × カテゴリの撮影スポット（`/spots/season/<season>/theme/<カテゴリ>`） */
+    SPOT_SEASON_THEME: (season: string, category: string) => `/spots/season/${encodeURIComponent(season)}/theme/${encodeURIComponent(category)}`,
+    /** 紅葉の撮影スポット（`/spots/momiji`＝まとめ・`/spots/momiji/<地方か県の綴り>`・2026-11-06） */
+    SPOT_MOMIJI: (place?: string) => `/spots/momiji${place ? `/${encodeURIComponent(place)}` : ""}`,
+    /** 桜（春）の撮影スポット（`/spots/sakura`＝まとめ・`/spots/sakura/<地方か県の綴り>`・2026-11-07） */
+    SPOT_SAKURA: (place?: string) => `/spots/sakura${place ? `/${encodeURIComponent(place)}` : ""}`,
+    /** 雪景色（冬）の撮影スポット（`/spots/snow`＝まとめ・`/spots/snow/<地方か県の綴り>`・2026-11-07） */
+    SPOT_SNOW: (place?: string) => `/spots/snow${place ? `/${encodeURIComponent(place)}` : ""}`,
+    /** 見どころ別の撮影スポット（紅葉・桜・雪景色の共通の入口） */
+    SPOT_FEATURE: (feature: "momiji" | "sakura" | "snow", place?: string) => `/spots/${feature}${place ? `/${encodeURIComponent(place)}` : ""}`,
     /** 写真をさがす（絞り込みと一覧）。**検索結果に出さない**——トップと中身が重なる */
     SEARCH: "/search",
     /**
@@ -108,10 +123,24 @@ export const ROUTES = {
      * 札の山は `/app/data/swipe.json`）。未ログインでも払える。入口はホームの上段の札の1枚目
      */
     SWIPE: "/swipe",
+    /** 写真とカメラの教科書（記事の一覧）。記事の台帳は `lib/data/learn/articles.ts` */
+    LEARN: "/learn",
+    LEARN_CAMERA_BASICS: "/learn/camera-basics",
+    LEARN_CAMERA_BRANDS: "/learn/camera-brands",
+    /** 構図ガイド（ガイド線を自分の写真に重ねる）。設定と教科書の一覧から入る */
+    COMPOSITION: "/composition",
+    /** 今日の日の出・日の入り（現在地で調べる）。県ごとの頁は `TODAY_PREF`（県スラッグは `lib/data/prefectures.ts`） */
+    TODAY: "/today",
+    TODAY_PREF: (pref: string) => `/today/${encodeURIComponent(pref)}`,
     PRIVACY: "/privacy",
     TERMS: "/terms",
     /** 「サインインの方法」の案内（Apple・Google の連携を知らせるメールのリンクの行き先・札 journey.photo-ios#601） */
     SIGNIN_METHODS: "/signin-methods",
+    /**
+     * 県ごとの郷土料理とお土産（`app/food/[area]/page.tsx`・2026-11-23 案 B）。`area` は県の綴り。
+     * `/spots/area/<県>/<x>` の下は海外の国の頁と重なるので、別の所（`/food`）に置く
+     */
+    FOOD: (area: string) => `/food/${encodeURIComponent(area)}`,
     /**
      * 使い方（2026-11-12・札 journey.photo-ios#517）。目次と、機能ごとの短い頁（台帳は `lib/data/helpPages.ts`）。
      * iOS の入口は 設定 → ヘルプと規約 → 使い方 の1か所だけ（`HELP` を開く）
@@ -223,10 +252,10 @@ export function safeNextPath(raw: unknown): string | null {
 }
 
 /** ログイン画面へ。戻り先を添える（省略時は既定＝自分のプロフィール） */
-export function loginWithNext(next?: string | null, via?: "wish" | "swipe"): string {
+export function loginWithNext(next?: string | null, via?: LoginVia): string {
     const safe = safeNextPath(next);
     const base = safe ? `${ROUTES.LOGIN}?next=${encodeURIComponent(safe)}` : ROUTES.LOGIN;
     // `via` は登録までの数え方（`lib/utils/analytics.ts` の `signupFromVia`）。
-    // 決まった値しか受けない（URL に好きな文字列を載せない）
-    return via ? `${base}${safe ? "&" : "?"}via=${via}` : base;
+    // 決まった値しか受けない（URL に好きな文字列を載せない。型は `LOGIN_VIAS`・実行時も許可リストで見る）
+    return via && parseLoginVia(via) ? `${base}${safe ? "&" : "?"}via=${via}` : base;
 }

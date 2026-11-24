@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 
 // **`loaded` は「API の一覧で置き換わったか」。**
 //
@@ -184,6 +184,20 @@ describe("usePhotos の failed", () => {
         await waitFor(() => expect(result.current.loaded).toBe(true));
         expect(result.current.failed).toBe(false);
         expect(result.current.photos.map((p) => p.id)).toEqual(["api-1"]);
+    });
+
+    // ホームの「読み込めませんでした」の「もう一度試す」（2026-11-04・iOS の `ErrorBanner` の再試行）
+    it("画面の「もう一度試す」（retry）で取り直す", async () => {
+        mockPublicFetch.mockResolvedValueOnce(new Response("boom", { status: 503 }));
+        const { result } = renderHook(() => usePhotos());
+        await waitFor(() => expect(result.current.failed).toBe(true));
+
+        mockPublicFetch.mockResolvedValue(new Response(JSON.stringify(API_PHOTOS), { status: 200 }));
+        act(() => { result.current.retry(); });
+        // 取り直している間は失敗の印を下ろす（画面は骨組みに戻る）
+        expect(result.current.failed).toBe(false);
+        await waitFor(() => expect(result.current.loaded).toBe(true));
+        expect(mockPublicFetch).toHaveBeenCalledTimes(2);
     });
 
     it("回線が戻ったときも取り直す", async () => {

@@ -1,14 +1,17 @@
 "use client";
 
 import React from "react";
-import { HeartIcon } from "@heroicons/react/24/solid";
 import { useFavorites } from "../../lib/hooks/useFavorites";
 import { useAuth } from "../auth/context";
 import { useMyServerLikes } from "../../lib/hooks/useMyServerLikes";
 import { useImagePreloader } from "../../lib/hooks/useImagePreloader";
 import { usePhotos } from "../../lib/hooks/usePhotos";
 import GalleryGrid from "../components/GalleryGrid";
-import { GRID_SIZES_5XL } from "../components/gridSizes";
+import { EDITORIAL_HERO_SIZES, EDITORIAL_PAIR_SIZES } from "../components/gridSizes";
+import ListPageHeader from "../components/ListPageHeader";
+import { EmptyState, ErrorState, LoadingState } from "../components/StateViews";
+import { ROUTES } from "../../lib/routes";
+import { signInAskActions } from "../../lib/auth/signupBenefits";
 import { useLocale } from "../i18n/context";
 import { photoCategoryMap } from "../../lib/utils/categoryMap";
 
@@ -24,12 +27,16 @@ export default function FavoritesPage() {
     const serverLikes = useMyServerLikes(isAuthenticated, authLoading);
 
     // いいねした写真。**サーバーと端末の和**——サーバーは別の端末のぶんを、
-    // 端末は未ログインで押したぶんと、一覧の書き込みが落ちた回を拾う
+    // 端末は一覧の書き込みが落ちた回（ログイン中に押したが一覧に入らなかった分）を拾う。
+    // 2026-11-09: **端末の控えを足すのはログイン済みだけ。** 未ログインのいいねは端末に溜めなくなった
+    // （サーバーに届かない・件数にも通知にも入らない）ので、以前に端末へ残った分を「いいねした写真」と
+    // 出さない（`useLocalFavoritesShown` と同じ判断。判定中も出さない）
+    const showLocal = !authLoading && isAuthenticated;
     const favoritePhotos = React.useMemo(() => {
-        const ids = new Set<string>(favorites);
+        const ids = new Set<string>(showLocal ? favorites : []);
         for (const id of serverLikes.photoIds) ids.add(id);
         return allPhotos.filter((p) => ids.has(p.id));
-    }, [favorites, serverLikes.photoIds, allPhotos]);
+    }, [favorites, showLocal, serverLikes.photoIds, allPhotos]);
 
     // お気に入りの画像をプリロード
     React.useEffect(() => {
@@ -48,59 +55,68 @@ export default function FavoritesPage() {
         [labels, favoritePhotos],
     );
 
+    const en = locale === "en";
+    const n = favoritePhotos.length;
     return (
         <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg max-w-5xl mx-auto w-full">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4 sm:mb-6 min-h-[64px]">
-                <div className="flex-1">
-                    <h1 id="site-title" className="text-2xl sm:text-3xl font-bold mb-0">
-                        {locale === "en" ? "Liked Photos" : "いいねした写真"}
-                    </h1>
-                    <p className="text-sm text-white/60 mt-1">
-                        {/* **「まだ」と「0件」を混ぜない。** 聞いている途中に
-                            「0 件」と言い切ると、別の端末で押したぶんが
-                            届く前に「無い」と読める */}
-                        {serverLikes.pending
-                            ? (locale === "en" ? "Loading…" : "読み込み中…")
-                            : locale === "en"
-                                ? `${favoritePhotos.length} liked photo${favoritePhotos.length !== 1 ? "s" : ""}`
-                                : `いいねした写真 ${favoritePhotos.length} 件`}
-                    </p>
-                </div>
-
-            </div>
+            {/* 見出しの型は iOS `FavoritesView.header`（眉 → 明朝の題 → 一行）。2026-11-04 判断（札 #478）。
+                眉の件数は聞けたときだけ（「まだ」と「0件」を混ぜない） */}
+            <ListPageHeader
+                titleId="site-title"
+                eyebrow={serverLikes.pending || n === 0 ? "LIKED" : en ? `LIKED · ${n}` : `LIKED · ${n}枚`}
+                title={en ? "Liked Photos" : "いいねした写真"}
+                description={en
+                    ? "Photos you liked. The photographer is notified, and the same list appears on your other devices and the web. Bookmarked photos are under Saved on your page."
+                    : "ハートを押した写真。作者に届き、ほかの端末や Web でも同じ一覧が見られます。しおりで保存した写真はマイページの「保存」に。"}
+            />
 
             {/* 取りに行って失敗した回は、黙って短い一覧を出さない
                 （端末の控えぶんは出るので、足りていないことだけ伝える） */}
-            {serverLikes.failed && (
+            {serverLikes.failed && n > 0 && (
                 <p role="alert" className="mb-4 text-sm text-danger">
-                    {locale === "en"
+                    {en
                         ? "Couldn't load the likes saved on your account. Some photos may be missing. "
                         : "アカウントに保存されたいいねを読み込めませんでした。表示されていない写真があるかもしれません。"}
-                    <button onClick={serverLikes.retry} className="underline text-white/80 hover:text-white">
-                        {locale === "en" ? "Retry" : "再試行"}
+                    <button onClick={serverLikes.retry} className="underline text-white/80 hover:text-white" style={{ minHeight: 44 }}>
+                        {en ? "Retry" : "再試行"}
                     </button>
                 </p>
             )}
 
-            {serverLikes.pending && favoritePhotos.length === 0 ? (
-                <div className="rounded-2xl bg-surface ring-1 ring-line py-16 flex items-center justify-center">
-                    <p className="text-white/60 text-sm">{locale === "en" ? "Loading…" : "読み込み中…"}</p>
+            {authLoading ? (
+                <LoadingState kind="grid" locale={en ? "en" : "ja"} />
+            ) : !isAuthenticated ? (
+                // 未ログイン: ここに並べるものは無い。ログインへ（戻り先はこの頁・via=like）
+                <EmptyState
+                    testId="favorites-guest"
+                    message={en ? "Log in to see the photos you liked." : "ログインすると、いいねした写真がここに並びます。"}
+                    // 新規登録も並べる（札 journey.photo-ios#630、2026-11-15 判断で新規登録が主）
+                    {...signInAskActions(locale, ROUTES.FAVORITES, "like")}
+                />
+            ) : serverLikes.pending && n === 0 ? (
+                // 読み込み中は格子の灰の骨格（iOS `JPLoadingState(kind: .grid)`・0.3 秒より早ければ出さない）
+                <LoadingState kind="grid" locale={en ? "en" : "ja"} />
+            ) : n === 0 && serverLikes.failed ? (
+                <div role="alert">
+                    <ErrorState
+                        message={en ? "Couldn't load your liked photos. Check your connection." : "いいねした写真を読み込めませんでした。通信の状態を確かめてください"}
+                        onRetry={serverLikes.retry}
+                        retryLabel={en ? "Retry" : "再試行"}
+                        locale={en ? "en" : "ja"}
+                    />
                 </div>
-            ) : favoritePhotos.length === 0 ? (
-                <div className="rounded-2xl bg-surface ring-1 ring-line py-16 flex flex-col items-center justify-center gap-3 text-center">
-                    <div className="w-16 h-16 rounded-full bg-surface flex items-center justify-center">
-                        <HeartIcon className="w-8 h-8 text-white/30" />
-                    </div>
-                    <p className="text-white/70 text-sm">
-                        {locale === "en" ? "No liked photos yet." : "いいねした写真はまだありません。"}
-                    </p>
-                    <p className="text-white/50 text-xs">
-                        {locale === "en" ? "Tap the heart on a photo and it will be collected here." : "写真のハート（いいね）を押すとここに集まります。"}
-                    </p>
-                </div>
+            ) : n === 0 ? (
+                <EmptyState
+                    message={en ? "No liked photos yet" : "まだいいねした写真がありません"}
+                    action={{ label: en ? "Browse photos" : "写真を見に行く", href: ROUTES.HOME }}
+                />
             ) : (
+                // 先頭を大きな1枚に（iOS は高さ 280 の先頭＋3列。Web は他の一覧と同じ `editorial`：大きく1枚 → 2枚ずつ）
                 <GalleryGrid
-                        sizes={GRID_SIZES_5XL}
+                    sizes={EDITORIAL_PAIR_SIZES}
+                    heroSizes={EDITORIAL_HERO_SIZES}
+                    layout="editorial"
+                    priorityCount={3}
                     photos={favoritePhotos}
                     locale={locale}
                     categoryDisplayMap={categoryDisplayMap}

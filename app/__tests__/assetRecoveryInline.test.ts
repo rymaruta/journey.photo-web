@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { isAssetElement, stylesheetsApplied } from "@/lib/utils/assetRecovery";
+import { isAssetElement, stylesheetsApplied, isLeavingPage, LEAVING_GRACE_MS } from "@/lib/utils/assetRecovery";
 
 /**
  * **同じ規則が2か所にある。**
@@ -143,3 +143,54 @@ describe("CSS が当たっているかの判定も、2つの写しで同じ", ()
     });
 });
 
+
+/**
+ * **頁を離れる途中の失敗では読み直さない**（2026-11-20・`isLeavingPage` の注記）。
+ * WebKit は別の頁へ移るとき、読み込み中の script / CSS を打ち切って error を出す。それで読み直すと、
+ * 移動が読み直しに割り込まれて元の頁に戻された（本番の Deploy Site run 44815049595 の2回目の smoke）。
+ * 2つの写しが同じ規則（`beforeunload`・`pagehide` から10秒・`pageshow` で解く）で動くことを見る
+ */
+describe("頁を離れる途中の失敗では、2つの写しとも読み直さない", () => {
+    const chunk = () => el("script", { src: `${HERE}/_next/static/chunks/a.js` });
+    afterEach(() => {
+        // 前のテストで走らせた見張りにも印が残らないように、戻ったことにする
+        window.dispatchEvent(new Event("pageshow"));
+        vi.useRealTimers();
+    });
+
+    it.each(["beforeunload", "pagehide"])("%s のあとは読み直さない（インライン）", (ev) => {
+        runInline();
+        window.dispatchEvent(new Event(ev));
+        expect(inlineFires(chunk())).toBe(false);
+    });
+
+    it("pageshow（bfcache から戻った）で元に戻る（インライン）", () => {
+        runInline();
+        window.dispatchEvent(new Event("beforeunload"));
+        window.dispatchEvent(new Event("pageshow"));
+        expect(inlineFires(chunk())).toBe(true);
+    });
+
+    it("移動が取りやめになっても、10秒たてば見張りは戻る（インライン）", () => {
+        vi.useFakeTimers({ toFake: ["Date"] });
+        vi.setSystemTime(1_000_000);
+        runInline();
+        window.dispatchEvent(new Event("beforeunload"));
+        vi.setSystemTime(1_000_000 + LEAVING_GRACE_MS - 1);
+        expect(inlineFires(chunk())).toBe(false);
+        vi.setSystemTime(1_000_000 + LEAVING_GRACE_MS);
+        expect(inlineFires(chunk())).toBe(true);
+    });
+
+    it("isLeavingPage も同じ区切り", () => {
+        expect(isLeavingPage(0, 5)).toBe(false);
+        expect(isLeavingPage(1_000, 1_000)).toBe(true);
+        expect(isLeavingPage(1_000, 1_000 + LEAVING_GRACE_MS - 1)).toBe(true);
+        expect(isLeavingPage(1_000, 1_000 + LEAVING_GRACE_MS)).toBe(false);
+        expect(isLeavingPage(1_000, 999)).toBe(false); // 時計が戻った
+    });
+
+    it("インラインのソースに 10 秒（LEAVING_GRACE_MS）が書いてある", () => {
+        expect(inlineSource()).toContain(`now-lv<${LEAVING_GRACE_MS}`);
+    });
+});

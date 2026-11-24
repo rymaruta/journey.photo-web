@@ -9,7 +9,7 @@ import { join } from "node:path";
 // （このリポジトリは「関数は書いたが配線していない」を5回踏んでいる）。
 //
 // 型を書き下している箇所なので tsc も止めてくれない（`as CollectionType[]`）。
-const src = readFileSync(join(__dirname, "..", "sitemap.ts"), "utf8");
+const src = readFileSync(join(__dirname, "..", "..", "lib", "server", "sitemap.ts"), "utf8");
 /** コメントを落とす（コメントに書いてあるだけを緑にしない） */
 const code = src.replace(/^\s*\/\/.*$/gm, "").replace(/\/\*[\s\S]*?\*\//g, " ");
 

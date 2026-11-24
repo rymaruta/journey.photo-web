@@ -22,7 +22,8 @@ describe("チップは高さ 34・字 13（v2 の .chip）", () => {
         ["app/components/SpotIndexClient.tsx", 2],
         ["app/components/DiscoverRail.tsx", 2],
         // app/search/DiscoverSections.tsx は 2026-10-31 束 1 S7 で機種名のチップを外した（機材は札 3 枚）
-        ["app/components/SpotGuideClient.tsx", 1],
+        // SpotGuideClient の「この撮影スポットが載っている一覧」のチップは 2026-11-09 に SpotNext へ移った
+        ["app/components/SpotNext.tsx", 1],
         ["app/components/SpotTopicLists.tsx", 1],
         ["app/components/SpotAreaIndexClient.tsx", 1],
     ] as const)("%s は CHIP_SIZE で寸法を取る（%i か所）", (file, n) => {
@@ -42,8 +43,8 @@ describe("塗りの主ボタンは高さ 50、線の副ボタンは高さ 44（v
     });
 
     it.each([
-        ["app/login/page.tsx", 4],
-        ["app/signup/page.tsx", 3],
+        // 2026-11-04: ログイン・設定の下の画面の主ボタン・線のボタンは部品の定数（主2・線1）
+        ["app/components/accountFormStyles.ts", 3],
         ["app/admin/login/page.tsx", 1],
         ["app/user/profile/page.tsx", 1],
         ["app/user/edit/page.tsx", 1],

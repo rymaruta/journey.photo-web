@@ -12,6 +12,7 @@ import { useAuth } from "../../auth/context";
 import AddToHomeScreenHint from "../../components/AddToHomeScreenHint";
 import { useLocale } from "../../i18n/context";
 import { log } from "../../../lib/utils/log";
+import { track, uploadErrorReason, type UploadErrorReason } from "../../../lib/utils/analytics";
 import { createThumbnail, toUploadSafeFile, UnstrippableFileError, extractDominantColor, createBlurPlaceholder } from "../../../lib/utils/image";
 import { extractExifFromFile, extractCameraExif, reverseGeocode } from "../../../lib/utils/exif";
 import { readSharedResult, clearSharedPayload } from "../../../lib/utils/shareStore";
@@ -302,7 +303,7 @@ function UploadPageInner() {
     // 件数で見ると「もう上がっている写真」について「まだ上げられません」と
     // 嘘をつくことになる
     const pendingWork = items.some((i) => i.status !== "done");
-    const gate = useMemberGate(pendingWork);
+    const gate = useMemberGate(pendingWork, "upload");
     /** 送り返さずに留めている状態（未ログインだが、まだ上げていない写真がある） */
     const holdingWork = gate === "anonymous" && pendingWork;
     const [category, setCategory] = useState("");
@@ -1108,6 +1109,7 @@ function UploadPageInner() {
         }
 
         setUploading(true);
+        track("upload_start", { photo_count: pending.length });
         abortedBySwitchRef.current = false;
         setStopping(false);
         const controller = new AbortController();
@@ -1170,6 +1172,7 @@ function UploadPageInner() {
             // `pending.length - successCount` は使えない（手を付けていない
             // 写真まで「失敗」に数えてしまう）
             let failCount = 0;
+            let failReason: UploadErrorReason | undefined;   // 計測用（最初の失敗の理由）
             let cancelled = false;
             for (const item of pending) {
                 // **1枚ごとに見る。** 5枚選んで2枚目でやめたとき、残りを上げ始めない
@@ -1192,7 +1195,7 @@ function UploadPageInner() {
                         // 場合は**形式が正しい JPEG** なので、言われたとおりに
                         // 保存し直しても同じ結果になる（袋小路だった）。
                         updateItem(item.id, { status: "error", error: unstrippableMessage(e, locale) });
-                        failCount++;
+                        failCount++; failReason ??= "unsupported_file";
                         continue;
                     }
                     updateItem(item.id, { progress: 20 });
@@ -1409,7 +1412,7 @@ function UploadPageInner() {
                     // 出していたので、画面に英語の技術文字列が並んでいた。
                     // 見せてよいのは、こちらが日本語で組み立てたものだけ
                     updateItem(item.id, { status: "error", error: userFacingUploadError(err) });
-                    failCount++;
+                    failCount++; failReason ??= uploadErrorReason(err);
                 }
             }
 
@@ -1485,7 +1488,7 @@ function UploadPageInner() {
                     log.error("grouped upload save failed:", err);
                     const msg = userFacingUploadError(err);
                     for (const g of group) updateItem(g.item.id, { status: "error", error: msg });
-                    failCount = group.length;
+                    failCount = group.length; failReason ??= uploadErrorReason(err);
                 }
             }
 
@@ -1509,6 +1512,8 @@ function UploadPageInner() {
                 }
                 return;
             }
+            if (failCount > 0) track("upload_error", { reason: failReason ?? "other" });
+            if (successCount > 0 && published) track("upload_complete", { photo_count: successCount });
             if (successCount > 0) {
                 // **まとめた回は「1件の投稿」と言う。** 「5枚アップロード
                 // しました」だと5件できたように読める（枠も1つしか減らない）。
@@ -1686,6 +1691,23 @@ function UploadPageInner() {
      * 履歴が無いとき（共有シートから直接開いた回）だけトップへ逃がす。
      */
     const closeComposer = () => {
+        // 送信中に画面を離れるとS3への転送と投稿保存が不整合になるため、
+        // 中断ボタンの既存処理を使ってから閉じてもらう。
+        if (uploading) {
+            window.alert(locale === "en"
+                ? "An upload is in progress. Stop the upload before leaving."
+                : "アップロード中です。先に「やめる」で中断してから閉じてください。");
+            return;
+        }
+        // iOS版と同様、未完了の投稿を誤って閉じないよう確認する。
+        // アップロード済みでも保存未完了の写真は、S3に孤立する可能性がある。
+        const hasUnfinished = uploading || items.some((item) => item.status !== "done");
+        if (hasUnfinished && typeof window !== "undefined") {
+            const message = locale === "en"
+                ? "You have an unfinished post. Leave without finishing?"
+                : "投稿が完了していません。編集内容を残さずに閉じますか？";
+            if (!window.confirm(message)) return;
+        }
         if (typeof window !== "undefined" && window.history.length > 1) router.back();
         else router.push(ROUTES.HOME);
     };
@@ -1709,7 +1731,7 @@ function UploadPageInner() {
                         <XMarkIcon className="w-6 h-6" />
                     </button>
                     <h1 className="text-center font-semibold" style={{ fontSize: "16px" }}>
-                        {isJa ? "新しい投稿を作成" : "New post"}
+                        {isJa ? "新規投稿" : "New post"}
                     </h1>
                     {/* 下書き保存: 必須項目なしで非公開保存。あとで編集して公開できる。
                         **地名の引き当てを待たない**——下書きは公開ではないので、

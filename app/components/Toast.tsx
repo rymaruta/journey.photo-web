@@ -5,6 +5,7 @@
 
 import React, { useEffect, useRef } from "react";
 import { XMarkIcon, CheckCircleIcon, ExclamationCircleIcon, InformationCircleIcon } from "@heroicons/react/24/outline";
+import Link from "next/link";
 import { useToast, type Toast as ToastType } from "../../lib/hooks/useToast";
 
 function ToastItem({ toast }: { toast: ToastType }) {
@@ -59,6 +60,32 @@ function ToastItem({ toast }: { toast: ToastType }) {
         >
             {getIcon()}
             <p className="flex-1 text-sm text-white/90 leading-snug">{toast.message}</p>
+            {/* 次の一手（未ログインの案内の「ログイン」など）。当たりは 44pt、色は黒い地の上の真鍮（`text-link`） */}
+            {toast.action && (
+                <Link
+                    href={toast.action.href}
+                    prefetch={false}
+                    onClick={() => removeToast(toast.id)}
+                    data-testid="toast-action"
+                    className="inline-flex items-center justify-center min-h-[44px] px-2 -my-2 text-sm font-semibold text-link whitespace-nowrap rounded-full hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 flex-shrink-0"
+                    style={{ touchAction: "manipulation" }}
+                >
+                    {toast.action.label}
+                </Link>
+            )}
+            {/* 2つ目の一手（未ログインの案内の「ログイン」）。主の「新規登録」より控えめに text-2 の字。当たりは 44pt */}
+            {toast.secondaryAction && (
+                <Link
+                    href={toast.secondaryAction.href}
+                    prefetch={false}
+                    onClick={() => removeToast(toast.id)}
+                    data-testid="toast-secondary-action"
+                    className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] px-2 -my-2 text-sm text-text-2 hover:text-white whitespace-nowrap rounded-full hover:bg-white/10 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 flex-shrink-0"
+                    style={{ touchAction: "manipulation" }}
+                >
+                    {toast.secondaryAction.label}
+                </Link>
+            )}
             <button
                 onClick={handleClose}
                 className="p-1.5 rounded-full hover:bg-white/10 active:scale-90 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60 flex-shrink-0"

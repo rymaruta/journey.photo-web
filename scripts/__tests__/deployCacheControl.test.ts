@@ -12,7 +12,7 @@ const { cacheControlFor } = require("../deploy-static-site.js") as { cacheContro
 describe("cacheControlFor", () => {
     it("HTML・txt・サイトマップ・photos.json・sw.js は no-cache（no-store を付けない）", () => {
         for (const k of ["index.html", "spots/kiyomizudera.html", "spots/kiyomizudera.txt", "robots.txt", "sitemap.xml",
-            "sitemap-images.xml", "app/data/photos.json", "sw.js", "manifest.webmanifest", "feed.xml"]) {
+            "sitemap-spots.xml", "sitemap-images.xml", "app/data/photos.json", "sw.js", "manifest.webmanifest", "feed.xml"]) {
             expect(cacheControlFor(k), k).toBe("no-cache");
             expect(cacheControlFor(k), k).not.toMatch(/no-store/);
         }

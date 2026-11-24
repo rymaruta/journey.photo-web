@@ -71,7 +71,7 @@ describe("ランドマークに名前が付いている", () => {
 });
 
 describe("ホームに見出しがある", () => {
-    it("h1 は HTML に1つだけ・狭い画面では読み上げ専用、広い画面で見える指定", async () => {
+    it("h1 は HTML に1つだけ・スマホでもパソコンでも見える（sr-only・hidden にしない）・明朝", async () => {
         const GalleryPageClient = (await import("../GalleryPageClient")).default;
         const { container } = render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         // jsdom は CSS を見ない。**HTML に在る数**を数える（検索は HTML を読むので、
@@ -81,25 +81,32 @@ describe("ホームに見出しがある", () => {
         const h1 = h1s[0];
         expect(h1.textContent?.trim(), "名前の無い見出し（読み上げても何も分からない）").toBeTruthy();
 
-        // 狭い画面: 画面には出さないが読み上げの木には居る（`display:none` の中に置かない）
-        expect(hasClass(h1, "sr-only"), "狭い画面で見出しが目に見えて増える").toBe(true);
-        expect(hasClass(h1, "hidden"), "見出し自体が隠されている（狭い画面で h1 が0件になる）").toBe(false);
+        // 2026-11-09（owner 承認・9人のレビュー）: スマホでも画面に出す。**画面の外（sr-only）に戻すとここで落ちる**
+        expect(hasClass(h1, "sr-only"), "スマホで見出しが画面の外（見えない）").toBe(false);
+        expect(hasClass(h1, "sm:not-sr-only"), "sr-only を前提にした指定が残っている").toBe(false);
+        expect(hasClass(h1, "hidden"), "見出し自体が隠されている").toBe(false);
         for (let el = h1.parentElement; el && el !== container; el = el.parentElement) {
-            expect(hasClass(el, "hidden"), `見出しの包みが狭い画面で消える: ${el.className}`).toBe(false);
+            expect(hasClass(el, "hidden"), `見出しの包みが消える: ${el.className}`).toBe(false);
+            expect(hasClass(el, "sr-only"), `見出しの包みが画面の外: ${el.className}`).toBe(false);
         }
-        // 広い画面: ふつうに見える（前の形と同じ見た目）
-        expect(hasClass(h1, "sm:not-sr-only"), "広い画面で見出しが見えない").toBe(true);
-        expect(hasClass(h1, "not-sr-only"), "狭い画面でも見えてしまう指定になっている").toBe(false);
-        const wrapper = h1.parentElement!.parentElement!;
-        expect(wrapper.className, "広い画面で横並びの指定が無い").toMatch(/\bsm:flex\b/);
-        expect(hasClass(wrapper, "flex"), "狭い画面で包みが箱になる（見た目が変わる）").toBe(false);
+        expect(hasClass(h1, "font-serif"), "見出しは明朝（板 02）").toBe(true);
+        // 見出しの階層。**この環境では写真が0枚・地図などを差し替えているので描かれる見出しは h1 だけで、
+        // 「h1→h2→h3 と飛ばない」は空振りする**（実際のホームは 1,2,2,…,3 で飛ばないことを Playwright で実測した・2026-11-09）。
+        // ここで縛れるのは「h1 より前に別の見出しが無い」ことだけ
+        const levels = Array.from(container.querySelectorAll("h1,h2,h3,h4")).map((e) => Number(e.tagName[1]));
+        expect(levels[0], `最初の見出しが h1 でない: ${levels.join(",")}`).toBe(1);
+        for (let i = 1; i < levels.length; i++) expect(levels[i] - levels[i - 1], `見出しの階層が飛ぶ: ${levels.join(",")}`).toBeLessThanOrEqual(1);
     });
 
-    it("一言（サイトの看板）は狭い画面では今までどおり出さない", async () => {
+    it("一言（サイトの看板）はスマホでも見せる（hidden の包みに入れない）", async () => {
         const GalleryPageClient = (await import("../GalleryPageClient")).default;
         const { container } = render(<ToastProvider><GalleryPageClient /></ToastProvider>);
         const sub = container.querySelector("#site-subtitle");
         expect(sub, "一言が描かれていない").toBeTruthy();
-        expect(hasClass(sub!.parentElement, "hidden"), "狭い画面で一言が出る").toBe(true);
+        expect(sub!.textContent?.trim(), "一言が空").toBeTruthy();
+        for (let el: Element | null = sub as Element; el && el !== container; el = el.parentElement) {
+            expect(hasClass(el, "hidden"), `スマホで一言が消える: ${el.className}`).toBe(false);
+            expect(hasClass(el, "sr-only"), `スマホで一言が画面の外: ${el.className}`).toBe(false);
+        }
     });
 });

@@ -135,6 +135,11 @@ export type PushMessage = PushAlert & {
     badge?: number;
     /** 押したときの行き先を決めるための付帯情報 */
     data?: Record<string, string>;
+    /**
+     * 端末の通知の束（`aps.thread-id`）。同じ値の知らせは1つの束に重なる。グループの会話（`groups.ts`）が
+     * グループの id を入れる（2026-11-20・札 journey.photo-ios#582）。無ければ欄を出さない（今の知らせは変わらない）
+     */
+    threadId?: string;
 };
 
 /** 送信の結果。**無効だった宛先だけ**を返す（呼び出し側が外す） */
@@ -153,6 +158,7 @@ export function pushPayload(message: PushMessage): string {
                 : { title: message.title, body: message.body },
             sound: "default",
             ...(typeof message.badge === "number" ? { badge: message.badge } : {}),
+            ...(typeof message.threadId === "string" && message.threadId ? { "thread-id": message.threadId } : {}),
         },
         ...(message.data ?? {}),
     });

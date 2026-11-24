@@ -56,7 +56,7 @@ describe("画像サイトマップの説明の切り詰め", () => {
     it("撮影地は切り詰めで消えない（説明より先に席を取る）", () => {
         const long = "あ".repeat(CAPTION_MAX * 2);
         const c = captionOf(photo({ description: { ja: [long] }, location: "パリ, フランス" } as Partial<Photo>));
-        expect(c.endsWith("（パリ, フランス）"), "撮影地が落ちている").toBe(true);
+        expect(c.endsWith("（パリ）"), "撮影地が落ちている").toBe(true);
         expect(c.length).toBeLessThanOrEqual(CAPTION_MAX);
     });
 
@@ -142,6 +142,17 @@ describe("画像サイトマップの形", () => {
 
 // **caption は1行の説明文として読まれる。** XML としては改行も通るが、
 // 実ビルドで4件が生の改行を含んでいた
+// 2026-11-11（札 journey.photo-ios#527）: 写真の頁の description と同じく、撮影地は「名前、県市」まで
+describe("画像サイトマップの caption の撮影地", () => {
+    it("地図の住所の全文を出さず、名前と県市だけ（説明に入っている語は足さない）", () => {
+        const loc = "月崎, 大多喜里見線, 月崎, 市原市, 千葉県, 290-0547, 日本";
+        expect(captionOf(photo({ description: { ja: ["夏のプラットホーム。"] }, location: loc } as Partial<Photo>)))
+            .toBe("夏のプラットホーム。（月崎、千葉県市原市）");
+        expect(captionOf(photo({ description: undefined, location: "道の駅 万葉の里" } as Partial<Photo>))).toBe("（道の駅 万葉の里）");
+        expect(captionOf(photo({ description: { ja: ["パリの夜。"] }, location: "パリ, フランス" } as Partial<Photo>))).toBe("パリの夜。");
+    });
+});
+
 describe("画像サイトマップの caption は1行", () => {
     it("説明の改行を空白にする", () => {
         const c = captionOf(photo({ description: { ja: ["一行目。\n二行目。"] } } as Partial<Photo>));

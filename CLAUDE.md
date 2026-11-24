@@ -34,7 +34,7 @@
 - コードを書く前に**既存の実装を再利用できないか探す**。同じものを二度作らない。
 - 影響範囲を調べてから着手する（grep で参照箇所を洗う）。
 - 変更後は必ず **`npm run verify`** を通す（`scripts/verify-local.sh`）。
-  **別のブランチへ入れる前は、これが緑になってから。** GitHub Actions の枠は1分も使わない。
+  **別のブランチへ入れる前は、これが緑になってから。** 確かめるのは手元で（Actions で「試しに回す」使い方をしない。理由は下の「GitHub Actions」の節）。
 
       型検査（ルート）              npx tsc --noEmit
       型検査（api / api-user）      ルートの tsconfig は両方を見ていない。
@@ -388,42 +388,37 @@ open）。`DiscoverRail` が全リンクを `<a>` にし、doc に「#141 が入
 owner が操作感の変更を了とするなら `radiogroup` に寄せるのが正解、と
 書いておく。
 
-## AWS 本番リソース一覧
+## 環境ごとの値の取り出し方
 
-| リソース | 名前 / ID |
+**このリポジトリは公開なので、リソース名・ID・URL をこの文書に書き写さない。**
+（以前ここにあった「AWS 本番／ステージングリソース一覧」は 2026-11-04 に消した。
+値は下の場所から取る。値が変わったとき、この文書の書き写しが古いまま残る事故も防げる。）
+
+環境は2つ（本番＝`main`、ステージング＝`develop`）。AWS のリソースの名前は
+環境名が接頭辞（`prod-*` / `staging-*`）で、リージョンは `ap-northeast-1`。
+
+| 欲しい値 | 取り出し方 |
 |---|---|
-| 静的サイト S3 バケット | `prod-journey-photo.com` |
-| 画像アップロード S3 バケット | `prod-journey-photo-upload` |
-| CloudFront ディストリビューション ID | `EYRLTGCPOS9E4` |
-| CloudFront ドメイン | `d1s3dwwzgxf5ni.cloudfront.net` |
-| カスタムドメイン | `journey-photo.com` |
-| API Gateway (管理API) | `https://ionr4ik01e.execute-api.ap-northeast-1.amazonaws.com` |
-| API Gateway (ユーザーAPI) | `https://gu7kxwdc5l.execute-api.ap-northeast-1.amazonaws.com` |
-| Cognito User Pool ID | `ap-northeast-1_ZbuhDQsWz` |
-| Cognito Client ID | `21cs4cd8dkttmg3snloj72u8mu` |
-| DynamoDB テーブル | `prod-photo-gallery-photos` |
-| AWS リージョン | `ap-northeast-1` |
+| 静的サイトの S3 バケット名・画像アップロードの S3 バケット名・DynamoDB テーブル名（写真／利用者） | `.github/workflows/deploy.yml` の `config` ジョブ（`id: pick` の `case` 文）の `siteBucket` `uploadBucket` `photosTable` `usersTable`。API 側は `deploy-api.yml` の同名ステップ。環境名＋固定の語尾の形なので、`aws s3 ls` / `aws dynamodb list-tables` で接頭辞を見ても確かめられる |
+| サイトの URL・CloudFront の既定ドメイン | `deploy.yml` の `config` ジョブの `siteUrl` `cloudfrontUrl`。AWS 側からは `aws cloudfront list-distributions`（`DomainName` と `Aliases`） |
+| CloudFront ディストリビューション ID | ステージング: `deploy.yml` の `config` ジョブ。本番: GitHub の Secrets `CLOUDFRONT_DISTRIBUTION_ID`（値は読めないので、必要なら `aws cloudfront list-distributions` で上のドメインと突き合わせる）。API 側は `deploy-api.yml` の `cloudfrontDistributionId` |
+| API Gateway の URL（管理 API・利用者 API） | `deploy.yml` の `config` ジョブの `apiBaseUrl` `userApiBaseUrl`。AWS 側からは `aws cloudformation describe-stacks` でスタック（`api/`・`api-user/` の `serverless.yml` の `service` と stage で決まる名前）の Outputs、または `aws apigatewayv2 get-apis` / `aws apigateway get-rest-apis` |
+| Cognito のユーザープール ID・クライアント ID・プール名 | `deploy.yml` の `config` ジョブの `cognitoUserPoolId` `cognitoClientId`。プール名（`cognitoPoolName`）は `deploy-api.yml`。AWS 側からは `aws cognito-idp list-user-pools --max-results 20` と `aws cognito-idp list-user-pool-clients --user-pool-id <プールID>` |
+| 手元用の Cognito・API の値 | `.env.local`（git 管理外）。無ければ上の `deploy.yml` の値を写す。ブラウザに配られる `NEXT_PUBLIC_*` はビルド後の JS に入るので秘密ではない |
+| 秘密（AWS の鍵・`REBUILD_DISPATCH_TOKEN`・APNs の鍵 など） | GitHub の Secrets。読めない。必要なら owner に聞く |
+| AWS アカウント ID・IAM の ARN | このリポジトリのどこにも書かない。`aws sts get-caller-identity`。それ以外は owner に聞く |
 
-## AWS ステージングリソース一覧
+> 確かめた範囲: 上の「場所」は `deploy.yml` / `deploy-api.yml` を読んで確かめた（2026-11-04）。
+> AWS CLI のコマンドは、この環境に AWS の認証情報が無いため**実行して確かめていない**。
+> 出力の欄名（`DomainName` など）は AWS CLI の仕様どおりに書いたもの。
 
-2026-08-20 に `provision-env.yml` で作成。本番と同じ構成で、接頭辞だけが違う。
+### ステージング環境について
 
-| リソース | 名前 / ID |
-|---|---|
-| 静的サイト S3 バケット | `staging-journey-photo.com` |
-| 画像アップロード S3 バケット | `staging-journey-photo-upload` |
-| CloudFront ディストリビューション ID | `EF2TFEBBP24DL` |
-| CloudFront ドメイン | `d15fn3rcaiymu9.cloudfront.net` |
-| カスタムドメイン | なし（既定ドメインのみ・`robots.txt` で全拒否） |
-| Cognito User Pool ID | `ap-northeast-1_DSQ16c6vO` |
-| Cognito Client ID | `1qjl9c8gmqidigps55jhv4foi` |
-| API Gateway (管理API) | `https://rfq22dzchf.execute-api.ap-northeast-1.amazonaws.com` |
-| API Gateway (ユーザーAPI) | `https://y9f8ajacc2.execute-api.ap-northeast-1.amazonaws.com` |
-| Cognito プール名 | `staging-journey-photo-client-spa` |
-| DynamoDB テーブル | `staging-photo-gallery-photos` / `staging-photo-gallery-users`（オンデマンド） |
+`provision-env.yml` で作成した（2026-08-20）。本番と同じ構成で、接頭辞だけが違う。
 
 - **本番の写真はコピーしていない**。空から始める（GPS 入りの写真を複製しないため）。
 - ユーザーも空。staging で使うには新規登録が必要。
+- カスタムドメインは無い（CloudFront の既定ドメインのみ・`robots.txt` で全拒否）。
 - CloudFront には**本番の API Gateway オリジンを引き継いでいない**
   （コピーすると staging の `/api/*` が本番APIに届くため）。
 - 環境を増やすときは `provision-env.yml` を `envName` 指定で実行する。
@@ -440,12 +435,13 @@ owner が操作感の変更を了とするなら `radiogroup` に寄せるのが
 # ビルド（DynamoDB から写真データを自動同期）
 npm run build
 
-# S3 + CloudFront にデプロイ（正しいバケット名は prod-journey-photo.com）
+# S3 + CloudFront にデプロイ（バケット名は package.json の web:deploy:prod に入っている）
 # SITE_URL が無いと配信チェックと 5xx 時の再インバリデーションが飛ぶ（デプロイ自体は完了）
-CLOUDFRONT_DISTRIBUTION_ID=EYRLTGCPOS9E4 SITE_URL=https://journey-photo.com npm run web:deploy:prod
+# 2つの値の取り出し方は上の「環境ごとの値の取り出し方」
+CLOUDFRONT_DISTRIBUTION_ID=<本番のディストリビューション ID> SITE_URL=<本番のサイト URL> npm run web:deploy:prod
 ```
 
-> ⚠️ `journey-photo.com` はドメイン名。S3 バケット名は `prod-journey-photo.com`（別物）。
+> ⚠️ サイトのドメイン名と S3 バケット名は別物（バケット名は `<環境>-<ドメイン名>` の形）。
 
 ### API（Lambda）
 
@@ -457,15 +453,18 @@ CLOUDFRONT_DISTRIBUTION_ID=EYRLTGCPOS9E4 SITE_URL=https://journey-photo.com npm 
 
 ```bash
 cd api && npx serverless@3 deploy --stage prod \
-  --param="photosTable=prod-photo-gallery-photos" \
-  --param="usersTable=prod-photo-gallery-users" \
-  --param="uploadBucket=prod-journey-photo-upload" \
-  --param="cloudfrontUrl=https://d1s3dwwzgxf5ni.cloudfront.net" \
-  --param="cloudfrontDistributionId=EYRLTGCPOS9E4" \
-  --param="cognitoUserPoolId=ap-northeast-1_ZbuhDQsWz" \
-  --param="cognitoClientId=21cs4cd8dkttmg3snloj72u8mu" \
-  --param="cognitoPoolName=prod-journey-photo-client-spa"
+  --param="photosTable=<写真テーブル名>" \
+  --param="usersTable=<利用者テーブル名>" \
+  --param="uploadBucket=<画像アップロードのバケット名>" \
+  --param="cloudfrontUrl=<CloudFront の既定ドメインの URL>" \
+  --param="cloudfrontDistributionId=<ディストリビューション ID>" \
+  --param="cognitoUserPoolId=<ユーザープール ID>" \
+  --param="cognitoClientId=<クライアント ID>" \
+  --param="cognitoPoolName=<プール名>"
 ```
+
+各 `<…>` の値は、`deploy-api.yml` の `config` ジョブ（`id: pick`）の同名の変数と
+同じ。取り出し方は上の「環境ごとの値の取り出し方」。
 
 > ⚠️ `cloudfrontDistributionId` を渡し忘れても**デプロイは成功する**
 > （`serverless.yml` の既定が `''`）。落ちるのは削除時のエッジの掃除だけで、
@@ -478,70 +477,32 @@ cd api && npx serverless@3 deploy --stage prod \
 
 `api-user` は `cognitoPoolName` 以外の同じパラメータが必要（トリガーを持たないため）。
 
-## GitHub Actions の枠（**流す前に必ず引き算する**）
+## GitHub Actions（**2026-11-24 から費用はかからない**）
 
-### 🔴 2026-09-23: **枠はもう切れている見込み**（推定 3,240 / 2,000 分）
+**このリポジトリは公開（`visibility: public`・2026-11-24 に `list_repos` で確かめた）。**
+公開リポジトリでは、GitHub の標準のランナー（`ubuntu-latest` など）の Actions は無料で、
+分の枠も請求も無い。owner も同じ認識（2026-11-24「public なので関係ないと思う」）。
 
-**この節は長いあいだ 9/13 の数字のままで、「残り約193分」と書いてあった。
-それは誤り**——9/13 以降だけで経過時間の和が **828分**増えている。
-9/13 のときと同じ失敗（数字を持っていて使わなかった）を、今度は
-**古い数字を置きっぱなしにする**形で繰り返していた。
+だから **「流す前に残りを引き算する」「手動実行は原則やらない」は、もう要らない。**
+保守の作業（`maintenance.yml`）や staging の反映（`Deploy Site` の手動実行）は、要るときに流してよい。
 
-実測（2026-09-23・`actions/runs` を3ページ取って 9/01 以降の全 run 300本）:
+それでも守ること（費用ではなく、速さと確かさの理由）:
 
-    経過時間の和                        1,873.2分
-      Deploy Site   / main     push        41回  737.6分（中央 18.4分）
-      Deploy API    / develop  push       140回  642.2分（中央  4.6分）
-      Deploy API    / main     push        26回  145.6分（中央  4.9分）
-      Deploy Site   / develop  手動        13回  130.7分（中央 10.6分）
-      Deploy Site   / main     再ビルド     14回   88.4分（中央  6.3分）
-      Maintenance ほか                     66回   88.7分
+1. **検証は手元で完結させる**（`npm run verify`）。Actions を「試しに回す」使い方をしない——
+   1回の往復が長く（下の表）、手元のビルド＋実ブラウザのスモークの方が早く確かに捕まえる
+   （9/22 の大きい取りこぼし2件——ログインできないビルド・`/search?…` の水和失敗——は
+   どちらも手元で捕まえた）
+2. **`api/` `api-user/` を触るコミットはまとめてから push。** 1件ずつ出すと `cancel-in-progress: false`
+   なので畳まれず、回数ぶん反映が並んで待つ（9月は develop だけで 140回）
+3. **owner の再ビルド（投稿が世に出る経路）を詰まらせない。** 重い手動実行を何本も並べると、
+   `repository_dispatch` の Deploy Site が順番を待つ
 
-**経過時間の和は課金の実値ではない**（並列ジョブもジョブ単位の切り上げも
-数えないので**必ず過小**）。owner の課金画面が 9/13 に **1,807分**と
-言っていたのに対し、同じ期間のこの和は **1,044.9分**——**倍率 1.73**。
-その1点で較正すると:
+⚠️ **非公開に戻したら、この節は前提から崩れる。** 2026-09 には非公開で、枠（2,000分）を超えて
+課金されていた（推定 3,240分・owner の課金画面の 9/13 の 1,807分で較正）。8月には枠が尽きて
+デプロイが20日間止まった。非公開に戻すなら、`actions/runs` の経過時間の和（課金の実値より
+約 1.73倍 少なく出る）で残りを見積もる運用に戻すこと。
 
-    日付     累計(経過)   課金の推定
-    09-13     1,044.9      1,807   ← owner の画面と一致（較正点）
-    09-16     1,196.8      2,070   ★ ここで 2,000 を超えた
-    09-20     1,506.1      2,604
-    09-22     1,867.6      3,230
-    09-23     1,873.2      3,239
-
-- **較正点は1つだけ**（owner が 9/13 に見せた数字）。倍率 1.73 は推定で、
-  正確な残りは**owner の課金画面にしか無い**。次に owner と話すときは
-  **必ず実数を聞いてこの節を書き直す**
-- 8月に 100% に達して**デプロイが20日間止まった**のがこのリポジトリ最悪の
-  運用障害。今回 止まっていないのは、支出上限が設定されていて**超過ぶんが
-  課金されている**からと読むのが自然（Linux は約 $0.008/分なので、推定
-  1,240分の超過 ≒ **$10 前後**）。**「動いている」は「無料枠が残っている」
-  ではない**
-- つまり**いま流す1分は無料枠ではなく owner の財布**。「残りを引き算する」
-  段階は終わっていて、**流さない理由を先に探す**のが今の正しい姿勢
-- **いちばん太いのは `Deploy API Lambdas` / develop の 140回・642分**。
-  下の「守ること 2」（api を触るコミットはまとめてから push）が
-  **守られていない**ということ。1件ずつ出すと `cancel-in-progress: false`
-  なので畳まれず、回数ぶん 4.6分が走る
-
-### 流す前に見る（Actions の分を1秒も使わずに読める）
-
-```
-gh api repos/rymaruta/photo-gallery/actions/runs?per_page=100 \
-  --jq '[.workflow_runs[] | select(.run_started_at > "2026-09-01")
-         | (( .updated_at | fromdate) - (.run_started_at | fromdate))] | add / 60'
-```
-
-- **`gh` が無い環境（Claude Code のクラウド実行）では GitHub MCP の
-  `actions_list`（`list_workflow_runs`）を使う。** `perPage=100` の1ページは
-  **1週間ぶんしか遡れない**（この repo の流量だと）ので、**3ページ**取って
-  `id` で重複を落としてから足すこと。1ページだけ見て「9/16 以降で776分」と
-  報告しかけた（月初からの合計はその 2.4倍だった）
-- **課金の実値は読めない**（`get_workflow_run_usage` の `billable.total_ms` が
-  このトークンでは全ジョブ 0）。だから上の倍率で較正する
-- 正確な残りは owner の課金画面にしか無い。**だから見積もりは多めに倒す**
-
-### 1回あたりの実測（2026-09-23 に再確認。9/13 の値と一致）
+### 1回あたりの所要（2026-09-23 の実測）
 
 | ワークフロー | 所要 | 起きる条件 |
 |---|---|---|
@@ -549,28 +510,9 @@ gh api repos/rymaruta/photo-gallery/actions/runs?per_page=100 \
 | Deploy Site（staging） | **約11分** | **手動実行のみ** |
 | Deploy API Lambdas | **約4.5分** | `api/**` `api-user/**` を触った push |
 | api-gate の待機 | 約5分 | 本番のフロント側 |
-| Maintenance | 約1分 | 手動 |
+| Maintenance | 約1〜2分 | 手動 |
 
-**テストが約10分を占める**（5,026件）。増えるほど全部が高くなる。
-
-### 守ること
-
-1. **手で流す前に「残り − 見積もり」を口に出す。** staging を1回流すたびに
-   11分減る。**いまは無料枠を超えている見込みなので、引き算の相手は
-   「残り」ではなく「owner の請求」**——手動実行は原則やらない
-2. **`api/` `api-user/` を触るコミットはまとめてから push。** 1件ずつ出すと
-   回数ぶん 4.6分が走る（`cancel-in-progress: false` なので畳まれない）。
-   **9月はここが 140回・642分で、消費の3分の1を占めた。いちばん効く節約。**
-3. **owner の再ビルド（投稿が世に出る経路）を最優先に確保する。**
-   `REBUILD_MONTHLY_MAX` の予算はこの枠の上に乗っている——枠が尽きると
-   **削除・非公開の掃除まで止まる**。実測では再ビルドは中央 6.3分と安い
-   （`repository_dispatch` の Deploy Site）ので、ここを削る意味は薄い
-4. **バグ狩りの周は枠を使う。** 残りが細いときは Routine を止める方が、
-   サイトにとって安全
-5. **検証は手元で完結させる**（`npm run verify`）。Actions を「試しに回す」
-   使い方をしない——手元のビルド＋実ブラウザのスモークで、9/22 の大きい
-   取りこぼし2件（ログインできないビルド・`/search?…` の水和失敗）は
-   どちらも Actions を1分も使わずに捕まえた
+**テストが約10分を占める**（2026-09 で 5,026件・2026-11 で 13,000件超）。
 
 ## 環境とブランチ運用
 
@@ -593,6 +535,7 @@ feature/xxx  →(PR)→  develop  →(自動)→ staging で確認
   フォールバックしていて、緑のまま本番を向いてしまっていた。
 - **定期ビルドは週1**（日曜 03:00 JST）。2026-08 に枠が逼迫して止めていたが、
   9/1 のリセット後に**毎日ではなく週1で再開**した（1回8分＝月32分・枠の1.6%）。
+  2026-11-24 からは公開リポジトリで枠の心配は無い。**週1のままなのは下の目的の側の理由**。
   毎日に戻さないのは、目的が「新しい写真の個別ページとサイトマップ」で
   写真の追加が月に数枚だから。削除・非公開の掃除は API の
   `repository_dispatch` が叩くので定期ビルドに頼っていない。
@@ -652,6 +595,11 @@ Repository permissions は **Contents: Read and write** だけ /
       sitemap.xml         成功しました   検出されたページ数 50
       sitemap-images.xml  成功しました   検出されたページ数 32
 
+- **2026-11-09 から `sitemap.xml` は索引**（`<sitemapindex>`）で、中身は種類別の
+  `sitemap-spots.xml`（スポット詳細）・`-areas`（県・市・国の一覧）・`-hubs`（テーマ・季節・紅葉/桜/雪景色）・
+  `-today`・`-learn`・`-collections`・`-photos`・`-pages`。Search Console は種類ごとに登録数を出す。
+  実装は `lib/server/sitemap.ts`（`app/sitemap.ts` は無くなった）。画像サイトマップは別のまま。
+  **lastmod にビルドの時刻を入れない**（日付が取れない行は書かない・`sitemapSplit.test.ts`）
 - **「約140ページ」は誤り。正しくは 50。** ビルドが作る HTML は約140だが、
   サイトマップに載せるのは**薄い集約ページを除いたぶんだけ**
   （`isIndexableCollection` に届かないページは `noindex`＋サイトマップから除外）。

@@ -50,9 +50,11 @@ vi.mock("../../../lib/hooks/useToast", () => ({
 vi.mock("../UserAvatar", () => ({ default: () => <div /> }));
 
 import CommentSection from "../CommentSection";
+import { resetGuestPromptThrottle } from "../../../lib/hooks/useGuestPrompt";
 import { AUTH_REQUIRED_MESSAGE } from "../../../lib/utils/api";
 
 beforeEach(() => {
+    resetGuestPromptThrottle();
     mockUserFetch.mockReset();
     mockUserPublicFetch.mockReset().mockResolvedValue({ ok: true, json: async () => ({ items: [], count: 0 }) });
     mockShowToast.mockReset();
@@ -149,8 +151,8 @@ describe("CommentSection: 送ったコメントを見せる", () => {
         // 並びは新しい順のまま（先頭が送った1件）
         const items = screen.getAllByRole("listitem");
         expect(items[0].textContent).toContain("送った");
-        // **画面送りも待つ。** 送りは字を出した描画のあとの `useEffect` で走るので、字が出た瞬間には
-        // まだ呼ばれていないことがある（重い全体の並列実行で落ちた・2026-10-31）。1回だけ呼ばれることは変えずに見る
+        // 読み上げの文は描画と同時に出るが、スクロールは描画後の useEffect で起きる。
+        // 負荷の高い CI で文のほうが先に見える瞬間があるので、スクロールの記録が入るまで待つ（2026-11-06）
         await waitFor(() => expect(scrolled).toHaveLength(1));
         expect(scrolled[0].el).toBe(items[0]);
         expect(scrolled[0].opts).toEqual({ block: "nearest", behavior: "smooth" });
@@ -164,6 +166,8 @@ describe("CommentSection: 送ったコメントを見せる", () => {
         fireEvent.change(screen.getByPlaceholderText("Add a comment…"), { target: { value: "送った" } });
         fireEvent.click(screen.getByRole("button", { name: "Post" }));
         await waitFor(() => expect(screen.getByTestId("comment-posted-status").textContent).toBe("Comment posted"));
+        // スクロールは描画後の useEffect で起きる。文が先に見える瞬間があるので、記録が入るまで待つ（2026-11-06）
+        await waitFor(() => expect(scrolled).toHaveLength(1));
         expect(scrolled[0].opts).toEqual({ block: "nearest", behavior: "auto" });
     });
 
@@ -403,7 +407,10 @@ describe("CommentSection: セッションが切れていたとき", () => {
         mockUserFetch.mockRejectedValue(new Error(AUTH_REQUIRED_MESSAGE));
         await typeAndSend("いいね");
         await waitFor(() => expect(mockShowToast).toHaveBeenCalled());
-        expect(mockShowToast).toHaveBeenLastCalledWith("コメントするにはログインしてください", "info");
+        // 2026-11-09: 「ログイン」のリンク付き（戻り先は今の頁・via=comment）
+        expect(mockShowToast).toHaveBeenLastCalledWith("コメントするにはログインしてください", "info", 6000,
+            { label: "新規登録", href: expect.stringMatching(/^\/signup\?.*via=comment/) },
+            { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=comment/) });
     });
 
     it("打った文字は消さない（送り直せる）", async () => {

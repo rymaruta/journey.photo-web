@@ -73,7 +73,7 @@ describe("スポット台帳（人が書くぶん）", () => {
 describe("台帳は検索の面に触れない", () => {
     const SEO_FILES = [
         "lib/server/collections.ts",   // generateStaticParams / generateMetadata
-        "app/sitemap.ts",              // サイトマップ
+        "lib/server/sitemap.ts",            // サイトマップ
         "lib/utils/collections.ts",    // collectEntries / isIndexableCollection / slugify
     ];
 

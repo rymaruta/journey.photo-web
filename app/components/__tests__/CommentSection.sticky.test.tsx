@@ -55,7 +55,7 @@ describe("コメントの入力欄（下に貼る）", () => {
         // 新規登録も同じ所に1回で（札 journey.photo-ios#630、2026-11-15）
         const signup = screen.getByTestId("comment-signup");
         expect(signup.textContent).toBe("新規登録");
-        expect(signup.getAttribute("href")).toMatch(/^\/signup\?next=/);
+        expect(signup.getAttribute("href")).toMatch(/^\/signup\?next=.*via=comment/);
         expect(signup.style.minHeight).toBe("44px");
     });
 

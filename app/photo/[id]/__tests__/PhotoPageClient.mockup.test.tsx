@@ -4,6 +4,7 @@ import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import type { Photo } from "@/lib/data/photos";
+import { resetGuestPromptThrottle } from "../../../../lib/hooks/useGuestPrompt";
 
 /**
  * 最終版モックの並び（owner「全て完全一致するまで」）。
@@ -23,9 +24,9 @@ vi.mock("../../../../lib/utils/api", async (importOriginal) => ({
     publicFetch: vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })),
     userPublicFetch: vi.fn(async () => ({ ok: false, status: 500, json: async () => ({}) })),
 }));
-const likeState = vi.hoisted(() => ({ liked: false }));
+const likeState = vi.hoisted(() => ({ liked: false, result: { ok: true } as { ok: boolean; requiresAuth?: boolean } }));
 vi.mock("../../../../lib/hooks/usePhotoLikes", () => ({
-    usePhotoLikes: () => ({ liked: likeState.liked, count: 342, pending: false, toggle: async () => ({ ok: true }) }),
+    usePhotoLikes: () => ({ liked: likeState.liked, count: 342, pending: false, toggle: async () => likeState.result }),
 }));
 const saveState = { current: { saved: false, pending: false, toggle: vi.fn(async () => ({ ok: true })) } };
 vi.mock("../../../../lib/hooks/usePhotoSave", () => ({ usePhotoSave: () => saveState.current }));
@@ -67,7 +68,9 @@ const page = (p: Partial<Photo> = {}) => render(<PhotoPageClient photoId="p1" in
 const before = (a: Element, b: Element) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
 
 beforeEach(() => {
+    resetGuestPromptThrottle();
     mockShowToast.mockReset();
+    likeState.result = { ok: true };
     authState.current = { isAuthenticated: false, userId: null, loading: false };
     saveState.current = { saved: false, pending: false, toggle: vi.fn(async () => ({ ok: true })) };
 });
@@ -81,14 +84,14 @@ describe("写真ページ: 最終版モックの並び", () => {
         await screen.findByText("夕陽に染まる白い街");
         const hero = screen.getByAltText(/夕陽に染まる白い街/);
         const title = screen.getByRole("heading", { level: 1 });
-        const stamp = screen.getByTestId("photo-shot-stamp");
+        expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
         const body = screen.getByText(/エーゲ海に沈む夕日/);
         const author = screen.getByRole("link", { name: "Haruto" });
         const like = screen.getByRole("button", { name: /^いいね \d/ });
         const exif = screen.getByTestId("photo-exif");
         const tag = screen.getByRole("link", { name: "#ギリシャ" });
         const comments = screen.getByRole("heading", { name: "コメント 24件" });
-        for (const [a, b] of [[hero, title], [title, stamp], [stamp, body], [body, author], [author, like], [like, comments], [comments, exif], [exif, tag]] as const) {
+        for (const [a, b] of [[hero, title], [title, body], [body, author], [author, like], [like, comments], [comments, exif], [exif, tag]] as const) {
             expect(before(a, b), "並びが iOS と違う").toBe(true);
         }
         expect(screen.queryByRole("tablist"), "コメントと関連写真の切り替えは無くした").toBeNull();
@@ -124,11 +127,11 @@ describe("写真ページ: 最終版モックの並び", () => {
         expect(screen.queryByRole("button", { name: "フォロー" })).toBeNull();
     });
 
-    it("題の下の日時（撮影日が無ければ出さない）。住所の全文は本文の上に出さない", async () => {
+    it("撮影日時は表示せず、住所の全文も本文の上に出さない", async () => {
         const { unmount } = page();
         await screen.findByText("夕陽に染まる白い街");
-        expect(screen.getByTestId("photo-shot-stamp").textContent).toBe("2024.05.12");
-        expect(screen.getByTestId("photo-headline").textContent).not.toContain("サントリーニ");
+        expect(screen.queryByTestId("photo-shot-stamp")).toBeNull();
+        expect(screen.getByRole("heading", { level: 1 }).textContent).not.toContain("サントリーニ");
         unmount();
         page({ date: undefined });
         await screen.findByText("夕陽に染まる白い街");
@@ -163,7 +166,23 @@ describe("写真ページ: 最終版モックの並び", () => {
         page();
         await screen.findByText("夕陽に染まる白い街");
         fireEvent.click(screen.getByRole("button", { name: "保存" }));
-        await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith("写真を保存するにはログインしてください", "error"));
+        await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith(
+            "写真を保存するにはログインしてください", "info", 6000,
+            { label: "新規登録", href: expect.stringMatching(/^\/signup\?.*via=save/) },
+            { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=save/) }));
+    });
+
+    // 2026-11-09: 未ログインのいいねも、赤い失敗ではなく「ログイン」リンク付きの案内（保存・フォロー・コメントと同じ見せ方）
+    it("いいね: 未ログインは「ログイン」リンク付きの案内（info・via=like）", async () => {
+        likeState.result = { ok: false, requiresAuth: true };
+        page();
+        await screen.findByText("夕陽に染まる白い街");
+        fireEvent.click(screen.getByRole("button", { name: "いいね 342件" }));
+        await waitFor(() => expect(mockShowToast).toHaveBeenCalledWith(
+            "いいねするにはログインしてください", "info", 6000,
+            { label: "新規登録", href: expect.stringMatching(/^\/signup\?.*via=like/) },
+            { label: "ログイン", href: expect.stringMatching(/^\/login\?.*via=like/) }));
+        expect(mockShowToast).not.toHaveBeenCalledWith(expect.stringContaining("保存できませんでした"), "error");
     });
 
     it("🔴 撮影情報は初期は畳まれているが、機材のリンクは DOM に残る（静的HTMLに焼く）", async () => {

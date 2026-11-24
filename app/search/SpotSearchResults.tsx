@@ -6,6 +6,7 @@ import { ChevronRightIcon, MapPinIcon } from "@heroicons/react/24/outline";
 import { ROUTES } from "@/lib/routes";
 import { searchSpotRows } from "@/lib/utils/spots";
 import { useSpotSearchIndex } from "@/lib/hooks/useSpotSearchIndex";
+import { TopicCreditLine } from "../components/SpotTopicLists";
 
 /**
  * **「さがす」の撮影スポットの結果。** 写真の結果とは別の節で、件数も混ぜない。
@@ -25,6 +26,24 @@ import { useSpotSearchIndex } from "@/lib/hooks/useSpotSearchIndex";
  * 写真の枚数・人気・評価は出さない（台帳は数を持たない。`MapSpotList` と同じ方針）。
  */
 
+/** 画像が消えた・読み込めない場合も撮影スポットへの導線を残す。 */
+function SpotSearchThumbnail({ src, onFailure }: { src?: string; onFailure?: () => void }) {
+    const [failedSrc, setFailedSrc] = useState<string | null>(null);
+    if (!src || failedSrc === src) {
+        return (
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-surface-2">
+                <MapPinIcon className="h-5 w-5 text-accent" aria-hidden="true" />
+            </span>
+        );
+    }
+    return (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={src} alt="" loading="lazy" decoding="async" width={48} height={48}
+             onError={() => { setFailedSrc(src); onFailure?.(); }}
+             className="h-12 w-12 shrink-0 rounded-lg bg-surface-2 object-cover" />
+    );
+}
+
 /** 最初に見せる件数。「県の名前」で当てると数十件になるので、畳んでおく */
 const INITIAL = 5;
 
@@ -34,6 +53,7 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
     const { rows } = useSpotSearchIndex(q);
     /** 開いた語。**語が変わったら自然に畳まれる**（effect で戻さない） */
     const [expandedFor, setExpandedFor] = useState<string | null>(null);
+    const [failedImages, setFailedImages] = useState<ReadonlySet<string>>(() => new Set());
     const expanded = expandedFor === q;
 
     const hits = useMemo(() => (q && rows ? searchSpotRows(rows, q) : []), [rows, q]);
@@ -50,9 +70,9 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
                 {shown.map((s, i) => (
                     <li key={s.s} className={i > 0 ? "border-t border-white/5" : undefined}>
                         <Link href={`${ROUTES.SPOTS}/${s.s}`} prefetch={false}
-                              className="flex items-center gap-3 px-3.5 hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
+                              className="flex items-center gap-3 px-3.5 py-2 hover:bg-surface-2 transition-colors focus:outline-hidden focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent"
                               style={{ minHeight: "56px" }}>
-                            <MapPinIcon className="w-5 h-5 shrink-0 text-accent" aria-hidden="true" />
+                            <SpotSearchThumbnail key={s.image?.src ?? "no-image"} src={s.image?.src} onFailure={() => { if (s.image?.src) setFailedImages((prev) => new Set(prev).add(s.image!.src)); }} />
                             <span className="min-w-0 flex-1">
                                 <span className="block truncate font-semibold text-white" style={{ fontSize: "15px", lineHeight: "22px" }}>{s.n}</span>
                                 <span className="block truncate text-white/70" style={{ fontSize: "12px", lineHeight: "18px" }}>
@@ -61,12 +81,13 @@ export default function SpotSearchResults({ query, locale }: { query: string; lo
                             </span>
                             <ChevronRightIcon aria-hidden="true" className="shrink-0 text-white/50" style={{ width: "18px", height: "18px" }} />
                         </Link>
+                        {s.image?.credit && !failedImages.has(s.image.src) && <div className="px-3.5 pb-1"><TopicCreditLine credit={s.image.credit} compact /></div>}
                     </li>
                 ))}
             </ul>
             {hits.length > INITIAL && (
                 <button type="button" onClick={() => setExpandedFor(expanded ? null : q)}
-                        className="mt-2 rounded-full px-4 text-white/80 ring-1 ring-line hover:bg-white/10"
+                        className="mt-2 rounded-full px-4 text-white/80 ring-1 ring-line hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent"
                         style={{ minHeight: "44px", fontSize: "13px" }}
                         aria-expanded={expanded}>
                     {expanded

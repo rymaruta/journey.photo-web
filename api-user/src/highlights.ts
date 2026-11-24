@@ -228,6 +228,7 @@ function publicStoryShape(row: Record<string, unknown>) {
         ...pick("location"),
         ...pick("song"),
         ...pick("songOnPhoto"),
+        ...pick("locationOnPhoto"),
         ...pick("durationSec"),
         ...pick("texts"),
         // 札の見せ方が変わる（親しい友達のしるし）ので返す。**見られる人にしか

@@ -10,6 +10,7 @@ import DiscoverRail from "./components/DiscoverRail";
 import FeaturedSections from "./components/FeaturedSections";
 import { useLocale } from "./i18n/context";
 import useGallery from "../lib/hooks/useGallery";
+import { useSearchTracking } from "../lib/hooks/useSearchTracking";
 import GalleryGrid from "./components/GalleryGrid";
 import { GRID_SIZES_SEARCH, GRID_COLUMNS_SEARCH } from "./components/gridSizes";
 import GalleryModal from "./components/GalleryModal";
@@ -21,12 +22,15 @@ import { useToast } from "../lib/hooks/useToast";
 import { useAuth } from "./auth/context";
 import TimelineFeed from "./components/TimelineFeed";
 import HomeMosaic from "./components/HomeMosaic";
+import { EmptyState, ErrorState, LoadingState } from "./components/StateViews";
 import SignUpBenefits from "./components/SignUpBenefits";
 import type { Photo } from "@/lib/data/photos";
 import { SIGNUP_BENEFITS_AFTER_INDEX, showsSignupBenefits } from "../lib/auth/signupBenefits";
-import { EmptyState } from "./components/StateViews";
 import HomeTopCards, { QuizCard } from "./components/HomeTopCards";
+import AppInstallCard from "./components/AppInstallCard";
 import SpotsEntry from "./components/SpotsEntry";
+import dynamic from "next/dynamic";
+import StickyTabRow from "./components/StickyTabRow";
 import type { HomeSeasonal } from "../lib/data/spotTopics";
 import { useMySaves } from "../lib/hooks/useMySaves";
 import { nextTabIndex } from "../lib/utils/tabKeys";
@@ -34,6 +38,13 @@ import { TAB_ON, TAB_OFF, TAB_BASE, TAB_ROW } from "./components/tabStyles";
 import Link from "next/link";
 import { ROUTES } from "../lib/routes";
 import { CHIP_ON, CHIP_OFF, CHIP_SIZE, CHIP_HIT } from "./components/chipStyles";
+
+/**
+ * ストーリーの輪の列。**ホームの最初の JS に載せない**（マイページと同じ遅延読み込み・`UserProfileClient`）。
+ * 投稿の下ごしらえ・ビューアまで抱える大きな部品で、未ログインでは何も描かない（静的書き出しの HTML にも出ない）。
+ * CLAUDE.md の優先度「表示速度 > アプリ化」
+ */
+const StoriesBar = dynamic(() => import("./components/stories/StoriesBar"), { ssr: false });
 
 // フィルタバーに出すタグ数の上限（枚数の多い順）。残りは検索で辿る
 const POPULAR_TAG_LIMIT = 10;
@@ -50,9 +61,16 @@ const HOME_PRIORITY_COUNT = 3;
 const HOME_TABS = [
     { key: "featured", ja: "おすすめ", en: "For you" },
     { key: "following", ja: "フォロー中", en: "Following" },
-    { key: "all", ja: "新着", en: "New" },
+    // 英語の名前は iOS の `HomeFeed.latest`（「Latest」）と同じ
+    { key: "all", ja: "新着", en: "Latest" },
 ] as const;
 const HOME_PANEL_ID = "home-tabpanel";
+
+/**
+ * 「おすすめ」で、いまの季節の撮影スポットの段の前に置く写真の数（iOS の `HomeFeed.seasonShelfAfter`・#417 ④）。
+ * **大1→2→2 のひと回り**の切れ目なので、段の後ろの写真も大きい1枚から始まり、並びのリズムは変わらない
+ */
+export const SEASON_SHELF_AFTER = 5;
 
 /**
  * **ホームの PC は「左に写真の並び（`HomeMosaic`）＋右の柱」**（owner の指示書 4・11・17:
@@ -103,8 +121,15 @@ const SEARCH_SCOPES: ReadonlyArray<{ key: SearchScopeKey | "people"; ja: string;
   { key: "places", ja: "撮影地", en: "Places" },
 ];
 
+/**
+ * タブの面の最低の高さ＝「見えている高さ − 見出し − 切り替えの行（44＋線 1＋下の間 12）」（iOS の `ProfileTabScroll.minPageHeight`）。
+ * 短い一覧（0件の「フォロー中」など）へ替えても頁が縮んで送りの位置が詰められず、留まった行の真下から
+ * 新しい一覧（または空の知らせ）が始まる（`StickyTabRow` の `resetKey` が行を上端へ戻す先が、いつも在る）
+ */
+export const HOME_PANEL_MIN_HEIGHT = "calc(100dvh - var(--header-h) - 57px)";
+
 function HomePanel({ scope, children }: { scope: string; children: React.ReactNode }) {
-  return <div id={HOME_PANEL_ID} role="tabpanel" aria-labelledby={`home-tab-${scope}`}>{children}</div>;
+  return <div id={HOME_PANEL_ID} role="tabpanel" aria-labelledby={`home-tab-${scope}`} style={{ minHeight: HOME_PANEL_MIN_HEIGHT }}>{children}</div>;
 }
 
 function HomeColumns({ rail, children }: { rail: React.ReactNode; children: React.ReactNode }) {
@@ -123,8 +148,12 @@ function HomeColumns({ rail, children }: { rail: React.ReactNode; children: Reac
           （57px の頃の「96px」のままカプセルにしたら 4px 潜った）。
           **`overflow-y-auto` を付けられるのはこちらだけ**——「さがす」の
           柱は並び替えの一覧が `absolute` で吊り下がるので、切り取る箱を
-          作ると隠れる */}
-      <aside className="hidden lg:block lg:sticky lg:top-[calc(var(--header-h)_+_16px)] lg:max-h-[calc(100vh_-_var(--header-h)_-_var(--bottom-bar-h,84px)_-_32px)] lg:overflow-y-auto">{rail}</aside>
+          作ると隠れる。
+
+          **留まる位置は、留まった切り替えの行（44＋線 1＝45）の下。** 2026-11-04 に切り替えを留めた
+          （`StickyTabRow`）とき、柱は見出しの下 16 に留まったままで、上の 29px が行の裏に隠れた
+          （1280×900 の実測: 行の下端 117・柱の上端 88） */}
+      <aside className="hidden lg:block lg:sticky lg:top-[calc(var(--header-h)_+_45px_+_16px)] lg:max-h-[calc(100vh_-_var(--header-h)_-_45px_-_var(--bottom-bar-h,84px)_-_32px)] lg:overflow-y-auto" data-testid="home-rail">{rail}</aside>
     </div>
   );
 }
@@ -146,17 +175,24 @@ type Props = {
    * 台帳はクライアントに持ち込まない（`SpotsEntry` の注記）
    */
   seasonalSpots?: HomeSeasonal | null;
+  /**
+   * ホームの「撮影スポットを地図から探す」（`HomeJapanMap`・2026-11-09・owner の置き場の指示）。
+   * **写真のタブの面より上**（札・アプリの案内の下）に出す——写真の並びが長く、地図に辿り着く前に離れるのを避ける。
+   * `app/page.tsx` が作って渡す（台帳を読むのはサーバー側）。ホームの `surface="home"` だけ
+   */
+  entryMap?: React.ReactNode;
 };
 
-export default function GalleryPageClient({ surface = "home", seasonalSpots = null }: Props) {
+export default function GalleryPageClient({ surface = "home", seasonalSpots = null, entryMap = null }: Props) {
   const { locale, labels } = useLocale();
   const { showToast } = useToast();
-  const { photos, loaded: photosLoaded, failed: photosFailed } = usePhotos();
+  const { photos, loaded: photosLoaded, failed: photosFailed, retry: retryPhotos } = usePhotos();
   const { isAuthenticated, userId, loading: authLoading } = useAuth();
   // 「登録するとできること」（札 journey.photo-ios#618 の案1・2026-11-15 判断で案C）: ログインしていない人にだけ、
   // トップの並びのひと回り（5枚）の後ろに1回。登録とログインの頁は変えない。絵の地はその後ろに並ぶ写真から
+  const benefitsShown = showsSignupBenefits({ loading: authLoading, isAuthenticated });
   const benefitsInsert = (list: ReadonlyArray<Photo>) =>
-    showsSignupBenefits({ loading: authLoading, isAuthenticated })
+    benefitsShown
       ? { afterIndex: SIGNUP_BENEFITS_AFTER_INDEX,
           node: <SignUpBenefits locale={locale === "en" ? "en" : "ja"} photos={list.slice(SIGNUP_BENEFITS_AFTER_INDEX + 1, SIGNUP_BENEFITS_AFTER_INDEX + 5)} /> }
       : undefined;
@@ -196,6 +232,8 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
     if (searchScope === "places") return filteredPhotos.filter((p) => typeof p.location === "string" && p.location.trim() !== "");
     return filteredPhotos;
   }, [filteredPhotos, searchScope]);
+  // サイト内検索を数える（語は送らず長さと件数だけ・2026-11-04）
+  useSearchTracking(filters.query, scopedPhotos.length);
 
   /**
    * **ログイン中の既定は「自分」**（owner:「デフォルトは自分のみがいい」）。
@@ -234,14 +272,11 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
   const scopeDecidedRef = React.useRef(false);
   React.useEffect(() => {
     if (authLoading) return;
-    if (!isAuthenticated) {
-      // **「フォロー中」だけ戻す。** 本人の id が無いと意味を持たないタブは
-      // これだけで、**「おすすめ」は未ログインでも見られる**（運営が選んだ
-      // 写真で、誰が見ても同じ）。ここを `!== "all"` にしていたので、
-      // 未ログインの人は「おすすめ」を押しても弾かれていた
-      if (filters.scope === "following") setFilters({ scope: "all" });
-      return;
-    }
+    // **未ログインでは何も決めない・「フォロー中」を戻さない**（2026-11-09 owner 承認「未ログインの反応を登録の入口にする」）。
+    // 以前は「フォロー中」だけ「新着」へ戻していた——押しても無反応に見え、共有リンク `/?scope=following` も
+    // 黙って別のタブになった。今は `TimelineFeed` が未ログインに「ログインすると、フォロー中の人の写真が見られます」＋
+    // [ログイン] を出す。自分の写真などの既定のタブへ倒すのはログイン済みだけ（下）
+    if (!isAuthenticated) return;
     // 決めるのは確定した1回だけ（利用者が別のタブを押したあとに戻さない）
     if (scopeDecidedRef.current) return;
     scopeDecidedRef.current = true;
@@ -590,7 +625,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
     return (
       <p
         id="site-subtitle"
-        className="text-sm text-white/60 mt-0.5 sm:mt-1 leading-tight sm:leading-normal"
+        className="text-sm text-text-2 sm:text-white/60 mt-1 leading-normal"
       >
         <span className="inline-block align-baseline sm:inline">{first}</span>
         {rest ? <br className="block sm:hidden" /> : null}
@@ -612,6 +647,26 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
    * 一言（`subtitle`）はサイトの看板なのでトップにだけ置く。
    */
   const isSearch = surface !== "home";
+  /**
+   * 「おすすめ」「新着」が0枚のときの形（iOS の `GalleryView` の `JPLoadingState`・`ErrorBanner`・`feedEmptyState`）。
+   * **0件・読み込み中・失敗を同じ形にしない**（板 Components 06・`StateViews`）:
+   *   読み込み中 … 写真の格子の灰の骨組み（文字だけの「読み込み中…」にしない）
+   *   失敗       … 三角と「読み込めませんでした」と「もう一度試す」
+   *   0件        … 「該当する写真がありません。」と主ボタン「撮影地を地図で探す」（iOS の `Labels.Gallery.empty`）
+   * 手元の控え（ビルド時の写真）がある間は、一覧が届く前でもそちらを出す（ここに来るのは控えも空のときだけ）
+   */
+  const homeEmpty = !photosLoaded && !photosFailed ? (
+    <LoadingState kind="grid" locale={locale === "en" ? "en" : "ja"} testId="home-loading" />
+  ) : !photosLoaded && photosFailed ? (
+    <ErrorState className="py-16" locale={locale === "en" ? "en" : "ja"} testId="home-error"
+                message={locale === "en" ? "Couldn't load" : "読み込めませんでした"} onRetry={retryPhotos} />
+  ) : (
+    <EmptyState className="py-16" testId="gallery-empty"
+                message={locale === "en" ? "No photos found." : "該当する写真がありません。"}
+                action={{ label: locale === "en" ? "Explore shooting places" : "撮影地を地図で探す", href: ROUTES.MAP }} />
+  );
+  /** 季節の段を出すか（「おすすめ」で写真が1枚以上・数件が選ばれているとき。写真が0枚の日は出さない＝iOS と同じ） */
+  const seasonalShelfShown = !!seasonalSpots && seasonalSpots.spots.length > 0;
   const heading = isSearch
     ? (labels.search?.heading ?? (locale === "en" ? "Find photos" : "写真をさがす"))
     : (labels.site?.title ?? "Gallery");
@@ -627,24 +682,21 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
    */
   return (
     <main className="p-4 sm:p-6 md:p-8 min-h-screen text-white bg-bg mx-auto w-full max-w-5xl lg:max-w-6xl">
-      {/* **見出しは1つだけ。** 狭い画面では画面に出さず（`sr-only`）、広い画面で
-          ふつうに見せる（`sm:not-sr-only`）。
-          以前は狭い画面用の `sr-only sm:hidden` の h1 と、`hidden sm:flex` の中の h1 の
-          **2つが HTML に在った**（どちらの幅でも描かれるのは1つだが、HTML を読む
-          検索には h1 が2つ見える）。**見た目は変えない**——狭い画面では包みが高さ0
-          （中身は読み上げ専用の見出しと、隠した一言だけ）、広い画面は今までどおり。
-          スマホで見出しが1つも無かった件（390px 幅で h1 が0件）もこの形で満たす */}
-      {/* タイトル: モバイルでは見せない（ヘッダーナビにサイト名がある） */}
-      <div className="sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:mb-4">
+      {/* **見出しは1つだけ。スマホでも見せる**（2026-11-09 owner 承認「はい」・9人のレビュー）。
+          以前は狭い画面で見出し（`sr-only`・画面の外）と一言（`hidden`）を見せず、最初の画面に
+          「ここで何ができるか」の文が無かった（お題の札・アプリの札・チップが先で、写真は約1,365px 下）。
+          いまは **スマホもパソコンも同じ文**（見出し＋一言）を最上部に出す。明朝（板 02 の screenTitle 26・
+          Web の h1 は Shippori）・一言は副文の text-2。見出しは HTML に1つだけ（検索から見える数は変えない）。
+          文言は現行のまま（SNS でもあるので旅だけに狭めない一言。変更案は報告に出した） */}
+      <div className={`${isSearch ? "" : "mb-4"} sm:mb-4 sm:flex sm:flex-row sm:items-start sm:justify-between sm:gap-4`}>
         <div className="sm:flex-1">
-          {/* 探すは**狭い画面でも見せる**明朝 30（アプリ v2 の探すの題・板 Search の h1）。
-              トップはこれまでどおり（ヘッダーにサイト名がある） */}
+          {/* 探すは明朝 32（アプリ v2 の探すの題・板 Search の h1）。トップは 26（画面の題・Title 1）、パソコンは 30 のまま */}
           <h1 id="site-title" className={isSearch
               ? "font-serif font-bold m-0 mb-3 sm:mb-0 text-[32px] leading-[1.25]" /* 束 1: iOS の探すの題（`JPFont.photoTitle` 32） */
-              : "sr-only sm:not-sr-only text-2xl sm:text-3xl font-bold mb-0"}>
+              : "font-serif font-bold m-0 text-[26px] leading-[1.25] sm:text-3xl"}>
             {heading}
           </h1>
-          {!isSearch && <div className="hidden sm:block">{renderSubtitle(labels.site?.subtitle)}</div>}
+          {!isSearch && renderSubtitle(labels.site?.subtitle)}
         </div>
       </div>
 
@@ -667,9 +719,30 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
          見た目の話の前に、指で押す的が小さすぎた。
          **px で書く**——以前は 640px 未満の root が 14px で `gap-6` も
          `text-sm` も縮んでいた（`gap-6` は 21px・2026-10-30 束 0a で外した）。 */}
+      {/* **ホームの並びは iOS と同じ: ストーリーの輪 → 上の札 → 切り替え → 中身**（`GalleryView.feed`・2026-11-04）。
+          以前の Web は「切り替え → 上の札 → 季節の段 → 中身」で、ストーリーはマイページにだけあった
+          （2026-09-20 に移したが、iOS はその後ホームの一番上に戻している——「いま誰が旅に出ているか」は開いた瞬間に見たいもの）。
+          輪の列は未ログインでは何も描かない（`StoriesBar`・iOS の `StoriesRow` も同じ） */}
+      {surface === "home" && <StoriesBar />}
+
+      {/* **上段のめくる札**（今週のお題・今日の一問・撮影スポット・2026-10-31 束 1 H2・iOS の `HomeTopCardView`）。
+          輪の列の下・切り替えの上（iOS と同じ）＝どのタブでも同じ位置。以前は文字だけの帯 3 本（`QuizEntry`・`SpotsEntry`・`ThemeEntry`） */}
+      {surface === "home" && <HomeTopCards locale={locale === "en" ? "en" : "ja"} photos={PHOTOS} seasonal={seasonalSpots} />}
+      {/* アプリのご案内（2026-11-06 owner「目立つところに」）。上段の札のすぐ下＝最初の画面の続きで目に入る位置 */}
+      {surface === "home" && <AppInstallCard placement="home" compact className="mb-4" />}
+      {/* **入口の帯**（2026-11-09 owner「任せる」・提案書 4b の(a)）。アプリの札の下・切り替えの上に文字リンクを1行。写真の並びは動かさない */}
+      {/* 入口の帯（撮影スポット・行きたい場所・2026-11-09）は 2026-11-12 に外した（デザインの案 第10章「どこに何を置くか」）。
+          すぐ下の日本地図と「撮影スポット」が重なり、行きたい場所は ≡ と払う札にある */}
+      {/* 撮影スポットを地図から探す（2026-11-09）。写真のタブより上＝タブと写真の並びはこの下にそのまま残る */}
+      {surface === "home" && entryMap}
+
+      {/* 切り替えは写真の一覧の頭。**下へ送ると見出しの下に留まる**（iOS の #417 ⑧ `pinnedFeedRow`・`StickyTabRow`）。
+          留まっていればタブを替えるのに上まで戻らなくてよい */}
       {surface === "home" && (
+        <StickyTabRow className="mb-3" resetKey={filters.scope}>
         <div role="tablist" aria-label={locale === "en" ? "Which photos" : "どの写真を見るか"}
-             className={`${TAB_ROW} mb-3`}>
+             // 下の線は留める行（`StickyTabRow`）が引く（スマホは画面の端から端まで・留まったら白 12%）
+             className={TAB_ROW} style={{ borderBottomWidth: 0 }}>
           {HOME_TABS.map((t) => {
             const active = filters.scope === t.key;
             return (
@@ -693,16 +766,8 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
             );
           })}
         </div>
+        </StickyTabRow>
       )}
-
-      {/* **上段のめくる札**（今週のお題・今日の一問・撮影スポット・2026-10-31 束 1 H2・iOS の `HomeTopCardView`）。
-          タブの直下＝どのタブでも同じ位置。以前は文字だけの帯 3 本（`QuizEntry`・`SpotsEntry`・`ThemeEntry`） */}
-      {surface === "home" && <HomeTopCards locale={locale === "en" ? "en" : "ja"} photos={PHOTOS} seasonal={seasonalSpots} />}
-      {/* いまの季節の撮影スポットの段（iOS の #417 ④⑤⑥ が出るまで今の形・束 5）。帯の行は上の札へ移した */}
-      {surface === "home" && <SpotsEntry locale={locale === "en" ? "en" : "ja"} seasonal={seasonalSpots} showRow={false} />}
-
-      {/* ストーリーはマイページへ移した（owner:「ストーリー見れる場所もマイページに
-          移設したいな」）。投稿する入口も同じ場所に集めた流れに揃える */}
 
       {/* フォロー中: 絞り込み・件数・グリッドは出さず、新着と同じ並び（`HomeMosaic`）で
           投稿順に流れる。撮った人の名前は撮影地と一緒に写真に重ねる（撮影地が無い写真は
@@ -745,15 +810,43 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
               iOS の `GalleryView` と同じ——段は選ばれた写真があるときだけ、並びは必ず出る */}
           <div className="max-w-xl mx-auto lg:mx-0 lg:max-w-[40rem]">
             {filteredPhotos.length === 0 ? (
-              <EmptyState className="py-16" message={locale === "en" ? "No photos yet." : "まだ写真がありません。"} testId="gallery-empty" />
+              homeEmpty
             ) : (
-              <HomeMosaic
-                photos={filteredPhotos}
-                locale={locale === "en" ? "en" : "ja"}
-                priorityCount={hasFeatured && !narrowedNow ? 0 : HOME_PRIORITY_COUNT}
-                firstPostIds={firstPostIds}
-                insert={benefitsInsert(filteredPhotos)}
-              />
+              <>
+                {/* **いまの季節の撮影スポットの段は「おすすめ」の中だけ、写真 5 枚（大1→2→2）の後ろ**
+                    （iOS の #417 ④ `HomeFeed.showsSeasonShelf`・`splitForSeasonShelf`）。以前はどのタブでも上の札の直下。
+                    段の有無に関係なくいつも 5 枚で割る（段の中身で並びの組み方を変えない・iOS と同じ）。
+                    間は iOS と同じ: 写真 → 段が 16、段 → 写真が 12（`SpotsEntry` の下の 12）。段が無ければ写真の隙間 4 */}
+                <HomeMosaic
+                  photos={filteredPhotos.slice(0, SEASON_SHELF_AFTER)}
+                  locale={locale === "en" ? "en" : "ja"}
+                  priorityCount={hasFeatured && !narrowedNow ? 0 : HOME_PRIORITY_COUNT}
+                  firstPostIds={firstPostIds}
+                />
+                {seasonalShelfShown && (
+                  <div className="mt-4">
+                    <SpotsEntry locale={locale === "en" ? "en" : "ja"} seasonal={seasonalSpots} showRow={false} />
+                  </div>
+                )}
+                {/* 「登録するとできること」（札 journey.photo-ios#618 の案1・2026-11-15 判断で案C）: ログインしていない人にだけ、
+                    写真 5 枚と季節の段の後ろに1回（iOS のホームと同じ位置）。登録とログインの頁は変えない */}
+                {benefitsShown && (
+                  <div className="py-5">
+                    <SignUpBenefits locale={locale === "en" ? "en" : "ja"}
+                                    photos={filteredPhotos.slice(SEASON_SHELF_AFTER, SEASON_SHELF_AFTER + 4)} />
+                  </div>
+                )}
+                {filteredPhotos.length > SEASON_SHELF_AFTER && (
+                  <div style={{ marginTop: seasonalShelfShown ? 0 : 4 }}>
+                    <HomeMosaic
+                      photos={filteredPhotos.slice(SEASON_SHELF_AFTER)}
+                      locale={locale === "en" ? "en" : "ja"}
+                      priorityCount={0}
+                      firstPostIds={firstPostIds}
+                    />
+                  </div>
+                )}
+              </>
             )}
           </div>
         </HomePanel>
@@ -764,7 +857,7 @@ export default function GalleryPageClient({ surface = "home", seasonalSpots = nu
            並びは**投稿日の新しい順**（`useGallery` の `postedOrderOnNew`・2026-10-30） */
         <HomePanel scope="all"><HomeColumns rail={discoverRail}>
           {filteredPhotos.length === 0 ? (
-            <EmptyState className="py-16" message={locale === "en" ? "No photos yet." : "まだ写真がありません。"} testId="gallery-empty" />
+            homeEmpty
           ) : (
             <HomeMosaic
               photos={filteredPhotos}

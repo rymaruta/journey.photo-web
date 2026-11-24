@@ -20,6 +20,8 @@ vi.mock("../../../lib/utils/api", async (importActual) => ({
 }));
 vi.mock("@/lib/utils/log", () => ({ log: { warn: vi.fn(), error: vi.fn(), info: vi.fn() } }));
 vi.mock("../../../lib/hooks/useToast", () => ({ useToast: () => ({ showToast: vi.fn() }) }));
+// 開いた一覧（`FollowingSheet`）は自分の行を見分けるために `useAuth` を読む（2026-11-04・行ごとのフォローの札）
+vi.mock("../../auth/context", () => ({ useAuth: () => ({ userId: "me-1", isAuthenticated: true, loading: false }) }));
 
 const TARGET = "44444444-4444-4444-8444-444444444444";
 

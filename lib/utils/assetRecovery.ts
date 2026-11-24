@@ -54,6 +54,23 @@ function getStorage(): Storage | null {
     }
 }
 
+/**
+ * **頁を離れる途中か**（`leftAt` は `beforeunload`・`pagehide` の時刻、戻ったら 0）。離れる途中の失敗では読み直さない（2026-11-20）。
+ *
+ * WebKit（Safari）は、別の頁へ移るとき読み込み中の script / CSS を打ち切り、その要素に error を出す
+ * （Chromium は出さない。手元の WebKit 2311 で確かめた: 移動の始まりに `beforeunload` → 打ち切った script の error の順）。
+ * それを「チャンクが来ない」と取って読み直していたので、**読み込みが残っている頁から別の頁へ移ると、
+ * 移動が読み直しに割り込まれて元の頁に戻された**。本番の Deploy Site（run 44815049595 の2回目）の smoke が
+ * WebKit で `/map` へ移る途中に落ちたのはこれ。
+ *
+ * 移動が取りやめになったとき（ダウンロード・`mailto:` も `beforeunload` が来る）に見張りが止まったままにならないよう、
+ * 印は `LEAVING_GRACE_MS` で切れる。`app/layout.tsx` のインラインの見張りも同じ規則
+ */
+export const LEAVING_GRACE_MS = 10_000;
+export function isLeavingPage(leftAt: number, now = Date.now()): boolean {
+    return leftAt > 0 && now - leftAt >= 0 && now - leftAt < LEAVING_GRACE_MS;
+}
+
 /** 直近にリロード済みでなければ true（無限リロードループの防止） */
 export function shouldAutoReload(now = Date.now(), storage: Storage | null = getStorage()): boolean {
     if (!storage) return false;

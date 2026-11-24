@@ -146,10 +146,12 @@ function unreadableTokens(cls: string, monochromeOnly = false): string[] {
  * 気づけない、というレビュー指摘への答え
  */
 const GUARDED: Array<[string, string, string, boolean?]> = [
-    ["app/signup/page.tsx", "英大文字・小文字・数字", "パスワードの条件（読めないと登録できない）"],
-    ["app/signup/page.tsx", "写真のアップロードができるようになります", "新規登録の説明"],
-    ["app/login/page.tsx", "写真をアップロードするにはログインが必要です", "ログインの説明"],
-    ["app/login/page.tsx", "パスワードをお忘れですか", "パスワード再設定への導線"],
+    // 2026-11-04: 登録はログインと同じ形に。条件の文の色は部品の定数（AUTH_CAPTION_CLASS・下の accountFormStyles の行）が持つ
+    ["app/signup/page.tsx", "英大文字・小文字・数字", "パスワードの条件（読めないと登録できない）", true],
+    // 2026-11-04: ログインは iOS の形（札なし）に。「写真をアップロードするには…」の説明は iOS に無いので外した。
+    // 文字ボタンと注記の色は部品の定数が持つ
+    ["app/components/accountFormStyles.ts", "text-[13px] text-white/70", "パスワード再設定への導線（パスワードを忘れた）"],
+    ["app/components/accountFormStyles.ts", "leading-relaxed text-white/60", "ログイン・登録の欄の下の注記"],
     ["app/components/Footer.tsx", "© Journey Photo", "全ページに出る著作権表示"],
     ["app/privacy/page.tsx", "最終更新日: {LAST_UPDATED}", "プライバシーポリシーの更新日"],
     // 子の <Link>（/70）を親と取り違えていたので、包む <p> を直接の目印にする
@@ -185,16 +187,13 @@ const GUARDED: Array<[string, string, string, boolean?]> = [
     ["app/components/tabStyles.ts", "export const TAB_OFF", "非選択のタブ（ホーム・投稿／年表・行きたい場所／保存）"],
     ["app/users/UserProfileClient.tsx", "うち非公開", "本人にだけ出る非公開の枚数"],
     // 投稿タブと年表タブの2か所に同じものがある（両方見る）
-    ["app/users/UserProfileClient.tsx", "justify-center py-24", "写真が0枚のときの案内（外枠の色）"],
     // **子で上書きされたら気づけない**ので、文字そのものの行も見る
     ["app/users/UserProfileClient.tsx", "No photos yet", "写真が0枚のときの案内（文字）", true],
-    ["app/users/UserProfileClient.tsx", "{g.photos.length}", "年表の月ごとの枚数"],
     // 訪問者が届くのに残っていた分（レビュー指摘）
     ["app/users/UserProfileClient.tsx", "musicServiceLabel(songEmbed.service)", "BGM の配信元（Spotify など）"],
     ["app/users/UserProfileClient.tsx", "Scan to open this profile", "QR の説明（白いカードの上）"],
     ["app/users/search/page.tsx", "@{u.username}", "利用者検索の @名"],
     ["app/users/search/page.tsx", "{u.bio}", "利用者検索の自己紹介"],
-    ["app/favorites/page.tsx", "text-white/50 text-xs", "お気に入りが空のときの案内"],
     ["app/components/stories/StoriesBar.tsx", "text-[12px] text-white/50 px-1 pb-1", "ストーリーの読み込み失敗"],
 ];
 
@@ -431,10 +430,6 @@ describe("app 全体: 読めない濃さの文字を新しく増やさない", (
         ["app/admin/page.tsx", 'PlusIcon className="w-8 h-8 text-white/30"', "追加の目印。隣に文字がある（2.46:1）"],
         ["app/components/MiniPlayer.tsx", 'MusicalNoteIcon className="w-4 h-4 text-white/30"', "アートワークが無いときの絵（2.46:1）"],
         ["app/components/MusicCard.tsx", 'MusicalNoteIcon className="w-6 h-6 text-white/30"', "同上（2.46:1）"],
-        ["app/favorites/page.tsx", 'HeartIcon className="w-8 h-8 text-white/30"', "空のときの絵（2.46:1）"],
-        // 「保存した写真」の空のとき。**いいねした写真と同じ濃さに揃える**
-        // ——並ぶ2ページで片方だけ濃いと、別の意味があるように見える
-        ["app/saves/page.tsx", 'BookmarkIcon className="w-8 h-8 text-white/30"', "空のときの絵（2.46:1）"],
         ["app/user/drafts/page.tsx", 'PhotoIcon className="w-12 h-12 mx-auto mb-3 text-white/20"', "空のときの絵（1.66:1）"],
         ["app/user/profile/page.tsx", 'UserCircleIcon className="w-10 h-10 text-white/30"', "アバターが無いときの絵（2.46:1）"],
         ["app/user/profile/page.tsx", 'MagnifyingGlassIcon className="w-4 h-4 text-white/30 absolute', "入力欄の中の絵（2.46:1）"],
