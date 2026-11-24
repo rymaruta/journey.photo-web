@@ -9,6 +9,7 @@
  * （2026-11-24）で磨いたもの。名前はサイトの文字ロゴと同じ「Journey Photo」に揃える（件名・差出人・本文）。
  * 種類ごとに件名・見出し・本文を分け、英語の画面で使っている人のために英語の要約を添える
  * （利用者の言語を Cognito の属性で持っていないため両方を書く）。4種類すべてに「コードを人に教えない」を出す。
+ * 同じ日の owner「文章長すぎるかも」で、1種類あたり 見出し・2文・コード・期限・注意・英語1行 に絞った。
  *
  * - 触るのは下の4種類だけ。招待（AdminCreateUser）や多要素の認証などは返り値を変えない＝AWS の既定のまま
  * - 🔴 本文には必ずコードの差し込み口（`request.codeParameter`・`{####}`）を入れる。入れないと Cognito が断り、
@@ -40,55 +41,55 @@ type Copy = {
     preheader: string;
     /** 本文の見出し */
     heading: string;
-    /** 何をしてほしいか */
+    /** 何をしてほしいか（1〜2文） */
     lead: string;
-    /** コードの下の1行（期限が確かめられている登録だけ期限を書く） */
+    /** コードの下の1行。期限が確かめられている登録（24時間）だけ書き、ほかは空 */
     expiry: string;
-    /** 心当たりが無いとき */
-    unexpected: string;
-    /** 英語の画面の人のための要約 */
+    /** 人に教えない・心当たりが無いとき（1〜2文） */
+    note: string;
+    /** 英語の画面の人のための1行 */
     en: string;
 };
 
-const SIGNUP_EXPIRY = "有効期限は24時間です。";
-const SIGNUP_EN = "Enter this code to finish signing up for Journey Photo. It expires in 24 hours. If you didn't sign up, you can ignore this email.";
-
+// 2026-11-24 owner「文章長すぎるかも」: 1種類あたり 見出し・2文・コード・期限・注意2文・英語1行 までに絞った。
+// 確かめていないことは書かない: 再送で前のコードが使えなくなるか・アドレス変更で確認まで元のアドレスのままか（staging の
+// プールは確認前の更新を止める設定か未確認）・返信の行き先（既定の送り方に戻すと返信先が消える）
 const COPY: Record<Kind, Copy> = {
     signup: {
         subject: "【Journey Photo】登録の確認コード",
-        preheader: "登録を完了するための確認コードをお送りします。",
+        preheader: "登録を完了するための確認コードです。",
         heading: "登録の確認コード",
-        lead: "Journey Photo へのご登録ありがとうございます。登録の画面に、次の確認コードを入力してください。",
-        expiry: SIGNUP_EXPIRY,
-        unexpected: "お心当たりが無い場合は、このメールを破棄してください。コードが入力されない限り、登録は完了しません。",
-        en: SIGNUP_EN,
+        lead: "ご登録ありがとうございます。登録の画面に、次のコードを入力してください。",
+        expiry: "有効期限は24時間です。",
+        note: "このコードは誰にも教えないでください。心当たりが無い場合は、このメールを破棄してください。",
+        en: "Your Journey Photo sign-up code. It expires in 24 hours.",
     },
     resend: {
         subject: "【Journey Photo】登録の確認コード（再送）",
-        preheader: "新しい確認コードをお送りします。以前のコードは使えません。",
-        heading: "確認コードを再送しました",
-        lead: "新しい確認コードをお送りします。以前お送りしたコードは使えなくなりましたので、こちらを入力してください。",
-        expiry: SIGNUP_EXPIRY,
-        unexpected: "お心当たりが無い場合は、このメールを破棄してください。コードが入力されない限り、登録は完了しません。",
-        en: SIGNUP_EN,
+        preheader: "登録を完了するための、新しい確認コードです。",
+        heading: "新しい確認コード",
+        lead: "確認コードを再送しました。登録の画面に、次のコードを入力してください。",
+        expiry: "有効期限は24時間です。",
+        note: "このコードは誰にも教えないでください。心当たりが無い場合は、このメールを破棄してください。",
+        en: "Your new Journey Photo sign-up code. It expires in 24 hours.",
     },
     forgot: {
         subject: "【Journey Photo】パスワード再設定の確認コード",
-        preheader: "パスワードを再設定するための確認コードをお送りします。",
+        preheader: "パスワードを再設定するための確認コードです。",
         heading: "パスワードの再設定",
-        lead: "パスワード再設定のご依頼を受け付けました。再設定の画面に、次の確認コードと新しいパスワードを入力してください。",
-        expiry: "期限が切れた場合は、再設定の画面からコードを送り直せます。",
-        unexpected: "お心当たりが無い場合は、このメールを破棄してください。パスワードは変更されません。",
-        en: "Enter this code to reset your Journey Photo password. If you didn't request a reset, you can ignore this email — your password won't change.",
+        lead: "再設定の画面に、次のコードと新しいパスワードを入力してください。",
+        expiry: "",
+        note: "このコードは誰にも教えないでください。心当たりが無い場合は破棄してください。パスワードは変わりません。",
+        en: "Your Journey Photo password reset code.",
     },
     attribute: {
         subject: "【Journey Photo】メールアドレス変更の確認コード",
-        preheader: "新しいメールアドレスを確認するためのコードをお送りします。",
+        preheader: "新しいメールアドレスを確認するためのコードです。",
         heading: "メールアドレスの確認",
-        lead: "このアドレスを Journey Photo のログイン用メールアドレスに設定する手続きです。設定の画面に、次の確認コードを入力してください。",
-        expiry: "コードを入力するまでは、これまでのメールアドレスでログインできます。",
-        unexpected: "お心当たりが無い場合は、このメールを破棄してください。メールアドレスは変更されません。",
-        en: "Enter this code to confirm your new Journey Photo email address. If you didn't request this change, you can ignore this email.",
+        lead: "設定の画面に、次のコードを入力してください。このアドレスがログイン用になります。",
+        expiry: "",
+        note: "このコードは誰にも教えないでください。心当たりが無い場合は、このメールを破棄してください。",
+        en: "Your Journey Photo email confirmation code.",
     },
 };
 
@@ -100,8 +101,8 @@ export const SITE_URL = "https://journey-photo.com/";
 export const WORDMARK_FONT = "ui-serif,'New York',Georgia,serif";
 /** サイトの言葉（`AuthPhotoBand` と同じ） */
 export const TAGLINE = "写真から、次の旅が始まる。";
-/** 誰にも教えないでほしい、の1文（4種類すべてに出す） */
-export const DO_NOT_SHARE = "このコードは、ほかの人に教えないでください。Journey Photo の運営から確認コードをお尋ねすることはありません。";
+/** 誰にも教えないでほしい、の1文（4種類すべての注意の書き出し） */
+export const DO_NOT_SHARE = "このコードは誰にも教えないでください。";
 
 // 色（サイトの暗い面と同じ系統。真っ黒・真っ白を避けて目に強すぎないように）
 const BG = "#0b0b0c";
@@ -147,15 +148,13 @@ function html(c: Copy, code: string): string {
         `<tr><td align="center" style="background:${BG};border:1px solid ${BRASS};border-radius:10px;padding:18px 8px;">`,
         `<span style="font-family:'SF Mono',Menlo,Consolas,'Roboto Mono',monospace;font-size:34px;font-weight:600;letter-spacing:0.35em;padding-left:0.35em;line-height:1.2;color:${TEXT};-webkit-user-select:all;user-select:all;">${code}</span>`,
         "</td></tr>",
-        p(`font-size:13px;line-height:1.7;color:${MUTED};padding:12px 0 0;text-align:center;`, c.expiry),
-        p(`padding:24px 0 0;`, `<div style="border-left:2px solid ${BRASS};padding:2px 0 2px 12px;font-size:13px;line-height:1.75;color:${MUTED};">${DO_NOT_SHARE}</div>`),
-        p(`font-size:13px;line-height:1.75;color:${MUTED};padding:16px 0 0;`, c.unexpected),
-        p(`padding:24px 0 0;`, `<div style="border-top:1px solid ${LINE};padding:16px 0 0;font-size:12px;line-height:1.7;color:${FAINT};" lang="en">${c.en}</div>`),
+        c.expiry ? p(`font-size:13px;line-height:1.7;color:${MUTED};padding:12px 0 0;text-align:center;`, c.expiry) : "",
+        p(`font-size:13px;line-height:1.75;color:${MUTED};padding:20px 0 0;`, c.note),
+        p(`padding:16px 0 0;`, `<div style="border-top:1px solid ${LINE};padding:14px 0 0;font-size:12px;line-height:1.7;color:${FAINT};" lang="en">${c.en}</div>`),
         "</table></td></tr>",
         // 足もと（サイトの言葉・返信の行き先・サイトへのリンク）
         p(`padding:24px 4px 0;font-size:12px;line-height:1.8;color:${FAINT};`,
             `<span style="font-family:${WORDMARK_FONT};font-size:13px;color:${MUTED};">${TAGLINE}</span><br>`
-            + "このメールは送信専用のアドレスからお送りしています。ご返信いただくと、Journey Photo のお問い合わせ窓口に届きます。<br>"
             + `<a href="${SITE_URL}" style="color:${MUTED};text-decoration:underline;">journey-photo.com</a>`),
         "</table></td></tr></table></body></html>",
     ].join("");

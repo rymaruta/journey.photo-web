@@ -5,7 +5,7 @@
  * いまの確認コードのメール（登録・再送・パスワードの再設定・メールアドレスの変更）は Cognito の既定の送り方
  * （`COGNITO_DEFAULT`）で、送り元は AWS の共用アドレス `no-reply@verificationemail.com`、**1日50通まで**
  * （AWS アカウント全体・AWS の資料「Quotas in Amazon Cognito」）。自前の送り元（Amazon SES・`DEVELOPER`）にすると
- * 上限が外れ、差出人が `journey.photo <no-reply@journey-photo.com>` になる。
+ * 上限が外れ、差出人が `"Journey Photo" <no-reply@journey-photo.com>` になる。
  *
  * 段は3つで、**この順にしか進めない**（前の段が済んでいなければ止める）:
  *

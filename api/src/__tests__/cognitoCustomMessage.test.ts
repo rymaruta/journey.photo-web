@@ -40,14 +40,15 @@ describe("文面", () => {
         }
     });
 
-    it("4種類すべてに「コードを人に教えない」・心当たりが無いとき・英語の要約・サイトの言葉・返信の行き先を書く", () => {
+    it("4種類すべてに「コードを人に教えない」・心当たりが無いとき・英語の要約・サイトの言葉を書く（返信の行き先は書かない）", () => {
         for (const s of SOURCES) {
             const { html } = customMessageFor(s, CODE)!;
             expect(html, s).toContain(DO_NOT_SHARE);
-            expect(html, s).toContain("お心当たりが無い場合は");
-            expect(html, s).toMatch(/<div [^>]*lang="en">Enter this code to [^<]*Journey Photo/);
+            expect(html, s).toContain("心当たりが無い場合は");
+            expect(html, s).toMatch(/<div [^>]*lang="en">Your (new )?Journey Photo [a-z -]+code\./);
             expect(html, s).toContain(TAGLINE);
-            expect(html, s).toContain("お問い合わせ窓口に届きます");
+            // 返信の行き先は書かない（既定の送り方に戻すと返信先が消え、嘘になる）
+            expect(html, s).not.toMatch(/返信/);
         }
         // サイトの言葉は、ログインの画面（AuthPhotoBand）と同じ文
         const band = readFileSync(join(__dirname, "..", "..", "..", "app", "components", "AuthPhotoBand.tsx"), "utf8");
@@ -84,17 +85,35 @@ describe("文面", () => {
         expect(existsSync(join(__dirname, "..", "..", "..", "public", "logo-aperture.png"))).toBe(true);
     });
 
+    it("🔴 長すぎない（owner「文章長すぎるかも」）: 見える日本語の文は見出しを除いて5文まで", () => {
+        for (const s of SOURCES) {
+            const { html } = customMessageFor(s, CODE)!;
+            const body = html.slice(html.indexOf("</div>", html.indexOf("<body")));
+            const visible = body.replace(/<[^>]+>/g, "\n");
+            const sentences = visible.match(/[^\n。]+。/g) ?? [];
+            // 足もとのサイトの言葉（1文）は数えない
+            expect(sentences.length - 1, s).toBeLessThanOrEqual(5);
+        }
+    });
+
     it("期限の時間は登録（24時間・再送も同じ）だけに書く", () => {
         expect(customMessageFor("CustomMessage_SignUp", CODE)!.html).toContain("有効期限は24時間です。");
         expect(customMessageFor("CustomMessage_ResendCode", CODE)!.html).toContain("有効期限は24時間です。");
         expect(customMessageFor("CustomMessage_ForgotPassword", CODE)!.html).not.toMatch(/\d+時間/);
-        expect(customMessageFor("CustomMessage_UpdateUserAttribute", CODE)!.html).not.toMatch(/\d+時間/);
+        for (const s of ["CustomMessage_ForgotPassword", "CustomMessage_UpdateUserAttribute", "CustomMessage_VerifyUserAttribute"]) {
+            const { html } = customMessageFor(s, CODE)!;
+            expect(html, s).not.toMatch(/\d+時間|\d+ ?hours?|expires/);
+        }
     });
 
     it("使っていない種類（招待・多要素の認証）と、差し込み口の無い呼び出しは変えない", () => {
         expect(customMessageFor("CustomMessage_AdminCreateUser", CODE)).toBeNull();
         expect(customMessageFor("CustomMessage_Authentication", CODE)).toBeNull();
         expect(customMessageFor("CustomMessage_SignUp", "")).toBeNull();
+    });
+    it("確かめていないことは書かない（再送で前のコードが無効か・確認までアドレスが変わらないか）", () => {
+        expect(customMessageFor("CustomMessage_ResendCode", CODE)!.html).not.toMatch(/以前|前の(コード|お送り)/);
+        expect(customMessageFor("CustomMessage_UpdateUserAttribute", CODE)!.html).not.toMatch(/変わりません|これまでの/);
     });
 });
 
