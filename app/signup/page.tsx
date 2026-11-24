@@ -9,6 +9,7 @@ import { signUp, confirmSignUp, resendConfirmationCode } from "../../lib/auth/co
 import { pendingVerifyKey } from "../../lib/utils/pendingName";
 import { wishSpotForNext, type WishSpot } from "../../lib/utils/wishAfterLogin";
 import { safeNextPath } from "../../lib/routes";
+import { publicImageUrl } from "../../lib/utils/seo";
 import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_ACCENT_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
 import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
 import { SIGNUP_BENEFIT_JA } from "../../lib/auth/loginVia";
@@ -308,7 +309,7 @@ function SignupForm() {
                         <div className="flex items-center gap-3 rounded-xl bg-surface ring-1 ring-line p-2">
                             {wishSpot.image && (
                                 // eslint-disable-next-line @next/next/no-img-element -- 押した頁と同じ絵（静的書き出しで next/image は使わない）
-                                <img src={wishSpot.image} alt="" className="h-12 w-16 flex-none rounded-lg object-cover" />
+                                <img src={publicImageUrl(wishSpot.image)} alt="" className="h-12 w-16 flex-none rounded-lg object-cover" />
                             )}
                             <div className="min-w-0">
                                 <p className="m-0 font-serif font-semibold text-white wrap-anywhere" style={{ fontSize: "17px", lineHeight: "22px" }}>{wishSpot.name}</p>

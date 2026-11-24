@@ -37,18 +37,21 @@ describe("ログイン: 入力に名前がある", () => {
 });
 
 describe("新規登録: 同じ形の入力が区別できる", () => {
-    it("「パスワード」と「パスワード（確認）」が別々に引ける", () => {
+    // 2026-11-24（#432）: 「パスワード（確認）」と「表示名」の欄は外した（iOS と同じ）。残った欄の名前を確かめる
+    it("「パスワード」は名前で引け、外した「パスワード（確認）」と「表示名」は無い", () => {
         render(<SignupPage />);
         const pw = screen.getByLabelText("パスワード");
-        const confirm = screen.getByLabelText("パスワード（確認）");
-        expect(pw).not.toBe(confirm);
         expect(pw).toHaveAttribute("type", "password");
-        expect(confirm).toHaveAttribute("type", "password");
+        expect(pw).toHaveAttribute("id", "signup-password");
+        expect(screen.queryByLabelText("パスワード（確認）")).toBeNull();
+        expect(screen.queryByLabelText(/表示名/)).toBeNull();
+        // 「表示」のボタンは欄の名前を横取りしない（名前は「表示」、欄を操作する）
+        const toggle = screen.getByRole("button", { name: "表示" });
+        expect(toggle).toHaveAttribute("aria-controls", "signup-password");
     });
 
-    it("表示名とメールにも名前がある", () => {
+    it("メールにも名前がある", () => {
         render(<SignupPage />);
-        expect(screen.getByLabelText("表示名（あとで変えられます）")).toBeInTheDocument();
         expect(screen.getByLabelText("メールアドレス")).toHaveAttribute("type", "email");
     });
 });

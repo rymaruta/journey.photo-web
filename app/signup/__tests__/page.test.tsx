@@ -599,7 +599,8 @@ describe("SignupPage - 行きたいから登録へ", () => {
         const box = await screen.findByTestId("signup-wish");
         expect(box.textContent).toContain("伏見稲荷大社");
         expect(box.textContent).toContain("京都府 京都市伏見区");
-        expect(box.querySelector("img")!.getAttribute("src")).toBe("/images/spots/fushimi.jpg");
+        // 絵はほかの画面と同じく publicImageUrl を通す（サイトの道はサイトの URL に）
+        expect(box.querySelector("img")!.getAttribute("src")).toMatch(/^https?:\/\/[^/]+\/images\/spots\/fushimi\.jpg$/);
         expect(screen.getByText("登録して、行きたい場所に残す")).toBeInTheDocument();
         const btn = screen.getByRole("button", { name: "登録して保存" });
         expect(btn.className).toMatch(/\bbg-accent-fill\b/);
