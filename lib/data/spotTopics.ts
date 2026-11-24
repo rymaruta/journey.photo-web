@@ -1084,6 +1084,8 @@ export function countryView(code: string, spots: readonly Spot[] = SPOTS): Topic
     const themes = themeTopics(spots).filter((x) => x.place.kind === "country" && x.place.slug === code);
     return {
         path: ROUTES.SPOT_COUNTRY(code),
+        // 2026-11-24（#701）: 県・テーマの頁と同じく、検索の題に「写真と」と名所の名前を入れる（画面の見出しは今のまま）
+        ...(t.spots.length >= MIN_INDEXABLE_COUNTRY ? { title: themeTitle(countryHeading(t), cards) } : {}),
         heading: countryHeading(t),
         headingEn: countryHeadingEn(t),
         intro: countryIntro(t, cards),
@@ -1296,6 +1298,8 @@ export function cityView(prefSlug: string, city: string, spots: readonly Spot[] 
     const themes = themeTopics(spots).filter((x) => x.place.kind === "prefecture" && x.place.slug === prefSlug);
     return {
         path: cityPath(t),
+        // 2026-11-24（#701）: 県・テーマの頁と同じく、検索の題に「写真と」と名所の名前を入れる（画面の見出しは今のまま）
+        title: themeTitle(cityHeading(t), cards),
         heading: cityHeading(t),
         headingEn: cityHeadingEn(t),
         intro: cityIntro(t, cards),
@@ -1320,6 +1324,8 @@ export function seasonThemeView(season: string, categorySlug: string, spots: rea
     const top = seasonTopics(spots).find((x) => x.season === t.season && x.area === null);
     return {
         path: seasonThemePath(t),
+        // 2026-11-24（#701）: 県・テーマの頁と同じく、検索の題に「写真と」と名所の名前を入れる（画面の見出しは今のまま）
+        title: themeTitle(seasonThemeHeading(t), cards),
         heading: seasonThemeHeading(t),
         headingEn: seasonThemeHeadingEn(t),
         intro: seasonThemeIntro(t, cards),
