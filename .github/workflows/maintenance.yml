@@ -52,6 +52,14 @@ on:
           - list-users        # 登録している人の一覧（登録日・状態・写真の枚数・最後の投稿。メールは出さない・読み取りのみ）
           - grant-early-user  # 初期ユーザー章を 2026-10-31（日本時間）までに登録した人へ付ける（既定は読むだけ・apply で書く）
           - backfill-badges   # 今いる全員のメダルを数え直して書く（既定は読むだけ・apply で書く・通知は送らない）
+          - signin-readiness # Apple・Google のサインインの準備がどこまで済んだか（本番・読むだけ。札 journey.photo-ios#601）
+          - signin-readiness-staging # 同じことを **staging** に
+          - apple-signin-key # Apple でサインインの鍵を Secrets の APNS_PRIVATE_KEY から SSM に写す（本番・既定は下見・apply で置く）
+          - apple-signin-key-staging # 同じことを **staging** に
+          - allow-custom-auth # アプリのクライアントに ALLOW_CUSTOM_AUTH を足す（本番・既定は下見・apply で足す・remove で外す）
+          - allow-custom-auth-staging # 同じことを **staging** に
+          - users-ttl # users 表の TTL（欄 ttl）を有効にする（本番・既定は下見・apply で有効に。札 #295）
+          - users-ttl-staging # 同じことを **staging** に
         required: true
       apply:
         description: "true で実際に適用（false は内容の確認のみ）"
@@ -73,6 +81,10 @@ on:
         description: "geocode-locations で飛ばす地名（セミコロン ; 区切り。地名にカンマが入るため。ドライランで当て違いと分かったもの）"
         type: string
         default: ""
+      remove:
+        description: "allow-custom-auth で ALLOW_CUSTOM_AUTH を外すとき true（戻すとき）"
+        type: boolean
+        default: false
       purge_older_than_days:
         description: "purge-unconfirmed-users で「これより古いものだけ消す」日数。既定7。**0 にすると たった今 登録した人も対象になる**"
         type: string
@@ -489,3 +501,88 @@ jobs:
         if: inputs.task == 'purge-leftover-resources'
         run: node scripts/purge-leftover-resources.js ${{ inputs.apply && '--apply' || '' }}
         timeout-minutes: 20
+
+      # ── 「Apple でサインイン」「Google でログイン」を使い始める準備（札 journey.photo-ios#601・#715） ──
+      # 押す順と戻し方は iOS の `docs/APPLE_SIGNIN.md`。どれも既定は下見（読むだけ）。**apply は owner が押す。**
+      # 環境はステップの env で明示する（ワークフロー全体の env は本番）。台本は STAGE とプール名・表の名前の組が
+      # 合わなければ止まる（`scripts/lib/signinStage.js`）。
+      #
+      # 準備がどこまで済んだか（読むだけ）。Deploy API Lambdas でプールにトリガーを付ける**前と後**に流し、
+      # 「プールの設定の指紋」が LambdaConfig のほかに変わっていないことを見る
+      - name: サインインの準備を読む（本番）
+        if: inputs.task == 'signin-readiness'
+        run: node scripts/signin-readiness.js
+        timeout-minutes: 5
+        env:
+          STAGE: prod
+          COGNITO_USER_POOL_ID: ap-northeast-1_ZbuhDQsWz
+          COGNITO_CLIENT_ID: 21cs4cd8dkttmg3snloj72u8mu
+          USERS_TABLE: prod-photo-gallery-users
+          API_URL: https://gu7kxwdc5l.execute-api.ap-northeast-1.amazonaws.com
+
+      - name: サインインの準備を読む（staging）
+        if: inputs.task == 'signin-readiness-staging'
+        run: node scripts/signin-readiness.js
+        timeout-minutes: 5
+        env:
+          STAGE: staging
+          COGNITO_USER_POOL_ID: ap-northeast-1_DSQ16c6vO
+          COGNITO_CLIENT_ID: 1qjl9c8gmqidigps55jhv4foi
+          USERS_TABLE: staging-photo-gallery-users
+          API_URL: https://y9f8ajacc2.execute-api.ap-northeast-1.amazonaws.com
+
+      # 鍵（プッシュ通知の鍵 DDYJB5893J に Sign in with Apple を足したもの）を SSM の SecureString に写す。
+      # 🔴 中身はログに出さない（長さ・形・公開鍵の指紋・今あるものと同じかだけ）。鍵は Team Scoped なので staging も同じ鍵
+      - name: Apple でサインインの鍵を SSM に置く（本番）
+        if: inputs.task == 'apple-signin-key'
+        run: node scripts/apple-signin-key-to-ssm.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 5
+        env:
+          STAGE: prod
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+
+      - name: Apple でサインインの鍵を SSM に置く（staging）
+        if: inputs.task == 'apple-signin-key-staging'
+        run: node scripts/apple-signin-key-to-ssm.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 5
+        env:
+          STAGE: staging
+          APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
+
+      # アプリのクライアントに ALLOW_CUSTOM_AUTH を足す。🔴 UpdateUserPoolClient は渡さなかった項目を既定に戻すので、
+      # 台本は今の設定を丸ごと送り返し、変えたあと読み直して ExplicitAuthFlows のほかが変わっていないことまで確かめる
+      - name: クライアントに ALLOW_CUSTOM_AUTH を足す（本番）
+        if: inputs.task == 'allow-custom-auth'
+        run: node scripts/allow-custom-auth.js ${{ inputs.apply && '--apply' || '' }} ${{ inputs.remove && '--remove' || '' }}
+        timeout-minutes: 5
+        env:
+          STAGE: prod
+          COGNITO_USER_POOL_ID: ap-northeast-1_ZbuhDQsWz
+          COGNITO_CLIENT_ID: 21cs4cd8dkttmg3snloj72u8mu
+
+      - name: クライアントに ALLOW_CUSTOM_AUTH を足す（staging）
+        if: inputs.task == 'allow-custom-auth-staging'
+        run: node scripts/allow-custom-auth.js ${{ inputs.apply && '--apply' || '' }} ${{ inputs.remove && '--remove' || '' }}
+        timeout-minutes: 5
+        env:
+          STAGE: staging
+          COGNITO_USER_POOL_ID: ap-northeast-1_DSQ16c6vO
+          COGNITO_CLIENT_ID: 1qjl9c8gmqidigps55jhv4foi
+
+      # users 表の TTL を有効にする（使った nonce・墓石・残した結び付けが期限で消える）。
+      # 🔴 30 日以内に期限が来る墓石があれば断る（先に scrub-deleted-names・docs/tombstone-ttl.md）
+      - name: users 表の TTL を有効にする（本番）
+        if: inputs.task == 'users-ttl'
+        run: node scripts/enable-users-ttl.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 10
+        env:
+          STAGE: prod
+          USERS_TABLE: prod-photo-gallery-users
+
+      - name: users 表の TTL を有効にする（staging）
+        if: inputs.task == 'users-ttl-staging'
+        run: node scripts/enable-users-ttl.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 10
+        env:
+          STAGE: staging
+          USERS_TABLE: staging-photo-gallery-users
