@@ -212,6 +212,17 @@ functions:
           trigger: PostConfirmation
           existing: true
 
+  # 確認コードのメールの文面（2026-11-24・段階3・src/cognitoCustomMessage.ts）。登録・再送・パスワードの再設定・
+  # メールアドレスの変更で件名と本文を分ける。AWS には何も呼ばない（文を組んで返すだけ）。
+  # ⚠️ PostConfirmation と同じく existing: true（プール名を間違えると別環境のプールのトリガーを奪う）
+  customMessage:
+    handler: src/cognitoCustomMessage.handler
+    events:
+      - cognitoUserPool:
+          pool: ${param:cognitoPoolName}
+          trigger: CustomMessage
+          existing: true
+
 # ---------------------------------------------------------------------------
 # 未認証で呼べる2つの口だけ、専用の最小ロールに分ける（IAM-1。api-user 側と対）
 #
