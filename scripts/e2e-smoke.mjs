@@ -1571,6 +1571,43 @@ async function runHomeMapChecks(browser, eng) {
 }
 
 
+// 「行きたい」から開いた登録の頁で、主ボタン（登録して保存）が最初の画面で見えるか（2026-11-24・札 journey.photo-ios#432）。
+// 押すためのボタンが下のタブの裏に入り、送らないと見えなかった（375×667・390×844 の両方）。jsdom では寸法が測れないのでここで見る
+async function runSignupFoldChecks(browser, eng) {
+    for (const [w, h] of [[375, 667], [390, 844]]) {
+        const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: true, isMobile: true, serviceWorkers: "block" });
+        await sealContext(ctx);
+        // 押した瞬間に書く印（`lib/utils/wishAfterLogin.ts`）を先に置く
+        await ctx.addInitScript(() => {
+            try {
+                sessionStorage.setItem("jp.wishAfterLogin", JSON.stringify({ k: "SPOT-smoke", n: "smoke1", at: Date.now(), s: { name: "伏見稲荷大社", place: "京都府 京都市伏見区" } }));
+            } catch { /* 無ければ下の検査が落ちて知らせる */ }
+        });
+        const page = await ctx.newPage();
+        const tag = `[${eng}] ${w}x${h} 行きたいから登録`;
+        try {
+            await gotoSettled(page, `http://localhost:${PORT}/signup?next=${encodeURIComponent("/spots/smoke?wishAfterLogin=smoke1")}&via=wish`);
+            await page.waitForSelector('[data-testid="signup-wish"]', { timeout: 20000 });
+            const r = await page.evaluate(() => {
+                const btn = document.querySelector('main button[type="submit"]')?.getBoundingClientRect();
+                // 画面の下に貼り付いた帯（下のタブ）の上端。無ければ画面の下端
+                const bars = [...document.querySelectorAll("body *")].filter((e) => {
+                    const st = getComputedStyle(e); const b = e.getBoundingClientRect();
+                    return (st.position === "fixed" || st.position === "sticky") && b.bottom >= innerHeight - 40 && b.height > 30 && b.height < 140 && b.width > innerWidth * 0.5;
+                });
+                const limit = Math.min(innerHeight, ...bars.map((e) => e.getBoundingClientRect().top));
+                return btn ? { bottom: Math.round(btn.bottom), limit: Math.round(limit), text: document.querySelector('main button[type="submit"]').textContent } : null;
+            });
+            check(`${tag}: 主ボタン「登録して保存」が送らずに見える（下のタブに隠れない）`,
+                !!r && r.text.includes("登録して保存") && r.bottom <= r.limit, r ? `ボタンの下端 ${r.bottom} / タブの上端 ${r.limit}` : "ボタンが無い");
+        } catch (e) {
+            check(`${tag}: 主ボタン「登録して保存」が送らずに見える（下のタブに隠れない）`, false, String(e).slice(0, 200));
+        } finally {
+            await ctx.close();
+        }
+    }
+}
+
 async function launchEngine(eng) {
     const type = BROWSER_TYPES[eng];
     if (!type) { console.log(`\n(未知のエンジン ${eng} をスキップ)`); return null; }
@@ -1605,8 +1642,11 @@ async function main() {
             ranEngines.push(eng);
             console.log(`\n===== エンジン: ${eng} =====`);
             try {
-                if (process.env.SMOKE_ONLY !== "homemap") await runChecks(browser, eng);
-                await runHomeMapChecks(browser, eng);
+                // `SMOKE_ONLY` は手元の確認用（homemap・signupfold のどれか1つだけ回す）
+                const only = process.env.SMOKE_ONLY;
+                if (!only) await runChecks(browser, eng);
+                if (!only || only === "homemap") await runHomeMapChecks(browser, eng);
+                if (!only || only === "signupfold") await runSignupFoldChecks(browser, eng);
             } finally {
                 await browser.close();
             }

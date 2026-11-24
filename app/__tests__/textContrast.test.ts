@@ -147,7 +147,7 @@ function unreadableTokens(cls: string, monochromeOnly = false): string[] {
  */
 const GUARDED: Array<[string, string, string, boolean?]> = [
     // 2026-11-04: 登録はログインと同じ形に。条件の文の色は部品の定数（AUTH_CAPTION_CLASS・下の accountFormStyles の行）が持つ
-    ["app/signup/page.tsx", "英大文字・小文字・数字", "パスワードの条件（読めないと登録できない）", true],
+    ["app/signup/page.tsx", "英大文字、小文字、数字", "パスワードの条件（読めないと登録できない）", true],
     // 2026-11-04: ログインは iOS の形（札なし）に。「写真をアップロードするには…」の説明は iOS に無いので外した。
     // 文字ボタンと注記の色は部品の定数が持つ
     ["app/components/accountFormStyles.ts", "text-[13px] text-white/70", "パスワード再設定への導線（パスワードを忘れた）"],
