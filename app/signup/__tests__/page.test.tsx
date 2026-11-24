@@ -25,6 +25,8 @@ const mockSignUp = vi.fn();
 const mockConfirmSignUp = vi.fn();
 const mockResend = vi.fn();
 const mockShowToast = vi.fn();
+/** 確認のあとのそのままログイン（2026-11-24・#432）。既定は失敗（＝今までの「登録完了」の画面） */
+const mockLogin = vi.fn();
 
 let mockSearchParams = new URLSearchParams();
 const mockReplace = vi.fn();
@@ -36,7 +38,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("../../auth/context", () => ({
-    useAuth: () => ({ isAuthenticated: mockAuthed.value, loading: false }),
+    useAuth: () => ({ isAuthenticated: mockAuthed.value, loading: false, login: (...a: unknown[]) => mockLogin(...a) }),
 }));
 
 vi.mock("../../../lib/hooks/useToast", () => ({
@@ -68,6 +70,9 @@ beforeEach(() => {
     mockConfirmSignUp.mockReset();
     mockResend.mockReset();
     mockShowToast.mockReset();
+    mockLogin.mockReset();
+    mockLogin.mockResolvedValue({ success: false });
+    sessionStorage.clear();
     // URLパラメータをデフォルトに戻す
     window.history.replaceState({}, "", "/signup");
 });
@@ -82,31 +87,26 @@ describe("SignupPage - 登録ステップ", () => {
         expect(screen.getByPlaceholderText("you@example.com")).toBeInTheDocument();
     });
 
-    it("表示名・メール・パスワード・確認パスワードのフィールドが揃っている", () => {
-        render(<SignupPage />);
-        expect(screen.getByLabelText("表示名（あとで変えられます）")).toBeInTheDocument();
-        expect(screen.getByPlaceholderText("you@example.com")).toBeInTheDocument();
-        expect(screen.getByLabelText("パスワード")).toBeInTheDocument();
-        expect(screen.getByLabelText("パスワード（確認）")).toBeInTheDocument();
-    });
-
-    it("パスワード不一致でエラーを表示し、signUpは呼ばれない", async () => {
+    // 2026-11-24（#432）: 「パスワード（確認）」と「表示名」は外した（iOS と同じ。表示名はプロフィールの編集で入れる）
+    it("欄はメールとパスワードだけ。パスワードは「表示」で見て確かめられる", async () => {
         const user = userEvent.setup();
         render(<SignupPage />);
-        await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
-        await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Different1!");
-        await user.click(screen.getByRole("button", { name: /^登録する$/ }));
-        expect(await screen.findByText("パスワードが一致しません")).toBeInTheDocument();
-        expect(mockSignUp).not.toHaveBeenCalled();
+        expect(screen.getByPlaceholderText("you@example.com")).toBeInTheDocument();
+        const pw = screen.getByLabelText("パスワード") as HTMLInputElement;
+        expect(pw.type).toBe("password");
+        expect(screen.queryByLabelText("パスワード（確認）")).toBeNull();
+        expect(screen.queryByLabelText(/表示名/)).toBeNull();
+        await user.click(screen.getByTestId("signup-password-toggle"));
+        expect(pw.type).toBe("text");
+        expect(screen.getByTestId("signup-password-toggle")).toHaveAttribute("aria-pressed", "true");
     });
+
 
     it("パスワード8文字未満でエラーを表示する", async () => {
         const user = userEvent.setup();
         render(<SignupPage />);
         await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Pass1");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Pass1");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
         expect(await screen.findByText("パスワードは8文字以上で入力してください")).toBeInTheDocument();
         expect(mockSignUp).not.toHaveBeenCalled();
@@ -119,7 +119,6 @@ describe("SignupPage - 登録ステップ", () => {
 
         await user.type(screen.getByPlaceholderText("you@example.com"), "newuser@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
 
         await waitFor(() => {
@@ -131,41 +130,7 @@ describe("SignupPage - 登録ステップ", () => {
         expect(JSON.parse(saved!).username).toBe("uuid-1234-5678");
     });
 
-    // メールアドレスで区切って控える。共有端末で、登録を途中でやめた人の
-    // 表示名が次にログインした別人に付くのを防ぐ。
-    it("displayName を入力していたらメールアドレス付きのキーに控える", async () => {
-        mockSignUp.mockResolvedValue({ success: true, username: "uuid-xyz" });
-        const user = userEvent.setup();
-        render(<SignupPage />);
 
-        await user.type(screen.getByLabelText("表示名（あとで変えられます）"), "テスト太郎");
-        await user.type(screen.getByPlaceholderText("you@example.com"), "newuser@example.com");
-        await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
-        await user.click(screen.getByRole("button", { name: /^登録する$/ }));
-
-        await waitFor(() => {
-            expect(localStorageMock.getItem("jp_pending_name_newuser@example.com")).toBe("テスト太郎");
-            // 端末で共有される裸のキーには書かない
-            expect(localStorageMock.getItem("jp_pending_displayName")).toBeNull();
-        });
-    });
-
-    it("displayName が空欄なら控えない", async () => {
-        mockSignUp.mockResolvedValue({ success: true, username: "uuid-xyz" });
-        const user = userEvent.setup();
-        render(<SignupPage />);
-
-        await user.type(screen.getByPlaceholderText("you@example.com"), "newuser@example.com");
-        await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
-        await user.click(screen.getByRole("button", { name: /^登録する$/ }));
-
-        await waitFor(() => {
-            expect(screen.getByRole("heading", { name: "メールを確認" })).toBeInTheDocument();
-        });
-        expect(localStorageMock.getItem("jp_pending_name_newuser@example.com")).toBeNull();
-    });
 
     it("登録失敗（不明エラー） → エラーメッセージを表示する", async () => {
         mockSignUp.mockResolvedValue({ success: false, error: "予期せぬエラー" });
@@ -174,7 +139,6 @@ describe("SignupPage - 登録ステップ", () => {
 
         await user.type(screen.getByPlaceholderText("you@example.com"), "u@x.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
 
         expect(await screen.findByText("予期せぬエラー")).toBeInTheDocument();
@@ -195,7 +159,6 @@ describe("SignupPage - 登録ステップ", () => {
 
         await user.type(screen.getByPlaceholderText("you@example.com"), "existing@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
 
         await waitFor(() => {
@@ -208,7 +171,6 @@ describe("SignupPage - 登録ステップ", () => {
     async function tryResend(user: ReturnType<typeof userEvent.setup>) {
         await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
         await waitFor(() => expect(mockResend).toHaveBeenCalledWith("stale-uuid"));
     }
@@ -252,7 +214,6 @@ describe("SignupPage - 登録ステップ", () => {
 
         await user.type(screen.getByPlaceholderText("you@example.com"), "noidea@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
 
         expect(await screen.findByText(/すでに登録されています/)).toBeInTheDocument();
@@ -269,7 +230,6 @@ describe("SignupPage - 確認ステップ", () => {
         mockSignUp.mockResolvedValue({ success: true, username: "uuid-1234" });
         await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
         await waitFor(() => {
             expect(screen.getByRole("heading", { name: "メールを確認" })).toBeInTheDocument();
@@ -441,7 +401,6 @@ describe("SignupPage - 登録の数え方", () => {
         mockSignUp.mockResolvedValue({ success: true, username: "uuid-1234" });
         await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
         await waitFor(() => expect(screen.getByRole("heading", { name: "メールを確認" })).toBeInTheDocument());
         mockConfirmSignUp.mockResolvedValue(result);
@@ -508,7 +467,6 @@ describe("SignupPage - 登録の数え方", () => {
         mockSignUp.mockResolvedValue({ success: true, username: "uuid-1234" });
         await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
         await waitFor(() => expect(screen.getByRole("heading", { name: "メールを確認" })).toBeInTheDocument());
         expect(JSON.parse(localStorageMock.getItem("jp_verify_u@example.com")!).from).toBe("wish");
@@ -525,10 +483,10 @@ describe("新規登録: iOS の形", () => {
         expect(screen.getByText("写真から、次の旅が始まる。")).toBeInTheDocument();
     });
 
-    it("欄の順は メールアドレス → パスワード → パスワード（確認）→ 表示名", () => {
+    it("欄の順は メールアドレス → パスワード（iOS と同じ2つ）", () => {
         const { container } = render(<SignupPage />);
         const ids = Array.from(container.querySelectorAll("input")).map((i) => i.id);
-        expect(ids).toEqual(["signup-email", "signup-password", "signup-password-confirm", "signup-display-name"]);
+        expect(ids).toEqual(["signup-email", "signup-password"]);
     });
 
     it("主ボタンは白の「登録する」、2番手は「ログインに戻る」", () => {
@@ -571,19 +529,6 @@ describe("SignupPage - 登録の漏斗", () => {
         expect(sent("signup_start")).toEqual([expect.objectContaining({ from: "other" })]);
     });
 
-    it("パスワード不一致 → signup_error form/password_mismatch。入力値もエラー文言も送らない", async () => {
-        const user = userEvent.setup();
-        render(<SignupPage />);
-        await user.type(screen.getByPlaceholderText("you@example.com"), "leak@example.com");
-        await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Different1!");
-        await user.click(screen.getByRole("button", { name: /^登録する$/ }));
-        expect(sent("signup_error")).toEqual([expect.objectContaining({ step: "form", reason: "password_mismatch" })]);
-        const all = JSON.stringify(gtag.mock.calls);
-        expect(all).not.toContain("leak@example.com");
-        expect(all).not.toContain("Password1!");
-        expect(all).not.toContain("一致しません");
-    });
 
     it("signUp が断られた → Cognito の例外名から理由を分ける", async () => {
         mockSignUp.mockResolvedValue({ success: false, error: "パスワードは…", code: "InvalidPasswordException" });
@@ -591,7 +536,6 @@ describe("SignupPage - 登録の漏斗", () => {
         render(<SignupPage />);
         await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
         await waitFor(() => expect(sent("signup_error")).toHaveLength(1));
         expect(sent("signup_error")[0]).toEqual(expect.objectContaining({ step: "form", reason: "password_rule" }));
@@ -604,7 +548,6 @@ describe("SignupPage - 登録の漏斗", () => {
         render(<SignupPage />);
         await user.type(screen.getByPlaceholderText("you@example.com"), "u@example.com");
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
-        await user.type(screen.getByLabelText("パスワード（確認）"), "Password1!");
         await user.click(screen.getByRole("button", { name: /^登録する$/ }));
         await waitFor(() => expect(screen.getByRole("heading", { name: "メールを確認" })).toBeInTheDocument());
         await user.type(screen.getByLabelText("確認コード"), "000000");
@@ -627,5 +570,97 @@ describe("SignupPage - 便益の1行", () => {
         render(<SignupPage />);
         expect(screen.getByTestId("signup-benefit").textContent)
             .toBe("登録すると、いいね・フォロー・コメント・保存・投稿ができるようになります。");
+    });
+});
+
+// ──────────────────────────────────────────────────────────────
+// 「行きたい」から来た回（2026-11-24・札 journey.photo-ios#432）
+// ──────────────────────────────────────────────────────────────
+describe("SignupPage - 行きたいから登録へ", () => {
+    const NONCE = "abc123";
+    const next = `/spots/fushimi-inari-taisha?wishAfterLogin=${NONCE}`;
+    const mark = (over: object = {}) => sessionStorage.setItem("jp.wishAfterLogin", JSON.stringify({
+        k: "spot:fushimi-inari-taisha", n: NONCE, at: Date.now(),
+        s: { name: "伏見稲荷大社", image: "/images/spots/fushimi.jpg", place: "京都府 京都市伏見区" }, ...over,
+    }));
+
+    async function register(user: ReturnType<typeof userEvent.setup>, label: RegExp) {
+        mockSignUp.mockResolvedValue({ success: true, username: "uuid-w" });
+        await user.type(screen.getByPlaceholderText("you@example.com"), "w@example.com");
+        await user.type(screen.getByLabelText("パスワード"), "Password1!");
+        await user.click(screen.getByRole("button", { name: label }));
+        await waitFor(() => expect(screen.getByRole("heading", { name: "メールを確認" })).toBeInTheDocument());
+    }
+
+    it("押したスポットを上に載せ、主ボタンは真鍮の「登録して保存」、ログインは戻り先つき", async () => {
+        mark();
+        mockSearchParams = new URLSearchParams(`next=${encodeURIComponent(next)}&via=wish`);
+        render(<SignupPage />);
+        const box = await screen.findByTestId("signup-wish");
+        expect(box.textContent).toContain("伏見稲荷大社");
+        expect(box.textContent).toContain("京都府 京都市伏見区");
+        // 絵はほかの画面と同じく publicImageUrl を通す（サイトの道はサイトの URL に）
+        expect(box.querySelector("img")!.getAttribute("src")).toMatch(/^https?:\/\/[^/]+\/images\/spots\/fushimi\.jpg$/);
+        expect(screen.getByText("登録して、行きたい場所に残す")).toBeInTheDocument();
+        const btn = screen.getByRole("button", { name: "登録して保存" });
+        expect(btn.className).toMatch(/\bbg-accent-fill\b/);
+        expect(btn.className).not.toMatch(/\bbg-white\b/);
+        expect(screen.getByRole("link", { name: "アカウントがある人はログイン" }))
+            .toHaveAttribute("href", `/login?next=${encodeURIComponent(next)}`);
+    });
+
+    it("外から付けた合言葉だけでは載せない（このタブの印が無い・合わない・古い）", async () => {
+        mockSearchParams = new URLSearchParams(`next=${encodeURIComponent(next)}&via=wish`);
+        const { unmount } = render(<SignupPage />);
+        await act(async () => {});
+        expect(screen.queryByTestId("signup-wish")).toBeNull();
+        expect(screen.getByRole("button", { name: "登録する" })).toBeInTheDocument();
+        unmount();
+        mark({ n: "other" });
+        const r2 = render(<SignupPage />);
+        await act(async () => {});
+        expect(screen.queryByTestId("signup-wish")).toBeNull();
+        r2.unmount();
+        mark({ at: Date.now() - 31 * 60 * 1000 });
+        render(<SignupPage />);
+        await act(async () => {});
+        expect(screen.queryByTestId("signup-wish")).toBeNull();
+    });
+
+    it("絵は自分のサイトの道か https だけ（javascript: などは出さない）", async () => {
+        mark({ s: { name: "伏見稲荷大社", image: "javascript:alert(1)" } });
+        mockSearchParams = new URLSearchParams(`next=${encodeURIComponent(next)}&via=wish`);
+        render(<SignupPage />);
+        const box = await screen.findByTestId("signup-wish");
+        expect(box.querySelector("img")).toBeNull();
+    });
+
+    it("確認コードが通ったら、打ったパスワードでそのままログインし、戻り先へ（完了の画面と2回目の入力を出さない）", async () => {
+        mark();
+        mockSearchParams = new URLSearchParams(`next=${encodeURIComponent(next)}&via=wish`);
+        mockLogin.mockImplementation(async () => { mockAuthed.value = true; return { success: true, userId: "u1" }; });
+        const user = userEvent.setup();
+        const { rerender } = render(<SignupPage />);
+        await screen.findByTestId("signup-wish");
+        await register(user, /^登録して保存$/);
+        expect(screen.getByTestId("signup-wish").textContent).toContain("確かめたら、行きたい場所に入ります");
+        mockConfirmSignUp.mockResolvedValue({ success: true });
+        await user.type(screen.getByLabelText("確認コード"), "123456");
+        await user.click(screen.getByRole("button", { name: "確認して保存" }));
+        await waitFor(() => expect(mockLogin).toHaveBeenCalledWith("w@example.com", "Password1!"));
+        rerender(<SignupPage />);
+        await waitFor(() => expect(mockReplace).toHaveBeenCalledWith(next));
+        expect(screen.queryByRole("heading", { name: "登録完了" })).toBeNull();
+    });
+
+    it("そのままのログインが通らなければ、今までどおり完了の画面（ログインへ）", async () => {
+        const user = userEvent.setup();
+        render(<SignupPage />);
+        await register(user, /^登録する$/);
+        mockConfirmSignUp.mockResolvedValue({ success: true });
+        await user.type(screen.getByLabelText("確認コード"), "123456");
+        await user.click(screen.getByRole("button", { name: /登録を完了する/ }));
+        await waitFor(() => expect(screen.getByRole("heading", { name: "登録完了" })).toBeInTheDocument());
+        expect(mockLogin).toHaveBeenCalledTimes(1);
     });
 });

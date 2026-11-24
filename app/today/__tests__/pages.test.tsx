@@ -78,7 +78,7 @@ describe("/today/<県>", () => {
         const b = renderToStaticMarkup(await prefEl("tokyo"));
         expect(a).toBe(b);
         expect(a).toContain('data-ready="false"');
-        expect(a).not.toContain("· 今日");
+        expect(a).not.toContain("　今日");
         expect(a).not.toContain('data-ymd=');
     });
 

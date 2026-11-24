@@ -106,7 +106,7 @@ describe("光の時刻", () => {
         expect(labels(blocks[0])).toEqual(["ブルーアワー", "日の出", "ゴールデンアワー"]);
         expect(labels(blocks[1])).toEqual(["ゴールデンアワー", "日の入り", "ブルーアワー"]);
         expect(blocks[0].textContent).toMatch(/東\S* \d+°/);
-        expect(screen.getByTestId("spot-today-light-date").textContent).toContain("· 今日");
+        expect(screen.getByTestId("spot-today-light-date").textContent).toContain("　今日");
         expect(section.textContent).toContain("時刻は日本時間。");
         expect(section.textContent).toContain("ゴールデンアワーは太陽の高さが 6° から −4°");
         // 台帳の文: 朝は朝の段、日没後は夕の段、夜は撮影ガイドに残る
@@ -122,12 +122,12 @@ describe("光の時刻", () => {
         const date = () => screen.getByTestId("spot-today-light-date").textContent;
         expect(screen.queryByRole("button", { name: "今日に戻す" })).toBeNull();
         fireEvent.click(screen.getByRole("button", { name: "次の日" }));
-        expect(date()).toContain("· 明日");
+        expect(date()).toContain("　明日");
         fireEvent.click(screen.getByRole("button", { name: "前の日" }));
         fireEvent.click(screen.getByRole("button", { name: "前の日" }));
-        expect(date()).toContain("· 昨日");
+        expect(date()).toContain("　昨日");
         fireEvent.click(screen.getByRole("button", { name: "今日に戻す" }));
-        expect(date()).toContain("· 今日");
+        expect(date()).toContain("　今日");
     });
 
     it("時刻帯が引けない国は節を出さず、台帳の文は全部撮影ガイドに残す", () => {
