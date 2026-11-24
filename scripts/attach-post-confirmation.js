@@ -60,17 +60,21 @@ function poolNameForStage(stage) {
 
 /** 更新の前後で見比べる項目（読み直しのたびに変わるものと、狙って変える LambdaConfig は除く） */
 const VOLATILE = ["LastModifiedDate", "EstimatedNumberOfUsers", "LambdaConfig"];
+/** 読み直すたびに変わる項目だけ（狙って変えるものを含まない） */
+const ALWAYS_VOLATILE = ["LastModifiedDate", "EstimatedNumberOfUsers"];
 
 /**
  * 更新の前後で **トリガー以外に変わった項目** を数える（純関数・テスト可能）。
+ * `ignore` は見ない項目（既定は `VOLATILE`＝トリガーを狙って変えるこの道具の分。メールの送り方を変える
+ * `ses-switch-pool.js` はトリガーも見る＝`ALWAYS_VOLATILE` を渡す）。
  * `UpdateUserPool` の唯一の危険は「渡さなかった項目が既定値に戻る」なので、
  * 付けたあとに読み直して、ここが空であることまで確かめる。
  */
-function changedKeys(before, after) {
+function changedKeys(before, after, ignore = VOLATILE) {
     const keys = new Set([...Object.keys(before ?? {}), ...Object.keys(after ?? {})]);
     const out = [];
     for (const k of keys) {
-        if (VOLATILE.includes(k)) continue;
+        if (ignore.includes(k)) continue;
         if (JSON.stringify(before?.[k]) !== JSON.stringify(after?.[k])) out.push(k);
     }
     return out.sort();
@@ -253,7 +257,7 @@ async function main() {
     console.log("[attach] 完了。次に新規登録した人から user グループとプロフィール行に入ります");
 }
 
-module.exports = { planAttach, buildUpdateParams, baseUpdateParams, policyAllowsPool, changedKeys, expectedFunctionName, poolNameForStage, READ_ONLY, TRIGGER };
+module.exports = { planAttach, buildUpdateParams, baseUpdateParams, policyAllowsPool, changedKeys, ALWAYS_VOLATILE, expectedFunctionName, poolNameForStage, READ_ONLY, TRIGGER };
 if (require.main === module) {
     main().catch((e) => { console.error(e); process.exit(1); });
 }

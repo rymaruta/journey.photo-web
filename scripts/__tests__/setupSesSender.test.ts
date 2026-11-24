@@ -12,6 +12,7 @@ const mod = require("../setup-ses-sender.js") as {
     planRecordChanges: (a: { tokens: string[]; existing: Array<Record<string, unknown>>; domain?: string }) => Array<{ Action: string; ResourceRecordSet: { Name: string; Type: string; ResourceRecords: Array<{ Value: string }> } }>;
     canSwitch: (a: { verified: boolean; dkimStatus?: string; productionAccess: boolean }) => { ok: boolean; reasons: string[] };
     buildEmailUpdate: (pool: Record<string, unknown>, arn: string) => Record<string, unknown>;
+    buildEmailRevert: (pool: Record<string, unknown>) => Record<string, unknown>;
     FROM: string; FROM_ADDRESS: string; REPLY_TO: string; DOMAIN: string;
     PRODUCTION_REQUEST: { MailType: string; UseCaseDescription: string; WebsiteURL: string };
 };
@@ -90,6 +91,32 @@ describe("プールの更新の本文", () => {
     });
 });
 
+describe("元に戻す・読み直しの確認", () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const attach = require("../attach-post-confirmation.js") as {
+        changedKeys: (a: Record<string, unknown>, b: Record<string, unknown>, ignore?: string[]) => string[];
+        ALWAYS_VOLATILE: string[];
+    };
+    const pool = {
+        Id: "p", Name: "staging-journey-photo-client-spa", LambdaConfig: { PostConfirmation: "arn:f" },
+        EmailConfiguration: { EmailSendingAccount: "DEVELOPER", SourceArn: "arn:s", From: "x" },
+    };
+
+    it("戻すときは既定の送り方（COGNITO_DEFAULT）だけにし、ほかの設定は残す", () => {
+        const p = mod.buildEmailRevert(pool);
+        expect(p.EmailConfiguration).toEqual({ EmailSendingAccount: "COGNITO_DEFAULT" });
+        expect(p.LambdaConfig).toEqual(pool.LambdaConfig);
+        expect(p.UserPoolId).toBe("p");
+    });
+
+    it("🔴 切り替えの読み直しは、トリガー（LambdaConfig）が外れたことも見つける", () => {
+        const after = { ...pool, LambdaConfig: {}, LastModifiedDate: "later" };
+        expect(attach.changedKeys(pool, after, attach.ALWAYS_VOLATILE)).toEqual(["LambdaConfig"]);
+        // attach の道具の既定（トリガーを狙って変える）では見ない
+        expect(attach.changedKeys(pool, after)).toEqual([]);
+    });
+});
+
 describe("値の突き合わせ", () => {
     it("返信先はサイトの問い合わせ先（deploy.yml の contactEmail）と同じ", () => {
         const deploy = readFileSync(join(root, ".github/workflows/deploy.yml"), "utf8");
@@ -111,14 +138,28 @@ describe("値の突き合わせ", () => {
 
 describe("保守のワークフローの配線", () => {
     const wf = readFileSync(join(root, ".github/workflows/maintenance.yml"), "utf8");
-    it("5つの作業を選べて、既定は読むだけ（apply のときだけ --apply）", () => {
-        for (const t of ["ses-status", "ses-identity", "ses-production-access", "ses-switch-staging", "ses-switch-prod"]) {
+    it("7つの作業を選べて、既定は読むだけ（apply のときだけ --apply）", () => {
+        for (const t of ["ses-status", "ses-identity", "ses-production-access", "ses-switch-staging", "ses-switch-prod", "ses-revert-staging", "ses-revert-prod"]) {
             expect(wf, t).toMatch(new RegExp(`- ${t}\\b`));
             expect(wf, t).toMatch(new RegExp(`if: inputs\\.task == '${t}'`));
         }
         expect(wf).toMatch(/node scripts\/setup-ses-sender\.js \$\{\{ inputs\.apply && '--apply' \|\| '' \}\}/);
         expect(wf).toMatch(/node scripts\/ses-switch-pool\.js \$\{\{ inputs\.apply && '--apply' \|\| '' \}\}/);
     });
+    it("戻す作業は REVERT を渡し、プール ID と環境を名指しする", () => {
+        for (const [t, stage, pool] of [["ses-revert-prod", "prod", "ZbuhDQsWz"], ["ses-revert-staging", "staging", "DSQ16c6vO"]]) {
+            const block = wf.slice(wf.indexOf(`if: inputs.task == '${t}'`)).slice(0, 400);
+            expect(block, t).toMatch(new RegExp(`STAGE: ${stage}`));
+            expect(block, t).toContain(pool);
+            expect(block, t).toMatch(/REVERT: "true"/);
+        }
+        // 切り替えの作業には REVERT を渡さない
+        for (const t of ["ses-switch-prod", "ses-switch-staging"]) {
+            const block = wf.slice(wf.indexOf(`if: inputs.task == '${t}'`)).slice(0, 260);
+            expect(block, t).not.toMatch(/REVERT/);
+        }
+    });
+
     it("切り替えはプール ID と環境を名指しする（本番と staging を取り違えない）", () => {
         const prod = wf.slice(wf.indexOf("if: inputs.task == 'ses-switch-prod'"));
         expect(prod.slice(0, 400)).toMatch(/STAGE: prod/);

@@ -96,6 +96,16 @@ function buildEmailUpdate(userPool, identityArn) {
     return p;
 }
 
+/**
+ * 元に戻す本文（純関数）。**Cognito の既定の送り方（`COGNITO_DEFAULT`）へ戻す。** SES が止められた・
+ * 届かないと分かったときの逃げ道。門は無い（戻すのはいつでも安全側）。メールの送り方の外は変えない
+ */
+function buildEmailRevert(userPool) {
+    const p = baseUpdateParams(userPool);
+    p.EmailConfiguration = { EmailSendingAccount: "COGNITO_DEFAULT" };
+    return p;
+}
+
 /** 本番での利用の申請の本文（SES の審査が読む・英語） */
 const PRODUCTION_REQUEST = {
     MailType: "TRANSACTIONAL",
@@ -202,14 +212,15 @@ async function main() {
     throw new Error(`STEP=${step} は知らない（status / identity / production）。プールの切り替えは scripts/ses-switch-pool.js`);
 }
 
-module.exports = { dkimRecords, planRecordChanges, canSwitch, buildEmailUpdate, readState, identityArn, FROM, FROM_ADDRESS, REPLY_TO, DOMAIN, REGION, PRODUCTION_REQUEST };
+module.exports = { dkimRecords, planRecordChanges, canSwitch, buildEmailUpdate, buildEmailRevert, readState, identityArn, FROM, FROM_ADDRESS, REPLY_TO, DOMAIN, REGION, PRODUCTION_REQUEST };
 
 /** 権限が無いときの言い方（両方のスクリプトで同じ） */
 function reportError(e) {
     if (e.name === "AccessDeniedException" || e.name === "AccessDenied") {
         console.error(`::error::権限が無い（${e.message}）。保守の鍵に SES（ses:*Identity・ses:GetAccount・ses:PutAccountDetails）・`
             + "Route 53（route53:ListHostedZonesByName・ListResourceRecordSets・ChangeResourceRecordSets）・"
-            + "Cognito（cognito-idp:DescribeUserPool・UpdateUserPool）の権限が要る");
+            + "Cognito（cognito-idp:DescribeUserPool・UpdateUserPool）・"
+            + "IAM（iam:CreateServiceLinkedRole。送り方を SES にすると Cognito が自分の権限を作る）の権限が要る");
     } else {
         console.error(e);
     }

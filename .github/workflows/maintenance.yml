@@ -43,6 +43,8 @@ on:
           - ses-production-access # SES の本番での利用を申請する（既定は下見・apply で実行）
           - ses-switch-staging # staging のプールの確認コードのメールを SES から送る（既定は下見・apply で実行）
           - ses-switch-prod   # 本番のプールの確認コードのメールを SES から送る（既定は下見・apply で実行）
+          - ses-revert-staging # staging の確認コードのメールを既定の送り方（COGNITO_DEFAULT）に戻す（既定は下見・apply で実行）
+          - ses-revert-prod   # 本番の確認コードのメールを既定の送り方に戻す（SES が止められたときの逃げ道・既定は下見・apply で実行）
           - verify-upload     # **staging** で presign が本当に使えるか確かめる（apply が要る）
           - verify-invalidate # **staging** で削除時のエッジ掃除が Lambda の中で動くか確かめる（apply が要る）
           - verify-origin-failover # **staging** でオリジングループが 404ページより先に効くか確かめる（動的化の関門）
@@ -385,11 +387,6 @@ jobs:
         env:
           COGNITO_USER_POOL_ID: ap-northeast-1_ZbuhDQsWz
 
-      # 本番の diagnose（2026-09-16）で「プールに PostConfirmation トリガーが
-      # 付いていない」と出た。api の再デプロイでは付き直らない——付けるのは
-      # CloudFormation のカスタムリソースで、プロパティが変わらないと走らないうえ、
-      # プールを**名前**で探す。ここは ID を指名して、トリガーと Cognito からの
-      # 呼び出し許可の両方を揃える。トリガー以外の設定は1つも変えない。
       # 確認コードのメールの送り元を journey-photo.com に（2026-11-24・`scripts/setup-ses-sender.js` の冒頭）。
       # 段は identity → production-access → switch（staging で受け取って確かめてから prod）。前の段が済んでいなければ止める
       - name: SES の状態
@@ -424,7 +421,28 @@ jobs:
         env:
           COGNITO_USER_POOL_ID: ap-northeast-1_ZbuhDQsWz
           STAGE: prod
+      - name: staging の確認コードのメールを既定の送り方に戻す
+        if: inputs.task == 'ses-revert-staging'
+        run: node scripts/ses-switch-pool.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 5
+        env:
+          COGNITO_USER_POOL_ID: ap-northeast-1_DSQ16c6vO
+          STAGE: staging
+          REVERT: "true"
+      - name: 本番の確認コードのメールを既定の送り方に戻す
+        if: inputs.task == 'ses-revert-prod'
+        run: node scripts/ses-switch-pool.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 5
+        env:
+          COGNITO_USER_POOL_ID: ap-northeast-1_ZbuhDQsWz
+          STAGE: prod
+          REVERT: "true"
 
+      # 本番の diagnose（2026-09-16）で「プールに PostConfirmation トリガーが
+      # 付いていない」と出た。api の再デプロイでは付き直らない——付けるのは
+      # CloudFormation のカスタムリソースで、プロパティが変わらないと走らないうえ、
+      # プールを**名前**で探す。ここは ID を指名して、トリガーと Cognito からの
+      # 呼び出し許可の両方を揃える。トリガー以外の設定は1つも変えない。
       - name: PostConfirmation トリガーを付け直す
         if: inputs.task == 'attach-post-confirmation'
         run: node scripts/attach-post-confirmation.js ${{ inputs.apply && '--apply' || '' }}
