@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import publishedPhotos from "../data/photos.json";
+import PHOTOS_JSON from "../data/photos.json";
+import type { Photo } from "../../lib/data/photos";
 import { publicImageUrl } from "../../lib/utils/seo";
 
 /**
@@ -13,7 +14,10 @@ import { publicImageUrl } from "../../lib/utils/seo";
  *     ワードマーク マーク 30＋明朝 Bold 40・字間 -0.025em → 10 → 一文（明朝 18・白72%）
  */
 
-// 公開写真のみを使い、レンダーのたびに全件走査しない
+// 公開写真のみを使い、レンダーのたびに全件走査しない。
+// **型は Photo[] と名指しする**（2026-11-24・journey.photo-ios#717）: staging は写真が0件のことがあり、`photos.json` が `[]` だと
+// 読み込んだ型が `never[]` になって `photo.published` で next build が落ちた（他の所の `PHOTOS_JSON as Photo[]` と同じ）
+const publishedPhotos = PHOTOS_JSON as Photo[];
 const bandPhotos = publishedPhotos.filter((photo) => photo.published && photo.src && (!("sensitive" in photo) || photo.sensitive !== true)).slice(0, 12);
 
 export function AuthPhotoBand() {
