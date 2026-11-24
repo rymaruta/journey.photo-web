@@ -43,8 +43,9 @@ describe("塗りの主ボタンは高さ 50、線の副ボタンは高さ 44（v
     });
 
     it.each([
-        // 2026-11-04: ログイン・設定の下の画面の主ボタン・線のボタンは部品の定数（主2・線1）
-        ["app/components/accountFormStyles.ts", 3],
+        // 2026-11-04: ログイン・設定の下の画面の主ボタン・線のボタンは部品の定数（主2・線1）。
+        // 2026-11-24（#432）: 黒地の主ボタン（真鍮の塗り・AUTH_ACCENT_PRIMARY_CLASS）を足して主3・線1
+        ["app/components/accountFormStyles.ts", 4],
         ["app/admin/login/page.tsx", 1],
         ["app/user/profile/page.tsx", 1],
         ["app/user/edit/page.tsx", 1],

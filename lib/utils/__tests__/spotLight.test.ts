@@ -128,8 +128,8 @@ describe("日付", () => {
         expect(ymdAt(0, now, TOKYO_TZ)).toBe("2026-10-04");
         expect(ymdAt(0, now, "Europe/Paris")).toBe("2026-10-03");
         expect(ymdAt(-1, now, TOKYO_TZ)).toBe("2026-10-03");
-        expect(lightDateLabel("2026-10-03", 0, "2026-10-03", true)).toBe("10月3日（土） · 今日");
-        expect(lightDateLabel("2026-10-04", 1, "2026-10-03", true)).toBe("10月4日（日） · 明日");
+        expect(lightDateLabel("2026-10-03", 0, "2026-10-03", true)).toBe("10月3日（土）　今日");
+        expect(lightDateLabel("2026-10-04", 1, "2026-10-03", true)).toBe("10月4日（日）　明日");
         expect(lightDateLabel("2027-01-05", 94, "2026-10-03", true)).toBe("2027年1月5日（火）");
         expect(lightDateLabel("2026-10-03", 0, "2026-10-03", false)).toBe("Sat, Oct 3 · Today");
     });

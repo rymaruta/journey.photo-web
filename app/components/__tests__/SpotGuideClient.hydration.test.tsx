@@ -78,7 +78,7 @@ describe("光の時刻の水和", () => {
         expect(errors.filter((e) => /hydrat|did not match|server rendered/i.test(e))).toEqual([]);
         // 読み込み後は、その日（冬至）の札と時刻
         const date = container.querySelector("[data-testid=spot-today-light-date]");
-        expect(date?.textContent).toBe("12月22日（火） · 今日");
+        expect(date?.textContent).toBe("12月22日（火）　今日");
         expect(container.querySelectorAll("[data-testid=spot-today-light-row]").length).toBe(6);
         expect(container.querySelector("[data-testid=spot-today-light-date-placeholder]")).toBeNull();
     });

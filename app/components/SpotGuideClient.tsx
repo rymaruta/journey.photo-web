@@ -450,7 +450,7 @@ function Samples({ samples, isJa, spot }: { samples: SpotSample[]; isJa: boolean
     // 見出しと前書きで名乗る出どころ（Commons が先・出ている写真の分だけ）
     const sources = [...new Set(shown.map(sampleSourceName))]
         .sort((a, b) => Number(b === "Wikimedia Commons") - Number(a === "Wikimedia Commons"));
-    const from = sources.join(isJa ? "・" : " and ");
+    const from = sources.join(isJa ? "、" : " and ");
     // 自由なライセンスの出どころ（Commons・Flickr）と、規約に従って載せる提供元（環境省・県の観光協会など・
     // 2026-10-04）を分けて書く。後者は「自由なライセンス」ではない
     const free: string[] = sources.filter((n) => n === "Wikimedia Commons" || n === "Flickr");
@@ -461,8 +461,8 @@ function Samples({ samples, isJa, spot }: { samples: SpotSample[]; isJa: boolean
             <p className="m-0 mb-3 text-white/60" style={{ fontSize: "12px", lineHeight: "18px" }}>
                 {isJa
                     ? [
-                        free.length > 0 ? `この観光スポットの近くで撮られ、${free.join("・")} で自由なライセンスのもと公開されている写真です。` : "",
-                        hosted.length > 0 ? `${hosted.join("・")}の写真は、提供元の利用規約に従って掲載しています。` : "",
+                        free.length > 0 ? `この観光スポットの近くで撮られ、${free.join("、")} で自由なライセンスのもと公開されている写真です。` : "",
+                        hosted.length > 0 ? `${hosted.join("、")}の写真は、提供元の利用規約に従って掲載しています。` : "",
                         "撮影者はこのサイトの利用者ではありません。",
                     ].join("")
                     : [
@@ -597,7 +597,8 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
         : samples.length > 0
             ? (isJa ? `作例${samples.length}枚` : (samples.length === 1 ? "1 example photo" : `${samples.length} example photos`))
             : "";
-    const subtitle = [region, photoCountLabel].filter(Boolean).join(" · ");
+    // 2026-11-24（owner の好み・2026-11-12）: 「・」「·」で区切らない。地域と枚数は別の字の塊にし、余白で分ける
+    const subtitleParts = [region, photoCountLabel].filter(Boolean);
 
     // 「シェア」: 共有シートが使えなければリンクをコピー（`SpotPageClient` と同じ扱い）。
     // 配るのは**サーバーが組んだ canonical**（`window.location` だとクエリが付いたまま配られる）
@@ -814,12 +815,14 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                     {verified && <SpotWantsLine slug={spot.slug} />}
                     {(spot.reading || spot.nameEn) && (
                         <p className="m-0 mt-1 text-white/55" style={{ fontSize: "13px", lineHeight: "18px" }}>
-                            {[spot.reading, spot.nameEn].filter(Boolean).join(" ・ ")}
+                            {[spot.reading, spot.nameEn].filter(Boolean).map((x, i) => (
+                                <span key={i} className={i > 0 ? "ml-2" : undefined}>{x}</span>
+                            ))}
                         </p>
                     )}
                     <p className="m-0 mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-white/70"
                        style={{ fontSize: "13px", lineHeight: "18px" }}>
-                        {subtitle && <span>{subtitle}</span>}
+                        {subtitleParts.map((x, i) => <span key={i} data-testid="spot-subtitle-part">{x}</span>)}
                         {spot.category && (
                             <span className="inline-flex items-center rounded-full bg-chip text-chip-text"
                                   style={{ fontSize: "12px", padding: "2px 8px" }}>{spot.category}</span>
@@ -855,7 +858,8 @@ export default function SpotGuideClient({ spot, photos, creators = [], autoNote 
                     （36rem）で止める——スマホの形を横に引き伸ばさない（owner の指示） */}
                 <div className="pb-6 border-b border-line">
                 <div className="grid grid-cols-3 gap-2.5 max-w-xl">
-                    <SaveSpotButton slug={spot.slug} name={spot.name} locale={isJa ? "ja" : "en"} kind="spot" variant="tile" />
+                    <SaveSpotButton slug={spot.slug} name={spot.name} locale={isJa ? "ja" : "en"} kind="spot" variant="tile"
+                        image={cover?.src} place={region || undefined} />
                     <Link href={mapHref} prefetch={false}
                           className={`${TILE} ${TILE_OFF} min-w-0`}
                           style={{ minHeight: TILE_MIN_H, touchAction: "manipulation" }}>

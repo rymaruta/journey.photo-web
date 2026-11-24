@@ -87,24 +87,25 @@ describe("観光スポットのページ（iOS の板 13 に揃えた形）", ()
     });
 
     // 2026-11-09（Web 入口ページ監査の案A）: 0枚のときは「0枚の写真」と言わない
-    it("見出しの下は「地域 · N枚の写真」（数えた枚数）。0枚のときは枚数を出さない", () => {
+    it("見出しの下は「地域」と「N枚の写真」を別の塊で（中黒で区切らない）。0枚のときは枚数を出さない", () => {
         const { unmount } = view();
         // 副題の行（見出しの下の最初の行）は地域だけ
         expect(document.querySelector("header h1")!.parentElement!.querySelector("p.flex")!.textContent).toBe("香川県 観音寺市");
         expect(document.body.textContent, "0枚の写真が出ている").not.toContain("0枚の写真");
         unmount();
         view(SPOT, [PHOTO]);
-        expect(screen.getByText("香川県 観音寺市 · 1枚の写真")).toBeTruthy();
+        expect(screen.getAllByTestId("spot-subtitle-part").map((e) => e.textContent)).toEqual(["香川県 観音寺市", "1枚の写真"]);
+        expect(document.querySelector("header")!.textContent).not.toMatch(/[・·]/);
     });
 
-    it("0枚でも作例があれば「地域 · 作例N枚」（あるものを言う）", () => {
+    it("0枚でも作例があれば「地域」と「作例N枚」（あるものを言う）", () => {
         const sample = { src: "https://upload.wikimedia.org/a.jpg", width: 1280, height: 853, author: "A", license: "CC BY 4.0", licenseUrl: "https://creativecommons.org/licenses/by/4.0", sourceUrl: "https://commons.wikimedia.org/wiki/File:A.jpg", title: "A" };
         render(
             <ToastProvider>
                 <SpotGuideClient spot={SPOT} photos={[]} nearby={[]} locationPath={null} pageUrl={PAGE} samples={[sample, { ...sample, title: "B" }]} />
             </ToastProvider>,
         );
-        expect(screen.getByText("香川県 観音寺市 · 作例2枚")).toBeTruthy();
+        expect(screen.getAllByTestId("spot-subtitle-part").map((e) => e.textContent)).toEqual(["香川県 観音寺市", "作例2枚"]);
         expect(document.body.textContent).not.toContain("0枚の写真");
     });
 

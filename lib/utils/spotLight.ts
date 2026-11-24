@@ -95,7 +95,7 @@ const WEEK_JA = ["日", "月", "火", "水", "木", "金", "土"];
 const WEEK_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const MONTH_EN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-/** 日付の札: 「10月3日（土） · 今日」。年が今日と違えば年から（「2027年1月5日（火）」） */
+/** 日付の札: 「10月3日（土）　今日」（2026-11-24: 中黒で区切らず全角の空きで分ける）。年が今日と違えば年から（「2027年1月5日（火）」） */
 export function lightDateLabel(ymd: string, offset: number, todayYMD: string, isJa: boolean): string {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(ymd);
     if (!m) return ymd;
@@ -105,9 +105,9 @@ export function lightDateLabel(ymd: string, offset: number, todayYMD: string, is
     let label = sameYear
         ? (isJa ? `${mo}月${d}日（${WEEK_JA[w]}）` : `${WEEK_EN[w]}, ${MONTH_EN[mo - 1]} ${d}`)
         : (isJa ? `${y}年${mo}月${d}日（${WEEK_JA[w]}）` : `${WEEK_EN[w]}, ${MONTH_EN[mo - 1]} ${d}, ${y}`);
-    if (offset === 0) label += isJa ? " · 今日" : " · Today";
-    else if (offset === 1) label += isJa ? " · 明日" : " · Tomorrow";
-    else if (offset === -1) label += isJa ? " · 昨日" : " · Yesterday";
+    if (offset === 0) label += isJa ? "　今日" : " · Today";
+    else if (offset === 1) label += isJa ? "　明日" : " · Tomorrow";
+    else if (offset === -1) label += isJa ? "　昨日" : " · Yesterday";
     return label;
 }
 
