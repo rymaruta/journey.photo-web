@@ -38,6 +38,11 @@ on:
           - content-opportunities # どこを直すと「検索に出せるページ」が増えるかを数える（読み取りのみ）
           - photo-colors      # 色タグが「写真の色」と合っているかの材料を出す（読み取りのみ・判定はしない）
           - orphan-uploads    # どの行からも参照されていないアップロード実体を探す
+          - ses-status        # 確認コードのメールの送り元（SES）の状態を読む（読み取りのみ）
+          - ses-identity      # journey-photo.com を SES で確かめる（DKIM・DMARC を Route 53 に書く・既定は下見・apply で実行）
+          - ses-production-access # SES の本番での利用を申請する（既定は下見・apply で実行）
+          - ses-switch-staging # staging のプールの確認コードのメールを SES から送る（既定は下見・apply で実行）
+          - ses-switch-prod   # 本番のプールの確認コードのメールを SES から送る（既定は下見・apply で実行）
           - verify-upload     # **staging** で presign が本当に使えるか確かめる（apply が要る）
           - verify-invalidate # **staging** で削除時のエッジ掃除が Lambda の中で動くか確かめる（apply が要る）
           - verify-origin-failover # **staging** でオリジングループが 404ページより先に効くか確かめる（動的化の関門）
@@ -385,6 +390,41 @@ jobs:
       # CloudFormation のカスタムリソースで、プロパティが変わらないと走らないうえ、
       # プールを**名前**で探す。ここは ID を指名して、トリガーと Cognito からの
       # 呼び出し許可の両方を揃える。トリガー以外の設定は1つも変えない。
+      # 確認コードのメールの送り元を journey-photo.com に（2026-11-24・`scripts/setup-ses-sender.js` の冒頭）。
+      # 段は identity → production-access → switch（staging で受け取って確かめてから prod）。前の段が済んでいなければ止める
+      - name: SES の状態
+        if: inputs.task == 'ses-status'
+        run: node scripts/setup-ses-sender.js
+        timeout-minutes: 5
+        env:
+          STEP: status
+      - name: SES でドメインを確かめる
+        if: inputs.task == 'ses-identity'
+        run: node scripts/setup-ses-sender.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 5
+        env:
+          STEP: identity
+      - name: SES の本番での利用を申請する
+        if: inputs.task == 'ses-production-access'
+        run: node scripts/setup-ses-sender.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 5
+        env:
+          STEP: production
+      - name: staging の確認コードのメールを SES から
+        if: inputs.task == 'ses-switch-staging'
+        run: node scripts/ses-switch-pool.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 5
+        env:
+          COGNITO_USER_POOL_ID: ap-northeast-1_DSQ16c6vO
+          STAGE: staging
+      - name: 本番の確認コードのメールを SES から
+        if: inputs.task == 'ses-switch-prod'
+        run: node scripts/ses-switch-pool.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 5
+        env:
+          COGNITO_USER_POOL_ID: ap-northeast-1_ZbuhDQsWz
+          STAGE: prod
+
       - name: PostConfirmation トリガーを付け直す
         if: inputs.task == 'attach-post-confirmation'
         run: node scripts/attach-post-confirmation.js ${{ inputs.apply && '--apply' || '' }}

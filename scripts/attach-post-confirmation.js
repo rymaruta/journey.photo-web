@@ -117,6 +117,17 @@ function planAttach({ attachedArn, expectedArn, sameNamePoolIds }) {
  * （serverless と同じ。無いときは触らない——`undefined` を書くと既定値に戻る）。
  */
 function buildUpdateParams(userPool, expectedArn) {
+    const p = baseUpdateParams(userPool);
+    p.LambdaConfig = { ...(userPool.LambdaConfig ?? {}), [TRIGGER]: expectedArn };
+    return p;
+}
+
+/**
+ * UpdateUserPool に渡す本文の土台（純関数）。DescribeUserPool の `UserPool` を丸ごと写し、読み取り専用の項目を落とし、
+ * 旧い `UnusedAccountValidityDays` を新しい場所へ移す。**何も差し替えない**——差し替えは呼ぶ側
+ * （トリガーは `buildUpdateParams`、メールの送り方は `setup-ses-sender.js` の `buildEmailUpdate`）
+ */
+function baseUpdateParams(userPool) {
     const p = { ...userPool };
     for (const k of READ_ONLY) delete p[k];
     const admin = { ...(p.AdminCreateUserConfig ?? {}) };
@@ -127,7 +138,6 @@ function buildUpdateParams(userPool, expectedArn) {
         delete admin.UnusedAccountValidityDays;
         p.AdminCreateUserConfig = admin;
     }
-    p.LambdaConfig = { ...(userPool.LambdaConfig ?? {}), [TRIGGER]: expectedArn };
     p.UserPoolId = userPool.Id;
     return p;
 }
@@ -243,7 +253,7 @@ async function main() {
     console.log("[attach] 完了。次に新規登録した人から user グループとプロフィール行に入ります");
 }
 
-module.exports = { planAttach, buildUpdateParams, policyAllowsPool, changedKeys, expectedFunctionName, poolNameForStage, READ_ONLY, TRIGGER };
+module.exports = { planAttach, buildUpdateParams, baseUpdateParams, policyAllowsPool, changedKeys, expectedFunctionName, poolNameForStage, READ_ONLY, TRIGGER };
 if (require.main === module) {
     main().catch((e) => { console.error(e); process.exit(1); });
 }
