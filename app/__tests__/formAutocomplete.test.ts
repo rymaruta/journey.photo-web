@@ -41,7 +41,10 @@ describe("認証の画面の入力に autocomplete がある", () => {
     for (const f of FILES) {
         it(`${f}: 打ち込む入力すべてに付いている`, () => {
             const blocks = inputBlocks(readFileSync(f, "utf-8")).filter((b) => NEEDS(typeOf(b)));
-            expect(blocks.length, "入力が1つも取れていない＝取り出し方が壊れている").toBeGreaterThan(3);
+            // 取り出せた数を画面の欄の数で固定する（取り出し方が壊れたら落ちる）。
+            // 登録は 2026-11-24（#432）に「パスワード（確認）」と「表示名」を外し、メール・パスワード・確認コードの3つ
+            if (f === "app/signup/page.tsx") expect(blocks.length, "登録の欄はメール・パスワード・確認コードの3つ").toBe(3);
+            else expect(blocks.length, "入力が1つも取れていない＝取り出し方が壊れている").toBeGreaterThan(3);
             const missing = blocks.filter((b) => !/autoComplete="[^"]+"/.test(b)).map(typeOf);
             expect(missing, "autocomplete の無い入力がある").toEqual([]);
         });
@@ -59,6 +62,7 @@ describe("認証の画面の入力に autocomplete がある", () => {
         expect(pick(signup, "code")[0]).toContain('autoComplete="one-time-code"');
         // 既にあった側も固定する（外す変異を落とす）
         expect(pick(login, "password")[0]).toContain('autoComplete="current-password"');
-        expect(pick(signup, "confirmPassword")[0]).toContain('autoComplete="new-password"');
+        // 登録のパスワードは新しいパスワード（「パスワード（確認）」は 2026-11-24 に外した）
+        expect(pick(signup, "password")[0]).toContain('autoComplete="new-password"');
     });
 });
