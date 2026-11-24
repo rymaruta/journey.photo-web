@@ -60,7 +60,15 @@ const COPY: Record<Kind, Copy> = {
     },
 };
 
-/** メールの HTML（メールの読み手で崩れにくい表組み＋行の中の style だけ。外の CSS・画像・字体は読まない） */
+/** 公式の絞りのアイコン（サイトのヘッダー・フッターと同じ `public/logo-aperture.png`・64px を 36px で出す） */
+export const LOGO_URL = "https://journey-photo.com/logo-aperture.png";
+/** 文字ロゴの字体（サイトの `--font-wordmark` と同じ並び。iPhone は New York・ほかは Georgia） */
+export const WORDMARK_FONT = "ui-serif,'New York',Georgia,serif";
+
+/**
+ * メールの HTML（メールの読み手で崩れにくい表組み＋行の中の style だけ）。外の CSS・字体は読まない。
+ * 画像は公式のアイコン1つだけ（画像を止めている読み手でも、隣の「Journey Photo」の字で誰からか分かる）
+ */
 function html(c: Copy, code: string): string {
     return [
         '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">',
@@ -68,7 +76,11 @@ function html(c: Copy, code: string): string {
         '<body style="margin:0;padding:0;background:#0b0b0c;">',
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0b0b0c;"><tr><td align="center" style="padding:24px 16px;">',
         '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;font-family:-apple-system,\'Hiragino Sans\',\'Noto Sans JP\',sans-serif;color:#f2f0eb;">',
-        '<tr><td style="font-family:\'Hiragino Mincho ProN\',\'Yu Mincho\',serif;font-size:20px;font-weight:700;color:#c9a66b;padding:0 0 16px;">journey.photo</td></tr>',
+        // 頭は公式のロゴ（サイトのフッターと同じ組み方: 絞りのアイコン＋文字ロゴの字体の「Journey Photo」・2026-11-24 owner「公式アイコンと、フォントで統一」）
+        `<tr><td style="padding:0 0 20px;"><table role="presentation" cellpadding="0" cellspacing="0"><tr>`,
+        `<td style="padding:0 10px 0 0;vertical-align:middle;"><img src="${LOGO_URL}" width="36" height="36" alt="" style="display:block;border:0;width:36px;height:36px;"></td>`,
+        `<td style="vertical-align:middle;font-family:${WORDMARK_FONT};font-size:24px;font-weight:600;letter-spacing:-0.02em;color:#f2f0eb;">Journey Photo</td>`,
+        "</tr></table></td></tr>",
         `<tr><td style="font-size:15px;line-height:1.8;padding:0 0 16px;">${c.lead}</td></tr>`,
         `<tr><td align="center" style="font-family:Menlo,Consolas,monospace;font-size:30px;font-weight:600;letter-spacing:0.3em;color:#f2f0eb;background:#151517;border:1px solid #c9a66b;border-radius:8px;padding:12px 0;">${code}</td></tr>`,
         `<tr><td style="font-size:12px;line-height:1.7;color:#a39f96;padding:16px 0 0;">${c.note}</td></tr>`,

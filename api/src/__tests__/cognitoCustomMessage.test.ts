@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import { customMessageFor, handler } from "../cognitoCustomMessage";
+import { customMessageFor, handler, LOGO_URL } from "../cognitoCustomMessage";
 
 /**
  * **確認コードのメールの文面**（CustomMessage・2026-11-24）。
@@ -32,12 +32,24 @@ describe("文面", () => {
         expect(customMessageFor("CustomMessage_VerifyUserAttribute", CODE)!.subject).toBe("journey.photo の新しいメールアドレスの確認");
     });
 
-    it("英語の画面の人のために英語の1行を添える・外の画像や CSS を読まない", () => {
+    it("英語の画面の人のために英語の1行を添える・外から読むのは公式のアイコン1つだけ（CSS・字体は読まない）", () => {
         for (const s of SOURCES) {
             const { html } = customMessageFor(s, CODE)!;
             expect(html, s).toMatch(/journey\.photo (sign-up|password reset|email confirmation) code|new journey\.photo sign-up code/);
-            expect(html, s).not.toMatch(/<img|<link|url\(|https?:\/\//);
+            expect(html, s).not.toMatch(/<link|url\(/);
+            expect(html.match(/https?:\/\/[^"' )]+/g), s).toEqual([LOGO_URL]);
         }
+    });
+
+    it("頭は公式のロゴ: 絞りのアイコンと、文字ロゴの字体の「Journey Photo」（サイトの --font-wordmark と同じ並び）", () => {
+        const { html } = customMessageFor("CustomMessage_SignUp", CODE)!;
+        expect(LOGO_URL).toBe("https://journey-photo.com/logo-aperture.png");
+        expect(html).toContain(`<img src="${LOGO_URL}" width="36" height="36"`);
+        expect(html).toMatch(/font-family:ui-serif,'New York',Georgia,serif;[^>]*>Journey Photo</);
+        const css = readFileSync(join(__dirname, "..", "..", "..", "app", "globals.css"), "utf8");
+        expect(css).toContain('--font-wordmark: ui-serif, "New York", Georgia, serif;');
+        // アイコンはサイトの公開物にある（配っている物と同じ）
+        expect(existsSync(join(__dirname, "..", "..", "..", "public", "logo-aperture.png"))).toBe(true);
     });
 
     it("期限の時間は登録（24時間）だけに書く", () => {
