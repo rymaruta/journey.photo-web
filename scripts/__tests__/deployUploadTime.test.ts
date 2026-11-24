@@ -46,11 +46,11 @@ describe("本番の反映が S3 への書き込みで時間切れにならない
         });
     });
 
-    it("フロントのジョブの上限は45分以上", () => {
+    it("フロントのジョブの上限は60分以上（2026-11-24: 全ページを上げ直す回に45分で打ち切られた）", () => {
         const job = workflow.slice(workflow.indexOf("needs: [config, api-gate]"));
         const m = /timeout-minutes:\s*(\d+)/.exec(job);
         expect(m, "deploy-frontend に timeout-minutes が無い").not.toBeNull();
-        expect(Number(m![1])).toBeGreaterThanOrEqual(45);
+        expect(Number(m![1])).toBeGreaterThanOrEqual(60);
     });
 
     it("S3 の段の上限は30分以上（ジョブの上限は超えない）", () => {
