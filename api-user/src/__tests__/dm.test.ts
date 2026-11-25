@@ -50,7 +50,9 @@ const USERS = process.env.USERS_TABLE as string;
 type Row = Record<string, unknown>;
 let rows: Record<string, Row>;
 let users: Record<string, Row>;
-let ccf: (cmd: string, input: Record<string, unknown>) => boolean;
+// 模型が見る命令の中身。条件の外れを起こすかを、鍵と値で決める。
+type CmdInput = Record<string, unknown> & { Key?: { id?: string }; ExpressionAttributeValues?: Record<string, unknown> };
+let ccf: (cmd: string, input: CmdInput) => boolean;
 let calls: { cmd: string; input: Record<string, any> }[];   // eslint-disable-line @typescript-eslint/no-explicit-any
 
 const entry = (peer: string, o: Record<string, unknown> = {}) => ({ peer, t: "2026-11-09T00:00:00.000Z", excerpt: "x", unread: 0, state: "inbox", ...o });
@@ -749,7 +751,7 @@ describe("送信の取り消し（POST /dm/{id}/messages の { unsend }・2026-1
             if (cmd === "UpdateCommand" && input.Key?.id === KEY && String(input.UpdateExpression).startsWith("REMOVE #items[")) {
                 const row = rows[KEY] as Row & { items: { id: string }[] };
                 const i = Number(/REMOVE #items\[(\d+)\]/.exec(String(input.UpdateExpression))![1]);
-                rows[KEY] = { ...row, items: row.items.filter((_, j) => j !== i), updatedAt: input.ExpressionAttributeValues[":now"], unsentAt: input.ExpressionAttributeValues[":now"] };
+                rows[KEY] = { ...row, items: row.items.filter((_, j) => j !== i), updatedAt: input.ExpressionAttributeValues?.[":now"], unsentAt: input.ExpressionAttributeValues?.[":now"] };
             }
             return false;
         };
