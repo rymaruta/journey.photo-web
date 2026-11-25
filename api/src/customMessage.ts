@@ -52,9 +52,12 @@ export function mailKindFor(triggerSource: string): MailKind | null {
 export const SITE = "https://journey-photo.com";
 /** ロゴ（アプリのアイコンと同じ黒地に白の絞り。`public/icon-192.png`） */
 export const LOGO_URL = `${SITE}/icon-192.png`;
-/** 上の写真（銀山温泉・lumoplank・CC0。`public/mail/ginzan-band.jpg`。下の端を黒に溶かしてある） */
-export const PHOTO_URL = `${SITE}/mail/ginzan-band.jpg`;
-export const PHOTO_ALT = "銀山温泉（山形県）の夕暮れ";
+/**
+ * 上の写真（オペラ・ガルニエ。owner 本人の投稿 https://journey-photo.com/photo/e4e47af3-08e9-4791-8fd3-d8688a52d22c の写真を
+ * owner の承諾でこの用途に使う・2026-11-25。人の写らない上の部分を切り出し、下の端を黒に溶かした。`public/email/hero-opera-garnier.jpg`）
+ */
+export const PHOTO_URL = `${SITE}/email/hero-opera-garnier.jpg`;
+export const PHOTO_ALT = "オペラ・ガルニエ（パリ）";
 export const BRAND = "Journey Photo";
 
 type Copy = { subject: string; label: string; expiry: string; heading: string; body: string; ignore: string };

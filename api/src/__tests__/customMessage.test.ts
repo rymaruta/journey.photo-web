@@ -101,7 +101,7 @@ describe("確認コードのメール（CustomMessage）", () => {
     it("名前は文字で、写真には alt がある", () => {
         const html = verificationEmail("signup", "1").html;
         expect(html).toMatch(/>Journey Photo<\/td>/);
-        expect(html).toMatch(/<img src="[^"]*ginzan-band\.jpg"[^>]*alt="[^"]+"/);
+        expect(html).toMatch(/<img src="[^"]*hero-opera-garnier\.jpg"[^>]*alt="[^"]+"/);
     });
 
     // 画像はサイトの公開の URL から読む。リポジトリの public に無い名前を指すと、受信箱で割れる
