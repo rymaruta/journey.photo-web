@@ -29,8 +29,8 @@ jobs:
       contents: write
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Download recent collected candidates
@@ -101,7 +101,7 @@ jobs:
           python -m py_compile scripts/publish_spot_candidates.py scripts/convert_world_spots_to_ledger.py scripts/aggregate_world_spots.py
           python -m unittest discover -s scripts -p 'test_*spot*.py' -v
       - name: Archive candidate snapshots for manual editorial verification
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: daily-spot-review-${{ github.run_id }}
           path: data/imports/daily/*.json

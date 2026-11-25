@@ -36,8 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Validate script
@@ -73,7 +73,7 @@ jobs:
           subprocess.run(["python", "scripts/import_world_spots.py", "--slot", str(slot),
                           *page, "--limit", "250"], check=True)
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: world-spot-candidates-${{ github.run_id }}
           path: data/imports/world/*.json
