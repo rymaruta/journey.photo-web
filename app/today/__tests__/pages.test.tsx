@@ -3,7 +3,8 @@ import { describe, it, expect, vi, afterEach } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { render, screen } from "@testing-library/react";
 import { PREFECTURES } from "@/lib/data/prefectures";
-import { siteConfig } from "@/lib/utils/seo";
+import { siteConfig, fitTitle, renderedTitle, TITLE_MAX_WIDTH } from "@/lib/utils/seo";
+import { titleWidth } from "@/lib/utils/titleWidth";
 import { ROUTES } from "@/lib/routes";
 import { clockIn, sunTimes } from "@/lib/utils/sunTimes";
 import { todayPlace, todayPrefTitle, TODAY_HUB_TITLE } from "@/lib/data/todayPlaces";
@@ -103,10 +104,11 @@ describe("/today/<県>", () => {
         for (const p of PREFECTURES) {
             const md = await prefMeta.generateMetadata({ params: Promise.resolve({ pref: p.slug }) });
             const place = todayPlace(p.slug)!;
-            // 2026-11-11（札 journey.photo-ios#527）: template の長いサイト名を外し、短い名前を自分で付ける（60 字以内）
-            const t = (md.title as { absolute: string }).absolute;
-            expect(t).toBe(`${todayPrefTitle(place)} | Journey Photo`);
-            expect([...t].length, t).toBeLessThanOrEqual(60);
+            // 2026-11-25: 33 字（全角換算）以内。サイト名は付けて収まるときだけ（`fitTitle`）
+            const t = renderedTitle(md.title as string | { absolute: string });
+            expect(md.title).toEqual(fitTitle(todayPrefTitle(place)));
+            expect(titleWidth(t), t).toBeLessThanOrEqual(TITLE_MAX_WIDTH);
+            expect(t.startsWith(`${place.shortName}の今日の日の出`), t).toBe(true);
             expect(md.openGraph?.title).toBe(todayPrefTitle(place));
             titles.add(t);
             expect(md.alternates?.canonical).toBe(`${siteConfig.url}/today/${p.slug}`);
@@ -136,10 +138,12 @@ describe("/today（ハブ）", () => {
         for (const w of BANNED) expect(html).not.toContain(w);
     });
 
-    it("題は安定した文（日付なし・サイト名なし）で canonical が /today", () => {
+    it("題は安定した文（日付なし、33 字に収めるためサイト名なし）で canonical が /today", () => {
         const md = hubMeta.metadata;
-        expect(md.title).toBe(TODAY_HUB_TITLE);
+        const t = renderedTitle(md.title as string | { absolute: string });
+        expect(t).toBe(TODAY_HUB_TITLE);
         expect(md.alternates?.canonical).toBe(`${siteConfig.url}/today`);
-        expect(String(md.title)).not.toMatch(/\d{4}|Journey Photo/);
+        expect(t).not.toMatch(/\d{4}|Journey Photo/);
+        expect(titleWidth(t), t).toBeLessThanOrEqual(TITLE_MAX_WIDTH);
     });
 });

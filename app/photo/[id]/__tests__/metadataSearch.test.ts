@@ -199,3 +199,17 @@ describe("説明は1行に均す", () => {
         expect(m.description).not.toContain("\n");
     });
 });
+
+// 2026-11-25: 題の上限は全角換算 33 字。利用者の題が長いときは、後ろのサイト名を付けない
+// （サイト名が題の言葉を検索結果から押し出さないように）。短いときは今までどおり template が付ける
+describe("長い題にはサイト名を付けない（33 字）", () => {
+    it("付けても 33 字に収まる題は、そのまま（template が「 | Journey Photo」を付ける）", async () => {
+        expect((await meta({ ...base })).title).toBe("未完の大聖堂");
+    });
+
+    it("🔴 付けると 33 字を超える題は、サイト名なしの absolute", async () => {
+        const long = "夕暮れの海辺で見つけた小さな白い灯台と、帰り道に見上げた空";
+        const m = await meta({ ...base, title: { ja: long } });
+        expect(m.title).toEqual({ absolute: long });
+    });
+});

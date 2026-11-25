@@ -1,17 +1,15 @@
-// 画像サイトマップ（タイトル/キャプション付き）。
-// Next の MetadataRoute.Sitemap は画像の URL しか載せられないため、
-// image:title / image:caption を含む XML を自前で生成する。
-// ※ Google は 2022 年以降 image:loc 以外の拡張を無視するが、Bing 等は解釈する。
-//    Google 向けの主目的は「全画像 URL の網羅提示」で、既存 sitemap.xml と併用する。
+// 画像サイトマップ。
+// Next の MetadataRoute.Sitemap とは別に、写真の頁・観光スポットの頁ごとに画像の URL（image:loc）を並べる。
+//
+// **載せるのは image:loc だけ**（2026-11-25）。Google の画像サイトマップの文書は、使うのは
+// `image:image` と `image:loc` だけで、`image:caption`・`image:title`・`image:geo_location`・`image:license`
+// は文書から外した、と書いている。以前は写真の題と説明を caption と title に入れていた（本番で 57 か所）。
+// 題と説明は、写真の頁の本文・alt・JSON-LD の `ImageObject` が持つ。
+// Wikimedia などほかのサイトの作例の画像は残す（2026-11-25 owner「画像ないからしんどい」。自分の画像だけに絞る案はやめた）
 
-import { metaPlace, descriptionPlaceTail } from "@/lib/utils/metaPlace";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { siteConfig, publicImageUrl } from "@/lib/utils/seo";
-import { getLocalizedParagraphs } from "@/lib/data/photos";
-import { photoOwnTitle } from "@/lib/utils/photoTitle";
 import type { Photo } from "@/lib/data/photos";
-import { truncate } from "@/lib/utils/text";
-import { metaText } from "@/lib/utils/metaText";
 import { esc } from "@/lib/utils/xmlEscape";
 import { SPOTS, type Spot } from "@/lib/data/spots";
 import { publishableSpots } from "@/lib/utils/spotGuide";
@@ -25,71 +23,13 @@ export const dynamic = "force-static";
 const toAbsolute = (src: string): string => publicImageUrl(src);
 
 /**
- * **このサイトの言語（日本語）で書く。**
- *
- * 以前は `ja + " / " + en` と併記していた（「両言語のクエリで拾える
- * ように」）。実ビルドで測ると `<image:title>` と `<image:caption>` の
- * **54か所**が「白鳥と湖 / Swans on the Lake」の形になっていた。
- *
- * **併記をやめる理由は3つ**:
- *
- *   1. **ページの本文は日本語。** `locale` は `ja` 固定で切替はもう無く
- *      （`6d72bfb`）、`<html lang="ja">`・`<meta description>` も日本語
- *      だけを出している。
- *      **ただし「英語はどこにも無い」わけではない**——写真ページは
- *      `sr-only` の英語ブロックを静的HTMLに焼いており（実ビルドで
- *      28/30ページ・`PhotoPageClient.tsx:600`）、そこには同じ
- *      「日英どちらのクエリでも拾えるように」という意図が書いてある。
- *      **その1か所をどうするかは別の判断**（残すならここを消した理由と
- *      食い違う／消すと英語の説明はサイトから無くなる）
- *   2. 台帳が同じ判断を一度している——`og:locale:alternate` は
- *      「英語版があると主張してしまう」ので撤去した（I18N-2）。
- *      英語の題を配るのは、無い英語ページへ英語の検索から人を呼ぶこと
- *   3. `<image:caption>` は500字で切るので、**半分を英語に使うと
- *      日本語の説明が入り切らない**（実測で英語が途中で切れていた）
- *
- * **日本語が無い写真は英語に落ちる**（出せるものが無いよりはよい）。
- * その落とし方は `photoOwnTitle` が持っている（このページの言語 → もう一方）。
- */
-export function titleOf(p: Photo): string {
-    // **旧い既定値の「無題」は題として扱わない**（`photoTitle.ts`）。無ければ空＝
-    // `<image:title>` を出さない（下の「空の要素を出さない」のまま。撮影地は caption が持つ）
-    return photoOwnTitle(p, "ja");
-}
-
-export const CAPTION_MAX = 500;
-
-export function captionOf(p: Photo): string {
-    // 英語への落とし方は `getLocalizedParagraphs` が持っている
-    // （`v[locale] ?? v.ja ?? v.en`）ので、ここでは足さない
-    // 1行に均す（`metaText` の説明を参照）。XML としては改行も通るが、
-    // 読み手に出るのは1行の説明文なので、出口で揃える
-    const text = metaText(getLocalizedParagraphs(p.description, "ja").join(" "));
-    // **撮影地は「名前、県市」まで・説明に入っている語は足さない**（2026-11-11 札 journey.photo-ios#527）。
-    // 写真の頁の description（`descriptionPlaceTail`・2026-11-09 の判断）と同じ切り方。本番の画像サイトマップは
-    // 地図の住所の全文（「月崎, 大多喜里見線, 月崎, 市原市, 千葉県, 290-0547, 日本」）を括弧で足していた
-    const tail = descriptionPlaceTail(text, metaPlace(p.location));
-    const loc = tail ? `（${tail}）` : "";
-    // **撮影地は説明のあとに足すので、そのままだと真っ先に切れる。**
-    // 撮影地はこの写真の固有名詞＝説明の末尾より情報が濃いので、
-    // 先に席を取ってから説明を詰める。
-    //
-    // **最後にもう一度切るのは上限の保証を落とさないため。** 席を引くだけ
-    // だと、撮影地が上限より長い回に `CAPTION_MAX` を超える（実測
-    // 600字の撮影地で 602字）。サーバーが撮影地を200字に切る
-    // （`api-user/src/photoUpdate.ts` ほか3か所）ので**今は踏めない**が、
-    // 上限を持つ関数が上限を守らない形は残さない
-    return truncate(`${truncate(text, Math.max(0, CAPTION_MAX - loc.length))}${loc}`, CAPTION_MAX);
-}
-
-/**
  * **1つの `<url>` に載せる画像の上限。** Google の画像サイトマップの決まり
  * 「Each `<url>` tag can contain up to 1,000 `<image:image>` tags.」（2026-10-11 に文書で確認）
  */
 export const MAX_IMAGES_PER_URL = 1000;
 
-/** 撮影地ページ1つぶんの画像（ページの URL と、載せる画像の URL・題） */
-export type SpotImageEntry = { loc: string; images: { src: string; title: string }[] };
+/** 撮影地ページ1つぶんの画像（ページの URL と、載せる画像の URL） */
+export type SpotImageEntry = { loc: string; images: { src: string }[] };
 
 /**
  * **撮影地ページ（`/spots/<slug>`）の画像**（2026-10-11・owner「検索で見つけてもらう」）。
@@ -98,8 +38,7 @@ export type SpotImageEntry = { loc: string; images: { src: string; title: string
  * - 載せるページはサイトマップ（`lib/server/sitemap.ts`）と同じ `publishableSpots`（下書きは載せない）
  * - 載せる画像は**画面に出しているものだけ**: 代表写真（`spotCoverImage`・サイト内に置いた縮小版）と
  *   作例（`spotSamples`・代表写真と同じ1枚は除く）。数え方は `SpotGuidePage` と同じ
- * - ライセンスは書かない。`<image:license>` は Google が文書から外した（`image:title`・`image:caption`・
- *   `image:geo_location` も同じ）。作者・ライセンスはページの JSON-LD の `ImageObject` が持つ
+ * - ライセンス・題・説明は書かない（`image:loc` だけ。上の注記）。作者・ライセンスはページの JSON-LD の `ImageObject` が持つ
  * - 作例の画像は Commons・Flickr の URL のまま（画面が読んでいる URL と同じ）
  * - 2026-10-22: 代表写真は**横 1,200px 以上の版があればそれ**（Commons の 1280px・`spotCoverSeoSource`）。
  *   無ければサイトに置いた縮小版（960px）。代表写真が 1,200 に届かず届く作例があれば、その作例を先頭に
@@ -114,8 +53,8 @@ export function spotImageEntries(spots: readonly Spot[] = publishableSpots(SPOTS
         const seo = spotSeoImage(spot, samples);
         const lead = seo?.from === "sample" ? seo.sample : undefined;
         const ordered = lead ? [lead, ...samples.filter((s) => s !== lead)] : samples;
-        const sampleImages = ordered.map((s) => ({ src: toAbsolute(s.src), title: s.title }));
-        const coverImages = coverSeo ? [{ src: coverSeo.url, title: spot.name }] : [];
+        const sampleImages = ordered.map((s) => ({ src: toAbsolute(s.src) }));
+        const coverImages = coverSeo ? [{ src: coverSeo.url }] : [];
         const images = (lead
             ? [sampleImages[0], ...coverImages, ...sampleImages.slice(1)]
             : [...coverImages, ...sampleImages]
@@ -123,6 +62,11 @@ export function spotImageEntries(spots: readonly Spot[] = publishableSpots(SPOTS
         if (images.length > 0) out.push({ loc: `${siteConfig.url}/spots/${spot.slug}`, images });
     }
     return out;
+}
+
+/** 画像1枚ぶん（`image:loc` だけ） */
+function imageEntry(src: string): string {
+    return ["    <image:image>", `      <image:loc>${esc(src)}</image:loc>`, "    </image:image>"].join("\n");
 }
 
 /**
@@ -134,16 +78,11 @@ export function spotImageEntries(spots: readonly Spot[] = publishableSpots(SPOTS
  */
 export function buildImageSitemap(photos: readonly Photo[], spots: readonly SpotImageEntry[] = []): string {
     const entries = photos.map((p) => {
-        const title = titleOf(p);
-        const caption = captionOf(p);
         // **1つの `<url>` に画像を何枚でも入れられる**（規格上 1000 枚まで）。
         //
         // 1投稿に複数枚を入れられるようにしたので、表紙だけ載せると
         // **ページ数も画像の数も減る**。ページ数が減るのは承知の判断だが、
         // 画像の数は減らさない——`extraImages` も並べる。
-        //
-        // 題と説明は**この投稿のもの**なので、どの画像にも同じものを付ける
-        // （画像ごとの題は持っていない。持っていないものを作らない）。
         // **`i?.src` で読む。** 要素が null でも落とさない——ここが投げると
         // **画像サイトマップが丸ごと出なくなる**（1枚の壊れた値で全部を失う）
         const images = [p.src, ...(p.extraImages ?? []).map((i) => i?.src)]
@@ -152,26 +91,15 @@ export function buildImageSitemap(photos: readonly Photo[], spots: readonly Spot
         return [
             "  <url>",
             `    <loc>${esc(`${siteConfig.url}/photo/${p.id}`)}</loc>`,
-            ...images.map((src) => [
-                "    <image:image>",
-                `      <image:loc>${esc(toAbsolute(src))}</image:loc>`,
-                title ? `      <image:title>${esc(title)}</image:title>` : "",
-                caption ? `      <image:caption>${esc(caption)}</image:caption>` : "",
-                "    </image:image>",
-            ].filter(Boolean).join("\n")),
+            ...images.map((src) => imageEntry(toAbsolute(src))),
             "  </url>",
-        ].filter(Boolean).join("\n");
+        ].join("\n");
     });
 
     const spotEntries = spots.map((e) => [
         "  <url>",
         `    <loc>${esc(e.loc)}</loc>`,
-        ...e.images.slice(0, MAX_IMAGES_PER_URL).map((img) => [
-            "    <image:image>",
-            `      <image:loc>${esc(img.src)}</image:loc>`,
-            img.title ? `      <image:title>${esc(img.title)}</image:title>` : "",
-            "    </image:image>",
-        ].filter(Boolean).join("\n")),
+        ...e.images.slice(0, MAX_IMAGES_PER_URL).map((img) => imageEntry(img.src)),
         "  </url>",
     ].join("\n"));
 
