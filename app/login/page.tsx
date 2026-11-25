@@ -8,13 +8,13 @@ import { useToast } from "../../lib/hooks/useToast";
 import { forgotPassword, confirmForgotPassword, PASSWORD_RULE_MESSAGE } from "../../lib/auth/cognito";
 import { userFetch } from "../../lib/utils/api";
 import { LoadingState } from "../components/StateViews";
-import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
+import { AuthPhotoBand, AuthBrand, AUTH_PHRASE_CLASS, phraseBreaks } from "../components/AuthPhotoBand";
 import { FederatedSignIn } from "../components/FederatedSignIn";
 import { ROUTES, safeNextPath } from "../../lib/routes";
 import { pendingNameKey } from "../../lib/utils/pendingName";
 import { track, signupFromVia } from "../../lib/utils/analytics";
 import { parseLoginVia, loginReason } from "../../lib/auth/loginVia";
-import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS, AUTH_TOP_PAD_CLASS } from "../components/accountFormStyles";
+import { AUTH_INPUT_CLASS, AUTH_STACK_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS, AUTH_TOP_PAD_CLASS } from "../components/accountFormStyles";
 
 type Step = "login" | "forgot-send" | "forgot-confirm";
 
@@ -229,7 +229,7 @@ function LoginForm() {
         <main className={`relative isolate min-h-screen overflow-hidden bg-black px-6 ${AUTH_TOP_PAD_CLASS} pb-16`}>
             <AuthPhotoBand />
 
-            <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-3" data-testid="login-content">
+            <div className={`relative z-10 mx-auto w-full max-w-sm ${AUTH_STACK_CLASS}`} data-testid="login-content">
                 {/* 画面の題は読み上げだけ（iOS は大きいワードマークが見出し） */}
                 <h1 className="sr-only">
                     {step === "login" ? "ログイン" : step === "forgot-send" ? "パスワードを忘れた" : "確認コードを入力"}
@@ -238,7 +238,7 @@ function LoginForm() {
 
                 {/* なぜログインが要るか・ログインすると何ができるか（1〜2行・2026-11-09）。`via` が無い・許可外は汎用の1行 */}
                 {step === "login" && (
-                    <p data-testid="login-reason" className="m-0 text-[14px] leading-[20px] text-white/80">{loginReason(via)}</p>
+                    <p data-testid="login-reason" className={`m-0 text-[14px] leading-[20px] text-white/80 ${AUTH_PHRASE_CLASS}`}>{phraseBreaks(loginReason(via))}</p>
                 )}
 
                 {/* Apple・Google（札 journey.photo-ios#730）。サーバーが Web の宛先を返したものだけ。無ければ何も出さない */}
@@ -248,16 +248,16 @@ function LoginForm() {
 
                 {/* ログイン */}
                 {step === "login" && (
-                    <form onSubmit={handleLogin} className="flex flex-col gap-3">
+                    <form onSubmit={handleLogin} className={AUTH_STACK_CLASS}>
                         {field("login-email", "メールアドレス", (
                             <input id="login-email" {...errorFor("login")} type="email" value={username}
                                 onChange={(e) => setUsername(e.target.value)} required autoComplete="email"
-                                placeholder="you@example.com" disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                                placeholder="you@example.com" disabled={submitting} className={AUTH_INPUT_CLASS} />
                         ))}
                         {field("login-password", "パスワード", (
                             <input id="login-password" {...errorFor("login")} type="password" value={password}
                                 onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password"
-                                disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                                disabled={submitting} className={AUTH_INPUT_CLASS} />
                         ))}
                         {/* 板: 欄の下に右寄せ・13・白72% */}
                         <div className="flex justify-end -my-2">
@@ -280,11 +280,11 @@ function LoginForm() {
 
                 {/* パスワードの再設定（iOS `resetSection`）: メールアドレス → コードを送る */}
                 {step === "forgot-send" && (
-                    <form onSubmit={handleForgotSend} className="flex flex-col gap-3">
+                    <form onSubmit={handleForgotSend} className={AUTH_STACK_CLASS}>
                         {field("reset-email", "メールアドレス", (
                             <input id="reset-email" {...errorFor("forgot-send")} type="email" value={username}
                                 onChange={(e) => setUsername(e.target.value)} required autoComplete="email"
-                                placeholder="you@example.com" disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                                placeholder="you@example.com" disabled={submitting} className={AUTH_INPUT_CLASS} />
                         ))}
                         <p className={AUTH_CAPTION_CLASS}>登録したメールアドレスに、確認コードを送ります。</p>
                         <button type="submit" disabled={submitting || !username} className={AUTH_PRIMARY_CLASS}
@@ -298,9 +298,9 @@ function LoginForm() {
 
                 {/* 確認コードと新しいパスワード */}
                 {step === "forgot-confirm" && (
-                    <form onSubmit={handleForgotConfirm} className="flex flex-col gap-3">
+                    <form onSubmit={handleForgotConfirm} className={AUTH_STACK_CLASS}>
                         {field("reset-email-fixed", "メールアドレス", (
-                            <input id="reset-email-fixed" type="email" autoComplete="email" value={username} readOnly disabled className={SETTINGS_INPUT_CLASS} />
+                            <input id="reset-email-fixed" type="email" autoComplete="email" value={username} readOnly disabled className={AUTH_INPUT_CLASS} />
                         ))}
                         {field("reset-code", "確認コード", (
                             <input
@@ -314,13 +314,13 @@ function LoginForm() {
                                 onChange={(e) => setResetCode(e.target.value)}
                                 required
                                 disabled={submitting}
-                                className={`${SETTINGS_INPUT_CLASS} tracking-widest`}
+                                className={`${AUTH_INPUT_CLASS} tracking-widest`}
                             />
                         ))}
                         {field("reset-new-password", "新しいパスワード", (
                             <input autoComplete="new-password" id="reset-new-password" type="password" value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)} required disabled={submitting}
-                                aria-describedby="reset-password-rule" className={SETTINGS_INPUT_CLASS} />
+                                aria-describedby="reset-password-rule" className={AUTH_INPUT_CLASS} />
                         ))}
                         <p id="reset-password-rule" className={AUTH_CAPTION_CLASS}>{PASSWORD_RULE_MESSAGE}</p>
                         <button type="submit" disabled={submitting || resetCode.trim().length < 6 || !newPassword}

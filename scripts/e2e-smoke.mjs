@@ -1615,7 +1615,7 @@ async function runSignupFoldChecks(browser, eng) {
 async function runFederatedChecks(browser, eng) {
     const APPLE_WEB = "com.journeyphoto.web";
     const GOOGLE_WEB = "280167931666-00gh6an2dpgg2rsmrdn8phgapgcpsrv1.apps.googleusercontent.com";
-    for (const [w, h] of [[375, 667], [390, 844]]) {
+    for (const [w, h] of [[375, 667], [390, 664], [390, 844]]) {
         const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: true, isMobile: true, serviceWorkers: "block" });
         await sealContext(ctx);
         const posts = [];
@@ -1676,28 +1676,20 @@ async function runFederatedChecks(browser, eng) {
                 return { a: a && [Math.round(a.left), Math.round(a.width), Math.round(a.height)], g: g && [Math.round(g.left), Math.round(g.width), Math.round(g.height)], theme: window.__googleTheme };
             });
             check(`${tag}: Apple と Google のボタンは同じ白の形・同じ高さ 40・同じ幅と左端`, look.theme === "outline" && JSON.stringify(look.a) === JSON.stringify(look.g) && look.a?.[2] === 40, JSON.stringify(look));
-            // 下のタブにフォームが隠れない（2026-11-25 owner の写真: パスワードの欄とログインのボタンがタブの裏に入っていた）。
-            // 390×844 は送らずにログインのボタンまで見える。どの高さでも、少し送ればタブが引いて、欄とボタンの真ん中に指が届く
-            const fold = await page.evaluate(() => {
-                const btn = document.querySelector('form button[type="submit"]').getBoundingClientRect();
-                const bar = document.querySelector('nav[aria-label="メインメニュー"] > *')?.getBoundingClientRect() ?? document.querySelector('nav[aria-label="メインメニュー"]').getBoundingClientRect();
-                return { bottom: Math.round(btn.bottom), barTop: Math.round(bar.top) };
-            });
-            if (h >= 844) check(`${tag}: 送らずにログインのボタンまで見える（下のタブの上）`, fold.bottom <= fold.barTop, JSON.stringify(fold));
-            // 1つずつ、画面の下端まで送ってから少し余分に送る（指で送ったときの形）。帯が引いて、真ん中に指が届くこと
-            const hit = [];
-            for (const sel of ["#login-password", 'form button[type="submit"]', 'form a[href^="/signup"]']) {
-                await page.evaluate((s) => { document.querySelector(s).scrollIntoView({ block: "end" }); window.scrollBy(0, 40); }, sel);
-                await page.waitForTimeout(500);
-                hit.push(await page.evaluate((s) => {
-                    const el = document.querySelector(s); const b = el.getBoundingClientRect();
+            // 開いた直後にフォームが全部見えて押せる（2026-11-25 owner の写真: パスワードの欄とログインのボタンが下のタブの裏に入っていた）。
+            // ログインと新規登録の頁は下のタブを出さない（アプリのログイン画面と同じ）。背の低い画面は詰めた形（`AUTH_STACK_CLASS`）
+            const open = await page.evaluate(() => {
+                const bar = document.querySelector('nav[aria-label="メインメニュー"]');
+                const barShown = !!bar && bar.getBoundingClientRect().height > 0 && getComputedStyle(bar).display !== "none";
+                const hits = ["#login-password", 'form button[type="submit"]', 'form a[href^="/signup"]'].map((sel) => {
+                    const el = document.querySelector(sel); const b = el.getBoundingClientRect();
                     const at = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
-                    return [s, Math.round(scrollY), b.bottom <= innerHeight && !!at && (at === el || el.contains(at))];
-                }, sel));
-            }
-            check(`${tag}: 送るとパスワードの欄・ログイン・アカウントを作るが下のタブに隠れない`, hit.every(([, , ok]) => ok), JSON.stringify(hit));
-            await page.evaluate(() => window.scrollTo(0, 0));
-            await page.waitForTimeout(400);
+                    return [sel, Math.round(b.bottom), b.bottom <= innerHeight && !!at && (at === el || el.contains(at))];
+                });
+                return { scrollY: Math.round(scrollY), innerH: innerHeight, barShown, hits };
+            });
+            check(`${tag}: ログインの頁は下のタブを出さない`, !open.barShown, JSON.stringify(open));
+            check(`${tag}: 開いた直後に、送らずにパスワードの欄・ログイン・アカウントを作るが全部見えて押せる`, open.scrollY === 0 && open.hits.every(([, , ok]) => ok), JSON.stringify(open));
             check(`${tag}: Apple に渡す戻り先は /login・ポップアップ`, r.init?.redirectURI === `http://localhost:${PORT}/login` && r.init?.usePopup === true && r.init?.clientId === APPLE_WEB, JSON.stringify(r.init));
             await page.locator('[data-testid="federated-apple"]').click();
             await page.waitForSelector("#login-form-error", { timeout: 10000 });
