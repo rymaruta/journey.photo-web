@@ -1,4 +1,4 @@
-import type { APIGatewayProxyHandlerV2, APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
+import type { APIGatewayProxyHandlerV2, APIGatewayProxyHandlerV2WithJWTAuthorizer, APIGatewayProxyStructuredResultV2 } from "aws-lambda";
 import { listPhotos, listPhotosByUser, getPhotoById, listAllPhotosForAdmin } from "./ddb-photos";
 import { isAdmin } from "./auth";
 import type { Photo } from "./types";
@@ -192,7 +192,7 @@ export const getPhoto: APIGatewayProxyHandlerV2 = async (event) => {
  * 写真を非公開にすると一覧からも編集画面からも消え、戻す手段が無かった。
  * 「下書き」フィルタが常に空だったのも同じ理由。
  */
-export const getPhotosForAdmin: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event) => {
+export const getPhotosForAdmin: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event): Promise<APIGatewayProxyStructuredResultV2> => {
     if (!isAdmin(event)) {
         return { statusCode: 403, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ error: "権限がありません" }) };
     }
