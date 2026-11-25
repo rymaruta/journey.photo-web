@@ -19,6 +19,14 @@ import { gotoSettled } from "./lib/smokeGoto.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(__dirname, "..", "out");
+// 同意の版（`lib/utils/legalConsent.ts` の LEGAL_CONSENT_VERSION）。版を上げても、ここを書き直さずに済むように読む
+// （2026-11-25: 版を 2 に上げたとき、ここが "1" のままで同意の画面が全部の頁を覆い、本番のデプロイが止まった）
+const LEGAL_CONSENT_VERSION = (() => {
+    const src = fs.readFileSync(path.resolve(__dirname, "..", "lib", "utils", "legalConsent.ts"), "utf8");
+    const m = src.match(/export const LEGAL_CONSENT_VERSION = (\d+);/);
+    if (!m) throw new Error("LEGAL_CONSENT_VERSION を lib/utils/legalConsent.ts から読めませんでした");
+    return m[1];
+})();
 // `SMOKE_EXTERNAL_PORT` … 既に立っているサーバー（`next dev`）を見る手元の確認用。out/ は配信しない（CI では使わない）
 const EXTERNAL_PORT = process.env.SMOKE_EXTERNAL_PORT ? Number(process.env.SMOKE_EXTERNAL_PORT) : 0;
 const PORT = EXTERNAL_PORT || 4173;
@@ -1149,15 +1157,15 @@ async function runSignedInChecks(browser, eng) {
                 await button.click();
                 await dialog.waitFor({ state: "detached", timeout: 5000 });
                 const stored = await page.evaluate(() => localStorage.getItem("legal.consent.version"));
-                check(`${tag}: 同意すると閉じて記録が残る`, stored === "1", `記録=${stored}`);
+                check(`${tag}: 同意すると閉じて記録が残る`, stored === LEGAL_CONSENT_VERSION, `記録=${stored}`);
             } catch (e) {
                 check(`${tag}: 出る・閉じる`, false, String(e.message ?? e).split("\n")[0]);
             }
             await page.close();
         }
-        await ctx.addInitScript(() => {
-            try { localStorage.setItem("legal.consent.version", "1"); } catch { /* ignore */ }
-        });
+        await ctx.addInitScript((version) => {
+            try { localStorage.setItem("legal.consent.version", version); } catch { /* ignore */ }
+        }, LEGAL_CONSENT_VERSION);
 
         for (const [url, label] of screens) {
             const page = await ctx.newPage();
