@@ -310,3 +310,5 @@ resources:
         DefaultRouteSettings:
           ThrottlingRateLimit: 5
           ThrottlingBurstLimit: 10
+          # serverless が作る段の既定（口ごとの細かい数は取らない）。extensions は Properties を浅く重ねるので、書き戻す
+          DetailedMetricsEnabled: false
