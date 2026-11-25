@@ -36,7 +36,7 @@ const LOGIN_REASON_JA: Record<LoginVia, string> = {
     upload: "投稿にはログインが必要です。ログインすると、あなたの写真を公開できます。",
     swipe: "払った場所の地図にはログインが必要です。ログインすると、行きたい場所に移ります。",
 };
-export const LOGIN_REASON_GENERIC_JA = "ログインすると、いいね・コメント・投稿ができます。";
+export const LOGIN_REASON_GENERIC_JA = "ログインすると、いいね、コメント、投稿ができます。";
 
 export function loginReason(via: string | null | undefined): string {
     const v = parseLoginVia(via);
@@ -44,4 +44,4 @@ export function loginReason(via: string | null | undefined): string {
 }
 
 /** 登録画面の1行（便益）。`via` ごとには変えない */
-export const SIGNUP_BENEFIT_JA = "登録すると、いいね・フォロー・コメント・保存・投稿ができるようになります。";
+export const SIGNUP_BENEFIT_JA = "登録すると、いいね、フォロー、コメント、保存、投稿ができるようになります。";

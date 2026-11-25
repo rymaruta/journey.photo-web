@@ -252,7 +252,7 @@ describe("LoginPage - 基本フロー", () => {
         await user.type(screen.getByLabelText("パスワード"), "Password1!");
         await user.click(screen.getByRole("button", { name: "ログイン" }));
 
-        const link = await screen.findByRole("link", { name: /確認コードを入力・再送する/ });
+        const link = await screen.findByRole("link", { name: /確認コードを入力、再送する/ });
         expect(link).toHaveAttribute("href", expect.stringContaining("/signup?email=unconfirmed%40example.com"));
     });
 });
@@ -556,7 +556,7 @@ describe("ログイン: iOS の形", () => {
         expect(content.className).not.toMatch(/\bborder\b|\brounded-2xl\b|bg-black\/85/);
         expect(container.querySelector(".rounded-2xl.border"), "札が残っている").toBeNull();
         // 本文は帯（235）の上から 142 で始まる（iOS の 390×844 と同じ位置・2026-11-25）
-        expect(content.closest("main")!.className).toMatch(/pt-\[142px\]/);
+        expect(content.closest("main")!.className).toMatch(/pt-\[clamp\(96px/);
     });
 
     it("ワードマークと iOS の一文を出し、「写真をアップロードするには…」は出さない", () => {
@@ -608,11 +608,11 @@ describe("LoginPage - via に応じた理由の文", () => {
 
     it("via が無い・許可外は汎用の1行。URL の文字列は画面に出さない", () => {
         const { unmount } = render(<LoginPage />);
-        expect(reason()).toBe("ログインすると、いいね・コメント・投稿ができます。");
+        expect(reason()).toBe("ログインすると、いいね、コメント、投稿ができます。");
         unmount();
         mockSearchParams = new URLSearchParams("via=%3Cb%3Eevil%3C%2Fb%3E");
         render(<LoginPage />);
-        expect(reason()).toBe("ログインすると、いいね・コメント・投稿ができます。");
+        expect(reason()).toBe("ログインすると、いいね、コメント、投稿ができます。");
         expect(document.body.textContent).not.toContain("evil");
     });
 

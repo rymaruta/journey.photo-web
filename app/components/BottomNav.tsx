@@ -124,19 +124,29 @@ export function nextTab(
  */
 export const BAR_SHOW_TOP = 80;
 export const BAR_SCROLL_DELTA = 6;
+/**
+ * ログインと登録では、上の方でも少し送れば帯を隠す（`BAR_SHOW_TOP_AUTH`）。欄とボタンが帯の裏に入るのは送り始めの 0〜80 の所で、
+ * 写真の頁と同じ 80 では、ちょうどボタンが帯に重なる所で帯が出たままになった（375×667 の実測: 45 送って止まる）
+ */
+export const BAR_SHOW_TOP_AUTH = 8;
+export function barShowTop(pathname: string): number {
+    return /^\/(login|signup)\/?$/.test(pathname) ? BAR_SHOW_TOP_AUTH : BAR_SHOW_TOP;
+}
 export function hidesBarOnScroll(pathname: string): boolean {
-    return pathname.startsWith("/photo/");
+    // ログインと登録（2026-11-25 owner の写真「下のタブがフォームに重なっている」）: Safari の見える高さ（約 664）では、
+    // パスワードの欄とログインのボタンが帯の裏に来る。少し下へ送れば帯が引いて、欄とボタンが帯に隠れない
+    return pathname.startsWith("/photo/") || /^\/(login|signup)\/?$/.test(pathname);
 }
 /** 前の位置 `prevY` から `y` へ送ったときに、帯を隠すか。小さな揺れ（`BAR_SCROLL_DELTA` 以下）では今のまま */
-export function nextBarHidden(prevY: number, y: number, hidden: boolean): boolean {
-    if (y < BAR_SHOW_TOP) return false;
+export function nextBarHidden(prevY: number, y: number, hidden: boolean, showTop: number = BAR_SHOW_TOP): boolean {
+    if (y < showTop) return false;
     const dy = y - prevY;
     if (dy > BAR_SCROLL_DELTA) return true;
     if (dy < -BAR_SCROLL_DELTA) return false;
     return hidden;
 }
 
-function useHideOnScroll(active: boolean): [boolean, () => void] {
+function useHideOnScroll(active: boolean, showTop: number = BAR_SHOW_TOP): [boolean, () => void] {
     const [hidden, setHidden] = React.useState(false);
     React.useEffect(() => {
         if (!active || typeof window === "undefined") { setHidden(false); return; }
@@ -150,9 +160,9 @@ function useHideOnScroll(active: boolean): [boolean, () => void] {
                 const y = window.scrollY;
                 if (phone && !phone.matches) { setHidden(false); lastY = y; return; }
                 setHidden((h) => {
-                    const next = nextBarHidden(lastY, y, h);
+                    const next = nextBarHidden(lastY, y, h, showTop);
                     // 揺れのあいだは基準を動かさない（ゆっくり送っても溜まって判定できる）
-                    if (Math.abs(y - lastY) > BAR_SCROLL_DELTA || y < BAR_SHOW_TOP) lastY = y;
+                    if (Math.abs(y - lastY) > BAR_SCROLL_DELTA || y < showTop) lastY = y;
                     return next;
                 });
             });
@@ -163,7 +173,7 @@ function useHideOnScroll(active: boolean): [boolean, () => void] {
             if (frame) window.cancelAnimationFrame(frame);
             setHidden(false);
         };
-    }, [active]);
+    }, [active, showTop]);
     const show = React.useCallback(() => setHidden(false), []);
     return [hidden, show];
 }
@@ -182,7 +192,7 @@ export default function BottomNav() {
     const [sheetOpen, setSheetOpen] = React.useState(false);
 
     useBottomBarHeight(barRef);
-    const [barHidden, showBar] = useHideOnScroll(hidesBarOnScroll(pathname));
+    const [barHidden, showBar] = useHideOnScroll(hidesBarOnScroll(pathname), barShowTop(pathname));
 
     // **画面が変わったら閉じる。** `PostSheet` は「常駐する場所に置く日が
     // 来たら、そちら側でパスを見比べること」と自分で書いている。ここが
