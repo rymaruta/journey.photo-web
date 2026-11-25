@@ -9,7 +9,7 @@ import { AuthBrand, AUTH_BRAND, AUTH_MARK_RATIO, AUTH_WORDMARK_SIZE, AUTH_MARK_S
  * ログインと登録の頁のロゴ。字は iOS と同じ serif の太字（`font-wordmark`＝iPhone では New York）。
  *
  * 2026-11-25 owner「Web版細かいとこも修正して。今はバランス悪く見える。各アイコンとかロゴとかも」: 印は余白を切った絵にし、
- * 印と字の比はヘッダーと iOS の見出しのロゴ（見える印が字の約 0.83）、間は iOS の大きいロゴ（0.3em）、縦は大文字の高さの真ん中
+ * 印と字の比は iOS のロゴ（枠が字の 0.94 倍、見える印が約 0.9 倍）、間は iOS の大きいロゴ（0.3em）、縦は大文字の高さの真ん中
  */
 describe("AuthBrand", () => {
     it("字はアプリと同じ font-wordmark（明朝ではない）・大きさは iOS の大きいロゴと同じ 40", () => {
@@ -33,14 +33,15 @@ describe("AuthBrand", () => {
         expect(png.readUInt32BE(20)).toBe(128);
     });
 
-    it("見える印は字の約 0.82 倍（ヘッダーのロゴと iOS `AppLogo` の見出しと同じ釣り合い）・間は 0.3em（iOS 12／40）", () => {
+    it("見える印は字の約 0.9 倍（枠 0.94em・iOS のロゴと同じ）・間は 0.3em（iOS 12／40）", () => {
         render(<AuthBrand />);
         const mark = screen.getByTestId("login-wordmark-mark");
         expect(mark.style.width).toBe(`${AUTH_MARK_RATIO}em`);
         expect(mark.style.height).toBe(`${AUTH_MARK_RATIO}em`);
         const visible = AUTH_MARK_RATIO * 0.96;
-        expect(visible).toBeGreaterThan(0.78);
-        expect(visible).toBeLessThan(0.86);
+        expect(AUTH_MARK_RATIO).toBe(0.94);
+        expect(visible).toBeGreaterThan(0.88);
+        expect(visible).toBeLessThan(0.92);
         expect(screen.getByTestId("login-wordmark-row").style.gap).toBe("0.3em");
     });
 
