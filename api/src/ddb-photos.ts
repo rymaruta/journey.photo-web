@@ -9,16 +9,38 @@ import {
 import { ddb } from "./dynamodb";
 import type { Photo } from "./types";
 import { requireEnv } from "./env";
+import { PUBLIC_INDEX, PUBLIC_FEED_KEY } from "./publicFeed";
 
 const TABLE = requireEnv("PHOTOS_TABLE");
 const USER_INDEX = "userId-createdAt-index";
 
+/**
+ * 公開一覧（`GET /photos`・ログインなしで呼べる）。**公開一覧の索引を Query で読む**（2026-11-25・AWS の見直し 2）。
+ *
+ * もとは呼ばれるたびに**表の全部を Scan** していた。表にはいいね・フォローの印、コメント、通知、
+ * ストーリーまで同居しているので、読む量（費用と時間）は写真の数ではなく表の行の数で増え、
+ * ログインなしで何度でも呼べた。
+ *
+ * 今は `publicFeed-createdAt-index` の仕切り `"1"`（公開中の写真だけ）を、`createdAt` の新しい順に読む。
+ * 索引は本番・staging ともに在る（`GET /feed` が同じ索引を読んで動いている）。2026-11-25 に本番で、
+ * Scan の `GET /photos` と索引の `GET /feed` が**同じ 60 件を同じ順**で返すことを確かめてから切り替えた。
+ * 射影は ALL なので、行の中身は Scan と同じ。
+ *
+ * **絞り込みは Scan と同じ式をそのまま残す。** 索引の印（`publicFeed`）は行の写しなので、
+ * 非公開・ストーリー・公開範囲と書き違えた行が残っても、ここで落とす（広くはならない）。
+ * 並びも Scan のときと同じく、最後に `createdAt` の新しい順で並べ直す（同じ日時の行の順を変えない）。
+ * `createdAt` を持たない写真は索引に載らない（埋め戻しの作業 `add-public-feed-index.js` が 0 件を確かめる）
+ */
 export async function listPhotos(): Promise<Photo[]> {
     const items: Photo[] = [];
     let lastKey: Record<string, unknown> | undefined;
     do {
-        const res = await ddb.send(new ScanCommand({
+        const res = await ddb.send(new QueryCommand({
             TableName: TABLE,
+            IndexName: PUBLIC_INDEX,
+            KeyConditionExpression: "publicFeed = :k",
+            // 新しい順（並べ直しの前から同じ順で来る）
+            ScanIndexForward: false,
             ExclusiveStartKey: lastKey,
             // 未公開写真を除外し、写真以外の管理レコードも除外する。
             // このテーブルには写真のほかに like#/go# マーカーや golist#/notifs# 文書が
@@ -34,10 +56,10 @@ export async function listPhotos(): Promise<Photo[]> {
             // **公開範囲を絞った写真も出さない**（`audience` を持つ行）。
             // 2026-09-22 に PM が個別取得の穴を報告したが、**一覧はもっと軽い**
             // ——id すら要らずに全部返っていた。索引の側（`publicFeed`）では
-            // 仕切ってあるのに、この Scan だけが素通しだった。
+            // 仕切ってあるが、印は行の写しなので、ここでも落とす。
             // **管理用の `listAllPhotosForAdmin` は別**（下書きと同じく見える側）
             FilterExpression: "(attribute_not_exists(published) OR published = :pub) AND attribute_exists(src) AND attribute_not_exists(story) AND attribute_not_exists(audience)",
-            ExpressionAttributeValues: { ":pub": true },
+            ExpressionAttributeValues: { ":k": PUBLIC_FEED_KEY, ":pub": true },
         }));
         items.push(...((res.Items ?? []) as Photo[]));
         lastKey = res.LastEvaluatedKey as Record<string, unknown> | undefined;
