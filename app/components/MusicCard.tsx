@@ -10,6 +10,7 @@ import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
 import { MusicalNoteIcon } from "@heroicons/react/24/outline";
 import { useMusic, type SongEntry } from "../music/MusicContext";
 import SmoothProgress from "./SmoothProgress";
+import { UGC_LINK_REL } from "@/lib/utils/linkRel";
 
 type Props = {
     /** 再生キューの識別子（例: "bgm:<userId>" / "trip:<tripId>"） */
@@ -90,7 +91,7 @@ export default function MusicCard({ queueKey, songs, label, locale, autoPlay = f
                 </div>
                 <div className="min-w-0 flex-1">
                     {cur.trackUrl ? (
-                        <a href={safeSongTrackUrl(cur.trackUrl)} target="_blank" rel="noopener noreferrer" className="text-sm font-semibold text-white truncate block hover:underline">{cur.title}</a>
+                        <a href={safeSongTrackUrl(cur.trackUrl)} target="_blank" rel={UGC_LINK_REL} className="text-sm font-semibold text-white truncate block hover:underline">{cur.title}</a>
                     ) : (
                         <p className="text-sm font-semibold text-white truncate">{cur.title}</p>
                     )}
@@ -171,7 +172,7 @@ function MusicRow({ title, trackUrl, artist, artwork, eyebrow, many, playing, lo
             <span className="min-w-0 flex-1 flex flex-col gap-0.5">
                 <span className="eyebrow text-accent truncate">{eyebrow}</span>
                 {trackUrl
-                    ? <a href={trackUrl} target="_blank" rel="noopener noreferrer" className="block truncate text-white font-semibold hover:underline" style={{ fontSize: "15px", lineHeight: "20px" }}>{title}</a>
+                    ? <a href={trackUrl} target="_blank" rel={UGC_LINK_REL} className="block truncate text-white font-semibold hover:underline" style={{ fontSize: "15px", lineHeight: "20px" }}>{title}</a>
                     : <span className="block truncate text-white font-semibold" style={{ fontSize: "15px", lineHeight: "20px" }}>{title}</span>}
                 <span className="block truncate text-text-2" style={{ fontSize: "12px", lineHeight: "16px" }}>{artist}</span>
             </span>

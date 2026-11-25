@@ -4,6 +4,7 @@ import { spacelessName } from "./nameVariants";
 import { personNodeId } from "./personId";
 import { metaText } from "./metaText";
 import { signedUrlExpiry } from "./signedImage";
+import { titleWidth } from "./titleWidth";
 import { displayTitle, photoOwnTitle, photoTitleFor } from "./photoTitle";
 
 /**
@@ -389,24 +390,19 @@ export function generatePhotoStructuredData(photo: {
     if (photo.tags && photo.tags.length > 0) {
         structuredData.keywords = photo.tags.join(", ");
     }
-    // **権利の3項目（license・acquireLicensePage・copyrightNotice）は全写真に出す。**
+    // **`license` と `acquireLicensePage` は出さない（2026-11-25 判断・owner 承認）。**
     //
-    // 2026-10-28 判断: 以前は写真が URL の license を持つときだけ出していた。
-    // 実データの写真は持たないので、Search Console の「画像メタデータ」で
-    // `/photo/<id>` の28件が「license・acquireLicensePage・copyrightNotice が
-    // ありません」と出た（10/27 クロール）。投稿写真の権利は規約の
-    // 「5. 投稿された内容の権利」（著作権は投稿者に帰属）が決めているので、
-    // 写真ごとの URL が無ければ規約のページを license とする。
-    // 許可を求める先は写真ページ（投稿者のプロフィールへ結んでいる）
-    const licenseUrl = photo.license && /^https?:\/\//.test(photo.license)
-        ? photo.license
-        : `${siteConfig.url}/terms`;
-    structuredData.license = licenseUrl;
-    structuredData.acquireLicensePage = `${siteConfig.url}/photo/${photo.id}`;
+    // Google 画像検索は `license` があると「ライセンス可能」の印を付け、
+    // `acquireLicensePage` を「使用許可の取り方が分かる頁」として案内する。
+    // 投稿写真の著作権は投稿者のもの（利用条件「5. 投稿された内容の権利」）で、
+    // このサイトは他人の写真の使用を許していない（「他人の写真は、その人のもの」）。
+    // 2026-10-28 に Search Console の「画像メタデータ」の指摘に合わせて規約の頁を
+    // license として出していたが、使ってよい写真に見えるのでやめた。
+    // 作者（creator と author）、表示の文字（creditText）、著作権の表示（copyrightNotice）は残す。
     // 権利表記（自由文OKのフィールド）
     const credit = photo.photographer || photo.displayName;
     if (credit) structuredData.creditText = credit;
-    // 著作権表示。自由文の license・明示の権利者が無ければ、投稿者の名前で
+    // 著作権表示。自由文の license（URL でないもの）・明示の権利者が無ければ、投稿者の名前で
     // 「© 名前」と出す（規約どおり著作権は投稿者にある）
     const copyright = photo.license && !/^https?:\/\//.test(photo.license)
         ? photo.license
@@ -575,6 +571,30 @@ export function generateItemListStructuredData(
 /** サイトの短い名前（Organization の `name`） */
 export const SITE_SHORT_NAME = "Journey Photo";
 
+/**
+ * 検索結果の題の上限（全角換算。半角は 0.5）。観光スポット・テーマ・食べ物の頁と同じ 33。
+ * 2026-11-25: 「今日の日の出」47頁と教科書の頁が、後ろのサイト名を含めて 33 を超えていた（札の SEO の観点 M1）
+ */
+export const TITLE_MAX_WIDTH = 33;
+
+/** ルートの `title.template`（`app/layout.tsx` の「%s | Journey Photo」）が後ろに付けるサイト名 */
+export const SITE_TITLE_SUFFIX = ` | ${SITE_SHORT_NAME}`;
+
+/**
+ * 頁の題（metadata の `title`）。サイト名を付けても 33 に収まるときは題をそのまま返し、
+ * ルートの template にサイト名を付けさせる。超えるときは `title.absolute` で返し、サイト名を付けない
+ * （サイト名は検索結果の上の行に別に出るので、題の中で探される語を切らせない）
+ */
+export function fitTitle(title: string): string | { absolute: string } {
+    return titleWidth(`${title}${SITE_TITLE_SUFFIX}`) <= TITLE_MAX_WIDTH ? title : { absolute: title };
+}
+
+/** 頁に出る `<title>` の文字（`fitTitle` の結果と、ルートの template を当てたもの） */
+export function renderedTitle(title: string | { absolute: string } | null | undefined): string {
+    if (title == null) return "";
+    return typeof title === "string" ? `${title}${SITE_TITLE_SUFFIX}` : title.absolute;
+}
+
 /** サイト名の別表記（WebSite・Organization の `alternateName`） */
 export const SITE_ALTERNATE_NAMES = [SITE_SHORT_NAME, "journeyphoto", "ジャーニーフォト"];
 
@@ -585,12 +605,16 @@ export function generateWebSiteStructuredData() {
     return {
         "@context": "https://schema.org",
         "@type": "WebSite",
-        name: siteConfig.name,
+        // **サイト名は短い名前だけ**（2026-11-25）。Google のサイト名の文書は「短く、広く知られた名前」を
+        // `name` に、ほかの呼び方を `alternateName` に置くよう書いている。以前は題と同じ
+        // 「Journey Photo | 旅フォトギャラリー」で、説明つきの長い名前を申告していた。Organization の `name` とそろう
+        name: SITE_SHORT_NAME,
         // **サイト名の表記ゆれ**（2026-11-11 判断 journey.photo-ios#525）。
         // 「<名前> journeyphoto」のように詰めて・カナで探す人がいる。本文に隠し語を
         // 置くのではなく、Google のサイト名の決まりどおり WebSite の
-        // `alternateName` で申告する。`name` は変えない（サイト名は owner が決める）
-        alternateName: SITE_ALTERNATE_NAMES,
+        // `alternateName` で申告する。`name` と同じものは入れない。
+        // 前の名前「Journey Photo | 旅フォトギャラリー」も、呼び方の1つとして残す
+        alternateName: [...SITE_ALTERNATE_NAMES.filter((n) => n !== SITE_SHORT_NAME), siteConfig.name],
         url: siteConfig.url,
         // 運営は下の Organization（2026-11-11 判断 journey.photo-ios#525）
         publisher: { "@id": ORGANIZATION_ID },

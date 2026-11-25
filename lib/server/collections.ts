@@ -18,7 +18,7 @@ import {
     collectionCopy,
     type CollectionType,
 } from "../utils/collections";
-import { appItunes, siteConfig, publicImageUrl, pageRobots, shareImageUrl } from "../utils/seo";
+import { appItunes, fitTitle, siteConfig, publicImageUrl, pageRobots, shareImageUrl } from "../utils/seo";
 import { withPlaceholderParam } from "./staticParams";
 
 /** 静的エクスポート用: そのタイプの全 slug を列挙（列挙外のパスは 404） */
@@ -55,7 +55,8 @@ export async function collectionMetadata(type: CollectionType, slug: string): Pr
     const image = rawImage ? publicImageUrl(rawImage) : shareImageUrl();
 
     return {
-        title,
+        // サイト名は付けても 33 字に収まるときだけ（`fitTitle`・2026-11-25）。撮影地の名前は利用者の入力で長くなる
+        title: fitTitle(title),
         description,
         keywords: [label, "旅", "写真", "フォトギャラリー"].filter(Boolean),
         alternates: { canonical: url },
@@ -102,7 +103,7 @@ export async function collectionIndexMetadata(type: CollectionType): Promise<Met
     const image = rawImage ? publicImageUrl(rawImage) : shareImageUrl();
 
     return {
-        title,
+        title: fitTitle(title),
         description,
         alternates: { canonical: url },
         itunes: appItunes(url),

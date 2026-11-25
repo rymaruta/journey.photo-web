@@ -103,59 +103,26 @@ describe("画像サイトマップ: 制御文字で壊れない", { timeout: 30_
 
     afterEach(() => { vi.doUnmock("@/lib/server/photos"); vi.resetModules(); });
 
-    it("制御文字の入ったタイトル・説明でも XML が壊れない", async () => {
+    it("制御文字の入った画像の URL・頁の id でも XML が壊れない", async () => {
         const xml = await xmlFor([{
-            id: "p1", src: "https://cdn/p1.jpg", published: true,
             // 範囲の端と中身をひととおり: NUL・BS・垂直タブ・改ページ・
             // シフトイン・ユニット区切り、そして U+FFFE / U+FFFF
+            id: "p1\u0000\u0008\u000B\u000C\u000E\u001F\uFFFE\uFFFF", src: "https://cdn/p1\u000B.jpg", published: true,
             title: { ja: "制御文字\u0000\u0008\u000B入り\uFFFE" },
-            description: { ja: ["改ページ\u000Cとシフト\u000Eと区切り\u001Fと\uFFFF"] },
             location: "東京",
         }]);
 
         expect(FORBIDDEN.test(xml), "XML 1.0 が許さない文字がそのまま出ている（全体が parse error になる）").toBe(false);
-        expect(xml).toContain("<image:title>制御文字入り</image:title>");
         expect(xml).toContain("<urlset");
-    });
-
-    // **落としすぎない。** タブ・改行・復帰は XML で合法なので、
-    // 制御文字の除去がここまで広がっていないことを見る。
-    //
-    // ⚠️ 元はこれを**説明の改行**で見ていた（「説明の改行を消すと
-    // キャプションが1行に潰れる」）。`2ba4394d` で **caption は
-    // `metaText` を通して1行に均す**ようにしたので、そちらでは見られない。
-    // **2つの仕事が混ざっていた**——「XML として壊さない・落としすぎない」
-    // のは除去の仕事、「1行の説明文にする」のは見せ方の仕事。
-    // 除去の範囲は**題**（`metaText` を通さない）で見る。
-    it("除去は広げすぎない（題のタブは残る）", async () => {
-        const xml = await xmlFor([{
-            id: "p2", src: "https://cdn/p2.jpg", published: true,
-            title: { ja: "改\tタブ" },
-        }]);
-
-        expect(xml).toContain("改\tタブ");
-    });
-
-    // **caption は1行の説明文。** `<image:caption>` は画像検索に出る
-    // 平文で、改行に意味は無い。同じ説明を出す他の経路（`description`・
-    // `og:description`・`feed.xml`・JSON-LD）も1行に均している
-    it("caption の改行は空白に畳む（1行の説明文にする）", async () => {
-        const xml = await xmlFor([{
-            id: "p3", src: "https://cdn/p3.jpg", published: true,
-            description: { ja: ["一行目\n二行目"] },
-        }]);
-
-        expect(xml).toContain("<image:caption>一行目 二行目</image:caption>");
-        expect(xml, "生の改行が残っている").not.toContain("一行目\n二行目");
+        // 題は出さない（2026-11-25・Google は image:title を読まない）
+        expect(xml).not.toContain("image:title");
     });
 
     it("記号のエスケープは今までどおり", async () => {
         const xml = await xmlFor([{
             id: "p3", src: "https://cdn/p3.jpg?a=1&b=2", published: true,
-            title: { ja: 'A&B<c>"d"' },
         }]);
 
-        expect(xml).toContain("A&amp;B&lt;c&gt;&quot;d&quot;");
         expect(xml).toContain("?a=1&amp;b=2");
     });
 });

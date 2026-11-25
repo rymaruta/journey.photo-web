@@ -196,30 +196,35 @@ describe("generatePhotoStructuredData", () => {
         expect(data.representativeOfPage).toBe(true);
     });
 
-    it("license は URL のみ有効。自由文は copyrightNotice に回す", () => {
-        const url = generatePhotoStructuredData({ ...base, license: "https://creativecommons.org/licenses/by/4.0/" });
-        expect(url.license).toBe("https://creativecommons.org/licenses/by/4.0/");
-        expect(url.acquireLicensePage).toContain("/photo/abc");
+    /**
+     * 2026-11-25 判断（owner 承認）: 投稿写真の著作権は投稿者のもの。`license` と
+     * `acquireLicensePage` を出すと Google 画像検索で「ライセンス可能」の印が付き、
+     * 使ってよい写真に見える。どちらも出さず、作者と著作権の表示は残す
+     */
+    it("license と acquireLicensePage を出さない（写真が URL の license を持っていても）", () => {
+        for (const license of [undefined, "https://creativecommons.org/licenses/by/4.0/", "All rights reserved"]) {
+            const data = generatePhotoStructuredData({ ...base, displayName: "丸田", userId: "u1", license });
+            expect(data, String(license)).not.toHaveProperty("license");
+            expect(data, String(license)).not.toHaveProperty("acquireLicensePage");
+            expect(JSON.stringify(data)).not.toContain("/terms");
+        }
+    });
+
+    it("作者、表示の文字、著作権の表示は残す", () => {
+        const data = generatePhotoStructuredData({ ...base, displayName: "丸田", userId: "u1" });
+        expect(data.creditText).toBe("丸田");
+        expect(data.copyrightNotice).toBe("© 丸田");
+        expect(data.creator).toMatchObject({ "@type": "Person", name: "丸田" });
+        expect(data.author).toMatchObject({ "@type": "Person", name: "丸田" });
+    });
+
+    it("自由文の license は copyrightNotice に回す", () => {
         const text = generatePhotoStructuredData({ ...base, license: "All rights reserved" });
-        expect(text.license).toBe("https://journey-photo.com/terms");
         expect(text.copyrightNotice).toBe("All rights reserved");
     });
 
-    /**
-     * 2026-10-28: Search Console の「画像メタデータ」で `/photo/<id>` の28件が
-     * license・acquireLicensePage・copyrightNotice 無しと出た。実データの写真は
-     * license を持たないので、持たない写真にも3項目を出す
-     */
-    it("license を持たない写真にも 規約の license・写真ページ・© 投稿者 を出す", () => {
-        const data = generatePhotoStructuredData({ ...base, displayName: "丸田" });
-        expect(data.license).toBe("https://journey-photo.com/terms");
-        expect(data.acquireLicensePage).toBe("https://journey-photo.com/photo/abc");
-        expect(data.copyrightNotice).toBe("© 丸田");
-    });
-
-    it("名前が無い写真は copyrightNotice を作らない（license は出す）", () => {
+    it("名前が無い写真は copyrightNotice を作らない", () => {
         const data = generatePhotoStructuredData({ ...base });
-        expect(data.license).toBe("https://journey-photo.com/terms");
         expect(data.copyrightNotice).toBeUndefined();
     });
 
@@ -279,12 +284,20 @@ describe("generateWebSiteStructuredData", () => {
         expect(data.url).toBe(siteConfig.url);
     });
 
+    /** 2026-11-25: Google のサイト名の文書どおり、name は短い名前だけ。ほかの呼び方は alternateName */
+    it("name は「Journey Photo」だけ。alternateName に name と同じものを入れない", () => {
+        const data = generateWebSiteStructuredData();
+        expect(data.name).toBe("Journey Photo");
+        expect(data.alternateName).not.toContain("Journey Photo");
+        expect(data.alternateName).toEqual(expect.arrayContaining(["journeyphoto", "ジャーニーフォト"]));
+        expect(generateOrganizationStructuredData().name).toBe(data.name);
+    });
+
     // 2026-11-11 journey.photo-ios#525: 「journeyphoto」と詰めて探す人のため、
     // サイト名の別表記を Google の決まりどおり alternateName で申告する（隠し語は使わない）
-    it("サイト名の別表記を alternateName で申告し、name は変えない", () => {
+    it("サイト名の別表記を alternateName で申告する（前の長い名前も呼び方の1つとして残す）", () => {
         const data = generateWebSiteStructuredData();
-        expect(data.alternateName).toEqual(expect.arrayContaining(["Journey Photo", "journeyphoto"]));
-        expect(data.name).toBe(siteConfig.name);
+        expect(data.alternateName).toEqual(expect.arrayContaining(["journeyphoto", siteConfig.name]));
     });
 });
 
