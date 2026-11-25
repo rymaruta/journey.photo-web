@@ -25,7 +25,7 @@ vi.mock("../../auth/context", () => ({
 const localeMock = vi.hoisted(() => ({ locale: "ja" as "ja" | "en" }));
 vi.mock("../../i18n/context", () => ({ useLocale: () => ({ locale: localeMock.locale, labels: {} }) }));
 
-import BottomNav, { activeTab, nextTab, TAB_CELL_ON, hidesBarOnScroll, barShowTop, nextBarHidden, BAR_SHOW_TOP } from "../BottomNav";
+import BottomNav, { activeTab, nextTab, TAB_CELL_ON, hidesBarOnScroll, hidesBarOnPage, nextBarHidden, BAR_SHOW_TOP } from "../BottomNav";
 
 beforeEach(() => {
     nav.push.mockClear();
@@ -424,22 +424,30 @@ describe("来た元のタブ（nextTab）", () => {
     });
 });
 
-// 2026-11-25 owner の写真（本番 /login・iPhone の Safari）: パスワードの欄とログインのボタンが下のタブの裏に入っていた。
-// ログインと登録は、写真の頁と同じく下へ送ると帯が引く（`scripts/e2e-smoke.mjs` が実ブラウザで寸法を見る）
-describe("下へ送ると帯を隠す頁", () => {
-    it("写真の頁・ログイン・登録で隠す。ほかの頁は隠さない", () => {
-        for (const p of ["/photo/p1", "/login", "/login/", "/signup", "/signup/"]) expect(hidesBarOnScroll(p), p).toBe(true);
-        for (const p of ["/", "/search", "/map", "/loginx", "/login/extra", "/users/u1", "/settings"]) expect(hidesBarOnScroll(p), p).toBe(false);
+// 2026-11-25 owner の写真（本番 /login・iPhone の Safari）: 開いた直後にパスワードの欄とログインのボタンが下のタブの裏に入っていた。
+// ログインと新規登録の頁ではタブを出さない（アプリのログイン画面にもタブは無い）。ほかの頁の動きは変えない
+describe("ログインと新規登録の頁ではタブを出さない", () => {
+    it("出さないのはログインと新規登録だけ", () => {
+        for (const p of ["/login", "/login/", "/signup", "/signup/"]) expect(hidesBarOnPage(p), p).toBe(true);
+        for (const p of ["/", "/search", "/map", "/loginx", "/login/extra", "/photo/p1", "/users/u1", "/settings"]) expect(hidesBarOnPage(p), p).toBe(false);
     });
 
-    it("ログインと登録は、上の方でも少し送れば隠す（写真の頁の 80 では、ボタンが帯に重なる所で帯が出たままだった）", () => {
-        expect(barShowTop("/login")).toBe(8);
-        expect(barShowTop("/signup/")).toBe(8);
-        expect(barShowTop("/photo/p1")).toBe(BAR_SHOW_TOP);
-        // 375×667: 0 → 45 送ると、ログインでは隠す・写真の頁では出したまま
-        expect(nextBarHidden(0, 45, false, barShowTop("/login"))).toBe(true);
-        expect(nextBarHidden(0, 45, false, barShowTop("/photo/p1"))).toBe(false);
-        // いちばん上へ戻せば出す
-        expect(nextBarHidden(45, 4, true, barShowTop("/login"))).toBe(false);
+    it("下へ送ると隠すのは写真の頁だけのまま（ログインと登録の分岐は無い）", () => {
+        expect(hidesBarOnScroll("/photo/p1")).toBe(true);
+        for (const p of ["/login", "/signup", "/"]) expect(hidesBarOnScroll(p), p).toBe(false);
+        expect(nextBarHidden(0, 45, false)).toBe(false);
+        expect(nextBarHidden(0, BAR_SHOW_TOP + 20, false)).toBe(true);
+    });
+
+    it("ログインの頁では帯の要素を隠し、ほかの頁へ移ると出す（同じ要素）", () => {
+        nav.pathname = "/login";
+        const { rerender, container } = render(<BottomNav />);
+        const bar = container.querySelector('nav[aria-label="メインメニュー"]') as HTMLElement;
+        expect(bar.hidden).toBe(true);
+        expect(bar.className.split(/\s+/)).toContain("hidden");
+        nav.pathname = "/";
+        rerender(<BottomNav />);
+        expect(bar.hidden).toBe(false);
+        expect(bar.className.split(/\s+/)).not.toContain("hidden");
     });
 });

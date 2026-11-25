@@ -10,8 +10,8 @@ import { pendingVerifyKey } from "../../lib/utils/pendingName";
 import { wishSpotForNext, type WishSpot } from "../../lib/utils/wishAfterLogin";
 import { safeNextPath } from "../../lib/routes";
 import { publicImageUrl } from "../../lib/utils/seo";
-import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_ACCENT_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS, AUTH_TOP_PAD_CLASS } from "../components/accountFormStyles";
-import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
+import { AUTH_INPUT_CLASS, AUTH_STACK_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_ACCENT_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS, AUTH_TOP_PAD_CLASS } from "../components/accountFormStyles";
+import { AuthPhotoBand, AuthBrand, AUTH_PHRASE_CLASS, phraseBreaks } from "../components/AuthPhotoBand";
 import { FederatedSignIn } from "../components/FederatedSignIn";
 import { SIGNUP_BENEFIT_JA } from "../../lib/auth/loginVia";
 import { LoadingState } from "../components/StateViews";
@@ -300,7 +300,7 @@ function SignupForm() {
         <main data-testid="signup-main" className={`relative isolate min-h-screen overflow-hidden bg-black px-6 ${compact ? "pt-3" : AUTH_TOP_PAD_CLASS} pb-28`}>
             {!compact && <AuthPhotoBand />}
 
-            <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-3" data-testid="signup-content">
+            <div className={`relative z-10 mx-auto w-full max-w-sm ${AUTH_STACK_CLASS}`} data-testid="signup-content">
                 {/* 画面の題は読み上げだけ（iOS は大きいワードマークが見出し） */}
                 <h1 className="sr-only">
                     {step === "register" && "アカウント作成"}
@@ -340,7 +340,7 @@ function SignupForm() {
 
                 {/* 登録すると何ができるか（1行・2026-11-09）。ログインの画面の「理由」と対にする */}
                 {step === "register" && !wishSpot && (
-                    <p data-testid="signup-benefit" className="m-0 text-[14px] leading-[20px] text-white/80">{SIGNUP_BENEFIT_JA}</p>
+                    <p data-testid="signup-benefit" className={`m-0 text-[14px] leading-[20px] text-white/80 ${AUTH_PHRASE_CLASS}`}>{phraseBreaks(SIGNUP_BENEFIT_JA)}</p>
                 )}
 
                 {/* Apple・Google（札 journey.photo-ios#730）。欄の上に置く。「行きたい」から来た回は、主ボタン（登録して保存）を
@@ -349,11 +349,11 @@ function SignupForm() {
 
                 {/* ステップ1: 登録 */}
                 {step === "register" && (
-                    <form onSubmit={handleRegister} className="flex flex-col gap-3">
+                    <form onSubmit={handleRegister} className={AUTH_STACK_CLASS}>
                         {field("signup-email", "メールアドレス", (
                             <input id="signup-email" {...invalid("register")} type="email" value={email}
                                 onChange={(e) => { noteStart(); setEmail(e.target.value); }} required autoComplete="email"
-                                placeholder="you@example.com" disabled={submitting} className={SETTINGS_INPUT_CLASS} />
+                                placeholder="you@example.com" disabled={submitting} className={AUTH_INPUT_CLASS} />
                         ))}
                         {field("signup-password", "パスワード", (
                             <div className="relative">
@@ -370,7 +370,7 @@ function SignupForm() {
                                 // 条件を一度も言われないまま弾かれる（新規登録の唯一の進み方）
                                 aria-describedby={error && step === "register" ? "signup-password-rule signup-form-error" : "signup-password-rule"}
                                 aria-invalid={error && step === "register" ? true : undefined}
-                                className={`${SETTINGS_INPUT_CLASS} pr-16`}
+                                className={`${AUTH_INPUT_CLASS} pr-16`}
                             />
                             <button type="button" onClick={() => setShowPassword((v) => !v)}
                                 aria-pressed={showPassword} aria-controls="signup-password" data-testid="signup-password-toggle"
@@ -397,7 +397,7 @@ function SignupForm() {
 
                 {/* ステップ2: 確認コード（iOS `confirmSignUpSection`） */}
                 {step === "verify" && (
-                    <form onSubmit={handleVerify} className="flex flex-col gap-3">
+                    <form onSubmit={handleVerify} className={AUTH_STACK_CLASS}>
                         <p className="m-0 text-[15px] leading-[22px] text-white/70">{email} に確認コードを送信しました</p>
                         {field("signup-code", "確認コード", (
                             <input
@@ -410,7 +410,7 @@ function SignupForm() {
                                 required
                                 inputMode="numeric"
                                 disabled={submitting}
-                                className={`${SETTINGS_INPUT_CLASS} tracking-[0.3em]`}
+                                className={`${AUTH_INPUT_CLASS} tracking-[0.3em]`}
                                 maxLength={6}
                             />
                         ))}
@@ -438,7 +438,7 @@ function SignupForm() {
 
                 {/* ステップ3: 完了 */}
                 {step === "done" && (
-                    <div className="flex flex-col gap-3">
+                    <div className={AUTH_STACK_CLASS}>
                         <p className="m-0 text-[15px] leading-[22px] text-white/70">
                             登録が完了しました。ログインして写真のアップロードをお楽しみください。
                         </p>
