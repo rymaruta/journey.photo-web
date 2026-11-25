@@ -17,7 +17,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
 
     return (
         <div className="relative isolate min-h-screen overflow-hidden bg-black">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-[380px] overflow-hidden" aria-hidden="true">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-[235px] overflow-hidden" aria-hidden="true">
                 <div className="absolute left-1/2 top-[-30px] grid w-[calc(100%_+_40px)] max-w-[520px] -translate-x-1/2 -rotate-[4deg] grid-cols-4 gap-[3px]">
                     {Array.from({ length: 12 }, (_, index) => (
                         <div key={index} className="h-[120px] overflow-hidden bg-white/[0.06]">

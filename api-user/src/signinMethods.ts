@@ -198,7 +198,7 @@ export const removeSigninMethod: APIGatewayProxyHandlerV2WithJWTAuthorizer = asy
         let revokeResult: Awaited<ReturnType<Revoker>> | "none" = "none";
         if (row && typeof row.refreshToken === "string") {
             const revoker = methodsDeps.revokers[provider];
-            revokeResult = revoker ? await revoker(row.refreshToken) : "unavailable";
+            revokeResult = revoker ? await revoker(row.refreshToken, row.refreshClientId) : "unavailable";
             if (revokeResult === "failed") {
                 await ddb.send(new UpdateCommand({
                     TableName: USERS_TABLE, Key: { userId: uid },

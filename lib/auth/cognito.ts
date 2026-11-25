@@ -133,6 +133,50 @@ export async function signIn(username: string, password: string): Promise<{
     });
 }
 
+/**
+ * 外のアカウント（Apple・Google）でのログインの最後の段（札 journey.photo-ios#730）。
+ * サーバー（`POST /auth/apple`・`/auth/google`）が確かめて返したユーザー名と使い捨ての券で、
+ * Cognito の CUSTOM_AUTH に入る（iOS と同じ流れ。トリガーは `api-user/src/appleAuthTrigger.ts`）。
+ * 出てくるのはメールのログインと同じ Cognito のトークンなので、そのあとの作り（更新・退会）はそのまま
+ */
+export async function signInWithTicket(username: string, challengeAnswer: string): Promise<{
+    success: boolean;
+    session?: CognitoUserSession;
+    groups?: string[];
+    error?: string;
+}> {
+    const fail = "ログインできませんでした。もう一度お試しください";
+    if (!cognitoConfig.userPoolId || !cognitoConfig.clientId) return { success: false, error: fail };
+    return new Promise((resolve) => {
+        try {
+            const cognitoUser = new CognitoUser({ Username: username, Pool: getUserPool() });
+            cognitoUser.setAuthenticationFlowType("CUSTOM_AUTH");
+            let answered = false;
+            const callbacks = {
+                onSuccess: (session: CognitoUserSession) => {
+                    const payload = session.getIdToken().payload;
+                    const groups = Array.isArray(payload["cognito:groups"]) ? payload["cognito:groups"] as string[] : [];
+                    resolve({ success: true, session, groups });
+                },
+                onFailure: (err: unknown) => {
+                    log.error("券でのログインに失敗:", (err as { code?: string; name?: string })?.code ?? (err as { name?: string })?.name);
+                    resolve({ success: false, error: fail });
+                },
+                // 問いは1回だけ（トリガーは2回目を断る）。券をそのまま答える
+                customChallenge: () => {
+                    if (answered) { resolve({ success: false, error: fail }); return; }
+                    answered = true;
+                    cognitoUser.sendCustomChallengeAnswer(challengeAnswer, callbacks);
+                },
+            };
+            cognitoUser.initiateAuth(new AuthenticationDetails({ Username: username }), callbacks);
+        } catch (e) {
+            log.error("券でのログインの例外:", (e as { name?: string })?.name);
+            resolve({ success: false, error: fail });
+        }
+    });
+}
+
 // ログアウト
 export function signOut(): void {
     try {

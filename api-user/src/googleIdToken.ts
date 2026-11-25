@@ -49,6 +49,20 @@ export function googleClientIdsFromEnv(env: Record<string, string | undefined> =
     return (env.GOOGLE_SIGNIN_CLIENT_ID ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 }
 
+/** OAuth のクライアント ID の形（`<数字>-<英数字>.apps.googleusercontent.com`）。それ以外の値は宛先にしない */
+const GOOGLE_CLIENT_ID_RE = /^[0-9]+-[a-z0-9]+\.apps\.googleusercontent\.com$/;
+
+/**
+ * Web の「Google でログイン」の宛先（「ウェブ アプリケーション」の OAuth クライアント ID・札 journey.photo-ios#730）。
+ * Web（Google Identity Services）の ID トークンの `aud` はこの値になる。公開の値。
+ * **空の間は Web からのトークンを受けない**（今までどおり iOS だけ）
+ */
+export function googleWebClientIdsFromEnv(env: Record<string, string | undefined> = process.env): string[] {
+    const ios = new Set(googleClientIdsFromEnv(env));
+    return (env.GOOGLE_SIGNIN_WEB_CLIENT_ID ?? "").split(",").map((s) => s.trim())
+        .filter((s) => GOOGLE_CLIENT_ID_RE.test(s) && !ios.has(s));
+}
+
 export async function verifyGoogleIdToken(
     token: unknown,
     opts: { clientIds: readonly string[]; now?: number; fetchImpl?: FetchLike },

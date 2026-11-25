@@ -41,6 +41,9 @@ provider:
     # 宛先（Bundle ID。identity token の `aud`）。本番 `com.journeyphoto.JourneyPhoto`（staging の App ID は無い）。
     # 秘密ではない（APNs の topic と同じ値・`deploy-api.yml`）
     APPLE_SIGNIN_CLIENT_ID: ${param:appleSigninClientId, ''}
+    # Web の宛先（Services ID・`com.journeyphoto.web`・札 journey.photo-ios#730）。空の間は Web からのトークンを受けず、
+    # Web のボタンも出ない（status が `webClientId` を返さない）。値は `deploy-api.yml`（本番だけ）
+    APPLE_SIGNIN_WEB_CLIENT_ID: ${param:appleSigninWebClientId, ''}
   httpApi:
     # user API の HTTP API に経路を足す（新しい API は作らない）
     id:

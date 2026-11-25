@@ -407,6 +407,11 @@ jobs:
           # 準備（DNS の DKIM・送れる宛先の制限を外す申請）は iOS の `docs/APPLE_SIGNIN.md`
           SIGNIN_EMAIL_ENABLED: ${{ vars.SIGNIN_EMAIL_ENABLED }}
           SIGNIN_EMAIL_FROM: ${{ vars.SIGNIN_EMAIL_FROM }}
+          # Web の「Apple でサインイン」の宛先（Services ID・公開の値・札 journey.photo-ios#730）。owner が 2026-11-25 に
+          # Apple Developer で登録した（主の App ID は com.journeyphoto.JourneyPhoto・ドメインは journey-photo.com と www・
+          # 戻り先は https://journey-photo.com/login と https://www.journey-photo.com/login）。
+          # 戻り先は本番のドメインだけなので、**本番だけに渡す**（空の環境は Web のボタンが出ない）
+          APPLE_SIGNIN_WEB_CLIENT_ID: ${{ needs.config.outputs.envName == 'prod' && 'com.journeyphoto.web' || '' }}
         run: |
           set -euo pipefail
           extra=()
@@ -415,6 +420,8 @@ jobs:
             from="${SIGNIN_EMAIL_FROM:-no-reply@journey-photo.com}"
             extra+=(--param "signinEmailEnabled=true" --param "signinEmailFrom=$from" --param "signinEmailDomain=${from#*@}")
           fi
+          # 空の値は渡さない（`${param:…, ''}` の既定に任せる）
+          if [ -n "${APPLE_SIGNIN_WEB_CLIENT_ID:-}" ]; then extra+=(--param "appleSigninWebClientId=$APPLE_SIGNIN_WEB_CLIENT_ID"); fi
           # 鍵の置き場は、このジョブの `APPLE_SIGNIN_KEY_SOURCE`（1か所）で決まる
           if [ "$APPLE_SIGNIN_KEY_SOURCE" = "ssm" ]; then
             extra+=(--param "appleSigninKeyParam=/journey-photo/${{ needs.config.outputs.envName }}/apple-signin/private-key")
@@ -450,14 +457,21 @@ jobs:
         working-directory: api-user
         env:
           GOOGLE_SIGNIN_CLIENT_ID: 280167931666-24o92d38usbft3ouk3jc4dk8tvgh3t8p.apps.googleusercontent.com
+          # Web の「ウェブ アプリケーション」のクライアント ID（公開の値・owner が 2026-11-25 に作った・札 journey.photo-ios#730）。
+          # 承認済みの JavaScript 生成元は https://journey-photo.com と https://www.journey-photo.com だけなので、**本番だけに渡す**
+          # （staging の Web で出すと、押しても Google が生成元の違いで断る。staging に出すなら生成元に staging のドメインを足してから）
+          GOOGLE_SIGNIN_WEB_CLIENT_ID: ${{ needs.config.outputs.envName == 'prod' && '280167931666-00gh6an2dpgg2rsmrdn8phgapgcpsrv1.apps.googleusercontent.com' || '' }}
         # 🔴 鍵は渡さない（Google の口は鍵を持たない。メールで結んだときの知らせは Apple のスタックの `linkNotice` に頼む）
         run: |
           set -euo pipefail
+          extra=()
+          if [ -n "${GOOGLE_SIGNIN_WEB_CLIENT_ID:-}" ]; then extra+=(--param "googleSigninWebClientId=$GOOGLE_SIGNIN_WEB_CLIENT_ID"); fi
           npx serverless@3 deploy --config serverless.google-signin.yml --stage ${{ needs.config.outputs.envName }} \
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "usersTable=${{ needs.config.outputs.usersTable }}" \
             --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
-            --param "googleSigninClientId=$GOOGLE_SIGNIN_CLIENT_ID"
+            --param "googleSigninClientId=$GOOGLE_SIGNIN_CLIENT_ID" \
+            ${extra[@]+"${extra[@]}"}
 
       - name: Serverless deploy
         working-directory: api-user

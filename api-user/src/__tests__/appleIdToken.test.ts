@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { verify } from "node:crypto";
 import {
-    verifyAppleIdentityToken, resetAppleKeysCache, appleConfigFromEnv, appleClientIdsFromEnv, appleClientSecret,
+    verifyAppleIdentityToken, resetAppleKeysCache, appleConfigFromEnv, appleClientIdsFromEnv, appleWebClientIdsFromEnv, appleClientSecret,
     exchangeAppleCode, revokeAppleToken, AppleTokenError, MAX_TOKEN_LENGTH, KEYS_REFETCH_MIN_MS,
     loadAppleConfig, appleKeyDeps, resetAppleKeyConfigCache,
 } from "../appleIdToken";
@@ -153,6 +153,10 @@ describe("鍵の設定（2026-11-23 owner: 鍵は APNs の鍵を使う）", () =
     it("宛先は鍵が無くても読める（トリガーは鍵を持たない）", () => {
         expect(appleClientIdsFromEnv({ APPLE_SIGNIN_CLIENT_ID: CLIENT_ID })).toEqual([CLIENT_ID]);
         expect(appleClientIdsFromEnv({})).toEqual([]);
+        // Web の Services ID（札 journey.photo-ios#730）: 形の合う値だけ。Bundle ID と同じ値は Web にしない
+        expect(appleWebClientIdsFromEnv({ APPLE_SIGNIN_WEB_CLIENT_ID: " com.journeyphoto.web ,bad value,web" })).toEqual(["com.journeyphoto.web"]);
+        expect(appleWebClientIdsFromEnv({ APPLE_SIGNIN_CLIENT_ID: CLIENT_ID, APPLE_SIGNIN_WEB_CLIENT_ID: CLIENT_ID })).toEqual([]);
+        expect(appleWebClientIdsFromEnv({})).toEqual([]);
     });
 
     it("SSM の SecureString の名前があれば、鍵は実行時にそこから読む（環境変数の鍵は使わない）。控えは5分", async () => {

@@ -1608,6 +1608,92 @@ async function runSignupFoldChecks(browser, eng) {
     }
 }
 
+// ログインと登録の頁の「Apple でサインイン」「Google でログイン」（札 journey.photo-ios#730）。
+// サーバーの status が Web の宛先を返したときだけボタンが出ること・並び（Apple → Google → 欄）・当たり 44・
+// 押したら Apple の画面を開き、ID トークンと元の nonce（SHA-256 が Apple に渡した値）をサーバーへ渡すことを、本物のブラウザで見る。
+// 外（Apple・Google・API）は偽物で受ける（密閉は `sealContext`。後から足した route が先に効く）
+async function runFederatedChecks(browser, eng) {
+    const APPLE_WEB = "com.journeyphoto.web";
+    const GOOGLE_WEB = "280167931666-00gh6an2dpgg2rsmrdn8phgapgcpsrv1.apps.googleusercontent.com";
+    for (const [w, h] of [[375, 667], [390, 844]]) {
+        const ctx = await browser.newContext({ viewport: { width: w, height: h }, hasTouch: true, isMobile: true, serviceWorkers: "block" });
+        await sealContext(ctx);
+        const posts = [];
+        await ctx.route(/\/auth\/(apple|google)\/status$/, (route) => {
+            const p = new URL(route.request().url()).pathname;
+            const webClientId = p.includes("apple") ? APPLE_WEB : GOOGLE_WEB;
+            return route.fulfill({ status: 200, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ available: true, webClientId }) });
+        });
+        await ctx.route(/\/auth\/(apple|google)$/, (route) => {
+            if (route.request().method() === "OPTIONS") {
+                return route.fulfill({ status: 204, headers: { "access-control-allow-origin": "*", "access-control-allow-headers": "content-type", "access-control-allow-methods": "POST" } });
+            }
+            posts.push({ url: route.request().url(), body: route.request().postDataJSON() });
+            return route.fulfill({ status: 409, contentType: "application/json", headers: { "access-control-allow-origin": "*" }, body: JSON.stringify({ error: "サインイン中です。少し待ってからお試しください" }) });
+        });
+        // Apple の部品の偽物: init の中身を残し、signIn で同じ state の答えを返す
+        await ctx.route("https://appleid.cdn-apple.com/**", (route) => route.fulfill({ status: 200, contentType: "text/javascript", body: `
+            window.__appleInits = [];
+            window.AppleID = { auth: { init: (c) => window.__appleInits.push(c), signIn: () => {
+                const c = window.__appleInits[window.__appleInits.length - 1];
+                window.__appleSignedInAt = performance.now();
+                return Promise.resolve({ authorization: { id_token: "smoke.apple.token", code: "smoke-code", state: c.state } });
+            } } };` }));
+        // Google の部品の偽物: ボタンの形だけ描く（本物は Google の iframe）
+        await ctx.route("https://accounts.google.com/gsi/client", (route) => route.fulfill({ status: 200, contentType: "text/javascript", body: `
+            window.__googleInits = [];
+            window.google = { accounts: { id: { initialize: (c) => window.__googleInits.push(c),
+                renderButton: (el, o) => { el.innerHTML = '<div role="button" style="height:40px;width:' + o.width + 'px;border-radius:20px;background:#131314">Google でログイン</div>'; } } } };` }));
+        const page = await ctx.newPage();
+        const bag = attachDiagnostics(page);
+        const tag = `[${eng}] ${w}x${h} Apple・Google`;
+        try {
+            await gotoSettled(page, `http://localhost:${PORT}/login`);
+            await page.waitForSelector('[data-testid="federated-apple"]:not([disabled])', { timeout: 20000 });
+            await page.waitForFunction(() => (window.__googleInits ?? []).length > 0, null, { timeout: 10000 });
+            const r = await page.evaluate(() => {
+                const rect = (sel) => document.querySelector(sel)?.getBoundingClientRect();
+                const apple = rect('[data-testid="federated-apple"]');
+                const google = rect('[data-testid="federated-google"]');
+                const email = rect("#login-email");
+                return {
+                    apple: apple && { top: apple.top, h: apple.height, w: apple.width },
+                    google: google && { top: google.top, h: google.height },
+                    email: email && { top: email.top },
+                    text: document.querySelector('[data-testid="federated-signin"]')?.textContent ?? "",
+                    scrollW: document.documentElement.scrollWidth, innerW: innerWidth,
+                    init: window.__appleInits[window.__appleInits.length - 1],
+                };
+            });
+            check(`${tag}: Apple → Google → メールの欄の順に並ぶ`, !!r.apple && !!r.google && !!r.email && r.apple.top < r.google.top && r.google.top < r.email.top
+                && /Appleでサインイン.*またはメールアドレスで/.test(r.text), JSON.stringify({ a: r.apple, g: r.google, e: r.email }));
+            check(`${tag}: Apple のボタンの当たりは 44 以上・Google の部品は 40`, !!r.apple && r.apple.h >= 44 && !!r.google && r.google.h >= 40, JSON.stringify({ a: r.apple, g: r.google }));
+            check(`${tag}: 横に送らない`, r.scrollW <= r.innerW, `${r.scrollW} > ${r.innerW}`);
+            check(`${tag}: Apple に渡す戻り先は /login・ポップアップ`, r.init?.redirectURI === `http://localhost:${PORT}/login` && r.init?.usePopup === true && r.init?.clientId === APPLE_WEB, JSON.stringify(r.init));
+            await page.locator('[data-testid="federated-apple"]').click();
+            await page.waitForSelector("#login-form-error", { timeout: 10000 });
+            const post = posts.find((p) => p.url.endsWith("/auth/apple"));
+            const hashed = post ? await page.evaluate(async (raw) => Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw))), (b) => b.toString(16).padStart(2, "0")).join(""), post.body.nonce) : "";
+            check(`${tag}: 押すと Apple を開き、ID トークンと元の nonce をサーバーへ渡す`, !!post && post.body.identityToken === "smoke.apple.token" && hashed === r.init.nonce,
+                post ? JSON.stringify({ ...post.body, nonce: "…" }) : "送っていない");
+            const err = await page.locator("#login-form-error").textContent();
+            check(`${tag}: 断られたらサーバーの一文を出す`, err === "サインイン中です。少し待ってからお試しください", String(err));
+            const real = bag.pageErrors.filter((m) => !isExpectedNetworkNoise(m));
+            check(`${tag}: 実行時のJSエラーが無い`, real.length === 0, real.slice(0, 2).join(" / "));
+            // 登録の頁にも出る
+            await gotoSettled(page, `http://localhost:${PORT}/signup`);
+            await page.waitForSelector('[data-testid="federated-apple"]', { timeout: 20000 });
+            const st = await page.locator('[data-testid="federated-apple"]').textContent();
+            check(`${tag}: 登録の頁は「Appleで登録」`, (st ?? "").includes("Appleで登録"), String(st));
+        } catch (e) {
+            check(`${tag}: ボタンが出て、押すとサーバーへ渡る`, false, String(e).slice(0, 200));
+        } finally {
+            reportDiagnostics(tag, bag);
+            await ctx.close();
+        }
+    }
+}
+
 async function launchEngine(eng) {
     const type = BROWSER_TYPES[eng];
     if (!type) { console.log(`\n(未知のエンジン ${eng} をスキップ)`); return null; }
@@ -1642,11 +1728,12 @@ async function main() {
             ranEngines.push(eng);
             console.log(`\n===== エンジン: ${eng} =====`);
             try {
-                // `SMOKE_ONLY` は手元の確認用（homemap・signupfold のどれか1つだけ回す）
+                // `SMOKE_ONLY` は手元の確認用（homemap・signupfold・federated のどれか1つだけ回す）
                 const only = process.env.SMOKE_ONLY;
                 if (!only) await runChecks(browser, eng);
                 if (!only || only === "homemap") await runHomeMapChecks(browser, eng);
                 if (!only || only === "signupfold") await runSignupFoldChecks(browser, eng);
+                if (!only || only === "federated") await runFederatedChecks(browser, eng);
             } finally {
                 await browser.close();
             }
