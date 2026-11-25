@@ -38,6 +38,7 @@ on:
           - diagnose          # 本番の設定を読むだけ（索引の射影・日付の形・Cognito・CDN の TTL）
           - repair-user-groups # 登録済みなのに user グループに入っていない人を入れ直す（既定は読むだけ・apply で実行）
           - attach-post-confirmation # プールに PostConfirmation トリガーと呼び出し許可を ID 指名で付け直す（既定は読むだけ・apply で実行）
+          - attach-custom-message # 確認コードのメールを新しい文面（新規登録と再設定で別）にする。プールに CustomMessage トリガーを付ける（本番・既定は読むだけ・apply で付ける・remove で外して今の文面に戻す）
           - purge-unconfirmed-users # 確認が終わっていない（UNCONFIRMED）利用者を消す（既定は読むだけ・apply で実行）
           - unused-resources   # AWS に在るものと、このリポジトリが使っているものを突き合わせる（読み取りのみ・消さない）
           - purge-leftover-resources # 消した環境の残骸を消す（一覧に名前を書いたものだけ・既定は読むだけ・apply で実行）
@@ -82,7 +83,7 @@ on:
         type: string
         default: ""
       remove:
-        description: "allow-custom-auth で ALLOW_CUSTOM_AUTH を外すとき true（戻すとき）"
+        description: "allow-custom-auth で ALLOW_CUSTOM_AUTH を外すとき、attach-custom-message で CustomMessage を外すとき true（戻すとき）"
         type: boolean
         default: false
       purge_older_than_days:
@@ -466,6 +467,18 @@ jobs:
       - name: PostConfirmation トリガーを付け直す
         if: inputs.task == 'attach-post-confirmation'
         run: node scripts/attach-post-confirmation.js ${{ inputs.apply && '--apply' || '' }}
+        timeout-minutes: 10
+        env:
+          COGNITO_USER_POOL_ID: ap-northeast-1_ZbuhDQsWz
+          STAGE: prod
+
+      # 確認コードのメールの文面（api の customMessage 関数）をプールに付ける。関数は api のデプロイで
+      # 作られるが、プールには付けていない（付けた日から利用者に届くメールが替わるので、owner が押す）。
+      # 同じ道具で、トリガーと呼び出し許可を ID 指名で付ける。トリガー以外の設定は1つも変えない。
+      # remove=true で外す（プールの今の文面に戻る）
+      - name: 確認コードのメールのトリガーを付ける
+        if: inputs.task == 'attach-custom-message'
+        run: node scripts/attach-post-confirmation.js --trigger=CustomMessage ${{ inputs.apply && '--apply' || '' }} ${{ inputs.remove && '--detach' || '' }}
         timeout-minutes: 10
         env:
           COGNITO_USER_POOL_ID: ap-northeast-1_ZbuhDQsWz

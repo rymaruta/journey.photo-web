@@ -9,8 +9,13 @@ const mod = require("../attach-post-confirmation.js") as {
     poolNameForStage: (stage: string) => string;
     READ_ONLY: string[];
     TRIGGER: string;
+    TRIGGERS: Record<string, string>;
+    triggerFromArgs: (argv: string[]) => string;
+    buildDetachParams: (pool: Record<string, unknown>, trigger: string) => Record<string, unknown>;
 };
 const { planAttach, buildUpdateParams, policyAllowsPool, changedKeys, expectedFunctionName, poolNameForStage, READ_ONLY, TRIGGER } = mod;
+// buildUpdateParams の3つ目（トリガー名）を渡すための形
+const buildFor = mod.buildUpdateParams as unknown as (pool: Record<string, unknown>, arn: string, trigger: string) => Record<string, unknown>;
 
 const ARN = "arn:aws:lambda:ap-northeast-1:123:function:photo-gallery-api-prod-postConfirmation";
 const OTHER = "arn:aws:lambda:ap-northeast-1:123:function:photo-gallery-api-staging-postConfirmation";
@@ -215,5 +220,54 @@ describe("Cognito からの呼び出し許可の判定", () => {
         expect(policyAllowsPool({ Statement: [stmt({ Action: "lambda:GetFunction" })] }, POOL_ARN)).toBe(false);
         expect(policyAllowsPool({ Statement: [] }, POOL_ARN)).toBe(false);
         expect(policyAllowsPool(undefined, POOL_ARN)).toBe(false);
+    });
+});
+
+// 確認コードのメールの文面（CustomMessage）も同じ道具で付ける（札「確認コードのメール」・2026-11-25）
+describe("CustomMessage を付ける・外す", () => {
+    const CM = "arn:aws:lambda:ap-northeast-1:123:function:photo-gallery-api-prod-customMessage";
+    const pool = {
+        Id: "ap-northeast-1_AAAA", Name: "prod-journey-photo-client-spa", Arn: POOL_ARN,
+        LambdaConfig: { PostConfirmation: ARN },
+        EmailVerificationMessage: "mail {####}", MfaConfiguration: "OFF", DeletionProtection: "ACTIVE",
+    };
+
+    it("引数でトリガーを選ぶ。既定は PostConfirmation、知らない名前は止める", () => {
+        expect(mod.triggerFromArgs(["node", "x"])).toBe("PostConfirmation");
+        expect(mod.triggerFromArgs(["node", "x", "--trigger=CustomMessage", "--apply"])).toBe("CustomMessage");
+        expect(() => mod.triggerFromArgs(["--trigger=PreSignUp"])).toThrow();
+        expect(() => mod.triggerFromArgs(["--trigger=constructor"])).toThrow();
+    });
+
+    it("関数名は api/serverless.yml の customMessage", () => {
+        expect(expectedFunctionName("prod")).toBe("photo-gallery-api-prod-postConfirmation");
+        expect((mod.expectedFunctionName as unknown as (s: string, t: string) => string)("prod", "CustomMessage")).toBe("photo-gallery-api-prod-customMessage");
+    });
+
+    // **PostConfirmation を消さない。** 消すと新規登録した人が user グループに入らない
+    it("付けるとき PostConfirmation は残し、CustomMessage を足す", () => {
+        const p = buildFor(pool, CM, "CustomMessage");
+        expect(p.LambdaConfig).toEqual({ PostConfirmation: ARN, CustomMessage: CM });
+        expect(p.EmailVerificationMessage).toBe("mail {####}");
+        expect(p.DeletionProtection).toBe("ACTIVE");
+        expect(pool.LambdaConfig).toEqual({ PostConfirmation: ARN });
+    });
+
+    it("外すときは CustomMessage だけ消す。PostConfirmation は外せない", () => {
+        const withCm = { ...pool, LambdaConfig: { PostConfirmation: ARN, CustomMessage: CM } };
+        const p = mod.buildDetachParams(withCm, "CustomMessage");
+        expect(p.LambdaConfig).toEqual({ PostConfirmation: ARN });
+        expect(p.EmailVerificationMessage).toBe("mail {####}");
+        expect(() => mod.buildDetachParams(withCm, "PostConfirmation")).toThrow();
+    });
+
+    // serverless.yml に events を書くと、デプロイのたびに本番のプールへ勝手に付く（owner の Maintenance を通らない）
+    it("api/serverless.yml の customMessage には events が無い", () => {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const yml = require("node:fs").readFileSync(require("node:path").join(__dirname, "../../api/serverless.yml"), "utf8") as string;
+        const block = yml.slice(yml.indexOf("\n  customMessage:\n"), yml.indexOf("\n# ", yml.indexOf("\n  customMessage:\n")));
+        expect(block).toContain("handler: src/customMessage.customMessage");
+        expect(block).not.toMatch(/events:/);
+        expect(block).not.toMatch(/cognitoUserPool/);
     });
 });
