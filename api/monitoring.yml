@@ -1,0 +1,316 @@
+# 知らせ（SNS の宛先）とアラーム（2026-11-25・AWS の見直しの 3「何か起きても知らせが届かない」）。
+# owner「2（API が守られていない）、3（知らせが届かない）もおねがい！まもる！」（2026-11-25）
+#
+# 配るのは `deploy-api.yml` の管理 API のジョブ（`aws cloudformation deploy`。スタック名 `journey-photo-monitoring-<環境>`）。
+# serverless のスタックとは別にした: 関数を持たず、user API（部品が多い）にも機能のスタックにも混ぜない。
+#
+# 🔴 **アラームは本番だけ**（`IsProd`）。staging は知らせの宛先（無料）だけを作る。
+#   CloudWatch のアラームは「アラームが見る数 1つ」ごとに月 0.10 ドル。アカウントで 10 までは無料の枠。
+#   ここで見る数は 11（下の表）。Apple の取り消しのアラーム（`serverless.apple-signin.yml`・本番と staging で 2）を足して 13
+#   → 無料の枠を越えるのは 3 つ＝月 0.3 ドル（約 47 円）の見込み。
+#   前から手で作ってあった関数ごとのアラーム 6 つ（`Lambda-Errors-photo-gallery-*`・宛先の購読 0 の `journey-photo-alerts` へ）は、
+#   下の 1 と 3・4 が全部の関数・口を見るので、Maintenance の `align-alerts` で消す（残すと 19 で月 0.9 ドル）
+#
+# 🔴 **予算はここで作らない。** AWS Budgets は 2026-11-25 の時点でもう2つある（owner が手で作った。2つまで無料、
+#   3つ目からは1つ月 0.6 ドルほど）。全体の「コスト超過」（月 30 ドル）と「AI（Bedrock）月500円」（3.2 ドル）。
+#   どちらも owner のメールに知らせが届く。足りない知らせ（全体の実績 100%）と、この宛先（SNS）への知らせは
+#   Maintenance の `align-alerts` が足す（`scripts/align-alerts.py`。作り直さず、今の設定に足すだけ）
+#
+# 🔴 **宛先のメールの住所はリポジトリに書かない**（公開のリポジトリ）。GitHub の secrets の `ALERT_EMAIL` から
+#   `AlertEmail`（NoEcho）で渡す。secret が無ければ購読だけ作らない（トピックとアラームは作る）。
+#   購読は AWS から届く「Subscription Confirmation」のメールのリンクを押すまで知らせが届かない。
+#
+# アラームが見る数（本番・合わせて 11）:
+#   1 Lambda のエラー（地域の全部の関数の合計・1）  … 5 分に 5 回以上。staging の関数も同じアカウントなので混ざる
+#   2 Lambda の断り（Throttles・地域の全部・1）     … 5 分に 5 回以上（同時に動ける数を使い切った・予約の枠を越えた）
+#   3 user API の 5xx（1）                           … 5 分に 5 回以上
+#   4 管理 API の 5xx（1）                           … 5 分に 5 回以上
+#   5 定時の関数のエラー（4 つの関数の合計・4）       … 1 時間に 1 回でも（毎時のストーリーの掃除・毎日の光の知らせ・行きたいの集計と掃除）
+#   6 photos 表の読み書きの断り（読み・書き・2）      … 5 分に 10 回以上（SDK が送り直すので、少しは利用者に見えない）
+#   7 Bedrock の呼び出し（Nova Lite・1）              … 1 時間に 60 回以上（サーバーの全体の止めは月 400 円＝1 日およそ 90 回。
+#                                                      1 時間でその 3 分の 2 を使うのは、コードの外から呼ばれたか、止めが効いていない）
+#
+# 費用は 1 ドル 155 円で見た
+AWSTemplateFormatVersion: "2010-09-09"
+Description: journey-photo の知らせの宛先とアラーム（AWS の見直し 3）
+
+Parameters:
+  EnvName:
+    Type: String
+    AllowedValues: [prod, staging]
+  AlertEmail:
+    Type: String
+    Default: ""
+    NoEcho: true
+    Description: 知らせを受けるメール（GitHub の secrets の ALERT_EMAIL）。空なら購読を作らない
+  BedrockModelId:
+    Type: String
+    Default: amazon.nova-lite-v1:0
+    Description: 見張る Bedrock のモデル（api-user/src/tripAiConfig.ts の TRIP_AI_MODEL_ID と同じ）
+
+Conditions:
+  IsProd: !Equals [!Ref EnvName, prod]
+  HasEmail: !Not [!Equals [!Ref AlertEmail, ""]]
+
+Resources:
+  AlertTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: !Sub journey-photo-alerts-${EnvName}
+      DisplayName: journey-photo alerts
+
+  # 🔴 トピックの決まりを書くと、既定の決まりは置き換わる。アカウントの持ち主の操作も書き戻す
+  AlertTopicPolicy:
+    Type: AWS::SNS::TopicPolicy
+    Properties:
+      Topics: [!Ref AlertTopic]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: AccountOwner
+            Effect: Allow
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - sns:Publish
+              - sns:Subscribe
+              - sns:GetTopicAttributes
+              - sns:SetTopicAttributes
+              - sns:ListSubscriptionsByTopic
+              - sns:DeleteTopic
+              - sns:RemovePermission
+              - sns:AddPermission
+            Resource: !Ref AlertTopic
+          - Sid: CloudWatchAlarms
+            Effect: Allow
+            Principal:
+              Service: cloudwatch.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref AlertTopic
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+          - Sid: Budgets
+            Effect: Allow
+            Principal:
+              Service: budgets.amazonaws.com
+            Action: sns:Publish
+            Resource: !Ref AlertTopic
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+
+  AlertEmailSubscription:
+    Type: AWS::SNS::Subscription
+    Condition: HasEmail
+    Properties:
+      TopicArn: !Ref AlertTopic
+      Protocol: email
+      Endpoint: !Ref AlertEmail
+
+  # ---- アラーム（本番だけ） ----------------------------------------------------
+
+  LambdaErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProd
+    Properties:
+      AlarmName: journey-photo-lambda-errors
+      AlarmDescription: Lambda の関数が落ちている（地域の全部の関数の合計。5 分に 5 回以上）。どの関数かは CloudWatch の Lambda の画面で見る
+      Namespace: AWS/Lambda
+      MetricName: Errors
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+  LambdaThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProd
+    Properties:
+      AlarmName: journey-photo-lambda-throttles
+      AlarmDescription: Lambda が断られている（同時に動ける数を使い切った、または予約の枠を越えた。5 分に 5 回以上）
+      Namespace: AWS/Lambda
+      MetricName: Throttles
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+  UserApi5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProd
+    Properties:
+      AlarmName: journey-photo-user-api-5xx
+      AlarmDescription: 利用者の API が 5xx を返している（5 分に 5 回以上）
+      Namespace: AWS/ApiGateway
+      MetricName: 5xx
+      Dimensions:
+        - Name: ApiId
+          Value: !ImportValue
+            Fn::Sub: sls-photo-gallery-user-api-${EnvName}-HttpApiId
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+  AdminApi5xxAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProd
+    Properties:
+      AlarmName: journey-photo-admin-api-5xx
+      AlarmDescription: 管理の API（公開一覧 GET /photos を含む）が 5xx を返している（5 分に 5 回以上）
+      Namespace: AWS/ApiGateway
+      MetricName: 5xx
+      Dimensions:
+        - Name: ApiId
+          Value: !ImportValue
+            Fn::Sub: sls-photo-gallery-api-${EnvName}-HttpApiId
+      Statistic: Sum
+      Period: 300
+      EvaluationPeriods: 1
+      Threshold: 5
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+  # 定時の関数（EventBridge から非同期に呼ぶ）。落ちると AWS が2回まで送り直すので、1回の失敗で Errors は最大 3
+  ScheduledJobsErrorsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProd
+    Properties:
+      AlarmName: journey-photo-scheduled-errors
+      AlarmDescription: 定時の関数が落ちた（ストーリーの掃除・光の知らせ・行きたいの集計と掃除のどれか。1 時間に 1 回でも）
+      Metrics:
+        - Id: total
+          Expression: FILL(stories, 0) + FILL(light, 0) + FILL(wantsAgg, 0) + FILL(wantsClean, 0)
+          Label: 定時の関数のエラーの合計
+          ReturnData: true
+        - Id: stories
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Sub photo-gallery-stories-${EnvName}-cleanupStories
+            Period: 3600
+            Stat: Sum
+        - Id: light
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Sub photo-gallery-user-api-${EnvName}-sendLightAlerts
+            Period: 3600
+            Stat: Sum
+        - Id: wantsAgg
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Sub photo-gallery-spot-wants-${EnvName}-aggregateSpotWants
+            Period: 3600
+            Stat: Sum
+        - Id: wantsClean
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/Lambda
+              MetricName: Errors
+              Dimensions:
+                - Name: FunctionName
+                  Value: !Sub photo-gallery-spot-wants-${EnvName}-cleanupSpotWants
+            Period: 3600
+            Stat: Sum
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+  PhotosTableThrottlesAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProd
+    Properties:
+      AlarmName: journey-photo-photos-table-throttles
+      AlarmDescription: photos 表の読み書きが断られている（5 分に 10 回以上）
+      Metrics:
+        - Id: total
+          Expression: FILL(r, 0) + FILL(w, 0)
+          Label: photos 表の読み書きの断り
+          ReturnData: true
+        - Id: r
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: ReadThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Sub ${EnvName}-photo-gallery-photos
+            Period: 300
+            Stat: Sum
+        - Id: w
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/DynamoDB
+              MetricName: WriteThrottleEvents
+              Dimensions:
+                - Name: TableName
+                  Value: !Sub ${EnvName}-photo-gallery-photos
+            Period: 300
+            Stat: Sum
+      EvaluationPeriods: 1
+      Threshold: 10
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+      OKActions: [!Ref AlertTopic]
+
+  BedrockInvocationsAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: IsProd
+    Properties:
+      AlarmName: journey-photo-bedrock-invocations
+      AlarmDescription: Bedrock の呼び出しが多すぎる（1 時間に 60 回以上。サーバーの止めは 1 日およそ 90 回分）。鍵の持ち出しか、止めが効いていない
+      Namespace: AWS/Bedrock
+      MetricName: Invocations
+      Dimensions:
+        - Name: ModelId
+          Value: !Ref BedrockModelId
+      Statistic: Sum
+      Period: 3600
+      EvaluationPeriods: 1
+      Threshold: 60
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+      AlarmActions: [!Ref AlertTopic]
+
+Outputs:
+  AlertTopicArn:
+    Description: 知らせの宛先（アラームの AlarmActions に使う）
+    Value: !Ref AlertTopic
+    Export:
+      Name: !Sub journey-photo-${EnvName}-AlertTopicArn

@@ -14,7 +14,7 @@ import { join } from "node:path";
  *  - 同じ経路（方法＋道）を2つのスタックが持たない（持つと後から配る方の反映が落ちる）
  *  - 移した関数は user API に残っていない（`MOVED`）
  *  - `deploy-api.yml` は user API の後に配る（取り込む値が先に要る）。例外は経路ごとの流量の設定を
- *    user API の段に付ける `spot-wants` だけで、こちらは先に配る
+ *    user API の段に付ける経路を持つスタック（`BEFORE_USER`）で、こちらは先に配る
  *
  * YAML パーサは使わない（`logRetention.test.ts` と同じ理由）。
  */
@@ -54,6 +54,12 @@ const MOVED: Record<string, string[]> = {
     // 移したのではなく新しい口（グループの DM・札 journey.photo-ios#582）。同じ段で配り、provider をそろえる決まりに乗せる
     "serverless.groups.yml": ["src/groups.handler"],
 };
+
+/**
+ * user API より**先に**配るスタック。user API の段（`HttpApiStage` の RouteSettings）がこれらの経路に
+ * 流量の設定を付けるので、経路が先に要る。AI の口（trip-ai）は 2026-11-25 に足した（AWS の見直し 2・ほかより厳しくする）
+ */
+const BEFORE_USER = ["serverless.spot-wants.yml", "serverless.apple-signin.yml", "serverless.google-signin.yml", "serverless.trip-ai.yml"];
 
 const AUTH_IMPORT = "Fn::ImportValue: sls-photo-gallery-user-api-${sls:stage}-CognitoAuthorizerId";
 
@@ -125,7 +131,7 @@ describe("別のスタック（api-user/serverless.*.yml）", () => {
                 expect(AUTH_IMPORT).toContain("CognitoAuthorizerId");
             });
 
-            it("deploy-api.yml がこのスタックを配る（spot-wants と apple-signin と google-signin 以外は user API の後）", () => {
+            it("deploy-api.yml がこのスタックを配る（BEFORE_USER 以外は user API の後）", () => {
                 const wf = readFileSync(join(ROOT, ".github/workflows/deploy-api.yml"), "utf8");
                 // user API のジョブの中で見る（管理 API のジョブにも同じ書き方の段がある）
                 const job = wf.indexOf("\n  deploy-user-api:");
@@ -138,7 +144,7 @@ describe("別のスタック（api-user/serverless.*.yml）", () => {
                 expect(user).toBeGreaterThan(0);
                 expect(mine, `${file} を配る段が無い`).toBeGreaterThan(0);
                 // 段の流量の設定（RouteSettings）を user API が付ける経路は、経路が先に要る
-                if (["serverless.spot-wants.yml", "serverless.apple-signin.yml", "serverless.google-signin.yml"].includes(file)) expect(mine).toBeLessThan(user);
+                if (BEFORE_USER.includes(file)) expect(mine).toBeLessThan(user);
                 else expect(mine).toBeGreaterThan(user);
             });
         });
@@ -163,7 +169,8 @@ describe("別のスタック（api-user/serverless.*.yml）", () => {
         expect(user).toBeGreaterThan(0);
         expect(steps[user + 1]).toBe("Serverless deploy（user API から移した機能・別スタック）");
         const listed = /^\s+STACKS: (.+)$/m.exec(job)![1].split(/\s+/).sort();
-        expect(listed).toEqual(Object.keys(MOVED).sort());
+        // user API より先に配るもの（BEFORE_USER）は、この段ではなく自分の段で配る
+        expect(listed).toEqual(Object.keys(MOVED).filter((f) => !BEFORE_USER.includes(f)).sort());
     });
 
     it("移した機能のスタックは、環境変数と既定の役の権限が user API の provider と同じ（移す前と同じ環境で動く）", () => {
