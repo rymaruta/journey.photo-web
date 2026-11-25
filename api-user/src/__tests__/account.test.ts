@@ -897,7 +897,7 @@ describe("deleteAccount: 消し残しを作らない", () => {
             setupApple({ userId: "me", appleSub: "001.apple" }, { cognitoSub: "me", cognitoUsername: "u-me", refreshToken: "r.1" });
             const res = await invoke(deleteAccount, ev("me"));
             expect(res.statusCode).toBe(200);
-            expect(mockAppleRevoke).toHaveBeenCalledWith("r.1");
+            expect(mockAppleRevoke).toHaveBeenCalledWith("r.1", undefined);
             expect(users.has("apple#001.apple")).toBe(false);
             // 墓石には一度書き（落ちたときのやり直しの手がかり）、片付けたら消す
             expect(tombPut()!.appleSub).toBe("001.apple");

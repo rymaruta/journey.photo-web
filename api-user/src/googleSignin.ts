@@ -4,7 +4,8 @@
  *
  * ## 流れ（押す回数は2〜3回: ボタン → Google のアカウントを選ぶ（→ 続ける））
  *
- * 1. アプリが乱数の nonce を作り、その **SHA-256** を Google の頼みに入れる（GoogleSignIn-iOS の `nonce`）。
+ * 1. アプリが乱数の nonce を作り、その **SHA-256** を Google の頼みに入れる（GoogleSignIn-iOS の `nonce`。
+ *    Web は Google Identity Services の `initialize({ nonce })`・札 journey.photo-ios#730）。
  *    ID トークンの `nonce` にはその値が入る
  * 2. `POST /auth/google`（ログイン不要）: ID トークンを Google の公開鍵で確かめ、`sha256(元の値) == token の nonce` を照らし、
  *    使った nonce を1回きりにする（Apple と同じ `useNonce`）。今の Cognito の利用者を決め（結ぶ・作る）、使い捨ての券を返す
@@ -18,16 +19,19 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { jsonError, JSON_HEADERS } from "./http";
 import type { FetchLike } from "./oidcToken";
-import { googleClientIdsFromEnv, verifyGoogleIdToken, GoogleTokenError, type GoogleClaims } from "./googleIdToken";
+import { googleClientIdsFromEnv, googleWebClientIdsFromEnv, verifyGoogleIdToken, GoogleTokenError, type GoogleClaims } from "./googleIdToken";
 import { cleanDisplayName, federatedDeps, issueTicket, linkOrCreate, useNonce as claimNonce, LinkBusyError, UnlinkedProviderError, unlinkedMessage } from "./federatedAccount";
 
 export const UNAVAILABLE_MESSAGE = "今は Google でログインできません";
 export const INVALID_TOKEN_MESSAGE = "ログインできませんでした。もう一度お試しください";
 export const BUSY_MESSAGE = "ログイン中です。少し待ってからお試しください";
 
-export const googleDeps: { fetchImpl?: FetchLike; clientIds: () => string[] } = {
+export const googleDeps: { fetchImpl?: FetchLike; clientIds: () => string[]; webClientIds: () => string[] } = {
     fetchImpl: undefined,
+    /** iOS のクライアント ID */
     clientIds: () => googleClientIdsFromEnv(),
+    /** Web のクライアント ID（札 journey.photo-ios#730）。空なら Web からのトークンは受けない */
+    webClientIds: () => googleWebClientIdsFromEnv(),
 };
 
 const ok = (body: unknown) => ({
@@ -39,14 +43,22 @@ const ok = (body: unknown) => ({
 const errName = (e: unknown) => (e as { name?: string } | null)?.name ?? "";
 
 /** `GET /auth/google/status`（ログイン不要）。アプリはこれが `available: true` のときだけボタンを出す。秘密の値は無い */
-export const getGoogleSigninStatus: APIGatewayProxyHandlerV2 = async () =>
-    ok({ available: googleDeps.clientIds().length > 0 && federatedDeps.poolId() !== "" });
+export const getGoogleSigninStatus: APIGatewayProxyHandlerV2 = async () => {
+    const pool = federatedDeps.poolId() !== "";
+    const available = googleDeps.clientIds().length > 0 && pool;
+    // Web はこの値（公開のクライアント ID）を受け取ったときだけボタンを出す（札 journey.photo-ios#730）。iOS は読まない
+    const webClientId = pool ? googleDeps.webClientIds()[0] : undefined;
+    return ok(webClientId ? { available, webClientId } : { available });
+};
 
 type StartBody = { idToken?: unknown; nonce?: unknown; displayName?: unknown };
 
 /** `POST /auth/google`（ログイン不要）。答えは Cognito のユーザー名と、CUSTOM_AUTH に出す使い捨ての券 */
 export const startGoogleSignin: APIGatewayProxyHandlerV2 = async (event) => {
-    const clientIds = googleDeps.clientIds();
+    const iosIds = googleDeps.clientIds();
+    const webIds = googleDeps.webClientIds();
+    // 受ける宛先（`aud`）: iOS と Web のクライアント ID
+    const clientIds = [...iosIds, ...webIds];
     if (clientIds.length === 0 || !federatedDeps.poolId()) return jsonError(503, UNAVAILABLE_MESSAGE, "google_signin_unavailable");
 
     let body: StartBody;
@@ -83,7 +95,8 @@ export const startGoogleSignin: APIGatewayProxyHandlerV2 = async (event) => {
             isPrivateEmail: false,
         }, cleanDisplayName(body.displayName) ?? cleanDisplayName(claims.name));
         const challengeAnswer = await issueTicket("google", claims.sub);
-        if (linked.via === "new") console.log(JSON.stringify({ metric: "signup", platform: "ios", from: "google" }));
+        const platform = webIds.includes(claims.aud) ? "web" : "ios";
+        if (linked.via === "new") console.log(JSON.stringify({ metric: "signup", platform, from: "google" }));
         return ok({ username: linked.username, challengeAnswer, created: linked.via === "new" });
     } catch (e) {
         if (e instanceof LinkBusyError) return jsonError(409, BUSY_MESSAGE, "google_signin_busy");

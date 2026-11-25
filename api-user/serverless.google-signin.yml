@@ -32,6 +32,8 @@ provider:
     USERS_TABLE: ${param:usersTable}
     # 宛先（iOS のクライアント ID。ID トークンの `aud`）。秘密ではない
     GOOGLE_SIGNIN_CLIENT_ID: ${param:googleSigninClientId, ''}
+    # Web の宛先（「ウェブ アプリケーション」のクライアント ID・札 journey.photo-ios#730）。空なら Web からは受けない
+    GOOGLE_SIGNIN_WEB_CLIENT_ID: ${param:googleSigninWebClientId, ''}
     COGNITO_USER_POOL_ID: ${param:cognitoUserPoolId}
   httpApi:
     # user API の HTTP API に経路を足す（新しい API は作らない）
