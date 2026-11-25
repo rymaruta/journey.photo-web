@@ -53,6 +53,13 @@ const shared = {
     resolve: { alias: { "@": path.resolve(ROOT, ".") } },
 };
 
+// **Node の組み込みの localStorage を切る**（2026-11-25・Node 26 へ上げたとき）。
+// Node 25 から `globalThis.localStorage`・`sessionStorage` が既定で在る（中身は
+// `--localstorage-file` が無いと undefined）。これが happy-dom・jsdom の Storage より先に
+// 立つので、DOM のテストで `localStorage.clear()` などが「undefined を読んだ」で落ちた（410 件）。
+// 旗は Node 22 でも受け付ける（そちらでは元から切れている）。
+const execArgv = ["--no-experimental-webstorage"];
+
 export default defineConfig({
     ...shared,
     test: {
@@ -62,6 +69,7 @@ export default defineConfig({
                 test: {
                     name: "node",
                     globals: true,
+                    execArgv,
                     environment: "node",
                     setupFiles: ["./vitest.setup.ts"],
                     include: NODE_TESTS,
@@ -90,6 +98,7 @@ export default defineConfig({
                 test: {
                     name: "dom",
                     globals: true,
+                    execArgv,
                     environment: "happy-dom",
                     setupFiles: ["./vitest.setup.ts"],
                     include: ["**/*.test.{ts,tsx,js,mjs}"],
