@@ -88,12 +88,12 @@ export const LOGIN_PROMPT_TRIGGERS = ["like", "save", "follow", "comment", "foll
 export const EVENT_SPEC = {
     // 既存（名前と欄は変えない）
     wish_tap: { signed_in: [0, 1], kind: ["spot", "location"] },
-    sign_up: { method: ["email"], from: SIGNUP_FROM },
+    sign_up: { method: ["email", "apple", "google"], from: SIGNUP_FROM },
     // 登録の漏斗
     view_signup: { from: SIGNUP_FROM },
     signup_start: { from: SIGNUP_FROM },
     signup_error: { step: ["form", "confirm"], reason: SIGNUP_ERROR_REASONS },
-    login: { method: ["email"] },
+    login: { method: ["email", "apple", "google"] },
     // アプリへの入口
     app_store_click: { placement: APP_STORE_PLACEMENTS },
     // 投稿
