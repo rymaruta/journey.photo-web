@@ -28,15 +28,16 @@ const mockS3DeleteMany = vi.hoisted(() => vi.fn(async (keys: string[]) => { void
 vi.mock("../s3Delete", () => ({ s3DeleteMany: (keys: string[]) => mockS3DeleteMany(keys) }));
 // アルバムへの出し入れは境界としてモックする（実体は `albums.test.ts`）
 // 案A: 実体を `private/` へ動かす経路
-const mockCopyAll = vi.hoisted(() => vi.fn(async () => true));
-const mockDropOld = vi.hoisted(() => vi.fn(async () => 0));
+type S3Move = typeof import("../s3Move");
+const mockCopyAll = vi.hoisted(() => vi.fn<S3Move["copyAll"]>(async () => true));
+const mockDropOld = vi.hoisted(() => vi.fn<S3Move["dropOld"]>(async () => 0));
 vi.mock("../s3Move", () => ({
-    copyAll: (...a: unknown[]) => mockCopyAll(...(a as [])),
+    copyAll: (...a: Parameters<S3Move["copyAll"]>) => mockCopyAll(...a),
     // 本物の `dropOld` は `s3DeleteMany` を呼ぶだけ。差し替えの古い実体も
     // `dropUnused.ts` → `dropOld` を通るようになったので、同じ記録に残す
-    dropOld: async (...a: unknown[]) => {
-        const r = await mockDropOld(...(a as []));
-        await mockS3DeleteMany((a[0] as { from: string }[]).map((m) => m.from));
+    dropOld: async (...a: Parameters<S3Move["dropOld"]>) => {
+        const r = await mockDropOld(...a);
+        await mockS3DeleteMany(a[0].map((m) => m.from));
         return r;
     },
 }));
@@ -1622,7 +1623,7 @@ describe("絞った写真の差し替えも private/ へ", () => {
         expect(res.statusCode, res.body).toBe(200);
         expect(mockCopyAll.mock.calls[0][0]).toContainEqual({ from: `uploads/${UID}/new.webp`, to: `private/${UID}/new.webp` });
         expect(lastUpdate().ExpressionAttributeValues[":r_src"]).toBe(priv("new.webp"));
-        expect(mockDropOld.mock.calls.flatMap((c) => c[0] as { from: string }[]).map((m) => m.from))
+        expect(mockDropOld.mock.calls.flatMap((c) => c[0]).map((m) => m.from))
             .toContain(`uploads/${UID}/new.webp`);
     });
 
@@ -1798,7 +1799,7 @@ describe("移した元は、ほかの行が使っていれば消さない", () =
         id: "p1", userId: "u1", published: true,
         src: `${CDN}/uploads/${U}/p1.jpg`,
     };
-    const dropped = () => mockDropOld.mock.calls.flatMap((c) => c[0] as { from: string }[]).map((m) => m.from);
+    const dropped = () => mockDropOld.mock.calls.flatMap((c) => c[0]).map((m) => m.from);
 
     beforeEach(() => {
         mockCopyAll.mockReset().mockResolvedValue(true);

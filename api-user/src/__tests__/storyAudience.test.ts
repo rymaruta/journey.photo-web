@@ -130,7 +130,7 @@ beforeEach(() => {
             }
             for (const t of i.TransactItems as Record<string, any>[]) { // eslint-disable-line @typescript-eslint/no-explicit-any
                 if (t.Update && t.Update.UpdateExpression.includes("list_append")) {
-                    const cur = db.get(t.Update.Key.id) ?? { id: t.Update.Key.id };
+                    const cur: Record<string, unknown> = db.get(t.Update.Key.id) ?? { id: t.Update.Key.id };
                     db.set(t.Update.Key.id, { ...cur, answers: [...((cur.answers as unknown[]) ?? []), ...t.Update.ExpressionAttributeValues[":new"]] });
                 }
             }

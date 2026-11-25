@@ -152,7 +152,7 @@ describe("likePhoto", () => {
             .mockResolvedValueOnce({})
             .mockResolvedValueOnce({ Attributes: { likes: 1 } });
         await invoke(likePhoto, ev("u1", "p1"));
-        const update = mockDdbSend.mock.calls[1][0] as { input: { ConditionExpression: string } };
+        const update = mockDdbSend.mock.calls[1][0] as { input: { ConditionExpression: string; ExpressionAttributeValues: Record<string, unknown> } };
         expect(update.input.ConditionExpression).toContain("attribute_exists(src)");
         expect(update.input.ConditionExpression).toContain("attribute_not_exists(story)");
         // 下書きも弾く。この節が無かった頃は「IDさえ分かれば非公開の写真に
