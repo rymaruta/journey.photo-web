@@ -40,6 +40,7 @@ on:
           - attach-post-confirmation # プールに PostConfirmation トリガーと呼び出し許可を ID 指名で付け直す（既定は読むだけ・apply で実行）
           - attach-custom-message # 確認コードのメールを新しい文面（新規登録と再設定で別）にする。プールに CustomMessage トリガーを付ける（本番・既定は読むだけ・apply で付ける・remove で外して今の文面に戻す）
           - purge-unconfirmed-users # 確認が終わっていない（UNCONFIRMED）利用者を消す（既定は読むだけ・apply で実行）
+          - monitoring-check   # 知らせ（SNS）・アラーム・予算・API の呼ばれ方を読むだけ（本番・書き込まない。AWS の見直し 2・3）
           - unused-resources   # AWS に在るものと、このリポジトリが使っているものを突き合わせる（読み取りのみ・消さない）
           - purge-leftover-resources # 消した環境の残骸を消す（一覧に名前を書いたものだけ・既定は読むだけ・apply で実行）
           - content-opportunities # どこを直すと「検索に出せるページ」が増えるかを数える（読み取りのみ）
@@ -504,6 +505,18 @@ jobs:
         if: inputs.task == 'unused-resources'
         run: node scripts/unused-resources.js
         timeout-minutes: 10
+
+      # 知らせの宛先（SNS）・アラーム・AWS Budgets が在るか、API がどれだけ呼ばれているかを**読むだけ**
+      # （2026-11-25・AWS の見直し 2・3）。流量の上限の根拠と、知らせの反映（`api/monitoring.yml`）の確かめに使う。
+      # 宛先のメールの住所は出さない。アカウントの番号は伏せる
+      - name: 知らせ・予算・API の呼ばれ方を読む（読むだけ）
+        if: inputs.task == 'monitoring-check'
+        run: bash scripts/check-monitoring.sh
+        timeout-minutes: 10
+        env:
+          # 本番の HTTP API の ID（公開の URL の頭。deploy.yml の config と同じ）
+          USER_API_ID: gu7kxwdc5l
+          ADMIN_API_ID: ionr4ik01e
 
       # 消した環境の残骸を消す。**取り消せない**ので既定は読むだけ。
       # **パターンでは消さない**——スクリプトの中の一覧に名前を書いたものだけ。
