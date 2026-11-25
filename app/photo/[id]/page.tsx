@@ -4,7 +4,7 @@ import PhotoPageClient from "./PhotoPageClient";
 import type { Metadata } from "next";
 import { splitStoredDate } from "@/lib/utils/photoDate";
 import { ja } from "../../i18n/labels";
-import { appItunes, siteConfig, publicImageUrl } from "@/lib/utils/seo";
+import { appItunes, fitTitle, siteConfig, publicImageUrl } from "@/lib/utils/seo";
 import { getLocalizedParagraphs } from "@/lib/data/photos";
 import { loadAllPhotos } from "@/lib/server/photos";
 import { initialRelatedFor } from "@/lib/utils/related";
@@ -165,10 +165,10 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     const pageUrl = `${siteConfig.url}/photo/${id}`;
     
     return {
-        // サイト名は app/layout.tsx の `template` が付ける。ここでも足すと
-        // `未完の大聖堂 | Journey Photo | 旅フォトギャラリー | Journey Photo 旅フォトギャラリー`
-        // になり、検索結果で切られる位置に定型文が45〜60字並ぶ。
-        title,
+        // サイト名は `fitTitle` が、付けても 33 字（全角換算）に収まるときだけ付ける（2026-11-25）。
+        // 利用者が付けた長い題で、後ろのサイト名が題の言葉を切らせないため。
+        // 共有カードの題（og:title）には付けない（og:site_name が別に出る）
+        title: fitTitle(title),
         description: description,
         keywords: [
             ...(photo.tags || []),

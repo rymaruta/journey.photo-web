@@ -26,7 +26,7 @@ import {
 } from "../_parts/LearnParts";
 
 const ARTICLE = learnArticle("camera-basics");
-const TITLE = "カメラの使い方 完全入門｜F値・シャッター速度・ISOをやさしく解説";
+const TITLE = "カメラの使い方 完全入門｜F値、シャッター速度、ISOをやさしく解説";
 
 export const metadata = learnMetadata(ARTICLE.href, TITLE, ARTICLE.description, "article");
 

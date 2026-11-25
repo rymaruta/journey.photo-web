@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { buildImageSitemap, titleOf, captionOf, CAPTION_MAX } from "../sitemap-images.xml/route";
+import { buildImageSitemap } from "../sitemap-images.xml/route";
 import type { Photo } from "@/lib/data/photos";
 
 /**
@@ -11,12 +11,8 @@ import type { Photo } from "@/lib/data/photos";
  * 無かった契約（**言語**・**切り詰め**・**組み立て**）を足す。
  *
  * ここで固定するのは:
- *   - **題と説明がこのサイトの言語（日本語）で1本**であること
- *     ——以前は `ja + " / " + en` と併記していて、実ビルドの **54か所**が
- *     「白鳥と湖 / Swans on the Lake」の形だった。同じページの
- *     `<meta name="description">` は日本語だけを出しているので、
- *     **機械向けの経路にだけ英語が残っていた**
- *   - 撮影地が切り詰めで真っ先に消えないこと
+ *   - **載せるのは image:loc だけ**（2026-11-25）。Google が文書から外した
+ *     `image:caption`・`image:title` を出さない（以前は題と説明を入れていた）
  *   - 1文字で XML 全体が壊れないこと（`feed.xml` と同じ型）
  */
 const photo = (over: Partial<Photo> = {}): Photo => ({
@@ -29,40 +25,20 @@ const photo = (over: Partial<Photo> = {}): Photo => ({
 const parse = (xml: string) => new DOMParser().parseFromString(xml, "application/xml");
 const failed = (doc: Document) => doc.querySelector("parsererror") !== null;
 
-describe("画像サイトマップの言語", () => {
-    it("題は日本語だけ（英語を併記しない）", () => {
-        expect(titleOf(photo())).toBe("白鳥と湖");
+describe("画像サイトマップは image:loc だけ（2026-11-25）", () => {
+    it("🔴 写真の題と説明があっても、image:title と image:caption を出さない", () => {
+        const xml = buildImageSitemap([photo({ location: "パリ, フランス" } as Partial<Photo>)]);
+        expect(xml).toContain("<image:loc>");
+        expect(xml).not.toContain("image:title");
+        expect(xml).not.toContain("image:caption");
+        expect(xml).not.toContain("白鳥と湖");
+        expect(xml).not.toContain("餌を探していた");
     });
 
-    it("説明も日本語だけ", () => {
-        expect(captionOf(photo())).toBe("餌を探していた。");
-    });
-
-    it("日本語が無ければ英語に落ちる（出せるものが無いよりはよい）", () => {
-        expect(titleOf(photo({ title: { en: "Swans" } } as Partial<Photo>))).toBe("Swans");
-        expect(captionOf(photo({ description: { en: ["Only English."] } } as Partial<Photo>)))
-            .toBe("Only English.");
-    });
-
-    it("XML にも英語が出ない", () => {
-        const xml = buildImageSitemap([photo()]);
-        expect(xml).toContain("<image:title>白鳥と湖</image:title>");
-        expect(xml, "英語が併記されている").not.toContain("Swans on the Lake");
-        expect(xml).not.toContain(" / ");
-    });
-});
-
-describe("画像サイトマップの説明の切り詰め", () => {
-    it("撮影地は切り詰めで消えない（説明より先に席を取る）", () => {
-        const long = "あ".repeat(CAPTION_MAX * 2);
-        const c = captionOf(photo({ description: { ja: [long] }, location: "パリ, フランス" } as Partial<Photo>));
-        expect(c.endsWith("（パリ）"), "撮影地が落ちている").toBe(true);
-        expect(c.length).toBeLessThanOrEqual(CAPTION_MAX);
-    });
-
-    it("撮影地が無ければ説明が上限いっぱい入る", () => {
-        const long = "あ".repeat(CAPTION_MAX * 2);
-        expect(captionOf(photo({ description: { ja: [long] } } as Partial<Photo>)).length).toBe(CAPTION_MAX);
+    it("🔴 観光スポットの作例も image:loc だけ", () => {
+        const xml = buildImageSitemap([], [{ loc: "https://journey-photo.com/spots/x", images: [{ src: "https://upload.wikimedia.org/a.jpg" }] }]);
+        expect(xml).toContain("<image:loc>https://upload.wikimedia.org/a.jpg</image:loc>");
+        expect(xml).not.toMatch(/image:(title|caption|geo_location|license)/);
     });
 });
 
@@ -78,12 +54,11 @@ describe("画像サイトマップの形", () => {
 
     // サイトマップは制御文字1つで**丸ごと** parse error になる（その1件だけ
     // でなく全件の `<image:loc>` が読めなくなる）。台帳が一度踏んだ型。
-    // **説明側にも入れる**——題にだけ入れると `esc(caption)` を外す変異が
-    // このファイルでは生き残る（`robots.test.ts` では死ぬ）
-    it("制御文字が1つ混ざっても壊れない（題にも説明にも）", () => {
+    // 2026-11-25 から題と説明は出さないので、残る文字の入り口は画像の URL と頁の id
+    it("制御文字が1つ混ざっても壊れない（画像の URL にも頁の id にも）", () => {
         const bad = `壊${String.fromCharCode(11)}す`;
         const doc = parse(buildImageSitemap([
-            photo({ title: { ja: bad }, description: { ja: [bad] } } as Partial<Photo>),
+            photo({ id: `p${bad}`, src: `https://cdn/${bad}.jpg` } as Partial<Photo>),
             photo({ id: "p2" }),
         ]));
         expect(failed(doc), "1件の制御文字で XML 全体が読めなくなっている").toBe(false);
@@ -121,43 +96,10 @@ describe("画像サイトマップの形", () => {
         expect(xml).toContain("/photo/abc");
     });
 
-    // **空行も出さない。** `not.toContain("<image:title>")` だけだと
-    // `filter(Boolean)` を外す変異が生き残る（空行が増えるだけで XML は
-    // 妥当なまま）——レビューが実証した穴
-    it("題も説明も無い写真では、空の要素も空行も出さない", () => {
+    // **空行も出さない。**（`filter(Boolean)` を外す変異で空行が増えた・レビューが実証した穴）
+    it("空の要素も空行も出さない", () => {
         const xml = buildImageSitemap([photo({ title: undefined, description: undefined } as Partial<Photo>)]);
-        expect(xml).not.toContain("<image:title>");
-        expect(xml).not.toContain("<image:caption>");
         expect(xml.split("\n").filter((l) => l.trim() === ""), "空行が出ている").toEqual([]);
-    });
-
-    it("撮影地が上限より長くても、説明は上限を超えない", () => {
-        const c = captionOf(photo({
-            description: { ja: ["あ".repeat(CAPTION_MAX * 2)] },
-            location: "パ".repeat(CAPTION_MAX + 100),
-        } as Partial<Photo>));
-        expect(c.length, "上限を超えている").toBeLessThanOrEqual(CAPTION_MAX);
-    });
-});
-
-// **caption は1行の説明文として読まれる。** XML としては改行も通るが、
-// 実ビルドで4件が生の改行を含んでいた
-// 2026-11-11（札 journey.photo-ios#527）: 写真の頁の description と同じく、撮影地は「名前、県市」まで
-describe("画像サイトマップの caption の撮影地", () => {
-    it("地図の住所の全文を出さず、名前と県市だけ（説明に入っている語は足さない）", () => {
-        const loc = "月崎, 大多喜里見線, 月崎, 市原市, 千葉県, 290-0547, 日本";
-        expect(captionOf(photo({ description: { ja: ["夏のプラットホーム。"] }, location: loc } as Partial<Photo>)))
-            .toBe("夏のプラットホーム。（月崎、千葉県市原市）");
-        expect(captionOf(photo({ description: undefined, location: "道の駅 万葉の里" } as Partial<Photo>))).toBe("（道の駅 万葉の里）");
-        expect(captionOf(photo({ description: { ja: ["パリの夜。"] }, location: "パリ, フランス" } as Partial<Photo>))).toBe("パリの夜。");
-    });
-});
-
-describe("画像サイトマップの caption は1行", () => {
-    it("説明の改行を空白にする", () => {
-        const c = captionOf(photo({ description: { ja: ["一行目。\n二行目。"] } } as Partial<Photo>));
-        expect(c, "生の改行が残っている").not.toContain("\n");
-        expect(c).toBe("一行目。 二行目。");
     });
 });
 
@@ -181,11 +123,6 @@ describe("2枚目以降（extraImages）も画像サイトマップに載せる"
         // 画像は3枚
         expect(xml.match(/<image:image>/g), "2枚目以降が載っていない").toHaveLength(3);
         for (const f of ["a.jpg", "b.jpg", "c.jpg"]) expect(xml).toContain(f);
-    });
-
-    it("題はどの画像にも付ける（この投稿のもの）", () => {
-        const xml = buildImageSitemap([photo]);
-        expect(xml.match(/<image:title>/g)).toHaveLength(3);
     });
 
     it("extraImages が無い写真は今までどおり1枚", () => {
@@ -229,22 +166,8 @@ describe("撮影地ページの画像（2026-10-11）", () => {
     it("1つの <url> に 1,000 枚まで（Google の画像サイトマップの決まり）", async () => {
         const { MAX_IMAGES_PER_URL } = await import("../sitemap-images.xml/route");
         expect(MAX_IMAGES_PER_URL).toBe(1000);
-        const many = Array.from({ length: 1005 }, (_, i) => ({ src: `https://journey-photo.com/i/${i}.jpg`, title: "t" }));
+        const many = Array.from({ length: 1005 }, (_, i) => ({ src: `https://journey-photo.com/i/${i}.jpg` }));
         const xml = buildImageSitemap([], [{ loc: "https://journey-photo.com/spots/x", images: many }]);
         expect(xml.match(/<image:image>/g)?.length).toBe(1000);
-    });
-});
-
-// 旧い既定値の「無題」を画像の題として配らない（2026-10-18・`photoTitle.ts`）。
-// 題が無ければ今までどおり `<image:title>` を出さない
-describe("画像サイトマップ: 旧い既定値の「無題」", () => {
-    it("{ ja: 無題, en: Untitled } は題として扱わない", () => {
-        expect(titleOf(photo({ title: { ja: "無題", en: "Untitled" } } as Partial<Photo>))).toBe("");
-        const xml = buildImageSitemap([photo({ title: { ja: "無題", en: "Untitled" }, location: "板橋区" } as Partial<Photo>)]);
-        expect(xml).not.toMatch(/無題|Untitled/);
-        expect(xml).not.toContain("<image:title>");
-    });
-    it("片方の言語が「無題」なら、もう一方の本物の題を使う", () => {
-        expect(titleOf(photo({ title: { ja: "無題", en: "Swans" } } as Partial<Photo>))).toBe("Swans");
     });
 });

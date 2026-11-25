@@ -50,11 +50,11 @@ describe("47県の頁の場所", () => {
         const titles = places.map(todayPrefTitle);
         expect(new Set(titles).size).toBe(47);
         for (const t of titles) {
-            expect(t).toMatch(/^.+の今日の日の出、日の入り時刻｜ゴールデンアワーと近くの観光スポット$/);
+            expect(t).toMatch(/^.+の今日の日の出と日の入り｜ゴールデンアワーの時刻$/);
             expect(t).not.toMatch(/\d{4}|\d+月|\d+日(?!の)/);
             expect(t).not.toMatch(/Journey Photo|旅フォト/);   // サイト名は title.template が足す
         }
-        expect(todayPrefTitle(todayPlace("tokyo")!)).toBe("東京の今日の日の出、日の入り時刻｜ゴールデンアワーと近くの観光スポット");
+        expect(todayPrefTitle(todayPlace("tokyo")!)).toBe("東京の今日の日の出と日の入り｜ゴールデンアワーの時刻");
         expect(TODAY_HUB_TITLE).not.toMatch(/\d{4}/);
     });
 });

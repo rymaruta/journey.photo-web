@@ -67,12 +67,16 @@ export function shortPrefName(p: Prefecture): string {
     return p.name === "北海道" ? p.name : p.name.replace(/[都府県]$/, "");
 }
 
-/** ハブ（/today）の題。日付を入れない安定した文（サイト名は `title.template` が足す） */
-export const TODAY_HUB_TITLE = "今日の日の出、日の入り時刻｜ゴールデンアワーと近くの観光スポット";
+/**
+ * ハブ（/today）の題。日付を入れない安定した文。
+ * 2026-11-25: 33 字（全角換算）に収める。探される語「今日の日の出と日の入り」を頭に置く
+ * （サイト名を付けるかは `fitTitle` が決める）
+ */
+export const TODAY_HUB_TITLE = "今日の日の出と日の入り｜ゴールデンアワーの時刻と近くの観光スポット";
 
-/** 県の頁の題。日付を入れない安定した文 */
+/** 県の頁の題。日付を入れない安定した文。県の名前を頭に置き、33 字に収める（2026-11-25） */
 export function todayPrefTitle(place: { shortName: string }): string {
-    return `${place.shortName}の今日の日の出、日の入り時刻｜ゴールデンアワーと近くの観光スポット`;
+    return `${place.shortName}の今日の日の出と日の入り｜ゴールデンアワーの時刻`;
 }
 
 export type TodayPlaceBasis = "capital-spots" | "prefecture-centroid";
