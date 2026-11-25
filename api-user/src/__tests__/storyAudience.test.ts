@@ -31,7 +31,6 @@ vi.mock("@aws-sdk/client-s3", () => ({
 vi.stubEnv("CLOUDFRONT_URL", "https://cdn.test");
 vi.stubEnv("UPLOAD_BUCKET", "bucket-test");
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const deletedIds = vi.hoisted(() => new Set<string>());
 const mockPush = vi.hoisted(() => vi.fn(async (..._a: unknown[]) => undefined));
 vi.mock("../notify", async (importActual) => ({

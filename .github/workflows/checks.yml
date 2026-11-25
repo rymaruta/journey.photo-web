@@ -19,6 +19,10 @@ on:
       - ".github/workflows/checks.yml"
       - "package.json"
       - "package-lock.json"
+      - "api/package.json"
+      - "api/package-lock.json"
+      - "api-user/package.json"
+      - "api-user/package-lock.json"
       - "tsconfig.json"
       - "vitest.config.ts"
       - "vitest.setup.ts"
@@ -33,6 +37,10 @@ on:
       - ".github/workflows/checks.yml"
       - "package.json"
       - "package-lock.json"
+      - "api/package.json"
+      - "api/package-lock.json"
+      - "api-user/package.json"
+      - "api-user/package-lock.json"
       - "tsconfig.json"
       - "vitest.config.ts"
       - "vitest.setup.ts"
@@ -66,8 +74,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # **`tsc` は TypeScript 7**（2026-11-25）。`typescript` の名前は TypeScript 6（`@typescript/typescript6`）で、
+      # typescript-eslint が使う JS の API と、next build の型の検査（`tsc6`）はこちら。`tsc` の名前は 7（`@typescript/native`）が持つ。
+      # 7 が JS の API を持つ（7.1 の予定）まで、この2本立てにする（公式ブログの形）
       - name: Typecheck
         run: npx tsc --noEmit
+
+      # **api・api-user の部品の PR（dependabot など）もここで確かめる。** Deploy API は develop に
+      # 入ってから走るので、PR の段で型を見るのはここだけ。それぞれの依存を入れて、出荷と同じ版で見る
+      - name: Install backend dependencies
+        if: success() || failure()
+        run: |
+          npm ci --ignore-scripts --prefix api
+          npm ci --ignore-scripts --prefix api-user
+
+      - name: Typecheck backend
+        if: success() || failure()
+        run: |
+          npx tsc -p api
+          npx tsc -p api-user
 
       # 型エラーがあっても残りの問題を同じ実行で洗い出す。
       - name: Lint

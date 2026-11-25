@@ -105,7 +105,6 @@ function resolveChromium() {
 function loadSwAssetRule() {
     const src = fs.readFileSync(path.resolve(__dirname, "..", "public", "sw.js"), "utf8");
     const self_ = { addEventListener() {}, location: { origin: `http://localhost:${PORT}` } };
-    // eslint-disable-next-line no-new-func
     return new Function("self", `${src}\nreturn { isImmutableAsset, MAX_ASSET_ENTRIES };`)(self_);
 }
 const swAssetRule = loadSwAssetRule();

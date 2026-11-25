@@ -29,9 +29,6 @@ const nextConfig: NextConfig = {
   images: { unoptimized: true },
   // 静的エクスポートビルド時は scripts/prepare-static-build.js が app/api を
   // _api_build_backup に退避するため、ここで webpack 除外は不要
-  experimental: {
-    turbopackUseSystemTlsCerts: true,
-  },
 };
 
 export default nextConfig;

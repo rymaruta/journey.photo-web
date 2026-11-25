@@ -1,0 +1,50 @@
+# 部品（npm と GitHub Actions）の新しい版を、週に1回 PR にする（2026-11-25）。
+#
+# - 小さい版の上げ（minor・patch）は、ルート・api・api-user をまとめて1本の PR にする
+# - 大きい版の上げ（major）は、部品ごとに別の PR にする（公式のリリースノートを読んでから取り込む）
+# - PR の向き先は develop。本番へは server-release の手順（main から切って cherry-pick）で出す
+# - 出て間もない版は3日待つ（cooldown）。壊れた版・乗っ取られた版がすぐ取り下げられることが多いため
+#
+# 取り込み方は journey.photo-ios の `.claude/skills/server-release/SKILL.md`。
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directories:
+      - "/"
+      - "/api"
+      - "/api-user"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    cooldown:
+      default-days: 3
+    # まとめた1本（minor・patch）＋大きい版の上げを4本まで
+    open-pull-requests-limit: 5
+    groups:
+      npm-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
+    commit-message:
+      prefix: "deps"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    target-branch: "develop"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Asia/Tokyo"
+    open-pull-requests-limit: 1
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+    commit-message:
+      prefix: "ci"
