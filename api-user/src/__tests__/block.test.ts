@@ -2,8 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const mockDdbSend = vi.hoisted(() => vi.fn());
 // フォローの解除は境界としてモックする（実体は `follow.test.ts` が見る）
-const mockUnfollow = vi.hoisted(() => vi.fn(async () => undefined));
-vi.mock("../follow", () => ({ unfollowQuietly: (...a: unknown[]) => mockUnfollow(...(a as [])) }));
+type Follow = typeof import("../follow");
+const mockUnfollow = vi.hoisted(() => vi.fn<Follow["unfollowQuietly"]>(async () => undefined));
+vi.mock("../follow", () => ({ unfollowQuietly: (...a: Parameters<Follow["unfollowQuietly"]>) => mockUnfollow(...a) }));
 vi.mock("../dynamodb", () => ({
     ddb: { send: mockDdbSend },
     PHOTOS_TABLE: "photos-test",

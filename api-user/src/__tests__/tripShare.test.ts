@@ -26,7 +26,7 @@ vi.mock("../liveCaller", async (orig) => ({
     assertLiveCaller: async () => null,
     readLiveCaller: async () => ({ row: undefined }),
 }));
-const mockPush = vi.hoisted(() => vi.fn(async () => ({ sent: 1, invalid: [] as string[] })));
+const mockPush = vi.hoisted(() => vi.fn<typeof import("../apns").sendPush>(async () => ({ sent: 1, invalid: [] as string[] })));
 vi.mock("../apns", async (orig) => ({
     ...(await orig<typeof import("../apns")>()),
     apnsConfigured: () => true,

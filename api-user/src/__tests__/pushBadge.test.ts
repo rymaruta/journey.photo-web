@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import type { Notif } from "../notify";
 
 /**
  * 🔴 **アプリのバッジと、画面の未読数を食い違わせない。**
@@ -26,17 +27,19 @@ vi.mock("../blockCheck", async (importActual) => ({
     hiddenUserIds: (...a: unknown[]) => mockHidden(...(a as [])),
 }));
 // APNs と端末は境界にする（送信そのものは `apns.test.ts` / `devices.test.ts`）
-const mockSend = vi.hoisted(() => vi.fn(async () => ({ sent: 1, invalid: [] as string[] })));
+type Apns = typeof import("../apns");
+type Devices = typeof import("../devices");
+const mockSend = vi.hoisted(() => vi.fn<Apns["sendPush"]>(async () => ({ sent: 1, invalid: [] as string[] })));
 const mockConfigured = vi.hoisted(() => vi.fn(() => true));
 vi.mock("../apns", () => ({
     apnsConfigured: () => mockConfigured(),
-    sendPush: (...a: unknown[]) => mockSend(...(a as [])),
+    sendPush: (...a: Parameters<Apns["sendPush"]>) => mockSend(...a),
 }));
-const mockTokens = vi.hoisted(() => vi.fn(async () => ["a".repeat(64)]));
-const mockForget = vi.hoisted(() => vi.fn(async () => undefined));
+const mockTokens = vi.hoisted(() => vi.fn<Devices["deviceTokens"]>(async () => ["a".repeat(64)]));
+const mockForget = vi.hoisted(() => vi.fn<Devices["forgetTokens"]>(async () => undefined));
 vi.mock("../devices", () => ({
-    deviceTokens: (...a: unknown[]) => mockTokens(...(a as [])),
-    forgetTokens: (...a: unknown[]) => mockForget(...(a as [])),
+    deviceTokens: (...a: Parameters<Devices["deviceTokens"]>) => mockTokens(...a),
+    forgetTokens: (...a: Parameters<Devices["forgetTokens"]>) => mockForget(...a),
 }));
 vi.stubEnv("USERS_TABLE", "users-test");
 
@@ -53,7 +56,7 @@ function serve(unread: number, items: Array<{ byId: string }>) {
             ? { Attributes: { unread, items } }
             : { Item: { displayName: "名前" } }));
 }
-const notif = { type: "like" as const, byId: OK, byName: "だれか", photoId: "p1" };
+const notif: Notif = { type: "like", byId: OK, byName: "だれか", photoId: "p1", photoSrc: "", t: "2026-11-10T00:00:00.000Z" };
 const badgeSent = () => (mockSend.mock.calls.at(-1)?.[1] as { badge?: number } | undefined)?.badge;
 
 beforeEach(() => {
