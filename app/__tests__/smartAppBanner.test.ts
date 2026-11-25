@@ -48,11 +48,14 @@ describe("Smart App Banner", () => {
     });
 
     it("Next が書き出す meta に app-argument が入る（Safari が読む形）", async () => {
-        // Next の metadata の `itunes` を `<meta>` にする部品そのもの（`next/dist/lib/metadata/generate/basic`）
-        const { ItunesMeta } = await import("next/dist/lib/metadata/generate/basic");
+        // Next の metadata を `<meta>` にする部品そのもの（`next/dist/lib/metadata/metadata-elements`）。
+        // Next 16.4 で `generate/basic` の `ItunesMeta` から、metadata 全体を受ける `createMetadataElements` に替わった
+        const { createMetadataElements } = await import("next/dist/lib/metadata/metadata-elements");
         const { renderToStaticMarkup } = await import("react-dom/server");
+        const { createElement, Fragment } = await import("react");
         const url = `${siteConfig.url}/spots/kiyomizu`;
-        const html = renderToStaticMarkup(ItunesMeta({ itunes: appItunes(url) }) as React.ReactElement);
+        const tags = createMetadataElements({ itunes: appItunes(url) } as Parameters<typeof createMetadataElements>[0]);
+        const html = renderToStaticMarkup(createElement(Fragment, null, ...tags));
         expect(html).toBe(`<meta name="apple-itunes-app" content="app-id=${siteConfig.iosAppId}, app-argument=${url}"/>`);
     });
 

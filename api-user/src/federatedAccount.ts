@@ -138,7 +138,6 @@ export const sha256Hex = (s: string) => createHash("sha256").update(s).digest("h
 /** 名前を整える（前後の空白・制御文字を落とし、上限で切る）。空なら undefined */
 export function cleanDisplayName(raw: unknown): string | undefined {
     if (typeof raw !== "string") return undefined;
-    // eslint-disable-next-line no-control-regex
     const s = raw.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
     if (!s) return undefined;
     return [...s].slice(0, DISPLAY_NAME_MAX).join("");
