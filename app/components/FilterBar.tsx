@@ -112,7 +112,6 @@ function FilterBarInner({
         const next = values.query || "";
         if (next !== appliedQueryRef.current) {
             appliedQueryRef.current = next;
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLocalQuery(next);
         }
     }, [values.query]);

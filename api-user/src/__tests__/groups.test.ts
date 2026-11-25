@@ -313,7 +313,7 @@ describe("🔴 2. ブロックしている人を入れられない", () => {
         expect(json(r).added).toEqual([]);
         expect(json(r).notAdded).toBe(1);
         expect(json(r).members.map((m: { id: string }) => m.id)).not.toContain(D);
-        expect(read(D, g).then((x) => x.statusCode)).resolves.toBe(404);
+        await expect(read(D, g).then((x) => x.statusCode)).resolves.toBe(404);
     });
 
     it("招待に参加するとき: 招待のあとにブロックの間柄になったら入れない", async () => {
