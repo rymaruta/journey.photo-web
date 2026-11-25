@@ -10,7 +10,7 @@ import { pendingVerifyKey } from "../../lib/utils/pendingName";
 import { wishSpotForNext, type WishSpot } from "../../lib/utils/wishAfterLogin";
 import { safeNextPath } from "../../lib/routes";
 import { publicImageUrl } from "../../lib/utils/seo";
-import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_ACCENT_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
+import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_ACCENT_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS, AUTH_TOP_PAD_CLASS } from "../components/accountFormStyles";
 import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
 import { FederatedSignIn } from "../components/FederatedSignIn";
 import { SIGNUP_BENEFIT_JA } from "../../lib/auth/loginVia";
@@ -45,7 +45,7 @@ const PERMANENT_RESEND_FAILURES = new Set([
 
 function savePending(em: string, username: string, from: SignupFrom) {
     // `from`（どこから登録に来たか）も控える。確認コードの入力へは、ログイン画面の
-    // 「確認コードを入力・再送する」から `via` 無しで戻ってくることがある（#432）
+    // 「確認コードを入力、再送する」から `via` 無しで戻ってくることがある（#432）
     try { localStorage.setItem(pendingVerifyKey(em), JSON.stringify({ username, t: Date.now(), from })); } catch { /* ignore */ }
 }
 /** 控えた `from`。無い・読めないときは null（呼ぶ側が URL の値を使う） */
@@ -273,7 +273,7 @@ function SignupForm() {
             <main className="min-h-screen bg-bg">
                 <h1 className="sr-only">アカウント作成</h1>
                 {/* 判定中は灰の骨格（iOS `JPLoadingState`・回る輪にしない） */}
-                <div className="mx-auto w-full max-w-sm px-6 pt-[142px]"><LoadingState kind="rows" /></div>
+                <div className={`mx-auto w-full max-w-sm px-6 ${AUTH_TOP_PAD_CLASS}`}><LoadingState kind="rows" /></div>
             </main>
         );
     }
@@ -297,10 +297,10 @@ function SignupForm() {
         // 「行きたい」から来た回は写真の帯とワードマークを置かず、押したスポットの札を頭にする（2026-11-24・#432）。
         // 帯（上から 250）の下に並べると、375×667 でも 390×844 でも主ボタンが下のタブの裏に入り、送らないと見えなかった。
         // 押すためのボタンは最初の画面に出す（「直感的で簡単に」）。決まりの試験は `signupFold.test.tsx`
-        <main data-testid="signup-main" className={`relative isolate min-h-screen overflow-hidden bg-black px-6 ${compact ? "pt-3" : "pt-[142px]"} pb-28`}>
+        <main data-testid="signup-main" className={`relative isolate min-h-screen overflow-hidden bg-black px-6 ${compact ? "pt-3" : AUTH_TOP_PAD_CLASS} pb-28`}>
             {!compact && <AuthPhotoBand />}
 
-            <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-[14px]" data-testid="signup-content">
+            <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-3" data-testid="signup-content">
                 {/* 画面の題は読み上げだけ（iOS は大きいワードマークが見出し） */}
                 <h1 className="sr-only">
                     {step === "register" && "アカウント作成"}
@@ -349,7 +349,7 @@ function SignupForm() {
 
                 {/* ステップ1: 登録 */}
                 {step === "register" && (
-                    <form onSubmit={handleRegister} className="flex flex-col gap-[14px]">
+                    <form onSubmit={handleRegister} className="flex flex-col gap-3">
                         {field("signup-email", "メールアドレス", (
                             <input id="signup-email" {...invalid("register")} type="email" value={email}
                                 onChange={(e) => { noteStart(); setEmail(e.target.value); }} required autoComplete="email"
@@ -397,7 +397,7 @@ function SignupForm() {
 
                 {/* ステップ2: 確認コード（iOS `confirmSignUpSection`） */}
                 {step === "verify" && (
-                    <form onSubmit={handleVerify} className="flex flex-col gap-[14px]">
+                    <form onSubmit={handleVerify} className="flex flex-col gap-3">
                         <p className="m-0 text-[15px] leading-[22px] text-white/70">{email} に確認コードを送信しました</p>
                         {field("signup-code", "確認コード", (
                             <input
@@ -438,7 +438,7 @@ function SignupForm() {
 
                 {/* ステップ3: 完了 */}
                 {step === "done" && (
-                    <div className="flex flex-col gap-[14px]">
+                    <div className="flex flex-col gap-3">
                         <p className="m-0 text-[15px] leading-[22px] text-white/70">
                             登録が完了しました。ログインして写真のアップロードをお楽しみください。
                         </p>

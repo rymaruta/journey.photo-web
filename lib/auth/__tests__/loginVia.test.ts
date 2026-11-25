@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { LOGIN_VIAS, parseLoginVia, loginReason, LOGIN_REASON_GENERIC_JA } from "../loginVia";
+import { LOGIN_VIAS, parseLoginVia, loginReason, LOGIN_REASON_GENERIC_JA, SIGNUP_BENEFIT_JA } from "../loginVia";
 import { loginWithNext } from "../../routes";
 
 // 2026-11-09: ログイン画面の「理由と得られるもの」。`via` は URL から来る＝許可リストだけを画面の文に変える
@@ -26,8 +26,14 @@ describe("loginVia（許可リスト）", () => {
         expect(LOGIN_VIAS, "使い手の無い via を許可していない").not.toContain("theme");
     });
 
+    it("ログインと登録の画面の文は中黒「・」で区切らない（「、」で並べる・2026-11-25 owner の写真）", () => {
+        for (const t of [LOGIN_REASON_GENERIC_JA, SIGNUP_BENEFIT_JA, ...LOGIN_VIAS.map((v) => loginReason(v))]) {
+            expect(t, t).not.toMatch(/[・·]/);
+        }
+    });
+
     it("無い・許可外の via は汎用の1行（URL の文字列を画面に流さない）", () => {
-        expect(loginReason(null)).toBe("ログインすると、いいね・コメント・投稿ができます。");
+        expect(loginReason(null)).toBe("ログインすると、いいね、コメント、投稿ができます。");
         const evil = "<img src=x onerror=alert(1)>";
         expect(loginReason(evil)).toBe(LOGIN_REASON_GENERIC_JA);
         expect(loginReason(evil)).not.toContain("img");

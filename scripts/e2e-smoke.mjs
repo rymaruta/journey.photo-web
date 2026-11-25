@@ -1643,7 +1643,7 @@ async function runFederatedChecks(browser, eng) {
         await ctx.route("https://accounts.google.com/gsi/client", (route) => route.fulfill({ status: 200, contentType: "text/javascript", body: `
             window.__googleInits = [];
             window.google = { accounts: { id: { initialize: (c) => window.__googleInits.push(c),
-                renderButton: (el, o) => { el.innerHTML = '<div role="button" style="height:40px;width:' + o.width + 'px;border-radius:20px;background:#131314">Google でログイン</div>'; } } } };` }));
+                renderButton: (el, o) => { window.__googleTheme = o.theme; el.innerHTML = '<div role="button" style="height:40px;width:' + o.width + 'px;border-radius:20px;background:#fff">Google でログイン</div>'; } } } };` }));
         const page = await ctx.newPage();
         const bag = attachDiagnostics(page);
         const tag = `[${eng}] ${w}x${h} Apple・Google`;
@@ -1666,9 +1666,38 @@ async function runFederatedChecks(browser, eng) {
                 };
             });
             check(`${tag}: Apple → Google → メールの欄の順に並ぶ`, !!r.apple && !!r.google && !!r.email && r.apple.top < r.google.top && r.google.top < r.email.top
-                && /Appleでサインイン.*またはメールアドレスで/.test(r.text), JSON.stringify({ a: r.apple, g: r.google, e: r.email }));
+                && /Apple でサインイン.*またはメールアドレスで/.test(r.text), JSON.stringify({ a: r.apple, g: r.google, e: r.email }));
             check(`${tag}: Apple のボタンの当たりは 44 以上・Google の部品は 40`, !!r.apple && r.apple.h >= 44 && !!r.google && r.google.h >= 40, JSON.stringify({ a: r.apple, g: r.google }));
             check(`${tag}: 横に送らない`, r.scrollW <= r.innerW, `${r.scrollW} > ${r.innerW}`);
+            // 2026-11-25 owner「バランス悪く見える」: Apple と Google は同じ白の形（Google の部品は `outline`）、同じ高さ・幅・左端
+            const look = await page.evaluate(() => {
+                const a = document.querySelector('[data-testid="federated-apple"] > span')?.getBoundingClientRect();
+                const g = document.querySelector('[data-testid="federated-google"]')?.getBoundingClientRect();
+                return { a: a && [Math.round(a.left), Math.round(a.width), Math.round(a.height)], g: g && [Math.round(g.left), Math.round(g.width), Math.round(g.height)], theme: window.__googleTheme };
+            });
+            check(`${tag}: Apple と Google のボタンは同じ白の形・同じ高さ 40・同じ幅と左端`, look.theme === "outline" && JSON.stringify(look.a) === JSON.stringify(look.g) && look.a?.[2] === 40, JSON.stringify(look));
+            // 下のタブにフォームが隠れない（2026-11-25 owner の写真: パスワードの欄とログインのボタンがタブの裏に入っていた）。
+            // 390×844 は送らずにログインのボタンまで見える。どの高さでも、少し送ればタブが引いて、欄とボタンの真ん中に指が届く
+            const fold = await page.evaluate(() => {
+                const btn = document.querySelector('form button[type="submit"]').getBoundingClientRect();
+                const bar = document.querySelector('nav[aria-label="メインメニュー"] > *')?.getBoundingClientRect() ?? document.querySelector('nav[aria-label="メインメニュー"]').getBoundingClientRect();
+                return { bottom: Math.round(btn.bottom), barTop: Math.round(bar.top) };
+            });
+            if (h >= 844) check(`${tag}: 送らずにログインのボタンまで見える（下のタブの上）`, fold.bottom <= fold.barTop, JSON.stringify(fold));
+            // 1つずつ、画面の下端まで送ってから少し余分に送る（指で送ったときの形）。帯が引いて、真ん中に指が届くこと
+            const hit = [];
+            for (const sel of ["#login-password", 'form button[type="submit"]', 'form a[href^="/signup"]']) {
+                await page.evaluate((s) => { document.querySelector(s).scrollIntoView({ block: "end" }); window.scrollBy(0, 40); }, sel);
+                await page.waitForTimeout(500);
+                hit.push(await page.evaluate((s) => {
+                    const el = document.querySelector(s); const b = el.getBoundingClientRect();
+                    const at = document.elementFromPoint(b.left + b.width / 2, b.top + b.height / 2);
+                    return [s, Math.round(scrollY), b.bottom <= innerHeight && !!at && (at === el || el.contains(at))];
+                }, sel));
+            }
+            check(`${tag}: 送るとパスワードの欄・ログイン・アカウントを作るが下のタブに隠れない`, hit.every(([, , ok]) => ok), JSON.stringify(hit));
+            await page.evaluate(() => window.scrollTo(0, 0));
+            await page.waitForTimeout(400);
             check(`${tag}: Apple に渡す戻り先は /login・ポップアップ`, r.init?.redirectURI === `http://localhost:${PORT}/login` && r.init?.usePopup === true && r.init?.clientId === APPLE_WEB, JSON.stringify(r.init));
             await page.locator('[data-testid="federated-apple"]').click();
             await page.waitForSelector("#login-form-error", { timeout: 10000 });
@@ -1684,7 +1713,7 @@ async function runFederatedChecks(browser, eng) {
             await gotoSettled(page, `http://localhost:${PORT}/signup`);
             await page.waitForSelector('[data-testid="federated-apple"]', { timeout: 20000 });
             const st = await page.locator('[data-testid="federated-apple"]').textContent();
-            check(`${tag}: 登録の頁は「Appleで登録」`, (st ?? "").includes("Appleで登録"), String(st));
+            check(`${tag}: 登録の頁は「Apple で登録」`, (st ?? "").includes("Apple で登録"), String(st));
         } catch (e) {
             check(`${tag}: ボタンが出て、押すとサーバーへ渡る`, false, String(e).slice(0, 200));
         } finally {
