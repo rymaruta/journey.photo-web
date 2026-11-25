@@ -475,10 +475,10 @@ describe("SignupPage - 登録の数え方", () => {
 
 // 2026-11-04: ログインと同じ形（iOS `SignInView` の `.signUp`）
 describe("新規登録: iOS の形", () => {
-    it("写真の帯の下に直に置き（本文は上から 250）、iOS の一文を出す", () => {
+    it("写真の帯の下に直に置き（本文は上から 142）、iOS の一文を出す", () => {
         render(<SignupPage />);
         const content = screen.getByTestId("signup-content");
-        expect(content.closest("main")!.className).toMatch(/pt-\[250px\]/);
+        expect(content.closest("main")!.className).toMatch(/pt-\[142px\]/);
         expect(screen.getByTestId("login-photo-collage")).toBeInTheDocument();
         expect(screen.getByText("写真から、次の旅が始まる。")).toBeInTheDocument();
     });
@@ -611,15 +611,15 @@ describe("SignupPage - 行きたいから登録へ", () => {
 
     // 主ボタンが最初の画面で見えること（寸法は scripts/e2e-smoke.mjs の runSignupFoldChecks が 375×667・390×844 で測る）。
     // ここでは、その形（写真の帯とワードマークを置かず、上を詰める）を固定する
-    it("行きたいから来た回は写真の帯とワードマークを置かず上を詰める（主ボタンを下のタブの裏に入れない）", async () => {
+    it("行きたいから来た回は写真の帯を置かず上を詰める。ロゴと副題は小さい形で残す（2026-11-25 owner「サブタイトルも消えるの嫌だ」）", async () => {
         mark();
         mockSearchParams = new URLSearchParams(`next=${encodeURIComponent(next)}&via=wish`);
         render(<SignupPage />);
         await screen.findByTestId("signup-wish");
-        expect(screen.getByTestId("signup-main").className).toMatch(/\bpt-5\b/);
-        expect(screen.getByTestId("signup-main").className).not.toMatch(/pt-\[250px\]/);
+        expect(screen.getByTestId("signup-main").className).toMatch(/\bpt-3\b/);
+        expect(screen.getByTestId("signup-main").className).not.toMatch(/pt-\[142px\]/);
         expect(screen.queryByTestId("login-photo-collage")).toBeNull();
-        expect(screen.queryByText("写真から、次の旅が始まる。")).toBeNull();
+        expect(screen.getByText("写真から、次の旅が始まる。")).toBeInTheDocument();
     });
 
     it("外から付けた合言葉だけでは載せない（このタブの印が無い・合わない・古い）", async () => {

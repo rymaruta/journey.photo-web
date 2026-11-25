@@ -555,8 +555,8 @@ describe("ログイン: iOS の形", () => {
         const content = screen.getByTestId("login-content");
         expect(content.className).not.toMatch(/\bborder\b|\brounded-2xl\b|bg-black\/85/);
         expect(container.querySelector(".rounded-2xl.border"), "札が残っている").toBeNull();
-        // 本文は帯（380）の上から 250 で始まる（130 食い込む）
-        expect(content.closest("main")!.className).toMatch(/pt-\[250px\]/);
+        // 本文は帯（235）の上から 142 で始まる（iOS の 390×844 と同じ位置・2026-11-25）
+        expect(content.closest("main")!.className).toMatch(/pt-\[142px\]/);
     });
 
     it("ワードマークと iOS の一文を出し、「写真をアップロードするには…」は出さない", () => {
