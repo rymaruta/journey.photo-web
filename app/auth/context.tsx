@@ -57,6 +57,8 @@ type AuthContextType = {
     userId: string | null;
     loading: boolean;
     login: (username: string, password: string) => Promise<{ success: boolean; error?: string; needsVerification?: boolean; userId?: string }>;
+    /** Apple・Google のサーバーが返した券で入る（札 journey.photo-ios#730）。成功のあとの片付けはメールのログインと同じ */
+    loginWithTicket: (username: string, challengeAnswer: string) => Promise<{ success: boolean; error?: string; userId?: string }>;
     logout: () => void;
     deleteAccount: () => Promise<{ success: boolean; error?: string }>;
 };
@@ -360,6 +362,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [markResolved]);
 
+    // Apple・Google の券で入る（札 journey.photo-ios#730）。成功したあとの片付けは `login` と同じ
+    const loginWithTicket = useCallback(async (username: string, challengeAnswer: string) => {
+        setAuthState((prev) => ({ ...prev, loading: true }));
+        try {
+            const { signInWithTicket } = await import("../../lib/auth/cognito");
+            const result = await signInWithTicket(username, challengeAnswer);
+            if (result.success && result.session) {
+                const admin = result.groups?.includes("admin") || false;
+                const general = !admin && (result.groups?.includes("user") || false);
+                const sub = result.session.getIdToken().payload["sub"] as string | undefined;
+                resetFollowingCache();
+                setFavoritesUser(sub ?? null);
+                setSeenStoriesUser(sub ?? null);
+                markResolved(true, admin);
+                setAuthState({ isAuthenticated: true, isAdminUser: admin, isGeneralUser: general, userId: sub ?? null, loading: false });
+                return { success: true, userId: sub };
+            }
+            setAuthState((prev) => ({ ...prev, loading: false }));
+            return { success: false, error: result.error || "ログインできませんでした。もう一度お試しください" };
+        } catch (error: unknown) {
+            log.error("AuthContext: 券でのログインの例外", error);
+            setAuthState((prev) => ({ ...prev, loading: false }));
+            return { success: false, error: "ログインできませんでした。もう一度お試しください" };
+        }
+    }, [markResolved]);
+
     // ログアウト
     //
     // **`signOut` を待ってから片付ける。** 先に画面の状態だけ落とすと、
@@ -507,6 +535,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 userId: authState.userId,
                 loading: authState.loading,
                 login,
+                loginWithTicket,
                 logout,
                 deleteAccount,
             }}

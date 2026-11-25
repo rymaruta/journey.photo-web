@@ -9,9 +9,10 @@ import { forgotPassword, confirmForgotPassword, PASSWORD_RULE_MESSAGE } from "..
 import { userFetch } from "../../lib/utils/api";
 import { LoadingState } from "../components/StateViews";
 import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
+import { FederatedSignIn } from "../components/FederatedSignIn";
 import { ROUTES, safeNextPath } from "../../lib/routes";
 import { pendingNameKey } from "../../lib/utils/pendingName";
-import { track } from "../../lib/utils/analytics";
+import { track, signupFromVia } from "../../lib/utils/analytics";
 import { parseLoginVia, loginReason } from "../../lib/auth/loginVia";
 import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
 
@@ -200,7 +201,7 @@ function LoginForm() {
             <main className="min-h-screen bg-bg">
                 <h1 className="sr-only">ログイン</h1>
                 {/* 判定中は灰の骨格（iOS `JPLoadingState`・回る輪にしない） */}
-                <div className="mx-auto w-full max-w-sm px-6 pt-[250px]"><LoadingState kind="rows" /></div>
+                <div className="mx-auto w-full max-w-sm px-6 pt-[142px]"><LoadingState kind="rows" /></div>
             </main>
         );
     }
@@ -225,7 +226,7 @@ function LoginForm() {
     );
 
     return (
-        <main className="relative isolate min-h-screen overflow-hidden bg-black px-6 pt-[250px] pb-16">
+        <main className="relative isolate min-h-screen overflow-hidden bg-black px-6 pt-[142px] pb-16">
             <AuthPhotoBand />
 
             <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-[14px]" data-testid="login-content">
@@ -238,6 +239,11 @@ function LoginForm() {
                 {/* なぜログインが要るか・ログインすると何ができるか（1〜2行・2026-11-09）。`via` が無い・許可外は汎用の1行 */}
                 {step === "login" && (
                     <p data-testid="login-reason" className="m-0 text-[14px] leading-[20px] text-white/80">{loginReason(via)}</p>
+                )}
+
+                {/* Apple・Google（札 journey.photo-ios#730）。サーバーが Web の宛先を返したものだけ。無ければ何も出さない */}
+                {step === "login" && (
+                    <FederatedSignIn mode="signin" from={signupFromVia(via)} onError={setError} />
                 )}
 
                 {/* ログイン */}

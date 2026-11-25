@@ -15,8 +15,8 @@
 | `view_signup` | 登録画面を見た（未ログインと分かった回に1度） | `from` |
 | `signup_start` | 入力を始めた（初めて入力欄が変わったとき1度） | `from` |
 | `signup_error` | 登録の入力・確認コードで断られた | `step`: `form` / `confirm`、`reason`（下） |
-| `sign_up` | 登録の確認コードが通った（もう確認済みだった回は送らない）。**推奨イベント・成果** | `method`: `email`、`from` |
-| `login` | ログインに成功した（推奨イベント） | `method`: `email` |
+| `sign_up` | 登録の確認コードが通った（もう確認済みだった回は送らない）。**推奨イベント・成果** | `method`: `email`・`apple`・`google`（Apple・Google は Web で初めて作った回・#730）、`from` |
+| `login` | ログインに成功した（推奨イベント） | `method`: `email`・`apple`・`google` |
 | `wish_tap` | 「行きたい」を押した（撮影スポット・撮影地・写真の「次の旅へ」・地図・クイズ） | `signed_in`: 0（未ログイン＝ログインへ）/ 1（保存した。外したときは送らない）、`kind`: `spot` / `location` |
 
 - `from`: `wish`（「行きたい」から来た）/ `other`。行きたいのリンクだけが `/login?…&via=wish` を付け、

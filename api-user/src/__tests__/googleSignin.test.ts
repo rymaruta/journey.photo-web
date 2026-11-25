@@ -12,7 +12,7 @@ const db = vi.hoisted(() => ({ send: vi.fn() }));
 vi.mock("../dynamodb", () => ({ ddb: db, PHOTOS_TABLE: "photos-test" }));
 
 import { googleDeps, getGoogleSigninStatus, startGoogleSignin } from "../googleSignin";
-import { verifyGoogleIdToken, resetGoogleKeysCache, GoogleTokenError } from "../googleIdToken";
+import { verifyGoogleIdToken, resetGoogleKeysCache, GoogleTokenError, googleWebClientIdsFromEnv } from "../googleIdToken";
 import { KEYS_REFETCH_MIN_MS } from "../oidcToken";
 import { consumeTicket, federatedDeps, parseTicketAnswer, unlinkAfterDelete, revokeLinkedTokens } from "../federatedAccount";
 
@@ -52,6 +52,7 @@ beforeEach(() => {
     idpReply = createdReply;
     googleDeps.fetchImpl = google.fetchImpl;
     googleDeps.clientIds = () => [GOOGLE_CLIENT_ID];
+    googleDeps.webClientIds = () => [];
     federatedDeps.poolId = () => "ap-northeast-1_TEST";
     federatedDeps.now = () => Date.now();
     federatedDeps.notifyLinked = async () => undefined;
@@ -258,5 +259,45 @@ describe("メールで結んだときの知らせ（鍵を持たない口から�
             // 「連携を解除」は owner の言い方（2026-11-23）。「結ばれました」「外す」は使わない
             expect(`${title}${body}`).not.toMatch(/結ば|結び|結ぶ|外せ|外す|・|パスワード/);
         }
+    });
+});
+
+describe("Web の「Google でログイン」（札 journey.photo-ios#730）", () => {
+    const WEB = "280167931666-00gh6an2dpgg2rsmrdn8phgapgcpsrv1.apps.googleusercontent.com";
+
+    it("🔴 Web の ID が無い間は、Web あての token を断り、status も Web の ID を返さない", async () => {
+        expect(bodyOf(await call(getGoogleSigninStatus, {}))).toEqual({ available: true });
+        expect((await signIn({ aud: WEB })).statusCode).toBe(401);
+    });
+
+    it("Web の ID があれば status が返し、Web あての token を通す（iOS あてもそのまま通す）", async () => {
+        googleDeps.webClientIds = () => [WEB];
+        expect(bodyOf(await call(getGoogleSigninStatus, {}))).toEqual({ available: true, webClientId: WEB });
+        const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+        const web = await signIn({ aud: WEB });
+        expect(web.statusCode).toBe(200);
+        expect(bodyOf(web).challengeAnswer).toMatch(/^google:/);
+        expect(log.mock.calls.map((c) => String(c[0]))).toContain(JSON.stringify({ metric: "signup", platform: "web", from: "google" }));
+        log.mockRestore();
+        expect((await signIn({ aud: GOOGLE_CLIENT_ID, sub: "2222" })).statusCode).toBe(200);
+    });
+
+    it("🔴 別のアプリあて（知らないクライアント ID）は断る", async () => {
+        googleDeps.webClientIds = () => [WEB];
+        expect((await signIn({ aud: "999-evil.apps.googleusercontent.com" })).statusCode).toBe(401);
+    });
+
+    it("値の読み方: 形の合う値だけ。iOS と同じ値は Web にしない", async () => {
+        expect(googleWebClientIdsFromEnv({ GOOGLE_SIGNIN_WEB_CLIENT_ID: ` ${WEB} ,x,` })).toEqual([WEB]);
+        expect(googleWebClientIdsFromEnv({ GOOGLE_SIGNIN_CLIENT_ID: GOOGLE_CLIENT_ID, GOOGLE_SIGNIN_WEB_CLIENT_ID: GOOGLE_CLIENT_ID })).toEqual([]);
+        expect(googleWebClientIdsFromEnv({})).toEqual([]);
+    });
+
+    it("🔴 Web の ID は本番だけに渡す（生成元は本番のドメインだけ）", () => {
+        const root = join(__dirname, "..", "..", "..");
+        const yml = readFileSync(join(root, "api-user", "serverless.google-signin.yml"), "utf8");
+        const wf = readFileSync(join(root, ".github", "workflows", "deploy-api.yml"), "utf8");
+        expect(yml).toContain("GOOGLE_SIGNIN_WEB_CLIENT_ID: ${param:googleSigninWebClientId, ''}");
+        expect(wf).toContain(`GOOGLE_SIGNIN_WEB_CLIENT_ID: \${{ needs.config.outputs.envName == 'prod' && '${WEB}' || '' }}`);
     });
 });

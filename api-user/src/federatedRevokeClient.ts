@@ -28,11 +28,11 @@ let lambda: LambdaClient | null = null;
 const RESULTS = new Set(["revoked", "failed", "rejected", "unavailable"]);
 
 /** Apple の取り消し（`deleteAccount` が `revokeLinkedTokens` に渡す） */
-export const appleRevokeViaStack: Revoker = async (refreshToken) => {
+export const appleRevokeViaStack: Revoker = async (refreshToken, clientId) => {
     const fn = revokeClientDeps.functionName();
     if (!fn) return "unavailable";
     try {
-        const res = await revokeClientDeps.invoke(fn, JSON.stringify({ provider: "apple", refreshToken }));
+        const res = await revokeClientDeps.invoke(fn, JSON.stringify(clientId ? { provider: "apple", refreshToken, clientId } : { provider: "apple", refreshToken }));
         if (res.functionError) return "failed";
         const result = (JSON.parse(res.payload ?? "{}") as { result?: unknown }).result;
         return typeof result === "string" && RESULTS.has(result) ? result as Awaited<ReturnType<Revoker>> : "failed";

@@ -107,6 +107,9 @@ export function imageSinks(raw: string, file: string): Sink[] {
  *       （`app/components/__tests__/imageOrigin.test.tsx`）
  */
 const EXEMPT: Array<[string, string, string]> = [
+    ["lib/auth/federated.ts", "src",
+     "画像ではなく、Apple と Google のサインインの部品（`<script>`）を読む口（`loadScript`・札 journey.photo-ios#730）。"
+     + "渡すのは同じファイルの決まった2つの URL（`APPLE_SCRIPT_URL`・`GOOGLE_SCRIPT_URL`）だけで、写真の URL は来ない"],
     ["app/composition/page.tsx", "photoUrl", "端末内で選択した画像の blob: URL のみを表示し、サーバーにはアップロードしない"],
     ["app/components/SpotLinkCard.tsx", "spot.cover!.src",
      "写真詳細に出す公式ガイドの代表写真。`SpotGuideClient` と同じ値。"

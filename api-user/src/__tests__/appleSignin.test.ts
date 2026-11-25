@@ -51,6 +51,7 @@ beforeEach(() => {
     vi.stubEnv("APPLE_SIGNIN_READY", "true");
     appleDeps.config = async () => cfg;
     appleDeps.fetchImpl = apple.fetchImpl;
+    appleDeps.webClientIds = () => [];
     federatedDeps.poolId = () => "ap-northeast-1_TEST";
     federatedDeps.now = () => Date.now();
     federatedDeps.notifyLinked = async (sub, provider) => { notified.push({ sub, provider }); };
@@ -583,5 +584,83 @@ describe("配り方（serverless.apple-signin.yml・deploy-api.yml・serverless.
         expect(settings).toMatch(/AppleSigninOn:\n\s+Fn::Equals: \["\$\{param:appleSigninEnabled, 'false'\}", "true"\]/);
         expect(settings).toMatch(/- AppleSigninOn\n[\s\S]*"POST \/auth\/apple":\n\s+ThrottlingRateLimit: \d+\n\s+ThrottlingBurstLimit: \d+/);
         expect(wf).toMatch(/if \[ "\$\{APPLE_SIGNIN_ENABLED:-\}" = "true" \]; then extra\+=\(--param "appleSigninEnabled=true"\); fi/);
+    });
+});
+
+describe("Web の「Apple でサインイン」（Services ID・札 journey.photo-ios#730）", () => {
+    const WEB = "com.journeyphoto.web";
+    const bodyOfCall = (c: { body?: string }) => new URLSearchParams(c.body ?? "");
+
+    it("🔴 Services ID が無い間は、Web あての token を断り、status も Web の ID を返さない（今までどおり iOS だけ）", async () => {
+        expect(bodyOf(await call(getAppleSigninStatus, {}))).toEqual({ available: true });
+        idpReply = createdReply;
+        expect((await signIn({ aud: WEB })).statusCode).toBe(401);
+    });
+
+    it("Services ID があれば、status が Web の ID を返す。鍵が無い環境では返さない", async () => {
+        appleDeps.webClientIds = () => [WEB];
+        expect(bodyOf(await call(getAppleSigninStatus, {}))).toEqual({ available: true, webClientId: WEB });
+        vi.stubEnv("APPLE_SIGNIN_READY", "false");
+        expect(bodyOf(await call(getAppleSigninStatus, {}))).toEqual({ available: false });
+    });
+
+    it("Web あての token を通し、認可コードは Services ID で替え、行に宛先を残す", async () => {
+        appleDeps.webClientIds = () => [WEB];
+        idpReply = createdReply;
+        const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+        const res = await signIn({ aud: WEB, is_private_email: "true" }, { authorizationCode: "c.web" });
+        expect(res.statusCode).toBe(200);
+        const token = apple.calls.find((c) => c.url.endsWith("/auth/token"))!;
+        expect(bodyOfCall(token).get("client_id")).toBe(WEB);
+        // client secret の sub も Services ID（Apple は client_id と sub が同じことを求める）
+        const secret = bodyOfCall(token).get("client_secret")!;
+        expect(JSON.parse(Buffer.from(secret.split(".")[1], "base64url").toString()).sub).toBe(WEB);
+        expect(users.table.get("apple#001234.apple")).toMatchObject({ refreshToken: "r.apple.1", refreshClientId: WEB });
+        expect(log.mock.calls.map((c) => String(c[0]))).toContain(JSON.stringify({ metric: "signup", platform: "web", from: "apple" }));
+        log.mockRestore();
+    });
+
+    it("iOS の token は今までどおり Bundle ID で替え、行にも Bundle ID を残す", async () => {
+        appleDeps.webClientIds = () => [WEB];
+        idpReply = createdReply;
+        await signIn({ is_private_email: "true" }, { authorizationCode: "c.ios" });
+        const token = apple.calls.find((c) => c.url.endsWith("/auth/token"))!;
+        expect(bodyOfCall(token).get("client_id")).toBe(CLIENT_ID);
+        expect(users.table.get("apple#001234.apple")!.refreshClientId).toBe(CLIENT_ID);
+    });
+
+    it("🔴 別の宛先（知らない Services ID）の token は断る", async () => {
+        appleDeps.webClientIds = () => [WEB];
+        expect((await signIn({ aud: "com.evil.web" })).statusCode).toBe(401);
+    });
+
+    it("退会の取り消しは、行の宛先で頼む。宛先の無い前からの行は Bundle ID。知らない宛先では頼まない", async () => {
+        appleDeps.webClientIds = () => [WEB];
+        expect(await appleRevoker("r.web", WEB)).toBe("revoked");
+        expect(await appleRevoker("r.ios")).toBe("revoked");
+        const revokes = apple.calls.filter((c) => c.url.endsWith("/auth/revoke")).map((c) => bodyOfCall(c).get("client_id"));
+        expect(revokes).toEqual([WEB, CLIENT_ID]);
+        expect(await appleRevoker("r.x", "com.evil.web")).toBe("rejected");
+        expect(apple.calls.filter((c) => c.url.endsWith("/auth/revoke"))).toHaveLength(2);
+    });
+
+    it("revokeLinkedTokens と取り消しの関数は、行の宛先をそのまま渡す", async () => {
+        appleDeps.webClientIds = () => [WEB];
+        users.table.set("apple#a", { userId: "apple#a", cognitoSub: "me", cognitoUsername: "u", refreshToken: "r.1", refreshClientId: WEB });
+        expect(await revokeLinkedTokens("me", { appleSub: "a" }, { apple: appleRevoker })).toBe(true);
+        expect(bodyOfCall(apple.calls.find((c) => c.url.endsWith("/auth/revoke"))!).get("client_id")).toBe(WEB);
+        expect(await revokeTokenHandler({ provider: "apple", refreshToken: "r.2", clientId: WEB })).toEqual({ result: "revoked" });
+        for (const bad of [1, "", "x".repeat(300)]) {
+            expect(await revokeTokenHandler({ provider: "apple", refreshToken: "r.3", clientId: bad })).toEqual({ result: "rejected" });
+        }
+    });
+
+    it("🔴 Web の ID（Services ID）は本番だけに渡す（戻り先は本番のドメインだけ）", () => {
+        const root = join(__dirname, "..", "..", "..");
+        const yml = readFileSync(join(root, "api-user", "serverless.apple-signin.yml"), "utf8");
+        const wf = readFileSync(join(root, ".github", "workflows", "deploy-api.yml"), "utf8");
+        expect(yml).toContain("APPLE_SIGNIN_WEB_CLIENT_ID: ${param:appleSigninWebClientId, ''}");
+        expect(wf).toContain("APPLE_SIGNIN_WEB_CLIENT_ID: ${{ needs.config.outputs.envName == 'prod' && 'com.journeyphoto.web' || '' }}");
+        expect(wf).not.toContain("appleSigninWebClientId=${");
     });
 });
