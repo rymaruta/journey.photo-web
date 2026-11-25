@@ -19,7 +19,7 @@
 | **ユーザーAPI**（`api-user/`） | 利用者が使う口すべて（投稿・いいね・コメント・フォロー・ストーリー…）。**73口** | `https://<user-api-id>.execute-api.ap-northeast-1.amazonaws.com` |
 | **管理API**（`api/`） | 公開の写真一覧と、管理者だけの編集・削除。**7口** | `https://<admin-api-id>.execute-api.ap-northeast-1.amazonaws.com` |
 
-- どちらも **API Gateway HTTP API + Lambda**（`nodejs22.x` / `ap-northeast-1`）
+- どちらも **API Gateway HTTP API + Lambda**（`nodejs26.x` / `ap-northeast-1`）
 - **CloudFront は経由しない。** 画面は execute-api を直接叩く
   （`scripts/fix-cdn-error-pages.js` が「CloudFront の `/api/*` を通る通信は無い」と明記）。
   つまり応答の `s-maxage` は**共有キャッシュに読まれていない**——効くのは

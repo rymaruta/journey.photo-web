@@ -23,7 +23,7 @@
 
 ## 動かす
 
-Node.js 22 を使います。
+Node.js 26 を使います。
 
 ```bash
 npm ci
