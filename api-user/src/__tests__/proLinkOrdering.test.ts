@@ -695,9 +695,11 @@ describe("付け替えが2回以上でも、token の無い古い取引はその
         expect(owners[0]).toEqual({ ownerId: "old1", untilKey: T0 + DAY });
         expect(owners[OWNERS_MAX - 1]).toEqual({ ownerId: "u2", untilKey: RS3 });
         // 残っている履歴の持ち主には、その間の取引が届く
-        expect(staleTokenlessOwner(parseAppStoreLink(db.get(OTX)!), true, T0 + 5 * DAY + MIN)).toBe("old6");
-        expect(staleTokenlessOwner(parseAppStoreLink(db.get(OTX)!), true, RS3 - MIN)).toBe("u2");
-        expect(staleTokenlessOwner(parseAppStoreLink(db.get(OTX)!), true, RS3 + MIN)).toBeUndefined();
+        const link = parseAppStoreLink(db.get(OTX));
+        if (!link) throw new Error("取引の行が読めない");
+        expect(staleTokenlessOwner(link, true, T0 + 5 * DAY + MIN)).toBe("old6");
+        expect(staleTokenlessOwner(link, true, RS3 - MIN)).toBe("u2");
+        expect(staleTokenlessOwner(link, true, RS3 + MIN)).toBeUndefined();
     });
 });
 

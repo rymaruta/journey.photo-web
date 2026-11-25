@@ -33,7 +33,7 @@ vi.mock("@aws-sdk/client-dynamodb", () => {
             send = (cmd: { input?: Record<string, unknown> }) => {
                 if (cmd?.input?.TableName === process.env.PHOTOS_TABLE) {
                     if (throwOnPhotoGet.current) return Promise.reject(new Error("ddb down"));
-                    const key = (cmd.input.Key as { id?: { S?: string } } | undefined)?.id?.S ?? "";
+                    const key = (cmd.input?.Key as { id?: { S?: string } } | undefined)?.id?.S ?? "";
                     // 既定は「在って自分のもの」。無い写真は setDeletedPhotos で指定する
                     const row = photoRows.has(key) ? photoRows.get(key) : { userId: "u1" };
                     return Promise.resolve(row ? { Item: marshallFn(row) } : {});

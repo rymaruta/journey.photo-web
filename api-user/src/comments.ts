@@ -322,7 +322,6 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
             ReturnValues: "UPDATED_NEW" as const,
         });
 
-        let appended: Awaited<ReturnType<typeof ddb.send>> | undefined;
         // 追記後の姿。応答を取り逃した回は、読み直した一覧がそれにあたる。
         let storedItems: unknown;
         // バイト超過で落としたときの**実数**。落とした分は「+1」では
@@ -396,7 +395,7 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
                     }
                 }
                 try {
-                    appended = await ddb.send(new UpdateCommand(appendArgs({ len: existing.length })));
+                    const appended = await ddb.send(new UpdateCommand(appendArgs({ len: existing.length })));
                     storedItems = appended.Attributes?.items;
                     break;
                 } catch (e) {

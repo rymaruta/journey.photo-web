@@ -4,7 +4,7 @@
 // 一部だけで、メールアドレス等は元々テーブルに持っていない。
 
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
-import { DynamoDBClient, GetItemCommand, ScanCommand } from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand, ScanCommand, type AttributeValue } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { JSON_HEADERS } from "./http";
 import { requireEnv } from "./env";
@@ -172,7 +172,7 @@ export const searchUsers: APIGatewayProxyHandlerV2 = async (event) => {
         let all = userCache && now - userCache.at < USER_CACHE_TTL_MS ? userCache.users : null;
         if (!all) {
             all = [];
-            let lastKey: Record<string, unknown> | undefined;
+            let lastKey: Record<string, AttributeValue> | undefined;
             let pages = 0;
             do {
                 const scan = await ddb.send(new ScanCommand({
@@ -187,7 +187,7 @@ export const searchUsers: APIGatewayProxyHandlerV2 = async (event) => {
                     const hit = toHit(unmarshall(raw));
                     if (hit) all.push(hit);
                 }
-                lastKey = scan.LastEvaluatedKey as Record<string, unknown> | undefined;
+                lastKey = scan.LastEvaluatedKey;
                 pages++;
             } while (lastKey && pages < SCAN_MAX_PAGES);
             if (lastKey) {
