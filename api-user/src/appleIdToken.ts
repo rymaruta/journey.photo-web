@@ -133,6 +133,22 @@ export function appleClientIdsFromEnv(env: Env = process.env): string[] {
     return (env.APPLE_SIGNIN_CLIENT_ID ?? "").split(",").map((s) => s.trim()).filter(Boolean);
 }
 
+/** Services ID の形（逆さのドメイン。英数字・点・ハイフン）。それ以外の値は宛先にしない */
+const SERVICES_ID_RE = /^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$/;
+
+/**
+ * Web の「Apple でサインイン」の宛先（Services ID・`com.journeyphoto.web`・札 journey.photo-ios#730）。
+ * Web（Sign in with Apple JS）の identity token の `aud` はアプリの Bundle ID ではなく、この Services ID になる。
+ * 値は公開のもの（Web の頁にも載る）。**空の間は Web からのトークンを受けず、Web のボタンも出ない**（今までどおり iOS だけ）。
+ * 鍵は iOS と同じ（APNs の鍵に Sign in with Apple を足したもの）。Apple の鍵はチームの App ID に結ばれ、
+ * その App ID を主とする Services ID の client secret もこの鍵で作れる
+ */
+export function appleWebClientIdsFromEnv(env: Env = process.env): string[] {
+    const app = new Set(appleClientIdsFromEnv(env));
+    return (env.APPLE_SIGNIN_WEB_CLIENT_ID ?? "").split(",").map((s) => s.trim())
+        .filter((s) => SERVICES_ID_RE.test(s) && !app.has(s));
+}
+
 /** SSM の読み手（試験で差し替える） */
 export const appleKeyDeps: { getParameter: (name: string) => Promise<string | undefined> } = {
     getParameter: async (name) => {

@@ -24,7 +24,7 @@
 import type { APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { jsonError, JSON_HEADERS } from "./http";
 import {
-    exchangeAppleCode, loadAppleConfig, revokeAppleToken, verifyAppleIdentityToken,
+    appleWebClientIdsFromEnv, exchangeAppleCode, loadAppleConfig, revokeAppleToken, verifyAppleIdentityToken,
     AppleTokenError, type AppleClaims, type AppleKeyConfig, type FetchLike,
 } from "./appleIdToken";
 import {
@@ -40,10 +40,22 @@ export const BUSY_MESSAGE = "サインイン中です。少し待ってからお
 export const appleDeps: {
     fetchImpl?: FetchLike;
     config: () => Promise<AppleKeyConfig | null>;
+    /** Web の宛先（Services ID）。空なら Web からのトークンは受けない（札 journey.photo-ios#730） */
+    webClientIds: () => string[];
 } = {
     fetchImpl: undefined,
     config: () => loadAppleConfig(),
+    webClientIds: () => appleWebClientIdsFromEnv(),
 };
+
+/**
+ * 受け付ける宛先（`aud`）: アプリの Bundle ID と、Web の Services ID。
+ * 🔴 認可コードの交換と取り消しは、**そのトークンの宛先と同じ client_id** で頼む（Apple はコードと更新トークンを
+ *    宛先ごとに出す。Web で受け取ったコードを Bundle ID で替えようとすると断られる）
+ */
+function acceptedClientIds(cfg: AppleKeyConfig): string[] {
+    return [cfg.clientId, ...appleDeps.webClientIds().filter((id) => id !== cfg.clientId)];
+}
 
 const ok = (body: unknown) => ({
     statusCode: 200,
@@ -61,8 +73,12 @@ const errName = (e: unknown) => (e as { name?: string } | null)?.name ?? "";
  */
 export const getAppleSigninStatus: APIGatewayProxyHandlerV2 = async () => {
     if (federatedDeps.poolId() === "") return ok({ available: false });
-    if ((process.env.APPLE_SIGNIN_KEY_PARAM ?? "").trim()) return ok({ available: (await appleDeps.config()) !== null });
-    return ok({ available: process.env.APPLE_SIGNIN_READY === "true" });
+    const available = (process.env.APPLE_SIGNIN_KEY_PARAM ?? "").trim()
+        ? (await appleDeps.config()) !== null
+        : process.env.APPLE_SIGNIN_READY === "true";
+    // Web はこの値（公開の Services ID）があるときだけボタンを出す（札 journey.photo-ios#730）。iOS は読まない
+    const webClientId = available ? appleDeps.webClientIds()[0] : undefined;
+    return ok(webClientId ? { available, webClientId } : { available });
 };
 
 type StartBody = { identityToken?: unknown; nonce?: unknown; authorizationCode?: unknown; displayName?: unknown };
@@ -82,7 +98,7 @@ export const startAppleSignin: APIGatewayProxyHandlerV2 = async (event) => {
 
     let claims: AppleClaims;
     try {
-        claims = await verifyAppleIdentityToken(body.identityToken, { clientIds: [cfg.clientId], fetchImpl: appleDeps.fetchImpl });
+        claims = await verifyAppleIdentityToken(body.identityToken, { clientIds: acceptedClientIds(cfg), fetchImpl: appleDeps.fetchImpl });
     } catch (e) {
         if (!(e instanceof AppleTokenError)) console.error("startAppleSignin: verify", errName(e));
         else console.warn(`startAppleSignin: ${e.reason}`);
@@ -104,15 +120,17 @@ export const startAppleSignin: APIGatewayProxyHandlerV2 = async (event) => {
         if (code) {
             // 取れなくてもログインは止めない（次のログインでまた取る）
             try {
-                const refresh = await exchangeAppleCode(cfg, code, appleDeps.fetchImpl);
-                if (refresh) await saveRefreshToken("apple", claims.sub, refresh);
+                // 宛先（Bundle ID か Services ID）と同じ client_id で替え、どちらで得たかを行に残す（退会の取り消しに要る）
+                const refresh = await exchangeAppleCode({ ...cfg, clientId: claims.aud }, code, appleDeps.fetchImpl);
+                if (refresh) await saveRefreshToken("apple", claims.sub, refresh, claims.aud);
             } catch (e) {
                 console.warn("startAppleSignin: token exchange", errName(e));
             }
         }
         const challengeAnswer = await issueTicket("apple", claims.sub);
         // 数え方は登録の1行と同じ形（uid・メールは出さない・`api/src/cognitoTrigger.ts` の signupMetricLine）
-        if (linked.via === "new") console.log(JSON.stringify({ metric: "signup", platform: "ios", from: "apple" }));
+        const platform = claims.aud === cfg.clientId ? "ios" : "web";
+        if (linked.via === "new") console.log(JSON.stringify({ metric: "signup", platform, from: "apple" }));
         return ok({ username: linked.username, challengeAnswer, created: linked.via === "new" });
     } catch (e) {
         if (e instanceof LinkBusyError) return jsonError(409, BUSY_MESSAGE, "apple_signin_busy");
@@ -131,11 +149,18 @@ export const startAppleSignin: APIGatewayProxyHandlerV2 = async (event) => {
  *   退会を止めない（止めると退会がずっとできなくなる）。見張りに出し、行は残す
  * - `unavailable`: この環境に鍵が無い（退会は止めない。行と墓石の番号を残す）
  */
-export const appleRevoker: Revoker = async (refreshToken) => {
+export const appleRevoker: Revoker = async (refreshToken, clientId) => {
     const cfg = await appleDeps.config();
     if (!cfg) return "unavailable";
+    // 取り消しは、更新トークンを得たときの宛先で頼む（宛先を持たない前からの行は iOS の Bundle ID）。
+    // 知らない宛先では頼まない（鍵で署名する相手を、呼ぶ側の言うままにしない）
+    const id = clientId ?? cfg.clientId;
+    if (!acceptedClientIds(cfg).includes(id)) {
+        console.warn("appleRevoker: 知らない宛先");
+        return "rejected";
+    }
     try {
-        const res = await revokeAppleToken(cfg, refreshToken, appleDeps.fetchImpl);
+        const res = await revokeAppleToken({ ...cfg, clientId: id }, refreshToken, appleDeps.fetchImpl);
         if (res.ok) return "revoked";
         return res.status >= 400 && res.status < 500 ? "rejected" : "failed";
     } catch (e) {
@@ -148,9 +173,14 @@ export const appleRevoker: Revoker = async (refreshToken) => {
  * 取り消しだけをする関数（HTTP の口ではない）。user API の退会が `federatedRevokeClient.ts` から呼ぶ。
  * 受けるのは「この更新トークンを取り消して」だけ（誰のものかは見ない・取り消すことしかできない）
  */
-export const revokeTokenHandler = async (event: { provider?: unknown; refreshToken?: unknown }): Promise<{ result: string }> => {
+export const revokeTokenHandler = async (
+    event: { provider?: unknown; refreshToken?: unknown; clientId?: unknown },
+): Promise<{ result: string }> => {
     if (event?.provider !== "apple" || typeof event.refreshToken !== "string" || !event.refreshToken || event.refreshToken.length > 2048) {
         return { result: "rejected" };
     }
-    return { result: await appleRevoker(event.refreshToken) };
+    if (event.clientId !== undefined && (typeof event.clientId !== "string" || !event.clientId || event.clientId.length > 255)) {
+        return { result: "rejected" };
+    }
+    return { result: await appleRevoker(event.refreshToken, event.clientId as string | undefined) };
 };

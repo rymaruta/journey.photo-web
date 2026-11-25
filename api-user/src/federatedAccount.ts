@@ -324,6 +324,8 @@ export type FederatedRow = {
     /** 本人が「サインインの方法」で解除した時刻（取り消しが済まず、行を残したときだけ） */
     unlinkedAt?: string;
     refreshToken?: string;
+    /** 更新トークンを得たときの宛先（Apple の Bundle ID か Web の Services ID・札 journey.photo-ios#730）。無い前からの行は iOS */
+    refreshClientId?: string;
     claimedAt?: number;
     ticketHash?: string;
     ticketExpiresAt?: number;
@@ -469,13 +471,19 @@ export async function linkOrCreate(identity: FederatedIdentity, displayName: str
 }
 
 /** 更新トークン（退会のときに取り消す）を行に書く */
-export async function saveRefreshToken(provider: Provider, sub: string, refreshToken: string): Promise<void> {
+export async function saveRefreshToken(provider: Provider, sub: string, refreshToken: string, clientId?: string): Promise<void> {
+    // 宛先も一緒に書く（取り消しはその宛先で頼む）。宛先が分からない回は前の値を消す（古い宛先で取り消さない）
     await ddb.send(new UpdateCommand({
         TableName: USERS_TABLE,
         Key: { userId: federatedKey(provider, sub) },
-        UpdateExpression: "SET refreshToken = :t, tokenAt = :at",
+        UpdateExpression: clientId
+            ? "SET refreshToken = :t, tokenAt = :at, refreshClientId = :c"
+            : "SET refreshToken = :t, tokenAt = :at REMOVE refreshClientId",
         ConditionExpression: "attribute_exists(cognitoUsername)",
-        ExpressionAttributeValues: { ":t": refreshToken, ":at": new Date(federatedDeps.now()).toISOString() },
+        ExpressionAttributeValues: {
+            ":t": refreshToken, ":at": new Date(federatedDeps.now()).toISOString(),
+            ...(clientId ? { ":c": clientId } : {}),
+        },
     }));
 }
 
@@ -545,7 +553,7 @@ export async function consumeTicket(answer: unknown, cognitoUsername: string, co
 // ────────────────────────────── 退会
 
 /** 提供元の更新トークンを取り消す口（Apple は `appleSignin.ts` の `appleRevoker`） */
-export type Revoker = (refreshToken: string) => Promise<"revoked" | "failed" | "rejected" | "unavailable">;
+export type Revoker = (refreshToken: string, clientId?: string) => Promise<"revoked" | "failed" | "rejected" | "unavailable">;
 
 type ProfileLike = Record<string, unknown> | undefined;
 
@@ -595,7 +603,7 @@ export async function revokeLinkedTokens(
         // 🔴 行が呼んだ本人のものでなければ触らない
         if (!row || row.cognitoSub !== uid || typeof row.refreshToken !== "string") continue;
         const revoker = revokers[provider];
-        const result = revoker ? await revoker(row.refreshToken) : "unavailable";
+        const result = revoker ? await revoker(row.refreshToken, row.refreshClientId) : "unavailable";
         if (result === "failed") return false;
         if (result === "unavailable" || result === "rejected") {
             console.error(`deleteAccount: ${provider} の更新トークンを取り消せませんでした（${result}）。退会は進め、行は残す`);
