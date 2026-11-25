@@ -126,9 +126,11 @@ describe("extractCameraExif", () => {
 // **サーバー越しに引く。** 以前はここから直接 Nominatim に座標を送っていた
 // （撮影した場所の座標が利用者の IP と一緒に相手へ渡る）。丸め・zoom・
 // 地名の組み立てはサーバー側（`api-user/src/geocodeSearch.ts`）に移した。
+// vi.mock はファイルの頭へ巻き上がる。Vitest 5 から describe の中に書くと落ちるので、実際に動く位置（一番上の段）に置く
+const userFetch = vi.hoisted(() => vi.fn());
+vi.mock("../api", () => ({ userFetch: (...a: unknown[]) => userFetch(...a) }));
+
 describe("reverseGeocode", () => {
-    const userFetch = vi.hoisted(() => vi.fn());
-    vi.mock("../api", () => ({ userFetch: (...a: unknown[]) => userFetch(...a) }));
     beforeEach(() => { userFetch.mockReset(); });
 
     it("自分のサーバーの代理を叩き、Nominatim を直接は呼ばない", async () => {

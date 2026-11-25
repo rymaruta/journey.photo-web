@@ -82,7 +82,6 @@ export default function MiniPlayer() {
             const w = el?.offsetWidth ?? 448;
             const h = el?.offsetHeight ?? 60;
             // localStorage からの初期同期（マウント時 1 回）なのでこのパターンは許容
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setPos(clampToView({ x: p.x, y: p.y }, w, h));
         } catch { /* ignore */ }
     }, [draggable]);

@@ -345,7 +345,8 @@ describe("StoryTextOverlay: スタンプ", () => {
         const { container } = render(<StoryTextOverlay texts={[stamp()]} box={box} />);
         const p = container.querySelector("p") as HTMLElement;
         expect(p.style.fontFamily, "字体を当てている").toBe("");
-        expect(p.style.background, "下地を当てている").toBe("transparent");
+        // 色の欄で見る。`background` の一括の欄は jsdom 31 から「transparent」を最短の形の「none」と書き戻す
+        expect(p.style.backgroundColor, "下地を当てている").toBe("transparent");
     });
 
     it("スタンプも位置・大きさ・傾きは文字と同じ規則", () => {

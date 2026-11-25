@@ -56,7 +56,6 @@ export default function MapControls({
     useEffect(() => {
         if (query !== appliedRef.current) {
             appliedRef.current = query;
-            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLocal(query);
         }
     }, [query]);

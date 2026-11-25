@@ -1,4 +1,4 @@
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 
 // バックエンドのモジュールは読み込み時に requireEnv() で必須の環境変数を確認する
 // （未設定なら投げる＝本番へフォールバックしない）。テストでも値が要るので入れておく。

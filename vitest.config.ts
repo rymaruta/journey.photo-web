@@ -48,10 +48,8 @@ if (NODE_TESTS.length < 150) {
     );
 }
 
-const shared = {
-    plugins: [react()],
-    resolve: { alias: { "@": path.resolve(ROOT, ".") } },
-};
+// **プラグインと別名は一番上の段にだけ書く。** Vitest 5 から、中の project は外側の設定を受け継ぐ
+// （`extends` の既定が true）。project ごとにも書くと、React のプラグインが2回かかると警告が出る
 
 // **Node の組み込みの localStorage を切る**（2026-11-25・Node 26 へ上げたとき）。
 // Node 25 から `globalThis.localStorage`・`sessionStorage` が既定で在る（中身は
@@ -61,11 +59,11 @@ const shared = {
 const execArgv = ["--no-experimental-webstorage"];
 
 export default defineConfig({
-    ...shared,
+    plugins: [react()],
+    resolve: { alias: { "@": path.resolve(ROOT, ".") } },
     test: {
         projects: [
             {
-                ...shared,
                 test: {
                     name: "node",
                     globals: true,
@@ -94,7 +92,6 @@ export default defineConfig({
             // `matchMedia` を持たせない・フォーカスできない要素に `focus()` を効かせない。
             // 揃えないと、テストが黙って別のもの（PC の形・付け忘れた tabIndex）を確かめる
             {
-                ...shared,
                 test: {
                     name: "dom",
                     globals: true,
