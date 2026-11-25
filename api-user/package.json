@@ -26,6 +26,6 @@
     "esbuild": "^0.25.0",
     "serverless": "^4.0.0",
     "serverless-esbuild": "^1.54.0",
-    "typescript": "^5.0.0"
+    "typescript": "^6.0.3"
   }
 }
