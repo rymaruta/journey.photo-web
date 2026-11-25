@@ -388,7 +388,8 @@ resources:
 
     # 🔴 退会の取り消しの関数が落ち続けたら知らせる（2026-11-23 確かめ役の3回目）。落ちると退会は 500 で止まる（やり直しで通る）が、
     # 続くなら鍵や Apple の側がおかしい。15 分の間に3回以上落ちた 5 分の枠が2つ続いたら鳴る。
-    # 知らせ先（SNS の宛先）はまだ無いので `alarmTopicArn` を渡したときだけ付ける（無ければ CloudWatch の画面に赤く出るだけ）
+    # 知らせ先は `alarmTopicArn` を渡したときだけ付ける（無ければ CloudWatch の画面に赤く出るだけ）。`deploy-api.yml` は
+    # 知らせの宛先 `journey-photo-alerts-<環境>`（`api/monitoring.yml`）が在れば渡す（2026-11-25・AWS の見直し 3）
     AppleRevokeErrorsAlarm:
       Type: AWS::CloudWatch::Alarm
       Properties:

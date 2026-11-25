@@ -1282,15 +1282,42 @@ resources:
         - Condition: AppleSigninOn
         - Fn::Equals: ["${param:googleSigninEnabled, 'false'}", "true"]
 
+  # 🔴 **すべての口に、段の既定の流量の上限を付ける**（2026-11-25・AWS の見直し 2。owner「まもる！」）。
+  # HTTP API の `DefaultRouteSettings` は**口（方法＋道）ごと**に効く。別のスタックが足した経路（serverless.*.yml）も
+  # 同じ段に乗るので、全部の口にかかる。越えた分は API Gateway が 429 で断る（Lambda も DB も動かない）。
+  #   秒 20 件・瞬間 40 件（1つの口あたり）
+  # 根拠（Maintenance の monitoring-check・2026-11-25 の回・本番の直近 14 日・1分ごとの数）:
+  #   user API 全体の呼び出し: 最大 317/分（≒ 秒 5.3・11-12 05:10Z。同じ時に 4xx が 309/分）、99% 56/分、中央 6/分
+  #   Lambda の同時に動いた数: 最大 47
+  #   → 全部の口を合わせた最大でも秒 5.3 なので、1つの口に秒 20 は今の使われ方を断らない。瞬間 40 は、写真の一覧を
+  #     開いたときに同じ口（いいねの有無など）を並べて呼ぶ分の余裕。だれかが1つの口を何千回も叩いても、
+  #     Lambda の同時に動ける数（アカウントで 1000）を1つの口で使い切れないようにする
+  # 利用者が増えて 429 が出始めたら（アラーム `journey-photo-user-api-5xx` は 5xx だけ。429 は CloudWatch の 4xx で見る）、
+  # monitoring-check で数を見てから上げる
+  #
+  # ほかより厳しくする口（RouteSettings）:
+  #   AI（`POST /user/trip-ai`・別スタック `serverless.trip-ai.yml`）… 秒 2 件・瞬間 5 件。Bedrock の呼び出しは
+  #     本番の 14 日で最大 20/分（試していた 11-15）。回数と金額の上限はサーバーの表で数える（`tripAiConfig.ts`）が、
+  #     数える前の呼び出しも Lambda を動かすので、口の前で絞る。🔴 経路が先に要るので `deploy-api.yml` はあちらを先に配る
+  #   ログインの口（Apple・Google）とサインインの方法 … 下の表（前からの値）
+  #   ログイン・確認コード・パスワードの再設定は Cognito に直に行く（この API を通らない）ので、ここでは絞れない
   extensions:
     HttpApiStage:
       Properties:
+        DefaultRouteSettings:
+          ThrottlingRateLimit: 20
+          ThrottlingBurstLimit: 40
+          # serverless が作る段の既定（口ごとの細かい数は取らない）。extensions は Properties を浅く重ねるので、書き戻す
+          DetailedMetricsEnabled: false
         RouteSettings:
           Fn::If:
             - GoogleSigninOn
             - "POST /spots/wants":
                 ThrottlingRateLimit: 10
                 ThrottlingBurstLimit: 20
+              "POST /user/trip-ai":
+                ThrottlingRateLimit: 2
+                ThrottlingBurstLimit: 5
               "POST /auth/apple":
                 ThrottlingRateLimit: 5
                 ThrottlingBurstLimit: 10
@@ -1308,6 +1335,9 @@ resources:
                 - "POST /spots/wants":
                     ThrottlingRateLimit: 10
                     ThrottlingBurstLimit: 20
+                  "POST /user/trip-ai":
+                    ThrottlingRateLimit: 2
+                    ThrottlingBurstLimit: 5
                   # サインインは1人で1分に数回。秒 5 件・瞬間 10 件を越えた分は 429（提供元への問い合わせ・利用者の作成をさせない）
                   "POST /auth/apple":
                     ThrottlingRateLimit: 5
@@ -1322,3 +1352,6 @@ resources:
                 - "POST /spots/wants":
                     ThrottlingRateLimit: 10
                     ThrottlingBurstLimit: 20
+                  "POST /user/trip-ai":
+                    ThrottlingRateLimit: 2
+                    ThrottlingBurstLimit: 5
