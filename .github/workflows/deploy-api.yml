@@ -343,6 +343,35 @@ jobs:
             --param "cognitoPoolName=${{ needs.config.outputs.cognitoPoolName }}" \
             ${extra[@]+"${extra[@]}"}
 
+      # 知らせの宛先（SNS）とアラーム（`api/monitoring.yml`・2026-11-25・AWS の見直し 3）。serverless ではなく
+      # CloudFormation をそのまま配る（関数を持たない）。アラームは本番だけ、staging は宛先だけ（テンプレートの `IsProd`）。
+      # 管理 API の後に置くのは、アラームが管理 API と user API の HttpApiId（書き出し）を取り込むから（どちらも前から在る）。
+      # 🔴 **宛先のメールは secrets の `ALERT_EMAIL` から渡す。リポジトリにもログにも書かない**（GitHub が secret の値を伏せる。
+      #    テンプレートの引数は NoEcho）。無ければ購読を作らない（前に渡した値は CloudFormation が覚えていて、そのまま残る）
+      - name: 知らせの宛先とアラーム（CloudFormation）
+        working-directory: api
+        env:
+          ALERT_EMAIL: ${{ secrets.ALERT_EMAIL }}
+          ENV_NAME: ${{ needs.config.outputs.envName }}
+        run: |
+          set -euo pipefail
+          params=("EnvName=$ENV_NAME")
+          if [ -n "${ALERT_EMAIL:-}" ]; then
+            params+=("AlertEmail=$ALERT_EMAIL")
+          else
+            echo "::notice::secrets の ALERT_EMAIL がありません。知らせの宛先（SNS）とアラームは作りますが、メールの購読は作りません"
+          fi
+          aws cloudformation deploy \
+            --template-file monitoring.yml \
+            --stack-name "journey-photo-monitoring-$ENV_NAME" \
+            --parameter-overrides "${params[@]}" \
+            --no-fail-on-empty-changeset
+          aws cloudformation describe-stacks --stack-name "journey-photo-monitoring-$ENV_NAME" \
+            --query 'Stacks[0].StackStatus' --output text
+          echo "アラーム（journey-photo-*）:"
+          aws cloudwatch describe-alarms --alarm-name-prefix journey-photo- \
+            --query 'MetricAlarms[].[AlarmName, StateValue]' --output text || true
+
   deploy-user-api:
     name: Deploy user API (api-user/)
     needs: [config]
@@ -441,6 +470,17 @@ jobs:
             ready=true
           fi
           echo "Apple でサインイン: 鍵の置き場 $APPLE_SIGNIN_KEY_SOURCE（環境変数の鍵 $([ "$ready" = true ] && echo 'あり' || echo 'なし')）"
+          # 取り消しのアラーム（`AppleRevokeErrorsAlarm`）の知らせ先。知らせの宛先（`api/monitoring.yml`・管理 API のジョブが作る）が
+          # 在るときだけ渡す（無い回は今までどおり宛先なし。次の反映で付く）。ARN にはアカウントの番号が入るので伏せる
+          acct="$(aws sts get-caller-identity --query Account --output text)"
+          echo "::add-mask::$acct"
+          alarm_topic="arn:aws:sns:${AWS_REGION}:${acct}:journey-photo-alerts-${{ needs.config.outputs.envName }}"
+          if aws sns get-topic-attributes --topic-arn "$alarm_topic" >/dev/null 2>&1; then
+            extra+=(--param "alarmTopicArn=$alarm_topic")
+            echo "取り消しのアラームの知らせ先: journey-photo-alerts-${{ needs.config.outputs.envName }}"
+          else
+            echo "知らせの宛先がまだ無いので、取り消しのアラームは宛先なしのまま"
+          fi
           npx serverless@3 deploy --config serverless.apple-signin.yml --stage ${{ needs.config.outputs.envName }} \
             --param "photosTable=${{ needs.config.outputs.photosTable }}" \
             --param "usersTable=${{ needs.config.outputs.usersTable }}" \
@@ -478,6 +518,28 @@ jobs:
             --param "usersTable=${{ needs.config.outputs.usersTable }}" \
             --param "cognitoUserPoolId=${{ needs.config.outputs.cognitoUserPoolId }}" \
             --param "googleSigninClientId=$GOOGLE_SIGNIN_CLIENT_ID" \
+            ${extra[@]+"${extra[@]}"}
+
+      # AI の口（`POST /user/trip-ai`・`api-user/serverless.trip-ai.yml`）は**別のスタック**。
+      # 🔴 **user API より先に配る**（2026-11-25・AWS の見直し 2）。user API の段がこの経路に、ほかより厳しい流量の設定
+      #    （RouteSettings）を付けるので、経路が先に要る（みんなの「行きたい」と同じ）。もとは下の `STACKS` の段（user API の後）で配っていた。
+      #    このスタックは user API が書き出す HttpApiId と認可を取り込むので、user API のスタックは前から在ること。
+      #    provider（環境変数と既定の役）は user API と同じなので、渡す値は `STACKS` の段と同じ
+      - name: Serverless deploy（AI の口・別スタック）
+        working-directory: api-user
+        env:
+          APPSTORE_ENVIRONMENTS: ${{ needs.config.outputs.appStoreEnvironments }}
+        run: |
+          set -euo pipefail
+          extra=()
+          # 空なら旗ごと渡さない（serverless v3 は `--param "k="` を弾く）
+          if [ -n "${APPSTORE_ENVIRONMENTS:-}" ]; then extra+=(--param "appStoreEnvironments=$APPSTORE_ENVIRONMENTS"); fi
+          npx serverless@3 deploy --config serverless.trip-ai.yml --stage ${{ needs.config.outputs.envName }} \
+            --param "photosTable=${{ needs.config.outputs.photosTable }}" \
+            --param "usersTable=${{ needs.config.outputs.usersTable }}" \
+            --param "uploadBucket=${{ needs.config.outputs.uploadBucket }}" \
+            --param "cloudfrontUrl=${{ needs.config.outputs.cloudfrontUrl }}" \
+            --param "cloudfrontDistributionId=${{ needs.config.outputs.cloudfrontDistributionId }}" \
             ${extra[@]+"${extra[@]}"}
 
       - name: Serverless deploy
@@ -569,11 +631,12 @@ jobs:
       # 環境変数と既定の役の権限は user API の provider と同じ（各スタックの provider・試験で突き合わせる）なので、渡す値も user API と同じ。
       # 🔴 **user API の直後に配る。** 移す回は、user API の段の終わりに経路が消え、この段で作り直す
       #    （同じ経路を2つのスタックが同時に持てない）。間に別の段を挟むと、口が止まる時間がその分延びる
-      # 🔴 新しいまとまりを足すときは `STACKS` に足す（`scripts/__tests__/splitStacks.test.ts` が突き合わせる）
+      # 🔴 新しいまとまりを足すときは `STACKS` に足す（`scripts/__tests__/splitStacks.test.ts` が突き合わせる）。
+      #    AI の口（`serverless.trip-ai.yml`）は user API より先の段で配るので、ここには無い
       - name: Serverless deploy（user API から移した機能・別スタック）
         working-directory: api-user
         env:
-          STACKS: serverless.albums.yml serverless.trips.yml serverless.notifications.yml serverless.trunk.yml serverless.stories.yml serverless.dm.yml serverless.trip-ai.yml serverless.groups.yml
+          STACKS: serverless.albums.yml serverless.trips.yml serverless.notifications.yml serverless.trunk.yml serverless.stories.yml serverless.dm.yml serverless.groups.yml
           APPSTORE_ENVIRONMENTS: ${{ needs.config.outputs.appStoreEnvironments }}
           APNS_PRIVATE_KEY: ${{ secrets.APNS_PRIVATE_KEY }}
           APNS_KEY_ID: ${{ needs.config.outputs.apnsKeyId }}

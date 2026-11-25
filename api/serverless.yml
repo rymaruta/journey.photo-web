@@ -289,10 +289,24 @@ resources:
                 - Effect: Allow
                   Action:
                     - dynamodb:GetItem
+                    # 公開一覧（GET /photos）は公開一覧の索引の Query（2026-11-25・AWS の見直し 2）。
+                    # もとは全表 Scan で、そのために Scan を持たせていた。**もう Scan は持たせない**
+                    # （ログインなしで呼べる口の役が、表の全部を読めないようにする。`scripts/__tests__/apiProtection.test.ts`）
                     - dynamodb:Query
-                    # 公開一覧は全表 Scan（写真以外も同居しているので
-                    # 絞り込みは読んだあとに効く）。GSI に移すまではこのまま
-                    - dynamodb:Scan
                   Resource:
                     - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}
                     - arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${param:photosTable}/index/*
+
+  # 🔴 **すべての口に、段の既定の流量の上限を付ける**（2026-11-25・AWS の見直し 2）。口（方法＋道）ごとに
+  # 秒 5 件・瞬間 10 件を越えた分は API Gateway が 429 で断る（Lambda も DB も動かない）。
+  # この API にはログインなしで呼べる `GET /photos`（公開の全部の写真）と `GET /photos/{id}` がある。
+  # 根拠（Maintenance の monitoring-check・2026-11-25 の回・本番の直近 14 日・1分ごとの数）:
+  #   管理 API 全体の呼び出し: 最大 20/分（≒ 秒 0.33・11-15 15:52Z）、99% 7/分、中央 1/分
+  #   → 全部の口を合わせた最大でも秒 0.33 なので、1つの口に秒 5 は今の使われ方を断らない（15 倍の余裕）。
+  #     Web は静的な photos.json を読み、サイトの建て直しは表を直に読むので、この API を数多く呼ぶ利用者はいない
+  extensions:
+    HttpApiStage:
+      Properties:
+        DefaultRouteSettings:
+          ThrottlingRateLimit: 5
+          ThrottlingBurstLimit: 10
