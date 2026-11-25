@@ -42,7 +42,7 @@ describe("はじめる前に（同意画面）", () => {
         render(<LegalGate />);
         expect(await screen.findByRole("dialog", { name: "はじめる前に" })).toHaveAttribute("aria-modal", "true");
         expect(screen.getByText(/旅の写真を投稿して共有できます/)).toBeInTheDocument();
-        expect(screen.getByText(/いやがらせ・わいせつ・権利を侵す投稿は認めません/)).toBeInTheDocument();
+        expect(screen.getByText(/不適切な投稿や、ほかの人へのいやがらせは一切許しません/)).toBeInTheDocument();
         expect(screen.getByText(/撮影地は約1kmに丸めて保存します/)).toBeInTheDocument();
         expect(screen.getByRole("link", { name: "利用規約" })).toHaveAttribute("href", "/terms");
         expect(screen.getByRole("link", { name: "プライバシーポリシー" })).toHaveAttribute("href", "/privacy");
@@ -50,7 +50,7 @@ describe("はじめる前に（同意画面）", () => {
 
     it("同意すると閉じて、記録が残る（次からは出ない）", async () => {
         const { unmount } = render(<LegalGate />);
-        await userEvent.click(await screen.findByRole("button", { name: "同意してはじめる" }));
+        await userEvent.click(await screen.findByRole("button", { name: "利用規約に同意してはじめる" }));
         expect(gate()).toBeNull();
         expect(window.localStorage.getItem(LEGAL_CONSENT_KEY)).toBe(String(LEGAL_CONSENT_VERSION));
         unmount();
@@ -78,7 +78,7 @@ describe("はじめる前に（同意画面）", () => {
     it("保存できない端末でも、同意すれば閉じられる（出られなくなるとサイトが使えない）", async () => {
         const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("quota"); });
         render(<LegalGate />);
-        await userEvent.click(await screen.findByRole("button", { name: "同意してはじめる" }));
+        await userEvent.click(await screen.findByRole("button", { name: "利用規約に同意してはじめる" }));
         expect(gate()).toBeNull();
         spy.mockRestore();
     });

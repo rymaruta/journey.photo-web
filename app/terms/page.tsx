@@ -10,7 +10,7 @@ import { ROUTES } from "@/lib/routes";
 //   ストーリー24時間 api-user/src/stories.ts の STORY_TTL_MS
 //   受け付ける形式  api-user/src/uploadPolicy.ts の ALLOWED_*_TYPES
 // 内容を変えたときは「最終更新日」も必ず更新すること。
-const LAST_UPDATED = "2026年11月9日";
+const LAST_UPDATED = "2026年11月25日";
 
 export const metadata: Metadata = {
     // サイト名は `app/layout.tsx` の `template` が付ける（privacy と同じ理由でここでは足さない）
@@ -52,6 +52,10 @@ export default function TermsPage() {
                         本規約は、当サイトの利用条件を定めるものです。当サイトを利用された方は、本規約に同意したものとみなします。
                     </p>
                     <p>
+                        本規約は、iOS アプリ「{siteConfig.name}」にも同じように適用されます（アプリの利用規約（EULA）を兼ねます）。
+                        アプリでは、はじめて使うとき（ログインや登録の前）に本規約への同意をお願いしています。
+                    </p>
+                    <p>
                         個人情報の取り扱いについては
                         <Link href={ROUTES.PRIVACY} prefetch={false} className="underline decoration-white/30 underline-offset-2 hover:text-white">プライバシーポリシー</Link>
                         をご覧ください。
@@ -80,6 +84,11 @@ export default function TermsPage() {
                 </Section>
 
                 <Section title="4. 禁止事項">
+                    {/* 2026-11-25（App Store の審査 1.2 の差し戻し・journey.photo-ios#604）: 「一切許さない」と「消す・止める」を節の頭に書く */}
+                    <p id="zero-tolerance" className="rounded-lg border border-line bg-white/[0.04] px-3.5 py-3 text-white/90">
+                        <strong className="font-semibold text-white">不適切な投稿や、ほかの利用者へのいやがらせは一切許しません。</strong>
+                        見つけた場合や通報を受けた場合は、運営が内容を確かめ、違反した投稿を速やかに削除し、投稿した人の利用を止めます。
+                    </p>
                     <p>当サイトの利用にあたり、次の行為を禁止します。</p>
                     <ul className="list-disc pl-5 space-y-1">
                         <li>他人の著作権・肖像権・プライバシーその他の権利を侵害する投稿</li>
@@ -109,7 +118,7 @@ export default function TermsPage() {
                     </p>
                     <p>
                         ほかの利用者からの反応を受け取りたくない場合は、その方をブロックできます。
-                        不適切な投稿を見つけた場合は、写真の「通報する」からお知らせください。
+                        不適切な投稿を見つけた場合は、写真、コメント、プロフィール、メッセージ、ストーリーの「通報する」からお知らせください。
                     </p>
                 </Section>
 
@@ -166,6 +175,26 @@ export default function TermsPage() {
                     ) : (
                         <p>お問い合わせ先は準備中です。</p>
                     )}
+                </Section>
+
+                {/* 英語の要約（App Store の審査は英語で読む・2026-11-25）。日本語の本文が正 */}
+                <Section title="English summary">
+                    <div lang="en" className="space-y-2.5">
+                        <p>
+                            These Terms of Use apply to the {siteConfig.name} website and the {siteConfig.name} iOS app, and also serve as the app&apos;s end user license agreement (EULA).
+                            The app asks you to agree to these terms before you sign in or sign up. The Japanese text above is the official version.
+                        </p>
+                        <p>
+                            <strong className="font-semibold text-white/90">We have zero tolerance for objectionable content and abusive users.</strong>{" "}
+                            When we find or receive a report of content that breaks these terms, we review it, promptly remove it, and ban the user who posted it.
+                        </p>
+                        <ul className="list-disc pl-5 space-y-1">
+                            <li>Prohibited: harassment or attacks on any person or group, sexual or obscene content, violent or discriminatory content, content that infringes copyright, portrait or privacy rights, impersonation, spam, and illegal activity.</li>
+                            <li>In messages, threats, repeated unwanted contact, sexual messages and inappropriate contact with minors are also prohibited.</li>
+                            <li>You can report photos, comments, profiles, messages and stories, and block other users, from the &ldquo;&hellip;&rdquo; menu.</li>
+                            <li>You keep the copyright of what you post. We use it only as needed to display it on the service.</li>
+                        </ul>
+                    </div>
                 </Section>
             </div>
         </main>
