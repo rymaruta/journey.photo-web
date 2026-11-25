@@ -3,7 +3,7 @@ import { describe, it, expect } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import { render, screen } from "@testing-library/react";
-import { AuthBrand, AUTH_BRAND, AUTH_MARK_RATIO, AUTH_WORDMARK_SIZE, AUTH_MARK_SRC, AUTH_MARK_DROP_EM, wordmarkFontSize } from "../AuthPhotoBand";
+import { AuthBrand, AUTH_BRAND, AUTH_MARK_RATIO, AUTH_WORDMARK_SIZE, AUTH_MARK_SRC, AUTH_MARK_DROP_EM, wordmarkFontSize, AUTH_PHRASE_CLASS, phraseBreaks } from "../AuthPhotoBand";
 
 /**
  * ログインと登録の頁のロゴ。字は iOS と同じ serif の太字（`font-wordmark`＝iPhone では New York）。
@@ -54,7 +54,22 @@ describe("AuthBrand", () => {
 
     it("ロゴと一文の間は iOS と同じ 10、一文は白 90%", () => {
         render(<AuthBrand />);
-        expect(screen.getByTestId("login-wordmark").style.gap).toBe("10px");
+        // 10（gap-2.5）。背の低い画面（720 以下）だけ 6
+        expect(AUTH_BRAND.taglineGap).toBe(10);
+        expect(screen.getByTestId("login-wordmark").className.split(/\s+/)).toEqual(expect.arrayContaining(["gap-2.5", "[@media(max-height:720px)]:gap-1.5"]));
         expect(screen.getByText("写真から、次の旅が始まる。").className).toContain("text-white/90");
+    });
+});
+
+describe("説明の一文の折り返し（2026-11-25 owner「…投稿ができま／す。」）", () => {
+    it("「、」「。」の後ろにだけ折り返してよい所を置き、文は変えない", () => {
+        const { container } = render(<p>{phraseBreaks("ログインすると、いいね、コメント、投稿ができます。")}</p>);
+        expect(container.textContent).toBe("ログインすると、いいね、コメント、投稿ができます。");
+        expect(container.querySelectorAll("wbr")).toHaveLength(3);
+        expect(container.innerHTML).toBe("<p>ログインすると、<wbr>いいね、<wbr>コメント、<wbr>投稿ができます。</p>");
+    });
+
+    it("ほかの所では割らない（keep-all）・2行は長さをそろえる・狭すぎるときだけ割る", () => {
+        for (const c of ["[word-break:keep-all]", "[text-wrap:balance]", "[overflow-wrap:anywhere]"]) expect(AUTH_PHRASE_CLASS).toContain(c);
     });
 });

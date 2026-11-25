@@ -124,29 +124,29 @@ export function nextTab(
  */
 export const BAR_SHOW_TOP = 80;
 export const BAR_SCROLL_DELTA = 6;
-/**
- * ログインと登録では、上の方でも少し送れば帯を隠す（`BAR_SHOW_TOP_AUTH`）。欄とボタンが帯の裏に入るのは送り始めの 0〜80 の所で、
- * 写真の頁と同じ 80 では、ちょうどボタンが帯に重なる所で帯が出たままになった（375×667 の実測: 45 送って止まる）
- */
-export const BAR_SHOW_TOP_AUTH = 8;
-export function barShowTop(pathname: string): number {
-    return /^\/(login|signup)\/?$/.test(pathname) ? BAR_SHOW_TOP_AUTH : BAR_SHOW_TOP;
-}
 export function hidesBarOnScroll(pathname: string): boolean {
-    // ログインと登録（2026-11-25 owner の写真「下のタブがフォームに重なっている」）: Safari の見える高さ（約 664）では、
-    // パスワードの欄とログインのボタンが帯の裏に来る。少し下へ送れば帯が引いて、欄とボタンが帯に隠れない
-    return pathname.startsWith("/photo/") || /^\/(login|signup)\/?$/.test(pathname);
+    return pathname.startsWith("/photo/");
+}
+/**
+ * **ログインと新規登録の頁では帯を出さない**（2026-11-25 owner の写真・アプリのログイン画面にもタブは無い）。
+ * iPhone の Safari の見える高さ（約 664）や 375×667 では、開いた直後にパスワードの欄とログインのボタンが帯の裏に入っていた。
+ * 一度「少し送ると引く」形にしたが、開いた直後の重なりが残るので、出さない形にした。ヘッダーはそのまま。
+ * 要素は残して隠す（`hidden`）。高さが 0 になり `--bottom-bar-h` も 0 になるので、`body` の下の余白も消える。
+ * ほかの頁へ移れば、同じ要素がまた測られて出る
+ */
+export function hidesBarOnPage(pathname: string): boolean {
+    return /^\/(login|signup)\/?$/.test(pathname);
 }
 /** 前の位置 `prevY` から `y` へ送ったときに、帯を隠すか。小さな揺れ（`BAR_SCROLL_DELTA` 以下）では今のまま */
-export function nextBarHidden(prevY: number, y: number, hidden: boolean, showTop: number = BAR_SHOW_TOP): boolean {
-    if (y < showTop) return false;
+export function nextBarHidden(prevY: number, y: number, hidden: boolean): boolean {
+    if (y < BAR_SHOW_TOP) return false;
     const dy = y - prevY;
     if (dy > BAR_SCROLL_DELTA) return true;
     if (dy < -BAR_SCROLL_DELTA) return false;
     return hidden;
 }
 
-function useHideOnScroll(active: boolean, showTop: number = BAR_SHOW_TOP): [boolean, () => void] {
+function useHideOnScroll(active: boolean): [boolean, () => void] {
     const [hidden, setHidden] = React.useState(false);
     React.useEffect(() => {
         if (!active || typeof window === "undefined") { setHidden(false); return; }
@@ -160,9 +160,9 @@ function useHideOnScroll(active: boolean, showTop: number = BAR_SHOW_TOP): [bool
                 const y = window.scrollY;
                 if (phone && !phone.matches) { setHidden(false); lastY = y; return; }
                 setHidden((h) => {
-                    const next = nextBarHidden(lastY, y, h, showTop);
+                    const next = nextBarHidden(lastY, y, h);
                     // 揺れのあいだは基準を動かさない（ゆっくり送っても溜まって判定できる）
-                    if (Math.abs(y - lastY) > BAR_SCROLL_DELTA || y < showTop) lastY = y;
+                    if (Math.abs(y - lastY) > BAR_SCROLL_DELTA || y < BAR_SHOW_TOP) lastY = y;
                     return next;
                 });
             });
@@ -173,7 +173,7 @@ function useHideOnScroll(active: boolean, showTop: number = BAR_SHOW_TOP): [bool
             if (frame) window.cancelAnimationFrame(frame);
             setHidden(false);
         };
-    }, [active, showTop]);
+    }, [active]);
     const show = React.useCallback(() => setHidden(false), []);
     return [hidden, show];
 }
@@ -192,7 +192,8 @@ export default function BottomNav() {
     const [sheetOpen, setSheetOpen] = React.useState(false);
 
     useBottomBarHeight(barRef);
-    const [barHidden, showBar] = useHideOnScroll(hidesBarOnScroll(pathname), barShowTop(pathname));
+    const [barHidden, showBar] = useHideOnScroll(hidesBarOnScroll(pathname));
+    const offPage = hidesBarOnPage(pathname);
 
     // **画面が変わったら閉じる。** `PostSheet` は「常駐する場所に置く日が
     // 来たら、そちら側でパスを見比べること」と自分で書いている。ここが
@@ -279,7 +280,9 @@ export default function BottomNav() {
                 // 帯そのものは透明で押せない。**下の隙間は safe-area と大きい方**
                 // （ホーム画面から起動した iPhone ではホームインジケーターの上に乗る）
                 // 写真の頁（スマホ）で読んでいるあいだは下へ隠す（`useHideOnScroll`）。キーボードで中へ入ったら出す
-                className="pointer-events-none fixed inset-x-0 bottom-0 z-40 transition-transform duration-200 ease-out motion-reduce:transition-none"
+                // ログインと新規登録の頁では出さない（`hidesBarOnPage`）
+                hidden={offPage}
+                className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 transition-transform duration-200 ease-out motion-reduce:transition-none ${offPage ? "hidden" : ""}`}
                 data-hidden={barHidden && !sheetOpen ? "true" : undefined}
                 onFocusCapture={showBar}
                 style={{
