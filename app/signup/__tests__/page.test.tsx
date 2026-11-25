@@ -444,7 +444,7 @@ describe("SignupPage - 登録の数え方", () => {
         expect(sent).not.toContain("uuid-1234");
     });
 
-    // ログイン画面の「確認コードを入力・再送する」は via を付けずに戻ってくる
+    // ログイン画面の「確認コードを入力、再送する」は via を付けずに戻ってくる
     it("控えから確認に戻った回は、控えた from を使う", async () => {
         localStorageMock.setItem(
             "jp_verify_resume@example.com",
@@ -478,7 +478,7 @@ describe("新規登録: iOS の形", () => {
     it("写真の帯の下に直に置き（本文は上から 142）、iOS の一文を出す", () => {
         render(<SignupPage />);
         const content = screen.getByTestId("signup-content");
-        expect(content.closest("main")!.className).toMatch(/pt-\[142px\]/);
+        expect(content.closest("main")!.className).toMatch(/pt-\[clamp\(96px/);
         expect(screen.getByTestId("login-photo-collage")).toBeInTheDocument();
         expect(screen.getByText("写真から、次の旅が始まる。")).toBeInTheDocument();
     });
@@ -569,7 +569,7 @@ describe("SignupPage - 便益の1行", () => {
     it("登録の画面に出る", () => {
         render(<SignupPage />);
         expect(screen.getByTestId("signup-benefit").textContent)
-            .toBe("登録すると、いいね・フォロー・コメント・保存・投稿ができるようになります。");
+            .toBe("登録すると、いいね、フォロー、コメント、保存、投稿ができるようになります。");
     });
 });
 
@@ -617,7 +617,7 @@ describe("SignupPage - 行きたいから登録へ", () => {
         render(<SignupPage />);
         await screen.findByTestId("signup-wish");
         expect(screen.getByTestId("signup-main").className).toMatch(/\bpt-3\b/);
-        expect(screen.getByTestId("signup-main").className).not.toMatch(/pt-\[142px\]/);
+        expect(screen.getByTestId("signup-main").className).not.toMatch(/pt-\[clamp\(96px/);
         expect(screen.queryByTestId("login-photo-collage")).toBeNull();
         expect(screen.getByText("写真から、次の旅が始まる。")).toBeInTheDocument();
     });

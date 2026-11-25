@@ -14,9 +14,18 @@ import {
  * ログインと新規登録の頁の「Apple でサインイン」「Google でログイン」（札 journey.photo-ios#730）。
  * iOS の案（ログインの画面と連携）と同じ並び: Apple → Google → 「またはメールアドレスで」→ メールの欄。
  *
- *     Apple  白の地に黒の字と印（黒い地の上は白・Apple の決まり）。高さ 40（当たり 44）・角は丸・横いっぱい（最大 400）
- *     Google Google の部品が描くボタン（`renderButton`・黒の塗り `filled_black`・丸・大 40）。形を Google の決まりから外さない
- *     間 10。Apple の高さは Google の部品の大に合わせた（違う高さで並べない）
+ *     Google Google の部品が描くボタン（`renderButton`・白の地 `outline`・丸・大 40・印と字を真ん中に）。形を Google の決まりから外さない
+ *     Apple  Google の部品の形に合わせて作る: 白の地・縁 #DADCE0 の 1px・高さ 40（当たり 44）・角は丸・横いっぱい（最大 400）・
+ *            印 18・字 14 の中太（字間 0.25）・印と字の間 8 で、印と字のまとまりを真ん中に（Google の部品の実測と同じ）。
+ *            黒い地の上は白、字と印は黒（Apple の決まり）
+ *     間 10（iOS `externalGap`）
+ *
+ * 2026-11-25 owner「バランス悪く見える。各アイコンとかロゴとかも」: 前は Apple が白の地・字 16、Google が黒の地（`filled_black`）で
+ * G の印が大きな白い丸に入り、2つの色・印の大きさ・字の大きさが割れていた。Google の部品の黒の形は印を白い丸に入れる決まりの絵で、
+ * こちらでは変えられない。白の形（`outline`）なら印は丸なしの 18 で、Apple の白のボタンと同じ見た目にそろう。
+ * Google の部品は高さ 40・字 14 の決まった形なので、Apple の側を Google に合わせた（Apple の決まりは字の大きさと高さを任せている）。
+ * 自前の Google のボタン（公式の G の絵を使う形）は、押したときに ID トークンを受け取る道が Google の部品の
+ * ボタンしか無い（ほかの道は戻り先の URL の登録かサーバーの秘密の鍵が要る）ので、今の流れ（nonce・CUSTOM_AUTH）を守るため取らない
  *
  * サーバーが Web の宛先（`webClientId`）を返した提供元のボタンだけを出す。どちらも無ければ何も出さない（今の画面のまま）。
  * 押す回数: Apple 2回（ボタン → Apple の画面で続ける）、Google 2〜3回（ボタン → アカウントを選ぶ（→ 続ける））
@@ -39,7 +48,8 @@ export function FederatedSignIn({ mode, from = "other", placement = "top", onErr
     const googleNonce = useRef<string | null>(null);
     const googleBox = useRef<HTMLDivElement | null>(null);
     const mounted = useRef(true);
-    useEffect(() => () => { mounted.current = false; }, []);
+    // 付け直したときに true へ戻す（開発の StrictMode は付けて外して付け直すので、戻さないとボタンが押せないままになる）
+    useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
 
     // 前に見た答えで先に出し、サーバーの今の答えで直す
     useEffect(() => {
@@ -121,7 +131,7 @@ export function FederatedSignIn({ mode, from = "other", placement = "top", onErr
         });
         box.replaceChildren();
         gid.renderButton(box, {
-            type: "standard", theme: "filled_black", size: "large", shape: "pill",
+            type: "standard", theme: "outline", size: "large", shape: "pill",
             text: mode === "signup" ? "signup_with" : "signin_with",
             logo_alignment: "center", locale: "ja",
             width: Math.max(200, Math.min(400, Math.round(box.getBoundingClientRect().width || 320))),
@@ -154,9 +164,9 @@ export function FederatedSignIn({ mode, from = "other", placement = "top", onErr
                     data-testid="federated-apple" aria-busy={busy === "apple"}
                     className="group w-full max-w-[400px] mx-auto py-[2px] -my-[2px] disabled:cursor-default focus:outline-none"
                     style={{ touchAction: "manipulation" }}>
-                    <span className="flex h-10 w-full items-center justify-center gap-[6px] rounded-full bg-white text-black text-[16px] font-medium transition group-active:scale-[0.98] group-disabled:opacity-60 group-focus-visible:ring-2 group-focus-visible:ring-accent group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-black">
+                    <span className="flex h-10 w-full items-center justify-center gap-2 rounded-full bg-white text-black text-[14px] font-medium tracking-[0.25px] ring-1 ring-inset ring-[#DADCE0] transition group-active:scale-[0.98] group-disabled:opacity-60 group-focus-visible:ring-2 group-focus-visible:ring-accent group-focus-visible:ring-offset-2 group-focus-visible:ring-offset-black">
                         {busy === "apple" ? spinner : <AppleMark />}
-                        {mode === "signup" ? "Appleで登録" : "Appleでサインイン"}
+                        {mode === "signup" ? "Apple で登録" : "Apple でサインイン"}
                     </span>
                 </button>
             )}
@@ -164,7 +174,7 @@ export function FederatedSignIn({ mode, from = "other", placement = "top", onErr
                 <div className="relative w-full max-w-[400px] mx-auto min-h-10" data-testid="federated-google" aria-busy={busy === "google"}>
                     <div ref={googleBox} className="flex w-full justify-center [color-scheme:normal]" />
                     {/* 部品が読めるまでの場所取り（同じ形の灰の骨格。押せない） */}
-                    {!googleReady && <div aria-hidden="true" className="absolute inset-0 rounded-full bg-[#131314] ring-1 ring-inset ring-[#8E918F]/60" />}
+                    {!googleReady && <div aria-hidden="true" className="absolute inset-0 rounded-full bg-white ring-1 ring-inset ring-[#DADCE0]" />}
                     {/* 進んでいる間は押せなくする（Google の部品は止める口を持たない） */}
                     {busy !== null && <div aria-hidden="true" className="absolute inset-0 rounded-full bg-black/50" />}
                 </div>
@@ -177,7 +187,7 @@ export function FederatedSignIn({ mode, from = "other", placement = "top", onErr
 /** Apple の印（黒）。Apple の決まりどおり、字の左に置き、字と同じ高さにそろえる */
 function AppleMark() {
     return (
-        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px] -mt-[3px] flex-none" fill="currentColor">
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-[18px] w-[18px] -mt-[2px] flex-none text-black" fill="currentColor">
             <path d="M16.365 1.43c0 1.14-.493 2.27-1.177 3.08-.744.9-1.99 1.57-2.987 1.57-.12 0-.23-.02-.3-.03-.01-.06-.04-.22-.04-.39 0-1.15.572-2.27 1.206-2.98.804-.94 2.142-1.64 3.248-1.68.03.13.05.28.05.43zm4.565 15.71c-.03.07-.463 1.58-1.518 3.12-.945 1.34-1.94 2.71-3.43 2.71-1.517 0-1.9-.88-3.63-.88-1.698 0-2.302.91-3.67.91-1.377 0-2.332-1.26-3.428-2.8-1.287-1.82-2.323-4.63-2.323-7.28 0-4.28 2.797-6.55 5.552-6.55 1.448 0 2.675.95 3.6.95.865 0 2.222-1.01 3.902-1.01.613 0 2.886.06 4.374 2.19-.13.09-2.383 1.37-2.383 4.19 0 3.26 2.854 4.42 2.955 4.45z" />
         </svg>
     );
