@@ -212,6 +212,17 @@ functions:
           trigger: PostConfirmation
           existing: true
 
+  # 確認コードのメール（Cognito の CustomMessage トリガー・新規登録と再設定で文面を分ける）。
+  # ⚠️ **events を付けない。** プールに付けるのは Maintenance の attach-custom-message（owner が apply を押す）だけ。
+  # ここに cognitoUserPool を書くと、デプロイのたびに本番のプールへ勝手に付く（利用者のメールが owner の確認前に変わる）。
+  # プールに付くまでは誰からも呼ばれない。ロールはログだけ（AWS にも表にも触らない）
+  customMessage:
+    handler: src/customMessage.customMessage
+    role: CustomMessageRole
+    # Cognito はトリガーを5秒しか待たない。文を組むだけなので短くてよい
+    timeout: 3
+    memorySize: 128
+
 # ---------------------------------------------------------------------------
 # 未認証で呼べる2つの口だけ、専用の最小ロールに分ける（IAM-1。api-user 側と対）
 #
@@ -229,6 +240,29 @@ functions:
 # 書き込みは1つも無い。users テーブル・S3・Cognito にも触らない。
 resources:
   Resources:
+    # 確認コードのメールを組むだけの関数（customMessage）のロール。ログを書くだけ
+    CustomMessageRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: ${self:service}-${sls:stage}-${aws:region}-customMessage
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: logsOnly
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource:
+                    - arn:aws:logs:${aws:region}:${aws:accountId}:log-group:/aws/lambda/${self:service}-${sls:stage}-customMessage:*
     PublicReadRole:
       Type: AWS::IAM::Role
       Properties:
