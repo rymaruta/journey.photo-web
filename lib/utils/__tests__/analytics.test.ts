@@ -146,9 +146,10 @@ describe("イベントごとの形", () => {
         expect(sanitizeParams("upload_complete", { photo_count: 10 ** 9 })).toEqual({ photo_count: COUNT_MAX });
     });
 
-    it("既存の wish_tap・sign_up の欄と値は変えていない", () => {
+    it("既存の wish_tap・sign_up の欄と値は変えていない（sign_up・login の method は Apple・Google を足しただけ・札 journey.photo-ios#730）", () => {
         expect(EVENT_SPEC.wish_tap).toEqual({ signed_in: [0, 1], kind: ["spot", "location"] });
-        expect(EVENT_SPEC.sign_up).toEqual({ method: ["email"], from: ["wish", "swipe", "other"] });
+        expect(EVENT_SPEC.sign_up).toEqual({ method: ["email", "apple", "google"], from: ["wish", "swipe", "other"] });
+        expect(EVENT_SPEC.login).toEqual({ method: ["email", "apple", "google"] });
     });
 });
 

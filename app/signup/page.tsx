@@ -12,6 +12,7 @@ import { safeNextPath } from "../../lib/routes";
 import { publicImageUrl } from "../../lib/utils/seo";
 import { SETTINGS_INPUT_CLASS, SETTINGS_LABEL_CLASS, AUTH_PRIMARY_CLASS, AUTH_ACCENT_PRIMARY_CLASS, AUTH_OUTLINE_CLASS, AUTH_TEXT_BUTTON_CLASS, AUTH_CAPTION_CLASS } from "../components/accountFormStyles";
 import { AuthPhotoBand, AuthBrand } from "../components/AuthPhotoBand";
+import { FederatedSignIn } from "../components/FederatedSignIn";
 import { SIGNUP_BENEFIT_JA } from "../../lib/auth/loginVia";
 import { LoadingState } from "../components/StateViews";
 import { track, signupFromVia, signupErrorReason, type SignupFrom } from "../../lib/utils/analytics";
@@ -272,7 +273,7 @@ function SignupForm() {
             <main className="min-h-screen bg-bg">
                 <h1 className="sr-only">アカウント作成</h1>
                 {/* 判定中は灰の骨格（iOS `JPLoadingState`・回る輪にしない） */}
-                <div className="mx-auto w-full max-w-sm px-6 pt-[250px]"><LoadingState kind="rows" /></div>
+                <div className="mx-auto w-full max-w-sm px-6 pt-[142px]"><LoadingState kind="rows" /></div>
             </main>
         );
     }
@@ -296,7 +297,7 @@ function SignupForm() {
         // 「行きたい」から来た回は写真の帯とワードマークを置かず、押したスポットの札を頭にする（2026-11-24・#432）。
         // 帯（上から 250）の下に並べると、375×667 でも 390×844 でも主ボタンが下のタブの裏に入り、送らないと見えなかった。
         // 押すためのボタンは最初の画面に出す（「直感的で簡単に」）。決まりの試験は `signupFold.test.tsx`
-        <main data-testid="signup-main" className={`relative isolate min-h-screen overflow-hidden bg-black px-6 ${compact ? "pt-5" : "pt-[250px]"} pb-28`}>
+        <main data-testid="signup-main" className={`relative isolate min-h-screen overflow-hidden bg-black px-6 ${compact ? "pt-3" : "pt-[142px]"} pb-28`}>
             {!compact && <AuthPhotoBand />}
 
             <div className="relative z-10 mx-auto w-full max-w-sm flex flex-col gap-[14px]" data-testid="signup-content">
@@ -306,7 +307,8 @@ function SignupForm() {
                     {step === "verify" && "メールを確認"}
                     {step === "done" && "登録完了"}
                 </h1>
-                {!compact && <AuthBrand />}
+                {/* 「行きたい」から来た回も、ロゴと副題は出す（小さい形・2026-11-25 owner「サブタイトルも消えるの嫌だ」） */}
+                <AuthBrand compact={compact} />
 
                 {/* 「行きたい」から来た回: 押したスポットと、登録で得られるもの（2026-11-24・#432） */}
                 {wishSpot && step !== "done" && (
@@ -340,6 +342,10 @@ function SignupForm() {
                 {step === "register" && !wishSpot && (
                     <p data-testid="signup-benefit" className="m-0 text-[14px] leading-[20px] text-white/80">{SIGNUP_BENEFIT_JA}</p>
                 )}
+
+                {/* Apple・Google（札 journey.photo-ios#730）。欄の上に置く。「行きたい」から来た回は、主ボタン（登録して保存）を
+                    最初の画面に出すため欄の下に置く（#432）。サーバーが Web の宛先を返したものだけ */}
+                {step === "register" && !wishSpot && <FederatedSignIn mode="signup" from={from} onError={setError} />}
 
                 {/* ステップ1: 登録 */}
                 {step === "register" && (
@@ -387,6 +393,7 @@ function SignupForm() {
                         </Link>
                     </form>
                 )}
+                {step === "register" && wishSpot && <FederatedSignIn mode="signup" from={from} placement="bottom" onError={setError} />}
 
                 {/* ステップ2: 確認コード（iOS `confirmSignUpSection`） */}
                 {step === "verify" && (
