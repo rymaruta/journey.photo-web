@@ -78,47 +78,12 @@ gate() { # gate <名前> <コマンド...>
 }
 
 # `api` / `api-user` はルートの tsconfig の exclude に入っているので、
-# `npx tsc --noEmit` では**一度も見られない**。ルートから見ると依存が
-# 解決できないぶんのエラーが元から出るので、**0件ではなく「増えていないこと」**
-# で見る（CI はそれぞれのディレクトリで npm ci を打つので、あちらでは出ない）。
-API_BASELINE=11
-# 116 → 118: 通報のハンドラ（`report.ts`）を1つ足したぶん。
-# 118 → 120: いいねした写真の一覧（`likes.getMyLikes`）を1つと、
-#            対テスト（`userList.test.ts`）を1ファイル足したぶん。
-# 120 → 129: 行きたい場所（`savedSpots.ts`）のハンドラ3つ（TS2307 が1・
-#            その帰結の暗黙 any が3）と、対テスト2ファイル（先頭の
-#            `await import` が 1 + 4）。**中身を1件ずつ確かめた**
-#            ——`main` の姿を作り直して差分を取り、9件とも既知の形
-#            （`aws-lambda` の型がルートから見えないぶん）であることを見た。
-# 中身は `Cannot find module 'aws-lambda'` と、その結果の implicit any で、
-# **全ハンドラが同じ形**（`@types/aws-lambda` は package.json に在るが、
-# ルートから見た型検査には入らない）。CI は api-user で npm ci を打つので出ない。
-# ⚠️ **上げるのはハンドラかテストファイルを足したときだけ**（テストは
-#    先頭の `await import` が1件になる）。それ以外で増えたら本物。
-#
-# ⚠️ **この 120 は測り方が変わったあとの残り香で、実測はずっと少ない。**
-# 2026-09-21 に `api-user/node_modules` を入れて測ると **49 件**
-# （`api` は 11 でちょうど基準）。上の「中身は Cannot find module
-# 'aws-lambda'」という説明は **node_modules が無い状態**の話で、
-# `check_side_tsc` は今その状態を失敗にする（80行）ので、基準が意味を持つ
-# 土俵では出ない。つまり **120 は緩すぎて、71件ぶんの増加を見逃す**。
-# 下げるのは別の作業（並行しているブランチも同じ関門を通るため、
-# ここでは測った数だけ書き残す）。
-# 2026-09-21（夜）: 129 → 142。develop に入った PR #73（保存）と #80（アーカイブ）の
-# 新ファイル4つぶん——`saves.ts` 5・`storyArchive.ts` 2・`storyArchive.test.ts` 5・
-# `saves.test.ts` 1（`git cat-file -e 33cafc66:<path>` で「基準を決めた断面に無い
-# ファイル」だけを数えて 13 = 142 − 129 と一致）。中身は上と同じ
-# `Cannot find module 'aws-lambda'`（TS2307）・implicit any（TS7006）・
-# テストのトップレベル await（TS1378）。
-# ⚠️ **並行するブランチが各自の木で関門を通しても、合流した develop で
-# 基準を超える**（9/21 の 120 → 129 と同じ形）。develop を取り込んだら
-# この関門を一度は通すこと。
-# 2026-09-22: 149 → 142 に**戻した**。149 へ上げたのは私の測り違い——この容れ物の
-# `api-user/node_modules` がほぼ空で `@types/aws-lambda` を引けず、TS2307 と
-# その帰結の TS7006 で膨らんだ数を「develop で増えた」と読んでいた。
-# `cd api-user && npm ci` を打つと **57件**（別のセッションの実測「57/142」と一致）。
-# 下の「型定義が入っているか」の見張りが、この読み違いを次から止める。
-API_USER_BASELINE=142
+# `npx tsc --noEmit` では**一度も見られない**。ここで別に見る。
+# **基準は 0 件**（2026-11-25）。前は「増えていないこと」で見ていた（api 11・api-user 142）が、
+# Deploy API の「Typecheck backend」が両方を誤り 0 件で通すようになったので、ここも同じ 0 にそろえた。
+# 数えるのは依存を入れた土俵でだけ（下の check_side_tsc が、node_modules・型定義が無いと失敗にする）。
+API_BASELINE=0
+API_USER_BASELINE=0
 
 check_side_tsc() { # check_side_tsc <dir> <baseline>
     local out; out=$(npx tsc --noEmit -p "$1/tsconfig.json" 2>&1)
