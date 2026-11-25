@@ -35,20 +35,23 @@ section "1. API の呼ばれ方（直近 ${DAYS} 日・1分ごと）"
 # 1分ごとの値は 15 日まで残る。1回に返せる点は 1,440 なので、1日ずつ読む
 per_minute() { # per_minute <namespace> <metric> <stat> <dimensions...>
     local ns="$1" metric="$2" stat="$3"; shift 3
-    local out="[]"
+    local dir; dir="$(mktemp -d)"
     for d in $(seq "$DAYS" -1 1); do
         local start end
         start="$(date -u -d "-$d days" +%Y-%m-%dT%H:%M:00Z)"
         end="$(date -u -d "-$((d - 1)) days" +%Y-%m-%dT%H:%M:00Z)"
-        local part
-        part="$(aws cloudwatch get-metric-statistics --region "$REGION" --namespace "$ns" --metric-name "$metric" \
+        # 引数で渡すと長すぎて落ちる（1日 1,440 点）ので、日ごとのファイルに置いて最後にまとめて読む
+        if ! aws cloudwatch get-metric-statistics --region "$REGION" --namespace "$ns" --metric-name "$metric" \
             --start-time "$start" --end-time "$end" --period 60 --statistics "$stat" "$@" \
-            --query "Datapoints[].[Timestamp,$stat]" --output json 2>&1)" || { echo "  読めませんでした: ${part:0:200}"; return; }
-        out="$(python3 -c 'import json,sys; a=json.loads(sys.argv[1]); b=json.loads(sys.argv[2]); print(json.dumps(a+b))' "$out" "$part")"
+            --query "Datapoints[].[Timestamp,$stat]" --output json > "$dir/$d.json" 2> "$dir/err"; then
+            echo "  読めませんでした: $(head -c 200 "$dir/err")"; rm -rf "$dir"; return
+        fi
     done
-    python3 - "$out" "$stat" <<'EOF'
-import json, sys
-pts = json.loads(sys.argv[1]); stat = sys.argv[2]
+    python3 - "$dir" <<'EOF'
+import json, sys, glob
+pts = []
+for f in glob.glob(sys.argv[1] + "/*.json"):
+    pts += json.load(open(f))
 if not pts:
     print("  点がありません（呼ばれていない）"); sys.exit()
 vals = sorted(v for _, v in pts)
@@ -58,6 +61,7 @@ total = sum(vals)
 print(f"  点 {len(vals)}（呼ばれた分）  合計 {total:.0f}  最大 {vals[-1]:.0f}/分  99% {pct(0.99):.0f}/分  中央 {pct(0.5):.0f}/分")
 print("  多かった分: " + ", ".join(f"{t[:16]}Z {v:.0f}" for t, v in top))
 EOF
+    rm -rf "$dir"
 }
 echo "user API（本番）の呼び出し数:"
 per_minute AWS/ApiGateway Count Sum --dimensions Name=ApiId,Value="$USER_API_ID"
@@ -92,9 +96,17 @@ done
 
 # ---------------------------------------------------------------------------
 section "3. アラーム"
-aws cloudwatch describe-alarms --region "$REGION" \
-    --query 'MetricAlarms[].[AlarmName, StateValue, length(AlarmActions)]' --output text 2>&1 \
-    | awk -F'\t' 'NF {printf "  %-60s %-18s 知らせ先 %s\n", $1, $2, $3}' || echo "  読めませんでした"
+# 知らせ先はトピックの名前だけ出す（ARN にはアカウントの番号が入る）
+aws cloudwatch describe-alarms --region "$REGION" --output json 2>&1 | python3 -c '
+import json, sys
+try:
+    d = json.load(sys.stdin)
+except Exception:
+    print("  読めませんでした"); sys.exit()
+for a in d.get("MetricAlarms", []):
+    acts = ", ".join(x.rsplit(":", 1)[-1] for x in a.get("AlarmActions", [])) or "なし"
+    print(f"  {a[\"AlarmName\"]:<60} {a[\"StateValue\"]:<18} 知らせ先 {acts}")
+'
 echo "  （数: $(aws cloudwatch describe-alarms --region "$REGION" --query 'length(MetricAlarms)' --output text 2>/dev/null || echo '?')）"
 
 # ---------------------------------------------------------------------------
@@ -122,9 +134,17 @@ EOF
 )"
     while IFS= read -r name; do
         [ -n "$name" ] || continue
-        n="$(aws budgets describe-notifications-for-budget --account-id "$account" --budget-name "$name" \
-            --query 'Notifications[].[NotificationType, ComparisonOperator, Threshold]' --output text 2>/dev/null | tr '\t' ' ' | paste -sd ',' -)"
-        echo "    $name の知らせ: ${n:-なし}"
+        echo "    $name の知らせ:"
+        notes="$(aws budgets describe-notifications-for-budget --account-id "$account" --budget-name "$name" --output json 2>/dev/null || echo '{}')"
+        python3 -c 'import json,sys; [print(json.dumps(n)) for n in json.loads(sys.argv[1]).get("Notifications", [])]' "$notes" \
+        | while IFS= read -r note; do
+            # 宛先はメールなら「EMAIL」とだけ、SNS ならトピックの名前だけ出す（住所・アカウントの番号は出さない）
+            subs="$(aws budgets describe-subscribers-for-notification --account-id "$account" --budget-name "$name" \
+                --notification "$note" --output json 2>/dev/null \
+                | python3 -c 'import json,sys; d=json.load(sys.stdin); print(", ".join(s["SubscriptionType"] + (" " + s["Address"].rsplit(":",1)[-1] if s["SubscriptionType"]=="SNS" else "") for s in d.get("Subscribers", [])) or "なし")' 2>/dev/null || echo '?')"
+            desc="$(python3 -c 'import json,sys; n=json.loads(sys.argv[1]); print(n["NotificationType"], n["ComparisonOperator"], n["Threshold"], n.get("ThresholdType",""))' "$note")"
+            echo "      $desc  宛先: $subs"
+        done
     done <<< "$names"
 fi
 
