@@ -149,14 +149,15 @@ export function FederatedSignIn({ mode, from = "other", placement = "top", onErr
     if (!ids.apple && !ids.google) return null;
 
     const divider = (
-        <div className="flex items-center gap-4 text-[13px] text-white/70 whitespace-nowrap before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line">
+        <div data-testid="federated-or" className={`flex items-center gap-4 text-[13px] text-white/70 whitespace-nowrap before:h-px before:flex-1 before:bg-line after:h-px after:flex-1 after:bg-line ${placement === "top" ? "[@media(max-height:720px)]:hidden" : ""}`}>
             {placement === "top" ? "またはメールアドレスで" : "または"}
         </div>
     );
     const spinner = <span aria-hidden="true" className="w-4 h-4 border-2 border-black/25 border-t-black rounded-full animate-spin" />;
 
     return (
-        <div className="flex flex-col gap-[10px]" data-testid="federated-signin">
+        // 背の低い画面（720 以下）は間を 8 にし、上の「またはメールアドレスで」の線を消す（iOS の tight・`AUTH_STACK_CLASS`）
+        <div className="flex flex-col gap-[10px] [@media(max-height:720px)]:gap-2" data-testid="federated-signin">
             {placement === "bottom" && divider}
             {ids.apple && (
                 // 当たり 44（見た目 40・上下 2 は透明）

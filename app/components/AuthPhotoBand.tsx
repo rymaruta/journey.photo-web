@@ -106,8 +106,9 @@ export function AuthBrand({ compact = false }: { compact?: boolean }) {
     const size = compact ? AUTH_BRAND.compactWordmark : AUTH_BRAND.wordmarkMax;
     return (
                 // 詰めた形は下の札との間も詰める（#432）。ふつうの形はロゴの段と次の行の間を 16 に（行の間 12 ＋ 4・iOS `headBottom`）
-                <div className={`flex flex-col ${compact ? "-mb-1.5" : "pb-1"}`} data-testid="login-wordmark"
-                    style={{ gap: compact ? 4 : AUTH_BRAND.taglineGap, filter: "drop-shadow(0 1px 6px rgb(0 0 0 / 0.55))" }}>
+                // 背の低い画面（720 以下）はロゴと一文の間を 6、下の余白を 0 に（`AUTH_STACK_CLASS`）
+                <div className={`flex flex-col ${compact ? "-mb-1.5 gap-1" : "pb-1 gap-2.5 [@media(max-height:720px)]:gap-1.5 [@media(max-height:720px)]:pb-0"}`} data-testid="login-wordmark"
+                    style={{ filter: "drop-shadow(0 1px 6px rgb(0 0 0 / 0.55))" }}>
                     <div className="flex items-baseline" data-testid="login-wordmark-row" style={{ fontSize: wordmarkFontSize(size), gap: `${AUTH_BRAND.markGapEm}em` }}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={AUTH_MARK_SRC} alt="" width={128} height={128} className="flex-none object-contain"
@@ -121,4 +122,27 @@ export function AuthBrand({ compact = false }: { compact?: boolean }) {
                 </div>
 
     );
+}
+
+/**
+ * ログインと登録の説明の一文を、**言葉の途中で割らずに**折り返す（2026-11-25 owner の写真: 「…投稿ができま／す。」と1字だけ次の行へ落ちていた）。
+ *
+ * - 「、」「。」の後ろにだけ折り返してよい所（`<wbr>`）を置き、ほかの所では割らない（`word-break: keep-all`）。
+ *   `keep-all` は Safari・Chrome・Firefox のどれでも日本語に効く。Chrome だけの `word-break: auto-phrase` には頼らない
+ * - 2行になるときは行の長さをそろえる（`text-wrap: balance`。Safari 17.5 以降。効かない Safari でも、上の2つで言葉の途中では割れない）
+ * - 1つの区切りが幅に入りきらない狭い画面だけ、その中で割る（`overflow-wrap: anywhere`。横にはみ出させない）
+ * 文は変えない（読み上げも同じ文）
+ */
+export const AUTH_PHRASE_CLASS = "[word-break:keep-all] [overflow-wrap:anywhere] [text-wrap:balance]";
+
+export function phraseBreaks(text: string): React.ReactNode[] {
+    // 「、」「。」までを1つの区切りにする（後ろ読みの正規表現は古い Safari で使えないので、自分で切る）
+    const parts: string[] = [];
+    let cur = "";
+    for (const ch of text) {
+        cur += ch;
+        if (ch === "、" || ch === "。") { parts.push(cur); cur = ""; }
+    }
+    if (cur) parts.push(cur);
+    return parts.flatMap((part, i) => (i < parts.length - 1 ? [part, <wbr key={i} />] : [part]));
 }
