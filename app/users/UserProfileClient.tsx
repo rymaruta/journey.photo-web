@@ -52,6 +52,7 @@ import type { BadgeKey, BadgeMap, ProMarkStyle } from "../../lib/data/badges";
 import { readAudience } from "../../lib/utils/audience";
 import { TAB_ON, TAB_OFF, TAB_BASE } from "../components/tabStyles";
 import { GLASS_BTN, GLASS_ICON_STYLE } from "../components/buttonStyles";
+import { UGC_LINK_REL } from "@/lib/utils/linkRel";
 
 type SongEntry = {
     title: string;
@@ -1530,7 +1531,7 @@ export default function UserProfileClient({ userId, initialBio, initialUsername 
                                 <a
                                     href={userProfile.website}
                                     target="_blank"
-                                    rel="noopener noreferrer"
+                                    rel={UGC_LINK_REL}
                                     className="inline-flex items-center gap-1.5 text-xs text-white/50 hover:text-white/80 transition-colors"
                                 >
                                     <GlobeAltIcon className="w-3.5 h-3.5" />

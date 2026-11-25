@@ -111,11 +111,34 @@ describe("spotStructuredData", () => {
         expect(spotSameAs({})).toEqual([]);
     });
 
-    it("海外は国名を書く（国しか無い行でも住所が空にならない）", () => {
+    it("海外は国を ISO の2文字で書く（国しか無い行でも住所が空にならない）", () => {
         const v = bySlug("chateau-de-versailles");
-        expect(spotStructuredData(v).address).toMatchObject({ addressCountry: v.region!.country });
+        expect(spotStructuredData(v).address).toMatchObject({ addressCountry: "FR" });
         const countryOnly = { ...v, region: { country: v.region!.country } };
-        expect(spotStructuredData(countryOnly).address).toEqual({ "@type": "PostalAddress", addressCountry: v.region!.country });
+        expect(spotStructuredData(countryOnly).address).toEqual({ "@type": "PostalAddress", addressCountry: "FR" });
+    });
+
+    /** 2026-11-25: 本番の海外 60 頁中 19 頁が「アメリカ」など日本語の国名だった。公開の行を全部見る */
+    it("🔴 公開のスポットの addressCountry はすべて ISO 3166-1 の2文字（大文字）", () => {
+        const bad: string[] = [];
+        let overseas = 0;
+        for (const s of SPOTS.filter(isPublished)) {
+            if (!s.region?.country) continue;
+            const addr = spotStructuredData(s).address as { addressCountry?: string } | undefined;
+            if (s.region.country !== "日本") overseas++;
+            if (!/^[A-Z]{2}$/.test(addr?.addressCountry ?? "")) bad.push(`${s.slug}: ${s.region.country} → ${addr?.addressCountry}`);
+        }
+        expect(overseas).toBeGreaterThan(0);
+        expect(bad).toEqual([]);
+    });
+
+    it("アメリカは US、韓国は KR、表に無い国は書かない", () => {
+        const v = bySlug("chateau-de-versailles");
+        const at = (country: string) => (spotStructuredData({ ...v, region: { country } }).address as { addressCountry?: string } | undefined)?.addressCountry;
+        expect(at("アメリカ")).toBe("US");
+        expect(at("韓国")).toBe("KR");
+        expect(at("日本")).toBe("JP");
+        expect(at("どこにも無い国")).toBeUndefined();
     });
 });
 

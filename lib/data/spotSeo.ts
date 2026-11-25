@@ -17,6 +17,7 @@ import type { Photo } from "./photos";
 import { ROUTES } from "../routes";
 import { haversineKm, kmForLabel } from "../utils/journey";
 import { sampleImageObject, type SpotSample, type coverImageObject } from "./spotSamples";
+import { COUNTRY_SHARD_KEYS } from "./spotFeedShards";
 
 /**
  * `/spots`（地域の索引）の一覧の構造化データ（ItemList）。
@@ -55,15 +56,20 @@ export function spotBreadcrumb(
 }
 
 /**
- * 住所の `addressCountry`。schema.org は ISO の2文字を**勧める**（国名の文字列も受ける）。
- * 日本は JP、海外は台帳の国名（日本語表記）をそのまま——コードの対応表は持っていないが、
+ * 住所の `addressCountry`。schema.org の勧めどおり ISO 3166-1 の2文字（大文字）で書く。
  * 書かないと「イル・ド・フランス」だけの、どの国か分からない住所になる
- * （国しか無い行では住所そのものが空になる: pompeii・matterhorn など）
+ * （国しか無い行では住所そのものが空になる: pompeii・matterhorn など）。
+ *
+ * 2026-11-25: 以前は海外を台帳の国名（「アメリカ」など日本語表記）のまま書いていた（本番の海外 60 頁中 19 頁）。
+ * 国名から2文字への表は、索引の区分と同じ `COUNTRY_SHARD_KEYS` を使う（台帳に出る国はすべて載っている。
+ * `spotSeo.test.ts` が公開の行を全部見張る）。表に無い国は書かない（日本語の国名を出さない）
  */
 function countryOf(spot: Spot): string | undefined {
     const c = spot.region?.country;
     if (!c) return undefined;
-    return c === "日本" ? "JP" : c;
+    if (c === "日本") return "JP";
+    const code = COUNTRY_SHARD_KEYS[c];
+    return code ? code.toUpperCase() : undefined;
 }
 
 /**

@@ -2,19 +2,20 @@
 //
 // **教科書（/learn）の頁のメタデータと記事の構造化データ**（2026-11-04）。
 //
-// - 題はサイト名を足さない（ルートの `title.template` が足す。`pageTitles.test.ts` の決まり）
+// - 題は `fitTitle` で最終の形にする（サイト名を付けて 33 字に収まるときだけ付ける・2026-11-25）。
+//   共有カードの題（og:title）にはサイト名を付けない（og:site_name が別に出る。`pageTitles.test.ts` の決まり）
 // - robots は `INDEXABLE_ROBOTS`（`max-image-preview: large` を消さない。`pageRobots` の注記）
 // - 共有カードの画像は固定の代表画像（`shareOgImage`）。利用者の写真を勝手に代表にしない（#432）
 // - FAQPage の構造化データは付けない。Google は 2023-08 から FAQ のリッチリザルトを
 //   政府・医療の権威あるサイトに限っていて、このサイトでは出ない
 
 import type { Metadata } from "next";
-import { appItunes, siteConfig, shareOgImage, shareImageUrl, INDEXABLE_ROBOTS, ORGANIZATION_ID, SITE_SHORT_NAME } from "@/lib/utils/seo";
+import { appItunes, fitTitle, siteConfig, shareOgImage, shareImageUrl, INDEXABLE_ROBOTS, ORGANIZATION_ID, SITE_SHORT_NAME } from "@/lib/utils/seo";
 
 export function learnMetadata(path: string, title: string, description: string, type: "website" | "article"): Metadata {
     const url = `${siteConfig.url}${path}`;
     return {
-        title,
+        title: fitTitle(title),
         description,
         alternates: { canonical: url },
         itunes: appItunes(url),
