@@ -22,6 +22,16 @@
  *   node scripts/attach-post-confirmation.js            # 読むだけ（何をするか出す）
  *   node scripts/attach-post-confirmation.js --apply    # 実行
  *
+ * **CustomMessage（確認コードのメールの文面）も同じ道具で付ける**（2026-11-25・札「確認コードのメール」）。
+ * 関数は api のデプロイで作られるが、プールには付かない（serverless に events を書いていない）。
+ * 付けた日から、新規登録と再設定のメールがトリガーの文面に替わる:
+ *
+ *   node scripts/attach-post-confirmation.js --trigger=CustomMessage            # 読むだけ
+ *   node scripts/attach-post-confirmation.js --trigger=CustomMessage --apply    # 付ける
+ *   node scripts/attach-post-confirmation.js --trigger=CustomMessage --detach --apply  # 外す（プールの今の文面に戻る）
+ *
+ * 外せるのは CustomMessage だけ（PostConfirmation を外すと、新規登録した人が user グループに入らない）。
+ *
  * `UpdateUserPool` は**渡さなかった項目を既定値に戻す**（AWS の仕様）。
  * ここは serverless の `getUpdateConfigFromCurrentSetup` と同じ手順で
  * `DescribeUserPool` の中身を丸ごと送り返し、読み取り専用の項目だけ落とす。
@@ -44,8 +54,21 @@ const { requireEnv } = require("./lib/env");
 
 const TRIGGER = "PostConfirmation";
 
-function expectedFunctionName(stage) {
-    return `photo-gallery-api-${stage}-postConfirmation`;
+/** 付けてよいトリガー → api の関数名の末尾（`api/serverless.yml` の関数名） */
+const TRIGGERS = { PostConfirmation: "postConfirmation", CustomMessage: "customMessage" };
+/** 外してよいトリガー（外しても登録は壊れないものだけ） */
+const DETACHABLE = ["CustomMessage"];
+
+/** 引数からトリガーを決める（`--trigger=CustomMessage`。無ければ PostConfirmation）。知らない名前は止める */
+function triggerFromArgs(argv) {
+    const arg = argv.find((a) => a.startsWith("--trigger="));
+    const name = arg ? arg.slice("--trigger=".length) : TRIGGER;
+    if (!Object.hasOwn(TRIGGERS, name)) throw new Error(`知らないトリガー: ${name}（${Object.keys(TRIGGERS).join(", ")}）`);
+    return name;
+}
+
+function expectedFunctionName(stage, trigger = TRIGGER) {
+    return `photo-gallery-api-${stage}-${TRIGGERS[trigger]}`;
 }
 
 /**
@@ -116,7 +139,7 @@ function planAttach({ attachedArn, expectedArn, sameNamePoolIds }) {
  * 両方送ると API が断るので、旧が返ってきたときだけ新へ写して旧を落とす
  * （serverless と同じ。無いときは触らない——`undefined` を書くと既定値に戻る）。
  */
-function buildUpdateParams(userPool, expectedArn) {
+function buildUpdateParams(userPool, expectedArn, trigger = TRIGGER) {
     const p = { ...userPool };
     for (const k of READ_ONLY) delete p[k];
     const admin = { ...(p.AdminCreateUserConfig ?? {}) };
@@ -127,9 +150,16 @@ function buildUpdateParams(userPool, expectedArn) {
         delete admin.UnusedAccountValidityDays;
         p.AdminCreateUserConfig = admin;
     }
-    p.LambdaConfig = { ...(userPool.LambdaConfig ?? {}), [TRIGGER]: expectedArn };
+    p.LambdaConfig = { ...(userPool.LambdaConfig ?? {}), [trigger]: expectedArn };
+    if (expectedArn === null) delete p.LambdaConfig[trigger];
     p.UserPoolId = userPool.Id;
     return p;
+}
+
+/** 外すときの本文（そのトリガーだけ消し、他は全部送り返す）。外してよいもの以外は止める */
+function buildDetachParams(userPool, trigger) {
+    if (!DETACHABLE.includes(trigger)) throw new Error(`${trigger} は外せません（外してよいのは ${DETACHABLE.join(", ")}）`);
+    return buildUpdateParams(userPool, null, trigger);
 }
 
 /**
@@ -159,13 +189,16 @@ async function listPoolsNamed(idp, name) {
 
 async function main() {
     const apply = process.argv.includes("--apply");
+    const detach = process.argv.includes("--detach");
+    const TRIGGER = triggerFromArgs(process.argv);
+    if (detach && !DETACHABLE.includes(TRIGGER)) throw new Error(`${TRIGGER} は外せません`);
     const poolId = requireEnv("COGNITO_USER_POOL_ID");
     // 本番値の既定は置かない（書く側。STAGE とプールの組はこの下で突き合わせる）
     const stage = requireEnv("STAGE", "prod か staging。プール名と一致しなければ止まる");
     const region = process.env.AWS_REGION ?? "ap-northeast-1";
     const idp = new CognitoIdentityProviderClient({ region });
     const lambda = new LambdaClient({ region });
-    const fnName = expectedFunctionName(stage);
+    const fnName = expectedFunctionName(stage, TRIGGER);
 
     console.log(`[attach] pool=${poolId} function=${fnName} ${apply ? "（実行）" : "（読むだけ。--apply で実行）"}`);
 
@@ -195,6 +228,25 @@ async function main() {
         if (e.name !== "ResourceNotFoundException") throw e;   // ポリシーが無い＝誰も呼べない
     }
 
+    if (detach) {
+        console.log(`[attach] プール名: ${pool.Name} / いま付いている ${TRIGGER}: ${attachedArn || "（無し）"}`);
+        if (!attachedArn) { console.log("[attach] 付いていないので、何もしない"); return; }
+        console.log(`[attach] ${TRIGGER} を外す${apply ? "" : "（読むだけ。--apply で実行）"}`);
+        if (!apply) return;
+        await idp.send(new UpdateUserPoolCommand(buildDetachParams(pool, TRIGGER)));
+        const after = (await idp.send(new DescribeUserPoolCommand({ UserPoolId: poolId }))).UserPool ?? {};
+        if (after.LambdaConfig?.[TRIGGER]) throw new Error(`外したあとに読み直しても ${TRIGGER} が付いています`);
+        const changed = changedKeys(pool, after);
+        if (changed.length) {
+            console.error(`[attach] ❌ トリガー以外の設定が変わっています: ${changed.join(", ")}`);
+            for (const k of changed) console.error(`[attach]    ${k}: ${JSON.stringify(pool[k])} → ${JSON.stringify(after[k])}`);
+            process.exitCode = 1;
+            return;
+        }
+        console.log(`[attach] ${TRIGGER} を外しました（プールの今の文面に戻ります）`);
+        return;
+    }
+
     const plan = planAttach({ attachedArn, expectedArn, sameNamePoolIds });
     console.log(`[attach] プール名: ${pool.Name} / いま付いている ${TRIGGER}: ${attachedArn || "（無し）"}`);
     console.log(`[attach] 期待する関数: ${expectedArn}`);
@@ -222,11 +274,11 @@ async function main() {
         console.log("[attach] 呼び出し許可を付けました");
     }
     if (plan.action !== "none") {
-        await idp.send(new UpdateUserPoolCommand(buildUpdateParams(pool, expectedArn)));
+        await idp.send(new UpdateUserPoolCommand(buildUpdateParams(pool, expectedArn, TRIGGER)));
         const after = (await idp.send(new DescribeUserPoolCommand({ UserPoolId: poolId }))).UserPool ?? {};
         const got = after.LambdaConfig?.[TRIGGER];
         if (got !== expectedArn) throw new Error(`付けたあとに読み直したら ${TRIGGER}=${got ?? "（無し）"} でした`);
-        // 他のトリガーも残っているか（PostConfirmation だけ差し替えたはず）
+        // 他のトリガーも残っているか（このトリガーだけ差し替えたはず）
         const otherTriggers = Object.keys(pool.LambdaConfig ?? {}).filter((k) => k !== TRIGGER);
         const lostTriggers = otherTriggers.filter((k) => JSON.stringify(after.LambdaConfig?.[k]) !== JSON.stringify(pool.LambdaConfig[k]));
         const changed = changedKeys(pool, after);
@@ -240,10 +292,12 @@ async function main() {
         }
         console.log(`[attach] ${TRIGGER} を付けました（読み直して確認済み・トリガー以外の設定は変わっていない）`);
     }
-    console.log("[attach] 完了。次に新規登録した人から user グループとプロフィール行に入ります");
+    console.log(TRIGGER === "CustomMessage"
+        ? "[attach] 完了。次に送る確認コードのメールから、新規登録と再設定で文面が分かれます"
+        : "[attach] 完了。次に新規登録した人から user グループとプロフィール行に入ります");
 }
 
-module.exports = { planAttach, buildUpdateParams, policyAllowsPool, changedKeys, expectedFunctionName, poolNameForStage, READ_ONLY, TRIGGER };
+module.exports = { planAttach, buildUpdateParams, buildDetachParams, triggerFromArgs, policyAllowsPool, changedKeys, expectedFunctionName, poolNameForStage, READ_ONLY, TRIGGER, TRIGGERS };
 if (require.main === module) {
     main().catch((e) => { console.error(e); process.exit(1); });
 }

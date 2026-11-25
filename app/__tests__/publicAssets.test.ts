@@ -28,6 +28,7 @@ const ALLOWED: [file: string, why: string][] = [
     ["sw.js", "`ServiceWorkerRegister.tsx` が `/sw.js` として登録する"],
     ["manifest.webmanifest", "`app/layout.tsx` の `manifest` が指す"],
     ["24a509703b1149baad8cefd5c10cd2ad.txt", "IndexNow の所有確認用の鍵ファイル。検索エンジンがこの名前の URL を直接取りに来る（`scripts/lib/indexnow.js` の KEY と同じ名前）"],
+    ["email/hero-opera-garnier.jpg", "確認コードのメール（Cognito の CustomMessage トリガー、`api/src/customMessage.ts` の `PHOTO_URL`）が公開の URL で読む。api/ はこの試験の探す場所に入っていない（`api/src/__tests__/customMessage.test.ts` がファイルの在ることを見る）"],
     ["licenses/ShipporiMinchoB1-OFL.txt", "Shippori Mincho B1 のライセンス全文をリポジトリに保管するため。フッターには表示せず、ライセンス文書として保持する"],
 ];
 
