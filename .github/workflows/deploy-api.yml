@@ -206,7 +206,7 @@ jobs:
       # **直前のコミットとの差分を取るため、履歴を全部取る。**
       # 既定の浅い取得だと `git diff <before> <after>` が引けず、
       # 毎回「辿れない」＝両方配るに落ちて節約が効かない
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -240,7 +240,7 @@ jobs:
           printf '%s' "$changed" > "$RUNNER_TEMP/changed.txt"
           node scripts/pick-deploy-targets.mjs "$RUNNER_TEMP/changed.txt"
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "26"
           cache: "npm"
@@ -294,9 +294,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "26"
           cache: "npm"
@@ -307,7 +307,7 @@ jobs:
         run: npm ci
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -386,9 +386,9 @@ jobs:
       # 鍵を読むのは Apple のスタック（サインイン・取り消し）だけ。退会（user API）は取り消しをそのスタックに頼むので、どちらでも変わらない
       APPLE_SIGNIN_KEY_SOURCE: ssm
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "26"
           cache: "npm"
@@ -399,7 +399,7 @@ jobs:
         run: npm ci
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v6
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

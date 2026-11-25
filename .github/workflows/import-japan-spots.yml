@@ -27,8 +27,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: '3.12'
       - name: Validate limit
@@ -64,7 +64,7 @@ jobs:
               f.write(f'## Japan spot import\n\n- Candidates: **{count}**\n- Status: review required\n- Output: workflow artifact\n')
           print(f'Imported {count} candidates')
           PY
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: success()
         with:
           name: japan-wikidata-spots
