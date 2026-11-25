@@ -34,6 +34,7 @@ type Init = Record<string, unknown> & { nonce: string; state?: string; callback?
 let appleInits: Init[] = [];
 let appleSignIn: Mock<() => Promise<unknown>>;
 let googleInits: Init[] = [];
+let googleRenders: Record<string, unknown>[] = [];
 let posts: { path: string; body: Record<string, unknown> }[] = [];
 let statusReply: Record<string, unknown>;
 let postReply: () => Response;
@@ -42,13 +43,14 @@ beforeEach(() => {
     localStorage.clear();
     appleInits = [];
     googleInits = [];
+    googleRenders = [];
     posts = [];
     statusReply = { apple: { available: true, webClientId: APPLE_WEB }, google: { available: true, webClientId: GOOGLE_WEB } };
     postReply = () => json(200, { username: "u-1", challengeAnswer: "google:x:y", created: false });
     appleSignIn = vi.fn(async (): Promise<unknown> => ({ authorization: { id_token: "apple.id.token", code: "c.1", state: appleInits.at(-1)!.state } }));
     (window as unknown as { AppleID: unknown }).AppleID = { auth: { init: (c: Init) => appleInits.push(c), signIn: () => appleSignIn() } };
     (window as unknown as { google: unknown }).google = {
-        accounts: { id: { initialize: (c: Init) => googleInits.push(c), renderButton: (el: HTMLElement) => { el.innerHTML = "<div role=button>Google でログイン</div>"; } } },
+        accounts: { id: { initialize: (c: Init) => googleInits.push(c), renderButton: (el: HTMLElement, o: Record<string, unknown>) => { googleRenders.push(o); el.innerHTML = "<div role=button>Google でログイン</div>"; } } },
     };
     fetchMock.mockReset().mockImplementation(async (path: string, init?: { body?: string }) => {
         const m = path.match(/^\/auth\/(apple|google)(\/status)?$/);
@@ -65,6 +67,21 @@ afterEach(() => {
 });
 
 describe("FederatedSignIn", () => {
+    it("Apple と Google は同じ形: Google は白の形（outline・丸・大 40）、Apple も白の地・高さ 40・印 18・字 14 の中太・印と字の間 8（2026-11-25 owner）", async () => {
+        render(<FederatedSignIn mode="signin" onError={vi.fn()} />);
+        const apple = await screen.findByRole("button", { name: "Apple でサインイン" });
+        await waitFor(() => expect(googleRenders.length).toBeGreaterThan(0));
+        expect(googleRenders.at(-1)).toMatchObject({ type: "standard", theme: "outline", size: "large", shape: "pill", logo_alignment: "center" });
+        const face = apple.querySelector("span")!;
+        for (const c of ["h-10", "bg-white", "text-black", "text-[14px]", "font-medium", "gap-2", "justify-center", "rounded-full", "ring-[#DADCE0]"]) {
+            expect(face.className.split(/\s+/), c).toContain(c);
+        }
+        expect(face.querySelector("svg")!.getAttribute("class")).toContain("h-[18px] w-[18px]");
+        // 部品が読めるまでの場所取りも白の形（黒の地で置いてから白に替わらない）
+        expect(screen.getByTestId("federated-google").className).toContain("min-h-10");
+    });
+
+
     it("🔴 サーバーが Web の宛先を返さない間は、何も出さない（今の画面のまま）", async () => {
         statusReply = { apple: { available: true }, google: { available: true } };
         const { container } = render(<FederatedSignIn mode="signin" onError={vi.fn()} />);
@@ -72,21 +89,21 @@ describe("FederatedSignIn", () => {
         expect(container.innerHTML).toBe("");
     });
 
-    it("宛先が返れば、Apple → Google → 「またはメールアドレスで」の順に出す。登録の頁は「Appleで登録」", async () => {
+    it("宛先が返れば、Apple → Google → 「またはメールアドレスで」の順に出す。登録の頁は「Apple で登録」", async () => {
         const { rerender } = render(<FederatedSignIn mode="signin" onError={vi.fn()} />);
-        const apple = await screen.findByRole("button", { name: "Appleでサインイン" });
+        const apple = await screen.findByRole("button", { name: "Apple でサインイン" });
         await waitFor(() => expect(googleInits).toHaveLength(1));
         const box = screen.getByTestId("federated-signin");
-        expect(box.textContent).toMatch(/Appleでサインイン.*Google でログイン.*またはメールアドレスで/);
+        expect(box.textContent).toMatch(/Apple でサインイン.*Google でログイン.*またはメールアドレスで/);
         expect(apple).toBeTruthy();
         rerender(<FederatedSignIn mode="signup" onError={vi.fn()} />);
-        expect(await screen.findByRole("button", { name: "Appleで登録" })).toBeTruthy();
+        expect(await screen.findByRole("button", { name: "Apple で登録" })).toBeTruthy();
     });
 
     it("🔴 Apple: 提供元には nonce の SHA-256・戻り先は /login・ポップアップ。押したその場で開き、サーバーには元の値を送る", async () => {
         const onError = vi.fn();
         render(<FederatedSignIn mode="signin" onError={onError} />);
-        const btn = await screen.findByRole("button", { name: "Appleでサインイン" });
+        const btn = await screen.findByRole("button", { name: "Apple でサインイン" });
         await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(false));
         const init = appleInits.at(-1)!;
         expect(init).toMatchObject({ clientId: APPLE_WEB, redirectURI: `${window.location.origin}/login`, usePopup: true, scope: "name email" });
@@ -107,7 +124,7 @@ describe("FederatedSignIn", () => {
     it("🔴 Apple: state が違う答えはサーバーに送らない。ポップアップを閉じただけなら文を出さない", async () => {
         const onError = vi.fn();
         render(<FederatedSignIn mode="signin" onError={onError} />);
-        const btn = await screen.findByRole("button", { name: "Appleでサインイン" });
+        const btn = await screen.findByRole("button", { name: "Apple でサインイン" });
         await waitFor(() => expect((btn as HTMLButtonElement).disabled).toBe(false));
         appleSignIn.mockResolvedValueOnce({ authorization: { id_token: "t", state: "other" } });
         act(() => { fireEvent.click(btn); });
@@ -158,7 +175,7 @@ describe("FederatedSignIn", () => {
 
     it("前に見た答えを覚え、次に開いたときは最初から出す。届かなかった回は控えを消さない", async () => {
         render(<FederatedSignIn mode="signin" onError={vi.fn()} />);
-        await screen.findByRole("button", { name: "Appleでサインイン" });
+        await screen.findByRole("button", { name: "Apple でサインイン" });
         await waitFor(() => expect(localStorage.getItem("jp.federatedWebIds.v1")).toContain(APPLE_WEB));
         fetchMock.mockImplementation(async () => { throw new TypeError("offline"); });
         const { unmount } = render(<FederatedSignIn mode="signin" onError={vi.fn()} />);

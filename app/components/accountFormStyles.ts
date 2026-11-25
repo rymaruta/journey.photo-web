@@ -33,3 +33,10 @@ export const AUTH_TEXT_BUTTON_CLASS =
     "inline-flex items-center min-h-[44px] text-[13px] text-white/70 hover:text-white transition-colors disabled:opacity-40";
 /** 欄の下の注記（12・白60%） */
 export const AUTH_CAPTION_CLASS = "m-0 text-xs leading-relaxed text-white/60";
+
+/**
+ * ログインと登録の本文の頭（写真の帯の上からロゴまで）。390×844 では iOS と同じ 142、背の低い画面ほど詰めて最小 96
+ * （2026-11-25 owner の写真: iPhone の Safari は上下の帯で見える高さが約 664 しかなく、欄とログインのボタンが下のタブに隠れていた）。
+ * 見える高さ（`svh`＝Safari の帯が出ているときの高さ）− 702 で、844 で 142・798 以下で 96
+ */
+export const AUTH_TOP_PAD_CLASS = "pt-[clamp(96px,calc(100svh_-_702px),142px)]";
