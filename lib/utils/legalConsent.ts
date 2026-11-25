@@ -11,7 +11,8 @@
  */
 
 /** 規約を変えたら上げる。上げると全員にもう一度出る（iOS の `currentVersion` と揃える） */
-export const LEGAL_CONSENT_VERSION = 1;
+// 2026-11-25: 2 に上げた（規約に「不適切な投稿といやがらせは一切許さない」を足した・App Store の審査 1.2・journey.photo-ios#604）
+export const LEGAL_CONSENT_VERSION = 2;
 
 /** iOS の `UserDefaults` のキーと同じ名前 */
 export const LEGAL_CONSENT_KEY = "legal.consent.version";

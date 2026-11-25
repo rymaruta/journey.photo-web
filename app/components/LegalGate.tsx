@@ -71,8 +71,9 @@ export default function LegalGate() {
         },
         {
             Icon: ShieldCheckIcon,
-            ja: "いやがらせ・わいせつ・権利を侵す投稿は認めません。見つけたら各写真から通報でき、相手をブロックできます。",
-            en: "Harassment, sexual content and posts that infringe rights are not allowed. You can report any photo and block its poster.",
+            // 2026-11-25（App Store の審査 1.2・journey.photo-ios#604）: iOS の `LegalGateText.zeroTolerance` と同じ中身
+            ja: "不適切な投稿や、ほかの人へのいやがらせは一切許しません。違反した投稿は削除し、投稿した人の利用を止めます。見つけたら、写真やコメント、プロフィールから通報やブロックができます。",
+            en: "We have zero tolerance for objectionable content and abusive users. Posts that break these rules are removed, and the people who posted them are banned. You can report or block from any photo, comment or profile.",
         },
         {
             Icon: LockClosedIcon,
@@ -124,7 +125,7 @@ export default function LegalGate() {
                         className={`${BTN_FILL} mt-5 w-full bg-accent-fill text-ink hover:brightness-110 active:scale-[0.98] transition`}
                         style={{ touchAction: "manipulation" }}
                     >
-                        {isJa ? "同意してはじめる" : "Agree and continue"}
+                        {isJa ? "利用規約に同意してはじめる" : "Agree to the Terms and continue"}
                     </button>
                 </div>
             </div>
