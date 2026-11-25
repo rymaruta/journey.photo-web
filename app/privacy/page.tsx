@@ -29,7 +29,9 @@ import { appItunes, siteConfig, shareOgImage } from "@/lib/utils/seo";
 // 11節のログの保存期間（90日）は `api/serverless.yml`・`api-user/serverless.yml` の
 // `logRetentionInDays`（photo-gallery #397）。Lambda@Edge（OGP）のログは CloudFormation の外で
 // 期限が付いていないので、「全部が90日」とは書かない（`scripts/__tests__/logRetention.test.ts` の注記）。
-const LAST_UPDATED = "2026年11月20日";
+// （2026-11-25・journey.photo-ios #601・#696: Apple でサインインと Google でログインで受け取る情報。owner 承認 2026-11-25「いいよ」。
+//   承認された文なので、言い回しは変えないこと）
+const LAST_UPDATED = "2026年11月25日";
 
 export const metadata: Metadata = {
     // サイト名は `app/layout.tsx` の `template` が付ける。ここでも足すと
@@ -97,6 +99,9 @@ export default function PrivacyPage() {
                     <p className="pt-1"><strong className="text-white/90">アカウント登録・写真投稿をされる方から取得する情報</strong></p>
                     <ul className="list-disc pl-5 space-y-1">
                         <li>メールアドレス、パスワード（認証基盤である Amazon Cognito が管理します。当サイトはパスワードを保持しません）</li>
+                        <li>Apple でサインイン、または Google でログインを使うと、その会社から、アカウントを見分ける番号と、メールアドレス、名前（Apple は初めての時だけ。Apple の「メールを非公開」を選んだ場合は、Apple の転送用のアドレス）を受け取ります。当サイトは、この番号を利用者IDと結び付けて保存します。パスワードは受け取りません。</li>
+                        <li>Apple でサインインでは、退会のときに連携を取り消すため、Apple から受け取る更新用の鍵を保存し、退会のときに Apple に取り消しを頼みます。Google からは、更新用の鍵を受け取りません。</li>
+                        <li>メールアドレスが同じアカウントと自動で結んだときは、そのアカウントに通知でお知らせします。連携は「サインインの方法」から解除できます。</li>
                         <li>プロフィール情報（表示名、ユーザー名、自己紹介、居住地、外部リンクなど、ご自身で入力された内容）</li>
                         <li>投稿された写真、およびタイトル・説明・撮影地・タグなど、ご自身で入力された情報</li>
                         <li>写真から読み取った撮影情報（カメラ・レンズ・絞り・ISO・撮影日時など）</li>
@@ -464,9 +469,10 @@ export default function PrivacyPage() {
                             （残すのは、日と月の利用回数と、利用料金の見積もりの数字だけです）。
                             端末の中の AI（Apple Intelligence）を使える iPhone では、端末の中で処理し、文を送りません（利用回数だけを数えます）
                         </li>
+                        <li><strong className="text-white/90">Google</strong> — Google でログイン</li>
                         <li><strong className="text-white/90">Google アナリティクス</strong> — アクセス解析（ウェブサイトのみ）</li>
                         <li><strong className="text-white/90">OpenStreetMap（Nominatim）</strong> — 撮影地名の解決と撮影地の候補の検索（座標は約1kmに丸めた値、または入力した語のみ送信）</li>
-                        <li><strong className="text-white/90">Apple</strong> — App Store（Pro の購入と取引の確認）、プッシュ通知（APNs）、天気予報（WeatherKit。観光スポットの座標のみ送信）、曲の検索（検索した語のみ送信）。アプリでは、旅やすれちがいの場所の名前を調べるために、約1kmに丸めた位置を Apple の地図サービスに渡します</li>
+                        <li><strong className="text-white/90">Apple</strong> — Apple でサインイン、App Store（Pro の購入と取引の確認）、プッシュ通知（APNs）、天気予報（WeatherKit。観光スポットの座標のみ送信）、曲の検索（検索した語のみ送信）。アプリでは、旅やすれちがいの場所の名前を調べるために、約1kmに丸めた位置を Apple の地図サービスに渡します</li>
                     </ul>
                     <p>次のものは、当サイトのサーバーを通さず、閲覧している方のブラウザが直接つなぎます。そのため、閲覧している方の IP アドレスなどが各社に届きます。</p>
                     <ul className="list-disc pl-5 space-y-1">
