@@ -242,7 +242,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: "npm"
           # 3つのロックを全部キーにする。ルートだけだと、下で足した
           # api / api-user の依存が毎回ダウンロードし直しになる
@@ -269,6 +269,13 @@ jobs:
         working-directory: api-user
       - name: Run backend tests
         run: npx vitest run api api-user
+      # **api・api-user の型も確かめる**（2026-11-25・札 journey.photo-ios#733）。
+      # Lambda は esbuild が束ねるので、型の誤りがあっても配れてしまう。TypeScript 6 へ上げたとき、
+      # ここで流していなかったので api 11 件・api-user 147 件の誤りが溜まっていた
+      - name: Typecheck backend
+        run: |
+          npx tsc -p api
+          npx tsc -p api-user
 
       # **配る前に、スタックの部品の数を数える**（札 journey.photo-ios#552 の①）。
       # 2026-11-12 に user API が 503 個になり、配る段で CloudFormation に断られた（上限 500）。
@@ -291,7 +298,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: "npm"
           cache-dependency-path: api/package-lock.json
 
@@ -354,7 +361,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version: "26"
           cache: "npm"
           cache-dependency-path: api-user/package-lock.json
 

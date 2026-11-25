@@ -77,7 +77,7 @@ npm install --ignore-scripts
 
 # ビルド
 node_modules/.bin/esbuild src/index.ts \
-  --bundle --platform=node --target=node22 --minify \
+  --bundle --platform=node --target=node26 --minify \
   --outfile=dist/index.js --external:"@aws-sdk/*"
 
 # ZIPパッケージ作成
@@ -102,7 +102,7 @@ aws lambda update-function-configuration \
 # Lambda作成
 aws lambda create-function \
   --function-name photo-gallery-user-api-prod \
-  --runtime nodejs22.x \
+  --runtime nodejs26.x \
   --role arn:aws:iam::<account-id>:role/photo-gallery-api-prod-ap-northeast-1-lambdaRole \
   --handler index.handler \
   --zip-file fileb://user-api.zip \

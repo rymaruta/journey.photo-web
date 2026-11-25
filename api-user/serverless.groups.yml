@@ -19,7 +19,7 @@ plugins:
 
 provider:
   name: aws
-  runtime: nodejs22.x
+  runtime: nodejs26.x
   region: ap-northeast-1
   # user API と同じ（`scripts/__tests__/logRetention.test.ts`）
   logRetentionInDays: 90
@@ -97,7 +97,7 @@ custom:
     bundle: true
     minify: true
     sourcemap: false
-    target: node22
+    target: node26
     platform: node
     exclude:
       - '@aws-sdk/*'
