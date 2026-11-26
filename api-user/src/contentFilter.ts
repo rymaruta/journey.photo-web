@@ -24,7 +24,7 @@ const KATA_START = 0x30a1;
 const KATA_END = 0x30f6;
 
 /** 見えない字（ゼロ幅・方向制御・ソフトハイフン）と制御文字 */
-const INVISIBLE_OR_CONTROL = /[\u0000-\u001F\u007F-\u009F­​-‏‪-‮⁠-⁩﻿]/g;
+const INVISIBLE_OR_CONTROL = /[\u0000-\u001F\u007F-\u009F\u00AD\u200B-\u200F\u202A-\u202E\u2060-\u2069\uFEFF]/g;
 
 /** 形をそろえる（小文字・NFKC・カタカナ→ひらがな・見えない字を落とす） */
 export function normalize(s: string): string {
