@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { BatchGetCommand, DeleteCommand, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "node:crypto";
@@ -729,6 +730,9 @@ async function create(me: string, body: Record<string, unknown>) {
     if (!targets || targets.length < 2) return jsonError(400, "2人以上を選んでください", "badRequest");
     if (targets.length > GROUP_MEMBERS_MAX - 1) return jsonError(403, `グループは${GROUP_MEMBERS_MAX}人までです`, "full");
     const name = body.name === undefined || body.name === null ? undefined : sanitizeText(body.name, GROUP_NAME_MAX);
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejectedName = rejectBlockedText(name);
+    if (rejectedName) return rejectedName;
     const mineNow = await readJoined(me);
     if (mineNow.list.length >= GROUPS_JOINED_MAX) {
         return jsonError(403, `入れるグループは${GROUPS_JOINED_MAX}個までです。使わないグループから抜けてください`, "joinedFull");
@@ -895,6 +899,9 @@ async function send(me: string, groupId: string, body: Record<string, unknown>) 
     const text = cleanMultilineText(body.text, GROUP_TEXT_MAX);
     const photoId = body.photoId === undefined || body.photoId === null ? undefined : isPhotoId(body.photoId) ? body.photoId : null;
     if (photoId === null) return jsonError(400, "不正なリクエスト", "badRequest");
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejected = rejectBlockedText(text);
+    if (rejected) return rejected;
     if (!text && !photoId) return jsonError(400, "メッセージを入力してください", "empty");
     let msgId = isMessageId(body.id) ? body.id : undefined;
     const r = await readMembers(groupId);
@@ -990,6 +997,9 @@ async function update(me: string, groupId: string, body: Record<string, unknown>
     if (wantsName && body.name !== null && typeof body.name !== "string") return jsonError(400, "不正なリクエスト", "badRequest");
     if (wantsName) {
         const name = typeof body.name === "string" ? sanitizeText(body.name, GROUP_NAME_MAX) : undefined;
+        // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+        const rejectedName = rejectBlockedText(name);
+        if (rejectedName) return rejectedName;
         // 🔴 名前を変えると全員の会話に1行が出る（送るのと同じ重さ）。**送る 1日 300 通（`groupSent`）に1通として数える**。
         // 新しい欄を作らない（承認された欄は2つだけ）・別の回数を覚えさせない。同じ名前なら数えない
         const before = await readSummary(groupId);

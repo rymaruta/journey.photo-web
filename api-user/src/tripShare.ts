@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2, APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { BatchGetCommand, DeleteCommand, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, PHOTOS_TABLE } from "./dynamodb";
@@ -319,6 +320,9 @@ async function sendChat(me: string, planId: string, body: Record<string, unknown
     // 字数はプランの会話の上限（DM と同じ 500 字だが、DM の値に寄りかからない・2026-11-12 指摘10）
     const text = cleanMultilineText(body.text, TRIP_CHAT_TEXT_MAX);
     if (!text) return jsonError(400, "メッセージを入力してください");
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejected = rejectBlockedText(text);
+    if (rejected) return rejected;
     const row = await readSharedTrip(planId, true);
     if (!row || !isTripMember(row, me)) return notFound();
     // 1日に送れる数（DM の歯止めの仕組みを使い回す・2026-11-12 指摘6）。仲間かを見てから数える（外の人に数を進めさせない）

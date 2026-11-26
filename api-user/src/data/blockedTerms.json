@@ -1,0 +1,28 @@
+{
+  "_note": "利用者が書いて他人に見える文に使わせない言葉（App Store の審査 1.2）。読み込むときに contentFilter.ts の normalize（NFKC で全角半角をそろえる・小文字・カタカナをひらがなへ）を通すので、ここは読みやすい形で書いてよい。ja は空白と記号を除いた文の中の部分一致、en は単語（と単語の並び）で当てる。allow は ja の語を含むふつうの語で、当てる前に伏せる。ふつうの語に含まれやすい短い語（しね・氏ね・ブス・ホモ・オカマ・チョン・シナ人・ニガー・ガイジ・クンニ・基地外・池沼・土人、英語の porn・rape・fag など）は、地名・食べ物・日常の言い回し（わたしね・おかしな人・にがーい・〜くんに・ホモ牛乳・お釜・food porn・rape blossom）で当たるので入れていない。足したら contentFilter.test.ts の『ふつうの文』を流す。",
+  "ja": [
+    "死ね", "死んでしまえ", "死んでください", "しんでしまえ",
+    "消えろ", "自殺しろ", "自害しろ", "首吊れ", "首つれ", "くびつれ", "首を吊れ",
+    "殺すぞ", "殺してやる", "殺したる", "ぶっ殺", "ぶっころ", "ころすぞ", "ころしてやる", "ぶち殺",
+    "刺すぞ", "刺してやる", "燃やすぞ", "住所晒", "住所さらす", "晒してやる",
+    "生きる価値ない", "生きる価値がない", "生きてる価値ない", "ゴミ人間", "クズ人間", "人間のクズ",
+    "キチガイ", "気違い", "気狂い",
+    "ジャップ", "チョンコ", "支那人", "朝鮮人は死", "韓国人は死", "中国人は死",
+    "おまんこ", "まんこ見", "ちんこ", "ちんぽ", "フェラチオ", "レイプ", "強姦",
+    "ヤリマン", "ヤリチン", "ハメ撮り", "中出し", "パイズリ", "手コキ", "援交", "援助交際", "パパ活",
+    "セックスしよ", "犯すぞ", "犯してやる"
+  ],
+  "en": [
+    "fuck", "fucks", "fucked", "fucker", "fuckers", "fucking", "fuckin", "fck", "fuk", "motherfucker", "motherfucking",
+    "cunt", "cunts", "whore", "whores", "slut", "sluts", "bitch", "bitches", "dickhead", "asshole", "assholes",
+    "porno", "blowjob", "handjob", "dildo", "raped", "rapist", "nudes",
+    "nigger", "niggers", "nigga", "niggas", "faggot", "faggots", "retard", "retarded", "tranny", "kike", "spic", "chink", "gook", "wetback", "jap", "japs",
+    "kys", "kill yourself", "kill urself", "go die", "hang yourself", "i will kill you", "ill kill you", "i'll kill you", "im going to kill you", "i am going to kill you", "i will rape you",
+    "you should die", "nobody likes you"
+  ],
+  "allow": [
+    "ぱちんこ", "ちんこう", "ちんこん", "ちんこく", "ちんこつ", "ちんこぶ",
+    "ぐれいぷ", "ぷれいぷ", "とれいぷ",
+    "ゆきちがい", "いきちがい"
+  ]
+}

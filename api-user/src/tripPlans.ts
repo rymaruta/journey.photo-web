@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { randomUUID } from "crypto";
 import { JSON_HEADERS, getUserId, jsonError } from "./http";
@@ -293,6 +294,9 @@ export const createTrip: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
     const body = parseBody(event);
     if (!body) return jsonError(400, "不正なリクエスト");
 
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）。題と日程のメモ（共有すると仲間に見える）
+    const rejectedText = rejectBlockedText(body.title, body.days);
+    if (rejectedText) return rejectedText;
     const title = sanitizeText(body.title, TRIP_TITLE_MAX);
     if (!title) return jsonError(400, "タイトルを入力してください");
 
@@ -336,6 +340,10 @@ export const updateTrip: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (even
     if (!planId) return jsonError(400, "プランの指定が不正です");
     const body = parseBody(event);
     if (!body) return jsonError(400, "不正なリクエスト");
+
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）。共有したプランの直しもこの口を通る
+    const rejectedText = rejectBlockedText(body.title, body.days);
+    if (rejectedText) return rejectedText;
 
     // **題は「送ってきたのに読めない」を黙って通さない。**
     // 送っていない（`undefined`）ときだけ触らない

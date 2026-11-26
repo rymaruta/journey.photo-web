@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { ScanCommand, QueryCommand, PutCommand, GetCommand, UpdateCommand, DeleteCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { randomUUID } from "crypto";
@@ -368,6 +369,10 @@ export const createStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     } catch {
         return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "不正なリクエスト" }) };
     }
+
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）。写真の上の文字・投票・質問・ひとこと・撮影地
+    const rejectedText = rejectBlockedText(body.texts, body.caption, body.location);
+    if (rejectedText) return rejectedText;
 
     const publicUrl = (body.publicUrl ?? "").trim();
     if (!publicUrl) {

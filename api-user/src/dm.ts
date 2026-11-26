@@ -1,3 +1,4 @@
+import { containsBlockedText, CONTENT_REJECTED_CODE, CONTENT_REJECTED_MESSAGE } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { GetCommand, PutCommand, UpdateCommand, DeleteCommand, BatchGetCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
@@ -373,6 +374,8 @@ export async function sendDm(inp: SendInput): Promise<SendOk | SendFail> {
     const photoId = inp.photoId === undefined || inp.photoId === null ? undefined : isPhotoId(inp.photoId) ? inp.photoId : null;
     if (photoId === null) return fail(400, "不正なリクエスト", "badRequest");
     if (!text && !photoId) return fail(400, "メッセージを入力してください", "empty");
+    // ひどい言葉は送らない（App Store 1.2・`contentFilter.ts`）。ストーリー返信の写しも同じ門を通る
+    if (text && containsBlockedText(text)) return fail(400, CONTENT_REJECTED_MESSAGE, CONTENT_REJECTED_CODE);
     const msgId = typeof inp.id === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(inp.id) ? inp.id : uuidv4();
 
     // **ブロックされていたら 404**（ブロックと分かる応答は返さない）。自分がブロックした相手には、

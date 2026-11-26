@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { UpdateCommand, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, PHOTOS_TABLE } from "./dynamodb";
@@ -143,6 +144,9 @@ export const updatePhotoVisibility: APIGatewayProxyHandlerV2WithJWTAuthorizer = 
         return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "不正なリクエスト" }) };
     }
 
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）。送られた文の項目だけを見る
+    const rejectedText = rejectBlockedText(body.title, body.description, body.location, body.category, body.tags);
+    if (rejectedText) return rejectedText;
     const hasPublished = typeof body.published === "boolean";
     const hasAudience = "audience" in body;
     const hasSong = "song" in body;
