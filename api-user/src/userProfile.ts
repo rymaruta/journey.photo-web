@@ -618,11 +618,6 @@ export const updateMyProfile: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
 
     const displayName = truncate(body.displayName?.trim() ?? "", 100) || undefined;
     const bio = truncate(body.bio?.trim() ?? "", 300) || undefined;
-    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）。名前・@ユーザー名・自己紹介・ひとこと・拠点・旅の題
-    {
-        const rejected = rejectBlockedText(body.displayName, body.username, body.bio, body.statusText, body.homeLocation, body.tripTitles);
-        if (rejected) return rejected;
-    }
     const instagram = body.instagram?.trim().slice(0, 100) || undefined;
     const website = body.website?.trim().slice(0, 200) || undefined;
     // **実行できるスキームを保存しない。**
@@ -983,6 +978,26 @@ export const updateMyProfile: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
             // 読みだけでなく書きも塞ぐ。mergeProfile は prev が無ければ
             // 新しい姿を組むので、ここを通すと保存で行が生き返る。
             return { statusCode: 410, headers: JSON_HEADERS, body: JSON.stringify({ error: "このアカウントは削除されています" }) };
+        }
+
+        // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）。名前・@ユーザー名・自己紹介・ひとこと・拠点・旅の題。
+        // **変えた項目だけを見る**——画面は保存のたびに全部の項目を送るので、保存済みの文で断ると、
+        // 「検索エンジンに表示しない」のような関係の無い保存まで止まる。ユーザー名を押さえる（書く）前に見る
+        {
+            const prevRow = (prev ?? {}) as Record<string, unknown>;
+            const changedText: unknown[] = ["username", "displayName", "bio", "statusText", "homeLocation"]
+                .filter((k) => k in changes && changes[k] !== prevRow[k])
+                .map((k) => changes[k]);
+            // 旅の題は旅ごと（1つ足しただけの保存で、前からある題まで見直さない）
+            const prevTrips = (prevRow.tripTitles ?? {}) as Record<string, unknown>;
+            const nextTrips = changes.tripTitles;
+            if (nextTrips && typeof nextTrips === "object") {
+                for (const [trip, t] of Object.entries(nextTrips as Record<string, unknown>)) {
+                    if (t !== prevTrips[trip]) changedText.push(t);
+                }
+            }
+            const rejected = rejectBlockedText(...changedText);
+            if (rejected) return rejected;
         }
 
         // 上の (c): 全部が「許可ホストでない」だけで、件数が減っている。
