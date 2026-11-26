@@ -20,6 +20,7 @@
  * 「取り消された」と「そもそも無い」の区別を返せない。
  */
 
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer, APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { randomUUID } from "node:crypto";
 import { GetCommand, PutCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
@@ -145,6 +146,9 @@ export const createAlbum: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     }
     const title = sanitizeText(body.title, ALBUM_TITLE_MAX);
     if (!title) return jsonError(400, "アルバムの名前を入れてください");
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejectedTitle = rejectBlockedText(title);
+    if (rejectedTitle) return rejectedTitle;
 
     const existing = await listOwnAlbumIds(userId);
     // **上限は「作る前」に見る。** 作ってから一覧に入れられないと、
@@ -590,6 +594,9 @@ export const renameAlbum: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     }
     const title = sanitizeText(body.title, ALBUM_TITLE_MAX);
     if (!title) return jsonError(400, "アルバムの名前を入れてください");
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejectedTitle = rejectBlockedText(title);
+    if (rejectedTitle) return rejectedTitle;
 
     try {
         await ddb.send(new UpdateCommand({
