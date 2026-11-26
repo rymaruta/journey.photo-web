@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -315,6 +316,9 @@ export const savePhoto: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (event
     }
 
     const { key, publicUrl, title, description, location, category, tags, exif, coords, dominantColor, thumbUrl, blurDataURL } = body;
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）。下書きも見る（あとで公開に切り替えられる）
+    const rejectedText = rejectBlockedText(title, description, location, category, tags);
+    if (rejectedText) return rejectedText;
     // **共同アルバムに入れるなら、メンバーかどうかをここで確かめる。**
     // ここを通さずに `albumId` を保存できると、**誰でも他人のアルバムに
     // 写真を差し込める**（アルバムの ID は招待を受けた人なら知っている）。

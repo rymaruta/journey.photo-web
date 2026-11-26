@@ -10,7 +10,7 @@ import { ROUTES } from "@/lib/routes";
 //   ストーリー24時間 api-user/src/stories.ts の STORY_TTL_MS
 //   受け付ける形式  api-user/src/uploadPolicy.ts の ALLOWED_*_TYPES
 // 内容を変えたときは「最終更新日」も必ず更新すること。
-const LAST_UPDATED = "2026年11月25日";
+const LAST_UPDATED = "2026年11月26日";
 
 export const metadata: Metadata = {
     // サイト名は `app/layout.tsx` の `template` が付ける（privacy と同じ理由でここでは足さない）
@@ -64,8 +64,8 @@ export default function TermsPage() {
 
                 <Section title="2. アカウント">
                     <ul className="list-disc pl-5 space-y-1">
-                        <li>写真を投稿するには、メールアドレスでのアカウント登録が必要です。閲覧だけであれば登録は要りません。</li>
-                        <li>パスワードの管理はご自身の責任でお願いします。心当たりのない利用に気づいた場合は、設定から「すべての端末からログアウト」を行い、パスワードを変更してください。</li>
+                        <li>写真を投稿するには、アカウントの登録が必要です。メールアドレスのほか、「Apple でサインイン」や「Google でログイン」でも登録できます。閲覧だけであれば登録は要りません。</li>
+                        <li>パスワードや、ログインに使う Apple や Google のアカウントの管理は、ご自身の責任でお願いします。心当たりのない利用に気づいた場合は、設定から「すべての端末からログアウト」を行い、パスワード（Apple や Google でログインしている場合はそのアカウントのパスワード）を変更してください。</li>
                         <li>1つのアカウントを複数人で共有しないでください。</li>
                         <li>アカウントはいつでもご自身で削除できます（設定の「退会」）。退会すると、投稿した写真・コメント・プロフィールは削除されます。</li>
                     </ul>

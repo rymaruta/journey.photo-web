@@ -14,6 +14,7 @@
  * - CUSTOM_AUTH の使い捨ての券（`issueTicket`・`consumeTicket`）
  * - 退会のときの取り消しと結び付けの片付け（`revokeLinkedTokens`・`unlinkAfterDelete`。`account.ts` が呼ぶ）
  */
+import { containsBlockedText } from "./contentFilter";
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import {
     AdminAddUserToGroupCommand, AdminCreateUserCommand, AdminDeleteUserCommand, AdminGetUserCommand,
@@ -140,6 +141,8 @@ export function cleanDisplayName(raw: unknown): string | undefined {
     if (typeof raw !== "string") return undefined;
     const s = raw.replace(/[\u0000-\u001f\u007f]/g, " ").replace(/\s+/g, " ").trim();
     if (!s) return undefined;
+    // ひどい言葉の名前は付けない（App Store 1.2・`contentFilter.ts`）。ログインは止めず、名前だけ持たない
+    if (containsBlockedText(s)) return undefined;
     return [...s].slice(0, DISPLAY_NAME_MAX).join("");
 }
 

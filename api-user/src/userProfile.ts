@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer, APIGatewayProxyHandlerV2 } from "aws-lambda";
 import { DynamoDBClient, GetItemCommand, PutItemCommand, DeleteItemCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
@@ -617,6 +618,11 @@ export const updateMyProfile: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
 
     const displayName = truncate(body.displayName?.trim() ?? "", 100) || undefined;
     const bio = truncate(body.bio?.trim() ?? "", 300) || undefined;
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）。名前・@ユーザー名・自己紹介・ひとこと・拠点・旅の題
+    {
+        const rejected = rejectBlockedText(body.displayName, body.username, body.bio, body.statusText, body.homeLocation, body.tripTitles);
+        if (rejected) return rejected;
+    }
     const instagram = body.instagram?.trim().slice(0, 100) || undefined;
     const website = body.website?.trim().slice(0, 200) || undefined;
     // **実行できるスキームを保存しない。**
