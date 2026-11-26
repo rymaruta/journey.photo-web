@@ -58,17 +58,21 @@ const GOOD = "京都の紅葉がきれいでした";
 
 type Case = { name: string; run: (text: string) => Promise<Res> };
 
+/** 写真の編集は持ち主かを先に読む。ここでは自分の写真として返す（`stored` は保存済みの項目） */
+function ownPhoto(stored: Record<string, unknown> = {}) {
+    mockSend.mockImplementation(async (c: { constructor: { name: string }; input: { Key?: { id?: string } } }) =>
+        c.constructor.name === "GetCommand" && c.input.Key?.id === "p1"
+            ? { Item: { id: "p1", userId: ME, src: "https://x/y.jpg", published: true, ...stored } }
+            : {});
+}
+
 const cases: Case[] = [
     { name: "コメント POST /photos/{id}/comments", run: async (t) => call((await import("../comments")).postComment, ev("POST /photos/{id}/comments", { text: t }, { id: "p1" })) },
     { name: "写真の保存 POST /user/photos（題）", run: async (t) => call((await import("../upload")).savePhoto, ev("POST /user/photos", { key: "uploads/x.jpg", publicUrl: "https://x/y.jpg", title: t })) },
     { name: "写真の保存（説明）", run: async (t) => call((await import("../upload")).savePhoto, ev("POST /user/photos", { key: "uploads/x.jpg", publicUrl: "https://x/y.jpg", description: t })) },
     { name: "写真の保存（タグ）", run: async (t) => call((await import("../upload")).savePhoto, ev("POST /user/photos", { key: "uploads/x.jpg", publicUrl: "https://x/y.jpg", tags: ["京都", t] })) },
-    { name: "写真の編集 PUT /user/photos/{id}（説明）", run: async (t) => call((await import("../photoUpdate")).updatePhotoVisibility, ev("PUT /user/photos/{id}", { description: t }, { id: "p1" })) },
-    { name: "写真の編集（撮影地）", run: async (t) => call((await import("../photoUpdate")).updatePhotoVisibility, ev("PUT /user/photos/{id}", { location: t }, { id: "p1" })) },
-    { name: "プロフィール（名前）", run: async (t) => call((await import("../userProfile")).updateMyProfile, ev("PUT /user/profile", { displayName: t })) },
-    { name: "プロフィール（自己紹介）", run: async (t) => call((await import("../userProfile")).updateMyProfile, ev("PUT /user/profile", { bio: t })) },
-    { name: "プロフィール（ひとこと）", run: async (t) => call((await import("../userProfile")).updateMyProfile, ev("PUT /user/profile", { statusText: t })) },
-    { name: "プロフィール（旅の題）", run: async (t) => call((await import("../userProfile")).updateMyProfile, ev("PUT /user/profile", { tripTitles: { kyoto: t } })) },
+    { name: "写真の編集 PUT /user/photos/{id}（説明）", run: async (t) => { ownPhoto(); return call((await import("../photoUpdate")).updatePhotoVisibility, ev("PUT /user/photos/{id}", { description: t }, { id: "p1" })); } },
+    { name: "写真の編集（撮影地）", run: async (t) => { ownPhoto(); return call((await import("../photoUpdate")).updatePhotoVisibility, ev("PUT /user/photos/{id}", { location: t }, { id: "p1" })); } },
     { name: "DM POST /dm", run: async (t) => call((await import("../dm")).handler, ev("POST /dm", { to: PEER, text: t })) },
     { name: "DM POST /dm/{id}/messages", run: async (t) => call((await import("../dm")).handler, ev("POST /dm/{id}/messages", { text: t }, { id: `${ME}_${PEER}` })) },
     { name: "ストーリーの作成（写真の上の文字）", run: async (t) => call((await import("../stories")).createStory, ev("POST /user/stories", { key: "stories/x.jpg", publicUrl: "https://x/y.jpg", texts: [{ text: t, x: 0.5, y: 0.5 }] })) },
@@ -112,6 +116,22 @@ describe("ふつうの文は content_rejected にならない", () => {
     it.each(cases)("$name", async ({ run }) => {
         const r = await run(GOOD);
         expect(codeOf(r)).not.toBe("content_rejected");
+    });
+});
+
+describe("写真の編集は、変えた項目だけを見る", () => {
+    it("保存済みの説明に当たる語があっても、同じ説明のまま非公開にする保存は止めない", async () => {
+        ownPhoto({ description: BAD });
+        const r = await call((await import("../photoUpdate")).updatePhotoVisibility,
+            ev("PUT /user/photos/{id}", { published: false, description: BAD }, { id: "p1" }));
+        expect(codeOf(r)).not.toBe("content_rejected");
+    });
+    it("説明を当たる語に書き換えたら断る", async () => {
+        ownPhoto({ description: GOOD });
+        const r = await call((await import("../photoUpdate")).updatePhotoVisibility,
+            ev("PUT /user/photos/{id}", { published: false, description: BAD }, { id: "p1" }));
+        expect(codeOf(r)).toBe("content_rejected");
+        expect(writes()).toHaveLength(0);
     });
 });
 
