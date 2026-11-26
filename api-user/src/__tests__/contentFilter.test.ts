@@ -22,7 +22,7 @@ describe("normalize", () => {
         expect(normalize("ｷﾁｶﾞｲ")).toBe("きちがい");
     });
     it("見えない字を落とす", () => {
-        expect(normalize("死​ね")).toBe("死ね");
+        expect(normalize("死\u200Bね")).toBe("死ね");
     });
 });
 
@@ -43,7 +43,7 @@ describe("一覧の語は全部当たる", () => {
 
 describe("書き方を変えても当たる", () => {
     it.each([
-        "死ね", "死 ね", "死・ね", "死　ね", "死​ね",
+        "死ね", "死 ね", "死・ね", "死　ね", "死\u200Bね",
         "ｷﾁｶﾞｲ", "きちがい", "キチガイ",
         "ＦＵＣＫ ＹＯＵ", "Fuck", "F*U*C*K? no: fuck!!", "fuckkkk", "f u c k は当たらないが fucking は当たる",
         "a$$hole", "b1tch", "sh1t head nigg4",
