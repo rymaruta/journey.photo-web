@@ -1225,5 +1225,174 @@
    "https://www.wikidata.org/wiki/Q85159020",
    "https://www.city.sado.niigata.jp/site/museum/457.html"
   ]
+ },
+ {
+  "slug": "miyagase-dam",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%AE%AE%E3%83%B6%E7%80%AC%E3%83%80%E3%83%A0",
+   "https://www.ktr.mlit.go.jp/sagami/",
+   "https://www.ktr.mlit.go.jp/sagami/sagami00623.html"
+  ]
+ },
+ {
+  "slug": "shiga-kogen",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%BF%97%E8%B3%80%E9%AB%98%E5%8E%9F",
+   "https://www.wikidata.org/wiki/Q1532916",
+   "https://www.shigakogen.gr.jp/",
+   "https://www.shigakogen.gr.jp/area/index.html",
+   "https://www.shigakogen.gr.jp/shigabr.html"
+  ]
+ },
+ {
+  "slug": "niutsuhime-jinja",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%B8%B9%E7%94%9F%E9%83%BD%E6%AF%94%E5%A3%B2%E7%A5%9E%E7%A4%BE",
+   "https://www.wikidata.org/wiki/Q705154",
+   "https://niutsuhime.or.jp/",
+   "https://niutsuhime.or.jp/about/",
+   "https://niutsuhime.or.jp/about/map/"
+  ]
+ },
+ {
+  "slug": "yusuhara-hachimangu",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%9F%9E%E5%8E%9F%E5%85%AB%E5%B9%A1%E5%AE%AE",
+   "https://www.wikidata.org/wiki/Q195715",
+   "https://oita-yusuhara.com/",
+   "https://oita-yusuhara.com/map/"
+  ]
+ },
+ {
+  "slug": "ukujima",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%AE%87%E4%B9%85%E5%B3%B6",
+   "https://www.wikidata.org/wiki/Q11449014",
+   "https://www.ukujima.com/",
+   "https://www.ukujima.com/guide.html",
+   "https://www.ukujima.com/convention.html"
+  ]
+ },
+ {
+  "slug": "amagasaki-castle",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%B0%BC%E5%B4%8E%E5%9F%8E",
+   "https://www.wikidata.org/wiki/Q11464946",
+   "https://amagasaki-castle.jp/",
+   "https://amagasaki-castle.jp/history/"
+  ]
+ },
+ {
+  "slug": "keta-jinja-takaoka",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%B0%97%E5%A4%9A%E7%A5%9E%E7%A4%BE",
+   "https://www.wikidata.org/wiki/Q11548073",
+   "https://ketaweb.net/",
+   "https://ketaweb.net/about/"
+  ]
+ },
+ {
+  "slug": "honnoji-kyoto",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%9C%AC%E8%83%BD%E5%AF%BA",
+   "https://www.wikidata.org/wiki/Q626535",
+   "https://kyoto-honnouji.jp/",
+   "https://kyoto-honnouji.jp/pages/info",
+   "https://kyoto-honnouji.jp/pages/about"
+  ]
+ },
+ {
+  "slug": "national-museum-of-japanese-history",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%9B%BD%E7%AB%8B%E6%AD%B4%E5%8F%B2%E6%B0%91%E4%BF%97%E5%8D%9A%E7%89%A9%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q3330690",
+   "https://www.rekihaku.ac.jp/",
+   "https://www.rekihaku.ac.jp/about_site/",
+   "https://www.rekihaku.ac.jp/exhibitions/",
+   "https://www.rekihaku.ac.jp/information/"
+  ]
+ },
+ {
+  "slug": "kawaguchi-green-center",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%B7%9D%E5%8F%A3%E5%B8%82%E7%AB%8B%E3%82%B0%E3%83%AA%E3%83%BC%E3%83%B3%E3%82%BB%E3%83%B3%E3%82%BF%E3%83%BC",
+   "https://www.wikidata.org/wiki/Q6379501",
+   "https://greencenter.1110city.com",
+   "https://greencenter.1110city.com/info.html",
+   "https://greencenter.1110city.com/group.html",
+   "https://greencenter.1110city.com/facility.html"
+  ]
+ },
+ {
+  "slug": "komagata-jinja-mizusawa",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E9%A7%92%E5%BD%A2%E7%A5%9E%E7%A4%BE",
+   "https://www.wikidata.org/wiki/Q11668370",
+   "https://komagata.iwate.jp/",
+   "https://komagata.iwate.jp/about/"
+  ]
+ },
+ {
+  "slug": "mimoca",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E4%B8%B8%E4%BA%80%E5%B8%82%E7%8C%AA%E7%86%8A%E5%BC%A6%E4%B8%80%E9%83%8E%E7%8F%BE%E4%BB%A3%E7%BE%8E%E8%A1%93%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q11367991",
+   "https://www.mimoca.jp/",
+   "https://www.mimoca.jp/about/"
+  ]
+ },
+ {
+  "slug": "kushihiki-hachimangu",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E6%AB%9B%E5%BC%95%E5%85%AB%E5%B9%A1%E5%AE%AE",
+   "https://www.wikidata.org/wiki/Q11544667",
+   "https://www.kushihikihachimangu.com/",
+   "https://www.kushihikihachimangu.com/about/",
+   "https://www.kushihikihachimangu.com/treasure/"
+  ]
+ },
+ {
+  "slug": "moco-osaka",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E5%A4%A7%E9%98%AA%E5%B8%82%E7%AB%8B%E6%9D%B1%E6%B4%8B%E9%99%B6%E7%A3%81%E7%BE%8E%E8%A1%93%E9%A4%A8",
+   "https://www.wikidata.org/wiki/Q11440555",
+   "https://www.moco.or.jp/",
+   "https://www.moco.or.jp/qa/exhibit/",
+   "https://www.moco.or.jp/guide/access/"
+  ]
+ },
+ {
+  "slug": "hirakata-park",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E3%81%B2%E3%82%89%E3%81%8B%E3%81%9F%E3%83%91%E3%83%BC%E3%82%AF",
+   "https://www.wikidata.org/wiki/Q302897",
+   "https://www.hirakatapark.co.jp/",
+   "https://www.hirakatapark.co.jp/topics/offline-ad/"
+  ]
+ },
+ {
+  "slug": "flower-park-kagoshima",
+  "date": "2026-11-26",
+  "sources": [
+   "https://ja.wikipedia.org/wiki/%E3%83%95%E3%83%A9%E3%83%AF%E3%83%BC%E3%83%91%E3%83%BC%E3%82%AF%E3%81%8B%E3%81%94%E3%81%97%E3%81%BE",
+   "https://www.wikidata.org/wiki/Q11283335",
+   "https://www.fp-k.org/",
+   "https://www.fp-k.org/information/"
+  ]
  }
 ]
