@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { GetCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
@@ -190,6 +191,9 @@ export const postStoryReply: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (
         : (!emoji && typeof body.emoji === "string" ? body.emoji : "");
     const text = truncate(rawText.trim(), TEXT_MAX);
     if (!emoji && !text) return jsonError(400, "返信を入力してください");
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejected = rejectBlockedText(text);
+    if (rejected) return rejected;
 
     try {
         const story = await loadStory(storyId);

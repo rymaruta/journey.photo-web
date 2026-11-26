@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2, APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
@@ -217,6 +218,9 @@ export const postComment: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     }
     const text = typeof body.text === "string" ? truncate(body.text.trim(), TEXT_MAX) : "";
     if (!text) return jsonError(400, "コメントを入力してください");
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejected = rejectBlockedText(text);
+    if (rejected) return rejected;
     // 返信先（コメントの id）。無い・null は返信ではない。形の違う値は断る（黙ってふつうのコメントに化けさせない）
     const replyToId = body.replyTo === undefined || body.replyTo === null || body.replyTo === ""
         ? undefined

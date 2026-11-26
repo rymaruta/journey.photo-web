@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { randomUUID } from "node:crypto";
 import { GetCommand, PutCommand, UpdateCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
@@ -309,6 +310,9 @@ export const createHighlight: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
 
     const title = sanitizeText(body.title, HIGHLIGHT_TITLE_MAX);
     if (!title) return jsonError(400, "ハイライトの名前を入れてください");
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejectedTitle = rejectBlockedText(title);
+    if (rejectedTitle) return rejectedTitle;
     const checked = await checkStories(userId, body.storyIds);
     if (isRejection(checked)) return jsonError(checked.statusCode, checked.error);
     const cover = pickCover(body, checked.ids);
@@ -370,6 +374,9 @@ export const updateHighlight: APIGatewayProxyHandlerV2WithJWTAuthorizer = async 
 
     const title = sanitizeText(body.title, HIGHLIGHT_TITLE_MAX);
     if (!title) return jsonError(400, "ハイライトの名前を入れてください");
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejectedTitle = rejectBlockedText(title);
+    if (rejectedTitle) return rejectedTitle;
     const checked = await checkStories(userId, body.storyIds);
     if (isRejection(checked)) return jsonError(checked.statusCode, checked.error);
     const cover = pickCover(body, checked.ids);

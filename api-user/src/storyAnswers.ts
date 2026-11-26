@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { GetCommand, PutCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import { v4 as uuidv4 } from "uuid";
@@ -131,6 +132,9 @@ export const answerStory: APIGatewayProxyHandlerV2WithJWTAuthorizer = async (eve
     // 文字列のときだけ（`{"text":{"a":1}}` を `[object Object]` にしない）
     const text = typeof body.text === "string" ? truncate(body.text.trim(), STORY_ANSWER_LEN_MAX) : "";
     if (!text) return jsonError(400, "答えを入力してください");
+    // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）
+    const rejected = rejectBlockedText(text);
+    if (rejected) return rejected;
 
     try {
         const story = await loadStory(storyId);

@@ -1,3 +1,4 @@
+import { rejectBlockedText } from "./contentFilter";
 import type { APIGatewayProxyHandlerV2WithJWTAuthorizer } from "aws-lambda";
 import { UpdateCommand, GetCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
 import { ddb, PHOTOS_TABLE } from "./dynamodb";
@@ -278,6 +279,22 @@ export const updatePhotoVisibility: APIGatewayProxyHandlerV2WithJWTAuthorizer = 
         // 壊れたページが残る。いいね・コメントと同じ扱いにする。
         if (existing.Item.story === true) {
             return { statusCode: 404, headers: JSON_HEADERS, body: JSON.stringify({ error: "写真が見つかりません" }) };
+        }
+
+        // ひどい言葉は保存しない（App Store 1.2・`contentFilter.ts`）。**変えた項目だけを見る**——画面は保存の
+        // たびに全部の項目を送るので、保存済みの文で断ると、その写真を非公開にする・公開範囲を絞る保存まで止まる
+        // （直したい人ほど困る）。見るのは保存する形（整えたあと）
+        {
+            const metaNow: Array<[string, unknown]> = [
+                ["title", sanitizeTitle(body.title)], ["description", sanitizeDescription(body.description)],
+                ["location", sanitizeText(body.location, 200)], ["category", sanitizeText(body.category, 100)],
+                ["tags", sanitizeTags(body.tags)],
+            ];
+            const changedText = metaNow
+                .filter(([col, v]) => col in body && !sameStoredValue(v, existing.Item?.[col]))
+                .map(([, v]) => v);
+            const rejectedText = rejectBlockedText(...changedText);
+            if (rejectedText) return rejectedText;
         }
 
         /**
